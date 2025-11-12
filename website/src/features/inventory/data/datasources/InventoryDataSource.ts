@@ -4,6 +4,7 @@
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
+import type { InventoryMetadataResponse } from '../../domain/entities/InventoryMetadata';
 
 interface InventoryResponse {
   products: any[];
@@ -46,7 +47,6 @@ export class InventoryDataSource {
     const { data, error } = await supabase.rpc('get_inventory_page', rpcParams);
 
     if (error) {
-      console.error('Error fetching inventory:', error);
       throw new Error(error.message);
     }
 
@@ -59,7 +59,6 @@ export class InventoryDataSource {
     }
 
     // Fallback
-    console.error('Unexpected data format:', data);
     throw new Error('Invalid response format from get_inventory_page');
   }
 
@@ -86,20 +85,9 @@ export class InventoryDataSource {
       p_new_quantity: productData.currentStock,
     };
 
-    console.log('🔍 Update Product RPC Call:', {
-      productId,
-      companyId,
-      storeId,
-      productData,
-      params,
-    });
-
     const { data, error } = await supabase.rpc('inventory_edit_product', params);
 
-    console.log('📥 Update Product RPC Response:', { data, error });
-
     if (error) {
-      console.error('❌ Error updating product:', error);
       return {
         success: false,
         error: error.message,
@@ -108,13 +96,11 @@ export class InventoryDataSource {
 
     // Handle success wrapper response
     if (data && typeof data === 'object' && 'success' in data) {
-      console.log('✅ Success wrapper detected:', data);
       if (data.success === true) {
         return {
           success: true,
         };
       } else {
-        console.error('❌ RPC returned failure:', data.error);
         return {
           success: false,
           error: data.error?.message || 'Failed to update product',
@@ -122,9 +108,26 @@ export class InventoryDataSource {
       }
     }
 
-    console.log('✅ Update product successful (no wrapper)');
     return {
       success: true,
     };
+  }
+
+  async getMetadata(
+    companyId: string,
+    storeId?: string
+  ): Promise<InventoryMetadataResponse> {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('get_inventory_metadata', {
+      p_company_id: companyId,
+      p_store_id: storeId || null,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as InventoryMetadataResponse;
   }
 }

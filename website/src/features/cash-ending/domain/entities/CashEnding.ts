@@ -55,9 +55,14 @@ export class CashEnding {
 
   /**
    * Get formatted date
+   * Date string is already in local timezone (yyyy-MM-dd format)
    */
   get formattedDate(): string {
-    return new Date(this.date).toLocaleDateString('en-US', {
+    // Parse date string as local date to avoid timezone shift
+    const [year, month, day] = this.date.split('-').map(Number);
+    const localDate = new Date(year, month - 1, day);
+
+    return localDate.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

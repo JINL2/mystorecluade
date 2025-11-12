@@ -138,6 +138,7 @@
 .balanceAmount {
   font-size: 28px;
   font-weight: 700;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers */
   font-variant-numeric: tabular-nums;
 }
 
@@ -262,6 +263,7 @@
 .transactionLineAmount {
   font-size: 20px;
   font-weight: 700;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers */
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -466,7 +468,8 @@
   border-radius: var(--radius-xl);
   max-width: 800px;
   width: 100%;
-  max-height: 95vh;
+  min-height: 75vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);

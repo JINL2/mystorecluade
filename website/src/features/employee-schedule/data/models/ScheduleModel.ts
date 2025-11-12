@@ -5,6 +5,7 @@
 
 import { ScheduleShift } from '../../domain/entities/ScheduleShift';
 import { ScheduleAssignment } from '../../domain/entities/ScheduleAssignment';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import type {
   ScheduleRawData,
   ScheduleShiftRaw,
@@ -72,11 +73,15 @@ export class ScheduleModel {
             color: undefined, // Color not provided in nested structure
           });
 
+          // Convert UTC date from DB to local time (yyyy-MM-dd format)
+          const localDate = DateTimeUtils.toLocalSafe(dayData.date);
+          const dateString = localDate ? DateTimeUtils.toDateOnly(localDate) : dayData.date;
+
           const assignment = ScheduleAssignment.create({
-            assignment_id: `${dayData.date}-${shiftInDay.shift_id}-${employee.user_id}`,
+            assignment_id: `${dateString}-${shiftInDay.shift_id}-${employee.user_id}`,
             user_id: employee.user_id,
             full_name: employee.user_name,
-            date: dayData.date,
+            date: dateString,
             shift,
             status: employee.status || 'scheduled',
           });

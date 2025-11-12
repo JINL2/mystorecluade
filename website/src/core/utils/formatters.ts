@@ -14,6 +14,34 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
+ * Format currency with Vietnamese dong symbol
+ */
+export function formatCurrencyVND(amount: number): string {
+  if (amount === null || amount === undefined || amount === 0) {
+    return '0 ₫';
+  }
+  return amount.toLocaleString('vi-VN') + ' ₫';
+}
+
+/**
+ * Format currency with symbol based on currency code
+ */
+export function formatCurrencyWithSymbol(amount: number, currencyCode: string = 'KRW'): string {
+  const symbol = getCurrencySymbol(currencyCode);
+
+  if (amount === null || amount === undefined || amount === 0) {
+    return `0 ${symbol}`;
+  }
+
+  const formatted = amount.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+  return `${symbol}${formatted}`;
+}
+
+/**
  * Format journal entry date for display
  */
 export function formatJournalDate(date: string): string {

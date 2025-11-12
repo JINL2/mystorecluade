@@ -185,7 +185,7 @@
 }
 
 .balanceAmount {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: #212529;
@@ -196,7 +196,7 @@
 }
 
 .actualAmountDisplay {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: #00C896;
@@ -220,9 +220,10 @@
 }
 
 .emptyIcon {
-  font-size: 64px;
-  margin-bottom: 24px;
-  opacity: 0.5;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .emptyTitle {
@@ -250,8 +251,10 @@
 }
 
 .errorIcon {
-  font-size: 64px;
+  width: 120px;
+  height: 120px;
   margin-bottom: 24px;
+  display: block;
 }
 
 .errorTitle {
@@ -342,7 +345,7 @@
 }
 
 .differenceAmount {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 16px;
   font-weight: 700;
   font-feature-settings: 'tnum';

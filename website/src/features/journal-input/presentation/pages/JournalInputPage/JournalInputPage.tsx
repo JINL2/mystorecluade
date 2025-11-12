@@ -38,25 +38,26 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     counterparties,
     loading,
     submitting,
-    error,
     addTransactionLine,
     updateTransactionLine,
     removeTransactionLine,
     submitJournalEntry,
+    resetJournalEntry,
   } = useJournalInput(companyId, selectedStoreId, user?.id || '');
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<'debit' | 'credit'>('debit');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Error message states
   const [showValidationError, setShowValidationError] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [errorMessageText, setErrorMessageText] = useState('');
 
   const handleStoreSelect = (storeId: string | null) => {
     setSelectedStoreId(storeId);
+    resetJournalEntry(storeId);
   };
 
   // Show loading if no company selected yet
@@ -80,16 +81,19 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   };
 
   const handleAddDebit = () => {
+    setEditingIndex(null);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
 
   const handleAddCredit = () => {
+    setEditingIndex(null);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
 
   const handleAddTransaction = () => {
+    setEditingIndex(null);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
@@ -123,16 +127,26 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
       null  // debtCategory - not used in this context
     );
 
-    addTransactionLine(transactionLine);
+    // If editing, update the line; otherwise, add new line
+    if (editingIndex !== null) {
+      updateTransactionLine(editingIndex, transactionLine);
+    } else {
+      addTransactionLine(transactionLine);
+    }
+
     setIsTransactionModalOpen(false);
+    setEditingIndex(null);
   };
 
   const handleTransactionCancel = () => {
     setIsTransactionModalOpen(false);
+    setEditingIndex(null);
   };
 
   const handleEditTransaction = (index: number) => {
-    // Open modal with transaction data for editing
+    setEditingIndex(index);
+    const line = journalEntry.transactionLines[index];
+    setModalTransactionType(line.isDebit ? 'debit' : 'credit');
     setIsTransactionModalOpen(true);
   };
 
@@ -146,12 +160,11 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
       return;
     }
 
-    setShowConfirmDialog(true);
+    // Directly submit without confirmation dialog
+    handleConfirmSubmit();
   };
 
   const handleConfirmSubmit = async () => {
-    setShowConfirmDialog(false);
-
     const result = await submitJournalEntry();
     if (result.success) {
       setShowSuccessMessage(true);
@@ -163,7 +176,6 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
 
   // Get submit button text based on state
   const getSubmitButtonText = () => {
-    if (submitting) return 'Submitting...';
     if (journalEntry.transactionLines.length === 0) return 'Add transactions to submit';
     if (!journalEntry.isBalanced) return 'Balance debits and credits';
     return 'Submit Journal Entry';
@@ -397,68 +409,89 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
               variant="primary"
               size="lg"
               onClick={handleSubmit}
-              disabled={!journalEntry.canSubmit() || submitting}
+              disabled={!journalEntry.canSubmit()}
+              loading={submitting}
               className={styles.submitBtn}
             >
               {getSubmitButtonText()}
             </TossButton>
           </div>
         </div>
-
-        {error && (
-          <div style={{ marginTop: '16px', padding: '12px', background: '#FEE', borderRadius: '8px', color: '#C00' }}>
-            {error}
-          </div>
-        )}
       </div>
 
       {/* Transaction Modal */}
-      {isTransactionModalOpen && (
-        <div className={styles.modalOverlay} onClick={handleTransactionCancel}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Add Transaction</h2>
-              <button className={styles.modalClose} onClick={handleTransactionCancel}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                </svg>
-              </button>
-            </div>
-            <div className={styles.modalBody}>
-              <TransactionForm
-                isDebit={modalTransactionType === 'debit'}
-                onSubmit={handleTransactionSubmit}
-                onCancel={handleTransactionCancel}
-                accounts={accounts}
-                cashLocations={cashLocations}
-                counterparties={counterparties}
-                companyId={companyId}
-                storeId={selectedStoreId}
-                suggestedAmount={Math.abs(journalEntry.difference)}
-              />
-            </div>
-            <div className={styles.modalFooter}>
-              <TossButton variant="outline" size="lg" onClick={handleTransactionCancel}>
-                Cancel
-              </TossButton>
-              <TossButton
-                variant="primary"
-                size="lg"
-                onClick={() => {
-                  // Submit form by triggering the hidden submit button
-                  const form = document.querySelector('form');
-                  if (form) {
-                    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-                    submitBtn?.click();
-                  }
-                }}
-              >
-                Add
-              </TossButton>
+      {isTransactionModalOpen && (() => {
+        // Get initial data for edit mode
+        const isEditMode = editingIndex !== null;
+        const editingLine = isEditMode ? journalEntry.transactionLines[editingIndex] : null;
+        const initialData = editingLine ? {
+          accountId: editingLine.accountId,
+          accountName: editingLine.accountName,
+          categoryTag: editingLine.categoryTag || undefined,
+          amount: editingLine.amount,
+          description: editingLine.description || undefined,
+          isDebit: editingLine.isDebit,
+          cashLocationId: editingLine.cashLocationId || undefined,
+          counterpartyId: editingLine.counterpartyId || undefined,
+        } : undefined;
+
+        // Get the cash location ID that should be hidden from dropdown
+        // If editing a line that has cash location, allow it to remain selectable
+        // Otherwise, hide the cash location that's already used in other transactions
+        const disabledCashLocationId = isEditMode
+          ? (editingLine?.cashLocationId ? null : journalEntry.getCashLocationId())
+          : journalEntry.getCashLocationId();
+
+        return (
+          <div className={styles.modalOverlay} onClick={handleTransactionCancel}>
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.modalTitle}>{isEditMode ? 'Edit Transaction' : 'Add Transaction'}</h2>
+                <button className={styles.modalClose} onClick={handleTransactionCancel}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                  </svg>
+                </button>
+              </div>
+              <div className={styles.modalBody}>
+                <TransactionForm
+                  isDebit={modalTransactionType === 'debit'}
+                  onSubmit={handleTransactionSubmit}
+                  onCancel={handleTransactionCancel}
+                  accounts={accounts}
+                  cashLocations={cashLocations}
+                  counterparties={counterparties}
+                  companyId={companyId}
+                  storeId={selectedStoreId}
+                  suggestedAmount={Math.abs(journalEntry.difference)}
+                  initialData={initialData}
+                  isEditMode={isEditMode}
+                  disabledCashLocationId={disabledCashLocationId}
+                />
+              </div>
+              <div className={styles.modalFooter}>
+                <TossButton variant="outline" size="lg" onClick={handleTransactionCancel}>
+                  Cancel
+                </TossButton>
+                <TossButton
+                  variant="primary"
+                  size="lg"
+                  onClick={() => {
+                    // Submit form by triggering the hidden submit button
+                    const form = document.querySelector('form');
+                    if (form) {
+                      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+                      submitBtn?.click();
+                    }
+                  }}
+                >
+                  {isEditMode ? 'Update' : 'Add'}
+                </TossButton>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Validation Error Message */}
       <ErrorMessage
@@ -466,24 +499,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
         isOpen={showValidationError}
         onClose={() => setShowValidationError(false)}
         message="Journal entry must be balanced with at least 2 transaction lines"
-        position="center"
         zIndex={10000}
-        showBackdrop={true}
-        closeOnBackdropClick={true}
-      />
-
-      {/* Confirm Submit Dialog */}
-      <ErrorMessage
-        variant="info"
-        isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        message="Submit this journal entry?"
-        actionText="확인"
-        onAction={handleConfirmSubmit}
-        position="center"
-        zIndex={10000}
-        showBackdrop={true}
-        closeOnBackdropClick={false}
       />
 
       {/* Success Message */}
@@ -492,11 +508,8 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
         isOpen={showSuccessMessage}
         onClose={() => setShowSuccessMessage(false)}
         message="Journal entry submitted successfully!"
-        position="center"
         zIndex={10000}
-        showBackdrop={true}
-        closeOnBackdropClick={true}
-        autoCloseDuration={3000}
+        autoCloseDuration={2000}
       />
 
       {/* Error Message */}
@@ -505,10 +518,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
         isOpen={showErrorMessage}
         onClose={() => setShowErrorMessage(false)}
         message={errorMessageText}
-        position="center"
         zIndex={10000}
-        showBackdrop={true}
-        closeOnBackdropClick={true}
       />
     </>
   );

@@ -6,6 +6,7 @@
 import { SalaryRecord } from '../../domain/entities/SalaryRecord';
 import { SalarySummary } from '../../domain/entities/SalarySummary';
 import type { SalaryRawData, SalaryEmployeeRaw } from '../datasources/SalaryDataSource';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class SalaryModel {
   /**
@@ -41,7 +42,9 @@ export class SalaryModel {
       total_salary: salaryInfo?.total_payment || 0,
       currency_symbol: currencyInfo.currency_symbol,
       currency_code: currencyInfo.currency_code,
-      payment_date: rawData.payment_date,
+      payment_date: rawData.payment_date
+        ? DateTimeUtils.toLocal(rawData.payment_date)  // Convert UTC → Local
+        : null,
       status: rawData.status || 'pending',
     });
   }

@@ -2,11 +2,102 @@
  * TossSelector Component
  * Custom dropdown selector with button+menu approach (not native select)
  * Supports footer actions like "Add category" and "Add brand"
+ *
+ * @design Design Specifications (Reference - Account Mapping Implementation)
+ *
+ * Structure:
+ * - Button trigger: Shows selected value with dropdown arrow
+ * - Dropdown menu: Positioned below button with search, options, footer
+ * - Option layout: [badge?] label [description?] [checkmark?]
+ *
+ * Typography:
+ * - Label (above selector): 14px, font-weight: 600, color: var(--toss-gray-800)
+ * - Select button text: 16px, font-weight: 500, color: var(--toss-gray-900)
+ * - Placeholder: 16px, font-weight: 500, color: var(--toss-gray-500)
+ * - Option label: 16px, font-weight: 600, color: inherit
+ * - Option description: 12px, font-weight: 600, letter-spacing: 0.3px
+ * - Search input: 14px, color: var(--toss-gray-900)
+ *
+ * Badge Specifications:
+ * - Purpose: Short text (2 letters recommended), icons, or emojis
+ * - Size: width: 32px, font-size: 18px
+ * - Position: Left side of option
+ * - Background: Customizable via badgeColor prop
+ * - Visibility: Controlled by showBadges prop (default: false)
+ *
+ * Description Specifications:
+ * - Purpose: Category labels, type tags, secondary information
+ * - Typography: 12px, font-weight: 600, letter-spacing: 0.3px
+ * - Position: Right-aligned, margin-left: auto
+ * - Dimensions: Content-based width (flex-shrink: 0), padding: 4px 8px
+ * - Border: border-radius: 4px
+ * - Colors: Customizable via descriptionBgColor, descriptionColor props
+ * - Visibility: Controlled by showDescriptions prop (default: false)
+ *
+ * Color Examples (from Account Mapping):
+ * - Cash: bg: rgba(34, 197, 94, 0.15), text: rgb(34, 197, 94)
+ * - Receivable: bg: rgba(59, 130, 246, 0.15), text: rgb(59, 130, 246)
+ * - Payable: bg: rgba(239, 68, 68, 0.15), text: rgb(239, 68, 68)
+ * - Fixed Asset: bg: rgba(168, 85, 247, 0.15), text: rgb(168, 85, 247)
+ * - Equity: bg: rgba(14, 165, 233, 0.15), text: rgb(14, 165, 233)
+ * - Contra Asset: bg: rgba(107, 114, 128, 0.15), text: rgb(107, 114, 128)
+ * - General: bg: rgba(107, 114, 128, 0.15), text: rgb(107, 114, 128)
+ *
+ * States:
+ * - Default: border: 1px solid var(--toss-gray-300)
+ * - Hover: background: var(--toss-gray-50), border: var(--toss-primary)
+ * - Active/Open: border: var(--toss-primary), box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08)
+ * - Disabled: background: var(--toss-gray-100), color: var(--toss-gray-500)
+ * - Error: border: var(--toss-error)
+ *
+ * Option States:
+ * - Default: background: transparent
+ * - Hover: background: var(--toss-gray-50)
+ * - Selected: background: rgba(0, 100, 255, 0.08), color: var(--toss-primary)
+ * - Selected + Hover: background: rgba(0, 100, 255, 0.12)
+ *
+ * @example Usage Pattern (Account Selection)
+ * ```tsx
+ * // Helper: Get 2-letter initials from name
+ * const getInitials = (name: string): string => {
+ *   if (!name) return '??';
+ *   const words = name.trim().split(' ');
+ *   if (words.length === 1) return name.substring(0, 2).toUpperCase();
+ *   return words.slice(0, 2).map(w => w[0]).join('').toUpperCase();
+ * };
+ *
+ * // Transform data to TossSelector format
+ * const options = useMemo(() => {
+ *   return accounts.map(account => ({
+ *     value: account.id,
+ *     label: account.name,
+ *     badge: getInitials(account.name), // Optional: 2-letter initials
+ *     description: account.category_tag !== 'general' ? account.category_tag : undefined,
+ *     descriptionBgColor: getCategoryBgColor(account.category_tag),
+ *     descriptionColor: getCategoryTextColor(account.category_tag),
+ *   }));
+ * }, [accounts]);
+ *
+ * // Use TossSelector
+ * <TossSelector
+ *   label="Account"
+ *   placeholder="Select Account"
+ *   value={selectedId}
+ *   options={options}
+ *   onChange={(value) => setSelectedId(value)}
+ *   searchable={true}
+ *   showBadges={false}        // Hide badges if not needed
+ *   showDescriptions={true}    // Show category labels
+ *   required={true}
+ *   fullWidth={true}
+ * />
+ * ```
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { TossSelectorProps } from './TossSelector.types';
 import styles from './TossSelector.module.css';
+import { LoadingAnimation } from '../../common/LoadingAnimation';
 
 export const TossSelector: React.FC<TossSelectorProps> = ({
   id,
@@ -144,7 +235,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
           </span>
 
           {loading ? (
-            <div className={styles.tossSelectSpinner} />
+            <LoadingAnimation size="small" />
           ) : (
             <svg className={styles.tossSelectArrow} viewBox="0 0 24 24" fill="currentColor">
               <path d="M7 10l5 5 5-5z"/>
@@ -170,8 +261,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
           <div className={styles.tossSelectOptions}>
             {loading ? (
               <div className={styles.tossSelectLoading}>
-                <div className={styles.tossSelectSpinner} />
-                <div>Loading...</div>
+                <LoadingAnimation size="medium" />
               </div>
             ) : filteredOptions.length === 0 ? (
               <div className={styles.tossSelectEmpty}>{emptyMessage}</div>
@@ -203,7 +293,13 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
                     <div className={styles.tossSelectOptionContent}>
                       <div className={styles.tossSelectOptionLabel}>{option.label}</div>
                       {showDescriptions && option.description && (
-                        <div className={styles.tossSelectOptionDescription}>
+                        <div
+                          className={styles.tossSelectOptionDescription}
+                          style={{
+                            backgroundColor: option.descriptionBgColor,
+                            color: option.descriptionColor
+                          }}
+                        >
                           {option.description}
                         </div>
                       )}

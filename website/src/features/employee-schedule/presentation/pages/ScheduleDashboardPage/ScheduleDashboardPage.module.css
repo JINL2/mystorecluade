@@ -101,6 +101,7 @@
   font-weight: 700;
   color: var(--text-primary, #1a1a1a);
   line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .overviewLabel {
@@ -179,6 +180,7 @@
   font-weight: 700;
   color: var(--text-primary, #1a1a1a);
   line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .statLabel {

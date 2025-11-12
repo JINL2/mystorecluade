@@ -1,13 +1,13 @@
 import { ICurrencyRepository, CurrencyResult, CurrencyTypesResult } from '../../domain/repositories/ICurrencyRepository';
-import { Currency } from '../../domain/entities/Currency';
 import { CurrencyDataSource } from '../datasources/CurrencyDataSource';
+import { CurrencyModel } from '../models/CurrencyModel';
 
 export class CurrencyRepositoryImpl implements ICurrencyRepository {
   private dataSource = new CurrencyDataSource();
   async getCurrencies(companyId: string): Promise<CurrencyResult> {
     try {
-      const data = await this.dataSource.getCurrencies(companyId);
-      const currencies = data.map((d: any) => new Currency(d.currency_id, d.company_id, d.code, d.symbol, d.name, d.is_default, d.exchange_rate));
+      const dtos = await this.dataSource.getCurrencies(companyId);
+      const currencies = dtos.map(dto => CurrencyModel.toEntity(dto));
       return { success: true, data: currencies };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed' };
@@ -40,6 +40,14 @@ export class CurrencyRepositoryImpl implements ICurrencyRepository {
   async addCurrency(currencyId: string, companyId: string, exchangeRate: number, userId: string) {
     try {
       await this.dataSource.addCurrency(currencyId, companyId, exchangeRate, userId);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed' };
+    }
+  }
+  async removeCurrency(currencyId: string, companyId: string) {
+    try {
+      await this.dataSource.removeCurrency(currencyId, companyId);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed' };

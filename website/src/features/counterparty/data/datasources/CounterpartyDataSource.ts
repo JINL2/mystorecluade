@@ -1,14 +1,22 @@
 /**
  * CounterpartyDataSource
+ * Handles direct database operations via Supabase
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
-import { CounterpartyType } from '../../domain/entities/Counterparty';
+import { CounterpartyTypeValue } from '../../domain/entities/Counterparty';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class CounterpartyDataSource {
   async getCounterparties(companyId: string) {
     const supabase = supabaseService.getClient();
-    const { data, error } = await supabase.rpc('get_counterparties', { p_company_id: companyId });
+    const { data, error } = await supabase
+      .from('counterparties')
+      .select('counterparty_id, company_id, name, type, is_internal, linked_company_id, email, phone, notes, is_deleted, created_at')
+      .eq('company_id', companyId)
+      .eq('is_deleted', false)
+      .order('name', { ascending: true });
+
     if (error) throw new Error(error.message);
     return data || [];
   }
@@ -16,53 +24,46 @@ export class CounterpartyDataSource {
   async createCounterparty(
     companyId: string,
     name: string,
-    type: CounterpartyType,
-    contact: string | null,
+    type: CounterpartyTypeValue,
+    isInternal: boolean,
+    linkedCompanyId: string | null,
     email: string | null,
     phone: string | null,
-    address: string | null
+    notes: string | null
   ) {
     const supabase = supabaseService.getClient();
-    const { data, error } = await supabase.rpc('create_counterparty', {
-      p_company_id: companyId,
-      p_name: name,
-      p_type: type,
-      p_contact: contact,
-      p_email: email,
-      p_phone: phone,
-      p_address: address,
-    });
+    const { data, error } = await supabase
+      .from('counterparties')
+      .insert({
+        company_id: companyId,
+        name,
+        type,
+        is_internal: isInternal,
+        linked_company_id: linkedCompanyId,
+        email,
+        phone,
+        notes,
+        is_deleted: false,
+      })
+      .select()
+      .single();
+
     if (error) throw new Error(error.message);
     return data;
   }
 
-  async updateCounterparty(
-    counterpartyId: string,
-    name: string,
-    contact: string | null,
-    email: string | null,
-    phone: string | null,
-    address: string | null
-  ) {
+  async deleteCounterparty(counterpartyId: string, companyId: string) {
     const supabase = supabaseService.getClient();
-    const { data, error } = await supabase.rpc('update_counterparty', {
-      p_counterparty_id: counterpartyId,
-      p_name: name,
-      p_contact: contact,
-      p_email: email,
-      p_phone: phone,
-      p_address: address,
-    });
-    if (error) throw new Error(error.message);
-    return data;
-  }
+    const { error } = await supabase
+      .from('counterparties')
+      .update({
+        is_deleted: true,
+        updated_at: DateTimeUtils.nowUtc(),
+      })
+      .eq('counterparty_id', counterpartyId)
+      .eq('company_id', companyId);
 
-  async deleteCounterparty(counterpartyId: string) {
-    const supabase = supabaseService.getClient();
-    const { data, error } = await supabase.rpc('delete_counterparty', {
-      p_counterparty_id: counterpartyId,
-    });
     if (error) throw new Error(error.message);
-    return data;
+    return true;
   }
 }

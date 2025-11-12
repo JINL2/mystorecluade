@@ -11,7 +11,7 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  background: #FFFFFF;
+  background: var(--color-gray-50);
 }
 
 /* Page Header */
@@ -67,6 +67,7 @@
   font-weight: 700;
   color: var(--toss-primary);
   margin: 0 0 var(--space-1) 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .statLabel {
@@ -198,6 +199,7 @@
   font-size: var(--font-medium);
   font-weight: 500;
   color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .currencyCardFooter {

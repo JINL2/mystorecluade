@@ -4,6 +4,8 @@
  */
 
 import React from 'react';
+import { formatCurrencyVND } from '@/core/utils/formatters';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './CashEndingConfirmModal.module.css';
 import type { CashEndingConfirmModalProps } from './CashEndingConfirmModal.types';
 
@@ -18,13 +20,6 @@ export const CashEndingConfirmModal: React.FC<CashEndingConfirmModalProps> = ({
   isLoading = false,
 }) => {
   if (!isOpen) return null;
-
-  const formatCurrency = (amount: number) => {
-    if (amount === null || amount === undefined || amount === 0) {
-      return '0 ₫';
-    }
-    return Math.abs(amount).toLocaleString('vi-VN') + ' ₫';
-  };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && !isLoading) {
@@ -84,7 +79,7 @@ export const CashEndingConfirmModal: React.FC<CashEndingConfirmModalProps> = ({
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Variance:</span>
               <span className={`${styles.infoValue} ${styles.varianceAmount}`}>
-                {formatCurrency(variance)}
+                {formatCurrencyVND(Math.abs(variance))}
               </span>
             </div>
           </div>
@@ -105,10 +100,7 @@ export const CashEndingConfirmModal: React.FC<CashEndingConfirmModalProps> = ({
             disabled={isLoading}
           >
             {isLoading ? (
-              <>
-                <span className={styles.spinner}></span>
-                Processing...
-              </>
+              <LoadingAnimation size="small" />
             ) : (
               <>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">

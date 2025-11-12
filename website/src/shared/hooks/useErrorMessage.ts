@@ -20,10 +20,10 @@ interface ShowMessageOptions {
   message: string;
   details?: string;
   autoCloseDuration?: number;
-  position?: ErrorMessageProps['position'];
+  confirmText?: string;
   actionText?: string;
   onAction?: () => void;
-  showBackdrop?: boolean;
+  onConfirm?: () => void;
   closeOnBackdropClick?: boolean;
 }
 

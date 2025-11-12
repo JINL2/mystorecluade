@@ -1,11 +1,16 @@
 /**
  * useAccountMapping Hook
  * Custom hook for account mapping management
+ *
+ * Following Clean Architecture:
+ * - Executes validation using domain validators
+ * - Calls repository for data operations
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { AccountMapping, AccountType } from '../../domain/entities/AccountMapping';
+import { AccountMapping } from '../../domain/entities/AccountMapping';
 import { AccountMappingRepositoryImpl } from '../../data/repositories/AccountMappingRepositoryImpl';
+import { AccountMappingValidator } from '../../domain/validators/AccountMappingValidator';
 
 export const useAccountMapping = (companyId: string) => {
   const [mappings, setMappings] = useState<AccountMapping[]>([]);
@@ -48,22 +53,36 @@ export const useAccountMapping = (companyId: string) => {
 
   const createMapping = useCallback(
     async (
-      accountCode: string,
-      accountName: string,
-      accountType: AccountType,
-      description: string | null
+      counterpartyCompanyId: string,
+      myAccountId: string,
+      linkedAccountId: string,
+      direction: string,
+      createdBy: string
     ) => {
-      if (!companyId) {
-        return { success: false, error: 'Company ID is required' };
+      // Step 1: Execute validation using domain validator
+      const validationErrors = AccountMappingValidator.validateCreateMapping({
+        myCompanyId: companyId,
+        counterpartyCompanyId,
+        myAccountId,
+        linkedAccountId,
+        direction,
+        createdBy,
+      });
+
+      if (validationErrors.length > 0) {
+        const errorMessage = validationErrors.map((e) => e.message).join(', ');
+        return { success: false, error: errorMessage };
       }
 
+      // Step 2: Call repository for data operation
       try {
         const result = await repository.createAccountMapping(
           companyId,
-          accountCode,
-          accountName,
-          accountType,
-          description
+          counterpartyCompanyId,
+          myAccountId,
+          linkedAccountId,
+          direction,
+          createdBy
         );
 
         if (result.success) {
@@ -81,40 +100,30 @@ export const useAccountMapping = (companyId: string) => {
     [companyId, loadMappings]
   );
 
-  const updateMapping = useCallback(
-    async (
-      mappingId: string,
-      accountCode: string,
-      accountName: string,
-      accountType: AccountType,
-      description: string | null
-    ) => {
+  const getCompanyAccounts = useCallback(
+    async (targetCompanyId: string) => {
       try {
-        const result = await repository.updateAccountMapping(
-          mappingId,
-          accountCode,
-          accountName,
-          accountType,
-          description
-        );
-
-        if (result.success) {
-          await loadMappings();
-        }
-
-        return result;
+        return await repository.getCompanyAccounts(targetCompanyId);
       } catch (err) {
         return {
           success: false,
-          error: err instanceof Error ? err.message : 'Failed to update mapping',
+          error: err instanceof Error ? err.message : 'Failed to fetch company accounts',
         };
       }
     },
-    [loadMappings]
+    []
   );
 
   const deleteMapping = useCallback(
     async (mappingId: string) => {
+      // Step 1: Execute validation using domain validator
+      const validationError = AccountMappingValidator.validateDeleteMapping(mappingId);
+
+      if (validationError) {
+        return { success: false, error: validationError.message };
+      }
+
+      // Step 2: Call repository for data operation
       try {
         const result = await repository.deleteAccountMapping(mappingId);
 
@@ -142,7 +151,7 @@ export const useAccountMapping = (companyId: string) => {
     loading,
     error,
     createMapping,
-    updateMapping,
+    getCompanyAccounts,
     deleteMapping,
     refresh,
   };

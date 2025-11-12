@@ -3,7 +3,7 @@
  * Main page for product receiving
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -11,12 +11,13 @@ import { useAppState } from '@/app/providers/app_state_provider';
 import { useProductReceive } from '../../hooks/useProductReceive';
 import { OrderSelector } from '../../components/OrderSelector';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import styles from './ProductReceivePage.module.css';
 
 export const ProductReceivePage: React.FC = () => {
   const { currentCompany, currentStore, setCurrentStore } = useAppState();
   const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
 
   const {
     orders,
@@ -46,9 +47,21 @@ export const ProductReceivePage: React.FC = () => {
   const handleSubmit = async () => {
     const result = await submitReceive();
     if (result.success) {
-      setShowSuccessMessage(true);
+      showSuccess({
+        message: 'Products received successfully!',
+        autoCloseDuration: 2000,
+      });
     }
   };
+
+  // Show error message when error occurs
+  useEffect(() => {
+    if (error) {
+      showError({
+        message: error,
+      });
+    }
+  }, [error, showError]);
 
   // Calculate progress
   const totalItems = selectedOrder?.totalItems || 0;
@@ -312,7 +325,6 @@ export const ProductReceivePage: React.FC = () => {
                       </div>
 
                       <div className={styles.actions}>
-                        {error && <div className={styles.error}>{error}</div>}
                         <button
                           onClick={clearAllScanned}
                           className={styles.btnSecondary}
@@ -325,7 +337,14 @@ export const ProductReceivePage: React.FC = () => {
                           className={styles.btnPrimary}
                           disabled={submitting || scannedItems.length === 0}
                         >
-                          {submitting ? 'Submitting...' : 'Submit Receive'}
+                          {submitting ? (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                              <LoadingAnimation size="small" />
+                              <span>Submitting...</span>
+                            </div>
+                          ) : (
+                            'Submit Receive'
+                          )}
                         </button>
                       </div>
                     </>
@@ -337,15 +356,16 @@ export const ProductReceivePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Success Message */}
+      {/* Unified Error/Success Message */}
       <ErrorMessage
-        variant="success"
-        message="Products received successfully!"
-        isOpen={showSuccessMessage}
-        onClose={() => setShowSuccessMessage(false)}
-        position="top-center"
-        autoCloseDuration={3000}
-        showBackdrop={true}
+        variant={messageState.variant}
+        message={messageState.message}
+        title={messageState.title}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText}
+        onConfirm={messageState.onConfirm}
+        autoCloseDuration={messageState.autoCloseDuration}
       />
     </>
   );

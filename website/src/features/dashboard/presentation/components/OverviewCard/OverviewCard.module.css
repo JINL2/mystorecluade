@@ -42,7 +42,7 @@
 .value {
   font-size: 32px;
   font-weight: 700;
-  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
   color: var(--color-gray-900);
   line-height: 1.2;
 }

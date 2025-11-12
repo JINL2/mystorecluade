@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useSchedule } from '../../hooks/useSchedule';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { useAppState } from '@/app/providers/app_state_provider';
@@ -80,9 +81,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           <div className={styles.header}>
             <h1 className={styles.title}>Employee Schedule</h1>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading company data...</div>
-          </div>
+          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -201,9 +200,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           <div className={styles.header}>
             <h1 className={styles.title}>Employee Schedule</h1>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading schedule...</div>
-          </div>
+          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -218,11 +215,17 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
             <h1 className={styles.title}>Employee Schedule</h1>
           </div>
           <div className={styles.errorContainer}>
-            <div className={styles.errorIcon}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-              </svg>
-            </div>
+            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+
+              {/* Error Triangle */}
+              <path d="M60 30 L90 80 L30 80 Z" fill="white" stroke="#FF5847" strokeWidth="2"/>
+
+              {/* Exclamation Mark */}
+              <line x1="60" y1="50" x2="60" y2="65" stroke="#FF5847" strokeWidth="3" strokeLinecap="round"/>
+              <circle cx="60" cy="72" r="2" fill="#FF5847"/>
+            </svg>
             <h2 className={styles.errorTitle}>Failed to Load Schedule</h2>
             <p className={styles.errorMessage}>{error}</p>
             <TossButton onClick={refresh} variant="primary">
@@ -296,11 +299,40 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
       <div className={styles.scheduleSection}>
         {weekDays.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-              </svg>
-            </div>
+            <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
+
+              {/* Calendar Base */}
+              <rect x="30" y="35" width="60" height="55" rx="6" fill="white" stroke="#0064FF" strokeWidth="2"/>
+
+              {/* Calendar Header */}
+              <rect x="30" y="35" width="60" height="15" rx="6" fill="#0064FF"/>
+              <rect x="30" y="43" width="60" height="7" fill="#0064FF"/>
+
+              {/* Calendar Rings */}
+              <circle cx="42" cy="35" r="3" fill="white"/>
+              <circle cx="60" cy="35" r="3" fill="white"/>
+              <circle cx="78" cy="35" r="3" fill="white"/>
+
+              {/* Calendar Grid - Week Days */}
+              <line x1="37" y1="58" x2="47" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="52" y1="58" x2="62" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="67" y1="58" x2="77" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+
+              <line x1="37" y1="68" x2="47" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="52" y1="68" x2="62" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="67" y1="68" x2="77" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+
+              <line x1="37" y1="78" x2="47" y2="78" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="52" y1="78" x2="62" y2="78" stroke="#0064FF" strokeWidth="3" strokeLinecap="round"/>
+              <line x1="67" y1="78" x2="77" y2="78" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
+
+              {/* Empty State Icon - Question Mark Circle */}
+              <circle cx="60" cy="95" r="14" fill="#0064FF"/>
+              <path d="M60 88 Q60 85 63 85 Q66 85 66 88 Q66 91 63 93 L60 95" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              <circle cx="60" cy="99" r="1.5" fill="white"/>
+            </svg>
             <h3 className={styles.emptyTitle}>No Schedule Available</h3>
             <p className={styles.emptyText}>No schedule data for the selected week</p>
           </div>

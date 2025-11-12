@@ -1,11 +1,12 @@
 /**
  * OrderRepositoryImpl
  * Implementation of IOrderRepository interface
+ * Uses OrderModel for DTO-to-Entity conversion
  */
 
 import { IOrderRepository, OrderResult } from '../../domain/repositories/IOrderRepository';
-import { Order } from '../../domain/entities/Order';
 import { OrderDataSource } from '../datasources/OrderDataSource';
+import { OrderModel } from '../models/OrderModel';
 
 export class OrderRepositoryImpl implements IOrderRepository {
   private dataSource: OrderDataSource;
@@ -23,24 +24,10 @@ export class OrderRepositoryImpl implements IOrderRepository {
       ]);
 
       // Get currency symbol from fetched data, fallback to $ if not available
-      const currencySymbol = currencyData?.currency_symbol || '$';
+      const defaultCurrencySymbol = currencyData?.currency_symbol || '$';
 
-      const orders = ordersData.map(
-        (item: any) =>
-          new Order(
-            item.order_id,
-            item.order_number,
-            item.order_date,
-            item.supplier_name,
-            item.item_count || (item.items ? item.items.length : 0),
-            item.total_quantity || (item.summary ? item.summary.total_ordered : 0),
-            item.total_amount,
-            item.status,
-            item.currency_symbol || currencySymbol,
-            item.items,
-            item.summary
-          )
-      );
+      // Use OrderModel to convert raw data to Order entities
+      const orders = OrderModel.fromJsonArray(ordersData, defaultCurrencySymbol);
 
       return {
         success: true,

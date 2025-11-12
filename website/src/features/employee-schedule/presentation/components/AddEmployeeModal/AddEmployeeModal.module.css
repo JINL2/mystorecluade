@@ -31,8 +31,9 @@
   background-color: #FFFFFF;
   border-radius: 16px;
   width: 100%;
-  max-width: 650px;
+  max-width: 800px;
   max-height: 90vh;
+  min-height: 600px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -56,7 +57,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
+  padding: 28px 32px;
   border-bottom: 1px solid #F0F0F0;
 }
 
@@ -97,10 +98,10 @@
 
 /* Modal Body */
 .modalBody {
-  padding: 24px;
+  padding: 32px;
   overflow-y: auto;
   flex: 1;
-  max-height: 65vh;
+  max-height: 70vh;
 }
 
 .dateDisplay {
@@ -140,8 +141,8 @@
 /* Modal Footer */
 .modalFooter {
   display: flex;
-  gap: 12px;
-  padding: 24px;
+  gap: 16px;
+  padding: 28px 32px;
   border-top: 1px solid #F0F0F0;
   background-color: #F8F9FA;
 }
@@ -149,8 +150,8 @@
 .cancelButton,
 .addButton {
   flex: 1;
-  height: 48px;
-  padding: 16px 24px;
+  height: 52px;
+  padding: 16px 28px;
   border-radius: 8px;
   font-size: 16px;
   font-weight: 600;

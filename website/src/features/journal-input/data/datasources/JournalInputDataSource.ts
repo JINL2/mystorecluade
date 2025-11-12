@@ -4,7 +4,6 @@
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class JournalInputDataSource {
   /**
@@ -124,10 +123,13 @@ export class JournalInputDataSource {
       return transformedLine;
     });
 
-    // Convert date string (yyyy-MM-dd) to Date object at start of day in local timezone
-    // then convert to UTC for database storage
-    const entryDate = new Date(params.date + 'T00:00:00');
-    const utcEntryDate = DateTimeUtils.toRpcFormat(entryDate);
+    // Convert date string (yyyy-MM-dd) to current datetime in UTC RPC format
+    // Create a Date object with current time, then convert to RPC format
+    const now = new Date();
+    const [year, month, day] = params.date.split('-').map(Number);
+    const dateWithTime = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+    const utcIsoString = dateWithTime.toISOString();
+    const utcEntryDate = utcIsoString.replace('T', ' ').split('.')[0];
 
     const { data, error } = await supabase.rpc('insert_journal_with_everything', {
       p_base_amount: totalAmount,

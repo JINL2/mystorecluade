@@ -5,11 +5,7 @@
 
 import { JournalEntry } from '../entities/JournalEntry';
 import { TransactionLine } from '../entities/TransactionLine';
-
-export interface ValidationError {
-  field: string;
-  message: string;
-}
+import type { ValidationError } from '../types/ValidationTypes';
 
 export class JournalEntryValidator {
   /**

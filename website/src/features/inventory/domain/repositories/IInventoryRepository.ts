@@ -4,6 +4,7 @@
  */
 
 import { InventoryItem } from '../entities/InventoryItem';
+import { InventoryMetadata } from '../entities/InventoryMetadata';
 
 export interface InventoryResult {
   success: boolean;
@@ -50,4 +51,12 @@ export interface IInventoryRepository {
     storeId: string,
     data: UpdateProductData
   ): Promise<{ success: boolean; error?: string }>;
+
+  /**
+   * Get inventory metadata (categories, brands, units, product types)
+   */
+  getMetadata(
+    companyId: string,
+    storeId?: string
+  ): Promise<{ success: boolean; data?: InventoryMetadata; error?: string }>;
 }

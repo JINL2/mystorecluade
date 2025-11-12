@@ -5,6 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useInvoice } from '../../hooks/useInvoice';
 import { useInvoiceDetail } from '../../hooks/useInvoiceDetail';
 import { TossButton } from '@/shared/components/toss/TossButton';
@@ -16,6 +19,7 @@ import styles from './InvoicePage.module.css';
 
 export const InvoicePage: React.FC<InvoicePageProps> = () => {
   const { currentCompany } = useAppState();
+  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
 
   // Get company ID from app state
   const companyId = currentCompany?.company_id || '';
@@ -68,18 +72,26 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
 
     setRefunding(true);
     try {
-      const repository = new (await import('../../../data/repositories/InvoiceRepositoryImpl')).InvoiceRepositoryImpl();
-      const result = await repository.refundInvoice(selectedInvoice.invoiceId);
+      const result = await refundInvoice(selectedInvoice.invoiceId);
 
       if (result.success) {
-        alert(result.message || 'Invoice refunded successfully');
+        showSuccess({
+          message: result.message || 'Invoice refunded successfully',
+          autoCloseDuration: 3000
+        });
         handleCloseModal();
         refresh(); // Refresh invoice list
       } else {
-        alert(`Failed to refund invoice: ${result.error}`);
+        showError({
+          title: 'Refund Failed',
+          message: result.error || 'Failed to refund invoice. Please try again.'
+        });
       }
     } catch (error) {
-      alert(`Error refunding invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError({
+        title: 'Refund Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred'
+      });
     } finally {
       setRefunding(false);
     }
@@ -102,6 +114,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     changeSearch,
     changePage,
     refresh,
+    refundInvoice,
   } = useInvoice(companyId, selectedStoreId);
 
   // Handle store change
@@ -132,9 +145,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
       <>
         <Navbar activeItem="product" />
         <div className={styles.container}>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading company data...</div>
-          </div>
+          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -150,9 +161,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
               <h1 className={styles.title}>Invoices</h1>
             </div>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading invoices...</div>
-          </div>
+          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -169,7 +178,18 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
             </div>
           </div>
           <div className={styles.errorContainer}>
-            <div className={styles.errorIcon}>⚠️</div>
+            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+
+              {/* Error Symbol */}
+              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="60" cy="73" r="2.5" fill="white"/>
+
+              {/* Document with Error */}
+              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+            </svg>
             <h2 className={styles.errorTitle}>Failed to Load Invoices</h2>
             <p className={styles.errorMessage}>{error}</p>
             <TossButton onClick={refresh} variant="primary">
@@ -380,9 +400,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
             {/* Content */}
             <div className={styles.modalBody}>
               {detailLoading ? (
-                <div className={styles.loadingState}>
-                  <div className={styles.spinner}>Loading details...</div>
-                </div>
+                <LoadingAnimation fullscreen size="large" />
               ) : detail ? (
                 <>
                   {/* Quick Summary */}
@@ -569,6 +587,15 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
           </div>
         </div>
       )}
+
+      {/* Error/Success Message */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+      />
     </div>
     </>
   );

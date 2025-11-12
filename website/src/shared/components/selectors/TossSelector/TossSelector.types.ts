@@ -8,8 +8,10 @@ export interface TossSelectorOption {
   label: string;
   description?: string;
   disabled?: boolean;
-  badge?: string;        // Badge text (e.g., categoryTag)
-  badgeColor?: string;   // Optional badge color
+  badge?: string;              // Badge text (e.g., categoryTag)
+  badgeColor?: string;         // Optional badge background color
+  descriptionBgColor?: string; // Optional description background color
+  descriptionColor?: string;   // Optional description text color
 }
 
 export interface TossSelectorProps {

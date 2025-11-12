@@ -2,7 +2,7 @@
  * ICounterpartyRepository Interface
  */
 
-import { Counterparty, CounterpartyType } from '../entities/Counterparty';
+import { Counterparty, CounterpartyTypeValue } from '../entities/Counterparty';
 
 export interface CounterpartyResult {
   success: boolean;
@@ -16,11 +16,6 @@ export interface CreateCounterpartyResult {
   error?: string;
 }
 
-export interface UpdateCounterpartyResult {
-  success: boolean;
-  error?: string;
-}
-
 export interface DeleteCounterpartyResult {
   success: boolean;
   error?: string;
@@ -31,19 +26,12 @@ export interface ICounterpartyRepository {
   createCounterparty(
     companyId: string,
     name: string,
-    type: CounterpartyType,
-    contact: string | null,
+    type: CounterpartyTypeValue,
+    isInternal: boolean,
+    linkedCompanyId: string | null,
     email: string | null,
     phone: string | null,
-    address: string | null
+    notes: string | null
   ): Promise<CreateCounterpartyResult>;
-  updateCounterparty(
-    counterpartyId: string,
-    name: string,
-    contact: string | null,
-    email: string | null,
-    phone: string | null,
-    address: string | null
-  ): Promise<UpdateCounterpartyResult>;
-  deleteCounterparty(counterpartyId: string): Promise<DeleteCounterpartyResult>;
+  deleteCounterparty(counterpartyId: string, companyId: string): Promise<DeleteCounterpartyResult>;
 }

@@ -6,13 +6,13 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../../hooks/useInventory';
 import { useInventoryMetadata } from '../../hooks/useInventoryMetadata';
-import { InventoryRepositoryImpl } from '../../../data/repositories/InventoryRepositoryImpl';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { ProductDetailsModal } from '../../components/ProductDetailsModal';
 import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { InventoryPageProps } from './InventoryPage.types';
 import styles from './InventoryPage.module.css';
@@ -55,14 +55,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     message: '',
   });
 
-  const { inventory, loading, error, refresh, currencySymbol, currencyCode } =
+  const { inventory, loading, error, refresh, currencySymbol, currencyCode, updateProduct } =
     useInventory(companyId, selectedStoreId, searchQuery);
 
   // Fetch inventory metadata (categories, brands, product types, units)
-  const { metadata, loading: metadataLoading, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
-
-  // Repository instance
-  const repository = new InventoryRepositoryImpl();
+  const { metadata, loading: metadataLoading, error: metadataError, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
 
   // Helper function to format currency with strikethrough symbol
   const formatCurrency = (amount: number): string => {
@@ -163,9 +160,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           <div className={styles.header}>
             <h1 className={styles.title}>Inventory</h1>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading company data...</div>
-          </div>
+          <LoadingAnimation fullscreen={true} size="large" />
         </div>
       </>
     );
@@ -192,15 +187,14 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           </div>
 
           <div className={styles.contentCard}>
-            <div className={styles.loadingState}>
-              <div className={styles.spinner}>Loading inventory...</div>
-            </div>
+            <LoadingAnimation fullscreen={true} size="large" />
           </div>
         </div>
       </>
     );
   }
 
+  // Show error modal if inventory loading fails
   if (error) {
     return (
       <>
@@ -222,16 +216,23 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           </div>
 
           <div className={styles.contentCard}>
-            <div className={styles.errorContainer}>
-              <div className={styles.errorIcon}>⚠️</div>
-              <h2 className={styles.errorTitle}>Failed to Load Inventory</h2>
-              <p className={styles.errorMessage}>{error}</p>
-              <TossButton onClick={refresh} variant="primary">
-                Try Again
-              </TossButton>
-            </div>
+            <LoadingAnimation fullscreen={true} size="large" />
           </div>
         </div>
+
+        {/* Error Message Modal */}
+        <ErrorMessage
+          isOpen={true}
+          variant="error"
+          title="Failed to Load Inventory"
+          message={error}
+          onClose={() => {}}
+          confirmText="Try Again"
+          onConfirm={refresh}
+          closeOnBackdropClick={false}
+          closeOnEscape={false}
+          zIndex={9999}
+        />
       </>
     );
   }
@@ -346,8 +347,20 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           {/* Inventory Table */}
           {inventory.length === 0 ? (
             <div className={styles.emptyState}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+              <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
+                {/* Box Icon */}
+                <rect x="35" y="35" width="50" height="50" rx="4" fill="white" stroke="#0064FF" strokeWidth="2"/>
+                <rect x="40" y="40" width="40" height="40" rx="2" fill="#F0F6FF" stroke="#0064FF" strokeWidth="1.5"/>
+                {/* Shelves */}
+                <line x1="42" y1="50" x2="78" y2="50" stroke="#0064FF" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="42" y1="60" x2="78" y2="60" stroke="#0064FF" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="42" y1="70" x2="78" y2="70" stroke="#0064FF" strokeWidth="2" strokeLinecap="round"/>
+                {/* Search Symbol */}
+                <circle cx="70" cy="80" r="12" fill="#0064FF"/>
+                <circle cx="70" cy="80" r="5" stroke="white" strokeWidth="2" fill="none"/>
+                <line x1="74" y1="84" x2="78" y2="88" stroke="white" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               <h3 className={styles.emptyTitle}>No products found</h3>
               <p className={styles.emptyText}>
@@ -481,43 +494,22 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         productData={selectedProductData}
         metadata={metadata}
         onSave={async (updatedData) => {
-          console.log('🔍 InventoryPage onSave called with:', {
-            productId: selectedProductData?.productId,
-            companyId,
-            storeId: selectedStoreId,
-            updatedData,
-          });
+          const result = await updateProduct(
+            selectedProductData?.productId || '',
+            updatedData
+          );
 
-          try {
-            const result = await repository.updateProduct(
-              selectedProductData?.productId || '',
-              companyId,
-              selectedStoreId || '',
-              updatedData
-            );
-
-            console.log('📥 Repository updateProduct result:', result);
-
-            if (result.success) {
-              setNotification({
-                isOpen: true,
-                variant: 'success',
-                message: 'Product updated successfully!',
-              });
-              refresh();
-            } else {
-              setNotification({
-                isOpen: true,
-                variant: 'error',
-                message: result.error || 'Failed to update product',
-              });
-            }
-          } catch (err) {
-            console.error('❌ Error in onSave:', err);
+          if (result.success) {
+            setNotification({
+              isOpen: true,
+              variant: 'success',
+              message: 'Product updated successfully!',
+            });
+          } else {
             setNotification({
               isOpen: true,
               variant: 'error',
-              message: err instanceof Error ? err.message : 'An unexpected error occurred',
+              message: result.error || 'Failed to update product',
             });
           }
         }}
@@ -531,8 +523,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         companyId={companyId}
         storeId={selectedStoreId}
         metadata={metadata}
-        onProductAdded={(product) => {
-          console.log('Product added:', product);
+        onProductAdded={() => {
           // Refresh inventory list to show new product
           refresh();
         }}
@@ -545,10 +536,25 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         variant={notification.variant}
         message={notification.message}
         onClose={() => setNotification({ ...notification, isOpen: false })}
-        autoCloseDuration={3000}
-        position="top-center"
+        autoCloseDuration={2000}
         zIndex={9999}
       />
+
+      {/* Metadata Error Message */}
+      {metadataError && (
+        <ErrorMessage
+          isOpen={true}
+          variant="warning"
+          title="Failed to Load Metadata"
+          message={metadataError}
+          onClose={() => {}}
+          confirmText="Retry"
+          onConfirm={refreshMetadata}
+          showCancelButton={true}
+          cancelText="Dismiss"
+          zIndex={9998}
+        />
+      )}
     </>
   );
 };

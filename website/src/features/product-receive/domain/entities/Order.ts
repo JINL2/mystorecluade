@@ -10,7 +10,7 @@ export interface Order {
   orderNumber: string;
   supplierName: string;
   status: 'pending' | 'partial' | 'completed' | 'cancelled';
-  orderDate: string;
+  orderDate: Date;
   totalItems: number;
   receivedItems: number;
   remainingItems: number;
@@ -22,7 +22,7 @@ export class OrderEntity implements Order {
   orderNumber: string;
   supplierName: string;
   status: 'pending' | 'partial' | 'completed' | 'cancelled';
-  orderDate: string;
+  orderDate: Date;
   totalItems: number;
   receivedItems: number;
   remainingItems: number;

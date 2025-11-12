@@ -1,9 +1,11 @@
 /**
  * Dashboard Data Source
  * Data layer - Handles Supabase RPC calls for dashboard
+ * Uses centralized message constants for error handling
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
+import { DashboardMessages } from '../../domain/constants/DashboardMessages';
 
 export interface DashboardRawData {
   today_revenue: number;
@@ -11,6 +13,7 @@ export interface DashboardRawData {
   this_month_revenue: number;
   last_month_revenue: number;
   currency: {
+    currency_id?: string;
     symbol: string;
     currency_code: string;
   };
@@ -20,12 +23,18 @@ export interface DashboardRawData {
     percentage: number;
   }>;
   recent_transactions: Array<{
-    id: string;
-    date: string;
-    description: string;
-    amount: number;
-    type: 'income' | 'expense';
-    category?: string;
+    journal_id: string;
+    entry_date: string;
+    created_at: string;
+    description: string | null;
+    total_amount: number;
+    lines: Array<{
+      account_name: string;
+      account_type: 'asset' | 'liability' | 'equity' | 'income' | 'expense';
+      debit: number;
+      credit: number;
+      description: string | null;
+    }>;
   }>;
 }
 
@@ -40,7 +49,7 @@ export class DashboardDataSource {
     date: string
   ): Promise<{ success: boolean; data?: DashboardRawData; error?: string }> {
     try {
-      console.log('📊 Fetching dashboard data for:', { companyId, date });
+      console.log(DashboardMessages.technical.rpcDebugFetch({ companyId, date }));
       const supabase = supabaseService.getClient();
 
       const { data, error } = await supabase.rpc('get_dashboard_page', {
@@ -48,34 +57,34 @@ export class DashboardDataSource {
         p_date: date,
       });
 
-      console.log('📦 Dashboard RPC Response:', { data, error });
+      console.log(DashboardMessages.technical.rpcDebugResponse(data, error));
 
       if (error) {
-        console.error('❌ Dashboard RPC error:', error);
+        console.error(DashboardMessages.technical.rpcDebugError(error));
         return {
           success: false,
-          error: error.message || 'Failed to fetch dashboard data',
+          error: error.message || DashboardMessages.errors.rpcFailed,
         };
       }
 
       if (!data) {
-        console.warn('⚠️ No data returned from dashboard RPC');
+        console.warn(DashboardMessages.technical.rpcDebugNoData);
         return {
           success: false,
-          error: 'No data returned from dashboard',
+          error: DashboardMessages.errors.noDataReturned,
         };
       }
 
-      console.log('✅ Dashboard data fetched successfully');
+      console.log(DashboardMessages.technical.rpcDebugSuccess);
       return {
         success: true,
         data: data as DashboardRawData,
       };
     } catch (error) {
-      console.error('💥 Dashboard datasource error:', error);
+      console.error(DashboardMessages.technical.datasourceError(error));
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : DashboardMessages.errors.unknownError,
       };
     }
   }

@@ -112,8 +112,10 @@
 }
 
 .errorIcon {
-  font-size: 64px;
+  width: 120px;
+  height: 120px;
   margin-bottom: 24px;
+  display: block;
 }
 
 .errorTitle {
@@ -180,7 +182,7 @@
   font-size: 28px;
   font-weight: 700; /* Bold */
   color: #212529; /* Gray 900 */
-  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers */
   text-decoration: none; /* Remove any underline */
   margin-bottom: 4px;
 }
@@ -237,7 +239,7 @@
   font-size: 18px; /* H4 */
   font-weight: 700; /* Bold */
   color: #212529; /* Gray 900 */
-  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers */
   text-decoration: none; /* Remove any underline */
 }
 
@@ -271,7 +273,7 @@
   font-size: 14px; /* Body */
   font-weight: 600; /* Semibold */
   color: #212529; /* Gray 900 */
-  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers */
   text-decoration: none; /* Remove any underline */
 }
 

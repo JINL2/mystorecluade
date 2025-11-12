@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { Currency } from '../../../domain/entities/Currency';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './EditCurrencyModal.module.css';
 
 interface EditCurrencyModalProps {
   currency: Currency | null;
   baseCurrencyCode: string;
   onClose: () => void;
-  onSave: (currencyId: string, newRate: number) => Promise<void>;
+  onSave: (currencyId: string, newRate: number | string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const EditCurrencyModal: React.FC<EditCurrencyModalProps> = ({
@@ -21,6 +23,7 @@ export const EditCurrencyModal: React.FC<EditCurrencyModalProps> = ({
   const [loadingLiveRate, setLoadingLiveRate] = useState(false);
   const [liveRateError, setLiveRateError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<{ title?: string; message: string } | null>(null);
 
   useEffect(() => {
     if (currency) {
@@ -86,19 +89,26 @@ export const EditCurrencyModal: React.FC<EditCurrencyModalProps> = ({
   const handleSave = async () => {
     if (!currency) return;
 
-    const rate = parseFloat(exchangeRate);
-    if (isNaN(rate) || rate <= 0) {
-      alert('Please enter a valid exchange rate');
-      return;
-    }
-
     setSaving(true);
+    setError(null);
+
     try {
-      await onSave(currency.currencyId, rate);
-      onClose();
-    } catch (error) {
-      console.error('Error saving:', error);
-      alert('Failed to save exchange rate');
+      // Validation is now handled by useCurrency hook (ARCHITECTURE.md pattern)
+      const result = await onSave(currency.currencyId, exchangeRate);
+
+      if (result.success) {
+        onClose();
+      } else {
+        setError({
+          title: 'Failed to Update Exchange Rate',
+          message: result.error || 'An error occurred while updating the exchange rate. Please try again.'
+        });
+      }
+    } catch (err) {
+      setError({
+        title: 'Unexpected Error',
+        message: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.'
+      });
     } finally {
       setSaving(false);
     }
@@ -157,7 +167,11 @@ export const EditCurrencyModal: React.FC<EditCurrencyModalProps> = ({
             />
             <div className={styles.exchangeRateInfo}>
               <div className={styles.liveRateDisplay}>
-                {loadingLiveRate && <span className={styles.loadingRate}>Loading live rate...</span>}
+                {loadingLiveRate && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <LoadingAnimation size="small" />
+                  </div>
+                )}
                 {!loadingLiveRate && liveRateError && <span className={styles.rateError}>{liveRateError}</span>}
                 {!loadingLiveRate && liveRate && !liveRateError && (
                   <span className={styles.liveRateText}>
@@ -184,10 +198,26 @@ export const EditCurrencyModal: React.FC<EditCurrencyModalProps> = ({
             Cancel
           </TossButton>
           <TossButton variant="primary" size="md" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <LoadingAnimation size="small" />
+              </div>
+            ) : (
+              'Save Changes'
+            )}
           </TossButton>
         </div>
       </div>
+
+      {/* Error Message */}
+      <ErrorMessage
+        variant="error"
+        title={error?.title}
+        message={error?.message || ''}
+        isOpen={!!error}
+        onClose={() => setError(null)}
+        zIndex={10001}
+      />
     </div>
   );
 };

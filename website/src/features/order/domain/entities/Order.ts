@@ -3,22 +3,34 @@
  * Represents a purchase order
  */
 
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
+
+export interface ReceiptsByStore {
+  [storeName: string]: {
+    store_id: string;
+    quantity_received: number;
+    last_receipt_date: string;
+  };
+}
+
 export interface OrderItem {
   product_id: string;
   product_name: string;
   sku?: string;
   barcode?: string;
   quantity_ordered: number;
-  quantity_received?: number;
+  quantity_received_total?: number;
+  quantity_remaining?: number;
   unit_price: number;
-  subtotal: number;
+  total_amount: number;
+  receipts_by_store?: ReceiptsByStore;
 }
 
 export interface OrderSummary {
   total_products: number;
   total_ordered: number;
   total_received: number;
-  completion_percentage: number;
+  completion_rate: number;
 }
 
 export class Order {
@@ -26,6 +38,7 @@ export class Order {
     public readonly orderId: string,
     public readonly orderNumber: string,
     public readonly orderDate: string,
+    public readonly expectedDate: string | null,
     public readonly supplierName: string,
     public readonly itemCount: number,
     public readonly totalQuantity: number,
@@ -65,13 +78,29 @@ export class Order {
 
   /**
    * Get formatted date
+   * Converts UTC date from DB to local time for display
    */
   get formattedDate(): string {
-    return new Date(this.orderDate).toLocaleDateString('en-US', {
+    const localDate = DateTimeUtils.toLocal(this.orderDate);
+    return DateTimeUtils.formatCustom(localDate, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
+    }, 'en-US');
+  }
+
+  /**
+   * Get formatted expected date
+   * Converts UTC date from DB to local time for display
+   */
+  get formattedExpectedDate(): string | null {
+    if (!this.expectedDate) return null;
+    const localDate = DateTimeUtils.toLocal(this.expectedDate);
+    return DateTimeUtils.formatCustom(localDate, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }, 'en-US');
   }
 
   /**
@@ -96,7 +125,7 @@ export class Order {
       return {
         received: this.summary.total_received,
         total: this.summary.total_ordered,
-        percentage: this.summary.completion_percentage,
+        percentage: this.summary.completion_rate,
       };
     }
     return { received: 0, total: 0, percentage: 0 };

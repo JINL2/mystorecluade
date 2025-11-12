@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useStore } from '../../hooks/useStore';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './StoreSettingPage.module.css';
 
 export const StoreSettingPage: React.FC = () => {
   const { currentCompany } = useAppState();
   const { stores, loading, create, remove } = useStore(currentCompany?.company_id || '');
+  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteStoreId, setDeleteStoreId] = useState('');
@@ -15,18 +19,23 @@ export const StoreSettingPage: React.FC = () => {
   const [newPhone, setNewPhone] = useState('');
 
   const handleAdd = async () => {
-    if (!newName.trim()) {
-      alert('Store name is required');
-      return;
-    }
+    // 검증 로직은 useStore hook에서 처리됨 (StoreValidator 호출)
     const result = await create(newName, newAddress || null, newPhone || null);
     if (result.success) {
       setShowAddModal(false);
       setNewName('');
       setNewAddress('');
       setNewPhone('');
+      showSuccess({
+        title: 'Store Created',
+        message: `Store "${newName}" has been successfully created.`,
+        autoCloseDuration: 3000,
+      });
     } else {
-      alert(result.error || 'Failed to create store');
+      showError({
+        title: 'Failed to Create Store',
+        message: result.error || 'An unexpected error occurred while creating the store.',
+      });
     }
   };
 
@@ -41,8 +50,16 @@ export const StoreSettingPage: React.FC = () => {
       if (result.success) {
         setShowDeleteModal(false);
         setDeleteStoreId('');
+        showSuccess({
+          title: 'Store Deleted',
+          message: 'The store has been successfully deleted.',
+          autoCloseDuration: 3000,
+        });
       } else {
-        alert(result.error || 'Failed to delete store');
+        showError({
+          title: 'Failed to Delete Store',
+          message: result.error || 'An unexpected error occurred while deleting the store.',
+        });
       }
     }
   };
@@ -52,7 +69,7 @@ export const StoreSettingPage: React.FC = () => {
       <>
         <Navbar activeItem="setting" />
         <div className={styles.pageContent}>
-          <div className={styles.spinner} />
+          <LoadingAnimation size="large" fullscreen />
         </div>
       </>
     );
@@ -245,6 +262,18 @@ export const StoreSettingPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ErrorMessage Component */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText}
+        autoCloseDuration={messageState.autoCloseDuration}
+        closeOnBackdropClick={messageState.closeOnBackdropClick}
+      />
     </>
   );
 };

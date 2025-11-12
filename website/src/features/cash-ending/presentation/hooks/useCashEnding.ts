@@ -6,13 +6,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CashEnding } from '../../domain/entities/CashEnding';
 import { CashEndingRepositoryImpl } from '../../data/repositories/CashEndingRepositoryImpl';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export const useCashEnding = (companyId: string, storeId: string | null) => {
   const [cashEndings, setCashEndings] = useState<CashEnding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    DateTimeUtils.toDateOnly(new Date())
   );
 
   const repository = new CashEndingRepositoryImpl();

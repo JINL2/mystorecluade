@@ -1,11 +1,12 @@
 /**
  * useTransactionHistory Hook
- * Custom hook for transaction history management
+ * Custom hook for transaction history management with validation
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { Transaction } from '../../domain/entities/Transaction';
-import { TransactionHistoryRepositoryImpl } from '../../data/repositories/TransactionHistoryRepositoryImpl';
+import { transactionHistoryRepository } from '../../data/repositories/TransactionHistoryRepositoryImpl';
+import { TransactionFilterValidator } from '../../domain/validators/TransactionFilterValidator';
 
 export const useTransactionHistory = (companyId: string, storeId: string | null) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -14,8 +15,6 @@ export const useTransactionHistory = (companyId: string, storeId: string | null)
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().split('T')[0].substring(0, 7) // YYYY-MM
   );
-
-  const repository = new TransactionHistoryRepositoryImpl();
 
   const loadTransactions = useCallback(async () => {
     setLoading(true);
@@ -27,7 +26,22 @@ export const useTransactionHistory = (companyId: string, storeId: string | null)
       const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
       const endDate = new Date(year, month, 0).toISOString().split('T')[0];
 
-      const result = await repository.getTransactions(companyId, storeId, startDate, endDate);
+      // Validate filter parameters
+      const validationErrors = TransactionFilterValidator.validateTransactionFilter(
+        companyId,
+        storeId,
+        startDate,
+        endDate
+      );
+
+      if (validationErrors.length > 0) {
+        setError(validationErrors.map((e) => e.message).join(', '));
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
+      const result = await transactionHistoryRepository.getTransactions(companyId, storeId, startDate, endDate);
 
       if (!result.success) {
         setError(result.error || 'Failed to load transactions');

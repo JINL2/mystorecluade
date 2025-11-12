@@ -3,15 +3,18 @@
  * Cash ending management with daily reconciliation
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { formatCurrencyVND } from '@/core/utils/formatters';
 import { useCashEnding } from '../../hooks/useCashEnding';
 import { useCashEndingJournal } from '../../hooks/useCashEndingJournal';
+import { useCashEndingModal } from '../../hooks/useCashEndingModal';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
 import type { CashEndingPageProps } from './CashEndingPage.types';
 import styles from './CashEndingPage.module.css';
 
@@ -65,36 +68,14 @@ const getIconTextColor = (locationType: string) => {
   }
 };
 
-const formatCurrency = (amount: number) => {
-  if (amount === null || amount === undefined || amount === 0) {
-    return '0 ₫';
-  }
-  return amount.toLocaleString('vi-VN') + ' ₫';
-};
-
 export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
   const { currentCompany, currentStore, setCurrentStore, currentUser } = useAppState();
   const companyId = currentCompany?.company_id || '';
   const storeId = currentStore?.store_id || null;
   const { cashEndings, loading, error, refresh } = useCashEnding(companyId, storeId);
-  const { createJournalEntry, isLoading: isCreatingJournal } = useCashEndingJournal();
-
-  // Modal state
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean;
-    type: 'error' | 'exchange' | null;
-    locationId: string | null;
-    locationName: string;
-    storeId: string | null;
-    difference: number;
-  }>({
-    isOpen: false,
-    type: null,
-    locationId: null,
-    locationName: '',
-    storeId: null,
-    difference: 0
-  });
+  const { createJournalEntry, isLoading: isCreatingJournal, error: journalError } = useCashEndingJournal();
+  const { modalState, openErrorModal, openExchangeModal, closeModal } = useCashEndingModal();
+  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
 
   // Handle store selection
   const handleStoreSelect = (selectedStoreId: string | null) => {
@@ -110,41 +91,6 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     }
   };
 
-  // Handle Make Error button click
-  const handleMakeError = (cashEndingItem: any) => {
-    setModalState({
-      isOpen: true,
-      type: 'error',
-      locationId: cashEndingItem.locationId,
-      locationName: cashEndingItem.locationName,
-      storeId: cashEndingItem.storeId,
-      difference: cashEndingItem.difference
-    });
-  };
-
-  // Handle Foreign Currency Translation button click
-  const handleExchangeRate = (cashEndingItem: any) => {
-    setModalState({
-      isOpen: true,
-      type: 'exchange',
-      locationId: cashEndingItem.locationId,
-      locationName: cashEndingItem.locationName,
-      storeId: cashEndingItem.storeId,
-      difference: cashEndingItem.difference
-    });
-  };
-
-  // Handle modal close
-  const handleModalClose = () => {
-    setModalState({
-      isOpen: false,
-      type: null,
-      locationId: null,
-      locationName: '',
-      storeId: null,
-      difference: 0
-    });
-  };
 
   // Handle modal confirm
   const handleModalConfirm = async () => {
@@ -153,19 +99,15 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
       return;
     }
 
-    // Get user ID
-    let userId = currentUser?.user_id;
-    if (!userId) {
-      const supabase = supabaseService.getClient();
-      if (supabase) {
-        const { data: { session } } = await supabase.auth.getSession();
-        userId = session?.user?.id;
-      }
-    }
+    // Get user ID from current user
+    const userId = currentUser?.user_id;
 
     if (!companyId || !userId) {
       console.error('Missing company ID or user ID');
-      alert('Missing required session data. Please refresh the page.');
+      showError({
+        title: 'Session Error',
+        message: 'Missing required session data. Please refresh the page.'
+      });
       return;
     }
 
@@ -181,19 +123,23 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
 
     if (success) {
       // Close modal
-      handleModalClose();
+      closeModal();
 
       // Show success message
-      alert(
-        modalState.type === 'error'
+      showSuccess({
+        message: modalState.type === 'error'
           ? 'Error entry created successfully'
-          : 'Exchange rate entry created successfully'
-      );
+          : 'Exchange rate entry created successfully',
+        autoCloseDuration: 3000
+      });
 
       // Reload data
       refresh();
     } else {
-      alert('Failed to create journal entry. Please try again.');
+      showError({
+        title: 'Creation Failed',
+        message: journalError || 'Failed to create journal entry. Please try again.'
+      });
     }
   };
 
@@ -238,7 +184,18 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
             <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
           </div>
           <div className={styles.errorContainer}>
-            <div className={styles.errorIcon}>⚠️</div>
+            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+              {/* Error Symbol */}
+              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="60" cy="73" r="2.5" fill="white"/>
+              {/* Document Icon */}
+              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+              <line x1="48" y1="35" x2="72" y2="35" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="48" y1="42" x2="65" y2="42" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
             <h2 className={styles.errorTitle}>Failed to Load Cash Endings</h2>
             <p className={styles.errorMessage}>{error}</p>
           </div>
@@ -294,7 +251,17 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
 
         {cashEndings.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>💰</div>
+            <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
+              {/* Cash Stack */}
+              <ellipse cx="60" cy="45" rx="25" ry="8" fill="white" stroke="#0064FF" strokeWidth="2"/>
+              <path d="M35 45 V55 C35 58 45 61 60 61 C75 61 85 58 85 55 V45" fill="white" stroke="#0064FF" strokeWidth="2"/>
+              <path d="M35 55 V65 C35 68 45 71 60 71 C75 71 85 68 85 65 V55" fill="white" stroke="#0064FF" strokeWidth="2"/>
+              {/* Dollar Sign */}
+              <circle cx="60" cy="80" r="12" fill="#0064FF"/>
+              <path d="M58 74 L58 86 M62 74 L62 86 M56 77 L60 77 C61.5 77 63 78 63 80 C63 82 61.5 83 60 83 L56 83 M60 83 L64 83 C65.5 83 67 82 67 80" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
             <h3 className={styles.emptyTitle}>No Cash Endings</h3>
             <p className={styles.emptyText}>
               No cash ending records found for the selected period
@@ -358,7 +325,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                             <div className={styles.locationType}>From Balance Sheet</div>
                           </div>
                         </div>
-                        <div className={styles.balanceAmount}>{formatCurrency(cashEnding.expectedBalance)}</div>
+                        <div className={styles.balanceAmount}>{formatCurrencyVND(cashEnding.expectedBalance)}</div>
                       </div>
 
                       {/* Actual Column */}
@@ -381,7 +348,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                           </div>
                         </div>
                         <div className={`${styles.actualAmountDisplay} ${!hasActual ? styles.pending : ''}`}>
-                          {formatCurrency(cashEnding.actualBalance)}
+                          {formatCurrencyVND(cashEnding.actualBalance)}
                         </div>
                       </div>
                     </div>
@@ -422,12 +389,12 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                       <div className={styles.differenceLocationName}>{cashEnding.locationName}</div>
                       <div className={styles.differenceAmountActions}>
                         <div className={`${styles.differenceAmount} ${differenceClass}`}>
-                          {difference > 0 ? '+' : ''}{formatCurrency(Math.abs(difference))}
+                          {difference > 0 ? '+' : ''}{formatCurrencyVND(Math.abs(difference))}
                         </div>
                         <div className={styles.actionButtonsSimple}>
                           <button
                             className={`${styles.actionBtnSimple} ${styles.errorBtnSimple}`}
-                            onClick={() => handleMakeError(cashEnding)}
+                            onClick={() => openErrorModal(cashEnding)}
                             disabled={difference === 0}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -437,7 +404,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                           </button>
                           <button
                             className={`${styles.actionBtnSimple} ${styles.exchangeBtnSimple}`}
-                            onClick={() => handleExchangeRate(cashEnding)}
+                            onClick={() => openExchangeModal(cashEnding)}
                             disabled={difference === 0}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -458,7 +425,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
         {/* Confirmation Modal */}
         <ConfirmModal
           isOpen={modalState.isOpen}
-          onClose={handleModalClose}
+          onClose={closeModal}
           onConfirm={handleModalConfirm}
           title={modalState.type === 'error' ? 'Make Error' : 'Foreign Currency Translation'}
           message={
@@ -478,12 +445,21 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 600, color: '#6C757D' }}>Variance:</span>
-              <span style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#FF5847' }}>
-                {formatCurrency(modalState.difference)}
+              <span style={{ fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif', fontWeight: 700, color: '#FF5847' }}>
+                {formatCurrencyVND(Math.abs(modalState.difference))}
               </span>
             </div>
           </div>
         </ConfirmModal>
+
+        {/* Error/Success Message */}
+        <ErrorMessage
+          variant={messageState.variant}
+          title={messageState.title}
+          message={messageState.message}
+          isOpen={messageState.isOpen}
+          onClose={closeMessage}
+        />
       </div>
     </>
   );

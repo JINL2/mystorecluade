@@ -5,6 +5,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { IncomeStatementFilter } from '../../components/IncomeStatementFilter';
 import { useIncomeStatement } from '../../hooks/useIncomeStatement';
@@ -22,7 +24,8 @@ export const IncomeStatementPage: React.FC = () => {
     twelveMonthData,
     currency,
     loading,
-    error,
+    messageState,
+    closeMessage,
     loadMonthlyData,
     load12MonthData,
     clearData,
@@ -125,8 +128,14 @@ export const IncomeStatementPage: React.FC = () => {
   // Format date range for display
   const formatDateRange = (filters: IncomeStatementFilters | null): string => {
     if (!filters) return '';
-    const fromDate = new Date(filters.fromDate);
-    const toDate = new Date(filters.toDate);
+
+    // Parse YYYY-MM-DD string safely (avoid timezone issues)
+    const [fromYear, fromMonth, fromDay] = filters.fromDate.split('-').map(Number);
+    const [toYear, toMonth, toDay] = filters.toDate.split('-').map(Number);
+
+    const fromDate = new Date(fromYear, fromMonth - 1, fromDay);
+    const toDate = new Date(toYear, toMonth - 1, toDay);
+
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return `${fromDate.toLocaleDateString('en-US', options)} - ${toDate.toLocaleDateString('en-US', options)}`;
   };
@@ -371,34 +380,26 @@ export const IncomeStatementPage: React.FC = () => {
     <>
       <Navbar activeItem="finance" />
       <div className={styles.pageContainer}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Income Statement</h1>
-          <p className={styles.pageSubtitle}>View revenue and expenses</p>
-        </div>
+        <div className={styles.pageContent}>
+          <div className={styles.pageHeader}>
+            <h1 className={styles.pageTitle}>Income Statement</h1>
+            <p className={styles.pageSubtitle}>View revenue and expenses</p>
+          </div>
 
-        {/* Filter Section */}
-        <IncomeStatementFilter
-          onSearch={handleSearch}
-          onClear={handleClear}
-          className={styles.filterSection}
-        />
+          {/* Filter Section */}
+          <IncomeStatementFilter
+            onSearch={handleSearch}
+            onClear={handleClear}
+            className={styles.filterSection}
+          />
 
-        {/* Content Section */}
-        <div className={styles.contentSection}>
+          {/* Content Section */}
+          <div className={styles.contentSection}>
           {loading && (
-            <div className={styles.loadingState}>
-              <div className={styles.spinner}></div>
-              <p>Loading income statement...</p>
-            </div>
+            <LoadingAnimation fullscreen size="large" />
           )}
 
-          {error && (
-            <div className={styles.errorState}>
-              <p className={styles.errorMessage}>{error}</p>
-            </div>
-          )}
-
-          {!loading && !error && !monthlyData && !twelveMonthData && (
+          {!loading && !monthlyData && !twelveMonthData && (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>
                 <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
@@ -417,13 +418,23 @@ export const IncomeStatementPage: React.FC = () => {
             </div>
           )}
 
-          {!loading && !error && monthlyData && currentFilters?.type === 'monthly' && (
+          {!loading && monthlyData && currentFilters?.type === 'monthly' && (
             renderMonthlyView(monthlyData)
           )}
 
-          {!loading && !error && twelveMonthData && currentFilters?.type === '12month' && (
+          {!loading && twelveMonthData && currentFilters?.type === '12month' && (
             render12MonthView(twelveMonthData)
           )}
+          </div>
+
+          {/* ErrorMessage Dialog */}
+          <ErrorMessage
+            variant={messageState.variant}
+            title={messageState.title}
+            message={messageState.message}
+            isOpen={messageState.isOpen}
+            onClose={closeMessage}
+          />
         </div>
       </div>
     </>

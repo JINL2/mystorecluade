@@ -16,12 +16,11 @@ export class OrderDataSource {
   async getOrders(companyId: string, storeId: string | null) {
     const supabase = supabaseService.getClient();
 
-    const rpcParams: any = { p_company_id: companyId };
-    if (storeId) {
-      rpcParams.p_store_id = storeId;
-    }
-
-    const { data, error } = await supabase.rpc('get_inventory_order_list', rpcParams);
+    // RPC function only accepts p_company_id parameter
+    // Store filtering is handled within the RPC function
+    const { data, error } = await supabase.rpc('get_inventory_order_list', {
+      p_company_id: companyId
+    });
 
     if (error) {
       console.error('Error fetching orders:', error);

@@ -220,8 +220,6 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
         isOpen={notification.isOpen}
         onClose={() => setNotification({ ...notification, isOpen: false })}
         autoCloseDuration={notification.variant === 'success' ? 1500 : 0}
-        position="top-center"
-        showBackdrop={false}
         zIndex={10000}
       />
     </div>

@@ -8,14 +8,12 @@ import {
   ReceiveItem,
   RepositoryResult,
 } from '../../domain/repositories/IProductReceiveRepository';
-import { Order, OrderEntity } from '../../domain/entities/Order';
-import { OrderProduct, OrderProductEntity } from '../../domain/entities/OrderProduct';
-import { ReceiveResult, ReceiveResultEntity } from '../../domain/entities/ReceiveResult';
-import {
-  ProductReceiveDataSource,
-  OrderDTO,
-  OrderProductDTO,
-} from '../datasources/ProductReceiveDataSource';
+import { Order } from '../../domain/entities/Order';
+import { OrderProduct } from '../../domain/entities/OrderProduct';
+import { ReceiveResult } from '../../domain/entities/ReceiveResult';
+import { ProductReceiveDataSource } from '../datasources/ProductReceiveDataSource';
+import { OrderModel } from '../models/OrderModel';
+import { ReceiveResultModel } from '../models/ReceiveResultModel';
 
 export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
   private dataSource: ProductReceiveDataSource;
@@ -35,41 +33,15 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
         };
       }
 
+      // Convert DTOs to Domain Entities using Model mapper
+      const allOrders = OrderModel.fromDTOArray(response.orders);
+
       // Filter to only receivable orders (pending or partial)
-      const receivableOrders = response.orders.filter(
-        (order: OrderDTO) => order.status === 'pending' || order.status === 'partial'
-      );
-
-      const orders = receivableOrders.map((dto: OrderDTO) => {
-        // Map order items if they exist
-        const items = dto.items?.map((itemDto: OrderProductDTO) => {
-          return new OrderProductEntity({
-            productId: itemDto.product_id,
-            sku: itemDto.sku,
-            productName: itemDto.product_name,
-            quantityOrdered: itemDto.quantity_ordered || 0,
-            quantityReceived: itemDto.quantity_received_total || 0,
-            quantityRemaining: (itemDto.quantity_ordered || 0) - (itemDto.quantity_received_total || 0),
-            unit: '', // Not provided in the backup structure
-          });
-        });
-
-        return new OrderEntity({
-          orderId: dto.order_id,
-          orderNumber: dto.order_number,
-          supplierName: dto.supplier_name,
-          status: dto.status as 'pending' | 'partial' | 'completed' | 'cancelled',
-          orderDate: dto.order_date,
-          totalItems: dto.summary?.total_ordered || 0,
-          receivedItems: dto.summary?.total_received || 0,
-          remainingItems: (dto.summary?.total_ordered || 0) - (dto.summary?.total_received || 0),
-          items: items,
-        });
-      });
+      const receivableOrders = OrderModel.filterReceivableOrders(allOrders);
 
       return {
         success: true,
-        data: orders,
+        data: receivableOrders,
       };
     } catch (error) {
       return {
@@ -104,6 +76,29 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
     };
   }
 
+  async getCurrentUserId(): Promise<RepositoryResult<string>> {
+    try {
+      const userId = await this.dataSource.getCurrentUserId();
+
+      if (!userId) {
+        return {
+          success: false,
+          error: 'User session not found. Please login again.',
+        };
+      }
+
+      return {
+        success: true,
+        data: userId,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get user ID',
+      };
+    }
+  }
+
   async submitReceive(
     companyId: string,
     storeId: string,
@@ -127,13 +122,8 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
         notes
       );
 
-      const result = new ReceiveResultEntity({
-        success: response.success,
-        receiptNumber: response.receipt_number,
-        message: response.message,
-        receivedCount: response.received_count,
-        warnings: response.warnings,
-      });
+      // Convert DTO to Domain Entity using Model mapper
+      const result = ReceiveResultModel.fromDTO(response);
 
       return {
         success: true,

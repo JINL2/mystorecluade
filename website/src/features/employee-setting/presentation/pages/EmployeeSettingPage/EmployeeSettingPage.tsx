@@ -10,6 +10,8 @@ import { EmployeeCard } from '../../components/EmployeeCard';
 import { EditEmployeeModal } from '../../components/EditEmployeeModal';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import type { EmployeeSettingPageProps } from './EmployeeSettingPage.types';
 import styles from './EmployeeSettingPage.module.css';
 
@@ -27,7 +29,18 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
             <h1 className={styles.title}>Team Management</h1>
           </div>
           <div className={styles.errorContainer}>
-            <div className={styles.errorIcon}>⚠️</div>
+            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+
+              {/* Error Symbol */}
+              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="60" cy="73" r="2.5" fill="white"/>
+
+              {/* Document with Error */}
+              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+            </svg>
             <h2 className={styles.errorTitle}>No Company Selected</h2>
             <p className={styles.errorMessage}>Please select a company to view employees</p>
           </div>
@@ -55,6 +68,9 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
     accountId: string;
     initials: string;
   } | null>(null);
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; name: string } | null>(null);
 
   const handleEditEmployee = (userId: string) => {
     const employee = employees.find((emp) => emp.userId === userId);
@@ -89,10 +105,26 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
   };
 
   const handleDeleteEmployee = (userId: string) => {
-    // TODO: Implement delete confirmation
-    if (confirm('Are you sure you want to delete this employee?')) {
-      alert(`Delete employee: ${userId}`);
+    const employee = employees.find((emp) => emp.userId === userId);
+    if (employee) {
+      setDeleteConfirm({
+        userId: employee.userId,
+        name: employee.fullName,
+      });
     }
+  };
+
+  const confirmDeleteEmployee = () => {
+    if (!deleteConfirm) return;
+
+    // TODO: Implement actual delete RPC call
+    console.log('Delete employee:', deleteConfirm.userId);
+
+    // Close confirmation dialog
+    setDeleteConfirm(null);
+
+    // Refresh employee list
+    refresh();
   };
 
   // Get stores from current company
@@ -106,9 +138,7 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
           <div className={styles.header}>
             <h1 className={styles.title}>Team Management</h1>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading employees...</div>
-          </div>
+          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -123,7 +153,18 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
             <h1 className={styles.title}>Team Management</h1>
           </div>
           <div className={styles.errorContainer}>
-            <div className={styles.errorIcon}>⚠️</div>
+            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Background Circle */}
+              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+
+              {/* Error Symbol */}
+              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="60" cy="73" r="2.5" fill="white"/>
+
+              {/* Document with Error */}
+              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+            </svg>
             <h2 className={styles.errorTitle}>Failed to Load Employees</h2>
             <p className={styles.errorMessage}>{error}</p>
             <button onClick={refresh} className={styles.retryButton}>
@@ -185,7 +226,19 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
 
           {employees.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>👤</div>
+              <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
+
+                {/* Person Silhouette */}
+                <circle cx="60" cy="45" r="15" fill="white" stroke="#0064FF" strokeWidth="2"/>
+                <path d="M35 85 Q35 65 60 65 Q85 65 85 85 L85 95 Q85 100 80 100 L40 100 Q35 100 35 95 Z" fill="white" stroke="#0064FF" strokeWidth="2"/>
+
+                {/* Search Icon Overlay */}
+                <circle cx="80" cy="80" r="18" fill="#0064FF"/>
+                <circle cx="80" cy="80" r="8" fill="none" stroke="white" strokeWidth="2.5"/>
+                <line x1="85" y1="85" x2="91" y2="91" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
               <h3 className={styles.emptyTitle}>No Employees Found</h3>
               <p className={styles.emptyText}>
                 {storeFilter
@@ -221,6 +274,19 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
           onClose={handleCloseEditModal}
           employee={selectedEmployee}
           onSave={handleSaveEmployee}
+        />
+
+        {/* Delete Confirmation */}
+        <ErrorMessage
+          variant="warning"
+          title="Confirm Delete"
+          message={`Are you sure you want to delete ${deleteConfirm?.name}? This action cannot be undone.`}
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          showCancelButton={true}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={confirmDeleteEmployee}
         />
       </div>
     </>

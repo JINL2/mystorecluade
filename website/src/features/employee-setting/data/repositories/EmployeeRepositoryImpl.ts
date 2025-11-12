@@ -9,7 +9,7 @@ import type {
   EmployeeFilterOptions,
 } from '../../domain/repositories/IEmployeeRepository';
 import { Employee } from '../../domain/entities/Employee';
-import { EmployeeDataSource } from '../datasources/EmployeeDataSource';
+import { EmployeeDataSource, type Currency } from '../datasources/EmployeeDataSource';
 import { EmployeeModel } from '../models/EmployeeModel';
 
 export class EmployeeRepositoryImpl implements IEmployeeRepository {
@@ -92,5 +92,18 @@ export class EmployeeRepositoryImpl implements IEmployeeRepository {
       salaryType,
       currencyId
     );
+  }
+
+  /**
+   * Get currencies for a company
+   * @param companyId - Company identifier
+   * @returns Array of Currency objects
+   */
+  async getCurrencies(companyId: string): Promise<Currency[]> {
+    const result = await this.dataSource.getCurrencies(companyId);
+    if (!result.success || !result.data) {
+      return [];
+    }
+    return result.data;
   }
 }

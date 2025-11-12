@@ -36,14 +36,12 @@
 
 /* State Styles */
 .emptyState,
-.loadingState,
-.errorState {
+.loadingState {
   text-align: center;
   padding: 80px 32px;
 }
 
-.emptyIcon,
-.errorIcon {
+.emptyIcon {
   width: 80px;
   height: 80px;
   margin: 0 auto 24px;
@@ -60,45 +58,14 @@
   color: #0064FF;
 }
 
-.spinner {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 24px;
-  background: #F0F6FF;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.spinner svg {
-  color: #0064FF;
-  animation: rotate 2s linear infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.emptyTitle,
-.loadingTitle,
-.errorTitle {
+.emptyTitle {
   font-size: 24px;
   font-weight: 700;
   color: #212529;
   margin: 0 0 8px 0;
 }
 
-.emptyText,
-.loadingText,
-.errorText {
+.emptyText {
   font-size: 16px;
   font-weight: 400;
   color: #6C757D;
@@ -264,7 +231,7 @@
 /* Amount Cells */
 .amountCell {
   text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-weight: 700;
 }
 

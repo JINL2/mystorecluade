@@ -159,7 +159,7 @@
 .productSku {
   font-size: var(--font-small);
   color: var(--text-secondary);
-  font-family: monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .productStock {
@@ -221,7 +221,7 @@
 .itemSku {
   font-size: var(--font-small);
   color: var(--text-secondary);
-  font-family: monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .itemActions {
@@ -291,15 +291,6 @@
   gap: var(--space-3);
   padding-top: var(--space-4);
   border-top: 1px solid var(--toss-gray-200);
-}
-
-.error {
-  flex: 1;
-  color: var(--toss-red-500);
-  font-size: var(--font-small);
-  padding: var(--space-3);
-  background: var(--toss-red-50);
-  border-radius: var(--radius-medium);
 }
 
 .btnSecondary,
@@ -489,7 +480,7 @@
 .productItemSku {
   font-size: var(--font-small);
   color: var(--text-secondary);
-  font-family: monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* Mobile-First Responsive Design */

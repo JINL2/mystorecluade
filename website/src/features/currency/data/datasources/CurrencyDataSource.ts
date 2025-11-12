@@ -1,4 +1,7 @@
 import { supabaseService } from '@/core/services/supabase_service';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { CurrencyModel } from '../models/CurrencyModel';
+import { CurrencyTypeModel } from '../models/CurrencyTypeModel';
 
 export class CurrencyDataSource {
   async getCurrencies(companyId: string) {
@@ -54,16 +57,19 @@ export class CurrencyDataSource {
       }
     }
 
-    // Map to expected format
-    return ((currencyTypes as any[]) || []).map((ct: any) => ({
-      currency_id: ct.currency_id,
-      company_id: companyId,
-      code: ct.currency_code,
-      symbol: ct.symbol || '',
-      name: ct.currency_name || '',
-      is_default: ct.currency_id === baseCurrencyId,
-      exchange_rate: exchangeRatesMap.get(ct.currency_id) || 1.0
-    }));
+    // Map to DTO format using CurrencyModel
+    return ((currencyTypes as any[]) || []).map((ct: any) => {
+      const currencyData = {
+        currency_id: ct.currency_id,
+        company_id: companyId,
+        code: ct.currency_code,
+        symbol: ct.symbol || '',
+        name: ct.currency_name || '',
+        is_default: ct.currency_id === baseCurrencyId,
+        exchange_rate: exchangeRatesMap.get(ct.currency_id) || 1.0
+      };
+      return CurrencyModel.fromDatabase(currencyData);
+    });
   }
 
   async setDefaultCurrency(currencyId: string, companyId: string) {
@@ -94,9 +100,8 @@ export class CurrencyDataSource {
       throw new Error('Base currency not found for the company');
     }
 
-    // Get current date
-    const currentDate = new Date();
-    const rateDate = currentDate.toISOString().split('T')[0];
+    // Get current date (date-only, no timezone conversion)
+    const rateDate = DateTimeUtils.toDateOnly(new Date());
 
     // Check if record exists
     const { data: existingRates, error: selectError } = await supabase
@@ -115,7 +120,8 @@ export class CurrencyDataSource {
         .from('book_exchange_rates')
         .update({
           rate: newRate,
-          rate_date: rateDate
+          rate_date: rateDate,
+          updated_at: DateTimeUtils.nowUtc()
         } as any)
         .eq('company_id', companyId)
         .eq('from_currency_id', currencyId);
@@ -148,12 +154,10 @@ export class CurrencyDataSource {
 
     if (error) throw new Error(error.message);
 
-    return ((data as any[]) || []).map((ct: any) => ({
-      currency_id: ct.currency_id,
-      code: ct.currency_code,
-      symbol: ct.symbol || '',
-      name: ct.currency_name || ''
-    }));
+    // Map to DTO format using CurrencyTypeModel
+    return ((data as any[]) || []).map((ct: any) =>
+      CurrencyTypeModel.fromDatabase(ct)
+    );
   }
 
   async addCurrency(currencyId: string, companyId: string, exchangeRate: number, userId: string) {
@@ -166,12 +170,14 @@ export class CurrencyDataSource {
       .eq('company_id', companyId)
       .single();
 
-    if (companyError) throw new Error(companyError.message);
+    if (companyError) {
+      throw new Error(companyError.message);
+    }
+
     const baseCurrencyId = (companyData as any)?.base_currency_id;
 
-    // Get current date
-    const currentDate = new Date();
-    const rateDate = currentDate.toISOString().split('T')[0];
+    // Get current date (date-only, no timezone conversion)
+    const rateDate = DateTimeUtils.toDateOnly(new Date());
 
     // First, add to company_currency table
     const { error: compCurrError } = await supabase
@@ -180,9 +186,12 @@ export class CurrencyDataSource {
         company_id: companyId,
         currency_id: currencyId,
         is_deleted: false
-      } as any);
+      } as any)
+      .select();
 
-    if (compCurrError) throw new Error(compCurrError.message);
+    if (compCurrError) {
+      throw new Error(compCurrError.message);
+    }
 
     // Then add to book_exchange_rates table (only if baseCurrencyId exists)
     if (baseCurrencyId) {
@@ -198,9 +207,26 @@ export class CurrencyDataSource {
         } as any);
 
       if (bookRateError) {
-        console.error('Error adding to book_exchange_rates:', bookRateError);
         // Don't throw as the main operation succeeded
       }
+    }
+  }
+
+  async removeCurrency(currencyId: string, companyId: string) {
+    const supabase = supabaseService.getClient();
+
+    // Soft delete by setting is_deleted to true
+    const { error } = await supabase
+      .from('company_currency')
+      .update({
+        is_deleted: true,
+        updated_at: DateTimeUtils.nowUtc()
+      } as any)
+      .eq('company_id', companyId)
+      .eq('currency_id', currencyId);
+
+    if (error) {
+      throw new Error(error.message);
     }
   }
 }

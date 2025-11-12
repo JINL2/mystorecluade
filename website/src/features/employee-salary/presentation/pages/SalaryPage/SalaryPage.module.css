@@ -349,6 +349,7 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .summaryValue.total {
@@ -537,6 +538,7 @@
   font-size: var(--font-h3);
   font-weight: 700;
   color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .paymentBreakdown {
@@ -674,6 +676,7 @@
   color: var(--text-primary);
   font-size: var(--font-base);
   font-weight: 500;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .breakdownValue.positive {
@@ -741,28 +744,7 @@
   color: var(--text-secondary);
 }
 
-.loadingState {
-  text-align: center;
-  padding: var(--space-12) var(--space-6);
-}
-
-.spinner {
-  font-size: var(--font-large);
-  color: var(--text-secondary);
-}
-
-.errorContainer {
-  text-align: center;
-  padding: var(--space-12) var(--space-6);
-  background: var(--toss-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-}
-
-.errorIcon {
-  font-size: 48px;
-  margin-bottom: var(--space-4);
-}
+/* Loading and Error states are now handled by shared components */
 
 .errorTitle {
   font-size: var(--font-h3);

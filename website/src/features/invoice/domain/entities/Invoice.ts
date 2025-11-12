@@ -3,6 +3,8 @@
  * Represents a sales invoice with customer and item details
  */
 
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
+
 export class Invoice {
   constructor(
     public readonly invoiceId: string,
@@ -50,6 +52,7 @@ export class Invoice {
 
   /**
    * Get formatted date
+   * Converts UTC date from DB to local timezone for display
    */
   get formattedDate(): string {
     if (!this.invoiceDate) {
@@ -57,8 +60,11 @@ export class Invoice {
     }
 
     try {
-      // Use Korean locale to match backup format: "2025. 10. 25."
-      return new Date(this.invoiceDate).toLocaleDateString('ko-KR', {
+      // Convert UTC date from DB to local timezone
+      const localDate = DateTimeUtils.toLocal(this.invoiceDate);
+
+      // Format using Korean locale: "2025. 10. 25."
+      return localDate.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',

@@ -4,6 +4,7 @@
  */
 
 import { supabaseService } from '@/core/services/supabase-service';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export interface ScheduleShiftRaw {
   shift_id: string;
@@ -138,11 +139,15 @@ export class ScheduleDataSource {
     try {
       const supabase = supabaseService.getClient();
 
+      // Convert local dates to UTC for database query
+      const utcStartDate = DateTimeUtils.toRpcFormat(new Date(startDate));
+      const utcEndDate = DateTimeUtils.toRpcFormat(new Date(endDate));
+
       const { data, error } = await supabase.rpc('get_shift_schedule_info', {
         p_company_id: companyId,
         p_store_id: storeId,
-        p_start_date: startDate,
-        p_end_date: endDate,
+        p_start_date: utcStartDate,
+        p_end_date: utcEndDate,
       });
 
       if (error) {
@@ -191,11 +196,14 @@ export class ScheduleDataSource {
     try {
       const supabase = supabaseService.getClient();
 
+      // Convert local date to UTC for database storage
+      const utcDate = DateTimeUtils.toRpcFormat(new Date(date));
+
       const { data, error } = await supabase.rpc('manager_shift_insert_schedule', {
         p_user_id: userId,
         p_shift_id: shiftId,
         p_store_id: storeId,
-        p_request_date: date,
+        p_request_date: utcDate,
         p_approved_by: approvedBy,
       });
 

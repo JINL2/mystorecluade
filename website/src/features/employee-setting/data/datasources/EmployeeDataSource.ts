@@ -28,6 +28,13 @@ export interface EmployeeRawData {
   account_id: string | null;
 }
 
+export interface Currency {
+  currency_id: string;
+  currency_code: string;
+  currency_name: string;
+  currency_symbol: string;
+}
+
 export class EmployeeDataSource {
   /**
    * Fetch employees from Supabase RPC
@@ -133,6 +140,73 @@ export class EmployeeDataSource {
       return { success: true };
     } catch (error) {
       console.error('Update salary datasource error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Fetch currencies for a company
+   * @param companyId - Company identifier
+   * @returns Currency list with success status
+   */
+  async getCurrencies(
+    companyId: string
+  ): Promise<{ success: boolean; data?: Currency[]; error?: string }> {
+    try {
+      const supabase = supabaseService.getClient();
+
+      const { data, error } = await supabase
+        .from('company_currency')
+        .select(`
+          currency_id,
+          currency_types (
+            currency_id,
+            currency_code,
+            currency_name,
+            symbol
+          )
+        `)
+        .eq('company_id', companyId)
+        .order('currency_types(currency_code)');
+
+      if (error) {
+        console.error('Get currencies error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to fetch currencies',
+        };
+      }
+
+      if (!data) {
+        return {
+          success: false,
+          error: 'No data returned from currencies',
+        };
+      }
+
+      // Transform joined data to Currency format
+      const currencies = (data || [])
+        .map((item: any) => {
+          const currencyType = item.currency_types;
+          if (!currencyType) return null;
+          return {
+            currency_id: currencyType.currency_id,
+            currency_code: currencyType.currency_code,
+            currency_name: currencyType.currency_name,
+            currency_symbol: currencyType.symbol,
+          };
+        })
+        .filter((c): c is Currency => c !== null);
+
+      return {
+        success: true,
+        data: currencies,
+      };
+    } catch (error) {
+      console.error('Get currencies datasource error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',

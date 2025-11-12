@@ -101,9 +101,18 @@ export class BalanceSheetData {
 
   /**
    * Get formatted date
+   *
+   * Important: Parses YYYY-MM-DD without timezone conversion
+   * to prevent date shifting across timezones
    */
   get formattedDate(): string {
-    return new Date(this.asOfDate).toLocaleDateString('en-US', {
+    // Parse YYYY-MM-DD string directly to avoid timezone issues
+    // e.g., "2025-01-15" should always display as "January 15, 2025"
+    // regardless of user's timezone
+    const [year, month, day] = this.asOfDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

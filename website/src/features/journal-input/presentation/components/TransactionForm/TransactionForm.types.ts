@@ -49,6 +49,22 @@ export interface TransactionFormProps {
    * Suggested amount (usually the difference to balance the journal)
    */
   suggestedAmount?: number;
+
+  /**
+   * Initial data for editing (optional)
+   */
+  initialData?: TransactionFormData;
+
+  /**
+   * Whether this is edit mode
+   */
+  isEditMode?: boolean;
+
+  /**
+   * Cash location ID that is already used in another transaction
+   * This cash location should not be selectable in the dropdown
+   */
+  disabledCashLocationId?: string | null;
 }
 
 export interface TransactionFormData {

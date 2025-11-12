@@ -1,0 +1,24 @@
+/**
+ * ExpenseChart Styles
+ */
+
+.chartContainer {
+  position: relative;
+  height: 300px;
+  margin-bottom: var(--space-4);
+}
+
+.emptyChart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--text-tertiary);
+  font-size: var(--font-body);
+}
+
+.emptyChart p {
+  margin: 0;
+  padding: 40px;
+  text-align: center;
+}

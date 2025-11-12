@@ -7,6 +7,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { SalaryRecord } from '../../domain/entities/SalaryRecord';
 import { SalarySummary } from '../../domain/entities/SalarySummary';
 import { SalaryRepositoryImpl } from '../../data/repositories/SalaryRepositoryImpl';
+import { SalaryValidator } from '../../domain/validators/SalaryValidator';
+
+export interface SalaryNotification {
+  variant: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  title?: string;
+}
 
 export const useSalary = (companyId: string, initialMonth?: string) => {
   // Get current month in YYYY-MM format
@@ -21,6 +28,7 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(initialMonth || getCurrentMonth());
   const [exporting, setExporting] = useState(false);
+  const [notification, setNotification] = useState<SalaryNotification | null>(null);
 
   const repository = new SalaryRepositoryImpl();
 
@@ -29,6 +37,18 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
     setError(null);
 
     try {
+      // Validate input parameters before making API call
+      const validationErrors = SalaryValidator.validateSalaryQuery(companyId, currentMonth);
+
+      if (validationErrors.length > 0) {
+        const errorMessages = validationErrors.map((err) => err.message).join(', ');
+        setError(errorMessages);
+        setRecords([]);
+        setSummary(null);
+        setLoading(false);
+        return;
+      }
+
       const result = await repository.getSalaryData(companyId, currentMonth);
 
       console.log('Salary Data Result:', result);
@@ -95,6 +115,38 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
     companyName: string = 'Company',
     storeName: string = 'AllStores'
   ) => {
+    // Validate input parameters before export
+    const validationErrors = SalaryValidator.validateExcelExport(
+      companyId,
+      currentMonth,
+      companyName,
+      storeName
+    );
+
+    if (validationErrors.length > 0) {
+      const errorMessages = validationErrors.map((err) => err.message).join(', ');
+      setNotification({
+        variant: 'error',
+        title: 'Validation Error',
+        message: errorMessages,
+      });
+      return { success: false };
+    }
+
+    // Validate optional storeId if provided
+    if (storeId !== null) {
+      const storeErrors = SalaryValidator.validateStoreId(storeId);
+      if (storeErrors.length > 0) {
+        const errorMessages = storeErrors.map((err) => err.message).join(', ');
+        setNotification({
+          variant: 'error',
+          title: 'Validation Error',
+          message: errorMessages,
+        });
+        return { success: false };
+      }
+    }
+
     // Try to get file handle immediately with user gesture
     let fileHandle: any = null;
 
@@ -156,9 +208,10 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
           await writable.close();
 
           console.log(`Excel file saved successfully: ${filename}`);
-          alert(
-            `✅ Export Successful! ${result.recordCount || 0} shift records exported to: ${filename}`
-          );
+          setNotification({
+            variant: 'success',
+            message: `${result.recordCount || 0} shift records exported successfully to: ${filename}`,
+          });
         } catch (error) {
           console.error('Failed to write to file handle:', error);
           // Fall back to traditional download
@@ -168,9 +221,15 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
         // Traditional download fallback
         fallbackDownload(blob, filename);
       }
+      return { success: true };
     } catch (err) {
       console.error('Export error:', err);
-      alert(err instanceof Error ? err.message : 'Failed to export data');
+      setNotification({
+        variant: 'error',
+        title: 'Export Failed',
+        message: err instanceof Error ? err.message : 'Failed to export data',
+      });
+      return { success: false };
     } finally {
       setExporting(false);
     }
@@ -195,7 +254,11 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
       }, 1000);
     } catch (error) {
       console.error('Fallback download failed:', error);
-      alert('Failed to download the Excel file. Please try again.');
+      setNotification({
+        variant: 'error',
+        title: 'Download Failed',
+        message: 'Failed to download the Excel file. Please try again.',
+      });
     }
   };
 
@@ -206,6 +269,8 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
     error,
     currentMonth,
     exporting,
+    notification,
+    setNotification,
     refresh,
     goToPreviousMonth,
     goToNextMonth,

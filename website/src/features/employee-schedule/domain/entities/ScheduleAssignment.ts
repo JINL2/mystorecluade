@@ -4,6 +4,7 @@
  */
 
 import { ScheduleShift } from './ScheduleShift';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class ScheduleAssignment {
   constructor(
@@ -30,7 +31,7 @@ export class ScheduleAssignment {
    * Check if assignment is today
    */
   get isToday(): boolean {
-    const today = new Date().toISOString().split('T')[0];
+    const today = DateTimeUtils.toDateOnly(new Date());
     return this.date === today;
   }
 

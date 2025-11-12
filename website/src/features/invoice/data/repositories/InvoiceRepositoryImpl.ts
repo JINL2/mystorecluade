@@ -11,6 +11,7 @@ import {
 } from '../../domain/repositories/IInvoiceRepository';
 import { Invoice } from '../../domain/entities/Invoice';
 import { InvoiceDataSource } from '../datasources/InvoiceDataSource';
+import { InvoiceModel } from '../models/InvoiceModel';
 
 export class InvoiceRepositoryImpl implements IInvoiceRepository {
   private dataSource: InvoiceDataSource;
@@ -46,34 +47,8 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
         };
       }
 
-      const currency = response.data.currency;
-
-      const invoices = response.data.invoices.map((item: any) => {
-        const customerName = item.customer?.name || 'Walk-in';
-        const customerPhone = item.customer?.phone || null;
-        const itemCount = item.items_summary?.item_count || 0;
-        const totalQuantity = item.items_summary?.total_quantity || 0;
-        const totalAmount = item.amounts?.total_amount || 0;
-        const currencySymbol = currency?.symbol || item.amounts?.currency_symbol || item.store?.currency_symbol || '';
-        const paymentMethod = item.payment?.method || 'cash';
-        const paymentStatus = item.payment?.status || 'pending';
-        const invoiceDate = item.invoice_date || item.sale_date;
-
-        return new Invoice(
-          item.invoice_id,
-          item.invoice_number,
-          invoiceDate,
-          customerName,
-          customerPhone,
-          itemCount,
-          totalQuantity,
-          totalAmount,
-          item.status,
-          currencySymbol,
-          paymentMethod,
-          paymentStatus
-        );
-      });
+      const currencySymbol = response.data.currency?.symbol;
+      const invoices = InvoiceModel.fromJsonArray(response.data.invoices, currencySymbol);
 
       return {
         success: true,

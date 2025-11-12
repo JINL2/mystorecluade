@@ -3,117 +3,150 @@
  * Filter component for balance sheet with store and date range selection
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector/StoreSelector';
 import { TossButton } from '@/shared/components/toss/TossButton';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { BalanceSheetValidator } from '../../../domain/validators/BalanceSheetValidator';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import { BalanceSheetFilterProps } from './BalanceSheetFilter.types';
 import styles from './BalanceSheetFilter.module.css';
 
-export const BalanceSheetFilter = ({ onSearch, onClear }: BalanceSheetFilterProps) => {
+// Helper functions to get current month's first and last day
+// Uses DateTimeUtils to avoid timezone-related date shifting
+const getFirstDayOfMonth = (): string => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  return DateTimeUtils.toDateOnly(firstDay);
+};
+
+const getLastDayOfMonth = (): string => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return DateTimeUtils.toDateOnly(lastDay);
+};
+
+export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch, onClear }) => {
   const { currentCompany } = useAppState();
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const stores = currentCompany?.stores || [];
+  const { messageState, closeMessage, showWarning } = useErrorMessage();
 
-  // Get first and last day of current month in local time
-  const getDefaultDates = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    // Format as YYYY-MM-DD
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      start: formatDate(firstDay),
-      end: formatDate(lastDay),
-    };
-  };
-
-  const defaultDates = getDefaultDates();
-  const [startDate, setStartDate] = useState<string>(defaultDates.start);
-  const [endDate, setEndDate] = useState<string>(defaultDates.end);
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>(getFirstDayOfMonth());
+  const [endDate, setEndDate] = useState<string>(getLastDayOfMonth());
 
   const handleSearch = () => {
+    // Validate date range
+    const dateRangeError = BalanceSheetValidator.validateDateRange(startDate, endDate);
+    if (dateRangeError) {
+      showWarning({
+        title: 'Invalid Date Range',
+        message: dateRangeError.message,
+        confirmText: 'OK',
+      });
+      return;
+    }
+
+    // Validate store ID if provided
+    if (storeId) {
+      const storeError = BalanceSheetValidator.validateStoreId(storeId);
+      if (storeError) {
+        showWarning({
+          title: 'Invalid Store',
+          message: storeError.message,
+          confirmText: 'OK',
+        });
+        return;
+      }
+    }
+
+    // If validation passes, execute search
     onSearch({
-      storeId: selectedStoreId,
+      storeId,
       startDate: startDate || null,
       endDate: endDate || null,
     });
   };
 
   const handleClear = () => {
-    setSelectedStoreId(null);
-    const defaultDates = getDefaultDates();
-    setStartDate(defaultDates.start);
-    setEndDate(defaultDates.end);
+    setStoreId(null);
+    setStartDate(getFirstDayOfMonth());
+    setEndDate(getLastDayOfMonth());
     onClear();
   };
 
   return (
     <div className={styles.filterContainer}>
       <div className={styles.filterHeader}>
-        <h3 className={styles.filterTitle}>Filters</h3>
+        <div className={styles.filterTitle}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          <span>Search Balance Sheet</span>
+        </div>
       </div>
 
       <div className={styles.filterContent}>
-        {/* Store Selector */}
-        <div className={styles.filterField}>
-          <label className={styles.fieldLabel}>Store</label>
-          <StoreSelector
-            stores={currentCompany?.stores || []}
-            selectedStoreId={selectedStoreId}
-            onStoreSelect={setSelectedStoreId}
-            companyId={currentCompany?.company_id || ''}
-            showAllStoresOption={true}
-            allStoresLabel="All Stores"
-            width="100%"
-          />
+        <div className={styles.filterRow}>
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>STORE</label>
+            <StoreSelector
+              stores={stores}
+              selectedStoreId={storeId}
+              onStoreSelect={setStoreId}
+              companyId={currentCompany?.company_id || ''}
+              showAllStoresOption={true}
+              allStoresLabel="All Stores"
+              width="100%"
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>FROM DATE</label>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>TO DATE</label>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* From Date */}
-        <div className={styles.filterField}>
-          <label className={styles.fieldLabel}>From Date</label>
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            placeholder="Select start date"
-            lang="en"
-          />
-        </div>
-
-        {/* To Date */}
-        <div className={styles.filterField}>
-          <label className={styles.fieldLabel}>To Date</label>
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            placeholder="Select end date"
-            lang="en"
-          />
+        <div className={styles.filterActions}>
+          <TossButton onClick={handleClear} variant="secondary">
+            Clear All
+          </TossButton>
+          <TossButton onClick={handleSearch} variant="primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            Search
+          </TossButton>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className={styles.filterActions}>
-        <TossButton variant="secondary" size="md" onClick={handleClear}>
-          Clear All
-        </TossButton>
-        <TossButton variant="primary" size="md" onClick={handleSearch}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
-            <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
-          </svg>
-          Search
-        </TossButton>
-      </div>
+      {/* Validation Error Dialog */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText || 'OK'}
+      />
     </div>
   );
 };

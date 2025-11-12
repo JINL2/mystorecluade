@@ -9,6 +9,12 @@ export class IncomeStatementDataSource {
   /**
    * Get monthly income statement data
    * Uses: get_income_statement_v2 RPC
+   *
+   * @param startDate - Date string in YYYY-MM-DD format (date-only, no timezone conversion)
+   * @param endDate - Date string in YYYY-MM-DD format (date-only, no timezone conversion)
+   *
+   * Note: Since we're passing date-only strings (YYYY-MM-DD) for financial period queries,
+   * no timezone conversion is needed. The RPC function should use these as date boundaries.
    */
   async getMonthlyIncomeStatement(
     companyId: string,
@@ -21,8 +27,8 @@ export class IncomeStatementDataSource {
     const rpcParams: any = {
       p_company_id: companyId,
       p_store_id: storeId || null,
-      p_start_date: startDate,
-      p_end_date: endDate,
+      p_start_date: startDate, // YYYY-MM-DD format (no time component)
+      p_end_date: endDate,     // YYYY-MM-DD format (no time component)
     };
 
     console.log('📞 [DataSource] Calling get_income_statement_v2 RPC with params:', rpcParams);
@@ -41,6 +47,12 @@ export class IncomeStatementDataSource {
   /**
    * Get 12-month income statement data
    * Uses: get_income_statement_monthly RPC
+   *
+   * @param startDate - Date string in YYYY-MM-DD format (date-only, no timezone conversion)
+   * @param endDate - Date string in YYYY-MM-DD format (date-only, no timezone conversion)
+   *
+   * Note: Since we're passing date-only strings (YYYY-MM-DD) for financial period queries,
+   * no timezone conversion is needed. The RPC function should use these as date boundaries.
    */
   async get12MonthIncomeStatement(
     companyId: string,
@@ -53,8 +65,8 @@ export class IncomeStatementDataSource {
     const rpcParams: any = {
       p_company_id: companyId,
       p_store_id: storeId || null,
-      p_start_date: startDate,
-      p_end_date: endDate,
+      p_start_date: startDate, // YYYY-MM-DD format (no time component)
+      p_end_date: endDate,     // YYYY-MM-DD format (no time component)
     };
 
     console.log('📞 [DataSource] Calling get_income_statement_monthly RPC with params:', rpcParams);

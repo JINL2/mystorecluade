@@ -16,7 +16,7 @@ export class SalaryRecord {
     public readonly totalSalary: number,
     public readonly currencySymbol: string,
     public readonly currencyCode: string,
-    public readonly paymentDate: string | null = null,
+    public readonly paymentDate: Date | null = null,
     public readonly status: 'pending' | 'paid' | 'processing' = 'pending'
   ) {}
 
@@ -70,7 +70,7 @@ export class SalaryRecord {
    */
   get isOverdue(): boolean {
     if (!this.paymentDate || this.status === 'paid') return false;
-    return new Date(this.paymentDate) < new Date();
+    return this.paymentDate < new Date();
   }
 
   /**
@@ -88,7 +88,7 @@ export class SalaryRecord {
     total_salary: number;
     currency_symbol: string;
     currency_code: string;
-    payment_date?: string | null;
+    payment_date?: Date | null;
     status?: 'pending' | 'paid' | 'processing';
   }): SalaryRecord {
     return new SalaryRecord(

@@ -5,55 +5,43 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { TossButton } from '@/shared/components/toss/TossButton';
-import type { IncomeStatementFilterProps, IncomeStatementFilters, Store } from './IncomeStatementFilter.types';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { IncomeStatementValidator } from '../../../domain/validators/IncomeStatementValidator';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import type { IncomeStatementFilterProps } from './IncomeStatementFilter.types';
 import styles from './IncomeStatementFilter.module.css';
+
+// Helper functions to get current month's first and last day
+const getFirstDayOfMonth = (): string => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  return DateTimeUtils.toDateOnly(firstDay);
+};
+
+const getLastDayOfMonth = (): string => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return DateTimeUtils.toDateOnly(lastDay);
+};
 
 export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   onSearch,
   onClear,
-  onFilterChange,
   className = '',
 }) => {
   const { currentCompany } = useAppState();
-
-  // Get current date for default values
-  const now = new Date();
-  const currentMonth = now.toISOString().split('T')[0].substring(0, 7); // YYYY-MM
-  const firstDayOfMonth = `${currentMonth}-01`;
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    .toISOString()
-    .split('T')[0];
+  const stores = currentCompany?.stores || [];
+  const { messageState, closeMessage, showWarning } = useErrorMessage();
 
   // Filter state
-  const [filters, setFilters] = useState<IncomeStatementFilters>({
-    store: null,
-    type: 'monthly',
-    fromDate: firstDayOfMonth,
-    toDate: lastDayOfMonth,
-  });
-
-  // Store options
-  const [stores, setStores] = useState<Store[]>([]);
-
-  // Load stores when company changes
-  useEffect(() => {
-    if (currentCompany?.stores) {
-      setStores(currentCompany.stores);
-    } else {
-      setStores([]);
-    }
-  }, [currentCompany]);
-
-  // Store options for TossSelector
-  const storeOptions = [
-    { value: '', label: 'All Stores' },
-    ...stores.map(store => ({
-      value: store.store_id,
-      label: store.store_name,
-    })),
-  ];
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [type, setType] = useState<'monthly' | '12month'>('monthly');
+  const [fromDate, setFromDate] = useState<string>(getFirstDayOfMonth());
+  const [toDate, setToDate] = useState<string>(getLastDayOfMonth());
 
   // Type options
   const typeOptions = [
@@ -61,30 +49,56 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
     { value: '12month', label: '12-Month View' },
   ];
 
-  // Handle filter changes
-  const handleFilterChange = (field: keyof IncomeStatementFilters, value: any) => {
-    const newFilters = {
-      ...filters,
-      [field]: value === '' ? null : value,
-    };
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
-  };
-
-  // Handle search
   const handleSearch = () => {
-    onSearch(filters);
+    // Validate date range
+    const dateRangeResult = IncomeStatementValidator.validateDateRange(fromDate, toDate);
+    if (!dateRangeResult.isValid) {
+      showWarning({
+        title: 'Invalid Date Range',
+        message: dateRangeResult.errors[0]?.message || 'Invalid date range',
+        confirmText: 'OK',
+      });
+      return;
+    }
+
+    // Validate store ID if provided
+    if (storeId) {
+      const storeResult = IncomeStatementValidator.validateStoreId(storeId);
+      if (!storeResult.isValid) {
+        showWarning({
+          title: 'Invalid Store',
+          message: storeResult.errors[0]?.message || 'Invalid store ID',
+          confirmText: 'OK',
+        });
+        return;
+      }
+    }
+
+    // Validate statement type
+    const typeResult = IncomeStatementValidator.validateStatementType(type);
+    if (!typeResult.isValid) {
+      showWarning({
+        title: 'Invalid Type',
+        message: typeResult.errors[0]?.message || 'Invalid statement type',
+        confirmText: 'OK',
+      });
+      return;
+    }
+
+    // If validation passes, execute search
+    onSearch({
+      store: storeId,
+      type,
+      fromDate,
+      toDate,
+    });
   };
 
-  // Handle clear
   const handleClear = () => {
-    const resetFilters: IncomeStatementFilters = {
-      store: null,
-      type: 'monthly',
-      fromDate: firstDayOfMonth,
-      toDate: lastDayOfMonth,
-    };
-    setFilters(resetFilters);
+    setStoreId(null);
+    setType('monthly');
+    setFromDate(getFirstDayOfMonth());
+    setToDate(getLastDayOfMonth());
     onClear?.();
   };
 
@@ -96,80 +110,86 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   return (
     <div className={`${styles.filterContainer} ${className}`}>
       <div className={styles.filterHeader}>
-        <h3 className={styles.filterTitle}>Filters</h3>
-      </div>
-
-      <div className={styles.filterGrid}>
-        {/* Store Filter */}
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>Store</label>
-          <TossSelector
-            id="income-store-filter"
-            name="store"
-            placeholder="Select store"
-            value={filters.store || ''}
-            options={storeOptions}
-            onChange={(value) => handleFilterChange('store', value)}
-            fullWidth
-          />
-        </div>
-
-        {/* Type Filter */}
-        <div className={styles.filterGroup}>
-          <label className={`${styles.filterLabel} ${styles.required}`}>Type</label>
-          <TossSelector
-            id="income-type-filter"
-            name="type"
-            placeholder="Select type"
-            value={filters.type}
-            options={typeOptions}
-            onChange={(value) => handleFilterChange('type', value as 'monthly' | '12month')}
-            fullWidth
-            required
-          />
-        </div>
-
-        {/* From Date Filter */}
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>From Date</label>
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={filters.fromDate}
-            onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-            disabled={filters.type === '12month'}
-          />
-        </div>
-
-        {/* To Date Filter */}
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>To Date</label>
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={filters.toDate}
-            onChange={(e) => handleFilterChange('toDate', e.target.value)}
-            disabled={filters.type === '12month'}
-          />
+        <div className={styles.filterTitle}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          <span>Search Income Statement</span>
         </div>
       </div>
 
-      <div className={styles.filterActions}>
-        <TossButton
-          variant="secondary"
-          size="md"
-          onClick={handleClear}
-        >
-          Clear
-        </TossButton>
-        <TossButton
-          variant="primary"
-          size="md"
-          onClick={handleSearch}
-        >
-          Search
-        </TossButton>
+      <div className={styles.filterContent}>
+        <div className={styles.filterRow}>
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>STORE</label>
+            <StoreSelector
+              stores={stores}
+              selectedStoreId={storeId}
+              onStoreSelect={setStoreId}
+              showAllStoresOption={true}
+              width="100%"
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>TYPE</label>
+            <TossSelector
+              id="income-type-filter"
+              name="type"
+              placeholder="Select type"
+              value={type}
+              options={typeOptions}
+              onChange={(value) => setType(value as 'monthly' | '12month')}
+              fullWidth
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>FROM DATE</label>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              disabled={type === '12month'}
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>TO DATE</label>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              disabled={type === '12month'}
+            />
+          </div>
+        </div>
+
+        <div className={styles.filterActions}>
+          <TossButton onClick={handleClear} variant="secondary">
+            Clear All
+          </TossButton>
+          <TossButton onClick={handleSearch} variant="primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            Search
+          </TossButton>
+        </div>
       </div>
+
+      {/* Validation Error Dialog */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText || 'OK'}
+      />
     </div>
   );
 };

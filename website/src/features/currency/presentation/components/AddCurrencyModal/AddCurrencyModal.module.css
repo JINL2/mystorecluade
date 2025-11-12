@@ -179,6 +179,7 @@
   font-size: var(--font-medium);
   font-weight: 600;
   color: var(--toss-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* Modal Footer */

@@ -3,11 +3,15 @@
  * Account mapping configuration page
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useAccountMapping } from '../../hooks/useAccountMapping';
-import { AccountType } from '../../../domain/entities/AccountMapping';
+import { AddAccountMappingModal } from '../../components/AddAccountMappingModal/AddAccountMappingModal';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import type { AccountOption, CompanyOption } from '../../../domain/repositories/IAccountMappingRepository';
 import styles from './AccountMappingPage.module.css';
 
 // Helper function to get account initials
@@ -21,16 +25,22 @@ const getAccountInitials = (name: string): string => {
 };
 
 export const AccountMappingPage: React.FC = () => {
-  const { currentCompany } = useAppState();
-  const { mappings, loading, error, createMapping, deleteMapping, refresh } = useAccountMapping(
+  const { currentCompany, companies } = useAppState();
+  const { mappings, loading, error, createMapping, getCompanyAccounts, deleteMapping, refresh } = useAccountMapping(
     currentCompany?.company_id || ''
   );
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newAccountCode, setNewAccountCode] = useState('');
-  const [newAccountName, setNewAccountName] = useState('');
-  const [newAccountType, setNewAccountType] = useState<AccountType>('general');
-  const [newDescription, setNewDescription] = useState('');
+  const [availableAccounts, setAvailableAccounts] = useState<AccountOption[]>([]);
+  const [availableCompanies, setAvailableCompanies] = useState<CompanyOption[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingMappingId, setDeletingMappingId] = useState<string | null>(null);
+  const [deletingMappingInfo, setDeletingMappingInfo] = useState<{ myAccount: string; linkedAccount: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Error message state
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessageText, setErrorMessageText] = useState('');
 
   if (!currentCompany) {
     return (
@@ -45,39 +55,69 @@ export const AccountMappingPage: React.FC = () => {
     );
   }
 
-  const handleAddMapping = async () => {
-    if (!newAccountCode || !newAccountName) {
-      alert('Please fill in all required fields');
-      return;
-    }
+  // Load available accounts and companies when modal opens
+  useEffect(() => {
+    const loadModalData = async () => {
+      if (!currentCompany || !showAddModal) return;
 
-    const result = await createMapping(
-      newAccountCode,
-      newAccountName,
-      newAccountType,
-      newDescription || null
-    );
+      try {
+        // Load current company's accounts
+        const accountsResult = await getCompanyAccounts(currentCompany.company_id);
+        if (accountsResult.success && accountsResult.data) {
+          setAvailableAccounts(accountsResult.data);
+        }
 
-    if (result.success) {
-      setShowAddModal(false);
-      setNewAccountCode('');
-      setNewAccountName('');
-      setNewAccountType('general');
-      setNewDescription('');
-    } else {
-      alert(result.error || 'Failed to create mapping');
+        // Filter available companies (exclude current company)
+        const filteredCompanies = companies
+          .filter(c => c.company_id !== currentCompany.company_id)
+          .map(c => ({
+            company_id: c.company_id,
+            company_name: c.company_name
+          }));
+        setAvailableCompanies(filteredCompanies);
+      } catch (error) {
+        console.error('Error loading modal data:', error);
+      }
+    };
+
+    loadModalData();
+  }, [showAddModal, currentCompany, companies, getCompanyAccounts]);
+
+  const handleDeleteClick = (mappingId: string, myAccountName: string, linkedAccountName: string) => {
+    setDeletingMappingId(mappingId);
+    setDeletingMappingInfo({ myAccount: myAccountName, linkedAccount: linkedAccountName });
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingMappingId) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteMapping(deletingMappingId);
+      if (result.success) {
+        setShowDeleteConfirm(false);
+        setDeletingMappingId(null);
+        setDeletingMappingInfo(null);
+      } else {
+        setShowDeleteConfirm(false);
+        setErrorMessageText(result.error || 'Failed to delete mapping');
+        setShowErrorMessage(true);
+      }
+    } catch (error) {
+      console.error('Error deleting mapping:', error);
+      setShowDeleteConfirm(false);
+      setErrorMessageText('Failed to delete mapping');
+      setShowErrorMessage(true);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleDeleteMapping = async (mappingId: string) => {
-    if (!confirm('Are you sure you want to delete this mapping?')) {
-      return;
-    }
-
-    const result = await deleteMapping(mappingId);
-    if (!result.success) {
-      alert(result.error || 'Failed to delete mapping');
-    }
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeletingMappingId(null);
+    setDeletingMappingInfo(null);
   };
 
   // Separate outgoing and incoming mappings
@@ -89,9 +129,7 @@ export const AccountMappingPage: React.FC = () => {
       <>
         <Navbar activeItem="setting" />
         <div className={styles.container}>
-          <div className={styles.loadingSpinner}>
-            <div className={styles.spinner} />
-          </div>
+          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -147,7 +185,7 @@ export const AccountMappingPage: React.FC = () => {
                   <span className={styles.directionBadge}>{mapping.directionDisplay}</span>
                   {mapping.isDeletable && (
                     <button
-                      onClick={() => handleDeleteMapping(mapping.mappingId)}
+                      onClick={() => handleDeleteClick(mapping.mappingId, mapping.myAccountName, mapping.linkedAccountName)}
                       className={styles.deleteButton}
                       title="Delete"
                     >
@@ -259,69 +297,72 @@ export const AccountMappingPage: React.FC = () => {
       )}
 
       {/* Add Modal */}
-      {showAddModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2>Add Account Mapping</h2>
-              <button onClick={() => setShowAddModal(false)} className={styles.closeButton}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
-                </svg>
-              </button>
+      <AddAccountMappingModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={createMapping}
+        getCompanyAccounts={getCompanyAccounts}
+        availableCompanies={availableCompanies}
+        availableAccounts={availableAccounts}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        variant="error"
+        title="Delete Account Mapping"
+        message="Are you sure you want to delete this account mapping?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonVariant="error"
+        isLoading={isDeleting}
+        closeOnBackdropClick={!isDeleting}
+        closeOnEscape={!isDeleting}
+      >
+        {deletingMappingInfo && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-3)',
+            padding: 'var(--space-4)',
+            background: 'var(--toss-gray-50)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-small)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text-tertiary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <span>Your Account: <strong>{deletingMappingInfo.myAccount}</strong></span>
             </div>
-            <div className={styles.modalBody}>
-              <div className={styles.formGroup}>
-                <label>Account Code *</label>
-                <input
-                  type="text"
-                  value={newAccountCode}
-                  onChange={(e) => setNewAccountCode(e.target.value)}
-                  placeholder="e.g., 1000"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Account Name *</label>
-                <input
-                  type="text"
-                  value={newAccountName}
-                  onChange={(e) => setNewAccountName(e.target.value)}
-                  placeholder="e.g., Cash"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Account Type *</label>
-                <select value={newAccountType} onChange={(e) => setNewAccountType(e.target.value as AccountType)}>
-                  <option value="general">General</option>
-                  <option value="cash">Cash</option>
-                  <option value="payable">Payable</option>
-                  <option value="receivable">Receivable</option>
-                  <option value="contra_asset">Contra Asset</option>
-                  <option value="fixed_asset">Fixed Asset</option>
-                  <option value="equity">Equity</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Description</label>
-                <textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Optional description"
-                  rows={3}
-                />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text-tertiary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <span>Linked Account: <strong>{deletingMappingInfo.linkedAccount}</strong></span>
             </div>
-            <div className={styles.modalFooter}>
-              <button onClick={() => setShowAddModal(false)} className={styles.cancelButton}>
-                Cancel
-              </button>
-              <button onClick={handleAddMapping} className={styles.saveButton}>
-                Add Mapping
-              </button>
+            <div style={{
+              color: 'var(--toss-error)',
+              fontSize: 'var(--font-small)',
+              marginTop: 'var(--space-2)',
+              fontWeight: 500
+            }}>
+              This action cannot be undone.
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </ConfirmModal>
+
+      {/* Error Message */}
+      <ErrorMessage
+        variant="error"
+        isOpen={showErrorMessage}
+        onClose={() => setShowErrorMessage(false)}
+        message={errorMessageText}
+        zIndex={10000}
+      />
     </div>
     </>
   );

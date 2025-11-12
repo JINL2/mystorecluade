@@ -4,47 +4,32 @@
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
-
-export interface OrderProductDTO {
-  product_id: string;
-  sku: string;
-  product_name: string;
-  barcode?: string;
-  quantity_ordered: number;
-  quantity_received_total: number;
-  unit_price?: number;
-  total_amount?: number;
-}
-
-export interface OrderDTO {
-  order_id: string;
-  order_number: string;
-  supplier_name: string;
-  status: string;
-  order_date: string;
-  summary?: {
-    total_products: number;
-    total_ordered: number;
-    total_received: number;
-    completion_rate: number;
-  };
-  items?: OrderProductDTO[]; // Products in this order
-}
-
-export interface ReceiveItemDTO {
-  product_id: string;
-  quantity_received: number;
-}
-
-export interface ReceiveResponseDTO {
-  success: boolean;
-  receipt_number?: string;
-  message?: string;
-  received_count?: number;
-  warnings?: string[];
-}
+import { OrderDTO } from '../models/OrderModel';
+import { ReceiveItemDTO, ReceiveResponseDTO } from '../models/ReceiveResultModel';
 
 export class ProductReceiveDataSource {
+  /**
+   * Get current user ID from Supabase session
+   */
+  async getCurrentUserId(): Promise<string | null> {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabaseService.getClient().auth.getSession();
+
+      if (error || !session?.user?.id) {
+        console.error('getCurrentUserId error:', error);
+        return null;
+      }
+
+      return session.user.id;
+    } catch (error) {
+      console.error('getCurrentUserId error:', error);
+      return null;
+    }
+  }
+
   /**
    * Get list of orders from Supabase
    */

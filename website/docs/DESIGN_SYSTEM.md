@@ -1,6 +1,6 @@
 # Toss Design System Guide
 
-This document outlines the design system used in the myStore web application, based on Toss (토스) Korean fintech app's design patterns.
+This document outlines the design system used in the myStore web application, based on Toss Korean fintech app's design patterns.
 
 ## Design Philosophy
 
@@ -17,15 +17,16 @@ This document outlines the design system used in the myStore web application, ba
 
 ```css
 Primary: 'Inter' - Used for all UI text
-Korean: 'Pretendard' - Korean text support
-Monospace: 'JetBrains Mono' - Financial numbers and amounts
+Korean: 'Pretendard' - Korean text support and financial numbers
 ```
 
 **Font Imports:**
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 ```
+
+**Note:** Pretendard is used for both Korean text and financial numbers to maintain consistency with Toss app's proportional font design philosophy for financial data display.
 
 ### Font Sizes
 
@@ -109,7 +110,7 @@ color: #6c757d;
 
 **Financial Amounts:**
 ```css
-font-family: 'JetBrains Mono', monospace;
+font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 font-size: 28px;
 font-weight: 700; /* Bold */
 color: #212529;
@@ -285,20 +286,20 @@ The `TossButton` component supports `customStyles` prop for advanced customizati
 
 ### Icon System Overview
 
-우리 프로젝트는 **두 가지 아이콘 시스템**을 사용합니다:
+Our project uses **two icon systems**:
 
-1. **Material Design Icons** (16-24px): 버튼, 테이블, 입력 필드 등 UI 요소
-2. **Toss Style Illustrations** (64-120px): Empty states, 큰 피드백 화면
+1. **Material Design Icons** (16-24px): UI elements like buttons, tables, input fields
+2. **Toss Style Illustrations** (64-120px): Empty states, large feedback screens
 
 ### 1. Material Design Icons (UI Elements)
 
-**용도:** 버튼, 테이블 액션, 네비게이션, 입력 필드 등 모든 일반 UI 요소
+**Usage:** All common UI elements including buttons, table actions, navigation, input fields
 
-**특징:**
-- 단색 (fill="currentColor")
-- 간단한 path 기반
-- 빠른 렌더링
-- 일관된 스타일
+**Characteristics:**
+- Monochrome (fill="currentColor")
+- Simple path-based design
+- Fast rendering
+- Consistent style
 
 **Path:** Inline SVG paths in components
 
@@ -350,22 +351,22 @@ The `TossButton` component supports `customStyles` prop for advanced customizati
 
 ### 2. Toss Style Illustrations (Empty States Only)
 
-**⚠️ 중요:** 이 스타일은 **Empty State, 에러 화면, 성공 피드백 등 큰 피드백 화면에만 사용**합니다. 버튼이나 테이블에는 사용하지 않습니다!
+**⚠️ Important:** This style is **ONLY used for large feedback screens** such as Empty States, error screens, and success feedback. Do NOT use for buttons or tables!
 
-**용도:**
-- Empty states (데이터가 없을 때)
-- Error screens (오류 발생 시)
-- Success screens (작업 완료 시)
+**Usage:**
+- Empty states (when no data is available)
+- Error screens (when errors occur)
+- Success screens (when operations complete)
 - Onboarding illustrations
 
-**특징:**
-- 큰 사이즈 (64px - 120px)
-- 2-3가지 색상 사용
-- 부드러운 곡선과 둥근 모서리
-- 배경 원형 또는 그라데이션
-- Toss Blue (#0064FF) + Light Blue (#F0F6FF) 조합
+**Characteristics:**
+- Large size (64px - 120px)
+- Uses 2-3 colors
+- Smooth curves and rounded corners
+- Circular background or gradients
+- Toss Blue (#0064FF) + Light Blue (#F0F6FF) combination
 
-**Invoice Page Empty State 예시:**
+**Invoice Page Empty State Example:**
 ```tsx
 <div className={styles.emptyState}>
   <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
@@ -402,9 +403,9 @@ The `TossButton` component supports `customStyles` prop for advanced customizati
 
 ### Icon Selection Guide
 
-**버튼에 아이콘 추가할 때:**
+**When adding icons to buttons:**
 ```tsx
-{/* ✅ 올바른 사용 - Material Design Icon 18px */}
+{/* ✅ Correct usage - Material Design Icon 18px */}
 <TossButton variant="primary" size="md">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
@@ -412,18 +413,18 @@ The `TossButton` component supports `customStyles` prop for advanced customizati
   New Invoice
 </TossButton>
 
-{/* ❌ 잘못된 사용 - Toss Illustration은 버튼에 사용 불가 */}
+{/* ❌ Incorrect usage - Toss Illustration cannot be used in buttons */}
 <TossButton variant="primary" size="md">
   <svg width="120" height="120" viewBox="0 0 120 120">
-    {/* 복잡한 일러스트레이션 */}
+    {/* Complex illustration */}
   </svg>
   Button
 </TossButton>
 ```
 
-**Empty State 디자인할 때:**
+**When designing Empty States:**
 ```tsx
-{/* ✅ 올바른 사용 - Toss Style Illustration 120px */}
+{/* ✅ Correct usage - Toss Style Illustration 120px */}
 <div className={styles.emptyState}>
   <svg width="120" height="120" viewBox="0 0 120 120">
     {/* Toss style illustration */}
@@ -431,7 +432,7 @@ The `TossButton` component supports `customStyles` prop for advanced customizati
   <h3>No Data</h3>
 </div>
 
-{/* ❌ 잘못된 사용 - Material Icon은 너무 작음 */}
+{/* ❌ Incorrect usage - Material Icon is too small */}
 <div className={styles.emptyState}>
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
     <path d="..."/>
@@ -821,7 +822,7 @@ Always include proper ARIA labels for screen readers:
 - Include proper focus states
 - Use Toss Blue (#0064FF) for primary actions
 - Apply proper shadows for elevation
-- Use JetBrains Mono for financial numbers
+- Use Pretendard for financial numbers to match Toss app's proportional font design
 
 ### Don'ts ❌
 

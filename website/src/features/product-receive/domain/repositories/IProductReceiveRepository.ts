@@ -41,6 +41,11 @@ export interface IProductReceiveRepository {
   ): Promise<RepositoryResult<OrderProduct[]>>;
 
   /**
+   * Get current user ID from session
+   */
+  getCurrentUserId(): Promise<RepositoryResult<string>>;
+
+  /**
    * Submit received items
    */
   submitReceive(

@@ -309,7 +309,7 @@
 .accountCode {
   font-size: 11px;
   color: var(--text-tertiary);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .card.readOnly .accountCode {

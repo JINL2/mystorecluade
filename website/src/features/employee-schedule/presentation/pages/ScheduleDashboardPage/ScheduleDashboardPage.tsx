@@ -6,6 +6,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useSchedule } from '../../hooks/useSchedule';
 import type { ScheduleDashboardPageProps } from './ScheduleDashboardPage.types';
@@ -41,9 +42,7 @@ export const ScheduleDashboardPage: React.FC<ScheduleDashboardPageProps> = () =>
           <div className={styles.header}>
             <h1 className={styles.title}>Dashboard</h1>
           </div>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}>Loading company data...</div>
-          </div>
+          <LoadingAnimation fullscreen />
         </div>
       </>
     );

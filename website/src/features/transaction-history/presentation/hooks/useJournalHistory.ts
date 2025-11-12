@@ -1,19 +1,18 @@
 /**
  * useJournalHistory Hook
- * Custom hook for journal entry history management with search
+ * Custom hook for journal entry history management with search and validation
  */
 
 import { useState, useCallback } from 'react';
 import { JournalEntry } from '../../domain/entities/JournalEntry';
-import { JournalHistoryRepositoryImpl } from '../../data/repositories/JournalHistoryRepositoryImpl';
+import { journalHistoryRepository } from '../../data/repositories/JournalHistoryRepositoryImpl';
+import { TransactionFilterValidator } from '../../domain/validators/TransactionFilterValidator';
 
 export const useJournalHistory = (companyId: string) => {
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-
-  const repository = new JournalHistoryRepositoryImpl();
 
   const searchJournalEntries = useCallback(
     async (storeId: string | null, startDate: string | null, endDate: string | null) => {
@@ -27,7 +26,22 @@ export const useJournalHistory = (companyId: string) => {
       setHasSearched(true);
 
       try {
-        const result = await repository.getJournalEntries(
+        // Validate filter parameters
+        const validationErrors = TransactionFilterValidator.validateJournalFilter(
+          companyId,
+          storeId,
+          startDate,
+          endDate
+        );
+
+        if (validationErrors.length > 0) {
+          setError(validationErrors.map((e) => e.message).join(', '));
+          setJournalEntries([]);
+          setLoading(false);
+          return;
+        }
+
+        const result = await journalHistoryRepository.getJournalEntries(
           companyId,
           storeId,
           startDate,
@@ -49,7 +63,7 @@ export const useJournalHistory = (companyId: string) => {
         setLoading(false);
       }
     },
-    [companyId, repository]
+    [companyId]
   );
 
   const clearSearch = useCallback(() => {

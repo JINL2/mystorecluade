@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import type { DateFilterTabsProps, DateFilterType } from './DateFilterTabs.types';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import styles from './DateFilterTabs.module.css';
 
 export const DateFilterTabs: React.FC<DateFilterTabsProps> = ({
@@ -60,9 +61,11 @@ export const DateFilterTabs: React.FC<DateFilterTabsProps> = ({
         start = new Date(today);
     }
 
+    // Use DateTimeUtils.toDateOnly() to avoid timezone issues
+    // This ensures the date string is always in local timezone (yyyy-MM-dd)
     return {
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0],
+      start: DateTimeUtils.toDateOnly(start),
+      end: DateTimeUtils.toDateOnly(end),
     };
   };
 

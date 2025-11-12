@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useSalary } from '../../hooks/useSalary';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SalaryPageProps } from './SalaryPage.types';
@@ -26,6 +28,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     error,
     currentMonth,
     exporting,
+    notification,
+    setNotification,
     refresh,
     goToPreviousMonth,
     goToNextMonth,
@@ -89,9 +93,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
         <Navbar activeItem="employee" />
         <div className={styles.pageContainer}>
           <div className={styles.salaryContainer}>
-            <div className={styles.loadingState}>
-              <div className={styles.spinner}>Please select a company first...</div>
-            </div>
+            <LoadingAnimation size="large" fullscreen />
           </div>
         </div>
       </>
@@ -104,34 +106,14 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
         <Navbar activeItem="employee" />
         <div className={styles.pageContainer}>
           <div className={styles.salaryContainer}>
-            <div className={styles.loadingState}>
-              <div className={styles.spinner}>Loading salary data...</div>
-            </div>
+            <LoadingAnimation size="large" fullscreen />
           </div>
         </div>
       </>
     );
   }
 
-  if (error) {
-    return (
-      <>
-        <Navbar activeItem="employee" />
-        <div className={styles.pageContainer}>
-          <div className={styles.salaryContainer}>
-            <div className={styles.errorContainer}>
-              <div className={styles.errorIcon}>⚠️</div>
-              <h2 className={styles.errorTitle}>Failed to Load Salary Data</h2>
-              <p className={styles.errorMessage}>{error}</p>
-              <button onClick={refresh} className={styles.retryButton}>
-                Try Again
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  // Error handling moved to ErrorMessage component below
 
   // Get unique stores for filter
   const stores = currentCompany?.stores || [];
@@ -425,6 +407,31 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
           )}
         </div>
       </div>
+
+      {/* Error Message Modal */}
+      {notification && (
+        <ErrorMessage
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          isOpen={true}
+          onClose={() => setNotification(null)}
+          autoCloseDuration={notification.variant === 'success' ? 2000 : 0}
+        />
+      )}
+
+      {/* Data Loading Error Modal */}
+      {error && (
+        <ErrorMessage
+          variant="error"
+          title="Failed to Load Salary Data"
+          message={error}
+          isOpen={true}
+          onClose={() => {}}
+          confirmText="Try Again"
+          onConfirm={refresh}
+        />
+      )}
     </>
   );
 };

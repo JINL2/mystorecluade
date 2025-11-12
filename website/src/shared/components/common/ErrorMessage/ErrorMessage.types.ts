@@ -1,65 +1,85 @@
 /**
- * ErrorMessage Component Types
- * Toss-style error/notification message with flexible configuration
+ * ErrorMessage Component Types (Toss Alert Dialog Style)
+ * Center-positioned alert dialog with backdrop overlay
  */
 
 export type ErrorMessageVariant = 'error' | 'warning' | 'info' | 'success';
 
-export type ErrorMessagePosition =
-  | 'top-center'
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-center'
-  | 'bottom-right'
-  | 'bottom-left'
-  | 'center';
-
 export interface ErrorMessageProps {
-  /** Message variant/type */
+  // Core props
   variant?: ErrorMessageVariant;
-
-  /** Main title/heading */
   title?: string;
-
-  /** Description text */
   message: string;
-
-  /** Additional details (optional) */
-  details?: string;
-
-  /** Show/hide state */
   isOpen: boolean;
-
-  /** Callback when message is closed */
   onClose: () => void;
 
-  /** Auto-close after duration (ms), 0 = no auto-close */
+  // Button props
+  confirmText?: string;
+  cancelText?: string;
+  showCancelButton?: boolean;
+  onConfirm?: () => void;
+
+  // Behavior props
   autoCloseDuration?: number;
-
-  /** Position on screen */
-  position?: ErrorMessagePosition;
-
-  /** Custom icon component */
-  icon?: React.ReactNode;
-
-  /** Show close button */
-  showCloseButton?: boolean;
-
-  /** Action button text */
-  actionText?: string;
-
-  /** Action button callback */
-  onAction?: () => void;
-
-  /** Additional className */
+  closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
   className?: string;
-
-  /** z-index override */
   zIndex?: number;
 
-  /** Enable/disable backdrop overlay */
-  showBackdrop?: boolean;
+  // Icon props
+  icon?: React.ReactNode;
+  showIcon?: boolean;
 
-  /** Close on backdrop click */
-  closeOnBackdropClick?: boolean;
+  // Style customization props - Dialog
+  dialogWidth?: string;
+  dialogMaxWidth?: string;
+  dialogMinHeight?: string;
+  dialogPadding?: string;
+  dialogBackgroundColor?: string;
+  dialogBorderRadius?: string;
+  dialogBoxShadow?: string;
+
+  // Style customization props - Backdrop
+  backdropColor?: string;
+  backdropOpacity?: number;
+
+  // Style customization props - Title
+  titleFontSize?: string;
+  titleFontWeight?: string | number;
+  titleColor?: string;
+  titleMarginBottom?: string;
+
+  // Style customization props - Message
+  messageFontSize?: string;
+  messageFontWeight?: string | number;
+  messageColor?: string;
+  messageLineHeight?: string | number;
+  messageMarginBottom?: string;
+
+  // Style customization props - Icon
+  iconSize?: string;
+  iconColor?: string;
+  iconMarginBottom?: string;
+
+  // Style customization props - Buttons
+  buttonHeight?: string;
+  buttonPadding?: string;
+  buttonFontSize?: string;
+  buttonFontWeight?: string | number;
+  buttonBorderRadius?: string;
+  buttonGap?: string;
+
+  // Confirm button styles
+  confirmButtonColor?: string;
+  confirmButtonBackgroundColor?: string;
+  confirmButtonHoverBackgroundColor?: string;
+
+  // Cancel button styles
+  cancelButtonColor?: string;
+  cancelButtonBackgroundColor?: string;
+  cancelButtonBorderColor?: string;
+  cancelButtonHoverBackgroundColor?: string;
+
+  // Animation
+  animationDuration?: string;
 }

@@ -23,7 +23,8 @@ export class InventoryItem {
     public readonly sku: string = '',
     public readonly barcode: string = '',
     public readonly productType: string = 'commodity',
-    public readonly costPrice: number = 0
+    public readonly costPrice: number = 0,
+    public readonly createdAt?: Date  // Date 객체로 변경 (Local 시간)
   ) {}
 
   /**

@@ -4,32 +4,36 @@
 
 /* Page Layout */
 .pageContainer {
-  flex: 1;
-  padding: 32px;
+  min-height: 100vh;
+  background: #FFFFFF;
+}
+
+.pageContent {
   max-width: 1400px;
   margin: 0 auto;
-  width: 100%;
+  padding: 32px;
 }
 
 .pageHeader {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .pageTitle {
   font-size: 32px;
   font-weight: 700;
-  color: var(--color-gray-900);
+  color: #212529;
   margin: 0 0 8px 0;
 }
 
 .pageSubtitle {
   font-size: 16px;
-  color: var(--color-gray-600);
+  font-weight: 400;
+  color: #6C757D;
   margin: 0;
 }
 
 .filterSection {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .contentSection {
@@ -97,7 +101,7 @@
   font-size: 28px;
   font-weight: 700;
   color: var(--toss-gray-900, #212529);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   letter-spacing: -0.02em;
   margin-bottom: 4px;
 }
@@ -245,7 +249,7 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--color-gray-900);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   text-align: right;
 }
 
@@ -282,7 +286,7 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--color-gray-800);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   text-align: right;
 }
 
@@ -332,7 +336,7 @@
   font-size: 13px;
   font-weight: 400;
   color: var(--color-gray-600);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
   text-align: right;
@@ -499,7 +503,7 @@
 }
 
 .table12Month .accountAmount {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3px;
 }
@@ -651,7 +655,7 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--color-gray-900);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   text-align: right;
 }
 
@@ -690,7 +694,7 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--color-gray-800);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   text-align: right;
 }
 
@@ -756,7 +760,7 @@
   padding: 4px 10px;
   font-size: 11px;
   text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
 }
@@ -811,7 +815,7 @@
   font-size: 28px;
   font-weight: 700;
   color: var(--color-gray-900);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .ratioLabel {
@@ -824,7 +828,7 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--color-blue-600);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* State Styles */

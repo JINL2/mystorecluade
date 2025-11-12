@@ -14,6 +14,7 @@
 import React, { useEffect, useCallback } from 'react';
 import styles from './ConfirmModal.module.css';
 import type { ConfirmModalProps } from './ConfirmModal.types';
+import { LoadingAnimation } from '../LoadingAnimation';
 
 // Default header icons for each variant
 const DefaultHeaderIcons = {
@@ -236,10 +237,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             type="button"
           >
             {isLoading ? (
-              <>
-                <span className={styles.spinner}></span>
-                Processing...
-              </>
+              <LoadingAnimation size="small" />
             ) : (
               <>
                 {showConfirmIcon && displayConfirmIcon}

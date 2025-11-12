@@ -3,11 +3,14 @@
  * Purchase Orders management with New Order and Order List tabs
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useOrder } from '../../hooks/useOrder';
 import { OrderForm } from '../../components/OrderForm/OrderForm';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './OrderPage.module.css';
 
 type TabType = 'new-order' | 'order-list';
@@ -24,6 +27,22 @@ export const OrderPage: React.FC = () => {
     currentCompany?.company_id || '',
     currentStore?.store_id || null
   );
+  const { messageState, closeMessage, showError } = useErrorMessage();
+
+  // Handle order loading error
+  useEffect(() => {
+    if (error) {
+      showError({
+        title: 'Failed to Load Orders',
+        message: error,
+        confirmText: 'Retry',
+        onConfirm: () => {
+          closeMessage();
+          refresh();
+        },
+      });
+    }
+  }, [error, showError, closeMessage, refresh]);
 
   if (!currentCompany) {
     return (
@@ -119,16 +138,7 @@ export const OrderPage: React.FC = () => {
             {activeTab === 'order-list' && (
               <div className={styles.tabContent}>
                 {loading ? (
-                  <div className={styles.loadingSpinner}>
-                    <div className={styles.spinner} />
-                  </div>
-                ) : error ? (
-                  <div className={styles.errorState}>
-                    <p className={styles.errorMessage}>{error}</p>
-                    <button onClick={refresh} className={styles.retryButton}>
-                      Retry
-                    </button>
-                  </div>
+                  <LoadingAnimation size="large" fullscreen />
                 ) : orders.length === 0 ? (
                   <div className={styles.emptyState}>
                     <svg
@@ -297,6 +307,17 @@ export const OrderPage: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* ErrorMessage Component */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText}
+        onConfirm={messageState.onConfirm}
+      />
     </>
   );
 };

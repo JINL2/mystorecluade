@@ -1,10 +1,12 @@
 /**
  * useCounterparty Hook
+ * Feature-specific business logic execution (Validation + Repository)
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Counterparty, CounterpartyType } from '../../domain/entities/Counterparty';
+import { Counterparty, CounterpartyTypeValue } from '../../domain/entities/Counterparty';
 import { CounterpartyRepositoryImpl } from '../../data/repositories/CounterpartyRepositoryImpl';
+import { CounterpartyValidator } from '../../domain/validators/CounterpartyValidator';
 
 export const useCounterparty = (companyId: string) => {
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
@@ -41,32 +43,69 @@ export const useCounterparty = (companyId: string) => {
   }, [loadCounterparties]);
 
   const createCounterparty = useCallback(
-    async (name: string, type: CounterpartyType, contact: string | null, email: string | null, phone: string | null, address: string | null) => {
+    async (
+      name: string,
+      type: CounterpartyTypeValue,
+      isInternal: boolean,
+      linkedCompanyId: string | null,
+      email: string | null,
+      phone: string | null,
+      notes: string | null
+    ) => {
+      // 1. Check company ID
+      if (!companyId) {
+        return { success: false, error: 'Company ID required' };
+      }
+
+      // 2. Validate input data (Validator 호출 - 검증 실행)
+      const validationErrors = CounterpartyValidator.validateCreate({
+        name,
+        type,
+        isInternal,
+        linkedCompanyId,
+        email,
+        phone,
+        notes,
+      });
+
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          error: validationErrors[0].message,
+        };
+      }
+
+      // 3. Execute repository operation (Repository 호출 - 데이터 처리)
+      const result = await repository.createCounterparty(
+        companyId,
+        name,
+        type,
+        isInternal,
+        linkedCompanyId,
+        email,
+        phone,
+        notes
+      );
+
+      // 4. Reload data if successful
+      if (result.success) {
+        await loadCounterparties();
+      }
+
+      return result;
+    },
+    [companyId, loadCounterparties]
+  );
+
+  const deleteCounterparty = useCallback(
+    async (counterpartyId: string) => {
       if (!companyId) return { success: false, error: 'Company ID required' };
-      const result = await repository.createCounterparty(companyId, name, type, contact, email, phone, address);
+      const result = await repository.deleteCounterparty(counterpartyId, companyId);
       if (result.success) await loadCounterparties();
       return result;
     },
     [companyId, loadCounterparties]
   );
 
-  const updateCounterparty = useCallback(
-    async (counterpartyId: string, name: string, contact: string | null, email: string | null, phone: string | null, address: string | null) => {
-      const result = await repository.updateCounterparty(counterpartyId, name, contact, email, phone, address);
-      if (result.success) await loadCounterparties();
-      return result;
-    },
-    [loadCounterparties]
-  );
-
-  const deleteCounterparty = useCallback(
-    async (counterpartyId: string) => {
-      const result = await repository.deleteCounterparty(counterpartyId);
-      if (result.success) await loadCounterparties();
-      return result;
-    },
-    [loadCounterparties]
-  );
-
-  return { counterparties, loading, error, createCounterparty, updateCounterparty, deleteCounterparty, refresh: loadCounterparties };
+  return { counterparties, loading, error, createCounterparty, deleteCounterparty, refresh: loadCounterparties };
 };

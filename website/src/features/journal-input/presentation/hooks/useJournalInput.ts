@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { JournalEntry } from '../../domain/entities/JournalEntry';
 import { TransactionLine } from '../../domain/entities/TransactionLine';
 import { JournalInputRepositoryImpl } from '../../data/repositories/JournalInputRepositoryImpl';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { JournalDate } from '../../domain/value-objects/JournalDate';
 import type {
   Account,
   CashLocation,
@@ -23,7 +23,7 @@ export const useJournalInput = (
     new JournalEntry(
       companyId,
       storeId,
-      DateTimeUtils.toDateOnly(new Date()),
+      JournalDate.today(),
       []
     )
   );
@@ -33,7 +33,6 @@ export const useJournalInput = (
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const repository = new JournalInputRepositoryImpl();
 
@@ -41,7 +40,6 @@ export const useJournalInput = (
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      setError(null);
 
       try {
         const [accountsData, cashLocationsData, counterpartiesData] = await Promise.all([
@@ -54,7 +52,9 @@ export const useJournalInput = (
         setCashLocations(cashLocationsData);
         setCounterparties(counterpartiesData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
+        // Data loading errors are handled silently
+        // Dropdown components will show empty state with "No items found" message
+        console.error('Failed to load initial data:', err);
       } finally {
         setLoading(false);
       }
@@ -90,12 +90,13 @@ export const useJournalInput = (
   const submitJournalEntry = useCallback(
     async (description?: string) => {
       if (!journalEntry.canSubmit()) {
-        setError('Journal entry must be balanced with at least 2 transaction lines');
-        return { success: false };
+        return {
+          success: false,
+          error: 'Journal entry must be balanced with at least 2 transaction lines'
+        };
       }
 
       setSubmitting(true);
-      setError(null);
 
       try {
         const result = await repository.submitJournalEntry(
@@ -110,18 +111,15 @@ export const useJournalInput = (
             new JournalEntry(
               companyId,
               storeId,
-              DateTimeUtils.toDateOnly(new Date()),
+              JournalDate.today(),
               []
             )
           );
-        } else {
-          setError(result.error || 'Failed to submit journal entry');
         }
 
         return result;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to submit journal entry';
-        setError(errorMessage);
         return { success: false, error: errorMessage };
       } finally {
         setSubmitting(false);
@@ -140,6 +138,18 @@ export const useJournalInput = (
     ));
   }, []);
 
+  // Reset journal entry (for store changes)
+  const resetJournalEntry = useCallback((newStoreId: string | null) => {
+    setJournalEntry(
+      new JournalEntry(
+        companyId,
+        newStoreId,
+        JournalDate.today(),
+        []
+      )
+    );
+  }, [companyId]);
+
   return {
     journalEntry,
     accounts,
@@ -147,11 +157,11 @@ export const useJournalInput = (
     counterparties,
     loading,
     submitting,
-    error,
     addTransactionLine,
     updateTransactionLine,
     removeTransactionLine,
     submitJournalEntry,
     changeJournalDate,
+    resetJournalEntry,
   };
 };

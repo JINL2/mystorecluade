@@ -9,6 +9,7 @@ import {
   TwelveMonthIncomeStatementResult,
 } from '../../domain/repositories/IIncomeStatementRepository';
 import { IncomeStatementDataSource } from '../datasources/IncomeStatementDataSource';
+import { IncomeStatementModel } from '../models/IncomeStatementModel';
 
 export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository {
   private dataSource: IncomeStatementDataSource;
@@ -19,7 +20,7 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
 
   /**
    * Get monthly income statement data
-   * Returns raw data from RPC as-is
+   * Uses Model to transform RPC response to Domain Entity
    */
   async getMonthlyIncomeStatement(
     companyId: string,
@@ -30,19 +31,22 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
     try {
       console.log('📊 [Repository] Getting monthly income statement');
 
-      const data = await this.dataSource.getMonthlyIncomeStatement(
+      const rawData = await this.dataSource.getMonthlyIncomeStatement(
         companyId,
         storeId,
         startDate,
         endDate
       );
 
-      if (!data || !Array.isArray(data) || data.length === 0) {
+      if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
         return {
           success: false,
           error: 'No monthly income statement data available',
         };
       }
+
+      // Transform RPC response to Domain Entity using Model
+      const data = IncomeStatementModel.fromMonthlyRpcResponse(rawData);
 
       // Get currency symbol
       const currency = await this.dataSource.getCompanyCurrency(companyId);
@@ -65,7 +69,7 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
 
   /**
    * Get 12-month income statement data
-   * Returns raw data from RPC as-is
+   * Uses Model to transform RPC response to Domain Entity
    */
   async get12MonthIncomeStatement(
     companyId: string,
@@ -76,19 +80,22 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
     try {
       console.log('📊 [Repository] Getting 12-month income statement');
 
-      const data = await this.dataSource.get12MonthIncomeStatement(
+      const rawData = await this.dataSource.get12MonthIncomeStatement(
         companyId,
         storeId,
         startDate,
         endDate
       );
 
-      if (!data || !data.sections || !data.months) {
+      if (!rawData || !rawData.sections || !rawData.months) {
         return {
           success: false,
           error: 'No 12-month income statement data available',
         };
       }
+
+      // Transform RPC response to Domain Entity using Model
+      const data = IncomeStatementModel.from12MonthRpcResponse(rawData);
 
       // Get currency symbol
       const currency = await this.dataSource.getCompanyCurrency(companyId);

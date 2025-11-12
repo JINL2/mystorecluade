@@ -4,6 +4,7 @@
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export interface InvoicePageParams {
   p_company_id: string;
@@ -146,7 +147,7 @@ export class InvoiceDataSource {
 
     const { data, error } = await supabase.rpc('inventory_refund_invoice', {
       p_invoice_id: invoiceId,
-      p_refund_date: new Date().toISOString(),
+      p_refund_date: DateTimeUtils.nowUtc(), // Use DateTimeUtils for consistency
       p_refund_reason: refundReason || null,
       p_created_by: createdBy || null,
     });

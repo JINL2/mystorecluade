@@ -245,7 +245,7 @@
   border: 1px solid var(--toss-gray-300);
   border-radius: var(--radius-md);
   font-size: var(--font-body);
-  font-family: inherit;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* Financial numbers + Korean text */
   transition: all var(--transition-fast);
 }
 

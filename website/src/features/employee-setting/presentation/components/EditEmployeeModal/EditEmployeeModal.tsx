@@ -4,11 +4,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { supabaseService } from '@/core/services/supabase-service';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import type { TossSelectorOption } from '@/shared/components/selectors/TossSelector/TossSelector.types';
-import type { EditEmployeeModalProps, Currency } from './EditEmployeeModal.types';
+import type { EditEmployeeModalProps } from './EditEmployeeModal.types';
 import { EmployeeRepositoryImpl } from '../../../data/repositories/EmployeeRepositoryImpl';
+import type { Currency } from '../../../data/datasources/EmployeeDataSource';
+import { EmployeeValidator } from '../../../domain/validators/EmployeeValidator';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './EditEmployeeModal.module.css';
 
 export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
@@ -22,45 +25,18 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
   const [salaryAmount, setSalaryAmount] = useState('');
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<{ title?: string; message: string } | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const repository = new EmployeeRepositoryImpl();
 
-  // Load currencies from company_currency join
+  // Load currencies via Repository pattern
   useEffect(() => {
     const loadCurrencies = async () => {
       try {
         if (!employee?.companyId) return;
 
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase
-          .from('company_currency')
-          .select(`
-            currency_id,
-            currency_types (
-              currency_id,
-              currency_code,
-              currency_name,
-              symbol
-            )
-          `)
-          .eq('company_id', employee.companyId)
-          .order('currency_types(currency_code)');
-
-        if (error) throw error;
-
-        // Transform joined data to Currency format
-        const currencies = (data || [])
-          .map((item: any) => {
-            const currencyType = item.currency_types;
-            if (!currencyType) return null;
-            return {
-              currency_id: currencyType.currency_id,
-              currency_code: currencyType.currency_code,
-              currency_name: currencyType.currency_name,
-              currency_symbol: currencyType.symbol,
-            };
-          })
-          .filter((c): c is Currency => c !== null);
-
+        // Use Repository instead of direct Supabase call
+        const currencies = await repository.getCurrencies(employee.companyId);
         setCurrencies(currencies);
       } catch (error) {
         console.error('Error loading currencies:', error);
@@ -70,7 +46,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
     if (isOpen && employee) {
       loadCurrencies();
     }
-  }, [isOpen, employee]);
+  }, [isOpen, employee, repository]);
 
   // Initialize form when employee changes
   useEffect(() => {
@@ -104,10 +80,36 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
   const handleSave = async () => {
     if (!employee) return;
 
+    // Parse salary amount
+    const amount = parseFloat(salaryAmount.replace(/,/g, '')) || 0;
+
+    // Validate using EmployeeValidator (Domain Layer)
+    const validationResult = EmployeeValidator.validateSalaryUpdate(
+      amount,
+      currencyId,
+      salaryType
+    );
+
+    if (!validationResult.isValid) {
+      setError({
+        title: 'Validation Error',
+        message: validationResult.error || 'Invalid salary information'
+      });
+      return;
+    }
+
+    // Additional validation: Salary ID
+    const salaryIdValidation = EmployeeValidator.validateSalaryId(employee.salaryId);
+    if (!salaryIdValidation.isValid) {
+      setError({
+        title: 'Validation Error',
+        message: salaryIdValidation.error || 'Invalid salary ID'
+      });
+      return;
+    }
+
     setSaving(true);
     try {
-      const amount = parseFloat(salaryAmount.replace(/,/g, '')) || 0;
-
       const result = await repository.updateEmployeeSalary(
         employee.salaryId,
         amount,
@@ -116,15 +118,28 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
       );
 
       if (!result.success) {
-        alert(result.error || 'Failed to update employee salary');
+        setError({
+          title: 'Update Failed',
+          message: result.error || 'Failed to update employee salary. Please try again.'
+        });
         return;
       }
 
-      onSave();
-      onClose();
+      // Show success message
+      setSuccess('Employee salary updated successfully!');
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        setSuccess(null);
+        onSave();
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error('Error updating salary:', error);
-      alert('Failed to update employee salary');
+      setError({
+        title: 'Unexpected Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
+      });
     } finally {
       setSaving(false);
     }
@@ -133,8 +148,9 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
   if (!isOpen || !employee) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className={styles.overlay} onClick={onClose}>
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>Edit Employee</h2>
@@ -237,13 +253,43 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
             Cancel
           </button>
           <button className={styles.saveButton} onClick={handleSave} disabled={saving}>
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7.5L18.5,5M19,19H5V5H16.17L19,7.83V19M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12M6,6H15V10H6V6Z" />
-            </svg>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <LoadingAnimation size="small" />
+              </div>
+            ) : (
+              <>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7.5L18.5,5M19,19H5V5H16.17L19,7.83V19M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12M6,6H15V10H6V6Z" />
+                </svg>
+                Save Changes
+              </>
+            )}
           </button>
         </div>
       </div>
     </div>
+
+      {/* Error Message */}
+      <ErrorMessage
+        variant="error"
+        title={error?.title}
+        message={error?.message || ''}
+        isOpen={!!error}
+        onClose={() => setError(null)}
+        zIndex={10001}
+      />
+
+      {/* Success Message */}
+      <ErrorMessage
+        variant="success"
+        title="Success"
+        message={success || ''}
+        isOpen={!!success}
+        onClose={() => setSuccess(null)}
+        autoCloseDuration={1500}
+        zIndex={10001}
+      />
+    </>
   );
 };

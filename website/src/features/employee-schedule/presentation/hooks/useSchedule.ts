@@ -8,6 +8,8 @@ import { ScheduleShift } from '../../domain/entities/ScheduleShift';
 import { ScheduleAssignment } from '../../domain/entities/ScheduleAssignment';
 import { ScheduleEmployee } from '../../domain/entities/ScheduleEmployee';
 import { ScheduleRepositoryImpl } from '../../data/repositories/ScheduleRepositoryImpl';
+import { ScheduleValidator } from '../../domain/validators/ScheduleValidator';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export const useSchedule = (companyId: string, storeId: string) => {
   // Get current week's start and end dates
@@ -21,8 +23,8 @@ export const useSchedule = (companyId: string, storeId: string) => {
     end.setHours(23, 59, 59, 999);
 
     return {
-      startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0],
+      startDate: DateTimeUtils.toDateOnly(start),
+      endDate: DateTimeUtils.toDateOnly(end),
     };
   };
 
@@ -138,8 +140,28 @@ export const useSchedule = (companyId: string, storeId: string) => {
     employeeId: string,
     date: string,
     approvedBy: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> => {
     try {
+      // 1. Validate using Domain Validator (검증 규칙 실행)
+      const validationErrors = ScheduleValidator.validateAssignment({
+        shiftId,
+        employeeId,
+        date,
+      });
+
+      if (validationErrors.length > 0) {
+        const fieldErrors: Record<string, string> = {};
+        validationErrors.forEach((err) => {
+          fieldErrors[err.field] = err.message;
+        });
+        return {
+          success: false,
+          error: validationErrors[0].message, // Use first error as main error message
+          fieldErrors,
+        };
+      }
+
+      // 2. Call Repository (데이터 처리)
       const result = await repository.createAssignment(
         employeeId,
         shiftId,

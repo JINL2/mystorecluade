@@ -8,7 +8,7 @@ import { Order } from '../../domain/entities/Order';
 import { OrderProduct } from '../../domain/entities/OrderProduct';
 import { ScannedItemEntity } from '../../domain/entities/ScannedItem';
 import { ProductReceiveRepositoryImpl } from '../../data/repositories/ProductReceiveRepositoryImpl';
-import { supabaseService } from '@/core/services/supabase_service';
+import { ReceiveValidator } from '../../domain/validators/ReceiveValidator';
 
 export const useProductReceive = (companyId: string, storeId: string | null) => {
   // Orders
@@ -231,8 +231,21 @@ export const useProductReceive = (companyId: string, storeId: string | null) => 
 
   // Submit receive
   const submitReceive = useCallback(async () => {
-    if (!companyId || !storeId || !selectedOrder || scannedItems.size === 0) {
-      setError('Missing required data for submission');
+    // Validate submission using Validator
+    const scannedItemsArray = Array.from(scannedItems.values());
+    const validationErrors = ReceiveValidator.validateSubmission(
+      scannedItemsArray,
+      selectedOrder,
+      orderProducts
+    );
+
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0].message);
+      return { success: false };
+    }
+
+    if (!companyId || !storeId) {
+      setError('Company or Store is not selected');
       return { success: false };
     }
 
@@ -240,17 +253,14 @@ export const useProductReceive = (companyId: string, storeId: string | null) => 
     setError(null);
 
     try {
-      // Get user ID from session
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabaseService.getClient().auth.getSession();
+      // Get user ID from Repository (not directly from Supabase)
+      const userIdResult = await repository.getCurrentUserId();
 
-      if (sessionError || !session?.user?.id) {
-        throw new Error('User session not found. Please login again.');
+      if (!userIdResult.success || !userIdResult.data) {
+        throw new Error(userIdResult.error || 'Failed to get user ID');
       }
 
-      const userId = session.user.id;
+      const userId = userIdResult.data;
 
       // Build items array
       const items = Array.from(scannedItems.values()).map((item) => ({

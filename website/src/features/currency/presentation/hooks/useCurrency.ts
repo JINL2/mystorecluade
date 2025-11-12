@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Currency } from '../../domain/entities/Currency';
-import { CurrencyType } from '../../domain/repositories/ICurrencyRepository';
+import type { CurrencyTypeDTO } from '../../data/models/CurrencyTypeModel';
 import { CurrencyRepositoryImpl } from '../../data/repositories/CurrencyRepositoryImpl';
+import { CurrencyValidator } from '../../domain/validators/CurrencyValidator';
 
 export const useCurrency = (companyId: string, userId: string) => {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
@@ -18,7 +19,7 @@ export const useCurrency = (companyId: string, userId: string) => {
 
   useEffect(() => { load(); }, [load]);
 
-  const getAllCurrencyTypes = useCallback(async (): Promise<CurrencyType[]> => {
+  const getAllCurrencyTypes = useCallback(async (): Promise<CurrencyTypeDTO[]> => {
     const result = await repository.getAllCurrencyTypes();
     return result.success ? (result.data || []) : [];
   }, []);
@@ -30,21 +31,49 @@ export const useCurrency = (companyId: string, userId: string) => {
     return result;
   }, [load, companyId]);
 
-  const updateExchangeRate = useCallback(async (currencyId: string, newRate: number) => {
+  const updateExchangeRate = useCallback(async (currencyId: string, newRate: number | string) => {
     if (!companyId) return { success: false, error: 'No company selected' };
     if (!userId) return { success: false, error: 'No user ID' };
-    const result = await repository.updateExchangeRate(currencyId, companyId, newRate, userId);
+
+    // Validate exchange rate using domain validator
+    const validationResult = CurrencyValidator.validateExchangeRate(newRate);
+    if (!validationResult.isValid) {
+      return { success: false, error: validationResult.error };
+    }
+
+    const rate = typeof newRate === 'string' ? parseFloat(newRate) : newRate;
+    const result = await repository.updateExchangeRate(currencyId, companyId, rate, userId);
     if (result.success) await load();
     return result;
   }, [load, companyId, userId]);
 
-  const addCurrency = useCallback(async (currencyId: string, exchangeRate: number) => {
-    if (!companyId) return { success: false, error: 'No company selected' };
-    if (!userId) return { success: false, error: 'No user ID' };
-    const result = await repository.addCurrency(currencyId, companyId, exchangeRate, userId);
+  const addCurrency = useCallback(async (currencyId: string, exchangeRate: number | string) => {
+    if (!companyId) {
+      return { success: false, error: 'No company selected' };
+    }
+    if (!userId) {
+      return { success: false, error: 'No user ID' };
+    }
+
+    // Validate using domain validator (ARCHITECTURE.md pattern)
+    const validationResult = CurrencyValidator.validateAddCurrency(currencyId, exchangeRate);
+    if (!validationResult.isValid) {
+      return { success: false, error: validationResult.error };
+    }
+
+    const rate = typeof exchangeRate === 'string' ? parseFloat(exchangeRate) : exchangeRate;
+    const result = await repository.addCurrency(currencyId, companyId, rate, userId);
+
     if (result.success) await load();
     return result;
   }, [load, companyId, userId]);
 
-  return { currencies, loading, getAllCurrencyTypes, setDefault, updateExchangeRate, addCurrency };
+  const removeCurrency = useCallback(async (currencyId: string) => {
+    if (!companyId) return { success: false, error: 'No company selected' };
+    const result = await repository.removeCurrency(currencyId, companyId);
+    if (result.success) await load();
+    return result;
+  }, [load, companyId]);
+
+  return { currencies, loading, getAllCurrencyTypes, setDefault, updateExchangeRate, addCurrency, removeCurrency };
 };

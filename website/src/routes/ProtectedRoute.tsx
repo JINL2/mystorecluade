@@ -61,8 +61,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               setShowPermissionError(false);
               setShouldRedirect(true);
             }}
-            position="center"
-            showBackdrop={true}
             autoCloseDuration={3000}
           />
           {shouldRedirect && <Navigate to="/dashboard" replace />}

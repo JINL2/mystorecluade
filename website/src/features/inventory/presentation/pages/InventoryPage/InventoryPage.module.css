@@ -520,7 +520,7 @@
 
 .quantityValue {
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
 }
 
 .quantityOut {
@@ -539,13 +539,13 @@
 
 .priceValue {
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
   color: #0064FF; /* Toss Blue - Primary */
 }
 
 .costValue {
   font-weight: 400;
-  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
   color: #212529; /* Gray 900 - Primary text */
 }
 
@@ -620,9 +620,11 @@
   color: var(--color-gray-600);
 }
 
-.emptyState svg {
-  opacity: 0.5;
-  margin-bottom: 24px;
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .emptyTitle {

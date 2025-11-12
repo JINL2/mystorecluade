@@ -137,6 +137,15 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      {/* Alias route for backward compatibility */}
+      <Route
+        path="/transactions"
+        element={
+          <ProtectedRoute requiredFeatureId="7e1fd11a-f632-427d-aefc-8b3dd6734faa">
+            <TransactionHistoryPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Routes - Employee */}
       <Route

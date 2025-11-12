@@ -22,8 +22,8 @@
 /* Modal Content */
 .modalContent {
   background: var(--toss-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
@@ -169,6 +169,7 @@
 .rateValue {
   font-weight: 600;
   color: var(--toss-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .baseCurrency {

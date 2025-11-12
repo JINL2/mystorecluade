@@ -257,16 +257,10 @@
 }
 
 .emptyIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  color: var(--text-tertiary, #9ca3af);
-  opacity: 0.5;
-}
-
-.emptyIcon svg {
-  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .emptyTitle {
@@ -318,15 +312,10 @@
 }
 
 .errorIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  color: var(--toss-error, #ef4444);
-}
-
-.errorIcon svg {
-  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .errorTitle {
@@ -390,6 +379,7 @@
   font-weight: 700;
   color: var(--text-primary, #1a1a1a);
   line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .overviewLabel {
@@ -468,6 +458,7 @@
   font-weight: 700;
   color: var(--text-primary, #1a1a1a);
   line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .statLabel {

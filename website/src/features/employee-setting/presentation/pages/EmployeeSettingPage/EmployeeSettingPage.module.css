@@ -70,6 +70,7 @@
   font-weight: 700;
   color: #24292e;
   line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* Filter Section */
@@ -141,9 +142,10 @@
 }
 
 .emptyIcon {
-  font-size: 64px;
-  margin-bottom: 24px;
-  opacity: 0.5;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .emptyTitle {
@@ -199,8 +201,10 @@
 }
 
 .errorIcon {
-  font-size: 64px;
+  width: 120px;
+  height: 120px;
   margin-bottom: 24px;
+  display: block;
 }
 
 .errorTitle {

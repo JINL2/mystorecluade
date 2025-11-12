@@ -71,6 +71,24 @@ export class JournalEntry {
   }
 
   /**
+   * Get the cash location ID if any transaction line has one
+   * Returns null if no cash location is used
+   */
+  getCashLocationId(): string | null {
+    const lineWithCashLocation = this.transactionLines.find(
+      (line) => line.cashLocationId !== null
+    );
+    return lineWithCashLocation ? lineWithCashLocation.cashLocationId : null;
+  }
+
+  /**
+   * Check if cash location is already used in this journal entry
+   */
+  hasCashLocation(): boolean {
+    return this.getCashLocationId() !== null;
+  }
+
+  /**
    * Add transaction line
    */
   addTransactionLine(line: TransactionLine): JournalEntry {

@@ -1,16 +1,23 @@
 /**
  * AccountMappingDataSource
  * Data source for account mapping operations
+ *
+ * Following Clean Architecture:
+ * - Handles direct database access via Supabase
+ * - Returns raw data (will be transformed by Model layer)
+ * - Uses typed RPC calls for type safety
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
-import { AccountType } from '../../domain/entities/AccountMapping';
+import type { AccountMappingRPCResponse } from '../models/AccountMappingModel';
+import type { TypedSupabaseClient } from '@/core/types/database.types';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class AccountMappingDataSource {
-  async getAccountMappings(companyId: string) {
-    const supabase = supabaseService.getClient();
+  async getAccountMappings(companyId: string): Promise<AccountMappingRPCResponse> {
+    const supabase = supabaseService.getClient() as unknown as TypedSupabaseClient;
 
-    const { data, error } = await (supabase as any).rpc('get_account_mapping_page', {
+    const { data, error } = await supabase.rpc('get_account_mapping_page', {
       p_company_id: companyId,
     });
 
@@ -19,24 +26,26 @@ export class AccountMappingDataSource {
       throw new Error(error.message);
     }
 
-    return data || [];
+    return (data || {}) as AccountMappingRPCResponse;
   }
 
   async createAccountMapping(
-    companyId: string,
-    accountCode: string,
-    accountName: string,
-    accountType: AccountType,
-    description: string | null
+    myCompanyId: string,
+    counterpartyCompanyId: string,
+    myAccountId: string,
+    linkedAccountId: string,
+    direction: string,
+    createdBy: string
   ) {
-    const supabase = supabaseService.getClient();
+    const supabase = supabaseService.getClient() as unknown as TypedSupabaseClient;
 
-    const { data, error } = await (supabase as any).rpc('create_account_mapping', {
-      p_company_id: companyId,
-      p_account_code: accountCode,
-      p_account_name: accountName,
-      p_account_type: accountType,
-      p_description: description,
+    const { data, error } = await supabase.rpc('insert_account_mapping_with_company', {
+      p_my_company_id: myCompanyId,
+      p_counterparty_company_id: counterpartyCompanyId,
+      p_my_account_id: myAccountId,
+      p_linked_account_id: linkedAccountId,
+      p_direction: direction,
+      p_created_by: createdBy,
     });
 
     if (error) {
@@ -47,43 +56,35 @@ export class AccountMappingDataSource {
     return data;
   }
 
-  async updateAccountMapping(
-    mappingId: string,
-    accountCode: string,
-    accountName: string,
-    accountType: AccountType,
-    description: string | null
-  ) {
-    const supabase = supabaseService.getClient();
-
-    const { data, error } = await (supabase as any).rpc('update_account_mapping', {
-      p_mapping_id: mappingId,
-      p_account_code: accountCode,
-      p_account_name: accountName,
-      p_account_type: accountType,
-      p_description: description,
-    });
-
-    if (error) {
-      console.error('Error updating account mapping:', error);
-      throw new Error(error.message);
-    }
-
-    return data;
-  }
-
   async deleteAccountMapping(mappingId: string) {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await (supabase as any).rpc('delete_account_mapping', {
-      p_mapping_id: mappingId,
-    });
+    const { error } = await supabase
+      .from('account_mappings')
+      .update({
+        is_deleted: true,
+        updated_at: DateTimeUtils.nowUtc()
+      })
+      .eq('mapping_id', mappingId);
 
     if (error) {
       console.error('Error deleting account mapping:', error);
       throw new Error(error.message);
     }
+  }
 
-    return data;
+  async getCompanyAccounts(companyId: string): Promise<AccountMappingRPCResponse> {
+    const supabase = supabaseService.getClient() as unknown as TypedSupabaseClient;
+
+    const { data, error } = await supabase.rpc('get_account_mapping_page', {
+      p_company_id: companyId,
+    });
+
+    if (error) {
+      console.error('Error fetching company accounts:', error);
+      throw new Error(error.message);
+    }
+
+    return (data || {}) as AccountMappingRPCResponse;
   }
 }

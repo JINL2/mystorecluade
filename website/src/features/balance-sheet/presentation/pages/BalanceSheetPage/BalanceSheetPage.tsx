@@ -82,10 +82,25 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
 
           {error && !loading && (
             <div className={styles.errorContainer}>
-              <div className={styles.errorIcon}>⚠️</div>
+              <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+
+                {/* Error Symbol Circle */}
+                <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+
+                {/* Warning Icon (!) */}
+                <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+                <circle cx="60" cy="73" r="2.5" fill="white"/>
+
+                {/* Document with Error */}
+                <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+                <line x1="48" y1="35" x2="72" y2="35" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="48" y1="42" x2="65" y2="42" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
               <h2 className={styles.errorTitle}>Failed to Load Balance Sheet</h2>
               <p className={styles.errorMessage}>{error}</p>
-              <TossButton onClick={loadBalanceSheet} variant="primary">
+              <TossButton onClick={() => loadBalanceSheet()} variant="primary">
                 Try Again
               </TossButton>
             </div>

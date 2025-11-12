@@ -7,8 +7,9 @@ import {
   IJournalHistoryRepository,
   JournalHistoryResult,
 } from '../../domain/repositories/IJournalHistoryRepository';
-import { JournalEntry, JournalLine } from '../../domain/entities/JournalEntry';
 import { TransactionHistoryDataSource } from '../datasources/TransactionHistoryDataSource';
+import { JournalEntryModel } from '../models/JournalEntryModel';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class JournalHistoryRepositoryImpl implements IJournalHistoryRepository {
   private dataSource: TransactionHistoryDataSource;
@@ -25,57 +26,25 @@ export class JournalHistoryRepositoryImpl implements IJournalHistoryRepository {
     accountId?: string | null
   ): Promise<JournalHistoryResult> {
     try {
+      // Convert date-only strings to UTC datetime for RPC call
+      // Date format: YYYY-MM-DD → YYYY-MM-DDT00:00:00Z
+      const utcStartDate = startDate
+        ? DateTimeUtils.toRpcFormat(new Date(startDate + 'T00:00:00'))
+        : '';
+      const utcEndDate = endDate
+        ? DateTimeUtils.toRpcFormat(new Date(endDate + 'T23:59:59'))
+        : '';
+
       const data = await this.dataSource.getTransactions(
         companyId,
         storeId,
-        startDate || '',
-        endDate || '',
+        utcStartDate,
+        utcEndDate,
         accountId
       );
 
-      const journalEntries: JournalEntry[] = data.map((journal: any) => {
-        // Map journal lines
-        const lines: JournalLine[] = (journal.lines || []).map((line: any) => ({
-          lineId: line.line_id,
-          accountId: line.account_id,
-          accountName: line.account_name || '',
-          accountType: line.account_type || '',
-          debit: line.debit || 0,
-          credit: line.credit || 0,
-          isDebit: line.is_debit || false,
-          description: line.description || '',
-          counterparty: line.counterparty || null,
-          cashLocation: line.cash_location || null,
-          displayLocation: line.display_location || '',
-          displayCounterparty: line.display_counterparty || '',
-        }));
-
-        return new JournalEntry(
-          journal.journal_id,
-          journal.journal_number,
-          journal.entry_date,
-          journal.created_at,
-          journal.description || '',
-          journal.journal_type || '',
-          journal.is_draft || false,
-          journal.store_id || null,
-          journal.store_name || null,
-          journal.store_code || null,
-          journal.created_by,
-          journal.created_by_name || 'System',
-          journal.currency_code || '',
-          journal.currency_symbol || '',
-          journal.total_debit || 0,
-          journal.total_credit || 0,
-          journal.total_amount || 0,
-          lines
-        );
-      });
-
-      // Sort by created_at descending (newest first)
-      journalEntries.sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+      // Use JournalEntryModel to convert and sort journal entries
+      const journalEntries = JournalEntryModel.fromJsonArray(data);
 
       return {
         success: true,
@@ -90,3 +59,6 @@ export class JournalHistoryRepositoryImpl implements IJournalHistoryRepository {
     }
   }
 }
+
+// Singleton instance for dependency injection
+export const journalHistoryRepository = new JournalHistoryRepositoryImpl();

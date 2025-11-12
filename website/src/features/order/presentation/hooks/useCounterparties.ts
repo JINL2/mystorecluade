@@ -1,52 +1,37 @@
 /**
  * useCounterparties Hook
  * Manages counterparty (supplier) data for orders
+ * Follows Clean Architecture: Presentation → Repository → DataSource
  */
 
-import { useState, useEffect } from 'react';
-import { supabaseService } from '@/core/services/supabase_service';
-
-export interface Counterparty {
-  counterparty_id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-}
+import { useState, useEffect, useCallback } from 'react';
+import { CounterpartyRepositoryImpl } from '../../data/repositories/CounterpartyRepositoryImpl';
+import { Counterparty } from '../../data/models/CounterpartyModel';
 
 export const useCounterparties = (companyId: string | null) => {
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (companyId) {
-      fetchCounterparties();
-    } else {
-      setCounterparties([]);
-    }
-  }, [companyId]);
+  const repository = new CounterpartyRepositoryImpl();
 
-  const fetchCounterparties = async () => {
+  const fetchCounterparties = useCallback(async () => {
     if (!companyId) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabaseService
-        .getClient()
-        .from('counterparties')
-        .select('counterparty_id, name, email, phone, address, notes')
-        .eq('company_id', companyId)
-        .eq('type', 'Suppliers')
-        .eq('is_deleted', false)
-        .order('name');
+      // Use Repository instead of direct supabaseService call
+      const result = await repository.getSuppliers(companyId);
 
-      if (fetchError) throw fetchError;
+      if (!result.success) {
+        setError(result.error || 'Failed to fetch suppliers');
+        setCounterparties([]);
+        return;
+      }
 
-      setCounterparties(data || []);
+      setCounterparties(result.data || []);
     } catch (err) {
       console.error('Error fetching counterparties:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch suppliers');
@@ -54,7 +39,15 @@ export const useCounterparties = (companyId: string | null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId]);
+
+  useEffect(() => {
+    if (companyId) {
+      fetchCounterparties();
+    } else {
+      setCounterparties([]);
+    }
+  }, [companyId, fetchCounterparties]);
 
   return { counterparties, loading, error, refresh: fetchCounterparties };
 };

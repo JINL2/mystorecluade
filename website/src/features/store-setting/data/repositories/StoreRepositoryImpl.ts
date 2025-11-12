@@ -1,11 +1,12 @@
 import { IStoreRepository, StoreResult } from '../../domain/repositories/IStoreRepository';
-import { Store } from '../../domain/entities/Store';
 import { StoreDataSource } from '../datasources/StoreDataSource';
+import { StoreModel } from '../models/StoreModel';
 
 /**
  * StoreRepositoryImpl - IStoreRepository 구현체
  * Clean Architecture의 Data Layer에서 Domain Layer의 인터페이스를 구현
  * DataSource와 Domain Entity 사이의 매핑을 담당
+ * StoreModel을 사용하여 DTO ↔ Entity 변환
  */
 export class StoreRepositoryImpl implements IStoreRepository {
   private dataSource = new StoreDataSource();
@@ -17,21 +18,8 @@ export class StoreRepositoryImpl implements IStoreRepository {
     try {
       const data = await this.dataSource.getStores(companyId);
 
-      // DTO → Domain Entity 변환
-      // Backup과 동일한 필드 매핑: store_id, store_name, store_address, store_phone, huddle_time, payment_time, allowed_distance
-      const stores = data.map((dto: any) =>
-        new Store(
-          dto.store_id,
-          dto.company_id,
-          dto.store_name,
-          dto.store_address, // backup uses store_address
-          dto.store_phone,   // backup uses store_phone
-          !dto.is_deleted,   // is_active = NOT is_deleted
-          dto.huddle_time,   // backup uses huddle_time
-          dto.payment_time,  // backup uses payment_time
-          dto.allowed_distance // backup uses allowed_distance
-        )
-      );
+      // DTO → Domain Entity 변환 (StoreModel 사용)
+      const stores = data.map((dto: any) => StoreModel.fromJson(dto));
 
       return { success: true, data: stores };
     } catch (error) {

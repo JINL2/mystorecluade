@@ -124,8 +124,7 @@
   
   /* ==================== TYPOGRAPHY ==================== */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-family-kr: 'Pretendard', 'Noto Sans KR', sans-serif;
-  --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-family-kr: 'Pretendard', 'Noto Sans KR', sans-serif; /* Korean + Financial numbers */
   
   /* Font Sizes */
   --font-display: 32px;

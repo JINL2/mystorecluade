@@ -40,7 +40,6 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
   useEffect(() => {
     if (productData) {
-      console.log('🔍 ProductDetailsModal received productData:', productData);
       setFormData({
         productName: productData.productName || '',
         category: productData.categoryId || '', // Use categoryId instead of category
@@ -64,7 +63,6 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   };
 
   const handleSave = () => {
-    console.log('🔍 ProductDetailsModal handleSave called with formData:', formData);
     if (onSave) {
       // Convert string values to numbers before saving
       const dataToSave = {

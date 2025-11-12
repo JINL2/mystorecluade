@@ -214,9 +214,19 @@
 }
 
 .tossSelectOption.tossSelectOptionDisabled {
-  opacity: 0.5;
+  background: #F1F3F5 !important; /* Gray 100 */
+  color: #ADB5BD !important; /* Gray 500 - Placeholders */
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.tossSelectOption.tossSelectOptionDisabled .tossSelectOptionLabel {
+  color: #ADB5BD !important; /* Gray 500 */
+}
+
+.tossSelectOption.tossSelectOptionDisabled .tossSelectOptionDescription {
+  background: #DEE2E6 !important; /* Gray 300 */
+  color: #6C757D !important; /* Gray 600 */
 }
 
 /* Option Content */
@@ -236,12 +246,14 @@
 }
 
 .tossSelectOptionDescription {
-  flex: 1;
-  font-size: 14px;
-  color: var(--text-secondary, #868E96);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
   white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
 }
 
 .tossSelectOption.tossSelectOptionSelected .tossSelectOptionDescription {

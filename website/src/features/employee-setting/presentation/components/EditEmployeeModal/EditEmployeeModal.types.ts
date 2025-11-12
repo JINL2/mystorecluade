@@ -2,13 +2,6 @@
  * EditEmployeeModal Types
  */
 
-export interface Currency {
-  currency_id: string;
-  currency_code: string;
-  currency_name: string;
-  currency_symbol: string;
-}
-
 export interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;

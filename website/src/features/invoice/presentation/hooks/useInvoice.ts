@@ -120,6 +120,34 @@ export const useInvoice = (companyId: string, storeId: string | null) => {
     loadInvoices();
   }, [loadInvoices]);
 
+  const refundInvoice = useCallback(async (invoiceId: string, refundReason?: string, createdBy?: string) => {
+    console.log('🟡 useInvoice.refundInvoice - starting...', { invoiceId, refundReason });
+
+    try {
+      const result = await repository.refundInvoice(invoiceId, refundReason, createdBy);
+
+      if (!result.success) {
+        console.error('❌ useInvoice.refundInvoice - failed:', result.error);
+        return {
+          success: false,
+          error: result.error || 'Failed to refund invoice',
+        };
+      }
+
+      console.log('🟢 useInvoice.refundInvoice - success');
+      return {
+        success: true,
+        message: result.message || 'Invoice refunded successfully',
+      };
+    } catch (err) {
+      console.error('❌ useInvoice.refundInvoice - error:', err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
+      };
+    }
+  }, []);
+
   return {
     invoices,
     loading,
@@ -132,5 +160,6 @@ export const useInvoice = (companyId: string, storeId: string | null) => {
     changeSearch,
     changePage,
     refresh,
+    refundInvoice,
   };
 };

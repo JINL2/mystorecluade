@@ -1,12 +1,20 @@
 /**
  * OrderForm Component
  * New purchase order creation form
+ * Uses Clean Architecture: Validator for validation logic
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { useCounterparties, Counterparty } from '../../hooks/useCounterparties';
-import { useProducts, Product } from '../../hooks/useProducts';
+import { useCounterparties } from '../../hooks/useCounterparties';
+import { Counterparty } from '../../../data/models/CounterpartyModel';
+import { useProducts } from '../../hooks/useProducts';
+import { Product } from '../../../data/models/ProductModel';
+import { OrderValidator } from '../../../domain/validators/OrderValidator';
+import { OrderItem as DomainOrderItem } from '../../../domain/entities/Order';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './OrderForm.module.css';
 
 interface OrderFormProps {
@@ -38,8 +46,9 @@ type SupplierTabType = 'counter-party' | 'others';
 
 export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => {
   const { currentCompany } = useAppState();
-  const { counterparties, loading: loadingCounterparties } = useCounterparties(currentCompany?.company_id || null);
-  const { products, loading: loadingProducts, currencySymbol, searchProducts, getProductById } = useProducts(currentCompany?.company_id || null);
+  const { counterparties, loading: loadingCounterparties, error: counterpartiesError } = useCounterparties(currentCompany?.company_id || null);
+  const { products, loading: loadingProducts, currencySymbol, searchProducts, getProductById, error: productsError } = useProducts(currentCompany?.company_id || null);
+  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +83,26 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
     const day = String(today.getDate()).padStart(2, '0');
     setOrderDate(`${year}-${month}-${day}`);
   }, []);
+
+  // Handle products error
+  useEffect(() => {
+    if (productsError) {
+      showError({
+        title: 'Failed to Load Products',
+        message: productsError,
+      });
+    }
+  }, [productsError, showError]);
+
+  // Handle counterparties error
+  useEffect(() => {
+    if (counterpartiesError) {
+      showError({
+        title: 'Failed to Load Suppliers',
+        message: counterpartiesError,
+      });
+    }
+  }, [counterpartiesError, showError]);
 
   // Handle click outside dropdown and search suggestions
   useEffect(() => {
@@ -214,19 +243,64 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
     subtotal: orderItems.reduce((sum, item) => sum + item.subtotal, 0),
   };
 
-  // Validate form
+  // Validate form using OrderValidator
   const isValid = () => {
-    const hasSupplier = supplierTab === 'counter-party'
-      ? selectedSupplier !== null
-      : supplierInfo.name.trim() !== '';
-    const hasValidItems = orderItems.length > 0 &&
-      orderItems.every(item => item.quantity > 0 && item.unit_price > 0);
-    return hasSupplier && hasValidItems;
+    // Convert orderItems to DomainOrderItem format for validation
+    const domainItems: DomainOrderItem[] = orderItems.map(item => ({
+      product_id: item.product_id,
+      product_name: item.product_name,
+      sku: item.sku,
+      barcode: undefined,
+      quantity_ordered: item.quantity,
+      quantity_received_total: undefined,
+      quantity_remaining: undefined,
+      unit_price: item.unit_price,
+      total_amount: item.subtotal,
+    }));
+
+    return OrderValidator.isValidOrderForm(
+      orderDate,
+      supplierTab,
+      selectedSupplier?.counterparty_id || null,
+      supplierTab === 'others' ? supplierInfo : null,
+      domainItems
+    );
   };
 
   // Handle create order
   const handleCreateOrder = async () => {
-    if (!isValid() || !currentCompany) return;
+    if (!currentCompany) return;
+
+    // Validate form
+    const domainItems: DomainOrderItem[] = orderItems.map(item => ({
+      product_id: item.product_id,
+      product_name: item.product_name,
+      sku: item.sku,
+      barcode: undefined,
+      quantity_ordered: item.quantity,
+      quantity_received_total: undefined,
+      quantity_remaining: undefined,
+      unit_price: item.unit_price,
+      total_amount: item.subtotal,
+    }));
+
+    const validationErrors = OrderValidator.validateOrderForm(
+      orderDate,
+      supplierTab,
+      selectedSupplier?.counterparty_id || null,
+      supplierTab === 'others' ? supplierInfo : null,
+      domainItems
+    );
+
+    if (validationErrors.length > 0) {
+      // Show validation errors to user using ErrorMessage
+      const errorMessage = validationErrors.map(err => err.message).join('\n');
+      showError({
+        title: 'Validation Failed',
+        message: errorMessage,
+      });
+      return;
+    }
 
     setIsCreating(true);
     // TODO: Implement RPC call
@@ -323,7 +397,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                       <div className={styles.dropdownList}>
                         {loadingCounterparties ? (
                           <div className={styles.dropdownOption}>
-                            <span>Loading suppliers...</span>
+                            <LoadingAnimation size="small" />
                           </div>
                         ) : counterparties.length === 0 ? (
                           <div className={styles.dropdownOption}>
@@ -618,6 +692,15 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
           </span>
         </div>
       </div>
+
+      {/* ErrorMessage Component */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+      />
     </div>
   );
 };

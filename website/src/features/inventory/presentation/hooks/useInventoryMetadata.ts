@@ -1,11 +1,11 @@
 /**
  * useInventoryMetadata Hook
- * Fetches inventory metadata (categories, brands, product types, units) from Supabase RPC
+ * Fetches inventory metadata (categories, brands, product types, units) through Repository
  */
 
 import { useState, useEffect } from 'react';
-import { supabaseService } from '@/core/services/supabase_service';
-import type { InventoryMetadata, InventoryMetadataResponse } from '../../domain/entities/InventoryMetadata';
+import { InventoryRepositoryImpl } from '../../data/repositories/InventoryRepositoryImpl';
+import type { InventoryMetadata } from '../../domain/entities/InventoryMetadata';
 
 interface UseInventoryMetadataResult {
   metadata: InventoryMetadata | null;
@@ -19,41 +19,22 @@ export const useInventoryMetadata = (companyId: string, storeId?: string): UseIn
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const repository = new InventoryRepositoryImpl();
+
   const fetchMetadata = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const supabase = supabaseService.getClient();
+      // Call repository to get metadata
+      const result = await repository.getMetadata(companyId, storeId);
 
-      // Call the get_inventory_metadata RPC function
-      const { data, error: rpcError } = await supabase
-        .rpc('get_inventory_metadata', {
-          p_company_id: companyId,
-          p_store_id: storeId || null,
-        });
-
-      if (rpcError) {
-        console.error('Error calling get_inventory_metadata:', rpcError);
-        setError(rpcError.message);
-        return;
-      }
-
-      const response = data as InventoryMetadataResponse;
-
-      if (response && response.success && response.data) {
-        console.log('📦 Metadata loaded:', {
-          categories: response.data.categories?.length || 0,
-          brands: response.data.brands?.length || 0,
-          units: response.data.units?.length || 0,
-          unitsData: response.data.units,
-        });
-        setMetadata(response.data);
+      if (result.success && result.data) {
+        setMetadata(result.data);
       } else {
-        setError('Invalid metadata response format');
+        setError(result.error || 'Failed to load metadata');
       }
     } catch (err) {
-      console.error('Error fetching inventory metadata:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);

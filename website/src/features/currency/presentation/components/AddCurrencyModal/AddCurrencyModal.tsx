@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import type { TossSelectorOption } from '@/shared/components/selectors/TossSelector/TossSelector.types';
-import { CurrencyType } from '../../../domain/repositories/ICurrencyRepository';
+import type { CurrencyTypeDTO } from '../../../data/models/CurrencyTypeModel';
 import { Currency } from '../../../domain/entities/Currency';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './AddCurrencyModal.module.css';
 
 interface AddCurrencyModalProps {
@@ -11,8 +13,8 @@ interface AddCurrencyModalProps {
   onClose: () => void;
   existingCurrencies: Currency[];
   baseCurrencyCode: string;
-  onGetAllCurrencyTypes: () => Promise<CurrencyType[]>;
-  onAddCurrency: (currencyId: string, exchangeRate: number) => Promise<{ success: boolean; error?: string }>;
+  onGetAllCurrencyTypes: () => Promise<CurrencyTypeDTO[]>;
+  onAddCurrency: (currencyId: string, exchangeRate: number | string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
@@ -23,12 +25,13 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   onGetAllCurrencyTypes,
   onAddCurrency
 }) => {
-  const [allCurrencyTypes, setAllCurrencyTypes] = useState<CurrencyType[]>([]);
+  const [allCurrencyTypes, setAllCurrencyTypes] = useState<CurrencyTypeDTO[]>([]);
   const [selectedCurrencyId, setSelectedCurrencyId] = useState('');
   const [exchangeRate, setExchangeRate] = useState('');
   const [liveRate, setLiveRate] = useState<number | null>(null);
   const [fetchingLiveRate, setFetchingLiveRate] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<{ title?: string; message: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +39,7 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
       setSelectedCurrencyId('');
       setExchangeRate('');
       setLiveRate(null);
+      setError(null);
     }
   }, [isOpen]);
 
@@ -45,18 +49,18 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   };
 
   const availableCurrencies = allCurrencyTypes.filter(ct => {
-    const isExisting = existingCurrencies.some(ec => ec.currencyId === ct.currency_id);
+    const isExisting = existingCurrencies.some(ec => ec.currencyId === ct.currencyId);
     return !isExisting;
   });
 
   const currencyOptions: TossSelectorOption[] = availableCurrencies.map(ct => ({
-    value: ct.currency_id,
+    value: ct.currencyId,
     label: `${ct.code}`,
     description: ct.name,
     badge: ct.symbol
   }));
 
-  const selectedCurrency = allCurrencyTypes.find(ct => ct.currency_id === selectedCurrencyId);
+  const selectedCurrency = allCurrencyTypes.find(ct => ct.currencyId === selectedCurrencyId);
 
   const handleCurrencyChange = (value: string) => {
     setSelectedCurrencyId(value);
@@ -99,20 +103,30 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   const handleSave = async () => {
     if (!selectedCurrencyId || !exchangeRate) return;
 
-    const rate = parseFloat(exchangeRate);
-    if (isNaN(rate) || rate <= 0) {
-      alert('Please enter a valid exchange rate');
-      return;
-    }
-
     setSaving(true);
-    const result = await onAddCurrency(selectedCurrencyId, rate);
-    setSaving(false);
+    setError(null);
 
-    if (result.success) {
-      onClose();
-    } else {
-      alert(result.error || 'Failed to add currency');
+    try {
+      // Validation is now handled by useCurrency hook (ARCHITECTURE.md pattern)
+      const result = await onAddCurrency(selectedCurrencyId, exchangeRate);
+
+      setSaving(false);
+
+      if (result.success) {
+        // Success handled by parent component
+        onClose();
+      } else {
+        setError({
+          title: 'Failed to Add Currency',
+          message: result.error || 'An error occurred while adding the currency. Please try again.'
+        });
+      }
+    } catch (error) {
+      setSaving(false);
+      setError({
+        title: 'Unexpected Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
+      });
     }
   };
 
@@ -125,7 +139,8 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={`${styles.modalOverlay} ${isOpen ? styles.show : ''}`} onClick={handleOverlayClick}>
+    <>
+      <div className={`${styles.modalOverlay} ${isOpen ? styles.show : ''}`} onClick={handleOverlayClick}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>Add New Currency</h2>
@@ -187,7 +202,13 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
                     onClick={fetchLiveExchangeRate}
                     disabled={fetchingLiveRate}
                   >
-                    {fetchingLiveRate ? 'Fetching...' : 'Get Live Rate'}
+                    {fetchingLiveRate ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <LoadingAnimation size="small" />
+                      </div>
+                    ) : (
+                      'Get Live Rate'
+                    )}
                   </TossButton>
                 </div>
               </div>
@@ -215,10 +236,27 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
             onClick={handleSave}
             disabled={!selectedCurrencyId || !exchangeRate || saving}
           >
-            {saving ? 'Adding...' : 'Add Currency'}
+            {saving ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <LoadingAnimation size="small" />
+              </div>
+            ) : (
+              'Add Currency'
+            )}
           </TossButton>
         </div>
       </div>
     </div>
+
+    {/* Error Message */}
+    <ErrorMessage
+      variant="error"
+      title={error?.title}
+      message={error?.message || ''}
+      isOpen={!!error}
+      onClose={() => setError(null)}
+      zIndex={10001}
+    />
+    </>
   );
 };

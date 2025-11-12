@@ -12,6 +12,11 @@ import {
 } from '../../domain/repositories/IJournalInputRepository';
 import { JournalEntry } from '../../domain/entities/JournalEntry';
 import { JournalInputDataSource } from '../datasources/JournalInputDataSource';
+import {
+  AccountModel,
+  CashLocationModel,
+  CounterpartyModel,
+} from '../models/JournalInputModels';
 
 export class JournalInputRepositoryImpl implements IJournalInputRepository {
   private dataSource: JournalInputDataSource;
@@ -20,16 +25,10 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
     this.dataSource = new JournalInputDataSource();
   }
 
-  async getAccounts(companyId: string): Promise<Account[]> {
+  async getAccounts(_companyId: string): Promise<Account[]> {
     try {
       const data = await this.dataSource.getAccounts();
-      return data.map((item: any) => ({
-        accountId: item.id,
-        accountName: item.name,
-        categoryTag: item.categoryTag,
-        accountType: item.type,
-        expenseNature: item.expenseNature,
-      }));
+      return data.map(AccountModel.fromJson);
     } catch (error) {
       console.error('Repository error fetching accounts:', error);
       return [];
@@ -42,13 +41,7 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
   ): Promise<CashLocation[]> {
     try {
       const data = await this.dataSource.getCashLocations(companyId, storeId);
-      return data.map((item: any) => ({
-        locationId: item.id,
-        locationName: item.name,
-        locationType: item.type,
-        storeId: item.storeId,
-        isCompanyWide: item.isCompanyWide,
-      }));
+      return data.map(CashLocationModel.fromJson);
     } catch (error) {
       console.error('Repository error fetching cash locations:', error);
       return [];
@@ -58,14 +51,7 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
   async getCounterparties(companyId: string): Promise<Counterparty[]> {
     try {
       const data = await this.dataSource.getCounterparties(companyId);
-      return data.map((item: any) => ({
-        counterpartyId: item.id,
-        counterpartyName: item.name,
-        type: item.type,
-        isInternal: item.isInternal,
-        email: item.email,
-        phone: item.phone,
-      }));
+      return data.map(CounterpartyModel.fromJson);
     } catch (error) {
       console.error('Repository error fetching counterparties:', error);
       return [];

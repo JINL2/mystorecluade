@@ -3,8 +3,11 @@
  * Complete ledger view with journal entry grouping
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useJournalHistory } from '../../hooks/useJournalHistory';
 import { TransactionFilter, TransactionFilterValues } from '../../components/TransactionFilter';
@@ -14,6 +17,7 @@ import styles from './TransactionHistoryPage.module.css';
 export const TransactionHistoryPage: React.FC = () => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
+  const { messageState, closeMessage, showError } = useErrorMessage();
 
   const {
     journalEntries,
@@ -23,6 +27,17 @@ export const TransactionHistoryPage: React.FC = () => {
     searchJournalEntries,
     clearSearch,
   } = useJournalHistory(companyId);
+
+  // Show error dialog when error occurs
+  useEffect(() => {
+    if (error) {
+      showError({
+        title: 'Failed to Load Transactions',
+        message: error,
+        confirmText: 'OK',
+      });
+    }
+  }, [error, showError]);
 
   const handleSearch = (filters: TransactionFilterValues) => {
     searchJournalEntries(filters.storeId, filters.fromDate || null, filters.toDate || null);
@@ -49,28 +64,10 @@ export const TransactionHistoryPage: React.FC = () => {
 
   const renderLoadingState = () => (
     <div className={styles.loadingState}>
-      <div className={styles.spinner}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2v4m0 12v4m10-10h-4M6 12H2" />
-        </svg>
-      </div>
-      <h3 className={styles.loadingTitle}>Loading Transactions...</h3>
-      <p className={styles.loadingText}>Please wait while we fetch your transaction history.</p>
+      <LoadingAnimation size="large" />
     </div>
   );
 
-  const renderErrorState = () => (
-    <div className={styles.errorState}>
-      <div className={styles.errorIcon}>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8v4m0 4h.01" />
-        </svg>
-      </div>
-      <h3 className={styles.errorTitle}>Failed to Load Transactions</h3>
-      <p className={styles.errorText}>{error}</p>
-    </div>
-  );
 
   const renderEmptyResults = () => (
     <div className={styles.emptyState}>
@@ -199,12 +196,21 @@ export const TransactionHistoryPage: React.FC = () => {
 
         <div className={styles.contentCard}>
           {loading && renderLoadingState()}
-          {error && !loading && renderErrorState()}
-          {!loading && !error && !hasSearched && renderInitialState()}
-          {!loading && !error && hasSearched && journalEntries.length === 0 && renderEmptyResults()}
-          {!loading && !error && hasSearched && journalEntries.length > 0 && renderTransactionTable()}
+          {!loading && !hasSearched && renderInitialState()}
+          {!loading && hasSearched && journalEntries.length === 0 && renderEmptyResults()}
+          {!loading && hasSearched && journalEntries.length > 0 && renderTransactionTable()}
         </div>
       </div>
+
+      {/* Error Message Dialog */}
+      <ErrorMessage
+        variant={messageState.variant}
+        title={messageState.title}
+        message={messageState.message}
+        isOpen={messageState.isOpen}
+        onClose={closeMessage}
+        confirmText={messageState.confirmText || 'OK'}
+      />
     </>
   );
 };

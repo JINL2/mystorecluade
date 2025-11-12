@@ -10,6 +10,7 @@ import type {
 } from '../../domain/repositories/ISalaryRepository';
 import { SalaryDataSource } from '../datasources/SalaryDataSource';
 import { SalaryModel } from '../models/SalaryModel';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class SalaryRepositoryImpl implements ISalaryRepository {
   private dataSource: SalaryDataSource;
@@ -86,14 +87,28 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         user_email: row.user_email || '',
         store_name: row.store_name || '',
         store_code: row.store_code || '',
-        request_date: row.request_date || '',
+        request_date: row.request_date
+          ? DateTimeUtils.formatDateOnly(DateTimeUtils.toLocal(row.request_date))
+          : '',
         shift_name: row.shift_name || '',
-        start_time: row.start_time || '',
-        end_time: row.end_time || '',
-        actual_start_time: row.actual_start_time || '',
-        actual_end_time: row.actual_end_time || '',
-        confirm_start_time: row.confirm_start_time || '',
-        confirm_end_time: row.confirm_end_time || '',
+        start_time: row.start_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.start_time))
+          : '',
+        end_time: row.end_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.end_time))
+          : '',
+        actual_start_time: row.actual_start_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_start_time))
+          : '',
+        actual_end_time: row.actual_end_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_end_time))
+          : '',
+        confirm_start_time: row.confirm_start_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_start_time))
+          : '',
+        confirm_end_time: row.confirm_end_time
+          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_end_time))
+          : '',
         scheduled_hours: row.scheduled_hours || 0,
         actual_worked_hours: row.actual_worked_hours || 0,
         paid_hours: row.paid_hours || 0,

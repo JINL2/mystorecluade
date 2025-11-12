@@ -370,23 +370,6 @@
   text-align: center;
 }
 
-/* Loading Spinner */
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--toss-gray-200);
-  border-top-color: var(--toss-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: var(--space-8) auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Modal Animations */
 @keyframes fadeIn {
   from {

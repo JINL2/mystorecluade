@@ -1,123 +1,123 @@
 # StoreBase Website Architecture - THE LAW 📜
 
-> **이 문서는 이 프로젝트의 법입니다.**
-> **모든 코드는 반드시 이 규칙을 따라야 합니다. 팀 논의 없이 예외는 없습니다.**
+> **This document is the law of this project.**
+> **All code must follow these rules. No exceptions without team discussion.**
 
 ---
 
-## 기술 스택 (Tech Stack)
+## Tech Stack
 - **Frontend**: React 18 + TypeScript 5
 - **Build Tool**: Vite 5
 - **Styling**: CSS Modules + Toss Design System
-- **State Management**: React Context + Custom Hooks (필요시 Zustand)
+- **State Management**: React Context + Custom Hooks (Zustand if needed)
 - **Routing**: React Router v6
 - **Backend**: Supabase (Auth, Database, RPC)
 - **Package Manager**: npm
 
 ---
 
-## 목차 (Table of Contents)
-1. [핵심 원칙 (Core Principles)](#핵심-원칙-core-principles)
-2. [전체 디렉토리 구조 (Complete Directory Structure)](#전체-디렉토리-구조-complete-directory-structure)
-3. [레이어별 상세 설명 (Layer Details)](#레이어별-상세-설명-layer-details)
-4. [The Law: 무엇을 어디에 두는가](#the-law-무엇을-어디에-두는가)
-5. [Import 규칙 (Import Rules)](#import-규칙-import-rules)
-6. [파일 분리 규칙 (File Separation Rules)](#파일-분리-규칙-file-separation-rules)
-7. [실전 예제 (Practical Examples)](#실전-예제-practical-examples)
-8. [흔한 실수 (Common Mistakes)](#흔한-실수-common-mistakes)
-9. [집행 (Enforcement)](#집행-enforcement)
+## Table of Contents
+1. [Core Principles](#core-principles)
+2. [Complete Directory Structure](#complete-directory-structure)
+3. [Layer Details](#layer-details)
+4. [The Law: What Goes Where](#the-law-what-goes-where)
+5. [Import Rules](#import-rules)
+6. [File Separation Rules](#file-separation-rules)
+7. [Practical Examples](#practical-examples)
+8. [Common Mistakes](#common-mistakes)
+9. [Enforcement](#enforcement)
 
 ---
 
-## 핵심 원칙 (Core Principles)
+## Core Principles
 
-### 1. Clean Architecture (3개 레이어)
-우리는 **Clean Architecture**를 따릅니다:
-- **Domain Layer** (도메인): 비즈니스 엔티티, repository 인터페이스, 검증 규칙 정의
-- **Data Layer** (데이터): Repository 구현체, data source (Supabase RPC), models (DTO)
-- **Presentation Layer** (프레젠테이션): React 컴포넌트, Custom Hooks (비즈니스 로직 실행), 페이지
+### 1. Clean Architecture (3 Layers)
+We follow **Clean Architecture**:
+- **Domain Layer**: Business entities, repository interfaces, validation rules definition
+- **Data Layer**: Repository implementations, data sources (Supabase RPC), models (DTO)
+- **Presentation Layer**: React components, Custom Hooks (business logic execution), pages
 
 ### 2. Feature-First Organization
-각 feature는 **완전히 독립**되어 있으며 자체 domain/data/presentation 레이어를 가집니다.
+Each feature is **completely independent** and has its own domain/data/presentation layers.
 
-### 3. 명확한 분리 (Clear Separation)
+### 3. Clear Separation
 ```
-core/     = 인프라 & 유틸리티 (서비스, 설정, 순수 함수) - TypeScript
-shared/   = UI 컴포넌트 & 디자인 시스템 (React 컴포넌트, Custom Hooks)
-features/ = 완전한 feature 구현 (domain/data/presentation 레이어 포함)
-```
-
-### 4. 단일 파일 크기 제한
-```
-TSX  ≤ 15KB   (React 컴포넌트 - 로직 복잡시 hooks로 분리)
-TS   ≤ 30KB   (비즈니스 로직, 유틸리티)
-CSS  ≤ 20KB   (CSS Module, 컴포넌트별 분리)
+core/     = Infrastructure & utilities (services, config, pure functions) - TypeScript
+shared/   = UI components & design system (React components, Custom Hooks)
+features/ = Complete feature implementation (includes domain/data/presentation layers)
 ```
 
-**절대 규칙**: 단일 파일이 50KB를 넘으면 **무조건 분리**해야 합니다.
+### 4. Single File Size Limits
+```
+TSX  ≤ 15KB   (React components - separate logic into hooks if complex)
+TS   ≤ 30KB   (Business logic, utilities)
+CSS  ≤ 20KB   (CSS Module, separate per component)
+```
+
+**Absolute Rule**: If a single file exceeds 50KB, it **must be split**.
 
 ---
 
-## 전체 디렉토리 구조 (Complete Directory Structure)
+## Complete Directory Structure
 
 ```
 website/
 ├── index.html                    # 📱 Vite Entry Point
-├── vite.config.ts                # Vite 설정
-├── tsconfig.json                 # TypeScript 설정
-├── tsconfig.node.json            # Node.js용 TypeScript 설정
-├── package.json                  # 프로젝트 의존성
-├── .env.local                    # 환경 변수 (Supabase keys)
+├── vite.config.ts                # Vite configuration
+├── tsconfig.json                 # TypeScript configuration
+├── tsconfig.node.json            # TypeScript configuration for Node.js
+├── package.json                  # Project dependencies
+├── .env.local                    # Environment variables (Supabase keys)
 │
-├── public/                       # 📦 정적 파일 (빌드 시 복사됨)
+├── public/                       # 📦 Static files (copied on build)
 │   └── assets/
 │       ├── images/
 │       ├── icons/
 │       └── fonts/
 │
-├── docs/                         # 📚 프로젝트 문서
-│   └── ARCHITECTURE.md          # 이 문서
+├── docs/                         # 📚 Project documentation
+│   └── ARCHITECTURE.md          # This document
 │
-└── src/                          # 소스 코드 루트
-    ├── main.tsx                  # React 애플리케이션 엔트리 포인트
-    ├── App.tsx                   # 루트 컴포넌트
-    ├── vite-env.d.ts            # Vite 타입 정의
+└── src/                          # Source code root
+    ├── main.tsx                  # React application entry point
+    ├── App.tsx                   # Root component
+    ├── vite-env.d.ts            # Vite type definitions
     │
     ├── core/                     # 🔧 Infrastructure & Cross-Cutting Concerns
-    │   ├── config/               # ✅ 앱 설정
-    │   │   ├── supabase.ts      # Supabase 클라이언트 초기화
-    │   │   └── routes.ts        # React Router 라우트 설정
+    │   ├── config/               # ✅ App configuration
+    │   │   ├── supabase.ts      # Supabase client initialization
+    │   │   └── routes.ts        # React Router route configuration
     │   │
-    │   ├── constants/            # ✅ 앱 전체 상수
-    │   │   ├── app-icons.ts     # 아이콘 매핑
-    │   │   ├── ui-constants.ts  # UI 상수
-    │   │   └── route-paths.ts   # 라우트 경로
+    │   ├── constants/            # ✅ App-wide constants
+    │   │   ├── app-icons.ts     # Icon mapping
+    │   │   ├── ui-constants.ts  # UI constants
+    │   │   └── route-paths.ts   # Route paths
     │   │
-    │   ├── services/             # ✅ 인프라 서비스
-    │   │   ├── supabase.service.ts    # Supabase 클라이언트 래퍼
-    │   │   ├── storage.service.ts     # LocalStorage/SessionStorage 관리
-    │   │   ├── cache.service.ts       # 인메모리 캐싱
-    │   │   └── auth.service.ts        # 인증 서비스
+    │   ├── services/             # ✅ Infrastructure services
+    │   │   ├── supabase.service.ts    # Supabase client wrapper
+    │   │   ├── storage.service.ts     # LocalStorage/SessionStorage management
+    │   │   ├── cache.service.ts       # In-memory caching
+    │   │   └── auth.service.ts        # Authentication service
     │   │
-    │   ├── utils/                # ✅ 순수 유틸리티 함수
-    │   │   ├── formatters.ts    # 숫자, 날짜, 통화 포맷
-    │   │   ├── validators.ts    # 검증 함수
-    │   │   └── helpers.ts       # 공통 헬퍼 함수
+    │   ├── utils/                # ✅ Pure utility functions
+    │   │   ├── formatters.ts    # Number, date, currency formatting
+    │   │   ├── validators.ts    # Validation functions
+    │   │   └── helpers.ts       # Common helper functions
     │   │
-    │   └── types/                # ✅ 전역 타입 정의
-    │       ├── supabase.types.ts # Supabase 자동 생성 타입
-    │       └── common.types.ts   # 공통 타입
+    │   └── types/                # ✅ Global type definitions
+    │       ├── supabase.types.ts # Supabase auto-generated types
+    │       └── common.types.ts   # Common types
     │
     ├── shared/                   # 🎨 Shared UI Components & Hooks
-    │   ├── themes/               # ✅ 디자인 시스템 토큰
-    │   │   ├── variables.css    # CSS 변수 (색상, 간격, 폰트)
-    │   │   ├── toss-colors.css  # Toss 색상 팔레트
-    │   │   ├── typography.css   # 타이포그래피
-    │   │   ├── animations.css   # 애니메이션
-    │   │   └── global.css       # 전역 스타일 리셋
+    │   ├── themes/               # ✅ Design system tokens
+    │   │   ├── variables.css    # CSS variables (colors, spacing, fonts)
+    │   │   ├── toss-colors.css  # Toss color palette
+    │   │   ├── typography.css   # Typography
+    │   │   ├── animations.css   # Animations
+    │   │   └── global.css       # Global style reset
     │   │
-    │   ├── components/           # ✅ 재사용 가능한 React 컴포넌트
-    │   │   ├── common/          # 📦 프로젝트 전체 공통 컴포넌트
+    │   ├── components/           # ✅ Reusable React components
+    │   │   ├── common/          # 📦 Project-wide common components
     │   │   │   ├── TossScaffold/
     │   │   │   │   ├── TossScaffold.tsx
     │   │   │   │   ├── TossScaffold.module.css
@@ -139,7 +139,7 @@ website/
     │   │   │       ├── TossErrorView.tsx
     │   │   │       └── TossErrorView.module.css
     │   │   │
-    │   │   ├── toss/            # 📦 Toss 디자인 시스템 기본 컴포넌트
+    │   │   ├── toss/            # 📦 Toss Design System base components
     │   │   │   ├── TossButton/
     │   │   │   │   ├── TossButton.tsx
     │   │   │   │   ├── TossButton.module.css
@@ -166,7 +166,7 @@ website/
     │   │   │       ├── TossAlert.tsx
     │   │   │       └── TossAlert.module.css
     │   │   │
-    │   │   └── selectors/       # 📦 Selector 전용 컴포넌트
+    │   │   └── selectors/       # 📦 Selector-specific components
     │   │       ├── StoreSelector/
     │   │       │   ├── StoreSelector.tsx
     │   │       │   ├── StoreSelector.module.css
@@ -175,21 +175,21 @@ website/
     │   │           ├── CompanySelector.tsx
     │   │           └── CompanySelector.module.css
     │   │
-    │   └── hooks/                # ✅ 전역 Custom Hooks (여러 feature에서 사용)
-    │       ├── useAuth.ts       # 전역 인증 상태 관리
-    │       ├── useLocalStorage.ts # LocalStorage hook (UI 전용)
-    │       ├── useDebounce.ts   # Debounce hook (UI 전용)
-    │       └── useAsync.ts      # 비동기 처리 hook (UI 전용)
+    │   └── hooks/                # ✅ Global Custom Hooks (used across features)
+    │       ├── useAuth.ts       # Global authentication state management
+    │       ├── useLocalStorage.ts # LocalStorage hook (UI only)
+    │       ├── useDebounce.ts   # Debounce hook (UI only)
+    │       └── useAsync.ts      # Async handling hook (UI only)
     │
     ├── features/                 # 🎯 Feature Modules (Clean Architecture)
-    │   ├── auth/                # 인증 feature
+    │   ├── auth/                # Authentication feature
     │   │   ├── domain/
     │   │   │   ├── entities/
-    │   │   │   │   └── User.ts # 사용자 엔티티
+    │   │   │   │   └── User.ts # User entity
     │   │   │   ├── repositories/
-    │   │   │   │   └── IAuthRepository.ts  # Repository 인터페이스
+    │   │   │   │   └── IAuthRepository.ts  # Repository interface
     │   │   │   └── validators/
-    │   │   │       └── AuthValidator.ts    # 인증 검증
+    │   │   │       └── AuthValidator.ts    # Authentication validation
     │   │   ├── data/
     │   │   │   ├── datasources/
     │   │   │   │   └── AuthDataSource.ts   # Supabase Auth API
@@ -199,10 +199,10 @@ website/
     │   │   │       └── AuthRepositoryImpl.ts
     │   │   └── presentation/
     │   │       ├── pages/
-    │   │       │   ├── LoginPage.tsx        # 로그인 페이지
-    │   │       │   └── RegisterPage.tsx     # 회원가입 페이지
+    │   │       │   ├── LoginPage.tsx        # Login page
+    │   │       │   └── RegisterPage.tsx     # Registration page
     │   │       │
-    │   │       ├── components/              # Feature 전용 컴포넌트
+    │   │       ├── components/              # Feature-specific components
     │   │       │   ├── LoginForm/
     │   │       │   │   ├── LoginForm.tsx
     │   │       │   │   ├── LoginForm.module.css
@@ -211,12 +211,12 @@ website/
     │   │       │       ├── RegisterForm.tsx
     │   │       │       └── RegisterForm.module.css
     │   │       │
-    │   │       └── hooks/                   # Feature 전용 Custom Hooks
-    │   │           ├── useLogin.ts          # 로그인 로직 (Validation + Repository)
-    │   │           ├── useRegister.ts       # 회원가입 로직 (Validation + Repository)
-    │   │           └── useAuthForm.ts       # 폼 상태 관리
+    │   │       └── hooks/                   # Feature-specific Custom Hooks
+    │   │           ├── useLogin.ts          # Login logic (Validation + Repository)
+    │   │           ├── useRegister.ts       # Registration logic (Validation + Repository)
+    │   │           └── useAuthForm.ts       # Form state management
     │   │
-    │   ├── dashboard/            # 대시보드 feature
+    │   ├── dashboard/            # Dashboard feature
     │   │   ├── domain/
     │   │   │   ├── entities/
     │   │   │   │   └── DashboardMetrics.ts
@@ -243,9 +243,9 @@ website/
     │   │       │       ├── QuickActions.tsx
     │   │       │       └── QuickActions.module.css
     │   │       └── hooks/
-    │   │           └── useDashboard.ts      # 대시보드 로직 (Repository 호출)
+    │   │           └── useDashboard.ts      # Dashboard logic (Repository calls)
     │   │
-    │   ├── inventory/            # 재고 관리 feature
+    │   ├── inventory/            # Inventory management feature
     │   │   ├── domain/
     │   │   │   ├── entities/
     │   │   │   │   ├── Product.ts
@@ -264,9 +264,9 @@ website/
     │   │   │       └── InventoryRepositoryImpl.ts
     │   │   └── presentation/
     │   │       ├── pages/
-    │   │       │   └── InventoryPage.tsx       # 재고 관리 페이지
+    │   │       │   └── InventoryPage.tsx       # Inventory management page
     │   │       │
-    │   │       ├── components/                 # Feature 전용 컴포넌트
+    │   │       ├── components/                 # Feature-specific components
     │   │       │   ├── InventoryTable/
     │   │       │   │   ├── InventoryTable.tsx
     │   │       │   │   ├── InventoryTable.module.css
@@ -283,54 +283,54 @@ website/
     │   │       │       └── ProductRow.module.css
     │   │       │
     │   │       └── hooks/
-    │   │           ├── useInventory.ts      # 재고 관리 로직 (Repository 호출)
-    │   │           ├── useProducts.ts       # 상품 관리 로직 (Validation + Repository)
-    │   │           └── useExcelImport.ts    # Excel 가져오기 로직 (Validation + Repository)
+    │   │           ├── useInventory.ts      # Inventory management logic (Repository calls)
+    │   │           ├── useProducts.ts       # Product management logic (Validation + Repository)
+    │   │           └── useExcelImport.ts    # Excel import logic (Validation + Repository)
     │   │
-    │   ├── finance/              # 재무 관리 feature
+    │   ├── finance/              # Finance management feature
     │   │   ├── domain/
     │   │   ├── data/
     │   │   └── presentation/
     │   │
-    │   ├── employee/             # 직원 관리 feature
+    │   ├── employee/             # Employee management feature
     │   │   ├── domain/
     │   │   ├── data/
     │   │   └── presentation/
     │   │
-    │   └── settings/             # 설정 feature
+    │   └── settings/             # Settings feature
     │       ├── domain/
     │       ├── data/
     │       └── presentation/
     │
-    └── routes/                   # ✅ React Router 설정
-        ├── index.tsx             # 라우트 정의
-        ├── ProtectedRoute.tsx    # 인증 가드
-        └── PublicRoute.tsx       # 공개 라우트
+    └── routes/                   # ✅ React Router configuration
+        ├── index.tsx             # Route definitions
+        ├── ProtectedRoute.tsx    # Authentication guard
+        └── PublicRoute.tsx       # Public routes
 ```
 
 ---
 
-## 레이어별 상세 설명 (Layer Details)
+## Layer Details
 
 ### 🔧 `core/` - Infrastructure & Cross-Cutting Concerns
 
-**역할**: 인프라 서비스 및 횡단 관심사
+**Role**: Infrastructure services and cross-cutting concerns
 
-**포함되어야 하는 것**:
-- ✅ 인프라 서비스 (Supabase, HTTP 클라이언트, 캐싱)
-- ✅ 상수 (API 엔드포인트, 설정 값)
-- ✅ 순수 유틸리티 함수 (포맷터, 검증기, 헬퍼)
-- ✅ 라우터 및 네비게이션 로직
-- ✅ 앱 전체 설정
+**What should be included**:
+- ✅ Infrastructure services (Supabase, HTTP client, caching)
+- ✅ Constants (API endpoints, configuration values)
+- ✅ Pure utility functions (formatters, validators, helpers)
+- ✅ Router and navigation logic
+- ✅ App-wide configuration
 
-**포함되면 안 되는 것**:
-- ❌ UI 컴포넌트 (위젯, 버튼, 카드)
-- ❌ 디자인 시스템 토큰 (색상, 타이포그래피, 간격)
-- ❌ 완전한 feature 구현 (domain/data/presentation)
-- ❌ Feature 특화 비즈니스 로직
-- ❌ HTML/CSS 파일
+**What should NOT be included**:
+- ❌ UI components (widgets, buttons, cards)
+- ❌ Design system tokens (colors, typography, spacing)
+- ❌ Complete feature implementations (domain/data/presentation)
+- ❌ Feature-specific business logic
+- ❌ HTML/CSS files
 
-**예제**:
+**Examples**:
 ```typescript
 // ✅ core/services/supabase.service.ts
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -419,45 +419,45 @@ export const cacheService = new CacheService();
 
 ### 🎨 `shared/` - Presentation Layer (UI Only!)
 
-**역할**: 재사용 가능한 UI 컴포넌트 및 디자인 시스템
+**Role**: Reusable UI components and design system
 
-**포함되어야 하는 것**:
-- ✅ 재사용 가능한 UI 컴포넌트 (버튼, 카드, 입력)
-- ✅ 디자인 시스템 토큰 (색상, 타이포그래피, 간격, 그림자)
-- ✅ 테마 설정 (CSS 변수, 스타일 리셋)
-- ✅ **Common components** (`shared/components/common/`) - 프로젝트 전체 공통 위젯
-- ✅ HTML 템플릿
+**What should be included**:
+- ✅ Reusable UI components (buttons, cards, inputs)
+- ✅ Design system tokens (colors, typography, spacing, shadows)
+- ✅ Theme configuration (CSS variables, style reset)
+- ✅ **Common components** (`shared/components/common/`) - Project-wide common widgets
+- ✅ HTML templates
 
-**포함되면 안 되는 것**:
-- ❌ 비즈니스 로직 또는 도메인 규칙
-- ❌ Data layer 코드 (repository, data source)
-- ❌ 도메인 엔티티
-- ❌ 인프라 서비스 (데이터베이스, API)
-- ❌ 캐싱 시스템
-- ❌ RPC 호출
+**What should NOT be included**:
+- ❌ Business logic or domain rules
+- ❌ Data layer code (repository, data source)
+- ❌ Domain entities
+- ❌ Infrastructure services (database, API)
+- ❌ Caching system
+- ❌ RPC calls
 
-**핵심 원칙**: 디자이너가 관심 있는 것 → `shared/`. 백엔드 엔지니어가 관심 있는 것 → `core/`.
+**Core Principle**: What designers care about → `shared/`. What backend engineers care about → `core/`.
 
-**`shared/components/` 하위 구조**:
+**`shared/components/` sub-structure**:
 ```
 shared/components/
-├── common/        # 📦 프로젝트 전체에서 사용하는 공통 컴포넌트
-│                  # 예: TossScaffold, TossAppBar, TossDialog
-├── toss/          # 📦 Toss 디자인 시스템 기본 컴포넌트
-│                  # 예: TossButton, TossInput, TossCard
-└── selectors/     # 📦 Selector 관련 컴포넌트
-                   # 예: StoreSelector, CompanySelector
+├── common/        # 📦 Common components used across the entire project
+│                  # e.g., TossScaffold, TossAppBar, TossDialog
+├── toss/          # 📦 Toss design system basic components
+│                  # e.g., TossButton, TossInput, TossCard
+└── selectors/     # 📦 Selector-related components
+                   # e.g., StoreSelector, CompanySelector
 ```
 
-**컴포넌트 구조 규칙**:
+**Component structure rules**:
 ```
 shared/components/toss/TossButton/
-├── TossButton.tsx          # React 컴포넌트
-├── TossButton.module.css   # CSS Module 스타일
-└── TossButton.types.ts     # TypeScript 타입 정의
+├── TossButton.tsx          # React component
+├── TossButton.module.css   # CSS Module styles
+└── TossButton.types.ts     # TypeScript type definitions
 ```
 
-**예제**:
+**Example**:
 ```typescript
 // ✅ shared/components/toss/TossButton/TossButton.types.ts
 export interface TossButtonProps {
@@ -558,28 +558,28 @@ export const TossButton: React.FC<TossButtonProps> = ({
 }
 ```
 
-**`shared/hooks/` - 전역 Custom Hooks**:
+**`shared/hooks/` - Global Custom Hooks**:
 ```
 shared/hooks/
-├── useAuth.ts           # 전역 인증 상태 관리 (여러 feature에서 사용)
-├── useLocalStorage.ts   # LocalStorage hook (UI 전용)
-├── useDebounce.ts       # Debounce hook (UI 전용)
-└── useAsync.ts          # 비동기 처리 hook (UI 전용)
+├── useAuth.ts           # Global authentication state management (used across multiple features)
+├── useLocalStorage.ts   # LocalStorage hook (UI only)
+├── useDebounce.ts       # Debounce hook (UI only)
+└── useAsync.ts          # Async processing hook (UI only)
 ```
 
-**포함되어야 하는 것**:
-- ✅ 전역 인증 상태 관리 (useAuth)
-- ✅ UI 전용 hooks (useToggle, useDebounce, useMediaQuery)
-- ✅ 브라우저 API hooks (useLocalStorage, useSessionStorage)
+**What should be included**:
+- ✅ Global authentication state management (useAuth)
+- ✅ UI-only hooks (useToggle, useDebounce, useMediaQuery)
+- ✅ Browser API hooks (useLocalStorage, useSessionStorage)
 
-**포함되면 안 되는 것**:
-- ❌ Feature-specific 비즈니스 로직 (→ `features/*/presentation/hooks/`)
-- ❌ 복잡한 Validation + Repository 로직 (→ `features/*/presentation/hooks/`)
-- ❌ Feature 특화 데이터 관리 (→ `features/*/presentation/hooks/`)
+**What should NOT be included**:
+- ❌ Feature-specific business logic (→ `features/*/presentation/hooks/`)
+- ❌ Complex Validation + Repository logic (→ `features/*/presentation/hooks/`)
+- ❌ Feature-specific data management (→ `features/*/presentation/hooks/`)
 
-**예제**:
+**Example**:
 ```typescript
-// ✅ shared/hooks/useAuth.ts - 전역 인증 상태
+// ✅ shared/hooks/useAuth.ts - Global authentication state
 import { useState, useEffect } from 'react';
 import { AuthRepositoryImpl } from '@/features/auth/data/repositories/AuthRepositoryImpl';
 
@@ -603,80 +603,80 @@ export const useAuth = () => {
 
 ### 🎯 `features/` - Complete Feature Implementation
 
-**역할**: 완전한 feature 구현 (Clean Architecture)
+**Role**: Complete feature implementation (Clean Architecture)
 
-**포함되어야 하는 것**:
-- ✅ domain/data/presentation 레이어를 가진 완전한 feature
-- ✅ Feature 특화 엔티티
-- ✅ Feature 특화 repository
-- ✅ Feature 특화 비즈니스 로직
-- ✅ Feature 특화 UI 페이지 및 위젯
+**What should be included**:
+- ✅ Complete feature with domain/data/presentation layers
+- ✅ Feature-specific entities
+- ✅ Feature-specific repository
+- ✅ Feature-specific business logic
+- ✅ Feature-specific UI pages and widgets
 
-**각 feature의 구조**:
+**Structure of each feature**:
 ```
 features/my_feature/
-├── domain/                    # 비즈니스 규칙 정의
-│   ├── entities/             # 비즈니스 객체
+├── domain/                    # Business rules definition
+│   ├── entities/             # Business objects
 │   │   └── MyEntity.ts
-│   ├── repositories/         # Repository 인터페이스 (추상)
+│   ├── repositories/         # Repository interfaces (abstract)
 │   │   └── IMyRepository.ts
-│   └── validators/           # 검증 규칙 정의 (정적 메서드)
+│   └── validators/           # Validation rules definition (static methods)
 │       └── MyValidator.ts
-├── data/                      # 데이터 처리
-│   ├── datasources/          # API 호출, RPC 실행
+├── data/                      # Data processing
+│   ├── datasources/          # API calls, RPC execution
 │   │   └── MyDataSource.ts
 │   ├── models/               # DTO + Mapper
 │   │   └── MyModel.ts
-│   └── repositories/         # Repository 구현체
+│   └── repositories/         # Repository implementations
 │       └── MyRepositoryImpl.ts
-└── presentation/              # UI + 비즈니스 로직 실행
-    ├── pages/                # 전체 페이지
+└── presentation/              # UI + Business logic execution
+    ├── pages/                # Full pages
     │   └── MyPage/
-    │       ├── MyPage.tsx         # React 컴포넌트
+    │       ├── MyPage.tsx         # React component
     │       ├── MyPage.module.css  # CSS Module
-    │       ├── MyPage.types.ts    # Type 정의
+    │       ├── MyPage.types.ts    # Type definitions
     │       └── index.ts           # Barrel export
-    ├── components/           # Feature 전용 컴포넌트
+    ├── components/           # Feature-specific components
     │   └── MyComponent/
     │       ├── MyComponent.tsx
     │       ├── MyComponent.module.css
     │       └── MyComponent.types.ts
-    └── hooks/                # Feature 전용 Custom Hooks
-        └── useMyFeature.ts   # Validation 실행 + Repository 호출
+    └── hooks/                # Feature-specific Custom Hooks
+        └── useMyFeature.ts   # Validation execution + Repository calls
 ```
 
-**🔑 중요**:
-- `domain/validators/`: 검증 **규칙만 정의** (정적 메서드)
-- `presentation/hooks/`: 검증 **실행** + Repository 호출 (비즈니스 로직 실행)
+**🔑 Important**:
+- `domain/validators/`: Define validation **rules only** (static methods)
+- `presentation/hooks/`: Validation **execution** + Repository calls (business logic execution)
 ```
 
-**예제**: [실전 예제](#실전-예제-practical-examples) 섹션 참고
+**Example**: See [Practical Examples](#practical-examples) section
 
 ---
 
-## The Law: 무엇을 어디에 두는가
+## The Law: What Goes Where
 
-### 규칙 1: `core/` = 인프라만, UI 없음
+### Rule 1: `core/` = Infrastructure only, No UI
 
 ```
-✅ core/services/supabase-service.js      # 인프라 서비스
-✅ core/services/cache-service.js         # 캐싱
-✅ core/utils/formatters.js               # 유틸리티
-✅ core/config/router-config.js           # 앱 설정
+✅ core/services/supabase-service.js      # Infrastructure service
+✅ core/services/cache-service.js         # Caching
+✅ core/utils/formatters.js               # Utilities
+✅ core/config/router-config.js           # App configuration
 
 ❌ core/themes/toss-colors.css            # → shared/themes/
 ❌ core/components/button.js              # → shared/components/
 ❌ core/inventory/InventoryPage.js        # → features/inventory/
 ```
 
-### 규칙 2: `shared/` = UI + 전역 Hooks만, Feature 비즈니스 로직 없음
+### Rule 2: `shared/` = UI + Global Hooks only, No Feature Business Logic
 
 ```
-✅ shared/components/toss/TossButton/TossButton.tsx      # UI 컴포넌트
-✅ shared/components/common/TossDialog/TossDialog.tsx    # 공통 위젯
-✅ shared/themes/toss-colors.css                         # 디자인 토큰
-✅ shared/hooks/useAuth.ts                               # 전역 인증 상태
-✅ shared/hooks/useDebounce.ts                           # UI 전용 Hook
+✅ shared/components/toss/TossButton/TossButton.tsx      # UI component
+✅ shared/components/common/TossDialog/TossDialog.tsx    # Common widget
+✅ shared/themes/toss-colors.css                         # Design tokens
+✅ shared/hooks/useAuth.ts                               # Global auth state
+✅ shared/hooks/useDebounce.ts                           # UI-only Hook
 
 ❌ shared/services/api-service.ts                        # → core/services/
 ❌ shared/domain/Product.ts                              # → features/*/domain/
@@ -684,12 +684,12 @@ features/my_feature/
 ❌ shared/hooks/useInventory.ts                          # → features/inventory/presentation/hooks/
 ```
 
-**핵심**:
-- `shared/hooks/`: 전역 상태 관리 + UI 전용 Hook만
-- `features/*/presentation/hooks/`: Feature-specific 비즈니스 로직 (Validation + Repository)
+**Core principle**:
+- `shared/hooks/`: Global state management + UI-only Hooks only
+- `features/*/presentation/hooks/`: Feature-specific business logic (Validation + Repository)
 ```
 
-### 규칙 3: `features/` = 완전한 feature (domain/data/presentation)
+### Rule 3: `features/` = Complete feature (domain/data/presentation)
 
 ```
 ✅ features/inventory/domain/entities/Product.js
@@ -700,65 +700,65 @@ features/my_feature/
 ❌ features/inventory/themes/colors.css                  # → shared/themes/
 ```
 
-### 규칙 4: 파일 크기 제한
+### Rule 4: File Size Limits
 
 ```
-✅ inventory.html (8KB)    # HTML 구조만
-✅ inventory.css (15KB)    # 스타일만
-✅ inventory.js (25KB)     # 페이지 로직만
+✅ inventory.html (8KB)    # HTML structure only
+✅ inventory.css (15KB)    # Styles only
+✅ inventory.js (25KB)     # Page logic only
 
-❌ inventory.html (270KB)  # 모든 것이 하나의 파일 - 절대 금지!
+❌ inventory.html (270KB)  # Everything in one file - ABSOLUTELY FORBIDDEN!
 ```
 
 ---
 
-## Import 규칙 (Import Rules)
+## Import Rules
 
-### 1. 테마 Imports - **항상** `shared/themes/` 사용
+### 1. Theme Imports - **Always** use `shared/themes/`
 
 ```html
-<!-- ✅ 올바름 -->
+<!-- ✅ Correct -->
 <link rel="stylesheet" href="../../../shared/themes/toss-variables.css">
 <link rel="stylesheet" href="../../../shared/themes/toss-base.css">
 
-<!-- ❌ 틀림 (core/themes는 사용 금지) -->
+<!-- ❌ Wrong (core/themes is forbidden) -->
 <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
 ```
 
-### 2. 컴포넌트 Imports - `shared/components/` 사용
+### 2. Component Imports - Use `shared/components/`
 
 ```javascript
-// ✅ 올바름
+// ✅ Correct
 import { TossButton } from '../../../shared/components/toss/TossButton/TossButton.js';
 import { TossDialog } from '../../../shared/components/common/TossDialog/TossDialog.js';
 
-// ❌ 틀림
+// ❌ Wrong
 import { TossButton } from '../../../core/components/TossButton.js';
 ```
 
-### 3. 서비스 Imports - `core/services/` 사용
+### 3. Service Imports - Use `core/services/`
 
 ```javascript
-// ✅ 올바름
+// ✅ Correct
 import { SupabaseService } from '../../../core/services/supabase-service.js';
 import { CacheService } from '../../../core/services/cache-service.js';
 
-// ❌ 틀림
+// ❌ Wrong
 import { SupabaseService } from '../../../shared/services/supabase-service.js';
 ```
 
-### 4. 유틸리티 Imports - `core/utils/` 사용
+### 4. Utility Imports - Use `core/utils/`
 
 ```javascript
-// ✅ 올바름
+// ✅ Correct
 import { formatCurrency } from '../../../core/utils/formatters.js';
 import { validateEmail } from '../../../core/utils/validators.js';
 ```
 
-### 5. 파일 내 Import 순서
+### 5. Import Order in Files
 
 ```javascript
-// 1. 외부 라이브러리
+// 1. External libraries
 import ExcelJS from 'https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js';
 
 // 2. Shared - Theme System (CSS)
@@ -781,39 +781,39 @@ import { InventoryTable } from '../widgets/InventoryTable/InventoryTable.js';
 
 ---
 
-## 파일 분리 규칙 (File Separation Rules)
+## File Separation Rules
 
-### 규칙 1: React 컴포넌트는 **TSX + CSS Module + Types**로 분리
+### Rule 1: React Components must be separated into **TSX + CSS Module + Types**
 
-**나쁜 예** (기존 Vanilla JS 방식):
+**Bad Example** (Old Vanilla JS approach):
 ```html
-<!-- ❌ inventory.html (270KB) - 모든 것이 하나에 -->
+<!-- ❌ inventory.html (270KB) - Everything in one file -->
 <!DOCTYPE html>
 <html>
 <head>
   <style>
-    /* 1000줄의 CSS */
+    /* 1000 lines of CSS */
   </style>
 </head>
 <body>
   <script>
-    // 5000줄의 JavaScript
+    // 5000 lines of JavaScript
   </script>
 </body>
 </html>
 ```
 
-**좋은 예** (React + TypeScript 방식):
+**Good Example** (React + TypeScript approach):
 ```
 features/inventory/presentation/pages/InventoryPage/
-├── InventoryPage.tsx         (≤15KB)  # React 컴포넌트
+├── InventoryPage.tsx         (≤15KB)  # React component
 ├── InventoryPage.module.css  (≤20KB)  # CSS Module
-├── InventoryPage.types.ts    (≤5KB)   # Type 정의
+├── InventoryPage.types.ts    (≤5KB)   # Type definitions
 └── index.ts                   (≤1KB)   # Barrel export
 ```
 
 ```typescript
-// ✅ InventoryPage.types.ts - Type 정의만
+// ✅ InventoryPage.types.ts - Type definitions only
 export interface InventoryPageProps {
   companyId: string;
   storeId: string;
@@ -827,7 +827,7 @@ export interface InventoryFilters {
 ```
 
 ```typescript
-// ✅ InventoryPage.tsx - React 컴포넌트 (로직 복잡시 hooks로 분리)
+// ✅ InventoryPage.tsx - React component (separate logic into hooks if complex)
 import React from 'react';
 import styles from './InventoryPage.module.css';
 import type { InventoryPageProps } from './InventoryPage.types';
@@ -899,34 +899,34 @@ export { InventoryPage } from './InventoryPage';
 export type { InventoryPageProps } from './InventoryPage.types';
 ```
 
-### 규칙 2: 컴포넌트는 **폴더 단위로 분리** (Component + Styles + Types + Hooks)
+### Rule 2: Components must be **separated by folder** (Component + Styles + Types + Hooks)
 
-**Shared Component 구조**:
+**Shared Component Structure**:
 ```
 shared/components/toss/TossButton/
-├── TossButton.tsx         # React 컴포넌트
+├── TossButton.tsx         # React component
 ├── TossButton.module.css  # CSS Module
-├── TossButton.types.ts    # Props 타입
+├── TossButton.types.ts    # Props types
 └── index.ts               # Barrel export
 ```
 
-**Feature Component 구조** (복잡한 경우):
+**Feature Component Structure** (complex cases):
 ```
 features/inventory/presentation/components/InventoryTable/
-├── InventoryTable.tsx         # 메인 컴포넌트
-├── InventoryTable.module.css  # 스타일
-├── InventoryTable.types.ts    # 타입 정의
-├── InventoryTableRow.tsx      # 서브 컴포넌트
-├── useInventoryTable.ts       # 커스텀 훅 (로직 분리)
+├── InventoryTable.tsx         # Main component
+├── InventoryTable.module.css  # Styles
+├── InventoryTable.types.ts    # Type definitions
+├── InventoryTableRow.tsx      # Sub-component
+├── useInventoryTable.ts       # Custom hook (logic separation)
 └── index.ts                   # Barrel export
 ```
 
-### 규칙 3: 비즈니스 로직은 **Hooks로 분리** (Validation 실행 + Repository 호출)
+### Rule 3: Business Logic must be **separated into Hooks** (Validation execution + Repository calls)
 
-**핵심 패턴**: Custom Hooks는 Validator를 호출하여 검증을 실행하고, Repository를 호출합니다.
+**Core Pattern**: Custom Hooks call Validator to execute validation and call Repository.
 
 ```typescript
-// ✅ 1. domain/validators/AuthValidator.ts - 검증 규칙 정의
+// ✅ 1. domain/validators/AuthValidator.ts - Define validation rules
 export class AuthValidator {
   static validateEmail(email: string): ValidationError | null {
     if (!email.trim()) {
@@ -961,7 +961,7 @@ export class AuthValidator {
 ```
 
 ```typescript
-// ✅ 2. presentation/hooks/useLogin.ts - 검증 실행 + Repository 호출
+// ✅ 2. presentation/hooks/useLogin.ts - Validation execution + Repository calls
 import { useState } from 'react';
 import { AuthRepositoryImpl } from '../../data/repositories/AuthRepositoryImpl';
 import { AuthValidator } from '../../domain/validators/AuthValidator';
@@ -974,7 +974,7 @@ export const useLogin = () => {
   const repository = new AuthRepositoryImpl();
 
   const login = async (email: string, password: string) => {
-    // 1. Validator 호출 (검증 실행)
+    // 1. Call Validator (execute validation)
     const validationErrors = AuthValidator.validateLoginCredentials(email, password);
     if (validationErrors.length > 0) {
       const errors: Record<string, string> = {};
@@ -985,7 +985,7 @@ export const useLogin = () => {
       return { success: false };
     }
 
-    // 2. Repository 호출 (데이터 처리)
+    // 2. Call Repository (data processing)
     setLoading(true);
     try {
       const result = await repository.signIn({ email, password });
@@ -1006,17 +1006,17 @@ export const useLogin = () => {
 };
 ```
 
-**흐름**:
+**Flow**:
 ```
-Page → Custom Hook (Validator 호출 → Repository 호출) → Repository → DataSource → DB
+Page → Custom Hook (Call Validator → Call Repository) → Repository → DataSource → DB
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                     비즈니스 로직 실행 위치
+                     Business logic execution location
 ```
 
-### 규칙 4: Domain/Data Layer는 **클래스 기반 유지**
+### Rule 4: Domain/Data Layer must **remain class-based**
 
 ```typescript
-// ✅ domain/entities/Product.ts - 엔티티
+// ✅ domain/entities/Product.ts - Entity
 export class Product {
   constructor(
     public readonly id: string | null,
@@ -1042,7 +1042,7 @@ export class Product {
   }
 }
 
-// ✅ domain/validators/ProductValidator.js - 검증
+// ✅ domain/validators/ProductValidator.js - Validation
 export class ProductValidator {
   static validate(product) {
     const errors = [];
@@ -1059,7 +1059,7 @@ export class ProductValidator {
   }
 }
 
-// ✅ data/datasources/InventoryDataSource.js - API 호출
+// ✅ data/datasources/InventoryDataSource.js - API calls
 import { SupabaseService } from '../../../../core/services/supabase-service.js';
 
 export class InventoryDataSource {
@@ -1088,7 +1088,7 @@ export class InventoryDataSource {
   }
 }
 
-// ✅ data/repositories/InventoryRepositoryImpl.js - Repository 구현
+// ✅ data/repositories/InventoryRepositoryImpl.js - Repository implementation
 import { InventoryDataSource } from '../datasources/InventoryDataSource.js';
 import { ProductModel } from '../models/ProductModel.js';
 
@@ -1116,13 +1116,13 @@ export class InventoryRepository {
 
 ---
 
-## 실전 예제 (Practical Examples)
+## Practical Examples
 
-### 예제 1: 새 공통 위젯 만들기
+### Example 1: Creating a New Common Widget
 
-**시나리오**: 프로젝트 전체에서 사용할 "TossLoadingView" 위젯을 만들고 싶다.
+**Scenario**: I want to create a "TossLoadingView" widget to be used across the entire project.
 
-**파일 구조**:
+**File structure**:
 ```
 shared/components/common/TossLoadingView/
 ├── TossLoadingView.js
@@ -1188,29 +1188,29 @@ export class TossLoadingView {
 }
 ```
 
-**사용 예시**:
+**Usage Example**:
 ```javascript
 import { TossLoadingView } from '../../../shared/components/common/TossLoadingView/TossLoadingView.js';
 
 const loading = new TossLoadingView('Processing...');
 const loadingElement = loading.show(document.body);
 
-// 작업 완료 후
+// After work completes
 TossLoadingView.hide(loadingElement);
 ```
 
-**왜 `shared/components/common/`?**
-- 프로젝트 전체에서 사용
-- 비즈니스 로직 없음
-- 순수 UI 컴포넌트
+**Why `shared/components/common/`?**
+- Used across entire project
+- No business logic
+- Pure UI component
 
 ---
 
-### 예제 2: 새 Feature 만들기 (Inventory)
+### Example 2: Creating a New Feature (Inventory)
 
-**시나리오**: "Inventory" feature를 Clean Architecture로 구현
+**Scenario**: Implement "Inventory" feature with Clean Architecture
 
-**파일 구조**:
+**File Structure**:
 ```
 features/inventory/
 ├── domain/
@@ -1735,7 +1735,7 @@ export class InventoryTable {
 
 ---
 
-### 예제 3: Excel Importer Widget
+### Example 3: Excel Importer Widget
 
 ```javascript
 // ✅ presentation/widgets/ExcelImporter/ExcelImporter.js
@@ -1844,31 +1844,31 @@ export class ExcelImporter {
 }
 ```
 
-**왜 이 구조인가?**
-- `domain/` - 비즈니스 엔티티와 검증 규칙 정의
-- `data/` - API 호출과 데이터 변환
-- `presentation/` - UI 로직과 비즈니스 로직 실행 (Validators + Repository 호출)
-- 각 레이어는 독립적이며 테스트 가능
+**Why this structure?**
+- `domain/` - Business entities and validation rules definition
+- `data/` - API calls and data transformation
+- `presentation/` - UI logic and business logic execution (Validators + Repository calls)
+- Each layer is independent and testable
 
 ---
 
-## 흔한 실수 (Common Mistakes)
+## Common Mistakes
 
-### ❌ 실수 1: `shared/`에 비즈니스 로직 넣기
+### ❌ Mistake 1: Putting Business Logic in `shared/`
 
 ```typescript
-// ❌ 틀림 - Shared 컴포넌트에 비즈니스 로직
+// ❌ Wrong - Business logic in Shared component
 // shared/components/ProductCard/ProductCard.tsx
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleSave = async () => {
-    // Supabase RPC 호출 - 비즈니스 로직!
+    // Supabase RPC call - Business logic!
     await supabase.rpc('save_product', { ...product });
   };
 
   return <div onClick={handleSave}>...</div>;
 };
 
-// ✅ 올바름 - UI만 담당, 로직은 props로 받음
+// ✅ Correct - UI only, receive logic via props
 // shared/components/toss/TossCard/TossCard.tsx
 export const TossCard: React.FC<TossCardProps> = ({ onClick, children }) => {
   return (
@@ -1879,45 +1879,45 @@ export const TossCard: React.FC<TossCardProps> = ({ onClick, children }) => {
 };
 ```
 
-**왜 틀렸나?** `shared/`는 **UI 컴포넌트 + 전역/UI hooks 전용**입니다. Feature-specific 비즈니스 로직은 `features/*/presentation/hooks/` 또는 `features/*/data/`에 속합니다.
+**Why is it wrong?** `shared/` is **for UI components + global/UI hooks only**. Feature-specific business logic belongs in `features/*/presentation/hooks/` or `features/*/data/`.
 
 ---
 
-### ❌ 실수 2: `core/`에 UI 컴포넌트 넣기
+### ❌ Mistake 2: Putting UI Components in `core/`
 
 ```typescript
-// ❌ 틀림
+// ❌ Wrong
 // core/components/Button.tsx
 
-// ✅ 올바름
+// ✅ Correct
 // shared/components/toss/TossButton/TossButton.tsx
 ```
 
-**왜 틀렸나?** `core/`는 **인프라 & 유틸리티 전용**입니다. UI 컴포넌트는 `shared/components/`에 속합니다.
+**Why is it wrong?** `core/` is **for infrastructure & utilities only**. UI components belong in `shared/components/`.
 
 ---
 
-### ❌ 실수 3: 컴포넌트에 너무 많은 로직 포함
+### ❌ Mistake 3: Including Too Much Logic in Components
 
 ```typescript
-// ❌ 틀림 - 컴포넌트에 모든 로직 (20KB)
+// ❌ Wrong - All logic in component (20KB)
 export const InventoryPage: React.FC = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 100줄의 비즈니스 로직...
+  // 100 lines of business logic...
   const handleImport = async () => {
-    // 복잡한 로직들...
+    // Complex logic...
   };
 
   const handleExport = async () => {
-    // 복잡한 로직들...
+    // Complex logic...
   };
 
   return <div>...</div>;
 };
 
-// ✅ 올바름 - 로직을 hooks로 분리 (8KB)
+// ✅ Correct - Separate logic into hooks (8KB)
 export const InventoryPage: React.FC = () => {
   const { products, loading, handleImport, handleExport } = useInventory();
 
@@ -1925,37 +1925,37 @@ export const InventoryPage: React.FC = () => {
 };
 ```
 
-**왜 틀렸나?** 컴포넌트는 **UI 렌더링에만 집중**해야 합니다. 복잡한 로직은 **커스텀 훅**으로 분리하세요.
+**Why is it wrong?** Components should **focus only on UI rendering**. Separate complex logic into **custom hooks**.
 
 ---
 
-### ❌ 실수 4: Feature 로직을 `core/`나 `shared/`에 넣기
+### ❌ Mistake 4: Putting Feature Logic in `core/` or `shared/`
 
 ```typescript
-// ❌ 틀림
+// ❌ Wrong
 // core/inventory/InventoryService.ts
 // shared/inventory/InventoryTable.tsx
 
-// ✅ 올바름
+// ✅ Correct
 // features/inventory/data/repositories/InventoryRepositoryImpl.ts
 // features/inventory/presentation/components/InventoryTable/InventoryTable.tsx
 ```
 
-**왜 틀렸나?** Feature-specific 로직은 `features/`에 속합니다.
+**Why is it wrong?** Feature-specific logic belongs in `features/`.
 
 ---
 
-### ❌ 실수 5: 일반 CSS 사용 (CSS Module 대신)
+### ❌ Mistake 5: Using Regular CSS (Instead of CSS Modules)
 
 ```typescript
-// ❌ 틀림 - 전역 CSS 오염
+// ❌ Wrong - Global CSS pollution
 import './TossButton.css';
 
 export const TossButton = () => {
   return <button className="toss-btn">Click</button>;
 };
 
-// ✅ 올바름 - CSS Module
+// ✅ Correct - CSS Module
 import styles from './TossButton.module.css';
 
 export const TossButton = () => {
@@ -1963,339 +1963,339 @@ export const TossButton = () => {
 };
 ```
 
-**왜 틀렸나?** CSS Module을 사용하면 **스타일 충돌을 방지**하고 **컴포넌트 독립성**을 유지할 수 있습니다.
+**Why is it wrong?** CSS Modules **prevent style conflicts** and maintain **component independence**.
 
 ---
 
-### ❌ 실수 6: 상대 경로 남용 (Path Alias 대신)
+### ❌ Mistake 6: Overusing Relative Paths (Instead of Path Alias)
 
 ```typescript
-// ❌ 틀림 - 상대 경로 지옥
+// ❌ Wrong - Relative path hell
 import { TossButton } from '../../../../shared/components/toss/TossButton/TossButton';
 import { SupabaseService } from '../../../../core/services/supabase.service';
 
-// ✅ 올바름 - Path Alias 사용
+// ✅ Correct - Use Path Alias
 import { TossButton } from '@/shared/components/toss/TossButton/TossButton';
 import { SupabaseService } from '@/core/services/supabase.service';
 ```
 
-**왜 틀렸나?** Path Alias(`@/`)를 사용하면 **가독성**과 **리팩토링 용이성**이 향상됩니다.
+**Why is it wrong?** Using Path Alias (`@/`) improves **readability** and **refactoring ease**.
 
 ---
 
-## 집행 (Enforcement)
+## Enforcement
 
-### 1. 코드 리뷰 체크리스트
+### 1. Code Review Checklist
 
-PR을 승인하기 전에 확인:
-- [ ] `shared/`에 Feature-specific 비즈니스 로직이 없음 (UI 컴포넌트 + 전역/UI hooks만)
-- [ ] `core/`에 UI 컴포넌트가 없음 (서비스 & 유틸리티만)
-- [ ] `core/`에 완전한 feature가 없음
-- [ ] 모든 CSS가 CSS Module로 작성됨 (`.module.css`)
-- [ ] Path Alias(`@/`) 사용 여부
-- [ ] TypeScript 타입 정의 완료 (`any` 사용 최소화)
-- [ ] 단일 파일 크기 제한 준수:
-  - TSX: ≤15KB (복잡한 로직은 hooks로 분리)
+Before approving PR, verify:
+- [ ] No Feature-specific business logic in `shared/` (UI components + global/UI hooks only)
+- [ ] No UI components in `core/` (services & utilities only)
+- [ ] No complete features in `core/`
+- [ ] All CSS written as CSS Modules (`.module.css`)
+- [ ] Path Alias (`@/`) used
+- [ ] TypeScript types defined (minimize `any` usage)
+- [ ] Single file size limits followed:
+  - TSX: ≤15KB (separate complex logic into hooks)
   - TS: ≤30KB
   - CSS: ≤20KB
-- [ ] Feature가 domain/data/presentation 구조를 따름
-- [ ] 검증 규칙은 `domain/validators/`에 정의 (static methods)
-- [ ] 검증 실행 + Repository 호출은 `presentation/hooks/`에 구현
-- [ ] 컴포넌트가 폴더 단위로 구성됨 (TSX + CSS Module + Types + Index)
-- [ ] 비즈니스 로직이 커스텀 훅으로 분리됨 (Validator 호출 → Repository 호출)
+- [ ] Features follow domain/data/presentation structure
+- [ ] Validation rules defined in `domain/validators/` (static methods)
+- [ ] Validation execution + Repository calls implemented in `presentation/hooks/`
+- [ ] Components organized by folder (TSX + CSS Module + Types + Index)
+- [ ] Business logic separated into custom hooks (Call Validator → Call Repository)
 
-### 2. 파일 크기 검사
+### 2. File Size Inspection
 
 ```bash
-# React 프로젝트 파일 크기 검사
-# TSX 파일: 15KB 이상 찾기
+# React project file size inspection
+# Find TSX files over 15KB
 find src -type f -name "*.tsx" -size +15k
 
-# TS 파일: 30KB 이상 찾기
+# Find TS files over 30KB
 find src -type f -name "*.ts" ! -name "*.types.ts" -size +30k
 
-# CSS Module 파일: 20KB 이상 찾기
+# Find CSS Module files over 20KB
 find src -type f -name "*.module.css" -size +20k
 
-# 결과가 없어야 함 (빈 출력)
+# Should return no results (empty output)
 ```
 
-### 3. TypeScript 타입 체크
+### 3. TypeScript Type Check
 
 ```bash
-# TypeScript 컴파일 오류 확인
+# Check TypeScript compilation errors
 npm run type-check
 
-# 또는
+# Or
 tsc --noEmit
 ```
 
-### 4. ESLint & Prettier 검사
+### 4. ESLint & Prettier Check
 
 ```bash
-# ESLint 검사
+# ESLint check
 npm run lint
 
-# Prettier 포맷팅 확인
+# Prettier formatting check
 npm run format:check
 
-# 자동 수정
+# Auto fix
 npm run format
 ```
 
-### 5. 구조 검증
+### 5. Structure Validation
 
 ```bash
-# shared/에 비즈니스 로직이 있는지 확인 (service, repository는 금지)
+# Check if shared/ has business logic (service, repository are forbidden)
 find src/shared -name "*service.ts" -o -name "*repository.ts"
-# 결과가 없어야 함
+# Should return no results
 
-# shared/hooks/는 전역 hooks만 (useAuth, useDebounce 등)
-# Feature-specific hooks (useInventory, useLogin 등)는 features/*/presentation/hooks/에 있어야 함
+# shared/hooks/ should only have global hooks (useAuth, useDebounce, etc.)
+# Feature-specific hooks (useInventory, useLogin, etc.) must be in features/*/presentation/hooks/
 
-# core/에 React 컴포넌트가 있는지 확인
+# Check if core/ has React components
 find src/core -name "*.tsx"
-# 결과가 없어야 함
+# Should return no results
 
-# CSS Module 사용 확인 (일반 .css 파일이 있으면 안됨, themes 제외)
+# Check CSS Module usage (no regular .css files except in themes)
 find src -name "*.css" ! -name "*.module.css" ! -path "*/themes/*"
-# 결과가 없어야 함
+# Should return no results
 ```
 
-### 6. 의심스러울 때
+### 6. When in Doubt
 
-다음 질문을 해보세요:
-1. **순수 UI 컴포넌트인가?** → `shared/components/`
-2. **인프라/유틸리티/서비스인가?** → `core/`
-3. **완전한 feature인가?** → `features/`
-4. **컴포넌트 파일이 15KB를 넘는가?** → **hooks로 로직 분리 필수**
-5. **상대 경로를 사용하는가?** → **Path Alias(@/) 사용 필수**
-6. **일반 CSS를 사용하는가?** → **CSS Module 사용 필수**
+Ask these questions:
+1. **Is it a pure UI component?** → `shared/components/`
+2. **Is it infrastructure/utility/service?** → `core/`
+3. **Is it a complete feature?** → `features/`
+4. **Does the component file exceed 15KB?** → **Must separate logic into hooks**
+5. **Are you using relative paths?** → **Must use Path Alias (@/)**
+6. **Are you using regular CSS?** → **Must use CSS Modules**
 
 ---
 
-## 요약: 황금 규칙 (Golden Rules)
+## Summary: Golden Rules
 
-### 1. **`core/` = 인프라 & 서비스만**
-서비스, 유틸리티, 타입 정의. **UI 컴포넌트 절대 금지**.
+### 1. **`core/` = Infrastructure & Services Only**
+Services, utilities, type definitions. **UI components ABSOLUTELY FORBIDDEN**.
 
 ```
 core/
-├── services/     # Supabase, Cache, API 클라이언트
-├── utils/        # 공통 유틸리티 함수
-└── types/        # 전역 타입 정의
+├── services/     # Supabase, Cache, API clients
+├── utils/        # Common utility functions
+└── types/        # Global type definitions
 ```
 
-### 2. **`shared/` = UI 컴포넌트 + 전역 Hooks만**
-디자인 시스템, 재사용 가능한 UI 컴포넌트, 전역 상태 관리 hooks. **Feature-specific 비즈니스 로직 금지**.
+### 2. **`shared/` = UI Components + Global Hooks Only**
+Design system, reusable UI components, global state management hooks. **Feature-specific business logic FORBIDDEN**.
 
 ```
 shared/
 ├── components/
-│   ├── common/     # 공통 컴포넌트 (Loading, Modal 등)
-│   ├── toss/       # Toss 디자인 시스템 컴포넌트
-│   └── selectors/  # Selector 컴포넌트
-├── hooks/          # ✅ 전역 hooks (useAuth) + UI 전용 hooks (useToggle, useDebounce)
-│                   # ❌ Feature-specific 비즈니스 로직 → features/*/presentation/hooks/
-└── themes/         # CSS 변수, 테마
+│   ├── common/     # Common components (Loading, Modal, etc.)
+│   ├── toss/       # Toss design system components
+│   └── selectors/  # Selector components
+├── hooks/          # ✅ Global hooks (useAuth) + UI-only hooks (useToggle, useDebounce)
+│                   # ❌ Feature-specific business logic → features/*/presentation/hooks/
+└── themes/         # CSS variables, themes
 ```
 
-### 3. **`features/` = 완전한 Feature 모듈**
-각 feature는 Clean Architecture 3-layer 구조를 따름.
+### 3. **`features/` = Complete Feature Modules**
+Each feature follows Clean Architecture 3-layer structure.
 
 ```
 features/[feature-name]/
-├── domain/           # 비즈니스 규칙 정의 (엔티티, 검증 규칙 정의)
-│   └── validators/   # 검증 규칙만 정의 (정적 메서드)
-├── data/             # 데이터 접근 (Repository, DataSource, DTO)
-└── presentation/     # UI 레이어 + 비즈니스 로직 실행
+├── domain/           # Business rules definition (entities, validation rules)
+│   └── validators/   # Define validation rules only (static methods)
+├── data/             # Data access (Repository, DataSource, DTO)
+└── presentation/     # UI layer + Business logic execution
     ├── pages/
     ├── components/
-    └── hooks/        # Feature-specific 커스텀 훅 (Validation 실행 + Repository 호출)
+    └── hooks/        # Feature-specific custom hooks (Validation execution + Repository calls)
 ```
 
-**🔑 핵심 패턴**:
-- `domain/validators/`: 검증 **규칙만 정의** (static methods)
-- `presentation/hooks/`: 검증 **실행** + Repository 호출 (비즈니스 로직 흐름)
+**🔑 Core Pattern**:
+- `domain/validators/`: **Define validation rules only** (static methods)
+- `presentation/hooks/`: Validation **execution** + Repository calls (business logic flow)
 
-### 4. **파일 크기 제한 = 엄격히 준수**
-React + TypeScript 파일 크기 규칙:
-- **TSX (컴포넌트)** ≤ 15KB (복잡하면 hooks로 분리)
-- **TS (로직/서비스)** ≤ 30KB
+### 4. **File Size Limits = Strictly Enforced**
+React + TypeScript file size rules:
+- **TSX (components)** ≤ 15KB (separate into hooks if complex)
+- **TS (logic/services)** ≤ 30KB
 - **CSS Module** ≤ 20KB
 - **Types** ≤ 5KB
 
-### 5. **CSS Module = 필수**
-일반 CSS 사용 금지. 모든 스타일은 CSS Module로 작성.
+### 5. **CSS Modules = Required**
+Regular CSS forbidden. All styles must be written as CSS Modules.
 
 ```typescript
-// ✅ 올바름
+// ✅ Correct
 import styles from './Component.module.css';
 <div className={styles.container} />
 
-// ❌ 틀림
+// ❌ Wrong
 import './Component.css';
 <div className="container" />
 ```
 
-### 6. **Path Alias(@/) = 필수**
-상대 경로 사용 금지. 모든 import는 Path Alias 사용.
+### 6. **Path Alias (@/) = Required**
+Relative paths forbidden. All imports must use Path Alias.
 
 ```typescript
-// ✅ 올바름
+// ✅ Correct
 import { TossButton } from '@/shared/components/toss/TossButton/TossButton';
 
-// ❌ 틀림
+// ❌ Wrong
 import { TossButton } from '../../../../shared/components/toss/TossButton/TossButton';
 ```
 
-### 7. **컴포넌트 = 폴더 단위**
+### 7. **Components = Folder-Based**
 ```
 ComponentName/
-├── ComponentName.tsx         # React 컴포넌트
+├── ComponentName.tsx         # React component
 ├── ComponentName.module.css  # CSS Module
-├── ComponentName.types.ts    # Props 타입 정의
+├── ComponentName.types.ts    # Props type definitions
 └── index.ts                  # Barrel export
 ```
 
-### 8. **비즈니스 로직 = Validators + Hooks 패턴**
-컴포넌트는 UI 렌더링만 담당. 검증 규칙은 Domain/Validators에 정의, 실행은 Presentation/Hooks에서.
+### 8. **Business Logic = Validators + Hooks Pattern**
+Components only handle UI rendering. Validation rules defined in Domain/Validators, execution in Presentation/Hooks.
 
 ```typescript
-// ✅ 올바름: 컴포넌트 → Hook → Validator + Repository
+// ✅ Correct: Component → Hook → Validator + Repository
 export const LoginPage: React.FC = () => {
   const { login, loading, error } = useLogin();
   return <LoginForm onSubmit={login} />;
 };
 
-// useLogin Hook 내부:
-// 1. AuthValidator.validateLoginCredentials() 호출 (검증 실행)
-// 2. repository.signIn() 호출 (데이터 처리)
+// Inside useLogin Hook:
+// 1. Call AuthValidator.validateLoginCredentials() (execute validation)
+// 2. Call repository.signIn() (data processing)
 ```
 
 ---
 
-## 이것이 법입니다 📜
+## This is The Law 📜
 
-**모든 코드는 이 규칙을 따라야 합니다.**
-**팀 논의 없이 예외는 없습니다.**
-**이 문서는 아키텍처의 단일 진실 공급원입니다.**
+**All code must follow these rules.**
+**No exceptions without team discussion.**
+**This document is the single source of truth for architecture.**
 
-위반 사항을 발견하면 즉시 수정하거나 코드 리뷰에서 제기하세요.
+If you find violations, fix them immediately or raise them in code review.
 
 ---
 
-## 마이그레이션 체크리스트 (Vanilla JS → React + TypeScript)
+## Migration Checklist (Vanilla JS → React + TypeScript)
 
-### Phase 1: 프로젝트 초기 설정
-- [ ] Vite + React + TypeScript 프로젝트 생성
+### Phase 1: Project Initial Setup
+- [ ] Create Vite + React + TypeScript project
   ```bash
   npm create vite@latest website -- --template react-ts
   cd website
   npm install
   ```
-- [ ] Path Alias 설정 (tsconfig.json + vite.config.ts)
-- [ ] ESLint + Prettier 설정
-- [ ] CSS Module 설정 확인
+- [ ] Configure Path Alias (tsconfig.json + vite.config.ts)
+- [ ] Configure ESLint + Prettier
+- [ ] Verify CSS Module configuration
 
-### Phase 2: 기본 폴더 구조 생성
-- [ ] `src/core/` 폴더 생성
+### Phase 2: Create Basic Folder Structure
+- [ ] Create `src/core/` folder
   - [ ] `core/services/` - Supabase, Cache
-  - [ ] `core/utils/` - 공통 유틸리티
-  - [ ] `core/types/` - 전역 타입 정의
-- [ ] `src/shared/` 폴더 생성
-  - [ ] `shared/components/common/` - 공통 컴포넌트
-  - [ ] `shared/components/toss/` - Toss 디자인 시스템
-  - [ ] `shared/hooks/` - 전역 hooks (useAuth) + UI 전용 hooks (useDebounce)
-  - [ ] `shared/themes/` - CSS 변수, 테마
-- [ ] `src/features/` 폴더 생성
-- [ ] `src/routes/` 폴더 생성 - React Router 설정
+  - [ ] `core/utils/` - Common utilities
+  - [ ] `core/types/` - Global type definitions
+- [ ] Create `src/shared/` folder
+  - [ ] `shared/components/common/` - Common components
+  - [ ] `shared/components/toss/` - Toss design system
+  - [ ] `shared/hooks/` - Global hooks (useAuth) + UI-only hooks (useDebounce)
+  - [ ] `shared/themes/` - CSS variables, themes
+- [ ] Create `src/features/` folder
+- [ ] Create `src/routes/` folder - React Router setup
 
-### Phase 3: Core & Shared 마이그레이션
-- [ ] Supabase Service 변환 (JS → TS)
-  - [ ] `core/services/supabase.service.ts` 생성
-  - [ ] TypeScript 타입 정의
-- [ ] Toss 디자인 시스템 변환
-  - [ ] `shared/themes/` CSS 변수 이동
-  - [ ] `shared/components/toss/TossButton/` 변환 (Vanilla → React)
-  - [ ] `shared/components/toss/TossModal/` 변환
-  - [ ] 기타 Toss 컴포넌트 변환
+### Phase 3: Core & Shared Migration
+- [ ] Convert Supabase Service (JS → TS)
+  - [ ] Create `core/services/supabase.service.ts`
+  - [ ] Define TypeScript types
+- [ ] Convert Toss Design System
+  - [ ] Move `shared/themes/` CSS variables
+  - [ ] Convert `shared/components/toss/TossButton/` (Vanilla → React)
+  - [ ] Convert `shared/components/toss/TossModal/`
+  - [ ] Convert other Toss components
 
-### Phase 4: Feature 모듈 생성 (우선순위 순)
-- [ ] **1. `features/auth/`** (인증 - 최우선)
+### Phase 4: Create Feature Modules (Priority Order)
+- [ ] **1. `features/auth/`** (Authentication - Top Priority)
   - [ ] domain/entities/User.ts
   - [ ] data/repositories/AuthRepositoryImpl.ts
   - [ ] presentation/pages/LoginPage/
   - [ ] presentation/hooks/useAuth.ts
-- [ ] **2. `features/dashboard/`** (대시보드)
-  - [ ] Clean Architecture 3-layer 구조 생성
-- [ ] **3. `features/inventory/`** (재고 관리 - 가장 복잡)
-  - [ ] domain/ (Product 엔티티, 검증 규칙 정의)
+- [ ] **2. `features/dashboard/`** (Dashboard)
+  - [ ] Create Clean Architecture 3-layer structure
+- [ ] **3. `features/inventory/`** (Inventory Management - Most Complex)
+  - [ ] domain/ (Product entity, validation rules definition)
   - [ ] data/ (Repository, DataSource, DTO)
-  - [ ] presentation/ (InventoryPage, 컴포넌트, hooks - 검증 실행 + Repository 호출)
-- [ ] **4. 기타 Features**
+  - [ ] presentation/ (InventoryPage, components, hooks - validation execution + Repository calls)
+- [ ] **4. Other Features**
   - [ ] features/finance/
   - [ ] features/employee/
   - [ ] features/settings/
 
-### Phase 5: 라우팅 설정
-- [ ] React Router v6 설치
+### Phase 5: Routing Setup
+- [ ] Install React Router v6
   ```bash
   npm install react-router-dom
   ```
-- [ ] `src/routes/index.tsx` 라우터 설정
-- [ ] Protected Routes 구현 (인증 필요한 페이지)
-- [ ] Layout 컴포넌트 구현
+- [ ] Configure `src/routes/index.tsx` router
+- [ ] Implement Protected Routes (pages requiring authentication)
+- [ ] Implement Layout component
 
-### Phase 6: 기존 HTML 페이지 변환 (270KB → React 컴포넌트)
-- [ ] `backup/pages/product/inventory/index.html` (270KB) 분석
-- [ ] React 컴포넌트로 분리:
+### Phase 6: Convert Existing HTML Pages (270KB → React Components)
+- [ ] Analyze `backup/pages/product/inventory/index.html` (270KB)
+- [ ] Separate into React components:
   - [ ] InventoryPage.tsx (≤15KB)
-  - [ ] InventoryTable 컴포넌트 (≤15KB)
-  - [ ] useInventory 커스텀 훅 (≤10KB)
-  - [ ] CSS Module 파일 (≤20KB)
-- [ ] 다른 페이지들도 동일하게 변환
+  - [ ] InventoryTable component (≤15KB)
+  - [ ] useInventory custom hook (≤10KB)
+  - [ ] CSS Module file (≤20KB)
+- [ ] Convert other pages similarly
 
-### Phase 7: 타입 안전성 강화
-- [ ] Supabase Database 타입 생성
+### Phase 7: Strengthen Type Safety
+- [ ] Generate Supabase Database types
   ```bash
   npx supabase gen types typescript --project-id [project-id] > src/core/types/supabase.types.ts
   ```
-- [ ] 모든 컴포넌트 Props 타입 정의
-- [ ] Repository 인터페이스 타입 정의
-- [ ] `any` 타입 사용 최소화 (목표: 0개)
+- [ ] Define all component Props types
+- [ ] Define Repository interface types
+- [ ] Minimize `any` type usage (goal: 0)
 
-### Phase 8: 검증 & 최적화
-- [ ] TypeScript 컴파일 오류 해결
+### Phase 8: Validation & Optimization
+- [ ] Resolve TypeScript compilation errors
   ```bash
   npm run type-check
   ```
-- [ ] ESLint 검사 통과
+- [ ] Pass ESLint checks
   ```bash
   npm run lint
   ```
-- [ ] 파일 크기 검사 (TSX ≤15KB, TS ≤30KB, CSS ≤20KB)
-- [ ] 번들 크기 최적화 (초기 로드 ≤500KB)
-- [ ] 코드 리뷰 체크리스트 통과
+- [ ] Check file sizes (TSX ≤15KB, TS ≤30KB, CSS ≤20KB)
+- [ ] Optimize bundle size (initial load ≤500KB)
+- [ ] Pass code review checklist
 
-### Phase 9: 테스팅
-- [ ] Vitest 설정
-- [ ] 주요 컴포넌트 단위 테스트 작성
-- [ ] Repository 레이어 테스트 작성
-- [ ] E2E 테스트 (Playwright) 설정
+### Phase 9: Testing
+- [ ] Configure Vitest
+- [ ] Write unit tests for main components
+- [ ] Write tests for Repository layer
+- [ ] Configure E2E tests (Playwright)
 
-### Phase 10: 배포 준비
-- [ ] Production 빌드 테스트
+### Phase 10: Deployment Preparation
+- [ ] Test production build
   ```bash
   npm run build
   npm run preview
   ```
-- [ ] 환경 변수 설정 (.env)
-- [ ] Apache XAMPP 없이 독립 실행 확인
-- [ ] Vercel/Netlify 배포 설정 (선택사항)
+- [ ] Configure environment variables (.env)
+- [ ] Verify standalone execution without Apache XAMPP
+- [ ] Configure Vercel/Netlify deployment (optional)
 
 ---
 
-**마지막 업데이트**: 2025-11-05
-**버전**: 2.0 (React + TypeScript 업데이트)
-**상태**: ✅ React 마이그레이션 준비 완료
+**Last Updated**: 2025-11-05
+**Version**: 2.0 (React + TypeScript Update)
+**Status**: ✅ Ready for React Migration

@@ -136,6 +136,54 @@ export class DateTimeUtils {
   }
 
   /**
+   * Converts local Date to UTC date-only string (yyyy-MM-dd)
+   *
+   * 현재 로컬 시간을 UTC로 변환한 후 날짜만 추출합니다.
+   * RPC 함수에 date 타입 파라미터를 전달할 때 사용하세요.
+   *
+   * @param date - Local Date object (default: current time)
+   * @returns UTC Date string in yyyy-MM-dd format
+   *
+   * @example
+   * // User in Korea (UTC+9), local time: 2025-01-15 02:00:00 KST
+   * const now = new Date(); // 2025-01-15 02:00:00 KST
+   * DateTimeUtils.toUtcDateOnly(now); // "2025-01-14" (UTC: 2025-01-14 17:00:00)
+   *
+   * // User in Korea (UTC+9), local time: 2025-01-15 14:00:00 KST
+   * const afternoon = new Date(); // 2025-01-15 14:00:00 KST
+   * DateTimeUtils.toUtcDateOnly(afternoon); // "2025-01-15" (UTC: 2025-01-15 05:00:00)
+   *
+   * // For RPC calls
+   * await supabase.rpc('get_dashboard_page', {
+   *   p_date: DateTimeUtils.toUtcDateOnly()
+   * });
+   */
+  static toUtcDateOnly(date: Date = new Date()): string {
+    // Get UTC components from the date
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Returns current UTC date as yyyy-MM-dd string
+   *
+   * 현재 시간을 UTC 날짜(yyyy-MM-dd)로 반환합니다.
+   * RPC 함수의 date 파라미터에 사용하기 편리합니다.
+   *
+   * @returns Current UTC date string
+   *
+   * @example
+   * await supabase.rpc('get_dashboard_page', {
+   *   p_date: DateTimeUtils.nowUtcDate()
+   * });
+   */
+  static nowUtcDate(): string {
+    return this.toUtcDateOnly(new Date());
+  }
+
+  /**
    * Converts Date to Supabase RPC format (yyyy-MM-dd HH:mm:ss in UTC)
    *
    * Supabase의 일부 RPC 함수는 특정 포맷을 요구합니다.

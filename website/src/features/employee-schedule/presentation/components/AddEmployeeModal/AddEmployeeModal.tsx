@@ -20,14 +20,12 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
 }) => {
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  const [error, setError] = useState<string>('');
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setSelectedShiftId('');
       setSelectedEmployeeId('');
-      setError('');
     }
   }, [isOpen]);
 
@@ -58,24 +56,8 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
 
   // Handle submit
   const handleSubmit = async () => {
-    // Validation
-    if (!selectedShiftId) {
-      setError('Please select a shift');
-      return;
-    }
-    if (!selectedEmployeeId) {
-      setError('Please select an employee');
-      return;
-    }
-
-    setError('');
-
-    try {
-      await onAddEmployee(selectedShiftId, selectedEmployeeId, selectedDate);
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add employee');
-    }
+    // Validation and error handling is now in parent component (ScheduleDetailPage)
+    await onAddEmployee(selectedShiftId, selectedEmployeeId, selectedDate);
   };
 
   // Handle backdrop click
@@ -104,17 +86,6 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
       fill="currentColor"
     >
       <path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/>
-    </svg>
-  );
-
-  // Alert icon SVG (Material Design - 20px)
-  const AlertIcon = () => (
-    <svg
-      className={styles.errorIcon}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
     </svg>
   );
 
@@ -156,14 +127,6 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
               Selected Date: <span className={styles.dateValue}>{formatDateDisplay(selectedDate)}</span>
             </span>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className={styles.error}>
-              <AlertIcon />
-              <span>{error}</span>
-            </div>
-          )}
 
           {/* Shift Selection */}
           <TossSelector

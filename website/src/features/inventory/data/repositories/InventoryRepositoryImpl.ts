@@ -9,7 +9,10 @@ import {
   UpdateProductData,
 } from '../../domain/repositories/IInventoryRepository';
 import { InventoryItem } from '../../domain/entities/InventoryItem';
+import { InventoryMetadata } from '../../domain/entities/InventoryMetadata';
 import { InventoryDataSource } from '../datasources/InventoryDataSource';
+import { InventoryItemModel } from '../models/InventoryItemModel';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class InventoryRepositoryImpl implements IInventoryRepository {
   private dataSource: InventoryDataSource;
@@ -29,35 +32,9 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       const response = await this.dataSource.getInventory(companyId, storeId, page, limit, search);
       const data = response.products;
 
-      const items = data.map((item: any) => {
-        // Extract nested values
-        const currentStock = item.stock?.quantity_on_hand || 0;
-        const unitPrice = item.price?.selling || 0;
-        const costPrice = item.price?.cost || 0;
-        const totalValue = currentStock * unitPrice;
-
-        return new InventoryItem(
-          item.product_id,
-          item.sku || 'N/A', // product_code
-          item.product_name || 'Unknown',
-          item.category_name || 'Uncategorized',
-          item.brand_name || 'No Brand',
-          currentStock,
-          0, // min_stock - not provided by API
-          0, // max_stock - not provided by API
-          unitPrice,
-          totalValue,
-          item.unit || 'piece',
-          '₩', // currency_symbol - hardcoded for now
-          // Additional fields for editing
-          item.category_id || null,
-          item.brand_id || null,
-          item.sku || '',
-          item.barcode || '',
-          item.product_type || 'commodity',
-          costPrice
-        );
-      });
+      // Use InventoryItemModel to convert raw data to domain entities
+      const currencySymbol = response.currency?.symbol || '₩';
+      const items = InventoryItemModel.fromJsonArray(data, currencySymbol);
 
       return {
         success: true,
@@ -65,7 +42,6 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
         currency: response.currency,
       };
     } catch (error) {
-      console.error('Repository error fetching inventory:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch inventory',
@@ -82,10 +58,43 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
     try {
       return await this.dataSource.updateProduct(productId, companyId, storeId, data);
     } catch (error) {
-      console.error('Repository error updating product:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update product',
+      };
+    }
+  }
+
+  async getMetadata(
+    companyId: string,
+    storeId?: string
+  ): Promise<{ success: boolean; data?: InventoryMetadata; error?: string }> {
+    try {
+      const response = await this.dataSource.getMetadata(companyId, storeId);
+
+      if (response && response.success && response.data) {
+        // Convert last_updated from UTC to Local Date, then back to ISO string for display
+        const metadata = {
+          ...response.data,
+          last_updated: response.data.last_updated
+            ? DateTimeUtils.toLocal(response.data.last_updated).toISOString()
+            : response.data.last_updated,
+        };
+
+        return {
+          success: true,
+          data: metadata,
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Invalid metadata response format',
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch metadata',
       };
     }
   }

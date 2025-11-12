@@ -19,6 +19,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   cashLocations,
   counterparties,
   suggestedAmount,
+  initialData,
+  disabledCashLocationId = null,
 }) => {
   // Format amount for display
   const formatAmountDisplay = (value: string): string => {
@@ -33,38 +35,89 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     });
   };
 
-  // Form state
-  const [isDebit, setIsDebit] = useState(initialIsDebit);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  // Form state - use initialData if in edit mode
+  const [isDebit, setIsDebit] = useState(initialData?.isDebit ?? initialIsDebit);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(initialData?.accountId ?? '');
   const [amount, setAmount] = useState(
-    suggestedAmount ? suggestedAmount.toString() : ''
+    initialData?.amount ? initialData.amount.toString() : (suggestedAmount ? suggestedAmount.toString() : '')
   );
-  const [description, setDescription] = useState('');
-  const [selectedCashLocation, setSelectedCashLocation] = useState<string>('');
-  const [selectedCounterparty, setSelectedCounterparty] = useState<string>('');
+  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [selectedCashLocation, setSelectedCashLocation] = useState<string>(initialData?.cashLocationId ?? '');
+  const [selectedCounterparty, setSelectedCounterparty] = useState<string>(initialData?.counterpartyId ?? '');
 
   // Get selected account
   const selectedAccount = accounts.find(acc => acc.accountId === selectedAccountId) || null;
+
+  // Helper functions for category colors (matching Account Mapping)
+  const getCategoryBadgeColor = (tag: string): string => {
+    switch (tag?.toLowerCase()) {
+      case 'payable': return 'rgba(239, 68, 68, 0.15)';
+      case 'receivable': return 'rgba(59, 130, 246, 0.15)';
+      case 'contra_asset': return 'rgba(107, 114, 128, 0.15)';
+      case 'cash': return 'rgba(34, 197, 94, 0.15)';
+      case 'general': return 'rgba(107, 114, 128, 0.15)';
+      case 'fixed_asset': return 'rgba(168, 85, 247, 0.15)';
+      case 'equity': return 'rgba(14, 165, 233, 0.15)';
+      default: return 'rgba(107, 114, 128, 0.15)';
+    }
+  };
+
+  const getCategoryTextColor = (tag: string): string => {
+    switch (tag?.toLowerCase()) {
+      case 'payable': return 'rgb(239, 68, 68)';
+      case 'receivable': return 'rgb(59, 130, 246)';
+      case 'contra_asset': return 'rgb(107, 114, 128)';
+      case 'cash': return 'rgb(34, 197, 94)';
+      case 'general': return 'rgb(107, 114, 128)';
+      case 'fixed_asset': return 'rgb(168, 85, 247)';
+      case 'equity': return 'rgb(14, 165, 233)';
+      default: return 'rgb(107, 114, 128)';
+    }
+  };
+
+  const getCategoryTagLabel = (tag: string): string => {
+    if (!tag) return 'General';
+    return tag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const getInitials = (name: string): string => {
+    if (!name) return '??';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return name.substring(0, 2).toUpperCase();
+    }
+    return words.slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  };
 
   // Convert accounts to TossSelector options
   const accountOptions: TossSelectorOption[] = accounts.map((account) => ({
     value: account.accountId,
     label: account.accountName,
-    badge: account.categoryTag,
+    badge: getInitials(account.accountName),
+    description: account.categoryTag && account.categoryTag.toLowerCase() !== 'general'
+      ? getCategoryTagLabel(account.categoryTag)
+      : undefined,
+    descriptionBgColor: account.categoryTag ? getCategoryBadgeColor(account.categoryTag) : undefined,
+    descriptionColor: account.categoryTag ? getCategoryTextColor(account.categoryTag) : undefined,
   }));
 
   // Convert cash locations to TossSelector options
+  // Mark the already-used cash location as disabled
   const cashLocationOptions: TossSelectorOption[] = cashLocations.map((location) => ({
     value: location.locationId,
     label: location.locationName,
-    badge: location.locationType,
+    badge: getInitials(location.locationName),
+    description: location.locationType || undefined,
+    // Disable if: (1) this location is already used AND (2) it's not currently selected
+    disabled: disabledCashLocationId === location.locationId && selectedCashLocation !== location.locationId,
   }));
 
   // Convert counterparties to TossSelector options
   const counterpartyOptions: TossSelectorOption[] = counterparties.map((counterparty) => ({
     value: counterparty.counterpartyId,
     label: counterparty.counterpartyName,
-    badge: counterparty.type,
+    badge: getInitials(counterparty.counterpartyName),
+    description: counterparty.type || undefined,
   }));
 
   // Handle transaction type change
@@ -147,7 +200,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             onChange={(value) => setSelectedCashLocation(value)}
             required={true}
             searchable={true}
-            showBadges={true}
+            showBadges={false}
             fullWidth={true}
             emptyMessage="No cash locations found"
           />
@@ -163,7 +216,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             onChange={(value) => setSelectedCounterparty(value)}
             required={false}
             searchable={true}
-            showBadges={true}
+            showBadges={false}
             fullWidth={true}
             emptyMessage="No counterparties found"
           />
@@ -207,7 +260,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         onChange={handleAccountChange}
         required={true}
         searchable={true}
-        showBadges={true}
+        showBadges={false}
+        showDescriptions={true}
         fullWidth={true}
         emptyMessage="No accounts found"
       />

@@ -4,6 +4,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Order } from '../../domain/entities/Order';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './OrderSelector.module.css';
 
 interface OrderSelectorProps {
@@ -42,7 +43,8 @@ export const OrderSelector: React.FC<OrderSelectorProps> = ({
     return (
       <div className={styles.selector}>
         <div className={styles.button}>
-          <span className={styles.label}>Loading orders...</span>
+          <LoadingAnimation size="small" />
+          <span className={styles.label} style={{ marginLeft: '8px' }}>Loading...</span>
         </div>
       </div>
     );
