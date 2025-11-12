@@ -25,6 +25,7 @@ mixin _$Company {
   String get ownerId => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
+  String? get otherTypeDetail => throw _privateConstructorUsedError;
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.
@@ -45,7 +46,8 @@ abstract class $CompanyCopyWith<$Res> {
       String? companyCode,
       String ownerId,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      String? otherTypeDetail});
 }
 
 /// @nodoc
@@ -71,6 +73,7 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
     Object? ownerId = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? otherTypeDetail = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -105,6 +108,10 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      otherTypeDetail: freezed == otherTypeDetail
+          ? _value.otherTypeDetail
+          : otherTypeDetail // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -124,7 +131,8 @@ abstract class _$$CompanyImplCopyWith<$Res> implements $CompanyCopyWith<$Res> {
       String? companyCode,
       String ownerId,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      String? otherTypeDetail});
 }
 
 /// @nodoc
@@ -148,6 +156,7 @@ class __$$CompanyImplCopyWithImpl<$Res>
     Object? ownerId = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? otherTypeDetail = freezed,
   }) {
     return _then(_$CompanyImpl(
       id: null == id
@@ -182,6 +191,10 @@ class __$$CompanyImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      otherTypeDetail: freezed == otherTypeDetail
+          ? _value.otherTypeDetail
+          : otherTypeDetail // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -197,7 +210,8 @@ class _$CompanyImpl extends _Company {
       this.companyCode,
       required this.ownerId,
       required this.createdAt,
-      this.updatedAt})
+      this.updatedAt,
+      this.otherTypeDetail})
       : super._();
 
   @override
@@ -217,10 +231,12 @@ class _$CompanyImpl extends _Company {
   final DateTime createdAt;
   @override
   final DateTime? updatedAt;
+  @override
+  final String? otherTypeDetail;
 
   @override
   String toString() {
-    return 'Company(id: $id, name: $name, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Company(id: $id, name: $name, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt, otherTypeDetail: $otherTypeDetail)';
   }
 
   @override
@@ -240,12 +256,14 @@ class _$CompanyImpl extends _Company {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.otherTypeDetail, otherTypeDetail) ||
+                other.otherTypeDetail == otherTypeDetail));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, name, companyTypeId,
-      currencyId, companyCode, ownerId, createdAt, updatedAt);
+      currencyId, companyCode, ownerId, createdAt, updatedAt, otherTypeDetail);
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.
@@ -265,7 +283,8 @@ abstract class _Company extends Company {
       final String? companyCode,
       required final String ownerId,
       required final DateTime createdAt,
-      final DateTime? updatedAt}) = _$CompanyImpl;
+      final DateTime? updatedAt,
+      final String? otherTypeDetail}) = _$CompanyImpl;
   const _Company._() : super._();
 
   @override
@@ -284,6 +303,8 @@ abstract class _Company extends Company {
   DateTime get createdAt;
   @override
   DateTime? get updatedAt;
+  @override
+  String? get otherTypeDetail;
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.

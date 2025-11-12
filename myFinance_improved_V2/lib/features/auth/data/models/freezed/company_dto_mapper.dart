@@ -18,6 +18,7 @@ extension CompanyDtoMapper on CompanyDto {
       ownerId: ownerId,
       createdAt: DateTime.parse(createdAt),
       updatedAt: updatedAt != null ? DateTime.parse(updatedAt!) : null,
+      otherTypeDetail: otherTypeDetail,
     );
   }
 }
@@ -35,6 +36,7 @@ extension CompanyEntityMapper on Company {
       baseCurrencyId: currencyId,
       createdAt: createdAt.toIso8601String(),
       updatedAt: updatedAt?.toIso8601String(),
+      otherTypeDetail: otherTypeDetail,
     );
   }
 
@@ -50,6 +52,11 @@ extension CompanyEntityMapper on Company {
     // Only include optional fields if not empty
     if (companyCode != null && companyCode!.isNotEmpty) {
       map['company_code'] = companyCode;
+    }
+
+    // Include other_type_detail if provided
+    if (otherTypeDetail != null && otherTypeDetail!.isNotEmpty) {
+      map['other_type_detail'] = otherTypeDetail;
     }
 
     return map;

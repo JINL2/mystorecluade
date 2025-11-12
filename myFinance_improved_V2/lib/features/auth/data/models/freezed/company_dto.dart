@@ -34,6 +34,7 @@ class CompanyDto with _$CompanyDto {
     @JsonKey(name: 'created_at') required String createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'is_deleted') @Default(false) bool isDeleted,
+    @JsonKey(name: 'other_type_detail') String? otherTypeDetail,
   }) = _CompanyDto;
 
   factory CompanyDto.fromJson(Map<String, dynamic> json) =>

@@ -18,6 +18,7 @@ _$CompanyDtoImpl _$$CompanyDtoImplFromJson(Map<String, dynamic> json) =>
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String?,
       isDeleted: json['is_deleted'] as bool? ?? false,
+      otherTypeDetail: json['other_type_detail'] as String?,
     );
 
 Map<String, dynamic> _$$CompanyDtoImplToJson(_$CompanyDtoImpl instance) =>
@@ -32,4 +33,5 @@ Map<String, dynamic> _$$CompanyDtoImplToJson(_$CompanyDtoImpl instance) =>
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
       'is_deleted': instance.isDeleted,
+      'other_type_detail': instance.otherTypeDetail,
     };

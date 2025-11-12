@@ -56,6 +56,7 @@ class CompanyService {
     required String ownerId,
     required String companyTypeId,
     required String currencyId,
+    String? otherTypeDetail,
   }) async {
     return await _createCompanyUseCase.execute(
       CreateCompanyCommand(
@@ -63,6 +64,7 @@ class CompanyService {
         ownerId: ownerId,
         companyTypeId: companyTypeId,
         currencyId: currencyId,
+        otherTypeDetail: otherTypeDetail,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Shared - Themes
@@ -65,12 +66,14 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   final _businessEmailController = TextEditingController();
   final _businessPhoneController = TextEditingController();
   final _businessAddressController = TextEditingController();
+  final _customTypeController = TextEditingController();
 
   // Focus Nodes
   final _businessNameFocusNode = FocusNode();
   final _businessEmailFocusNode = FocusNode();
   final _businessPhoneFocusNode = FocusNode();
   final _businessAddressFocusNode = FocusNode();
+  final _customTypeFocusNode = FocusNode();
 
   // Animation
   late AnimationController _animationController;
@@ -79,10 +82,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   // State
   bool _isLoading = false;
+  int _currentStep = 1; // Step 1: Name, Step 2: Type, Step 3: Currency
   String? _selectedTypeId;
   String? _selectedCurrencyId;
   List<CompanyType> _companyTypes = [];
   List<Currency> _currencies = [];
+  bool _isCustomTypeSelected = false;
 
   // Validation State
   bool _isBusinessNameValid = false;
@@ -185,10 +190,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     _businessEmailController.dispose();
     _businessPhoneController.dispose();
     _businessAddressController.dispose();
+    _customTypeController.dispose();
     _businessNameFocusNode.dispose();
     _businessEmailFocusNode.dispose();
     _businessPhoneFocusNode.dispose();
     _businessAddressFocusNode.dispose();
+    _customTypeFocusNode.dispose();
     super.dispose();
   }
 
@@ -214,57 +221,39 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTitleSection(),
+                          _buildProgressIndicator(),
 
                           const SizedBox(height: TossSpacing.space8),
 
-                          _buildSectionTitle('Business Information'),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessNameField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessTypeDropdown(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessEmailField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessPhoneField(),
-
-                          const SizedBox(height: TossSpacing.space6),
-
-                          _buildSectionTitle('Business Location'),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildAddressField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildCurrencyDropdown(),
-
-                          const SizedBox(height: TossSpacing.space8),
-
-                          _buildCreateButton(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildTermsText(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildJoinBusinessOption(),
+                          if (_currentStep == 1) ...[
+                            _buildStep1ContentWithoutButton(),
+                          ] else if (_currentStep == 2) ...[
+                            _buildStep2ContentWithoutButton(),
+                          ] else if (_currentStep == 3) ...[
+                            _buildStep3ContentWithoutButton(),
+                          ],
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
+
+            // Bottom button - always visible at screen bottom
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: _buildBottomButton(),
             ),
           ],
         ),
@@ -278,46 +267,22 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Widget _buildAuthHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.border,
-            width: 1,
-          ),
-        ),
-      ),
+      padding: EdgeInsets.all(TossSpacing.space5),
       child: Row(
         children: [
           IconButton(
             icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
             onPressed: () {
-              // Safe navigation back - go to choose-role instead of pop
-              context.go('/onboarding/choose-role');
+              if (_currentStep > 1) {
+                // Go to previous step
+                setState(() {
+                  _currentStep--;
+                });
+              } else {
+                // On step 1, go back to choose-role
+                context.go('/onboarding/choose-role');
+              }
             },
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
           ),
         ],
       ),
@@ -387,14 +352,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 color: TossColors.error,
               ),
             ),
-            if (_isBusinessNameValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -687,6 +644,307 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   }
 
   // ==========================================
+  // Multi-Step UI Components
+  // ==========================================
+
+  Widget _buildProgressIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (index) {
+        final stepNumber = index + 1;
+        final isActive = stepNumber == _currentStep;
+        final isCompleted = stepNumber < _currentStep;
+
+        return Row(
+          children: [
+            Container(
+              width: isActive ? 32 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: isActive || isCompleted
+                    ? TossColors.primary
+                    : TossColors.gray300,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            if (index < 2) const SizedBox(width: 8),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildStep1ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What\'s your business name?',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'This will be the name of your company in Storebase',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space8),
+        _buildBusinessNameField(),
+      ],
+    );
+  }
+
+  Widget _buildStep2ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What type of company?',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'Choose the category that best describes your company',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space6),
+        ..._companyTypes.map((type) {
+          // Check if this is the "Others" type from database
+          final isOthersType = type.typeName.toLowerCase() == 'others' ||
+                               type.typeName.toLowerCase() == 'other';
+          final isSelected = _isCustomTypeSelected
+              ? (_selectedTypeId == type.companyTypeId)
+              : (_selectedTypeId == type.companyTypeId);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedTypeId = type.companyTypeId;
+                    if (isOthersType) {
+                      _isCustomTypeSelected = true;
+                      // Auto-focus the text field
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        _customTypeFocusNode.requestFocus();
+                      });
+                    } else {
+                      _isCustomTypeSelected = false;
+                      _customTypeController.clear();
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: TossColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      if (!isOthersType || !_isCustomTypeSelected)
+                        Expanded(
+                          child: Text(
+                            type.typeName,
+                            style: TossTextStyles.h3.copyWith(
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                              color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                              fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                            ),
+                          ),
+                        ),
+                      if (isOthersType && _isCustomTypeSelected) ...[
+                        Text(
+                          type.typeName,
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.primary,
+                            fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space6),
+                        Expanded(
+                          child: TextField(
+                            controller: _customTypeController,
+                            focusNode: _customTypeFocusNode,
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Type your company type',
+                              hintStyle: TossTextStyles.body.copyWith(
+                                color: TossColors.textSecondary.withOpacity(0.5),
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                            ),
+                            textInputAction: TextInputAction.done,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildStep3ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Choose your currency',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'This will be used for all financial transactions',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space6),
+        ..._currencies.map((currency) {
+          final isSelected = _selectedCurrencyId == currency.currencyId;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedCurrencyId = currency.currencyId;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: TossColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        currency.symbol,
+                        style: TossTextStyles.h2.copyWith(
+                          color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currency.currencyName,
+                              style: TossTextStyles.h3.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                                fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                              ),
+                            ),
+                            Text(
+                              currency.currencyCode,
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.textSecondary,
+                                fontSize: TossTextStyles.caption.fontSize! * 0.7,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton() {
+    if (_currentStep == 1) {
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: 'Continue',
+          onPressed: _isBusinessNameValid ? () {
+            setState(() {
+              _currentStep = 2;
+            });
+          } : null,
+          fullWidth: true,
+        ),
+      );
+    } else if (_currentStep == 2) {
+      // Enable button if: (1) predefined type selected OR (2) custom type entered
+      final hasValidType = _selectedTypeId != null ||
+          (_isCustomTypeSelected && _customTypeController.text.trim().isNotEmpty);
+
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: 'Continue',
+          onPressed: hasValidType ? () {
+            setState(() {
+              _currentStep = 3;
+            });
+          } : null,
+          fullWidth: true,
+        ),
+      );
+    } else {
+      // Step 3
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: _isLoading ? 'Creating Company...' : 'Create Company',
+          onPressed: _selectedCurrencyId != null && !_isLoading
+              ? _handleCreateBusiness
+              : null,
+          isLoading: _isLoading,
+          fullWidth: true,
+        ),
+      );
+    }
+  }
+
+  // ==========================================
   // Business Logic - Clean Architecture
   // ==========================================
 
@@ -720,6 +978,9 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ownerId: userId,
         companyTypeId: _selectedTypeId!,
         currencyId: _selectedCurrencyId!,
+        otherTypeDetail: _isCustomTypeSelected && _customTypeController.text.trim().isNotEmpty
+            ? _customTypeController.text.trim()
+            : null,
       );
 
       // Invalidate app state to force refresh
@@ -868,13 +1129,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: TossColors.success, size: 28),
-            const SizedBox(width: TossSpacing.space2),
-            const Text('Business Created!'),
-          ],
-        ),
+        title: const Text('Business Created!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -900,14 +1155,40 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    companyCode,
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        companyCode,
+                        style: TossTextStyles.h3.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      IconButton(
+                        icon: Icon(
+                          Icons.copy,
+                          color: TossColors.primary,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: companyCode));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Company code copied!'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                        tooltip: 'Copy code',
+                      ),
+                    ],
                   ),
                 ],
               ),

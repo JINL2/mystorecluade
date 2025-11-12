@@ -6,17 +6,19 @@ class CreateCompanyCommand {
   final String companyTypeId;
   final String currencyId;
   final String ownerId;
+  final String? otherTypeDetail; // Custom company type detail when "Others" is selected
 
   const CreateCompanyCommand({
     required this.name,
     required this.companyTypeId,
     required this.currencyId,
     required this.ownerId,
+    this.otherTypeDetail,
   });
 
   @override
   String toString() {
-    return 'CreateCompanyCommand(name: $name, ownerId: $ownerId)';
+    return 'CreateCompanyCommand(name: $name, ownerId: $ownerId, otherTypeDetail: $otherTypeDetail)';
   }
 }
 

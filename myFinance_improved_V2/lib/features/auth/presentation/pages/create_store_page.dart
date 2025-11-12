@@ -225,10 +225,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                           const SizedBox(height: TossSpacing.space8),
 
                           _buildCreateButton(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildSkipOption(),
                         ],
                       ),
                     ),
@@ -249,15 +245,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   Widget _buildAuthHeader() {
     return Container(
       padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.border,
-            width: 1,
-          ),
-        ),
-      ),
+      color: TossColors.white,
       child: Row(
         children: [
           IconButton(
@@ -265,37 +253,34 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             onPressed: () => context.pop(),
           ),
           const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/app icon.png',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: TossSpacing.space2),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Storebase',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+          Expanded(
+            child: Text(
+              widget.companyName,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textPrimary,
+                fontWeight: FontWeight.w800,
               ),
-              Text(
-                widget.companyName,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textSecondary,
-                ),
+            ),
+          ),
+          TextButton(
+            onPressed: _isLoading ? null : _navigateToDashboard,
+            child: Text(
+              'Skip',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -365,14 +350,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                 color: TossColors.error,
               ),
             ),
-            if (_isStoreNameValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -568,28 +545,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       text: _isLoading ? 'Creating store...' : 'Create Store',
       onPressed: _isLoading || !canCreate ? null : _handleCreateStore,
       isLoading: _isLoading,
-      leadingIcon: _isLoading
-          ? null
-          : Icon(
-              Icons.add_business,
-              size: 18,
-              color: TossColors.white,
-            ),
-    );
-  }
-
-  Widget _buildSkipOption() {
-    return Center(
-      child: TextButton(
-        onPressed: _isLoading ? null : _navigateToDashboard,
-        child: Text(
-          'Skip for now',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.textSecondary,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ),
+      fullWidth: true,
     );
   }
 
@@ -689,6 +645,13 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       if (userId == null) {
         throw AuthException('User not authenticated');
       }
+
+      // Create default store with company name when skipping
+      final storeService = ref.read(storeServiceProvider);
+      await storeService.createStore(
+        name: widget.companyName,
+        companyId: widget.companyId,
+      );
 
       // Small delay for backend to update
       await Future.delayed(const Duration(milliseconds: 500));

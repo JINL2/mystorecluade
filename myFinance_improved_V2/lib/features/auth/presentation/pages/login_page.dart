@@ -80,7 +80,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   // State
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-  bool _showPasswordField = false;
+  bool _showPasswordField = true;
   bool _isEmailValid = false;
 
   @override
@@ -150,32 +150,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
     final email = _emailController.text.trim();
     final isValidEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
 
-    // Update both email validity and password field visibility in single setState
-    if (isValidEmail != _isEmailValid || (isValidEmail && !_showPasswordField)) {
+    // Update email validity only
+    if (isValidEmail != _isEmailValid) {
       if (mounted) {
         setState(() {
           _isEmailValid = isValidEmail;
-          if (isValidEmail && !_showPasswordField) {
-            _showPasswordField = true;
-          }
         });
-
-        // Handle password field animation and focus after state is set
-        if (isValidEmail && _showPasswordField) {
-          _passwordRevealController.forward().then((_) {
-            // Auto-focus password field with slight delay
-            if (mounted) {
-              Future.delayed(
-                const Duration(milliseconds: AuthConstants.quickFeedbackAnimationMs),
-                () {
-                  if (mounted) {
-                    _passwordFocusNode.requestFocus();
-                  }
-                },
-              );
-            }
-          });
-        }
       }
     }
   }
@@ -200,13 +180,19 @@ class _LoginPageState extends ConsumerState<LoginPage>
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // TODO: Replace with StorebaseAuthHeader when available
             _buildTemporaryHeader(),
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.only(
+                  left: 28.0,
+                  right: 28.0,
+                  bottom: 28.0,
+                  top: 0,
+                ),
                 child: Form(
                   key: _formKey,
                   child: SlideTransition(
@@ -216,43 +202,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: TossSpacing.space6),
-
                           _buildWelcomeSection(),
 
                           const SizedBox(height: TossSpacing.space8),
 
                           _buildEnhancedEmailField(),
 
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeOutCubic,
-                            height: _showPasswordField ? null : 0,
-                            child: _showPasswordField
-                                ? Column(
-                                    children: [
-                                      const SizedBox(height: TossSpacing.space4),
-                                      SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0, -0.3),
-                                          end: Offset.zero,
-                                        ).animate(_passwordRevealAnimation),
-                                        child: FadeTransition(
-                                          opacity: _passwordRevealAnimation,
-                                          child: _buildEnhancedPasswordField(),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
+                          const SizedBox(height: TossSpacing.space4),
+
+                          _buildEnhancedPasswordField(),
 
                           const SizedBox(height: TossSpacing.space3),
 
                           _buildForgotPasswordSection(),
 
                           SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.1,
+                            height: MediaQuery.of(context).size.height * 0.05,
                           ),
 
                           AnimatedBuilder(
@@ -271,10 +236,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
                           _buildSignupSection(),
 
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildTrustIndicators(),
-
                           const SizedBox(height: TossSpacing.space8),
                         ],
                       ),
@@ -291,32 +252,24 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   // TODO: Temporary header until StorebaseAuthHeader widget is available
   Widget _buildTemporaryHeader() {
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.store,
-              color: Colors.white,
-              size: 24,
-            ),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.only(
+          left: 20,
+          top: 20,
+          right: 20,
+          bottom: 25.92,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            'assets/images/app icon.png',
+            width: 56,
+            height: 56,
+            fit: BoxFit.cover,
           ),
-          const SizedBox(width: 12),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.bold,
-              color: TossColors.textPrimary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -326,7 +279,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Welcome back!',
+          'Welcome to Storebase!',
           style: TossTextStyles.h1.copyWith(
             color: TossColors.textPrimary,
             fontWeight: FontWeight.w800,
@@ -335,10 +288,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Text(
-          'Sign in to your business command center',
+          'All your business needs, on a smarter base.',
           style: TossTextStyles.body.copyWith(
             color: TossColors.textSecondary,
-            fontSize: AuthConstants.textSizeBodyLarge,
             height: AuthConstants.lineHeightStandard,
           ),
         ),
@@ -350,54 +302,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              AuthConstants.labelBusinessEmail,
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (_isEmailValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              TweenAnimationBuilder<double>(
-                duration: const Duration(
-                  milliseconds: AuthConstants.standardTransitionAnimationMs,
-                ),
-                tween: Tween(
-                  begin: AuthConstants.fadeBegin,
-                  end: AuthConstants.fadeEnd,
-                ),
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Icon(
-                      Icons.check_circle,
-                      size: AuthConstants.iconSizeStandard,
-                      color: TossColors.success,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ],
+        Text(
+          AuthConstants.labelBusinessEmail,
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            boxShadow: _isEmailValid
-                ? [
-                    BoxShadow(
-                      color: TossColors.success.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: TossTextField(
+        TossTextField(
             controller: _emailController,
             focusNode: _emailFocusNode,
             hintText: AuthConstants.placeholderEmail,
@@ -413,7 +326,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
               return null;
             },
           ),
-        ),
       ],
     );
   }
@@ -422,77 +334,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              AuthConstants.labelPassword,
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space2),
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 600),
-              tween: Tween(begin: 0.0, end: 1.0),
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                      vertical: TossSpacing.space1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(
-                        AuthConstants.borderRadiusStandard,
-                      ),
-                      border: Border.all(
-                        color: TossColors.success.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.security,
-                          size: 12,
-                          color: TossColors.success,
-                        ),
-                        const SizedBox(width: TossSpacing.space1),
-                        Text(
-                          'Secure',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.success,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
+        Text(
+          AuthConstants.labelPassword,
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.primary.withOpacity(
-                  AuthConstants.overlayOpacityMedium,
-                ),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TossTextField(
+        TossTextField(
             controller: _passwordController,
             focusNode: _passwordFocusNode,
             hintText: AuthConstants.placeholderPassword,
@@ -524,34 +374,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
               return null;
             },
           ),
-        ),
       ],
     );
   }
 
   Widget _buildForgotPasswordSection() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Trust indicator
-        Row(
-          children: [
-            Icon(
-              Icons.security_rounded,
-              size: AuthConstants.iconSizeStandard,
-              color: TossColors.success,
-            ),
-            const SizedBox(width: TossSpacing.space1),
-            Text(
-              AuthConstants.helperSecureLogin,
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.success,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-
         // Forgot password
         TextButton(
           onPressed: () {
@@ -589,36 +419,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
         _passwordController.text.isNotEmpty &&
         _showPasswordField;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-        boxShadow: canLogin
-            ? [
-                BoxShadow(
-                  color: TossColors.primary.withOpacity(0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: TossColors.primary.withOpacity(0.1),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-              ]
-            : null,
-      ),
-      child: TossPrimaryButton(
-        text: _isLoading ? 'Signing in...' : AuthConstants.buttonSignIn,
-        onPressed: _isLoading || !canLogin ? null : _handleLogin,
-        isLoading: _isLoading,
-        leadingIcon: _isLoading
-            ? null
-            : Icon(
-                Icons.lock_rounded,
-                size: AuthConstants.iconSizeMedium,
-                color: TossColors.white,
-              ),
-      ),
+    return TossPrimaryButton(
+      text: _isLoading ? 'Signing in...' : AuthConstants.buttonSignIn,
+      onPressed: _isLoading || !canLogin ? null : _handleLogin,
+      isLoading: _isLoading,
+      fullWidth: true,
     );
   }
 
@@ -651,55 +456,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildTrustIndicators() {
-    return Center(
-      child: Wrap(
-        spacing: TossSpacing.space4,
-        children: [
-          _buildTrustBadge(Icons.verified_user, 'Bank-level Security'),
-          _buildTrustBadge(Icons.privacy_tip, 'GDPR Compliant'),
-          _buildTrustBadge(Icons.cloud_done, 'Reliable Platform'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrustBadge(IconData icon, String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space2,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(AuthConstants.borderRadiusXL),
-        border: Border.all(
-          color: TossColors.borderLight,
-          width: AuthConstants.borderWidthThin,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: AuthConstants.iconSizeSmall,
-            color: TossColors.success,
-          ),
-          const SizedBox(width: TossSpacing.space1),
-          Text(
-            text,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textSecondary,
-              fontWeight: FontWeight.w500,
-              fontSize: AuthConstants.textSizeMini,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

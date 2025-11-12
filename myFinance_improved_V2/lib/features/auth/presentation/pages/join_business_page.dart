@@ -123,28 +123,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
               context.go('/onboarding/choose-role');
             },
           ),
-          const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
         ],
       ),
     );
@@ -209,14 +187,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (_isCodeValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -364,22 +334,12 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.help_outline,
-                size: 20,
-                color: TossColors.primary,
-              ),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                'Need help?',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          Text(
+            'Need help?',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: TossSpacing.space2),
           Text(

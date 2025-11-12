@@ -28,6 +28,7 @@ class Company with _$Company {
     required String ownerId,
     required DateTime createdAt,
     DateTime? updatedAt,
+    String? otherTypeDetail, // Custom company type detail when "Others" is selected
   }) = _Company;
 
   /// Validates the company entity

@@ -59,43 +59,14 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
             children: [
               const SizedBox(height: 40),
 
-              // Storebase Logo
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.store,
-                      color: TossColors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space3),
-                  Text(
-                    'Storebase',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
               // Welcome Message
               Text(
-                'Welcome to Storebase! 🎉',
+                'Welcome to Storebase!',
                 style: TossTextStyles.h1.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.textPrimary,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
 
               const SizedBox(height: TossSpacing.space4),
@@ -105,16 +76,16 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 style: TossTextStyles.h3.copyWith(
                   color: TossColors.textSecondary,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
 
               const SizedBox(height: 60),
 
-              // Create Business Card
+              // Create Company Card
               _buildActionCard(
                 context: context,
-                title: 'Create Business',
-                subtitle: 'I want to start a new business',
+                title: 'Create Company',
+                subtitle: 'I want to start a new company',
                 icon: Icons.business,
                 color: TossColors.primary,
                 onTap: () => _navigateToPage('/onboarding/create-business'),
@@ -122,11 +93,11 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
 
               const SizedBox(height: 20),
 
-              // Join Business Card
+              // Join Company Card
               _buildActionCard(
                 context: context,
-                title: 'Join Business',
-                subtitle: 'I have a business code',
+                title: 'Join Company',
+                subtitle: 'I have a company code',
                 icon: Icons.group_add,
                 color: TossColors.success,
                 onTap: () => _navigateToPage('/onboarding/join-business'),
@@ -293,9 +264,9 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('• Choose "Create Business" if you\'re starting a new company'),
+            Text('• Choose "Create Company" if you\'re starting a new company'),
             SizedBox(height: TossSpacing.space2),
-            Text('• Choose "Join Business" if you have a business code from your employer'),
+            Text('• Choose "Join Company" if you have a company code from your employer'),
             SizedBox(height: TossSpacing.space2),
             Text('• You can always change this later in settings'),
           ],

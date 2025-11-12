@@ -39,6 +39,8 @@ mixin _$CompanyDto {
   String? get updatedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_deleted')
   bool get isDeleted => throw _privateConstructorUsedError;
+  @JsonKey(name: 'other_type_detail')
+  String? get otherTypeDetail => throw _privateConstructorUsedError;
 
   /// Serializes this CompanyDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -66,7 +68,8 @@ abstract class $CompanyDtoCopyWith<$Res> {
       String? timezone,
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'updated_at') String? updatedAt,
-      @JsonKey(name: 'is_deleted') bool isDeleted});
+      @JsonKey(name: 'is_deleted') bool isDeleted,
+      @JsonKey(name: 'other_type_detail') String? otherTypeDetail});
 }
 
 /// @nodoc
@@ -94,6 +97,7 @@ class _$CompanyDtoCopyWithImpl<$Res, $Val extends CompanyDto>
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? isDeleted = null,
+    Object? otherTypeDetail = freezed,
   }) {
     return _then(_value.copyWith(
       companyId: null == companyId
@@ -136,6 +140,10 @@ class _$CompanyDtoCopyWithImpl<$Res, $Val extends CompanyDto>
           ? _value.isDeleted
           : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      otherTypeDetail: freezed == otherTypeDetail
+          ? _value.otherTypeDetail
+          : otherTypeDetail // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -158,7 +166,8 @@ abstract class _$$CompanyDtoImplCopyWith<$Res>
       String? timezone,
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'updated_at') String? updatedAt,
-      @JsonKey(name: 'is_deleted') bool isDeleted});
+      @JsonKey(name: 'is_deleted') bool isDeleted,
+      @JsonKey(name: 'other_type_detail') String? otherTypeDetail});
 }
 
 /// @nodoc
@@ -184,6 +193,7 @@ class __$$CompanyDtoImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? isDeleted = null,
+    Object? otherTypeDetail = freezed,
   }) {
     return _then(_$CompanyDtoImpl(
       companyId: null == companyId
@@ -226,6 +236,10 @@ class __$$CompanyDtoImplCopyWithImpl<$Res>
           ? _value.isDeleted
           : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      otherTypeDetail: freezed == otherTypeDetail
+          ? _value.otherTypeDetail
+          : otherTypeDetail // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -243,7 +257,8 @@ class _$CompanyDtoImpl implements _CompanyDto {
       this.timezone,
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
-      @JsonKey(name: 'is_deleted') this.isDeleted = false});
+      @JsonKey(name: 'is_deleted') this.isDeleted = false,
+      @JsonKey(name: 'other_type_detail') this.otherTypeDetail});
 
   factory _$CompanyDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$CompanyDtoImplFromJson(json);
@@ -277,10 +292,13 @@ class _$CompanyDtoImpl implements _CompanyDto {
   @override
   @JsonKey(name: 'is_deleted')
   final bool isDeleted;
+  @override
+  @JsonKey(name: 'other_type_detail')
+  final String? otherTypeDetail;
 
   @override
   String toString() {
-    return 'CompanyDto(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, companyTypeId: $companyTypeId, ownerId: $ownerId, baseCurrencyId: $baseCurrencyId, timezone: $timezone, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+    return 'CompanyDto(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, companyTypeId: $companyTypeId, ownerId: $ownerId, baseCurrencyId: $baseCurrencyId, timezone: $timezone, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, otherTypeDetail: $otherTypeDetail)';
   }
 
   @override
@@ -306,7 +324,9 @@ class _$CompanyDtoImpl implements _CompanyDto {
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.isDeleted, isDeleted) ||
-                other.isDeleted == isDeleted));
+                other.isDeleted == isDeleted) &&
+            (identical(other.otherTypeDetail, otherTypeDetail) ||
+                other.otherTypeDetail == otherTypeDetail));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -322,7 +342,8 @@ class _$CompanyDtoImpl implements _CompanyDto {
       timezone,
       createdAt,
       updatedAt,
-      isDeleted);
+      isDeleted,
+      otherTypeDetail);
 
   /// Create a copy of CompanyDto
   /// with the given fields replaced by the non-null parameter values.
@@ -351,7 +372,9 @@ abstract class _CompanyDto implements CompanyDto {
       final String? timezone,
       @JsonKey(name: 'created_at') required final String createdAt,
       @JsonKey(name: 'updated_at') final String? updatedAt,
-      @JsonKey(name: 'is_deleted') final bool isDeleted}) = _$CompanyDtoImpl;
+      @JsonKey(name: 'is_deleted') final bool isDeleted,
+      @JsonKey(name: 'other_type_detail')
+      final String? otherTypeDetail}) = _$CompanyDtoImpl;
 
   factory _CompanyDto.fromJson(Map<String, dynamic> json) =
       _$CompanyDtoImpl.fromJson;
@@ -385,6 +408,9 @@ abstract class _CompanyDto implements CompanyDto {
   @override
   @JsonKey(name: 'is_deleted')
   bool get isDeleted;
+  @override
+  @JsonKey(name: 'other_type_detail')
+  String? get otherTypeDetail;
 
   /// Create a copy of CompanyDto
   /// with the given fields replaced by the non-null parameter values.
