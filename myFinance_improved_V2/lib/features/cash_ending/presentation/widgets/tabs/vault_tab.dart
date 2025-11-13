@@ -14,7 +14,7 @@ import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../../providers/repository_providers.dart';
+import '../../providers/vault_tab_provider.dart';
 import '../denomination_input.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
@@ -58,12 +58,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   // Transaction type: 'debit' (In) or 'credit' (Out)
   String _transactionType = 'debit'; // Default to 'In'
 
-  // Stock flow data for Real section
-  List<ActualFlow> _actualFlows = [];
-  LocationSummary? _locationSummary;
-  bool _isLoadingFlows = false;
-  bool _hasMoreFlows = false;
-  int _flowsOffset = 0;
   String? _previousLocationId;
 
   @override
@@ -76,19 +70,19 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       (previous, next) {
         if (next != null && next.isNotEmpty && next != previous) {
           _previousLocationId = next;
-          _loadStockFlows();
+          _loadStockFlowsFromProvider(next);
         }
       },
     );
 
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(cashEndingProvider);
-      _previousLocationId = state.selectedVaultLocationId;
+      final pageState = ref.read(cashEndingProvider);
+      _previousLocationId = pageState.selectedVaultLocationId;
 
-      if (state.selectedVaultLocationId != null &&
-          state.selectedVaultLocationId!.isNotEmpty) {
-        _loadStockFlows();
+      if (pageState.selectedVaultLocationId != null &&
+          pageState.selectedVaultLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedVaultLocationId!);
       }
     });
   }
@@ -115,84 +109,58 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   @override
   void didUpdateWidget(VaultTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final state = ref.read(cashEndingProvider);
+    final pageState = ref.read(cashEndingProvider);
 
-    if (state.selectedVaultLocationId != _previousLocationId) {
-      _previousLocationId = state.selectedVaultLocationId;
-      _loadStockFlows();
+    if (pageState.selectedVaultLocationId != _previousLocationId) {
+      _previousLocationId = pageState.selectedVaultLocationId;
+      if (pageState.selectedVaultLocationId != null &&
+          pageState.selectedVaultLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedVaultLocationId!);
+      }
     }
   }
 
-  /// Load stock flows for the selected location
-  Future<void> _loadStockFlows({bool loadMore = false}) async {
-    final state = ref.read(cashEndingProvider);
+  /// Load stock flows via provider
+  void _loadStockFlowsFromProvider(String locationId) {
+    final pageState = ref.read(cashEndingProvider);
 
-    if (state.selectedVaultLocationId == null ||
-        state.selectedVaultLocationId!.isEmpty ||
-        state.selectedStoreId == null) {
+    if (pageState.selectedStoreId == null || pageState.selectedStoreId!.isEmpty) {
       return;
     }
 
-    if (_isLoadingFlows) return;
-
-    setState(() {
-      _isLoadingFlows = true;
-      if (!loadMore) {
-        _flowsOffset = 0;
-        _actualFlows = [];
-      }
-    });
-
-    try {
-      final repository = ref.read(stockFlowRepositoryProvider);
-
-      final result = await repository.getLocationStockFlow(
-        companyId: widget.companyId,
-        storeId: state.selectedStoreId!,
-        cashLocationId: state.selectedVaultLocationId!,
-        offset: _flowsOffset,
-        limit: 20,
-      );
-
-      if (result.success) {
-        setState(() {
-          if (loadMore) {
-            _actualFlows.addAll(result.actualFlows);
-          } else {
-            _actualFlows = result.actualFlows;
-            _locationSummary = result.locationSummary;
-          }
-          _hasMoreFlows = result.pagination?.hasMore ?? false;
-          _flowsOffset += result.actualFlows.length;
-        });
-      }
-    } catch (e) {
-      // Error loading stock flows
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingFlows = false;
-        });
-      }
-    }
+    ref.read(vaultTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: locationId,
+    );
   }
 
+  /// Load more flows for pagination
   void _loadMoreFlows() {
-    _loadStockFlows(loadMore: true);
-  }
+    final pageState = ref.read(cashEndingProvider);
 
-  void reloadStockFlows() {
-    _loadStockFlows();
+    if (pageState.selectedVaultLocationId == null ||
+        pageState.selectedStoreId == null) {
+      return;
+    }
+
+    ref.read(vaultTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: pageState.selectedVaultLocationId!,
+      loadMore: true,
+    );
   }
 
   void _showFlowDetails(ActualFlow flow) {
-    final state = ref.read(cashEndingProvider);
+    final pageState = ref.read(cashEndingProvider);
+    final tabState = ref.read(vaultTabProvider);
     FlowDetailBottomSheet.show(
       context: context,
       flow: flow,
-      locationSummary: _locationSummary,
-      baseCurrencySymbol: state.currencies.isNotEmpty
-          ? state.currencies.first.symbol
+      locationSummary: tabState.locationSummary,
+      baseCurrencySymbol: pageState.currencies.isNotEmpty
+          ? pageState.currencies.first.symbol
           : '\$',
     );
   }
@@ -252,7 +220,8 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(cashEndingProvider);
+    final pageState = ref.watch(cashEndingProvider);
+    final tabState = ref.watch(vaultTabProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -260,23 +229,23 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Card 1: Store and Location Selection
-          _buildLocationSelectionCard(state),
+          _buildLocationSelectionCard(pageState),
 
           // Card 2: Vault Counting (show if location selected)
-          if (state.selectedVaultLocationId != null &&
-              state.selectedVaultLocationId!.isNotEmpty) ...[
+          if (pageState.selectedVaultLocationId != null &&
+              pageState.selectedVaultLocationId!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space6),
-            _buildVaultCountingCard(state),
+            _buildVaultCountingCard(pageState),
 
             // Card 3: Real Section
             const SizedBox(height: TossSpacing.space6),
             RealSectionWidget(
-              actualFlows: _actualFlows,
-              locationSummary: _locationSummary,
-              isLoading: _isLoadingFlows,
-              hasMore: _hasMoreFlows,
-              baseCurrencySymbol: state.currencies.isNotEmpty
-                  ? state.currencies.first.symbol
+              actualFlows: tabState.stockFlows,
+              locationSummary: tabState.locationSummary,
+              isLoading: tabState.isLoadingFlows,
+              hasMore: tabState.hasMoreFlows,
+              baseCurrencySymbol: pageState.currencies.isNotEmpty
+                  ? pageState.currencies.first.symbol
                   : '\$',
               onLoadMore: _loadMoreFlows,
               onItemTap: _showFlowDetails,
@@ -457,7 +426,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
             },
           ),
           ...currency.denominations.asMap().entries.map((entry) {
-            final index = entry.key;
             final denom = entry.value;
             final controller = _getController(selectedCurrencyId, denom.denominationId);
             final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
@@ -492,28 +460,33 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         const SizedBox(height: TossSpacing.space10),
 
         // Submit Button
-        Center(
-          child: TossButton1.primary(
-            text: 'Save Vault Transaction',
-            isLoading: state.isSaving,
-            isEnabled: !state.isSaving,
-            fullWidth: false,
-            onPressed: !state.isSaving
-                ? () async {
-                    await widget.onSave(
-                      context,
-                      state,
-                      selectedCurrencyId,
-                      _transactionType,
-                    );
-                  }
-                : null,
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
-            ),
-            borderRadius: 12,
-          ),
+        Builder(
+          builder: (context) {
+            final tabState = ref.watch(vaultTabProvider);
+            return Center(
+              child: TossButton1.primary(
+                text: 'Save Vault Transaction',
+                isLoading: tabState.isSaving,
+                isEnabled: !tabState.isSaving,
+                fullWidth: false,
+                onPressed: !tabState.isSaving
+                    ? () async {
+                        await widget.onSave(
+                          context,
+                          state,
+                          selectedCurrencyId,
+                          _transactionType,
+                        );
+                      }
+                    : null,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
+                ),
+                borderRadius: 12,
+              ),
+            );
+          },
         ),
           ],
         ), // End of Column
