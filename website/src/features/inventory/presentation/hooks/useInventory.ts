@@ -21,6 +21,11 @@ export const useInventory = () => {
   const inventory = useInventoryStore((state) => state.inventory);
   const currency = useInventoryStore((state) => state.currency);
 
+  // Pagination State
+  const currentPage = useInventoryStore((state) => state.currentPage);
+  const itemsPerPage = useInventoryStore((state) => state.itemsPerPage);
+  const totalItems = useInventoryStore((state) => state.totalItems);
+
   // UI State
   const selectedStoreId = useInventoryStore((state) => state.selectedStoreId);
   const searchQuery = useInventoryStore((state) => state.searchQuery);
@@ -44,6 +49,7 @@ export const useInventory = () => {
   // Synchronous Actions
   const setSelectedStoreId = useInventoryStore((state) => state.setSelectedStoreId);
   const setSearchQuery = useInventoryStore((state) => state.setSearchQuery);
+  const setCurrentPage = useInventoryStore((state) => state.setCurrentPage);
   const toggleProductSelection = useInventoryStore((state) => state.toggleProductSelection);
   const selectAllProducts = useInventoryStore((state) => state.selectAllProducts);
   const clearSelection = useInventoryStore((state) => state.clearSelection);
@@ -64,6 +70,7 @@ export const useInventory = () => {
   // Asynchronous Actions
   const loadInventory = useInventoryStore((state) => state.loadInventory);
   const updateProduct = useInventoryStore((state) => state.updateProduct);
+  const importExcel = useInventoryStore((state) => state.importExcel);
   const refresh = useInventoryStore((state) => state.refresh);
 
   // ============================================
@@ -74,6 +81,9 @@ export const useInventory = () => {
     inventory,
     currencySymbol: currency.symbol,
     currencyCode: currency.code,
+    currentPage,
+    itemsPerPage,
+    totalItems,
     selectedStoreId,
     searchQuery,
     selectedProducts,
@@ -87,6 +97,7 @@ export const useInventory = () => {
     // Actions
     setSelectedStoreId,
     setSearchQuery,
+    setCurrentPage,
     toggleProductSelection,
     selectAllProducts,
     clearSelection,
@@ -101,6 +112,7 @@ export const useInventory = () => {
     clearError,
     loadInventory,
     updateProduct,
+    importExcel,
     refresh,
   };
 };

@@ -14,6 +14,14 @@ export interface InventoryResult {
     code?: string;
     name?: string;
   };
+  pagination?: {
+    total_count?: number; // Frontend expects this
+    total?: number;        // Backend returns this
+    page?: number;
+    limit?: number;
+    total_pages?: number;
+    has_next?: boolean;
+  };
   error?: string;
 }
 
@@ -28,6 +36,22 @@ export interface UpdateProductData {
   unit: string;
   costPrice: number;
   sellingPrice: number;
+}
+
+export interface ImportExcelResult {
+  success: boolean;
+  summary?: {
+    created: number;
+    updated: number;
+    skipped: number;
+    errors: number;
+  };
+  errors?: Array<{
+    row: number;
+    error: string;
+    data?: any;
+  }>;
+  error?: string;
 }
 
 export interface IInventoryRepository {
@@ -59,4 +83,14 @@ export interface IInventoryRepository {
     companyId: string,
     storeId?: string
   ): Promise<{ success: boolean; data?: InventoryMetadata; error?: string }>;
+
+  /**
+   * Import products from Excel file data
+   */
+  importExcel(
+    companyId: string,
+    storeId: string,
+    userId: string,
+    products: any[]
+  ): Promise<ImportExcelResult>;
 }

@@ -8,7 +8,7 @@
  * - Optimized re-renders with selective subscriptions
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useInventory } from '../../hooks/useInventory';
 import { useInventoryMetadata } from '../../hooks/useInventoryMetadata';
 import { Navbar } from '@/shared/components/common/Navbar';
@@ -19,6 +19,8 @@ import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { excelExportManager } from '@/core/utils/excel-export-utils';
+import { supabaseService } from '@/core/services/supabase_service';
 import type { InventoryPageProps } from './InventoryPage.types';
 import styles from './InventoryPage.module.css';
 
@@ -31,8 +33,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     inventory,
     currencySymbol,
     currencyCode,
+    currentPage,
+    itemsPerPage,
     selectedStoreId,
-    searchQuery,
     selectedProducts,
     isModalOpen,
     selectedProductData,
@@ -42,9 +45,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     notification,
 
     setSelectedStoreId,
-    setSearchQuery,
+    setCurrentPage,
     toggleProductSelection,
-    selectAllProducts,
     clearSelection,
     openModal,
     closeModal,
@@ -54,11 +56,24 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     hideNotification,
     loadInventory,
     updateProduct,
+    importExcel,
     refresh,
   } = useInventory();
 
   // Fetch inventory metadata (categories, brands, product types, units)
   const { metadata, loading: metadataLoading, error: metadataError, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
+
+  // Local UI state for export/import loading and client-side filtering
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [localSearchQuery, setCurrentPage]);
 
   // Initialize with first store when company loads
   useEffect(() => {
@@ -67,12 +82,38 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     }
   }, [currentCompany, selectedStoreId, setSelectedStoreId]);
 
-  // Load inventory when dependencies change
+  // Load inventory when store changes (NO page or search dependency - load ALL)
   useEffect(() => {
     if (companyId && selectedStoreId) {
-      loadInventory(companyId, selectedStoreId, searchQuery);
+      loadInventory(companyId, selectedStoreId, ''); // Always load ALL products
     }
-  }, [companyId, selectedStoreId, searchQuery, loadInventory]);
+  }, [companyId, selectedStoreId, loadInventory]);
+
+  // Client-side filtering: filter inventory based on local search query
+  const filteredInventory = React.useMemo(() => {
+    if (!localSearchQuery.trim()) {
+      return inventory;
+    }
+
+    const query = localSearchQuery.toLowerCase().trim();
+    return inventory.filter((item) => {
+      return (
+        item.productName.toLowerCase().includes(query) ||
+        item.sku.toLowerCase().includes(query)
+      );
+    });
+  }, [inventory, localSearchQuery]);
+
+  // Client-side pagination: slice filtered results for current page
+  const paginatedInventory = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredInventory.slice(startIndex, endIndex);
+  }, [filteredInventory, currentPage, itemsPerPage]);
+
+  // Calculate total items and pages based on filtered results
+  const totalFilteredItems = filteredInventory.length;
+  const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
 
   // Helper function to format currency with strikethrough symbol
   const formatCurrency = (amount: number): string => {
@@ -83,17 +124,21 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     return `${currencySymbol}${formatted}`;
   };
 
-  // Handle select all checkbox
+  // Handle select all checkbox (only visible filtered products)
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      selectAllProducts();
+      // Select only filtered products, not all products
+      clearSelection();
+      filteredInventory.forEach((item) => {
+        toggleProductSelection(item.productId);
+      });
     } else {
       clearSelection();
     }
   };
 
   // Handle individual checkbox
-  const handleCheckboxChange = (productId: string, checked: boolean) => {
+  const handleCheckboxChange = (productId: string) => {
     toggleProductSelection(productId);
   };
 
@@ -112,15 +157,183 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   };
 
   // Handle export Excel
-  const handleExportExcel = () => {
-    // TODO: Implement Excel export
-    console.log('Export to Excel');
+  const handleExportExcel = async () => {
+    // Prevent multiple simultaneous exports
+    if (isExporting) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      // Get current store name for filename
+      const currentStore = currentCompany?.stores?.find(
+        (store) => store.store_id === selectedStoreId
+      );
+      const storeName = currentStore?.store_name || 'AllStores';
+
+      // Export inventory data to Excel
+      await excelExportManager.exportInventoryToExcel(
+        inventory,
+        storeName,
+        currencyCode
+      );
+
+      // Show success notification
+      showNotification('success', `Successfully exported ${inventory.length} products to Excel!`);
+    } catch (error) {
+      console.error('Export Excel error:', error);
+
+      // Don't show error notification if user cancelled
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (!errorMessage.includes('cancelled')) {
+        showNotification('error', 'Failed to export inventory data. Please try again.');
+      }
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  // Handle import Excel
-  const handleImportExcel = () => {
-    // TODO: Open import modal
-    console.log('Import from Excel');
+  // Handle import Excel with Batch Processing
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📥 Import Excel handler called');
+    const file = event.target.files?.[0];
+    console.log('📄 Selected file:', file);
+
+    if (!file) {
+      console.log('❌ No file selected');
+      return;
+    }
+
+    // Reset file input
+    event.target.value = '';
+
+    // Validate file type
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      console.log('❌ Invalid file type:', file.name);
+      showNotification('error', 'Please select a valid Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    try {
+      console.log('✅ File validation passed, starting import...');
+
+      // Parse Excel file first (before showing loading overlay)
+      console.log('📊 Parsing Excel file...');
+      const parsedProducts = await excelExportManager.parseInventoryExcel(file);
+      console.log('✅ Parsed products:', parsedProducts.length);
+
+      if (!parsedProducts || parsedProducts.length === 0) {
+        console.log('❌ No valid products found');
+        showNotification('error', 'No valid products found in the Excel file');
+        return;
+      }
+
+      // Get user ID from Supabase Auth
+      console.log('🔐 Getting user from Supabase Auth...');
+      const { data: { user }, error: authError } = await supabaseService.auth.getUser();
+      console.log('👤 User:', user);
+      if (authError || !user) {
+        console.log('❌ Auth error:', authError);
+        showNotification('error', 'Failed to get user information. Please log in again.');
+        return;
+      }
+
+      // ============================================
+      // BATCH PROCESSING - 200 rows per batch
+      // ============================================
+      const BATCH_SIZE = 200;
+      const totalProducts = parsedProducts.length;
+      const totalBatches = Math.ceil(totalProducts / BATCH_SIZE);
+
+      console.log(`📦 Starting batch processing: ${totalProducts} products in ${totalBatches} batches`);
+
+      // Show loading overlay AFTER parsing and validation complete
+      setIsImporting(true);
+      setImportProgress({ current: 0, total: totalBatches });
+
+      // Initialize aggregated results
+      let totalCreated = 0;
+      let totalUpdated = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+      const allErrors: Array<{ row: number; error: string; data?: any }> = [];
+
+      // Process batches sequentially
+      for (let i = 0; i < totalBatches; i++) {
+        const batchNumber = i + 1;
+        const start = i * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, totalProducts);
+        const batch = parsedProducts.slice(start, end);
+
+        console.log(`📦 Processing batch ${batchNumber}/${totalBatches} (${batch.length} products)`);
+
+        try {
+          // Update progress BEFORE processing (smoother UI)
+          setImportProgress({ current: batchNumber, total: totalBatches });
+
+          // Import current batch via RPC
+          const result = await importExcel(companyId, selectedStoreId!, user.id, batch);
+
+          if (result.success && result.summary) {
+            // Aggregate results
+            totalCreated += result.summary.created || 0;
+            totalUpdated += result.summary.updated || 0;
+            totalSkipped += result.summary.skipped || 0;
+            totalErrors += result.summary.errors || 0;
+
+            // Collect errors with adjusted row numbers
+            if (result.errors && result.errors.length > 0) {
+              const adjustedErrors = result.errors.map((err) => ({
+                ...err,
+                row: err.row + start, // Adjust row number to original position
+              }));
+              allErrors.push(...adjustedErrors);
+            }
+
+            console.log(`✅ Batch ${batchNumber}/${totalBatches} completed:`, result.summary);
+          } else {
+            console.error(`❌ Batch ${batchNumber}/${totalBatches} failed:`, result.error);
+            totalErrors += batch.length;
+          }
+        } catch (batchError) {
+          console.error(`❌ Batch ${batchNumber}/${totalBatches} error:`, batchError);
+          totalErrors += batch.length;
+        }
+      }
+
+      console.log('✅ All batches processed');
+      console.log(`📊 Final results: Created=${totalCreated}, Updated=${totalUpdated}, Skipped=${totalSkipped}, Errors=${totalErrors}`);
+
+      // Show aggregated results
+      const total = totalCreated + totalUpdated + totalSkipped + totalErrors;
+      let message = `Import completed: ${total} products processed.\n`;
+      message += `✅ Created: ${totalCreated}, Updated: ${totalUpdated}, Skipped: ${totalSkipped}`;
+
+      if (totalErrors > 0) {
+        message += `, ❌ Errors: ${totalErrors}`;
+      }
+
+      showNotification('success', message);
+
+      // Refresh inventory after all batches complete (load ALL products)
+      console.log('🔄 Refreshing inventory...');
+      await loadInventory(companyId, selectedStoreId!, '');
+      console.log('✅ Import completed and inventory refreshed');
+    } catch (error) {
+      console.error('Import Excel error:', error);
+      showNotification('error', 'Failed to import Excel file. Please check the file format and try again.');
+    } finally {
+      setIsImporting(false);
+      setImportProgress({ current: 0, total: 0 });
+    }
+  };
+
+  // Trigger file picker for import
+  const handleImportClick = () => {
+    console.log('🖱️ Import button clicked');
+    console.log('📂 File input ref:', fileInputRef.current);
+    fileInputRef.current?.click();
   };
 
   // Handle add product
@@ -128,9 +341,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     openAddProductModal();
   };
 
-  // Clear search
+  // Clear search (use local state for client-side filtering)
   const handleClearSearch = () => {
-    setSearchQuery('');
+    setLocalSearchQuery('');
   };
 
   // Get status info
@@ -233,7 +446,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           message={error}
           onClose={() => {}}
           confirmText="Try Again"
-          onConfirm={() => loadInventory(companyId, selectedStoreId, searchQuery)}
+          onConfirm={() => loadInventory(companyId, selectedStoreId, '')}
           closeOnBackdropClick={false}
           closeOnEscape={false}
           zIndex={9999}
@@ -242,7 +455,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     );
   }
 
-  const isAllSelected = inventory.length > 0 && selectedProducts.size === inventory.length;
+  // Check if all FILTERED products are selected
+  const isAllSelected = filteredInventory.length > 0 &&
+    filteredInventory.every((item) => selectedProducts.has(item.productId));
 
   return (
     <>
@@ -278,10 +493,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                   type="text"
                   className={styles.inventorySearch}
                   placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
                 />
-                {searchQuery && (
+                {localSearchQuery && (
                   <button className={styles.searchClear} onClick={handleClearSearch}>
                     <svg fill="currentColor" viewBox="0 0 24 24" width="16" height="16">
                       <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -310,28 +525,46 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                   variant="secondary"
                   size="md"
                   onClick={handleExportExcel}
+                  disabled={isExporting || inventory.length === 0}
                   icon={
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
+                    isExporting ? (
+                      <LoadingAnimation size="small" />
+                    ) : (
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                      </svg>
+                    )
                   }
                   iconPosition="left"
                 >
-                  Export Excel
+                  {isExporting ? 'Exporting...' : 'Export Excel'}
                 </TossButton>
                 <TossButton
                   variant="secondary"
                   size="md"
-                  onClick={handleImportExcel}
+                  onClick={handleImportClick}
+                  disabled={isImporting}
                   icon={
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V16H9L12,19L15,16H13V13M13,9V3.5L18.5,9H13Z"/>
-                    </svg>
+                    isImporting ? (
+                      <LoadingAnimation size="small" />
+                    ) : (
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V16H9L12,19L15,16H13V13M13,9V3.5L18.5,9H13Z"/>
+                      </svg>
+                    )
                   }
                   iconPosition="left"
                 >
-                  Import Excel
+                  {isImporting ? 'Importing...' : 'Import Excel'}
                 </TossButton>
+                {/* Hidden file input for import */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleImportExcel}
+                  style={{ display: 'none' }}
+                />
                 <TossButton
                   variant="primary"
                   size="md"
@@ -369,7 +602,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
               </svg>
               <h3 className={styles.emptyTitle}>No products found</h3>
               <p className={styles.emptyText}>
-                {searchQuery
+                {localSearchQuery
                   ? 'No items match your search criteria'
                   : 'Add products to start managing inventory'}
               </p>
@@ -383,7 +616,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                       <input
                         type="checkbox"
                         className={styles.checkbox}
-                        checked={inventory.length > 0 && selectedProducts.size === inventory.length}
+                        checked={isAllSelected}
                         onChange={handleSelectAll}
                       />
                     </th>
@@ -398,7 +631,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {inventory.map((item) => {
+                  {paginatedInventory.map((item) => {
                     const status = getStatusInfo(item);
                     const quantityClass = getQuantityClass(item.currentStock);
 
@@ -409,7 +642,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                             type="checkbox"
                             className={styles.checkbox}
                             checked={selectedProducts.has(item.productId)}
-                            onChange={(e) => handleCheckboxChange(item.productId, e.target.checked)}
+                            onChange={() => handleCheckboxChange(item.productId)}
                           />
                         </td>
                         <td className={styles.productNameCell}>
@@ -470,16 +703,80 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           )}
 
           {/* Pagination */}
-          {inventory.length > 0 && (
+          {filteredInventory.length > 0 && (
             <div className={styles.pagination}>
               <div className={styles.paginationInfo}>
-                Showing 1-{inventory.length} of {inventory.length} products
+                Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, totalFilteredItems)} of {totalFilteredItems} products
               </div>
               <div className={styles.paginationControls}>
-                <button className={`${styles.paginationButton} ${styles.active}`}>
-                  1
+                {/* Previous Button (5 pages back) */}
+                <button
+                  className={styles.paginationButton}
+                  onClick={() => {
+                    const currentGroup = Math.floor((currentPage - 1) / 5);
+                    const newPage = Math.max(1, currentGroup * 5);
+                    setCurrentPage(newPage);
+                  }}
+                  disabled={currentPage <= 5}
+                  style={{ opacity: currentPage <= 5 ? 0.4 : 1, cursor: currentPage <= 5 ? 'not-allowed' : 'pointer' }}
+                >
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"/>
+                  </svg>
                 </button>
-                <button className={styles.paginationButton}>
+
+                {/* Page Numbers - Show only existing pages (up to 5 per group) */}
+                {(() => {
+                  const pages = [];
+
+                  // Calculate current group (0-based: 0 = pages 1-5, 1 = pages 6-10, etc.)
+                  const currentGroup = Math.floor((currentPage - 1) / 5);
+                  const startPage = currentGroup * 5 + 1;
+                  const endPage = Math.min(startPage + 4, totalPages); // Only show existing pages
+
+                  // Generate page buttons for current group
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        className={`${styles.paginationButton} ${currentPage === i ? styles.active : ''}`}
+                        onClick={() => setCurrentPage(i)}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                {/* Next Button (5 pages forward) */}
+                <button
+                  className={styles.paginationButton}
+                  onClick={() => {
+                    const currentGroup = Math.floor((currentPage - 1) / 5);
+                    const nextGroupStart = (currentGroup + 1) * 5 + 1;
+                    const newPage = Math.min(nextGroupStart, totalPages);
+                    setCurrentPage(newPage);
+                  }}
+                  disabled={(() => {
+                    const currentGroup = Math.floor((currentPage - 1) / 5);
+                    const nextGroupStart = (currentGroup + 1) * 5 + 1;
+                    return nextGroupStart > totalPages;
+                  })()}
+                  style={{
+                    opacity: (() => {
+                      const currentGroup = Math.floor((currentPage - 1) / 5);
+                      const nextGroupStart = (currentGroup + 1) * 5 + 1;
+                      return nextGroupStart > totalPages ? 0.4 : 1;
+                    })(),
+                    cursor: (() => {
+                      const currentGroup = Math.floor((currentPage - 1) / 5);
+                      const nextGroupStart = (currentGroup + 1) * 5 + 1;
+                      return nextGroupStart > totalPages ? 'not-allowed' : 'pointer';
+                    })()
+                  }}
+                >
                   <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
                   </svg>
@@ -554,6 +851,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           zIndex={9998}
         />
       )}
+
+      {/* Import Loading Overlay - Only LoadingAnimation */}
+      {isImporting && <LoadingAnimation size="large" fullscreen={true} />}
     </>
   );
 };

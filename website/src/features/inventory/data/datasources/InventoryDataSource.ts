@@ -13,6 +13,14 @@ interface InventoryResponse {
     code?: string;
     name?: string;
   };
+  pagination?: {
+    total_count?: number; // Frontend expects this
+    total?: number;        // Backend returns this
+    page?: number;
+    limit?: number;
+    total_pages?: number;
+    has_next?: boolean;
+  };
 }
 
 export class InventoryDataSource {
@@ -55,6 +63,7 @@ export class InventoryDataSource {
       return {
         products: data.data?.products || [],
         currency: data.data?.currency,
+        pagination: data.data?.pagination,
       };
     }
 
@@ -129,5 +138,42 @@ export class InventoryDataSource {
     }
 
     return data as InventoryMetadataResponse;
+  }
+
+  async importExcel(
+    companyId: string,
+    storeId: string,
+    userId: string,
+    products: any[]
+  ): Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }> {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('inventory_import_excel', {
+      p_company_id: companyId,
+      p_store_id: storeId,
+      p_user_id: userId,
+      p_products: products,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    // Handle success wrapper response
+    if (data && typeof data === 'object' && 'success' in data) {
+      return {
+        success: data.success,
+        summary: data.summary,
+        errors: data.errors,
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Invalid response format from inventory_import_excel',
+    };
   }
 }

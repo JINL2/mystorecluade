@@ -7,6 +7,7 @@ import {
   IInventoryRepository,
   InventoryResult,
   UpdateProductData,
+  ImportExcelResult,
 } from '../../domain/repositories/IInventoryRepository';
 import { InventoryItem } from '../../domain/entities/InventoryItem';
 import { InventoryMetadata } from '../../domain/entities/InventoryMetadata';
@@ -40,6 +41,7 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
         success: true,
         data: items,
         currency: response.currency,
+        pagination: response.pagination,
       };
     } catch (error) {
       return {
@@ -95,6 +97,22 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch metadata',
+      };
+    }
+  }
+
+  async importExcel(
+    companyId: string,
+    storeId: string,
+    userId: string,
+    products: any[]
+  ): Promise<ImportExcelResult> {
+    try {
+      return await this.dataSource.importExcel(companyId, storeId, userId, products);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to import Excel data',
       };
     }
   }

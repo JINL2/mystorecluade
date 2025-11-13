@@ -33,6 +33,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     code: 'VND',
   },
 
+  // Pagination
+  currentPage: 1,
+  itemsPerPage: 20,
+  totalItems: 0,
+
   selectedStoreId: null,
   searchQuery: '',
   selectedProducts: new Set(),
@@ -54,9 +59,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   // SYNCHRONOUS ACTIONS (SETTERS)
   // ============================================
 
-  setSelectedStoreId: (storeId) => set({ selectedStoreId: storeId }),
+  setSelectedStoreId: (storeId) => set({ selectedStoreId: storeId, currentPage: 1 }),
 
-  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSearchQuery: (query) => set({ searchQuery: query, currentPage: 1 }),
+
+  setCurrentPage: (page) => set({ currentPage: page }),
 
   toggleProductSelection: (productId) =>
     set((state) => {
@@ -113,19 +120,20 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   // ============================================
 
   /**
-   * Load inventory data
-   * Fetches inventory items and updates state
+   * Load inventory data (ALL products for client-side filtering)
+   * Fetches ALL inventory items at once
    */
   loadInventory: async (companyId, storeId, searchQuery) => {
     set({ loading: true, error: null });
 
     try {
-      // Pass search query to backend (pagination handled by backend)
+      // Load ALL products at once for client-side filtering
+      // Use a very large limit to get all products (10000 should be enough)
       const result = await repository.getInventory(
         companyId,
         storeId,
-        1, // page
-        1000, // limit - set high to get all items for now
+        1, // Always page 1
+        10000, // Large limit to get all products
         searchQuery || undefined
       );
 
@@ -161,7 +169,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         return b.createdAt.getTime() - a.createdAt.getTime(); // DESC order (newest first)
       });
 
-      set({ inventory: sortedInventory, loading: false });
+      // Total items = all loaded products (we load all at once now)
+      const totalItems = sortedInventory.length;
+      console.log('✅ Loaded all products:', totalItems);
+
+      set({ inventory: sortedInventory, totalItems, loading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'An unexpected error occurred',
@@ -211,6 +223,22 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         await get().loadInventory(companyId, storeId, state.searchQuery);
       }
 
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
+      };
+    }
+  },
+
+  /**
+   * Import products from Excel
+   * Calls RPC to import products (NO auto-refresh for batch processing)
+   */
+  importExcel: async (companyId, storeId, userId, products) => {
+    try {
+      const result = await repository.importExcel(companyId, storeId, userId, products);
       return result;
     } catch (err) {
       return {

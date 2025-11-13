@@ -751,6 +751,68 @@
   border-color: var(--color-blue-700);
 }
 
+.paginationEllipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-gray-500);
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Import Loading Overlay */
+.importOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.importContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 48px 64px;
+  background: var(--color-white);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 400px;
+  position: relative;
+}
+
+.importText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.importSubtext {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  margin: 0;
+  min-height: 20px;
+  transition: opacity 0.2s ease;
+  text-align: center;
+  line-height: 1.5;
+  width: 100%;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
@@ -787,5 +849,18 @@
 
   .inventoryTable {
     min-width: 800px;
+  }
+
+  .importContent {
+    padding: 32px 40px;
+    margin: 16px;
+  }
+
+  .importText {
+    font-size: 16px;
+  }
+
+  .importSubtext {
+    font-size: 13px;
   }
 }

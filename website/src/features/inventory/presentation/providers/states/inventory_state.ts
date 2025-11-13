@@ -18,6 +18,13 @@ export interface InventoryState {
   currency: CurrencyInfo;
 
   // ============================================
+  // PAGINATION STATE
+  // ============================================
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+
+  // ============================================
   // UI STATE
   // ============================================
   selectedStoreId: string | null;
@@ -47,6 +54,7 @@ export interface InventoryState {
   // ============================================
   setSelectedStoreId: (storeId: string | null) => void;
   setSearchQuery: (query: string) => void;
+  setCurrentPage: (page: number) => void;
   toggleProductSelection: (productId: string) => void;
   selectAllProducts: () => void;
   clearSelection: () => void;
@@ -69,5 +77,6 @@ export interface InventoryState {
   // ============================================
   loadInventory: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<void>;
   updateProduct: (productId: string, companyId: string, storeId: string, data: UpdateProductData) => Promise<UpdateProductResult>;
+  importExcel: (companyId: string, storeId: string, userId: string, products: any[]) => Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }>;
   refresh: () => Promise<void>;
 }
