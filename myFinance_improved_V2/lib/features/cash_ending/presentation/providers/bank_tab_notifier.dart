@@ -1,91 +1,52 @@
 // lib/features/cash_ending/presentation/providers/bank_tab_notifier.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../core/constants.dart';
 import '../../domain/entities/bank_balance.dart';
 import '../../domain/repositories/bank_repository.dart';
 import '../../domain/repositories/stock_flow_repository.dart';
 import 'bank_tab_state.dart';
+import 'base_tab_notifier.dart';
 
 /// Notifier for Bank Tab
-class BankTabNotifier extends StateNotifier<BankTabState> {
-  final StockFlowRepository _stockFlowRepository;
+///
+/// Extends BaseTabNotifier to eliminate duplicate code
+/// Only implements tab-specific save logic
+class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   final BankRepository _bankRepository;
 
   BankTabNotifier({
     required StockFlowRepository stockFlowRepository,
     required BankRepository bankRepository,
-  })  : _stockFlowRepository = stockFlowRepository,
-        _bankRepository = bankRepository,
-        super(const BankTabState());
+  })  : _bankRepository = bankRepository,
+        super(
+          stockFlowRepository: stockFlowRepository,
+          initialState: const BankTabState(),
+        );
 
-  /// Load stock flows for the selected location
-  Future<void> loadStockFlows({
+  /// Save bank balance - tab-specific implementation
+  @override
+  Future<bool> saveData({
+    required data,
     required String companyId,
     required String storeId,
     required String locationId,
-    bool loadMore = false,
   }) async {
-    if (state.isLoadingFlows) return;
-
-    state = state.copyWith(
-      isLoadingFlows: true,
-      errorMessage: null,
-    );
-
-    try {
-      final offset = loadMore ? state.flowsOffset : 0;
-
-      final result = await _stockFlowRepository.getLocationStockFlow(
-        companyId: companyId,
-        storeId: storeId,
-        cashLocationId: locationId,
-        offset: offset,
-        limit: CashEndingConstants.defaultPageSize,
-      );
-
-      if (result.success) {
-        final newFlows = loadMore
-            ? [...state.stockFlows, ...result.actualFlows]
-            : result.actualFlows;
-
-        state = state.copyWith(
-          stockFlows: newFlows,
-          locationSummary: loadMore ? state.locationSummary : result.locationSummary,
-          hasMoreFlows: result.pagination?.hasMore ?? false,
-          flowsOffset: newFlows.length,
-          isLoadingFlows: false,
-        );
-      } else {
-        state = state.copyWith(
-          isLoadingFlows: false,
-          errorMessage: 'Failed to load stock flows',
-        );
-      }
-    } catch (e) {
-      state = state.copyWith(
-        isLoadingFlows: false,
-        errorMessage: e.toString(),
-      );
+    if (data is! BankBalance) {
+      throw ArgumentError('Expected BankBalance, got ${data.runtimeType}');
     }
-  }
 
-  /// Save bank balance
-  Future<bool> saveBankBalance(BankBalance bankBalance) async {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      await _bankRepository.saveBankBalance(bankBalance);
+      await _bankRepository.saveBankBalance(data);
 
       state = state.copyWith(isSaving: false);
 
       // Reload stock flows after save
-      if (bankBalance.locationId.isNotEmpty) {
+      if (locationId.isNotEmpty) {
         await loadStockFlows(
-          companyId: bankBalance.companyId,
-          storeId: bankBalance.storeId ?? '',
-          locationId: bankBalance.locationId,
+          companyId: companyId,
+          storeId: storeId,
+          locationId: locationId,
         );
       }
 
@@ -99,8 +60,13 @@ class BankTabNotifier extends StateNotifier<BankTabState> {
     }
   }
 
-  /// Clear error message
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
+  /// Convenience method for type-safe saving
+  Future<bool> saveBankBalance(BankBalance bankBalance) {
+    return saveData(
+      data: bankBalance,
+      companyId: bankBalance.companyId,
+      storeId: bankBalance.storeId ?? '',
+      locationId: bankBalance.locationId,
+    );
   }
 }

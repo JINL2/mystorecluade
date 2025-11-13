@@ -1,91 +1,52 @@
 // lib/features/cash_ending/presentation/providers/vault_tab_notifier.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../core/constants.dart';
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/repositories/stock_flow_repository.dart';
 import '../../domain/repositories/vault_repository.dart';
+import 'base_tab_notifier.dart';
 import 'vault_tab_state.dart';
 
 /// Notifier for Vault Tab
-class VaultTabNotifier extends StateNotifier<VaultTabState> {
-  final StockFlowRepository _stockFlowRepository;
+///
+/// Extends BaseTabNotifier to eliminate duplicate code
+/// Only implements tab-specific save logic
+class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   final VaultRepository _vaultRepository;
 
   VaultTabNotifier({
     required StockFlowRepository stockFlowRepository,
     required VaultRepository vaultRepository,
-  })  : _stockFlowRepository = stockFlowRepository,
-        _vaultRepository = vaultRepository,
-        super(const VaultTabState());
+  })  : _vaultRepository = vaultRepository,
+        super(
+          stockFlowRepository: stockFlowRepository,
+          initialState: const VaultTabState(),
+        );
 
-  /// Load stock flows for the selected location
-  Future<void> loadStockFlows({
+  /// Save vault transaction - tab-specific implementation
+  @override
+  Future<bool> saveData({
+    required data,
     required String companyId,
     required String storeId,
     required String locationId,
-    bool loadMore = false,
   }) async {
-    if (state.isLoadingFlows) return;
-
-    state = state.copyWith(
-      isLoadingFlows: true,
-      errorMessage: null,
-    );
-
-    try {
-      final offset = loadMore ? state.flowsOffset : 0;
-
-      final result = await _stockFlowRepository.getLocationStockFlow(
-        companyId: companyId,
-        storeId: storeId,
-        cashLocationId: locationId,
-        offset: offset,
-        limit: CashEndingConstants.defaultPageSize,
-      );
-
-      if (result.success) {
-        final newFlows = loadMore
-            ? [...state.stockFlows, ...result.actualFlows]
-            : result.actualFlows;
-
-        state = state.copyWith(
-          stockFlows: newFlows,
-          locationSummary: loadMore ? state.locationSummary : result.locationSummary,
-          hasMoreFlows: result.pagination?.hasMore ?? false,
-          flowsOffset: newFlows.length,
-          isLoadingFlows: false,
-        );
-      } else {
-        state = state.copyWith(
-          isLoadingFlows: false,
-          errorMessage: 'Failed to load stock flows',
-        );
-      }
-    } catch (e) {
-      state = state.copyWith(
-        isLoadingFlows: false,
-        errorMessage: e.toString(),
-      );
+    if (data is! VaultTransaction) {
+      throw ArgumentError('Expected VaultTransaction, got ${data.runtimeType}');
     }
-  }
 
-  /// Save vault transaction
-  Future<bool> saveVaultTransaction(VaultTransaction transaction) async {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      await _vaultRepository.saveVaultTransaction(transaction);
+      await _vaultRepository.saveVaultTransaction(data);
 
       state = state.copyWith(isSaving: false);
 
       // Reload stock flows after save
-      if (transaction.locationId.isNotEmpty) {
+      if (locationId.isNotEmpty) {
         await loadStockFlows(
-          companyId: transaction.companyId,
-          storeId: transaction.storeId ?? '',
-          locationId: transaction.locationId,
+          companyId: companyId,
+          storeId: storeId,
+          locationId: locationId,
         );
       }
 
@@ -99,8 +60,13 @@ class VaultTabNotifier extends StateNotifier<VaultTabState> {
     }
   }
 
-  /// Clear error message
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
+  /// Convenience method for type-safe saving
+  Future<bool> saveVaultTransaction(VaultTransaction transaction) {
+    return saveData(
+      data: transaction,
+      companyId: transaction.companyId,
+      storeId: transaction.storeId ?? '',
+      locationId: transaction.locationId,
+    );
   }
 }
