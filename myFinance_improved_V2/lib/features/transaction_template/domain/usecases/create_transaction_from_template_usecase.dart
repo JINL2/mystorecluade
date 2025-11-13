@@ -12,6 +12,7 @@
 /// - ✅ Domain Layer만 의존 (Entities, Repositories, Value Objects)
 /// - ❌ Data Layer 의존 금지 (repository_providers 등)
 /// - ❌ Presentation Layer 의존 금지
+library;
 import '../repositories/transaction_repository.dart';
 
 /// Input parameters for creating transaction from template

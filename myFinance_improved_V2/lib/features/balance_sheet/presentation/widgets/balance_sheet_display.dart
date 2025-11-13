@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -13,11 +12,11 @@ class BalanceSheetDisplay extends StatelessWidget {
   final VoidCallback onEdit;
 
   const BalanceSheetDisplay({
-    Key? key,
+    super.key,
     required this.balanceSheetData,
     required this.currencySymbol,
     required this.onEdit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +36,7 @@ class BalanceSheetDisplay extends StatelessWidget {
               
               // Balance Sheet Content
               Padding(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space4,
                 ),
@@ -45,38 +44,38 @@ class BalanceSheetDisplay extends StatelessWidget {
                   children: [
                     // Balance Verification Card
                     _buildBalanceVerificationCard(uiData['balance_verification'], currencySymbol),
-                    SizedBox(height: TossSpacing.space4),
+                    const SizedBox(height: TossSpacing.space4),
                     
                     // Summary Cards
                     _buildSummaryCards(totals, currencySymbol),
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // Assets Section
                     if (data['current_assets'].length > 0 || data['non_current_assets'].length > 0) ...[
                       _buildAssetsSection(data, totals, currencySymbol),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                     ],
                     
                     // Liabilities Section
                     if (data['current_liabilities'].length > 0 || data['non_current_liabilities'].length > 0) ...[
                       _buildLiabilitiesSection(data, totals, currencySymbol),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                     ],
                     
                     // Equity Section
                     if (data['equity'].length > 0) ...[
                       _buildEquitySection(data, totals, currencySymbol),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                     ],
                     
                     // Comprehensive Income (if any)
                     if (data['comprehensive_income'].length > 0) ...[
                       _buildComprehensiveIncomeSection(data, totals, currencySymbol),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                     ],
                     
                     // Bottom padding
-                    SizedBox(height: TossSpacing.space8),
+                    const SizedBox(height: TossSpacing.space8),
                   ],
                 ),
               ),
@@ -91,8 +90,8 @@ class BalanceSheetDisplay extends StatelessWidget {
     return GestureDetector(
       onTap: onEdit,
       child: Container(
-        margin: EdgeInsets.all(TossSpacing.space4),
-        padding: EdgeInsets.all(TossSpacing.space4),
+        margin: const EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.background,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -103,7 +102,7 @@ class BalanceSheetDisplay extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: TossColors.black.withOpacity(0.05),
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
               blurRadius: 8,
             ),
           ],
@@ -114,7 +113,7 @@ class BalanceSheetDisplay extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space2),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -125,7 +124,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                     size: 20,
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,12 +136,12 @@ class BalanceSheetDisplay extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today_outlined, 
-                            color: TossColors.gray500, size: 14),
-                          SizedBox(width: TossSpacing.space1),
+                          const Icon(Icons.calendar_today_outlined, 
+                            color: TossColors.gray500, size: 14,),
+                          const SizedBox(width: TossSpacing.space1),
                           Text(
                             '${parameters['start_date']} ~ ${parameters['end_date']}',
                             style: TossTextStyles.bodySmall.copyWith(
@@ -155,7 +154,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space2),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -163,9 +162,9 @@ class BalanceSheetDisplay extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.edit_outlined, 
-                        color: TossColors.gray600, size: 16),
-                      SizedBox(width: TossSpacing.space1),
+                      const Icon(Icons.edit_outlined, 
+                        color: TossColors.gray600, size: 16,),
+                      const SizedBox(width: TossSpacing.space1),
                       Text(
                         'Edit',
                         style: TossTextStyles.caption.copyWith(
@@ -188,7 +187,7 @@ class BalanceSheetDisplay extends StatelessWidget {
     final isBalanced = verification['is_balanced'] ?? false;
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: isBalanced 
           ? TossColors.success.withOpacity(0.05)
@@ -208,7 +207,7 @@ class BalanceSheetDisplay extends StatelessWidget {
             color: isBalanced ? TossColors.success : TossColors.error,
             size: 24,
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,7 +219,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 Text(
                   'Assets: $currencySymbol${verification['total_assets_formatted']} = Liabilities + Equity: $currencySymbol${verification['total_liabilities_and_equity_formatted']}',
                   style: TossTextStyles.caption.copyWith(
@@ -237,7 +236,7 @@ class BalanceSheetDisplay extends StatelessWidget {
   
   Widget _buildSummaryCards(Map<String, dynamic> totals, String currencySymbol) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -262,7 +261,7 @@ class BalanceSheetDisplay extends StatelessWidget {
               letterSpacing: 0.5,
             ),
           ),
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             _formatCurrency(totals['total_assets'], currencySymbol),
             style: TossTextStyles.h1.copyWith(
@@ -271,7 +270,7 @@ class BalanceSheetDisplay extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           Row(
             children: [
               Expanded(
@@ -281,7 +280,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                   TossColors.success,
                 ),
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: _buildMiniCard(
                   'Liabilities',
@@ -289,7 +288,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                   TossColors.warning,
                 ),
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: _buildMiniCard(
                   'Equity',
@@ -306,7 +305,7 @@ class BalanceSheetDisplay extends StatelessWidget {
   
   Widget _buildMiniCard(String label, String value, Color color) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -320,7 +319,7 @@ class BalanceSheetDisplay extends StatelessWidget {
               fontSize: 11,
             ),
           ),
-          SizedBox(height: TossSpacing.space1),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.body.copyWith(
@@ -353,7 +352,7 @@ class BalanceSheetDisplay extends StatelessWidget {
         ],
         // Non-Current Assets
         if (data['non_current_assets'].length > 0) ...[
-          if (data['current_assets'].length > 0) SizedBox(height: TossSpacing.space3),
+          if (data['current_assets'].length > 0) const SizedBox(height: TossSpacing.space3),
           _buildSubSection(
             'Non-Current Assets',
             totals['total_non_current_assets'],
@@ -384,7 +383,7 @@ class BalanceSheetDisplay extends StatelessWidget {
         ],
         // Non-Current Liabilities
         if (data['non_current_liabilities'].length > 0) ...[
-          if (data['current_liabilities'].length > 0) SizedBox(height: TossSpacing.space3),
+          if (data['current_liabilities'].length > 0) const SizedBox(height: TossSpacing.space3),
           _buildSubSection(
             'Non-Current Liabilities',
             totals['total_non_current_liabilities'],
@@ -405,7 +404,7 @@ class BalanceSheetDisplay extends StatelessWidget {
       color: TossColors.primary,
       children: [
         ...data['equity'].map<Widget>((account) => 
-          _buildAccountItem(account, currencySymbol)
+          _buildAccountItem(account, currencySymbol),
         ).toList(),
       ],
     );
@@ -420,7 +419,7 @@ class BalanceSheetDisplay extends StatelessWidget {
       color: TossColors.info,
       children: [
         ...data['comprehensive_income'].map<Widget>((account) => 
-          _buildAccountItem(account, currencySymbol)
+          _buildAccountItem(account, currencySymbol),
         ).toList(),
       ],
     );
@@ -441,7 +440,7 @@ class BalanceSheetDisplay extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withOpacity(0.08),
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
             blurRadius: 8,
           ),
         ],
@@ -449,10 +448,10 @@ class BalanceSheetDisplay extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: color.withOpacity(0.05),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.lg),
                 topRight: Radius.circular(TossBorderRadius.lg),
               ),
@@ -460,14 +459,14 @@ class BalanceSheetDisplay extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space2),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Icon(icon, color: color, size: 20),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Text(
                     title,
@@ -480,9 +479,9 @@ class BalanceSheetDisplay extends StatelessWidget {
                     maxLines: 1,
                   ),
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Container(
-                  constraints: BoxConstraints(minWidth: 80, maxWidth: 140),
+                  constraints: const BoxConstraints(minWidth: 80, maxWidth: 140),
                   child: Text(
                     _formatCurrency(total, currencySymbol),
                     style: TossTextStyles.bodyLarge.copyWith(
@@ -499,7 +498,7 @@ class BalanceSheetDisplay extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space4,
             ),
@@ -514,8 +513,8 @@ class BalanceSheetDisplay extends StatelessWidget {
     return Column(
       children: [
         _buildBalanceItem(title, '', true, false),
-        ...accounts.map((account) => _buildAccountItem(account, currencySymbol)).toList(),
-        Divider(color: TossColors.gray100, height: TossSpacing.space4),
+        ...accounts.map((account) => _buildAccountItem(account, currencySymbol)),
+        const Divider(color: TossColors.gray100, height: TossSpacing.space4),
         _buildBalanceItem('Total $title', _formatCurrency(total, currencySymbol), true, true),
       ],
     );
@@ -536,7 +535,7 @@ class BalanceSheetDisplay extends StatelessWidget {
   
   Widget _buildBalanceItem(String label, String value, bool isBold, bool isSubtotal, {bool hasTransactions = false}) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         children: [
           Expanded(
@@ -560,11 +559,11 @@ class BalanceSheetDisplay extends StatelessWidget {
                   ),
                 ),
                 if (hasTransactions && !isBold && !isSubtotal) ...[
-                  SizedBox(width: TossSpacing.space1),
+                  const SizedBox(width: TossSpacing.space1),
                   Container(
                     width: 4,
                     height: 4,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: TossColors.success,
                       shape: BoxShape.circle,
                     ),
@@ -573,10 +572,10 @@ class BalanceSheetDisplay extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(width: TossSpacing.space2),
+          const SizedBox(width: TossSpacing.space2),
           if (value.isNotEmpty)
             Container(
-              constraints: BoxConstraints(minWidth: 80, maxWidth: 120),
+              constraints: const BoxConstraints(minWidth: 80, maxWidth: 120),
               child: Text(
                 value,
                 style: isSubtotal

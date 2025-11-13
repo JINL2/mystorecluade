@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import '../providers/template_provider.dart';
-import '../providers/states/template_state.dart';
+
 import '../../domain/entities/template_entity.dart';
 import '../../domain/enums/template_constants.dart';
 import '../../domain/usecases/delete_template_usecase.dart';
-import '../modals/template_usage_bottom_sheet.dart';
 import '../modals/add_template_bottom_sheet.dart';
 import '../modals/template_filter_sheet.dart';
+import '../modals/template_usage_bottom_sheet.dart';
+import '../providers/states/template_state.dart';
+import '../providers/template_provider.dart';
 
 class TransactionTemplatePage extends ConsumerStatefulWidget {
   const TransactionTemplatePage({super.key});
@@ -53,7 +54,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
 
-    if (companyId != null && companyId.isNotEmpty) {
+    if (companyId.isNotEmpty) {
       // Load templates using templateProvider
       ref.read(templateProvider.notifier).loadTemplates(
         companyId: companyId,
@@ -162,7 +163,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 size: 64,
                 color: TossColors.error,
@@ -205,7 +206,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.receipt_long_outlined,
                 size: 80,
                 color: TossColors.gray400,
@@ -247,14 +248,14 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
         if (_tabController != null)
           TossTabBar1(
             tabs: hasAdminPermission ? const ['General', 'Admin'] : const ['General'],
-            controller: _tabController!,
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            controller: _tabController,
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
           ),
         // Tab Bar View
         Expanded(
           child: _tabController != null
               ? TabBarView(
-                  controller: _tabController!,
+                  controller: _tabController,
                   children: hasAdminPermission
                       ? [
                           // General Tab
@@ -282,7 +283,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.receipt_long_outlined,
                 size: 64,
                 color: TossColors.gray400,
@@ -325,7 +326,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.filter_list,
             color: TossColors.gray600,
             size: 24,
@@ -427,7 +428,7 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            Icon(Icons.account_balance_wallet, size: 14, color: TossColors.primary),
+            const Icon(Icons.account_balance_wallet, size: 14, color: TossColors.primary),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'My Cash: ',
@@ -456,7 +457,7 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            Icon(Icons.person, size: 14, color: TossColors.warning),
+            const Icon(Icons.person, size: 14, color: TossColors.warning),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Party: ',
@@ -485,7 +486,7 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            Icon(Icons.store, size: 14, color: TossColors.warning),
+            const Icon(Icons.store, size: 14, color: TossColors.warning),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Their Cash: ',
@@ -667,7 +668,7 @@ class _TemplateCard extends ConsumerWidget {
                   ...details.map((detail) => Padding(
                     padding: const EdgeInsets.only(top: TossSpacing.space1),
                     child: detail,
-                  )),
+                  ),),
                 ],
 
                 // Template description (if exists)

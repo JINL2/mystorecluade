@@ -30,7 +30,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
             symbol: json['symbol'] as String,
             flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
             createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
-          ))
+          ),)
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch available currency types: $e');
@@ -87,7 +87,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
           isActive: true,
           createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
-        ));
+        ),);
       }
 
       // Build Currency objects
@@ -483,7 +483,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
               emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
               isActive: denom['is_active'] as bool? ?? true,
               createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
-            ));
+            ),);
           }
 
           // Build Currency objects

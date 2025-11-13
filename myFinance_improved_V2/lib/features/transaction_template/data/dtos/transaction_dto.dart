@@ -8,8 +8,9 @@
 /// - Supports bidirectional JSON serialization/deserialization
 ///
 /// Clean Architecture: DATA LAYER - DTO Pattern
-import 'package:json_annotation/json_annotation.dart';
+library;
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction_dto.g.dart';
 

@@ -103,7 +103,7 @@ class RoleValidator {
   }) async {
     // Business rule: Cannot delete Owner role
     if (roleName.toLowerCase() == 'owner') {
-      throw RoleValidationException(
+      throw const RoleValidationException(
         'Cannot delete the Owner role',
       );
     }

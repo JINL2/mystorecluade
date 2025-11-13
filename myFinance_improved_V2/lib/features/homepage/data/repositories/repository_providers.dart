@@ -5,6 +5,7 @@
 ///
 /// Private providers (_prefix) are internal to Data layer.
 /// Public providers expose Domain interfaces to Presentation layer.
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

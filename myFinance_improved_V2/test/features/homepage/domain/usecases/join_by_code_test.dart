@@ -1,6 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/join_by_code.dart';
 
@@ -31,7 +31,7 @@ void main() {
       when(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          )).thenAnswer((_) async => const Right(tJoinResultCompany));
+          ),).thenAnswer((_) async => const Right(tJoinResultCompany));
 
       // act
       final result = await useCase(tParams);
@@ -41,7 +41,7 @@ void main() {
       verify(() => mockRepository.joinByCode(
             userId: tUserId,
             code: tCode,
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return JoinResult when repository call succeeds with store code',
@@ -50,7 +50,7 @@ void main() {
       when(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          )).thenAnswer((_) async => const Right(tJoinResultStore));
+          ),).thenAnswer((_) async => const Right(tJoinResultStore));
 
       // act
       final result = await useCase(tParams);
@@ -60,7 +60,7 @@ void main() {
       verify(() => mockRepository.joinByCode(
             userId: tUserId,
             code: tCode,
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return ValidationFailure when code is empty', () async {
@@ -85,7 +85,7 @@ void main() {
       verifyNever(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          ));
+          ),);
     });
 
     test('should return ValidationFailure when code is too short', () async {
@@ -163,7 +163,7 @@ void main() {
       when(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          )).thenAnswer((_) async => const Right(tJoinResultCompany));
+          ),).thenAnswer((_) async => const Right(tJoinResultCompany));
 
       // act
       await useCase(lowercaseParams);
@@ -172,7 +172,7 @@ void main() {
       verify(() => mockRepository.joinByCode(
             userId: tUserId,
             code: 'COMP12345', // converted to uppercase
-          )).called(1);
+          ),).called(1);
     });
 
     test('should trim whitespace from code before calling repository',
@@ -186,7 +186,7 @@ void main() {
       when(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          )).thenAnswer((_) async => const Right(tJoinResultCompany));
+          ),).thenAnswer((_) async => const Right(tJoinResultCompany));
 
       // act
       await useCase(whitespaceParams);
@@ -195,7 +195,7 @@ void main() {
       verify(() => mockRepository.joinByCode(
             userId: tUserId,
             code: 'COMP12345', // whitespace trimmed
-          )).called(1);
+          ),).called(1);
     });
 
     test('should handle both trim and uppercase transformations together',
@@ -209,7 +209,7 @@ void main() {
       when(() => mockRepository.joinByCode(
             userId: any(named: 'userId'),
             code: any(named: 'code'),
-          )).thenAnswer((_) async => const Right(tJoinResultCompany));
+          ),).thenAnswer((_) async => const Right(tJoinResultCompany));
 
       // act
       await useCase(mixedParams);
@@ -218,7 +218,7 @@ void main() {
       verify(() => mockRepository.joinByCode(
             userId: tUserId,
             code: 'COMP12345', // trimmed and uppercase
-          )).called(1);
+          ),).called(1);
     });
   });
 }

@@ -3,9 +3,9 @@
 // Simple provider to fetch user's most used accounts and templates from database
 // =====================================================
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'quick_access_provider.g.dart';
 
@@ -34,7 +34,7 @@ class QuickAccessAccounts extends _$QuickAccessAccounts {
         'p_user_id': userId,
         'p_company_id': appState.companyChoosen,
         'p_limit': limit,
-      });
+      },);
 
       if (response == null) return [];
 
@@ -93,7 +93,7 @@ class QuickAccessTemplates extends _$QuickAccessTemplates {
         'p_user_id': userId,
         'p_company_id': appState.companyChoosen,
         'p_limit': limit,
-      });
+      },);
 
       if (response == null) return [];
 

@@ -7,35 +7,21 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
-import '../../../../core/utils/datetime_utils.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../../domain/entities/manager_overview.dart';
-import '../../domain/entities/manager_shift_cards.dart';
-import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
-import '../../domain/entities/shift_metadata.dart';
-import '../../domain/entities/shift_request.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
-import '../widgets/calendar/calendar_month_header.dart';
-import '../widgets/calendar/time_table_calendar.dart';
 import '../widgets/common/animated_tab_bar.dart';
-import '../widgets/common/store_selector_card.dart';
 import '../widgets/manage/manage_tab_view.dart';
-import '../widgets/schedule/schedule_approve_button.dart';
-import '../widgets/schedule/schedule_shift_card.dart';
 import '../widgets/schedule/schedule_tab_content.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {

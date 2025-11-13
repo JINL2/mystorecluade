@@ -20,16 +20,16 @@ class TypingIndicator extends StatelessWidget {
         decoration: BoxDecoration(
           color: TossColors.gray200,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg).copyWith(
-            bottomLeft: Radius.circular(4),
+            bottomLeft: const Radius.circular(4),
           ),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _DotIndicator(delay: 0),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _DotIndicator(delay: 200),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _DotIndicator(delay: 400),
           ],
         ),
@@ -81,7 +81,7 @@ class _DotIndicatorState extends State<_DotIndicator>
       child: Container(
         width: 8,
         height: 8,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.gray500,
           shape: BoxShape.circle,
         ),

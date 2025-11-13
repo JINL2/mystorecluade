@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+// Updated to use new architecture paths
+import '../../../../app/providers/counterparty_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../../../shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
@@ -19,12 +24,6 @@ import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../domain/entities/transaction_line.dart';
 import '../providers/journal_input_providers.dart';
 import 'exchange_rate_calculator.dart';
-
-// Updated to use new architecture paths
-import '../../../../app/providers/counterparty_provider.dart';
-import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 
 
 
@@ -165,18 +164,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       // Use the existing provider to get exchange rates
       final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
       
-      if (exchangeRatesData != null) {
-        final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
-        // Show calculator only if there are multiple currencies (more than just base currency)
-        setState(() {
-          _hasMultipleCurrencies = exchangeRates.length > 1;
-        });
-      } else {
-        setState(() {
-          _hasMultipleCurrencies = false;
-        });
-      }
-    } catch (e) {
+      final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+      // Show calculator only if there are multiple currencies (more than just base currency)
+      setState(() {
+        _hasMultipleCurrencies = exchangeRates.length > 1;
+      });
+        } catch (e) {
       // If there's an error, hide the calculator button
       setState(() {
         _hasMultipleCurrencies = false;
@@ -270,7 +263,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Container(
-            padding: EdgeInsets.all(TossSpacing.space6),
+            padding: const EdgeInsets.all(TossSpacing.space6),
             decoration: BoxDecoration(
               color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -285,13 +278,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     color: TossColors.warning.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.warning_amber_rounded,
                     color: TossColors.warning,
                     size: 36,
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Text(
                   'Account Mapping Required',
                   style: TossTextStyles.h3.copyWith(
@@ -300,7 +293,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: TossSpacing.space3),
+                const SizedBox(height: TossSpacing.space3),
                 Text(
                   'This internal counterparty requires an account mapping to be set up first.',
                   style: TossTextStyles.body.copyWith(
@@ -310,7 +303,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -329,7 +322,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
                       foregroundColor: TossColors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
@@ -473,9 +466,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -486,8 +479,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-              SizedBox(width: TossSpacing.space3),
+              const Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   'This counterparty has no stores configured',
@@ -509,14 +502,14 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       value: _selectedCounterpartyStoreId,
       hint: 'Select counterparty store (optional)',
       items: [
-        TossDropdownItem(
+        const TossDropdownItem(
           value: null,
           label: 'No store selected',
         ),
         ...stores.map((store) => TossDropdownItem(
           value: store['store_id'] as String,
           label: (store['store_name'] ?? 'Unknown Store') as String,
-        )),
+        ),),
       ],
       onChanged: (storeId) {
         setState(() {
@@ -544,7 +537,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       behavior: HitTestBehavior.opaque,
       child: Container(
         // No padding needed since footer is conditionally hidden
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xl),
@@ -560,7 +553,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         children: [
           // Drag Handle
           Container(
-            margin: EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -571,7 +564,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           
           // Header
           Container(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -584,20 +577,20 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                 ),
                 IconButton(
                   onPressed: () => context.pop(),
-                  icon: Icon(Icons.close, color: TossColors.gray600),
+                  icon: const Icon(Icons.close, color: TossColors.gray600),
                   padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
               ],
             ),
           ),
           
-          Divider(height: 1, color: TossColors.gray200),
+          const Divider(height: 1, color: TossColors.gray200),
           
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(TossSpacing.space5).copyWith(
+              padding: const EdgeInsets.all(TossSpacing.space5).copyWith(
                 bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
               ),
                 child: Column(
@@ -605,14 +598,14 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   children: [
                     // Transaction Type Toggle
                     _buildSectionTitle('Transaction Type'),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     Container(
                       height: 48,
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
-                      padding: EdgeInsets.all(TossSpacing.space1),
+                      padding: const EdgeInsets.all(TossSpacing.space1),
                       child: Stack(
                         children: [
                           // Animated selection indicator
@@ -620,12 +613,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             alignment: _isDebit 
                               ? Alignment.centerLeft 
                               : Alignment.centerRight,
-                            duration: Duration(milliseconds: 250),
+                            duration: const Duration(milliseconds: 250),
                             curve: Curves.easeInOut,
                             child: FractionallySizedBox(
                               widthFactor: 0.5,
                               child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 2),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
                                 decoration: BoxDecoration(
                                   color: _isDebit 
                                     ? TossColors.primary 
@@ -637,7 +630,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         ? TossColors.primary 
                                         : TossColors.success).withValues(alpha: 0.3),
                                       blurRadius: 8,
-                                      offset: Offset(0, 2),
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
@@ -659,7 +652,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ),
                     ),
                     
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     
                     // Account Selection - Using AutonomousAccountSelector
                     Consumer(
@@ -704,12 +697,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           showQuickAccess: true, // Enable "Frequently Used" section
                           maxQuickItems: 5, // Show top 5 frequently used accounts
                         );
-                      }
+                      },
                     ),
                     
                     // Cash Location Selection - Using AutonomousCashLocationSelector
                     if (_selectedCategoryTag == 'cash') ...[
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       AutonomousCashLocationSelector(
                         selectedLocationId: _selectedCashLocationId,
                         onChanged: (locationId) {
@@ -729,7 +722,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     
                     // Payable/Receivable specific fields
                     if (_selectedCategoryTag != null && (_selectedCategoryTag!.toLowerCase() == 'payable' || _selectedCategoryTag!.toLowerCase() == 'receivable')) ...[
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
                         _selectedCategoryTag == 'payable' 
                             ? 'Counterparty (Supplier/Vendor)' 
@@ -741,7 +734,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Consumer(
                         builder: (context, ref, child) {
                           return AutonomousCounterpartySelector(
@@ -751,7 +744,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                 // Get counterparty details from the provider
                                 try {
                                   final counterpartyAsync = await ref.read(
-                                    counterpartyByIdProvider(counterpartyId).future
+                                    counterpartyByIdProvider(counterpartyId).future,
                                   );
                                   
                                   if (counterpartyAsync != null) {
@@ -799,7 +792,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       
                       // Enhanced Counterparty Store Selection
                       if (_linkedCompanyId != null) ...[
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Consumer(
                           builder: (context, ref, child) {
                             final storesAsync = ref.watch(journalCounterpartyStoresProvider(_linkedCompanyId));
@@ -816,9 +809,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      SizedBox(height: TossSpacing.space2),
+                                      const SizedBox(height: TossSpacing.space2),
                                       Container(
-                                        padding: EdgeInsets.all(TossSpacing.space4),
+                                        padding: const EdgeInsets.all(TossSpacing.space4),
                                         decoration: BoxDecoration(
                                           color: TossColors.gray50,
                                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -829,8 +822,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         ),
                                         child: Row(
                                           children: [
-                                            Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-                                            SizedBox(width: TossSpacing.space3),
+                                            const Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
+                                            const SizedBox(width: TossSpacing.space3),
                                             Expanded(
                                               child: Text(
                                                 'This counterparty has no stores configured',
@@ -856,13 +849,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    SizedBox(height: TossSpacing.space2),
+                                    const SizedBox(height: TossSpacing.space2),
                                     GestureDetector(
                                       onTap: () {
                                         _showStoreSelectionBottomSheet(context, stores);
                                       },
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                                         decoration: BoxDecoration(
                                           color: TossColors.white,
                                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -880,7 +873,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                                 ? TossColors.primary
                                                 : TossColors.gray400,
                                             ),
-                                            SizedBox(width: TossSpacing.space3),
+                                            const SizedBox(width: TossSpacing.space3),
                                             Expanded(
                                               child: _selectedCounterpartyStoreName != null
                                                 ? Text(
@@ -920,10 +913,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  SizedBox(height: TossSpacing.space2),
+                                  const SizedBox(height: TossSpacing.space2),
                                   Container(
-                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Center(
+                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    child: const Center(
                                       child: TossLoadingView(),
                                     ),
                                   ),
@@ -939,7 +932,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  SizedBox(height: TossSpacing.space2),
+                                  const SizedBox(height: TossSpacing.space2),
                                   Text(
                                     'Error loading stores',
                                     style: TossTextStyles.body.copyWith(
@@ -955,7 +948,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       
                       // Counterparty Cash Location Selection - Using AutonomousCashLocationSelector with counterparty's company/store
                       if (_linkedCompanyId != null) ...[
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         AutonomousCashLocationSelector(
                           companyId: _linkedCompanyId, // Use the counterparty's company ID
                           storeId: _selectedCounterpartyStoreId, // Use the counterparty's store ID if available
@@ -976,9 +969,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       
                       // Account Mapping Status
                       if (_isInternal && _accountMapping != null) ...[
-                        SizedBox(height: TossSpacing.space4),
+                        const SizedBox(height: TossSpacing.space4),
                         Container(
-                          padding: EdgeInsets.all(TossSpacing.space3),
+                          padding: const EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -989,8 +982,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle, color: TossColors.success, size: 20),
-                              SizedBox(width: TossSpacing.space2),
+                              const Icon(Icons.check_circle, color: TossColors.success, size: 20),
+                              const SizedBox(width: TossSpacing.space2),
                               Text(
                                 'Account mapping verified',
                                 style: TossTextStyles.bodySmall.copyWith(
@@ -1004,9 +997,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ],
                       
                       if (_mappingError != null) ...[
-                        SizedBox(height: TossSpacing.space4),
+                        const SizedBox(height: TossSpacing.space4),
                         Container(
-                          padding: EdgeInsets.all(TossSpacing.space3),
+                          padding: const EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1017,8 +1010,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.warning, color: TossColors.error, size: 20),
-                              SizedBox(width: TossSpacing.space2),
+                              const Icon(Icons.warning, color: TossColors.error, size: 20),
+                              const SizedBox(width: TossSpacing.space2),
                               Expanded(
                                 child: Text(
                                   _mappingError!,
@@ -1033,7 +1026,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ],
                       
                       // Debt Information
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       TossDropdown<String>(
                         label: 'Debt Category',
                         value: _debtCategory,
@@ -1041,7 +1034,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         items: _debtCategories.map((category) => TossDropdownItem<String>(
                           value: category,
                           label: category[0].toUpperCase() + category.substring(1),
-                        )).toList(),
+                        ),).toList(),
                         onChanged: (value) {
                           setState(() {
                             _debtCategory = value;
@@ -1049,13 +1042,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         },
                       ),
                       
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                       _buildSectionTitle('Interest Rate'),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _interestRateController,
                         hint: 'Enter interest rate',
-                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         focusNode: _interestRateFocusNode,
                         textInputAction: TextInputAction.next,
                         onSubmitted: (_) {
@@ -1063,7 +1056,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         },
                       ),
                       
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                       Row(
                         children: [
                           Expanded(
@@ -1071,7 +1064,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionTitle('Issue Date'),
-                                SizedBox(height: TossSpacing.space2),
+                                const SizedBox(height: TossSpacing.space2),
                                 _buildDatePicker(
                                   date: _issueDate,
                                   onChanged: (date) {
@@ -1083,13 +1076,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                               ],
                             ),
                           ),
-                          SizedBox(width: TossSpacing.space4),
+                          const SizedBox(width: TossSpacing.space4),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionTitle('Due Date'),
-                                SizedBox(height: TossSpacing.space2),
+                                const SizedBox(height: TossSpacing.space2),
                                 _buildDatePicker(
                                   date: _dueDate,
                                   onChanged: (date) {
@@ -1106,9 +1099,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     ],
                     
                     // Amount
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _buildSectionTitle('Amount *'),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     Row(
                       children: [
                         Expanded(
@@ -1129,7 +1122,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           ),
                         ),
                         if (_hasMultipleCurrencies) ...[
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Container(
                             decoration: BoxDecoration(
                               color: TossColors.primary,
@@ -1138,7 +1131,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                 BoxShadow(
                                   color: TossColors.primary.withValues(alpha: 0.25),
                                   blurRadius: 8,
-                                  offset: Offset(0, 2),
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
@@ -1148,8 +1141,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                 onTap: _showExchangeRateCalculator,
                                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 child: Container(
-                                  padding: EdgeInsets.all(TossSpacing.space3),
-                                  child: Icon(
+                                  padding: const EdgeInsets.all(TossSpacing.space3),
+                                  child: const Icon(
                                     Icons.calculate_outlined,
                                     color: TossColors.white,
                                     size: 24,
@@ -1163,9 +1156,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     ),
                     
                     // Description
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _buildSectionTitle('Description (Optional)'),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     _buildTextField(
                       controller: _descriptionController,
                       hint: 'Enter description',
@@ -1184,7 +1177,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             // Footer with SafeArea - Hide when keyboard is visible
             if (MediaQuery.of(context).viewInsets.bottom == 0)
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: TossColors.white,
                   border: Border(
                     top: BorderSide(color: TossColors.gray200, width: 1),
@@ -1193,7 +1186,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                 child: SafeArea(
                   top: false,
                   child: Padding(
-                    padding: EdgeInsets.all(TossSpacing.space5),
+                    padding: const EdgeInsets.all(TossSpacing.space5),
                     child: Row(
                       children: [
                         Expanded(
@@ -1203,7 +1196,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             fullWidth: true,
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space3),
+                        const SizedBox(width: TossSpacing.space3),
                         Expanded(
                           child: TossPrimaryButton(
                             text: widget.existingLine != null ? 'Update' : 'Add',
@@ -1250,7 +1243,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         child: Center(
           child: // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
 AnimatedDefaultTextStyle(
-            duration: Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 200),
             style: TossTextStyles.body.copyWith(
               color: isSelected ? TossColors.white : TossColors.gray600,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -1308,7 +1301,7 @@ AnimatedDefaultTextStyle(
         }
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1319,8 +1312,8 @@ AnimatedDefaultTextStyle(
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, size: 18, color: TossColors.gray600),
-            SizedBox(width: TossSpacing.space2),
+            const Icon(Icons.calendar_today, size: 18, color: TossColors.gray600),
+            const SizedBox(width: TossSpacing.space2),
             Text(
               date != null ? DateFormat('yyyy-MM-dd').format(date) : 'Select date',
               style: TossTextStyles.body.copyWith(
@@ -1338,7 +1331,7 @@ AnimatedDefaultTextStyle(
       context: context,
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.surface,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xxl),
@@ -1349,7 +1342,7 @@ AnimatedDefaultTextStyle(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              margin: EdgeInsets.only(top: TossSpacing.space3),
+              margin: const EdgeInsets.only(top: TossSpacing.space3),
               width: 36,
               height: 4,
               decoration: BoxDecoration(
@@ -1358,13 +1351,13 @@ AnimatedDefaultTextStyle(
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Select Store', style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600)),
                   IconButton(
-                    icon: Icon(Icons.close, color: TossColors.gray500),
+                    icon: const Icon(Icons.close, color: TossColors.gray500),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -1373,7 +1366,7 @@ AnimatedDefaultTextStyle(
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
-                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 itemCount: stores.length,
                 separatorBuilder: (context, index) => Container(height: 1, color: TossColors.gray100),
                 itemBuilder: (context, index) {
@@ -1393,11 +1386,11 @@ AnimatedDefaultTextStyle(
                       Navigator.pop(context);
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
+                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
                       child: Row(
                         children: [
-                          Icon(Icons.store, size: 20, color: TossColors.gray500),
-                          SizedBox(width: TossSpacing.space3),
+                          const Icon(Icons.store, size: 20, color: TossColors.gray500),
+                          const SizedBox(width: TossSpacing.space3),
                           Expanded(
                             child: Text(storeName, style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
                           ),

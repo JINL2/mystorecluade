@@ -28,7 +28,7 @@ class StoreNotifier extends StateNotifier<StoreState> {
       huddleTime: huddleTime,
       paymentTime: paymentTime,
       allowedDistance: allowedDistance,
-    ));
+    ),);
 
     result.fold(
       (failure) => state = StoreState.error(failure.message, failure.code),

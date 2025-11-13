@@ -38,6 +38,13 @@ export '../../domain/entities/vault_real_entry.dart' hide CurrencySummary, Denom
 // Re-export the repository provider for use in pages
 export '../../data/repositories/repository_providers.dart' show cashLocationRepositoryProvider;
 
+// Export use case providers
+export '../../domain/providers/use_case_providers.dart';
+export '../../domain/usecases/create_error_adjustment_use_case.dart' show CreateErrorAdjustmentParams;
+export '../../domain/usecases/create_foreign_currency_translation_use_case.dart' show CreateForeignCurrencyTranslationParams;
+export '../../domain/usecases/update_cash_location_use_case.dart' show UpdateCashLocationParams;
+export '../../domain/usecases/update_main_account_status_use_case.dart' show UpdateMainAccountStatusParams;
+
 // Cash Location Providers
 final allCashLocationsProvider = FutureProvider.family<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
   final repository = ref.read(cashLocationRepositoryProvider);
@@ -334,4 +341,40 @@ class VaultRealDisplay {
     required this.realEntry,
   });
 }
+
+// ============================================================================
+// Performance Optimization - Cached Calculations
+// ============================================================================
+
+/// Cached total balances to avoid fold() in build methods
+class CashLocationTotals {
+  final double totalJournal;
+  final double totalReal;
+  final double totalError;
+
+  const CashLocationTotals({
+    required this.totalJournal,
+    required this.totalReal,
+    required this.totalError,
+  });
+}
+
+/// Provider for cached totals (avoids fold() every build)
+final cashLocationTotalsProvider = Provider.family<CashLocationTotals, List<CashLocation>>(
+  (ref, locations) {
+    final totalJournal = locations.fold<double>(
+      0, (sum, loc) => sum + loc.totalJournalCashAmount,
+    );
+    final totalReal = locations.fold<double>(
+      0, (sum, loc) => sum + loc.totalRealCashAmount,
+    );
+    final totalError = totalReal - totalJournal;
+
+    return CashLocationTotals(
+      totalJournal: totalJournal,
+      totalReal: totalReal,
+      totalError: totalError,
+    );
+  },
+);
 

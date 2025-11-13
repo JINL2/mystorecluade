@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 /// Non-interactive badge component for labels, statuses, and categories
 class TossBadge extends StatelessWidget {
@@ -32,7 +32,7 @@ class TossBadge extends StatelessWidget {
     final fgColor = textColor ?? TossColors.gray700;
     
     return Container(
-      padding: padding ?? EdgeInsets.symmetric(
+      padding: padding ?? const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
         vertical: TossSpacing.space1,
       ),
@@ -50,7 +50,7 @@ class TossBadge extends StatelessWidget {
               size: iconSize ?? 14,
               color: fgColor,
             ),
-            SizedBox(width: TossSpacing.space1),
+            const SizedBox(width: TossSpacing.space1),
           ],
           Text(
             label,

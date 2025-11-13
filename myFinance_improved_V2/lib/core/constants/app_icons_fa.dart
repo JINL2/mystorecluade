@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../shared/themes/toss_colors.dart';
 
 /// 매장 관리 앱을 위한 Font Awesome 아이콘 시스템 (300+ 아이콘)
 /// 

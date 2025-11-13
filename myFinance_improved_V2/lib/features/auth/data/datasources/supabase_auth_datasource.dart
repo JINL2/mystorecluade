@@ -2,9 +2,10 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/freezed/user_dto.dart';
-import '../../../../core/utils/datetime_utils.dart';
+
 import '../../../../core/monitoring/sentry_config.dart';
+import '../../../../core/utils/datetime_utils.dart';
+import '../models/freezed/user_dto.dart';
 
 /// Supabase Auth DataSource
 ///
@@ -133,7 +134,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
       // ⚠️ Fallback: Trigger failed, create manually
       // This should rarely happen if trigger is working
       final now = DateTimeUtils.nowUtc();
-      final timezone = 'Asia/Ho_Chi_Minh';
+      const timezone = 'Asia/Ho_Chi_Minh';
 
       final userModel = UserDto(
         userId: response.user!.id,

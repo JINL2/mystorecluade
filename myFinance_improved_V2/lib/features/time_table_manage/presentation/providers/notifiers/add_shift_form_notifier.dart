@@ -37,7 +37,7 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
                 'user_id': emp.userId,
                 'user_name': emp.userName,
                 'profile_image': emp.profileImage,
-              })
+              },)
           .toList();
 
       final shifts = scheduleData.shifts
@@ -47,7 +47,7 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
                 'required_employees': shift.targetCount,
                 'start_time': DateTimeUtils.formatTimeOnly(shift.planStartTime),
                 'end_time': DateTimeUtils.formatTimeOnly(shift.planEndTime),
-              })
+              },)
           .toList();
 
       state = state.copyWith(

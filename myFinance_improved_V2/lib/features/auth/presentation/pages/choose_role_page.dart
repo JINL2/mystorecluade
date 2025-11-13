@@ -1,11 +1,10 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 // Core - Themes
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 // Core - Navigation
 
@@ -109,7 +108,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.help_outline,
                     color: TossColors.textSecondary,
                     size: 16,
@@ -243,7 +242,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 ),
               ),
               // Arrow Icon
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios,
                 color: TossColors.textSecondary,
                 size: 16,

@@ -10,6 +10,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import '../../../domain/value_objects/tag_input.dart';
 import '../../providers/time_table_providers.dart';
@@ -17,7 +18,6 @@ import '../shift_details/bonus_management_tab.dart';
 import '../shift_details/confirmed_times_editor.dart';
 import '../shift_details/problem_status_section.dart';
 import '../shift_details/shift_details_tab_bar.dart';
-import '../../../domain/entities/shift_card.dart';
 import '../shift_details/shift_info_tab.dart';
 
 class ShiftDetailsBottomSheet extends ConsumerStatefulWidget {
@@ -979,7 +979,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       final processedTagType = tagInput.trimmedType;
 
                       // Ensure shiftRequestId is valid
-                      if (shiftRequestId == null || shiftRequestId.isEmpty) {
+                      if (shiftRequestId.isEmpty) {
                         throw Exception('Invalid shift request ID');
                       }
 

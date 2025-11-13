@@ -146,7 +146,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        appBar: TossAppBar1(
+        appBar: const TossAppBar1(
           title: 'Cash Control',
           backgroundColor: TossColors.gray100,
         ),
@@ -176,10 +176,10 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         companyId: companyId, 
         storeId: storeId,
       ),
-    ));
+    ),);
     
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Cash Control',
         backgroundColor: TossColors.gray100,
       ),
@@ -204,14 +204,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     color: TossColors.primary,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.all(TossSpacing.space4),
+                      padding: const EdgeInsets.all(TossSpacing.space4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Balance Section
                           _buildBalanceSection(filteredLocations),
                           
-                          SizedBox(height: TossSpacing.space4),
+                          const SizedBox(height: TossSpacing.space4),
                           
                           // Accounts Section
                           _buildAccountsSection(filteredLocations),
@@ -228,17 +228,17 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Container(
                       height: MediaQuery.of(context).size.height - 200,
-                      padding: EdgeInsets.all(TossSpacing.space5),
+                      padding: const EdgeInsets.all(TossSpacing.space5),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Error icon
-                          Icon(
+                          const Icon(
                             Icons.wifi_off_rounded,
                             size: 64,
                             color: TossColors.gray400,
                           ),
-                          SizedBox(height: TossSpacing.space4),
+                          const SizedBox(height: TossSpacing.space4),
                           Text(
                             'Connection Error',
                             style: TossTextStyles.h2.copyWith(
@@ -246,7 +246,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(height: TossSpacing.space3),
+                          const SizedBox(height: TossSpacing.space3),
                           Text(
                             'Unable to load cash locations.\nPlease check your internet connection.',
                             style: TossTextStyles.body.copyWith(
@@ -254,16 +254,16 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: TossSpacing.space5),
+                          const SizedBox(height: TossSpacing.space5),
                           // Retry button
                           ElevatedButton.icon(
                             onPressed: () => _refreshData(),
-                            icon: Icon(Icons.refresh),
-                            label: Text('Retry'),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               foregroundColor: TossColors.white,
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: TossSpacing.space5,
                                 vertical: TossSpacing.space3,
                               ),
@@ -275,9 +275,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           // Show technical error details in debug mode
                           if (error.toString().contains('SocketException'))
                             Padding(
-                              padding: EdgeInsets.only(top: TossSpacing.space4),
+                              padding: const EdgeInsets.only(top: TossSpacing.space4),
                               child: Container(
-                                padding: EdgeInsets.all(TossSpacing.space3),
+                                padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
                                   color: TossColors.error.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -321,20 +321,17 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   }
   
   Widget _buildBalanceSection(List<CashLocation> cashLocations) {
-    // Calculate totals from cash locations
-    final totalJournal = cashLocations.fold<double>(
-      0, (sum, location) => sum + location.totalJournalCashAmount
-    );
-    final totalReal = cashLocations.fold<double>(
-      0, (sum, location) => sum + location.totalRealCashAmount
-    );
-    final totalError = totalReal - totalJournal;
+    // Calculate totals using cached provider (performance optimization)
+    final totals = ref.read(cashLocationTotalsProvider(cashLocations));
+    final totalJournal = totals.totalJournal;
+    final totalReal = totals.totalReal;
+    final totalError = totals.totalError;
     
     // Get currency symbol from first location (all should have same symbol)
     final currencySymbol = cashLocations.isNotEmpty ? cashLocations.first.currencySymbol : '';
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -350,7 +347,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               fontSize: 17,
             ),
           ),
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Total Journal
           _buildBalanceRow(
@@ -359,7 +356,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             isIncome: true,
           ),
           
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
           // Total Real (clickable for all tabs)
           _buildBalanceRow(
@@ -371,7 +368,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           
           // Divider
           Container(
-            margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+            margin: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
             height: 1,
             color: TossColors.gray300,
           ),
@@ -423,9 +420,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(width: TossSpacing.space1),
+              const SizedBox(width: TossSpacing.space1),
               if (isClickable)
-                Icon(
+                const Icon(
                   Icons.chevron_right,
                   size: 20,
                   color: TossColors.gray400,
@@ -495,13 +492,12 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   }
   
   Widget _buildAccountsSection(List<CashLocation> cashLocations) {
-    // Calculate total for percentage calculations
-    final totalAmount = cashLocations.fold<double>(
-      0, (sum, location) => sum + location.totalJournalCashAmount
-    );
+    // Calculate total for percentage calculations (using cached provider)
+    final totals = ref.read(cashLocationTotalsProvider(cashLocations));
+    final totalAmount = totals.totalJournal;
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -517,7 +513,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               fontSize: 17,
             ),
           ),
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
           ...cashLocations.map((location) => _buildAccountCard(location, totalAmount)),
           
@@ -539,7 +535,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               _refreshData();
             },
             child: Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 vertical: TossSpacing.space4,
               ),
               child: Row(
@@ -552,14 +548,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.add,
                       color: TossColors.gray600,
                       size: 24,
                     ),
                   ),
                   
-                  SizedBox(width: TossSpacing.space3),
+                  const SizedBox(width: TossSpacing.space3),
                   
                   // Text
                   Text(
@@ -611,7 +607,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         _refreshData();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           vertical: TossSpacing.space4,
         ),
         child: Row(
@@ -631,7 +627,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 ),
               ),
               
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               
               // Account details
               Expanded(
@@ -646,7 +642,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                         color: TossColors.black87,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space1),
+                    const SizedBox(height: TossSpacing.space1),
                     Text(
                       '$percentage% of total balance',
                       style: TossTextStyles.caption.copyWith(
@@ -672,7 +668,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           fontSize: 15,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
                         _formatCurrency(location.cashDifference.abs(), ''),
                         style: TossTextStyles.caption.copyWith(
@@ -683,8 +679,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       ),
                     ],
                   ),
-                  SizedBox(width: TossSpacing.space2),
-                  Icon(
+                  const SizedBox(width: TossSpacing.space2),
+                  const Icon(
                     Icons.chevron_right,
                     color: TossColors.gray400,
                     size: 22,

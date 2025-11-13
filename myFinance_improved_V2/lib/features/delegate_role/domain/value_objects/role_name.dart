@@ -22,18 +22,18 @@ class RoleName {
 
     // Business rule: Role name cannot be empty
     if (trimmed.isEmpty) {
-      throw RoleValidationException('Role name cannot be empty');
+      throw const RoleValidationException('Role name cannot be empty');
     }
 
     // Business rule: Role name must be 2-50 characters
     if (trimmed.length < 2) {
-      throw RoleValidationException(
+      throw const RoleValidationException(
         'Role name must be at least 2 characters',
       );
     }
 
     if (trimmed.length > 50) {
-      throw RoleValidationException(
+      throw const RoleValidationException(
         'Role name cannot exceed 50 characters',
       );
     }

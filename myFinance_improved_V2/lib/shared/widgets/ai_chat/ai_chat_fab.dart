@@ -64,7 +64,7 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
                 child: Container(
                   width: 4,
                   height: 4,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: TossColors.white,
                     shape: BoxShape.circle,
                   ),

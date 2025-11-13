@@ -15,7 +15,6 @@ import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/prioritized_debt.dart';
 import '../providers/currency_provider.dart';
 import '../providers/debt_control_providers.dart';
-import '../providers/perspective_provider.dart';
 import '../widgets/perspective_summary_card.dart';
 
 /// Smart Debt Control Page
@@ -33,7 +32,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   int _selectedTabIndex = 0;
-  String _selectedFilter = 'all'; // all, internal, external
+  final String _selectedFilter = 'all'; // all, internal, external
   String _selectedCompaniesTab = 'all'; // all, my_group, external
 
   @override
@@ -214,7 +213,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                             ),
                           );
                         } else {
-                          return SliverFillRemaining(
+                          return const SliverFillRemaining(
                             child: TossEmptyView(
                               title: 'No companies found',
                               description:
@@ -235,7 +234,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                         child: TossEmptyView(
                           title: 'Error loading data',
                           description: error.toString(),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.error_outline,
                             size: 64,
                             color: TossColors.error,

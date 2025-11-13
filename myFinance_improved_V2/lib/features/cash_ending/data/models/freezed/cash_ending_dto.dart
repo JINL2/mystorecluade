@@ -41,7 +41,7 @@ class CashEndingDto with _$CashEndingDto {
           .map((d) => {
                 'denomination_id': d.denominationId,
                 'quantity': d.quantity,
-              })
+              },)
           .toList();
 
       return {

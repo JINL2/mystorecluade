@@ -1,39 +1,21 @@
-import 'package:myfinance_improved/features/homepage/domain/entities/company_type.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../domain/entities/company_type.dart';
+
+part 'company_type_model.freezed.dart';
+part 'company_type_model.g.dart';
 
 /// Data Transfer Object for CompanyType
-/// Handles JSON serialization/deserialization from Supabase
-///
-/// Pure DTO that does not extend domain entity
-class CompanyTypeModel {
-  const CompanyTypeModel({
-    required this.id,
-    required this.typeName,
-  });
+@freezed
+class CompanyTypeModel with _$CompanyTypeModel {
+  const CompanyTypeModel._();
 
-  final String id;
-  final String typeName;
+  const factory CompanyTypeModel({
+    @JsonKey(name: 'company_type_id') required String id,
+    @JsonKey(name: 'type_name') required String typeName,
+  }) = _CompanyTypeModel;
 
-  /// Create from JSON (from Supabase response)
-  factory CompanyTypeModel.fromJson(Map<String, dynamic> json) {
-    return CompanyTypeModel(
-      id: json['company_type_id'] as String,
-      typeName: json['type_name'] as String,
-    );
-  }
+  factory CompanyTypeModel.fromJson(Map<String, dynamic> json) =>
+      _$CompanyTypeModelFromJson(json);
 
-  /// Convert to JSON (for Supabase request)
-  Map<String, dynamic> toJson() {
-    return {
-      'company_type_id': id,
-      'type_name': typeName,
-    };
-  }
-
-  /// Convert to domain entity
-  CompanyType toEntity() {
-    return CompanyType(
-      id: id,
-      typeName: typeName,
-    );
-  }
+  CompanyType toEntity() => CompanyType(id: id, typeName: typeName);
 }

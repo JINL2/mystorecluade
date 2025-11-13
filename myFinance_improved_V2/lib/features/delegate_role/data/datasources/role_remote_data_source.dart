@@ -1,5 +1,6 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/delegatable_role_model.dart';
 import '../models/role_model.dart';
 
@@ -199,7 +200,7 @@ class RoleRemoteDataSource {
             .map((featureId) => {
                   'role_id': roleId,
                   'feature_id': featureId,
-                })
+                },)
             .toList();
 
         await _supabase.from('role_permissions').insert(permissionInserts);
@@ -263,7 +264,7 @@ class RoleRemoteDataSource {
                 : description,
             permissions: permissions,
             canDelegate: canDelegate,
-          ));
+          ),);
         }
       }
 
@@ -424,7 +425,7 @@ class RoleRemoteDataSource {
       final usersWithRoles = <Map<String, dynamic>>[];
       final seenUsers = <String>{}; // Track unique users
 
-      for (final item in response as List) {
+      for (final item in response) {
         final firstName = item['first_name'] as String? ?? '';
         final lastName = item['last_name'] as String? ?? '';
         final fullName = '$firstName $lastName'.trim();

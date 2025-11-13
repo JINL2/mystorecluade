@@ -2,8 +2,8 @@ import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
-import '../../domain/revenue_period.dart';
 import '../../domain/repositories/homepage_repository.dart';
+import '../../domain/revenue_period.dart';
 import '../datasources/homepage_data_source.dart';
 
 /// Implementation of HomepageRepository using Supabase

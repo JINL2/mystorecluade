@@ -38,13 +38,13 @@ class SortOptionsBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.lg),
         ),
       ),
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +53,7 @@ class SortOptionsBottomSheet extends StatelessWidget {
             'Sort Products',
             style: TossTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           ..._buildSortOptions(context),
         ],
       ),

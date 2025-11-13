@@ -34,8 +34,7 @@ class BankBalanceDto with _$BankBalanceDto {
   Map<String, dynamic> toRpcParams() {
     // Format dates as required by RPC
     final recordDateStr = DateFormat('yyyy-MM-dd').format(recordDate);
-    final createdAtStr = DateFormat('yyyy-MM-dd HH:mm:ss').format(createdAt) +
-        '.${createdAt.microsecond.toString().padLeft(6, '0')}';
+    final createdAtStr = '${DateFormat('yyyy-MM-dd HH:mm:ss').format(createdAt)}.${createdAt.microsecond.toString().padLeft(6, '0')}';
 
     return {
       'p_company_id': companyId,

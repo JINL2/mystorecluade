@@ -18,7 +18,7 @@ import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
 
 class Homepage extends ConsumerStatefulWidget {
-  Homepage({super.key}); // ✅ Removed const to allow rebuilds
+  const Homepage({super.key}); // ✅ Removed const to allow rebuilds
 
   @override
   ConsumerState<Homepage> createState() => _HomepageState();
@@ -53,7 +53,7 @@ class _HomepageState extends ConsumerState<Homepage> {
 
         return _buildHomepage();
       },
-      loading: () => Scaffold(
+      loading: () => const Scaffold(
         backgroundColor: TossColors.gray100,
         body: Center(
           child: CircularProgressIndicator(color: TossColors.primary),
@@ -131,7 +131,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       elevation: 0,
       toolbarHeight: 64,
       leading: IconButton(
-        icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
+        icon: const Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
         onPressed: () {
           _showCompanyStoreDrawer();
         },
@@ -140,7 +140,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       actions: [
         // Notifications
         IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.notifications_none_rounded,
             color: TossColors.textSecondary,
             size: 24,
@@ -175,7 +175,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                     value: 'profile',
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.person_outline,
                           color: TossColors.textSecondary,
                           size: 20,
@@ -195,7 +195,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                     value: 'logout',
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.logout_rounded,
                           color: TossColors.error,
                           size: 20,
@@ -365,10 +365,10 @@ class _HomepageState extends ConsumerState<Homepage> {
 
       // Show loading indicator
       messenger.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -376,12 +376,12 @@ class _HomepageState extends ConsumerState<Homepage> {
                   valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              const SizedBox(width: TossSpacing.space3),
-              const Text('Logging out...'),
+              SizedBox(width: TossSpacing.space3),
+              Text('Logging out...'),
             ],
           ),
           backgroundColor: TossColors.primary,
-          duration: const Duration(seconds: 2),
+          duration: Duration(seconds: 2),
         ),
       );
 

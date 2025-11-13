@@ -3,6 +3,7 @@
 /// Handles salary update business logic including validation and orchestration.
 /// This is the only complex operation that warrants a UseCase.
 /// Simple CRUD operations (load, search) remain in the Notifier.
+library;
 import '../repositories/employee_repository.dart';
 import '../value_objects/salary_update_request.dart';
 

@@ -157,7 +157,7 @@ final createShiftProvider = Provider.autoDispose<
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    ));
+    ),);
   };
 });
 
@@ -184,7 +184,7 @@ final updateShiftProvider = Provider.autoDispose<
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    ));
+    ),);
   };
 });
 
@@ -217,6 +217,6 @@ final updateStoreLocationProvider = Provider.autoDispose<
       latitude: latitude,
       longitude: longitude,
       address: address,
-    ));
+    ),);
   };
 });

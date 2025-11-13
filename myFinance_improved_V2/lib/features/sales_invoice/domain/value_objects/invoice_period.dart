@@ -41,7 +41,7 @@ enum InvoicePeriod {
         final lastMonthEnd = DateTime(now.year, now.month, 0, 23, 59, 59);
         return DateRange(startDate: lastMonthStart, endDate: lastMonthEnd);
       case InvoicePeriod.allTime:
-        return DateRange(startDate: null, endDate: null);
+        return const DateRange(startDate: null, endDate: null);
     }
   }
 }

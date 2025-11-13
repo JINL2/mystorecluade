@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_icons_fa.dart';
@@ -236,7 +236,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
                             children: [
                               if (product.sellingPrice != null && product.sellingPrice! > 0) ...[
                                 Text(
-                                  '${state.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice!)}',
+                                  '${state.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice)}',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.primary,
                                     fontWeight: FontWeight.w600,

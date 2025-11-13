@@ -1,7 +1,7 @@
 // lib/features/auth/data/models/freezed/user_dto_mapper.dart
 
-import '../../../domain/entities/user_entity.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../domain/entities/user_entity.dart';
 import 'user_dto.dart';
 
 /// UserDto Mapper

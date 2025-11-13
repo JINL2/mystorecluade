@@ -97,8 +97,8 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
           state.tagContent != null &&
           state.tagContent!.isNotEmpty) {
         tagInput = TagInput(
-          tagType: state.selectedTagType!,
-          content: state.tagContent!,
+          tagType: state.selectedTagType,
+          content: state.tagContent,
         );
       }
 

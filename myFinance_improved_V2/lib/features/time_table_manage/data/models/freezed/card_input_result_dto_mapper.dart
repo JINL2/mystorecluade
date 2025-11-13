@@ -66,7 +66,7 @@ extension CardInputResultDtoMapper on CardInputResultDto {
     return ShiftRequest(
       shiftRequestId: shiftRequestId,
       shiftId: '',
-      employee: EmployeeInfo(
+      employee: const EmployeeInfo(
         userId: '',
         userName: 'Unknown',
         profileImage: null,

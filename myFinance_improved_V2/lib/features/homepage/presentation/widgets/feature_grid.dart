@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/core/constants/icon_mapper.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
-import 'package:myfinance_improved/core/domain/entities/feature.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'package:myfinance_improved/core/domain/entities/feature.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class FeatureGrid extends ConsumerWidget {
   const FeatureGrid({super.key});
@@ -56,7 +56,7 @@ class FeatureGrid extends ConsumerWidget {
                 // Categories (only with features)
                 ...categoriesWithFeatures.map((category) => _CategorySection(
                       category: category,
-                    )),
+                    ),),
 
                 const SizedBox(height: TossSpacing.space10),
               ],
@@ -173,7 +173,7 @@ class _CategorySection extends StatelessWidget {
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -243,7 +243,7 @@ class _FeatureListItem extends StatelessWidget {
               ),
 
               // Arrow
-              Icon(
+              const Icon(
                 Icons.chevron_right,
                 color: TossColors.textTertiary,
                 size: 20,
@@ -308,7 +308,7 @@ class _EmptyFeatures extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.sync,
                 size: 48,
                 color: TossColors.textTertiary,
@@ -358,7 +358,7 @@ class _ErrorFeatures extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 color: TossColors.error,
                 size: 24,

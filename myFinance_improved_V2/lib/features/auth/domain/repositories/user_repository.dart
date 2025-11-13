@@ -1,8 +1,8 @@
 // lib/features/auth/domain/repositories/user_repository.dart
 
-import '../entities/user_entity.dart';
 import '../entities/company_entity.dart';
 import '../entities/store_entity.dart';
+import '../entities/user_entity.dart';
 
 /// User repository interface.
 ///

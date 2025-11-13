@@ -1,8 +1,9 @@
 // lib/features/auth/domain/entities/user_entity.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../value_objects/validation_result.dart';
+
 import '../validators/email_validator.dart';
+import '../value_objects/validation_result.dart';
 
 part 'user_entity.freezed.dart';
 

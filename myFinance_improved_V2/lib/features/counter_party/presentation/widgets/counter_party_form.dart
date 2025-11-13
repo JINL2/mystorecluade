@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -51,7 +51,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   final List<String> _stepTitles = [
     'Basic Information',
     'Contact Details',
-    'Additional Settings'
+    'Additional Settings',
   ];
 
   @override
@@ -212,7 +212,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
     try {
       final result = await ref.read(
-        deleteCounterPartyProvider(widget.counterParty!.counterpartyId).future
+        deleteCounterPartyProvider(widget.counterParty!.counterpartyId).future,
       );
       
       if (result) {
@@ -484,9 +484,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.white,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
@@ -498,7 +498,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           Column(
             children: [
               Container(
-                margin: EdgeInsets.only(top: 12, bottom: 16),
+                margin: const EdgeInsets.only(top: 12, bottom: 16),
                 width: 48,
                 height: 4,
                 decoration: BoxDecoration(
@@ -507,7 +507,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -521,7 +521,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           _stepTitles[_currentStep],
                           style: TossTextStyles.body.copyWith(
@@ -539,19 +539,19 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                         if (widget.counterParty != null) ...[
                           IconButton(
                             onPressed: _showDeleteConfirmation,
-                            icon: Icon(Icons.delete_outline, color: TossColors.error),
+                            icon: const Icon(Icons.delete_outline, color: TossColors.error),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                             tooltip: 'Delete Counter Party',
                           ),
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                         ],
                         // Close button
                         IconButton(
                           onPressed: () => context.pop(),
-                          icon: Icon(Icons.close, color: TossColors.gray600),
+                          icon: const Icon(Icons.close, color: TossColors.gray600),
                           padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                         ),
                       ],
                     ),
@@ -571,7 +571,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(TossSpacing.space5).copyWith(
+                      padding: const EdgeInsets.all(TossSpacing.space5).copyWith(
                         bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
                       ),
                       child: Form(
@@ -583,7 +583,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             _buildCurrentStep(),
                             
                             // Step progress indicator at bottom
-                            SizedBox(height: TossSpacing.space3),
+                            const SizedBox(height: TossSpacing.space3),
                             _buildStepIndicator(),
                           ],
                         ),

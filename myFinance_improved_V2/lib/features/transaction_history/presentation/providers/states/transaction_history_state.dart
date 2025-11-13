@@ -83,7 +83,7 @@ class GroupedTransactionsState with _$GroupedTransactionsState {
 
   /// Create from transaction list
   factory GroupedTransactionsState.fromTransactions(
-      List<Transaction> transactions) {
+      List<Transaction> transactions,) {
     final Map<String, List<Transaction>> grouped = {};
 
     for (final transaction in transactions) {

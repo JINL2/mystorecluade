@@ -1,8 +1,8 @@
 import '../entities/template_entity.dart';
-import '../repositories/template_repository.dart';
-import '../repositories/transaction_repository.dart';
 import '../exceptions/template_business_exception.dart';
 import '../exceptions/validation_exception.dart';
+import '../repositories/template_repository.dart';
+import '../repositories/transaction_repository.dart';
 
 /// Use case for deleting a transaction template
 /// 
@@ -101,12 +101,12 @@ class DeleteTemplateUseCase {
     
     // Filter for active (non-completed, non-cancelled) transactions
     final activeTransactions = transactions.where((txn) => 
-      !txn.status.isFinalState
+      !txn.status.isFinalState,
     ).toList();
 
     final lastUsedTransaction = transactions.isNotEmpty 
         ? transactions.reduce((a, b) => 
-            a.transactionDate.isAfter(b.transactionDate) ? a : b)
+            a.transactionDate.isAfter(b.transactionDate) ? a : b,)
         : null;
 
     return TemplateUsageCheck(
@@ -179,7 +179,7 @@ class DeleteTemplateUseCase {
     if (usageCheck.lastUsedDate != null) {
       final daysSinceLastUse = DateTime.now().difference(usageCheck.lastUsedDate!).inDays;
       if (daysSinceLastUse < 30) {
-        warnings.add('Template was used recently (${daysSinceLastUse} days ago)');
+        warnings.add('Template was used recently ($daysSinceLastUse days ago)');
       }
     }
 

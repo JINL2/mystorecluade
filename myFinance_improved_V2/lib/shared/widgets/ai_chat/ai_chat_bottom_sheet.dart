@@ -86,7 +86,7 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
         maxChildSize: 0.95,
         builder: (context, scrollController) {
           return Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.surface,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.bottomSheet),
@@ -135,14 +135,14 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(color: TossColors.gray300, width: 1),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.smart_toy, color: TossColors.primary),
+          const Icon(Icons.smart_toy, color: TossColors.primary),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Column(
@@ -164,7 +164,7 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, color: TossColors.textSecondary),
+            icon: const Icon(Icons.close, color: TossColors.textSecondary),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -177,7 +177,7 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             color: TossColors.primary,
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -197,7 +197,7 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.chat_bubble_outline,
             size: 64,
             color: TossColors.gray400,

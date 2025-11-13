@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
@@ -47,8 +47,12 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
   @override
   void dispose() {
     // Dispose all controllers and focus nodes
-    _currencyControllers.values.forEach((controller) => controller.dispose());
-    _currencyFocusNodes.values.forEach((node) => node.dispose());
+    for (var controller in _currencyControllers.values) {
+      controller.dispose();
+    }
+    for (var node in _currencyFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
   }
   
@@ -149,14 +153,14 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
           width: isActive ? 2 : 1.5,
         ),
       ),
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space2,
                   vertical: 4,
                 ),
@@ -172,7 +176,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                   ),
                 ),
               ),
-              SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,11 +200,11 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
               ),
             ],
           ),
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           TextField(
-            controller: _currencyControllers[baseCurrencyId]!,
-            focusNode: _currencyFocusNodes[baseCurrencyId]!,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            controller: _currencyControllers[baseCurrencyId],
+            focusNode: _currencyFocusNodes[baseCurrencyId],
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textAlign: TextAlign.right,
             style: TossTextStyles.h2.copyWith(
               color: TossColors.primary,
@@ -213,7 +217,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                 fontWeight: FontWeight.w600,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.only(right: TossSpacing.space3),
+              contentPadding: const EdgeInsets.only(right: TossSpacing.space3),
             ),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -251,7 +255,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
         FocusScope.of(context).unfocus();
       },
       child: Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xl),
@@ -263,7 +267,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
         children: [
           // Drag Handle
           Container(
-            margin: EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -274,7 +278,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
           
           // Header
           Container(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -287,15 +291,15 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                 ),
                 IconButton(
                   onPressed: () => context.pop(),
-                  icon: Icon(Icons.close, color: TossColors.gray600),
+                  icon: const Icon(Icons.close, color: TossColors.gray600),
                   padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
               ],
             ),
           ),
           
-          Divider(height: 1, color: TossColors.gray200),
+          const Divider(height: 1, color: TossColors.gray200),
           
           // Content
           Expanded(
@@ -333,14 +337,14 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                     // Scrollable content for non-base currencies
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: EdgeInsets.all(TossSpacing.space5),
+                        padding: const EdgeInsets.all(TossSpacing.space5),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Base Currency Info
                             if (_baseCurrency != null) ...[
                               Container(
-                                padding: EdgeInsets.all(TossSpacing.space4),
+                                padding: const EdgeInsets.all(TossSpacing.space4),
                                 decoration: BoxDecoration(
                                   color: TossColors.primary.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -351,12 +355,12 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.info_outline,
                                       size: 20,
                                       color: TossColors.primary,
                                     ),
-                                    SizedBox(width: TossSpacing.space2),
+                                    const SizedBox(width: TossSpacing.space2),
                                     Expanded(
                                       child: Text(
                                         'Base Currency: ${_baseCurrency!['currency_name']} (${_baseCurrency!['currency_code']})',
@@ -369,7 +373,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                   ],
                                 ),
                               ),
-                              SizedBox(height: TossSpacing.space5),
+                              const SizedBox(height: TossSpacing.space5),
                             ],
                             
                             // Currency Input Fields (excluding base currency)
@@ -381,7 +385,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              SizedBox(height: TossSpacing.space3),
+                              const SizedBox(height: TossSpacing.space3),
                               
                               ...nonBaseCurrencies.map((rate) {
                                 final currencyId = rate['currency_id'] as String?;
@@ -390,7 +394,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                 final isActive = currencyId == _activeCurrencyId;
                                 
                                 return Container(
-                                  margin: EdgeInsets.only(bottom: TossSpacing.space3),
+                                  margin: const EdgeInsets.only(bottom: TossSpacing.space3),
                                   decoration: BoxDecoration(
                                     color: isActive 
                                       ? TossColors.primary.withValues(alpha: 0.03)
@@ -403,14 +407,14 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                       width: isActive ? 1.5 : 1,
                                     ),
                                   ),
-                            padding: EdgeInsets.all(TossSpacing.space3),
+                            padding: const EdgeInsets.all(TossSpacing.space3),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                         horizontal: TossSpacing.space2,
                                         vertical: 4,
                                       ),
@@ -426,7 +430,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                         ),
                                       ),
                                     ),
-                                    SizedBox(width: TossSpacing.space2),
+                                    const SizedBox(width: TossSpacing.space2),
                                     Expanded(
                                       child: Text(
                                         '${rate['currency_name']} (${rate['currency_code']})',
@@ -444,11 +448,11 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: TossSpacing.space2),
+                                const SizedBox(height: TossSpacing.space2),
                                 TextField(
-                                  controller: _currencyControllers[currencyId]!,
-                                  focusNode: _currencyFocusNodes[currencyId]!,
-                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  controller: _currencyControllers[currencyId],
+                                  focusNode: _currencyFocusNodes[currencyId],
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                   textAlign: TextAlign.right,
                                   style: TossTextStyles.h3.copyWith(
                                     color: TossColors.gray900,
@@ -461,7 +465,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                       fontWeight: FontWeight.w600,
                                     ),
                                     border: InputBorder.none,
-                                    contentPadding: EdgeInsets.only(right: TossSpacing.space3),
+                                    contentPadding: const EdgeInsets.only(right: TossSpacing.space3),
                                   ),
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -487,7 +491,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                               ],
                             ),
                           );
-                              }).toList(),
+                              }),
                             ],
                           ],
                         ),
@@ -497,8 +501,8 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                     // Fixed base currency display at the bottom
                     if (_baseCurrency != null) ...[
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space5),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(TossSpacing.space5),
+                        decoration: const BoxDecoration(
                           color: TossColors.gray50,
                           border: Border(
                             top: BorderSide(color: TossColors.gray200, width: 1),
@@ -510,7 +514,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                   ],
                 );
               },
-              loading: () => Container(
+              loading: () => const SizedBox(
                 height: 300,
                 child: Center(
                   child: TossLoadingView(),
@@ -518,24 +522,24 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
               ),
               error: (error, _) => Container(
                 height: 300,
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         size: 48,
                         color: TossColors.error,
                       ),
-                      SizedBox(height: TossSpacing.space3),
+                      const SizedBox(height: TossSpacing.space3),
                       Text(
                         'Failed to load exchange rates',
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.error,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Text(
                         error.toString(),
                         style: TossTextStyles.caption.copyWith(
@@ -552,7 +556,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
           
           // Footer with SafeArea
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.white,
               border: Border(
                 top: BorderSide(color: TossColors.gray200, width: 1),
@@ -561,7 +565,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Row(
                   children: [
                     Expanded(
@@ -571,7 +575,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                         fullWidth: true,
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space3),
+                    const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: TossPrimaryButton(
                         text: 'Use Amount',

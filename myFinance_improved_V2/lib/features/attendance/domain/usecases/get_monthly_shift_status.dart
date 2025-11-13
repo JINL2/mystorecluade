@@ -1,3 +1,4 @@
+import '../entities/monthly_shift_status.dart';
 import '../repositories/attendance_repository.dart';
 
 /// Get monthly shift status for manager view
@@ -8,7 +9,7 @@ class GetMonthlyShiftStatus {
 
   GetMonthlyShiftStatus(this._repository);
 
-  Future<List<Map<String, dynamic>>> call({
+  Future<List<MonthlyShiftStatus>> call({
     required String storeId,
     required String companyId,
     required String requestDate,

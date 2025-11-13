@@ -1,10 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
+import 'package:myfinance_improved/features/homepage/data/datasources/company_remote_datasource.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/company_type.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
 import 'package:myfinance_improved/features/homepage/domain/repositories/company_repository.dart';
-import 'package:myfinance_improved/features/homepage/data/datasources/company_remote_datasource.dart';
+
 import 'base_repository.dart';
 
 /// Implementation of CompanyRepository
@@ -27,7 +28,7 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
       return const Left(ValidationFailure(
         message: 'You already have a business with this name',
         code: 'DUPLICATE_NAME',
-      ));
+      ),);
     }
 
     final companyTypeExists =
@@ -36,7 +37,7 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
       return const Left(ValidationFailure(
         message: 'Please select a valid business type',
         code: 'INVALID_COMPANY_TYPE',
-      ));
+      ),);
     }
 
     final currencyExists =
@@ -45,7 +46,7 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
       return const Left(ValidationFailure(
         message: 'Please select a valid currency',
         code: 'INVALID_CURRENCY',
-      ));
+      ),);
     }
 
     // Execute with automatic error handling

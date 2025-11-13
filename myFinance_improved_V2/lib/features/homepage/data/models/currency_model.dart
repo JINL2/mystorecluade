@@ -1,49 +1,23 @@
-import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../domain/entities/currency.dart';
+
+part 'currency_model.freezed.dart';
+part 'currency_model.g.dart';
 
 /// Data Transfer Object for Currency
-/// Handles JSON serialization/deserialization from Supabase
-///
-/// Pure DTO that does not extend domain entity
-class CurrencyModel {
-  const CurrencyModel({
-    required this.id,
-    required this.code,
-    required this.name,
-    required this.symbol,
-  });
+@freezed
+class CurrencyModel with _$CurrencyModel {
+  const CurrencyModel._();
 
-  final String id;
-  final String code;
-  final String name;
-  final String symbol;
+  const factory CurrencyModel({
+    @JsonKey(name: 'currency_id') required String id,
+    @JsonKey(name: 'currency_code') required String code,
+    @JsonKey(name: 'currency_name') required String name,
+    required String symbol,
+  }) = _CurrencyModel;
 
-  /// Create from JSON (from Supabase response)
-  factory CurrencyModel.fromJson(Map<String, dynamic> json) {
-    return CurrencyModel(
-      id: json['currency_id'] as String,
-      code: json['currency_code'] as String,
-      name: json['currency_name'] as String,
-      symbol: json['symbol'] as String,
-    );
-  }
+  factory CurrencyModel.fromJson(Map<String, dynamic> json) =>
+      _$CurrencyModelFromJson(json);
 
-  /// Convert to JSON (for Supabase request)
-  Map<String, dynamic> toJson() {
-    return {
-      'currency_id': id,
-      'currency_code': code,
-      'currency_name': name,
-      'symbol': symbol,
-    };
-  }
-
-  /// Convert to domain entity
-  Currency toEntity() {
-    return Currency(
-      id: id,
-      code: code,
-      name: name,
-      symbol: symbol,
-    );
-  }
+  Currency toEntity() => Currency(id: id, code: code, name: name, symbol: symbol);
 }

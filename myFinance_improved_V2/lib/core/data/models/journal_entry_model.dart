@@ -152,7 +152,7 @@ class TransactionLine {
         'interest_account_id': '',
         'interest_due_day': 0,
         'issue_date': issueDate != null ? DateTimeUtils.toUtc(issueDate!) : DateTimeUtils.nowUtc(),
-        'due_date': dueDate != null ? DateTimeUtils.toUtc(dueDate!) : DateTimeUtils.toUtc(DateTime.now().add(Duration(days: 30))),
+        'due_date': dueDate != null ? DateTimeUtils.toUtc(dueDate!) : DateTimeUtils.toUtc(DateTime.now().add(const Duration(days: 30))),
         'description': debtDescription ?? '',
         'linkedCounterparty_store_id': counterpartyStoreId ?? '',
         'linkedCounterparty_companyId': linkedCompanyId ?? '',

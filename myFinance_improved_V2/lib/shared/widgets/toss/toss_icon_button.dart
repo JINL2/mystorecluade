@@ -254,7 +254,7 @@ class TossIconButton extends StatelessWidget {
         ? (color ?? TossColors.textPrimary)
         : (disabledColor ?? TossColors.gray400);
     final double effectiveSize = size ?? 24.0;
-    final EdgeInsetsGeometry effectivePadding = padding ?? EdgeInsets.all(TossSpacing.space2);
+    final EdgeInsetsGeometry effectivePadding = padding ?? const EdgeInsets.all(TossSpacing.space2);
 
     // If backgroundColor is provided, wrap in a decorated container
     if (backgroundColor != null) {

@@ -846,7 +846,7 @@ class _OperationalSettingsContentState extends ConsumerState<_OperationalSetting
         huddleTime: int.tryParse(_huddleTimeController.text),
         paymentTime: int.tryParse(_paymentTimeController.text),
         allowedDistance: int.tryParse(_allowedDistanceController.text),
-      ));
+      ),);
 
       if (mounted) {
         // Refresh store details

@@ -1,3 +1,4 @@
+import '../entities/shift_request.dart';
 import '../repositories/attendance_repository.dart';
 
 /// Register a new shift request
@@ -8,7 +9,7 @@ class RegisterShiftRequest {
 
   RegisterShiftRequest(this._repository);
 
-  Future<Map<String, dynamic>?> call({
+  Future<ShiftRequest?> call({
     required String userId,
     required String shiftId,
     required String storeId,

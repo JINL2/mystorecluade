@@ -1,8 +1,8 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:myfinance_improved/features/homepage/domain/repositories/company_repository.dart';
-import 'package:myfinance_improved/features/homepage/domain/repositories/store_repository.dart';
-import 'package:myfinance_improved/features/homepage/domain/repositories/join_repository.dart';
 import 'package:myfinance_improved/features/homepage/domain/repositories/homepage_repository.dart';
+import 'package:myfinance_improved/features/homepage/domain/repositories/join_repository.dart';
+import 'package:myfinance_improved/features/homepage/domain/repositories/store_repository.dart';
 
 /// Mock repositories for homepage feature tests
 class MockCompanyRepository extends Mock implements CompanyRepository {}

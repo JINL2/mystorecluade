@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import 'toss_primary_button.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+
+import 'toss_primary_button.dart';
 
 /// Base modal component that prevents common anti-patterns
 /// Eliminates StatefulBuilder conflicts and provides consistent modal behavior
@@ -79,7 +74,6 @@ class TossModal extends StatefulWidget {
           body: TossModal(
             title: title,
             subtitle: subtitle,
-            child: child,
             actions: actions,
             onClose: onClose ?? (() => Navigator.of(context).pop()),
             showCloseButton: showCloseButton,
@@ -88,6 +82,7 @@ class TossModal extends StatefulWidget {
             padding: padding,
             backgroundColor: backgroundColor,
             isScrollControlled: isScrollControlled,
+            child: child,
           ),
         ),
       ),
@@ -117,7 +112,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.enter,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
@@ -125,7 +120,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.enter,
-    ));
+    ),);
 
     _animationController.forward();
   }
@@ -156,7 +151,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
               ),
               decoration: BoxDecoration(
                 color: widget.backgroundColor ?? TossColors.background,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(TossBorderRadius.xl),
                 ),
                 boxShadow: TossShadows.bottomSheet,
@@ -167,7 +162,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                   // Handle bar
                   if (widget.showHandleBar)
                     Container(
-                      margin: EdgeInsets.only(top: TossSpacing.space3),
+                      margin: const EdgeInsets.only(top: TossSpacing.space3),
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
@@ -183,7 +178,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: widget.padding ?? EdgeInsets.fromLTRB(
+                      padding: widget.padding ?? const EdgeInsets.fromLTRB(
                         TossSpacing.space4,
                         TossSpacing.space3,
                         TossSpacing.space4,
@@ -207,7 +202,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
 
   Widget _buildHeader() {
     return Padding(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Row(
         children: [
           Expanded(
@@ -223,7 +218,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                 ),
                 if (widget.subtitle != null)
                   Padding(
-                    padding: EdgeInsets.only(top: TossSpacing.space1),
+                    padding: const EdgeInsets.only(top: TossSpacing.space1),
                     child: Text(
                       widget.subtitle!,
                       style: TossTextStyles.bodySmall.copyWith(
@@ -236,7 +231,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
           ),
           if (widget.showCloseButton)
             IconButton(
-              icon: Icon(Icons.close, color: TossColors.gray600),
+              icon: const Icon(Icons.close, color: TossColors.gray600),
               onPressed: () {
                 FocusScope.of(context).unfocus();
                 widget.onClose?.call();
@@ -257,7 +252,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
       ),
       decoration: BoxDecoration(
         color: widget.backgroundColor ?? TossColors.background,
-        border: Border(
+        border: const Border(
           top: BorderSide(color: TossColors.gray200, width: 0.5),
         ),
       ),
@@ -333,7 +328,7 @@ class TossFormModal extends StatefulWidget {
                 ),
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               flex: 2,
               child: TossPrimaryButton(
@@ -359,7 +354,6 @@ class _TossFormModalState extends State<TossFormModal> {
     return TossModal(
       title: widget.title,
       subtitle: widget.subtitle,
-      child: widget.child,
       actions: [
         Row(
           children: [
@@ -378,7 +372,7 @@ class _TossFormModalState extends State<TossFormModal> {
                 ),
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               flex: 2,
               child: TossPrimaryButton(
@@ -391,6 +385,7 @@ class _TossFormModalState extends State<TossFormModal> {
           ],
         ),
       ],
+      child: widget.child,
     );
   }
 }
@@ -435,7 +430,7 @@ class TossConfirmationModal extends StatelessWidget {
       title: title,
       height: 300,
       child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space5),
+        padding: const EdgeInsets.all(TossSpacing.space5),
         child: Column(
           children: [
             if (icon != null) ...[
@@ -444,7 +439,7 @@ class TossConfirmationModal extends StatelessWidget {
                 size: 48,
                 color: confirmColor ?? TossColors.primary,
               ),
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
             ],
             Text(
               message,
@@ -476,7 +471,7 @@ class TossConfirmationModal extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: TossPrimaryButton(
                 text: confirmText,

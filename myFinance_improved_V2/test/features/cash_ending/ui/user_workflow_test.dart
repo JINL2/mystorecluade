@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockito/mockito.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/presentation/pages/cash_ending_page.dart';
-import 'package:myfinance_improved_v1/features/cash_ending/presentation/tabs/cash_tab/cash_tab.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/presentation/tabs/bank_tab/bank_tab.dart';
+import 'package:myfinance_improved_v1/features/cash_ending/presentation/tabs/cash_tab/cash_tab.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/presentation/tabs/vault_tab/vault_tab.dart';
-import 'package:myfinance_improved_v1/features/cash_ending/providers/cash_ending_provider.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/providers/bank_provider.dart';
-import 'package:myfinance_improved_v1/features/cash_ending/providers/vault_provider.dart';
+import 'package:myfinance_improved_v1/features/cash_ending/providers/cash_ending_provider.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/providers/currency_provider.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/providers/location_provider.dart';
+import 'package:myfinance_improved_v1/features/cash_ending/providers/vault_provider.dart';
 import 'package:myfinance_improved_v1/providers/app_state_provider.dart';
 
 /// UI Tests for User Workflow Preservation

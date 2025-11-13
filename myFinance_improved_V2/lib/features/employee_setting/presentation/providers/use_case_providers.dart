@@ -2,6 +2,7 @@
 ///
 /// Provides dependency injection for use cases.
 /// Following the same pattern as transaction_template.
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/repository_providers.dart';

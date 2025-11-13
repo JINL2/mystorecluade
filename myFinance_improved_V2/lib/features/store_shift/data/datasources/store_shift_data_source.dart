@@ -171,7 +171,7 @@ class StoreShiftDataSource {
         'p_latitude': latitude,
         'p_longitude': longitude,
         'p_address': address,
-      });
+      },);
     } catch (e, stackTrace) {
       throw StoreLocationUpdateException(
         'Failed to update store location: $e',

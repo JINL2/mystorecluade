@@ -1,0 +1,215 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../domain/entities/stock_flow.dart';
+import '../../domain/usecases/create_error_adjustment_use_case.dart';
+import '../../domain/usecases/create_foreign_currency_translation_use_case.dart';
+import '../../domain/usecases/get_stock_flow_use_case.dart';
+import '../../domain/value_objects/stock_flow_params.dart';
+import 'account_detail_state.dart';
+
+/// Notifier for Account Detail page
+///
+/// Handles:
+/// - Loading journal/actual flows with pagination
+/// - Creating error adjustments
+/// - Creating foreign currency translations
+/// - Refreshing data
+class AccountDetailNotifier extends StateNotifier<AccountDetailState> {
+  final GetStockFlowUseCase _getStockFlowUseCase;
+  final CreateErrorAdjustmentUseCase _createErrorUseCase;
+  final CreateForeignCurrencyTranslationUseCase _createForeignCurrencyUseCase;
+
+  AccountDetailNotifier({
+    required GetStockFlowUseCase getStockFlowUseCase,
+    required CreateErrorAdjustmentUseCase createErrorUseCase,
+    required CreateForeignCurrencyTranslationUseCase createForeignCurrencyUseCase,
+  })  : _getStockFlowUseCase = getStockFlowUseCase,
+        _createErrorUseCase = createErrorUseCase,
+        _createForeignCurrencyUseCase = createForeignCurrencyUseCase,
+        super(const AccountDetailState());
+
+  static const int _pageLimit = 20;
+  static const int _maxItemsInMemory = 100;
+
+  /// Load initial data
+  Future<void> loadInitialData({
+    required String companyId,
+    required String storeId,
+    required String locationId,
+  }) async {
+    state = state.copyWith(isLoadingJournal: true, isLoadingActual: true);
+
+    try {
+      final response = await _getStockFlowUseCase(StockFlowParams(
+        companyId: companyId,
+        storeId: storeId,
+        cashLocationId: locationId,
+        offset: 0,
+        limit: _pageLimit,
+      ));
+
+      if (!response.success || response.data == null) {
+        state = state.copyWith(
+          isLoadingJournal: false,
+          isLoadingActual: false,
+        );
+        return;
+      }
+
+      final data = response.data!;
+      final journalFlows = data.journalFlows;
+      final actualFlows = data.actualFlows;
+      final locationSummary = data.locationSummary;
+
+      state = state.copyWith(
+        journalFlows: journalFlows,
+        actualFlows: actualFlows,
+        locationSummary: locationSummary,
+        journalOffset: _pageLimit,
+        actualOffset: _pageLimit,
+        isLoadingJournal: false,
+        isLoadingActual: false,
+        hasMoreJournal: response.pagination?.hasMore ?? false,
+        hasMoreActual: response.pagination?.hasMore ?? false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingJournal: false,
+        isLoadingActual: false,
+      );
+      rethrow;
+    }
+  }
+
+  /// Load more journal/actual flows
+  Future<void> loadMore({
+    required String companyId,
+    required String storeId,
+    required String locationId,
+  }) async {
+    if (state.isLoadingJournal || !state.hasMoreJournal) return;
+
+    state = state.copyWith(isLoadingJournal: true);
+
+    try {
+      final response = await _getStockFlowUseCase(StockFlowParams(
+        companyId: companyId,
+        storeId: storeId,
+        cashLocationId: locationId,
+        offset: state.journalOffset,
+        limit: _pageLimit,
+      ));
+
+      if (!response.success || response.data == null) {
+        state = state.copyWith(isLoadingJournal: false);
+        return;
+      }
+
+      final data = response.data!;
+      final newJournalFlows = data.journalFlows;
+      final newActualFlows = data.actualFlows;
+
+      // Combine with existing data
+      var updatedJournalFlows = [...state.journalFlows, ...newJournalFlows];
+      var updatedActualFlows = [...state.actualFlows, ...newActualFlows];
+
+      // Keep only recent items to prevent memory leak
+      if (updatedJournalFlows.length > _maxItemsInMemory) {
+        final removeCount = updatedJournalFlows.length - _maxItemsInMemory;
+        updatedJournalFlows = updatedJournalFlows.sublist(removeCount);
+      }
+      if (updatedActualFlows.length > _maxItemsInMemory) {
+        final removeCount = updatedActualFlows.length - _maxItemsInMemory;
+        updatedActualFlows = updatedActualFlows.sublist(removeCount);
+      }
+
+      state = state.copyWith(
+        journalFlows: updatedJournalFlows,
+        actualFlows: updatedActualFlows,
+        journalOffset: state.journalOffset + _pageLimit,
+        actualOffset: state.actualOffset + _pageLimit,
+        isLoadingJournal: false,
+        hasMoreJournal: response.pagination?.hasMore ?? false,
+        hasMoreActual: response.pagination?.hasMore ?? false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoadingJournal: false);
+      rethrow;
+    }
+  }
+
+  /// Refresh data (pull to refresh)
+  Future<void> refresh({
+    required String companyId,
+    required String storeId,
+    required String locationId,
+  }) async {
+    // Reset state
+    state = const AccountDetailState();
+
+    // Load fresh data
+    await loadInitialData(
+      companyId: companyId,
+      storeId: storeId,
+      locationId: locationId,
+    );
+  }
+
+  /// Create error adjustment journal
+  Future<Map<String, dynamic>> createErrorAdjustment({
+    required double errorAmount,
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required String cashLocationId,
+    required String locationName,
+  }) async {
+    final result = await _createErrorUseCase(CreateErrorAdjustmentParams(
+      differenceAmount: errorAmount,
+      companyId: companyId,
+      storeId: storeId,
+      userId: userId,
+      cashLocationId: cashLocationId,
+      locationName: locationName,
+    ));
+
+    // Refresh data after creating entry
+    await refresh(
+      companyId: companyId,
+      storeId: storeId,
+      locationId: cashLocationId,
+    );
+
+    return result;
+  }
+
+  /// Create foreign currency translation journal
+  Future<Map<String, dynamic>> createForeignCurrencyTranslation({
+    required double errorAmount,
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required String cashLocationId,
+    required String locationName,
+  }) async {
+    final result = await _createForeignCurrencyUseCase(
+      CreateForeignCurrencyTranslationParams(
+        differenceAmount: errorAmount,
+        companyId: companyId,
+        storeId: storeId,
+        userId: userId,
+        cashLocationId: cashLocationId,
+        locationName: locationName,
+      ),
+    );
+
+    // Refresh data after creating entry
+    await refresh(
+      companyId: companyId,
+      storeId: storeId,
+      locationId: cashLocationId,
+    );
+
+    return result;
+  }
+}

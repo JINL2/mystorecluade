@@ -108,7 +108,7 @@ class ProductionTokenMonitoring {
     return sorted.take(5).map((e) => {
       'error': e.key,
       'count': e.value,
-    }).toList();
+    },).toList();
   }
   
   /// Start periodic health checks for production monitoring
@@ -207,7 +207,7 @@ class ProductionTokenMonitoring {
         final events = data['events'] as List?;
         if (events != null) {
           _registrationEvents.addAll(
-            events.cast<Map<String, dynamic>>()
+            events.cast<Map<String, dynamic>>(),
           );
         }
         
@@ -215,7 +215,7 @@ class ProductionTokenMonitoring {
         final errors = data['error_counts'] as Map?;
         if (errors != null) {
           _errorCounts.addAll(
-            errors.cast<String, int>()
+            errors.cast<String, int>(),
           );
         }
         
@@ -223,7 +223,7 @@ class ProductionTokenMonitoring {
         final session = data['session_metrics'] as Map?;
         if (session != null) {
           _sessionMetrics.addAll(
-            session.cast<String, dynamic>()
+            session.cast<String, dynamic>(),
           );
         }
       }

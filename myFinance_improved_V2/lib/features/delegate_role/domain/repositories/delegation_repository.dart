@@ -1,5 +1,5 @@
-import '../entities/role_delegation.dart';
 import '../entities/delegation_audit.dart';
+import '../entities/role_delegation.dart';
 
 /// Abstract repository for Role Delegation management
 abstract class DelegationRepository {

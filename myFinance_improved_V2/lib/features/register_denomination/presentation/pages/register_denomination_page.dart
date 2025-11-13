@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Shared - Widgets
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+// Shared - Themes
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-
-// Shared - Themes
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
+// Shared - Widgets
+import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 
 // Feature - Providers
 import '../providers/currency_providers.dart';
-
+import '../widgets/add_currency_bottom_sheet.dart';
 // Feature - Widgets
 import '../widgets/currency_overview_card.dart';
-import '../widgets/add_currency_bottom_sheet.dart';
 
 class RegisterDenominationPage extends ConsumerWidget {
   const RegisterDenominationPage({super.key});
@@ -63,7 +60,7 @@ class RegisterDenominationPage extends ConsumerWidget {
                     prefixIcon: Icons.search,
                     onClear: () => ref.read(currencySearchQueryProvider.notifier).state = '',
                   );
-                }),
+                },),
               ),
             ),
             
@@ -74,13 +71,13 @@ class RegisterDenominationPage extends ConsumerWidget {
                   return [
                     SliverFillRemaining(
                       child: _buildEmptySearchState(),
-                    )
+                    ),
                   ];
                 } else if (currencies.isEmpty) {
                   return [
                     SliverFillRemaining(
                       child: _buildEmptyState(context),
-                    )
+                    ),
                   ];
                 } else {
                   return [
@@ -107,7 +104,7 @@ class RegisterDenominationPage extends ConsumerWidget {
                   child: TossLoadingView(
                     message: 'Loading currencies...',
                   ),
-                )
+                ),
               ],
               error: (error, stackTrace) => [
                 SliverFillRemaining(
@@ -115,7 +112,7 @@ class RegisterDenominationPage extends ConsumerWidget {
                     error: error,
                     onRetry: () => ref.invalidate(searchFilteredCurrenciesProvider),
                   ),
-                )
+                ),
               ],
             ),
               

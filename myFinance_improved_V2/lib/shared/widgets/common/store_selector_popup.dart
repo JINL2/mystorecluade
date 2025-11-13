@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers/app_state_provider.dart';
 import '../../themes/toss_colors.dart';
-import '../../themes/toss_text_styles.dart';
 import '../../themes/toss_spacing.dart';
+import '../../themes/toss_text_styles.dart';
 import '../toss/toss_bottom_sheet.dart';
 
 /// Store Selector Popup
@@ -79,7 +79,7 @@ class StoreSelectorPopup extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.store_outlined,
             size: 64,
             color: TossColors.gray400,
@@ -112,7 +112,7 @@ class StoreSelectorPopup extends ConsumerWidget {
       shrinkWrap: true,
       padding: const EdgeInsets.all(TossSpacing.space4),
       itemCount: stores.length,
-      separatorBuilder: (context, index) => Divider(
+      separatorBuilder: (context, index) => const Divider(
         height: 1,
         color: TossColors.gray200,
       ),
@@ -156,7 +156,7 @@ class StoreSelectorPopup extends ConsumerWidget {
                 )
               : null,
           trailing: isSelected
-              ? Icon(
+              ? const Icon(
                   Icons.check_circle,
                   color: TossColors.primary,
                 )

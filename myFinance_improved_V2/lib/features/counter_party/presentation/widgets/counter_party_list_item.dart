@@ -29,7 +29,7 @@ class CounterPartyListItem extends StatelessWidget {
     return Material(
       color: TossColors.transparent,
       child: Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -51,7 +51,7 @@ class CounterPartyListItem extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               
               // Content
               Expanded(
@@ -73,9 +73,9 @@ class CounterPartyListItem extends StatelessWidget {
                           ),
                         ),
                         if (counterParty.isInternal) ...[
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space2,
                               vertical: 2,
                             ),
@@ -95,7 +95,7 @@ class CounterPartyListItem extends StatelessWidget {
                       ],
                     ),
                     
-                    SizedBox(height: TossSpacing.space1),
+                    const SizedBox(height: TossSpacing.space1),
                     
                     // Type and Contact Info
                     Row(
@@ -130,7 +130,7 @@ class CounterPartyListItem extends StatelessWidget {
                     
                     // Additional Info
                     if (counterParty.lastTransactionDate != null) ...[
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
                         'Last transaction: ${_formatDate(counterParty.lastTransactionDate!)}',
                         style: TossTextStyles.caption.copyWith(
@@ -144,7 +144,7 @@ class CounterPartyListItem extends StatelessWidget {
               
               // More Options Button
               IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_vert,
                   color: TossColors.textSecondary,
                   size: TossSpacing.iconMD,

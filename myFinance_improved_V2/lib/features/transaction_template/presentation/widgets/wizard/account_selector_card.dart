@@ -7,19 +7,19 @@
 /// - Integrated account, counterparty, store, and cash location selection
 ///
 /// Usage: AccountSelectorCard(type: AccountType.debit, onAccountChanged: callback)
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
 import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
-// Updated imports to use new application layer providers
-import '../../providers/template_provider.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+
 import '../common/store_selector.dart';
 
 enum AccountType { debit, credit }
@@ -100,7 +100,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
     final label = isDebit ? 'DEBIT' : 'CREDIT';
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -116,7 +116,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space2,
                   vertical: TossSpacing.space1,
                 ),
@@ -133,7 +133,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                   ),
                 ),
               ),
-              SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
               Icon(
                 iconData,
                 size: 16,
@@ -141,7 +141,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
               ),
             ],
           ),
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
           // Account selector
           EnhancedAccountSelector(
@@ -165,7 +165,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           
           // Counterparty section
           if (_requiresCounterparty && widget.selectedAccountId != null) ...[
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
             AutonomousCounterpartySelector(
               selectedCounterpartyId: widget.selectedCounterpartyId,
               onChanged: (counterpartyId) {
@@ -187,7 +187,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           
           // My company's cash location for cash accounts
           if (_isCashAccount && widget.selectedAccountId != null) ...[
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
             AutonomousCashLocationSelector(
               selectedLocationId: widget.selectedMyCashLocationId,
               onChanged: widget.onMyCashLocationChanged,
@@ -212,7 +212,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
 
         return counterpartyAsync.when(
           data: (counterparty) {
-            if (counterparty == null) return SizedBox.shrink();
+            if (counterparty == null) return const SizedBox.shrink();
 
             // Convert CounterpartyData to Map for compatibility
             final counterpartyData = {
@@ -236,7 +236,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
             if (counterparty.isInternal && counterpartyData['linked_company_id'] != null) {
           return Column(
             children: [
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Store selector
               StoreSelector(
@@ -252,13 +252,13 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
               
               // Cash location selector with business rule warning
               if (widget.selectedStoreId != null) ...[
-                SizedBox(height: TossSpacing.space3),
+                const SizedBox(height: TossSpacing.space3),
                 
                 // Business rule warning
                 if (_showCounterpartyCashLocationWarning) ...[
                   Container(
-                    padding: EdgeInsets.all(TossSpacing.space2),
-                    margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                    padding: const EdgeInsets.all(TossSpacing.space2),
+                    margin: const EdgeInsets.only(bottom: TossSpacing.space2),
                     decoration: BoxDecoration(
                       color: TossColors.warningLight.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -269,12 +269,12 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.info_outline,
                           size: 16,
                           color: TossColors.warning,
                         ),
-                        SizedBox(width: TossSpacing.space1),
+                        const SizedBox(width: TossSpacing.space1),
                         Expanded(
                           child: Text(
                             'Required: Where will the cash be received in the internal company?',
@@ -306,12 +306,12 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
             ],
           );
             } else {
-              return SizedBox.shrink();
+              return const SizedBox.shrink();
             }
           },
-          loading: () => Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) {
-            return SizedBox.shrink();
+            return const SizedBox.shrink();
           },
         );
       },

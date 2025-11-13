@@ -1,33 +1,27 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-// Shared - Theme System ✅
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_animations.dart';
-
-// Shared - Widgets ✅
-import '../../../../shared/widgets/toss/toss_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-
 // Core - Constants ✅
 import '../../../../core/constants/auth_constants.dart';
-
 // Core - Infrastructure Services ✅
 import '../../../../core/notifications/services/production_token_service.dart';
-
-// Clean Architecture - Auth Feature Providers
-import '../providers/auth_service.dart';
-
+import '../../../../shared/themes/toss_animations.dart';
+// Shared - Theme System ✅
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+// Shared - Widgets ✅
+import '../../../../shared/widgets/toss/toss_text_field.dart';
 // Homepage Providers
 import '../../../homepage/presentation/providers/homepage_providers.dart';
-
 // Domain Layer - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
+// Clean Architecture - Auth Feature Providers
+import '../providers/auth_service.dart';
 
 /// Login Page - Clean Architecture Implementation
 ///
@@ -80,7 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   // State
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-  bool _showPasswordField = true;
+  final bool _showPasswordField = true;
   bool _isEmailValid = false;
 
   @override
@@ -110,7 +104,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -118,7 +112,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _passwordRevealAnimation = Tween<double>(
       begin: AuthConstants.fadeBegin,
@@ -126,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     ).animate(CurvedAnimation(
       parent: _passwordRevealController,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
 
     _buttonPulseAnimation = Tween<double>(
       begin: AuthConstants.pulseScaleBegin,
@@ -134,7 +128,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     ).animate(CurvedAnimation(
       parent: _buttonPulseController,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     // Setup listeners
     _emailController.addListener(_onEmailChanged);
@@ -502,15 +496,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
+          content: const Row(
             children: [
               Icon(
                 Icons.check_circle,
                 color: TossColors.white,
                 size: AuthConstants.iconSizeLarge,
               ),
-              const SizedBox(width: TossSpacing.space2),
-              const Text('Welcome back to Storebase!'),
+              SizedBox(width: TossSpacing.space2),
+              Text('Welcome back to Storebase!'),
             ],
           ),
           backgroundColor: TossColors.success,

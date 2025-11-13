@@ -9,6 +9,7 @@
 ///   child: Text('Click me'),
 /// )
 /// ```
+library;
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -58,11 +59,11 @@ class DebouncedElevatedButton extends StatefulWidget {
   final ButtonStyle? style;
 
   const DebouncedElevatedButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.child,
     this.style,
-  }) : super(key: key);
+  });
 
   @override
   State<DebouncedElevatedButton> createState() =>
@@ -90,11 +91,11 @@ class DebouncedTextButton extends StatefulWidget {
   final ButtonStyle? style;
 
   const DebouncedTextButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.child,
     this.style,
-  }) : super(key: key);
+  });
 
   @override
   State<DebouncedTextButton> createState() => _DebouncedTextButtonState();
@@ -123,13 +124,13 @@ class DebouncedIconButton extends StatefulWidget {
   final String? tooltip;
 
   const DebouncedIconButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.icon,
     this.iconSize,
     this.color,
     this.tooltip,
-  }) : super(key: key);
+  });
 
   @override
   State<DebouncedIconButton> createState() => _DebouncedIconButtonState();
@@ -158,11 +159,11 @@ class DebouncedOutlinedButton extends StatefulWidget {
   final ButtonStyle? style;
 
   const DebouncedOutlinedButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.child,
     this.style,
-  }) : super(key: key);
+  });
 
   @override
   State<DebouncedOutlinedButton> createState() =>

@@ -8,10 +8,10 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../../core/homepage_logger.dart';
 import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/company_state.dart';
-import '../../core/homepage_logger.dart';
 
 /// Create Company Bottom Sheet Widget
 /// Uses Riverpod StateNotifier for state management
@@ -95,7 +95,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  )),
+                  ),),
             ],
           ),
           actions: [
@@ -336,7 +336,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                                 .map((type) => TossDropdownItem(
                                       value: type.id,
                                       label: type.typeName,
-                                    ))
+                                    ),)
                                 .toList(),
                             onChanged: (value) {
                               setState(() => _selectedCompanyTypeId = value);
@@ -347,9 +347,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                             items: [],
                             isLoading: true,
                           ),
-                          error: (_, __) => TossDropdown<String>(
+                          error: (_, __) => const TossDropdown<String>(
                             label: 'Company Type',
-                            items: const [],
+                            items: [],
                             errorText: 'Failed to load company types',
                           ),
                         );
@@ -373,7 +373,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                                       value: currency.id,
                                       label: '${currency.name} (${currency.code})',
                                       subtitle: currency.symbol,
-                                    ))
+                                    ),)
                                 .toList(),
                             onChanged: (value) {
                               setState(() => _selectedCurrencyId = value);
@@ -384,9 +384,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                             items: [],
                             isLoading: true,
                           ),
-                          error: (_, __) => TossDropdown<String>(
+                          error: (_, __) => const TossDropdown<String>(
                             label: 'Base Currency',
-                            items: const [],
+                            items: [],
                             errorText: 'Failed to load currencies',
                           ),
                         );

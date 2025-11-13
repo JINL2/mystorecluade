@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Toss-style bottom sheet with smooth animations
@@ -104,9 +99,9 @@ class TossBottomSheet extends StatelessWidget {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8, // 80% of screen height
         ),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.surface,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xxl),
             topRight: Radius.circular(TossBorderRadius.xxl),
           ),

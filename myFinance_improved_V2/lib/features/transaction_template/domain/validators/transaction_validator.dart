@@ -1,6 +1,4 @@
 import '../entities/transaction_entity.dart';
-import '../value_objects/transaction_amount.dart';
-import '../value_objects/transaction_status.dart';
 
 /// External policy-based validator for transactions
 ///

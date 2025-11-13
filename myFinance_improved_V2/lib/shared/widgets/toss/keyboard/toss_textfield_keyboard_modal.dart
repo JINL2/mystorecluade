@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Enhanced bottom sheet with fixed UX pattern for keyboard handling
@@ -217,9 +216,9 @@ class _TossTextFieldKeyboardModalState
             maxHeight: maxHeight,
             minHeight: 0,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: TossColors.white,
-            borderRadius: const BorderRadius.vertical(
+            borderRadius: BorderRadius.vertical(
               top: Radius.circular(20),
             ),
             boxShadow: TossShadows.bottomSheet,
@@ -299,7 +298,7 @@ class _TossTextFieldKeyboardModalState
                 widget.onDismiss?.call();
                 Navigator.of(context).pop();
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.close,
                 color: TossColors.gray600,
                 size: 24,
@@ -314,7 +313,7 @@ class _TossTextFieldKeyboardModalState
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
-        border: Border(
+        border: const Border(
           top: BorderSide(
             color: TossColors.gray300, // Stronger border to separate from content
             width: 2, // Thicker border for clear separation
@@ -324,7 +323,7 @@ class _TossTextFieldKeyboardModalState
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.12), // Stronger shadow
             blurRadius: 12,
-            offset: Offset(0, -4), // Higher shadow for more emphasis
+            offset: const Offset(0, -4), // Higher shadow for more emphasis
           ),
         ],
       ),
@@ -337,7 +336,7 @@ class _TossTextFieldKeyboardModalState
       child: Row(
         children: [
           for (int i = 0; i < widget.actionButtons!.length; i++) ...[
-            if (i > 0) SizedBox(width: TossSpacing.space3),
+            if (i > 0) const SizedBox(width: TossSpacing.space3),
             widget.actionButtons![i],
           ],
         ],
@@ -373,7 +372,7 @@ class _AmountInputContentState extends State<_AmountInputContent> {
     // Delay auto-focus to let the modal settle first
     // This prevents the keyboard from appearing immediately 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted && context.mounted) {
           _focusNode.requestFocus();
         }
@@ -400,7 +399,7 @@ class _AmountInputContentState extends State<_AmountInputContent> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         TextFormField(
           controller: widget.controller,
           focusNode: _focusNode,
@@ -420,17 +419,17 @@ class _AmountInputContentState extends State<_AmountInputContent> {
             fillColor: TossColors.white, // White background for better visibility
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
+              borderSide: const BorderSide(color: TossColors.gray300, width: 1.5),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
+              borderSide: const BorderSide(color: TossColors.gray300, width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide(color: TossColors.primary, width: 2.5), // Thicker focus border
+              borderSide: const BorderSide(color: TossColors.primary, width: 2.5), // Thicker focus border
             ),
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,
               vertical: TossSpacing.space5, // More padding for easier tapping
             ),

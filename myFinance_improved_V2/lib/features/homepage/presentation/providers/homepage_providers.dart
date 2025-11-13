@@ -134,8 +134,8 @@ List<dynamic> _convertCategoriesToDynamic(List<CategoryWithFeatures> categories)
       'feature_icon': feature.featureIcon,
       'icon_key': feature.iconKey,
       'is_show_main': feature.isShowMain,
-    }).toList(),
-  }).toList();
+    },).toList(),
+  },).toList();
 }
 
 // === Quick Access Features Provider ===
@@ -228,12 +228,12 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
           'store_id': store.id,
           'store_name': store.storeName,
           'store_code': store.storeCode,
-        }).toList(),
+        },).toList(),
         'role': {
           'role_name': company.role.roleName,
           'permissions': company.role.permissions,
         },
-      }).toList(),
+      },).toList(),
     };
 
     companiesData = userData['companies'] as List<dynamic>;

@@ -13,6 +13,7 @@
 /// context.push('/page');
 /// context.go('/page');
 /// ```
+library;
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -73,7 +74,7 @@ extension DebouncedGoRouterExtension on BuildContext {
   /// Prevents rapid successive pop() calls within 300ms
   void debouncedPop<T extends Object?>([T? result]) {
     _NavigationDebouncer.instance.debounce(
-      'pop_${hashCode}',
+      'pop_$hashCode',
       () {
         if (mounted && canPop()) {
           pop(result);
@@ -89,7 +90,7 @@ extension DebouncedGoRouterExtension on BuildContext {
     String location, {
     Object? extra,
   }) async {
-    final actionKey = 'push_${location}_${hashCode}';
+    final actionKey = 'push_${location}_$hashCode';
 
     if (_NavigationDebouncer.instance.isDebounced(actionKey)) {
       debugPrint('[Navigation] Push debounced: $location');
@@ -116,7 +117,7 @@ extension DebouncedGoRouterExtension on BuildContext {
     String location, {
     Object? extra,
   }) {
-    final actionKey = 'go_${location}_${hashCode}';
+    final actionKey = 'go_${location}_$hashCode';
 
     _NavigationDebouncer.instance.debounce(
       actionKey,
@@ -133,7 +134,7 @@ extension DebouncedGoRouterExtension on BuildContext {
     String location, {
     Object? extra,
   }) async {
-    final actionKey = 'pushReplacement_${location}_${hashCode}';
+    final actionKey = 'pushReplacement_${location}_$hashCode';
 
     if (_NavigationDebouncer.instance.isDebounced(actionKey)) {
       debugPrint('[Navigation] PushReplacement debounced: $location');
@@ -148,7 +149,7 @@ extension DebouncedGoRouterExtension on BuildContext {
 
     // Execute pushReplacement
     if (mounted) {
-      return await pushReplacement<T>(location, extra: extra);
+      return pushReplacement<T>(location, extra: extra);
     }
     return null;
   }

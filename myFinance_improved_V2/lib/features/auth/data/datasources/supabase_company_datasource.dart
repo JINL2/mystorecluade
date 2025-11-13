@@ -1,9 +1,10 @@
 // lib/features/auth/data/datasources/supabase_company_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/freezed/company_dto.dart';
+
 import '../models/company_type_model.dart';
 import '../models/currency_model.dart';
+import '../models/freezed/company_dto.dart';
 
 /// Supabase Company DataSource
 ///

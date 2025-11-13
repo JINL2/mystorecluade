@@ -39,7 +39,7 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
                 featureIcon: featureModel.icon ?? '',
                 iconKey: featureModel.iconKey,
                 isShowMain: featureModel.isShowMain,
-              ))
+              ),)
           .toList(),
     );
   }
@@ -57,7 +57,7 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
                 icon: feature.featureIcon,
                 iconKey: feature.iconKey,
                 isShowMain: feature.isShowMain,
-              ))
+              ),)
           .toList(),
     );
   }

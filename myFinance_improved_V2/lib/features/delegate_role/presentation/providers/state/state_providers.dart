@@ -6,8 +6,8 @@ import '../../../domain/entities/delegatable_role.dart';
 import '../../../domain/entities/delegation_audit.dart';
 import '../../../domain/entities/role.dart';
 import '../../../domain/entities/role_delegation.dart';
-import '../repositories/repository_providers.dart';
 import '../infrastructure/datasource_providers.dart';
+import '../repositories/repository_providers.dart';
 import '../usecases/usecase_providers.dart';
 
 // ============================================================================

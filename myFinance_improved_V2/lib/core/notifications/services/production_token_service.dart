@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'fcm_service.dart';
+
 import '../repositories/notification_repository.dart';
+import 'fcm_service.dart';
 
 /// Production-safe FCM token management service
 /// Handles race conditions, initialization timing, and reliable token saving

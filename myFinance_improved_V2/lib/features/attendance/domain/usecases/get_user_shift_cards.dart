@@ -1,3 +1,4 @@
+import '../entities/shift_card.dart';
 import '../repositories/attendance_repository.dart';
 
 /// Get user shift cards for the month
@@ -8,7 +9,7 @@ class GetUserShiftCards {
 
   GetUserShiftCards(this._repository);
 
-  Future<List<Map<String, dynamic>>> call({
+  Future<List<ShiftCard>> call({
     required String requestDate,
     required String userId,
     required String companyId,

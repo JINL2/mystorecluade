@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-
-// Feature - Domain
-import '../../domain/entities/currency.dart';
-import '../../domain/repositories/currency_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Feature - Data
 import '../../data/repositories/currency_repository_impl.dart';
+// Feature - Domain
+import '../../domain/entities/currency.dart';
+import '../../domain/repositories/currency_repository.dart';
 
 // Repository providers
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {

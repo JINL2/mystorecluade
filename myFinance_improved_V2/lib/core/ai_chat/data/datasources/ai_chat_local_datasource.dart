@@ -30,10 +30,6 @@ class AiChatLocalDatasource {
         .eq('session_id', sessionId)
         .order('created_at', ascending: true);
 
-    if (response == null || response is! List) {
-      return [];
-    }
-
     return (response as List).map((item) {
       final messageData = item['message'] as Map<String, dynamic>;
       return ChatMessageModel.fromJson(messageData);

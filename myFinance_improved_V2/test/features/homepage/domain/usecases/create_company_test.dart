@@ -1,9 +1,8 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_company.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
 
 import '../../homepage_mocks.dart';
 import '../../homepage_test_fixtures.dart';
@@ -30,7 +29,7 @@ void main() {
             companyName: any(named: 'companyName'),
             companyTypeId: any(named: 'companyTypeId'),
             baseCurrencyId: any(named: 'baseCurrencyId'),
-          )).thenAnswer((_) async => const Right(tCompany));
+          ),).thenAnswer((_) async => const Right(tCompany));
 
       // act
       final result = await useCase(tParams);
@@ -41,7 +40,7 @@ void main() {
             companyName: 'Test Company',
             companyTypeId: 'type-123',
             baseCurrencyId: 'usd',
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return ValidationFailure when company name is empty',
@@ -69,7 +68,7 @@ void main() {
             companyName: any(named: 'companyName'),
             companyTypeId: any(named: 'companyTypeId'),
             baseCurrencyId: any(named: 'baseCurrencyId'),
-          ));
+          ),);
     });
 
     test('should return ValidationFailure when company name is too short',
@@ -97,7 +96,7 @@ void main() {
             companyName: any(named: 'companyName'),
             companyTypeId: any(named: 'companyTypeId'),
             baseCurrencyId: any(named: 'baseCurrencyId'),
-          ));
+          ),);
     });
 
     test('should trim whitespace from company name', () async {
@@ -112,7 +111,7 @@ void main() {
             companyName: any(named: 'companyName'),
             companyTypeId: any(named: 'companyTypeId'),
             baseCurrencyId: any(named: 'baseCurrencyId'),
-          )).thenAnswer((_) async => const Right(tCompany));
+          ),).thenAnswer((_) async => const Right(tCompany));
 
       // act
       await useCase(paramsWithWhitespace);
@@ -122,7 +121,7 @@ void main() {
             companyName: 'Test Company', // whitespace trimmed
             companyTypeId: 'type-123',
             baseCurrencyId: 'usd',
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return ValidationFailure when companyTypeId is empty',

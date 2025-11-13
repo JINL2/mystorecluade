@@ -8,8 +8,9 @@
 ///
 /// Clean Architecture: Domain layer validator
 /// Usage: TemplateFormValidator.validate(analysis, formData)
-import '../value_objects/template_analysis_result.dart';
+library;
 import '../enums/template_enums.dart';
+import '../value_objects/template_analysis_result.dart';
 
 /// Validation result with detailed error information
 class TemplateValidationResult {
