@@ -100,7 +100,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
   }
 
   // Calculate change percentages
-  const todayRevenueChange = data?.todayRevenue && data.todayRevenue > 0 ? 5.2 : 0; // TODO: Calculate from actual data
+  // Note: Today revenue change calculation requires historical data
+  const todayRevenueChange = 0; // Reserved for future implementation
   const thisMonthChange = data?.monthOverMonthGrowth || 0;
 
   return (

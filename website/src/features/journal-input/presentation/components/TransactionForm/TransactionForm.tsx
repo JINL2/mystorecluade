@@ -267,14 +267,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     onValidationChange?.(isFormValid);
   }, [isFormValid, onValidationChange]);
 
-  // Debt categories
-  const debtCategories = ['loan', 'purchase', 'salary', 'other'];
+  // Debt categories (must match database constraint: note, account, loan, other)
   const debtCategoryOptions: TossSelectorOption[] = [
     { value: '', label: 'Select debt category' },
-    ...debtCategories.map((category) => ({
-      value: category,
-      label: category.charAt(0).toUpperCase() + category.slice(1),
-    }))
+    { value: 'note', label: 'Note (어음)' },
+    { value: 'account', label: 'Account (외상)' },
+    { value: 'loan', label: 'Loan (대출)' },
+    { value: 'other', label: 'Other (기타)' },
   ];
 
   // Render conditional fields based on account categoryTag

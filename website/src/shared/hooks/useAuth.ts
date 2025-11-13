@@ -5,15 +5,15 @@
  * Following 2025 Best Practice:
  * - Wraps Zustand store with optimized selectors
  * - Provides global auth state across application
- * - Subscribes to auth changes on mount
+ * - NO initialization here (done in AuthInitializer component)
  * - No direct useState usage (delegates to Zustand)
  */
 
-import { useEffect } from 'react';
 import { useAuthStore } from '@/features/auth/presentation/providers/auth_provider';
 
 /**
  * Global authentication hook
+ * Does NOT initialize auth - use AuthInitializer component for that
  *
  * Usage:
  * ```typescript
@@ -38,24 +38,6 @@ export const useAuth = () => {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const signOut = useAuthStore((state) => state.signOut);
   const refreshAuth = useAuthStore((state) => state.refreshAuth);
-  const subscribeToAuthChanges = useAuthStore((state) => state.subscribeToAuthChanges);
-
-  // ============================================
-  // INITIALIZATION & AUTH STATE LISTENER
-  // ============================================
-
-  useEffect(() => {
-    // Check auth status on mount
-    checkAuth();
-
-    // Subscribe to auth state changes
-    const { unsubscribe } = subscribeToAuthChanges();
-
-    // Cleanup subscription on unmount
-    return () => {
-      unsubscribe();
-    };
-  }, [checkAuth, subscribeToAuthChanges]);
 
   // ============================================
   // RETURN API

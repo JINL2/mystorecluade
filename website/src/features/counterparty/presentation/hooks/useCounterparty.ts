@@ -3,6 +3,7 @@
  * Custom hook wrapper for counterparty store (2025 Best Practice)
  */
 
+import { useMemo } from 'react';
 import { useCounterpartyStore } from '../providers/counterparty_provider';
 
 /**
@@ -21,8 +22,16 @@ export const useCounterparty = () => {
 
   const formData = useCounterpartyStore((state) => state.formData);
   const isFormValid = useCounterpartyStore((state) => state.isFormValid);
-  const internalCounterparties = useCounterpartyStore((state) => state.internalCounterparties);
-  const externalCounterparties = useCounterpartyStore((state) => state.externalCounterparties);
+
+  // Compute internal/external counterparties with useMemo to avoid re-creating arrays
+  const internalCounterparties = useMemo(
+    () => counterparties.filter((c) => c.isInternal),
+    [counterparties]
+  );
+  const externalCounterparties = useMemo(
+    () => counterparties.filter((c) => !c.isInternal),
+    [counterparties]
+  );
 
   // Select actions
   const setCounterparties = useCounterpartyStore((state) => state.setCounterparties);

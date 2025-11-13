@@ -58,7 +58,6 @@ export class CounterpartyDataSource {
       .from('counterparties')
       .update({
         is_deleted: true,
-        updated_at: DateTimeUtils.nowUtc(),
       })
       .eq('counterparty_id', counterpartyId)
       .eq('company_id', companyId);

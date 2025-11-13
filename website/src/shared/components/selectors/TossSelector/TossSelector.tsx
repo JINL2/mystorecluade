@@ -94,12 +94,12 @@
  * ```
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import type { TossSelectorProps } from './TossSelector.types';
 import styles from './TossSelector.module.css';
 import { LoadingAnimation } from '../../common/LoadingAnimation';
 
-export const TossSelector: React.FC<TossSelectorProps> = ({
+export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
   id,
   name,
   label,
@@ -107,6 +107,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   value,
   options,
   onChange,
+  onSelect,
   showAddButton = false,
   addButtonText = 'Add new',
   onAddClick,
@@ -125,11 +126,18 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   showBadges = false,
   inline = false,
   editable = false,
-}) => {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const inlineInputRef = useRef<HTMLInputElement>(null);
+  const optionRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+
+  // Merge external ref with internal ref for inline mode
+  const mergedRef = ref || inlineInputRef;
 
   // Filter options based on search term
   const filteredOptions = searchable && searchTerm
@@ -149,6 +157,8 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
+        setIsTyping(false);
+        setHighlightedIndex(-1);
       }
     };
 
@@ -161,14 +171,27 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
     };
   }, [isOpen]);
 
-  // Focus search input when dropdown opens
+  // Focus search input when dropdown opens and reset highlighted index
   useEffect(() => {
     if (isOpen && searchable && searchInputRef.current) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 100);
     }
+    if (isOpen) {
+      setHighlightedIndex(-1);
+    }
   }, [isOpen, searchable]);
+
+  // Scroll highlighted option into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
+      const optionEl = optionRefs.current[highlightedIndex];
+      if (optionEl) {
+        optionEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [highlightedIndex, filteredOptions.length]);
 
   const handleToggle = () => {
     if (!disabled) {
@@ -182,12 +205,19 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
       onChange(optionValue, option);
       setIsOpen(false);
       setSearchTerm('');
+      setIsTyping(false);
+      setHighlightedIndex(-1);
+      // Call onSelect callback after selection is complete
+      if (onSelect) {
+        onSelect(optionValue, option);
+      }
     }
   };
 
   // Handle input change for inline mode
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setIsTyping(true);
     if (!isOpen) {
       setIsOpen(true);
     }
@@ -197,6 +227,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   const handleInputFocus = () => {
     if (!disabled && inline) {
       setIsOpen(true);
+      // Don't set isTyping to true on focus - only on actual typing
     }
   };
 
@@ -204,13 +235,29 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && filteredOptions.length > 0) {
       e.preventDefault();
-      const firstOption = filteredOptions[0];
-      if (!firstOption.disabled) {
-        handleOptionClick(firstOption.value);
+      // Select highlighted option if available, otherwise select first option
+      const targetIndex = highlightedIndex >= 0 ? highlightedIndex : 0;
+      const targetOption = filteredOptions[targetIndex];
+      if (targetOption && !targetOption.disabled) {
+        handleOptionClick(targetOption.value);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
       setSearchTerm('');
+      setIsTyping(false);
+      setHighlightedIndex(-1);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const nextIndex = prev + 1;
+        return nextIndex >= filteredOptions.length ? 0 : nextIndex;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const prevIndex = prev - 1;
+        return prevIndex < 0 ? filteredOptions.length - 1 : prevIndex;
+      });
     }
   };
 
@@ -256,10 +303,11 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
         {inline ? (
           // Inline mode: Show input field
           <input
+            ref={mergedRef}
             type="text"
             id={id}
             className={selectClasses}
-            value={searchTerm || displayValue}
+            value={isTyping ? searchTerm : displayValue}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onKeyDown={handleInputKeyDown}
@@ -304,6 +352,32 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && filteredOptions.length > 0) {
+                    e.preventDefault();
+                    const targetIndex = highlightedIndex >= 0 ? highlightedIndex : 0;
+                    const targetOption = filteredOptions[targetIndex];
+                    if (targetOption && !targetOption.disabled) {
+                      handleOptionClick(targetOption.value);
+                    }
+                  } else if (e.key === 'Escape') {
+                    setIsOpen(false);
+                    setSearchTerm('');
+                    setHighlightedIndex(-1);
+                  } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setHighlightedIndex((prev) => {
+                      const nextIndex = prev + 1;
+                      return nextIndex >= filteredOptions.length ? 0 : nextIndex;
+                    });
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setHighlightedIndex((prev) => {
+                      const prevIndex = prev - 1;
+                      return prevIndex < 0 ? filteredOptions.length - 1 : prevIndex;
+                    });
+                  }
+                }}
               />
             </div>
           )}
@@ -316,19 +390,23 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
             ) : filteredOptions.length === 0 ? (
               <div className={styles.tossSelectEmpty}>{emptyMessage}</div>
             ) : (
-              filteredOptions.map((option) => {
+              filteredOptions.map((option, index) => {
                 const isSelected = option.value === value;
+                const isHighlighted = index === highlightedIndex;
                 const optionClasses = [
                   styles.tossSelectOption,
                   isSelected ? styles.tossSelectOptionSelected : '',
+                  isHighlighted ? styles.tossSelectOptionHighlighted : '',
                   option.disabled ? styles.tossSelectOptionDisabled : ''
                 ].filter(Boolean).join(' ');
 
                 return (
                   <div
                     key={option.value}
+                    ref={(el) => (optionRefs.current[index] = el)}
                     className={optionClasses}
                     onClick={() => handleOptionClick(option.value)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
                     role="option"
                     aria-selected={isSelected}
                   >
@@ -380,6 +458,8 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
       ) : null}
     </div>
   );
-};
+});
+
+TossSelector.displayName = 'TossSelector';
 
 export default TossSelector;

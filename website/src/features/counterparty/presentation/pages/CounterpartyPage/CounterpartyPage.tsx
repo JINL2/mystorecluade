@@ -49,7 +49,8 @@ export const CounterpartyPage: React.FC = () => {
     if (currentCompany?.company_id) {
       loadCounterparties(currentCompany.company_id);
     }
-  }, [currentCompany?.company_id, loadCounterparties]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCompany?.company_id]); // Remove loadCounterparties from deps to prevent infinite loop
 
   // Monitor error state and display in ErrorMessage
   useEffect(() => {

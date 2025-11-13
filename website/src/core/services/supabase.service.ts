@@ -174,9 +174,21 @@ export class AuthService {
 
   /**
    * Get current user
+   * Returns null if no session exists (not an error condition)
    */
   async getCurrentUser() {
     try {
+      // First check if session exists to avoid error logs
+      const {
+        data: { session },
+      } = await this.supabase.auth.getSession();
+
+      // No session = user not logged in (normal condition, not an error)
+      if (!session) {
+        return { success: true, user: null };
+      }
+
+      // Session exists, get user details
       const {
         data: { user },
         error,
@@ -190,6 +202,7 @@ export class AuthService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        user: null,
       };
     }
   }

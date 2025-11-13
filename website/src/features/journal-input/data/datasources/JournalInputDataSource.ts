@@ -222,7 +222,8 @@ export class JournalInputDataSource {
     );
     const counterpartyStoreCashLocationId = counterpartyWithLinkedCompany?.counterpartyCashLocationId || null;
 
-    const { data, error } = await supabase.rpc('insert_journal_with_everything', {
+    // Log RPC parameters for debugging
+    const rpcParams = {
       p_base_amount: totalAmount,
       p_company_id: params.companyId,
       p_created_by: params.createdBy,
@@ -232,11 +233,29 @@ export class JournalInputDataSource {
       p_store_id: params.storeId,
       p_counterparty_id: mainCounterpartyId,
       p_if_cash_location_id: counterpartyStoreCashLocationId,
-    });
+    };
+
+    console.log('=== RPC Parameters ===');
+    console.log('p_lines:', JSON.stringify(lines, null, 2));
+    console.log('Full params:', JSON.stringify(rpcParams, null, 2));
+
+    const { data, error } = await supabase.rpc('insert_journal_with_everything', rpcParams);
 
     if (error) {
       console.error('Error submitting journal entry:', error);
-      throw new Error(error.message);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+
+      // Translate Korean error messages to English for consistency
+      let errorMessage = error.message;
+
+      // Common Korean error patterns from database
+      if (errorMessage.includes('조차가 아닙니다') || errorMessage.includes('credit') || errorMessage.includes('debit')) {
+        errorMessage = 'Invalid transaction line format. Please check debit and credit values.';
+      } else if (errorMessage.includes('경고') || errorMessage.includes('실패')) {
+        errorMessage = 'Journal entry validation failed. Please check all required fields.';
+      }
+
+      throw new Error(errorMessage);
     }
 
     return { journal_id: data };

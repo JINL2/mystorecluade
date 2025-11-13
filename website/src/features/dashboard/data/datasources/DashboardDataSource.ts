@@ -49,7 +49,6 @@ export class DashboardDataSource {
     date: string
   ): Promise<{ success: boolean; data?: DashboardRawData; error?: string }> {
     try {
-      console.log(DashboardMessages.technical.rpcDebugFetch({ companyId, date }));
       const supabase = supabaseService.getClient();
 
       const { data, error } = await supabase.rpc('get_dashboard_page', {
@@ -57,10 +56,9 @@ export class DashboardDataSource {
         p_date: date,
       });
 
-      console.log(DashboardMessages.technical.rpcDebugResponse(data, error));
-
       if (error) {
-        console.error(DashboardMessages.technical.rpcDebugError(error));
+        // Log only actual errors, not debug info
+        console.error('Dashboard RPC error:', error.message);
         return {
           success: false,
           error: error.message || DashboardMessages.errors.rpcFailed,
@@ -68,20 +66,19 @@ export class DashboardDataSource {
       }
 
       if (!data) {
-        console.warn(DashboardMessages.technical.rpcDebugNoData);
         return {
           success: false,
           error: DashboardMessages.errors.noDataReturned,
         };
       }
 
-      console.log(DashboardMessages.technical.rpcDebugSuccess);
       return {
         success: true,
         data: data as DashboardRawData,
       };
     } catch (error) {
-      console.error(DashboardMessages.technical.datasourceError(error));
+      // Log only critical errors
+      console.error('Dashboard datasource error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : DashboardMessages.errors.unknownError,

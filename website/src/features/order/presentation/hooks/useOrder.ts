@@ -40,38 +40,21 @@ export const useOrder = (companyId: string, storeId: string | null) => {
   // Notification state
   const notification = useOrderStore((state) => state.notification);
 
-  // Actions - Group actions together for better performance
-  const {
-    setActiveTab,
-    setSearchQuery,
-    toggleOrderSelection,
-    selectAllOrders,
-    clearSelection,
-    setSelectedOrder,
-    showNotification,
-    hideNotification,
-    setLoading,
-    setError,
-    clearError,
-    loadOrders,
-    createOrder,
-    cancelOrder,
-  } = useOrderStore((state) => ({
-    setActiveTab: state.setActiveTab,
-    setSearchQuery: state.setSearchQuery,
-    toggleOrderSelection: state.toggleOrderSelection,
-    selectAllOrders: state.selectAllOrders,
-    clearSelection: state.clearSelection,
-    setSelectedOrder: state.setSelectedOrder,
-    showNotification: state.showNotification,
-    hideNotification: state.hideNotification,
-    setLoading: state.setLoading,
-    setError: state.setError,
-    clearError: state.clearError,
-    loadOrders: state.loadOrders,
-    createOrder: state.createOrder,
-    cancelOrder: state.cancelOrder,
-  }));
+  // Actions - Select individually to avoid creating new objects
+  const setActiveTab = useOrderStore((state) => state.setActiveTab);
+  const setSearchQuery = useOrderStore((state) => state.setSearchQuery);
+  const toggleOrderSelection = useOrderStore((state) => state.toggleOrderSelection);
+  const selectAllOrders = useOrderStore((state) => state.selectAllOrders);
+  const clearSelection = useOrderStore((state) => state.clearSelection);
+  const setSelectedOrder = useOrderStore((state) => state.setSelectedOrder);
+  const showNotification = useOrderStore((state) => state.showNotification);
+  const hideNotification = useOrderStore((state) => state.hideNotification);
+  const setLoading = useOrderStore((state) => state.setLoading);
+  const setError = useOrderStore((state) => state.setError);
+  const clearError = useOrderStore((state) => state.clearError);
+  const loadOrders = useOrderStore((state) => state.loadOrders);
+  const createOrder = useOrderStore((state) => state.createOrder);
+  const cancelOrder = useOrderStore((state) => state.cancelOrder);
 
   // ============================================
   // AUTO-LOAD ORDERS
@@ -82,7 +65,8 @@ export const useOrder = (companyId: string, storeId: string | null) => {
     if (companyId) {
       loadOrders(companyId, storeId);
     }
-  }, [companyId, storeId, loadOrders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId, storeId]); // Remove loadOrders from deps to prevent infinite loop
 
   // ============================================
   // REFRESH FUNCTION
@@ -93,7 +77,8 @@ export const useOrder = (companyId: string, storeId: string | null) => {
     if (companyId) {
       loadOrders(companyId, storeId);
     }
-  }, [companyId, storeId, loadOrders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId, storeId]); // Remove loadOrders from deps
 
   // ============================================
   // FILTERED ORDERS

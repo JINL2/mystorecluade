@@ -65,24 +65,19 @@ export const useAccountMapping = (companyId: string) => {
   const hideError = useAccountMappingStore((state) => state.hideError);
 
   // ============================================
-  // COMPUTED VALUES (Optimized with Zustand selectors)
+  // COMPUTED VALUES
+  // Computed here to avoid creating new arrays in selectors
   // ============================================
 
   /**
    * Outgoing mappings (created by current company)
-   * Using selector for automatic re-render optimization
    */
-  const outgoingMappings = useAccountMappingStore((state) =>
-    state.mappings.filter((m) => !m.isReadOnly)
-  );
+  const outgoingMappings = mappings.filter((m) => !m.isReadOnly);
 
   /**
    * Incoming mappings (created by other companies, read-only)
-   * Using selector for automatic re-render optimization
    */
-  const incomingMappings = useAccountMappingStore((state) =>
-    state.mappings.filter((m) => m.isReadOnly)
-  );
+  const incomingMappings = mappings.filter((m) => m.isReadOnly);
 
   // ============================================
   // EFFECTS

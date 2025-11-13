@@ -57,7 +57,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ redirectUrl }) => {
   };
 
   const handleSignUpClick = () => {
-    navigate('/auth/register');
+    navigate('/register');
   };
 
   if (loading) {

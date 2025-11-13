@@ -132,12 +132,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         recentTransactions: result.data.recentTransactions,
       });
 
-      if (!validation.isValid) {
-        console.warn(
-          DashboardMessages.technical.validationWarnings(validation.errors)
-        );
-        // Don't block rendering for data integrity issues, just log warnings
-      }
+      // Note: Data validation warnings are silently handled
+      // Don't block rendering for data integrity issues
 
       set({
         data: result.data,

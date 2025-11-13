@@ -10,6 +10,7 @@ import { PublicRoute } from './PublicRoute';
 
 // Feature Pages
 import { LoginPage } from '@/features/auth/presentation/pages/LoginPage';
+import { RegisterPage } from '@/features/auth/presentation/pages/RegisterPage';
 import { DashboardPage } from '@/features/dashboard/presentation/pages/DashboardPage';
 import { AccountMappingPage } from '@/features/account-mapping/presentation/pages/AccountMappingPage';
 import { BalanceSheetPage } from '@/features/balance-sheet/presentation/pages/BalanceSheetPage';
@@ -40,6 +41,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <PublicRoute>
             <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <RegisterPage />
           </PublicRoute>
         }
       />

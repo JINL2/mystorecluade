@@ -241,7 +241,8 @@
   color: var(--toss-gray-900, #212529) !important;
 }
 
-.tossSelectOption:hover {
+.tossSelectOption:hover,
+.tossSelectOption.tossSelectOptionHighlighted {
   background: var(--toss-gray-50, #F8F9FA) !important;
 }
 

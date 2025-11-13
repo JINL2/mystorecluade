@@ -37,56 +37,30 @@ export const useOrderForm = () => {
   const error = useOrderFormStore((state) => state.error);
   const validationErrors = useOrderFormStore((state) => state.validationErrors);
 
-  // Actions - Group actions together
-  const {
-    setOrderDate,
-    setNotes,
-    setSupplierTab,
-    setSelectedSupplier,
-    setSupplierInfo,
-    setOrderItems,
-    setIsDropdownOpen,
-    setSearchTerm,
-    setShowSuggestions,
-    setSearchResults,
-    setIsCreating,
-    setError,
-    setValidationErrors,
-    clearErrors,
-    addOrderItem,
-    updateOrderItemQuantity,
-    updateOrderItemPrice,
-    removeOrderItem,
-    searchProducts,
-    clearSearch,
-    validateForm,
-    resetForm,
-    getSummary,
-  } = useOrderFormStore((state) => ({
-    setOrderDate: state.setOrderDate,
-    setNotes: state.setNotes,
-    setSupplierTab: state.setSupplierTab,
-    setSelectedSupplier: state.setSelectedSupplier,
-    setSupplierInfo: state.setSupplierInfo,
-    setOrderItems: state.setOrderItems,
-    setIsDropdownOpen: state.setIsDropdownOpen,
-    setSearchTerm: state.setSearchTerm,
-    setShowSuggestions: state.setShowSuggestions,
-    setSearchResults: state.setSearchResults,
-    setIsCreating: state.setIsCreating,
-    setError: state.setError,
-    setValidationErrors: state.setValidationErrors,
-    clearErrors: state.clearErrors,
-    addOrderItem: state.addOrderItem,
-    updateOrderItemQuantity: state.updateOrderItemQuantity,
-    updateOrderItemPrice: state.updateOrderItemPrice,
-    removeOrderItem: state.removeOrderItem,
-    searchProducts: state.searchProducts,
-    clearSearch: state.clearSearch,
-    validateForm: state.validateForm,
-    resetForm: state.resetForm,
-    getSummary: state.getSummary,
-  }));
+  // Actions - Select individually to avoid creating new objects
+  const setOrderDate = useOrderFormStore((state) => state.setOrderDate);
+  const setNotes = useOrderFormStore((state) => state.setNotes);
+  const setSupplierTab = useOrderFormStore((state) => state.setSupplierTab);
+  const setSelectedSupplier = useOrderFormStore((state) => state.setSelectedSupplier);
+  const setSupplierInfo = useOrderFormStore((state) => state.setSupplierInfo);
+  const setOrderItems = useOrderFormStore((state) => state.setOrderItems);
+  const setIsDropdownOpen = useOrderFormStore((state) => state.setIsDropdownOpen);
+  const setSearchTerm = useOrderFormStore((state) => state.setSearchTerm);
+  const setShowSuggestions = useOrderFormStore((state) => state.setShowSuggestions);
+  const setSearchResults = useOrderFormStore((state) => state.setSearchResults);
+  const setIsCreating = useOrderFormStore((state) => state.setIsCreating);
+  const setError = useOrderFormStore((state) => state.setError);
+  const setValidationErrors = useOrderFormStore((state) => state.setValidationErrors);
+  const clearErrors = useOrderFormStore((state) => state.clearErrors);
+  const addOrderItem = useOrderFormStore((state) => state.addOrderItem);
+  const updateOrderItemQuantity = useOrderFormStore((state) => state.updateOrderItemQuantity);
+  const updateOrderItemPrice = useOrderFormStore((state) => state.updateOrderItemPrice);
+  const removeOrderItem = useOrderFormStore((state) => state.removeOrderItem);
+  const searchProducts = useOrderFormStore((state) => state.searchProducts);
+  const clearSearch = useOrderFormStore((state) => state.clearSearch);
+  const validateForm = useOrderFormStore((state) => state.validateForm);
+  const resetForm = useOrderFormStore((state) => state.resetForm);
+  const getSummary = useOrderFormStore((state) => state.getSummary);
 
   // ============================================
   // AUTO-INITIALIZE FORM

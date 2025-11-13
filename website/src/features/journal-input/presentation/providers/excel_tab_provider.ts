@@ -1,0 +1,357 @@
+/**
+ * Excel Tab Zustand Store
+ * Centralized state management for Excel-like journal entry input
+ */
+
+import { create } from 'zustand';
+import type { ExcelTabState, ExcelRowData, CounterpartyModalData } from './states/excel_tab_state';
+import { JournalInputRepositoryImpl } from '../../data/repositories/JournalInputRepositoryImpl';
+import { JournalEntry } from '../../domain/entities/JournalEntry';
+import { TransactionLine } from '../../domain/entities/TransactionLine';
+import { JournalDate } from '../../domain/value-objects/JournalDate';
+
+const repository = new JournalInputRepositoryImpl();
+
+// Initial row template
+const createEmptyRow = (id: number): ExcelRowData => ({
+  id,
+  date: '',
+  accountId: '',
+  locationId: '',
+  internalId: '',
+  externalId: '',
+  detail: '',
+  debit: '',
+  credit: '',
+  counterpartyStoreId: '',
+  counterpartyCashLocationId: '',
+  debtCategory: '',
+});
+
+export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
+  // Initial State
+  rows: [createEmptyRow(1), createEmptyRow(2)],
+  nextId: 3,
+
+  // UI State
+  submitting: false,
+  showMappingWarning: false,
+  mappingWarningMessage: '',
+
+  // Modal State
+  showCashLocationModal: false,
+  selectedRowForModal: null,
+  modalCounterpartyData: null,
+
+  // Actions - Row Operations
+  addRow: () => {
+    const state = get();
+    set({
+      rows: [...state.rows, createEmptyRow(state.nextId)],
+      nextId: state.nextId + 1,
+    });
+  },
+
+  deleteRow: (rowId) => {
+    const state = get();
+    if (state.rows.length <= 2) return; // Minimum 2 rows required
+    set({
+      rows: state.rows.filter((row) => row.id !== rowId),
+    });
+  },
+
+  updateRowField: (rowId, field, value) => {
+    const state = get();
+    set({
+      rows: state.rows.map((row, index) => {
+        if (row.id === rowId) {
+          const updated = { ...row, [field]: value };
+
+          // If account is changed, reset all fields except date
+          if (field === 'accountId') {
+            updated.locationId = '';
+            updated.internalId = '';
+            updated.externalId = '';
+            updated.detail = '';
+            updated.debit = '';
+            updated.credit = '';
+            updated.counterpartyStoreId = '';
+            updated.counterpartyCashLocationId = '';
+            updated.debtCategory = '';
+          }
+
+          // If internal is selected, clear external
+          if (field === 'internalId' && value) {
+            updated.externalId = '';
+            updated.counterpartyStoreId = '';
+            updated.counterpartyCashLocationId = '';
+            updated.debtCategory = '';
+          }
+          // If external is selected, clear internal and counterparty cash location
+          if (field === 'externalId' && value) {
+            updated.internalId = '';
+            updated.counterpartyStoreId = '';
+            updated.counterpartyCashLocationId = '';
+            updated.debtCategory = '';
+          }
+
+          return updated;
+        }
+
+        // Date synchronization logic for first two rows
+        if (field === 'date' && value) {
+          // If date is set on first row (index 0) and second row (index 1) has no date, copy it
+          if (rowId === 1 && index === 1 && !row.date) {
+            return { ...row, date: value };
+          }
+          // If date is set on second row (index 1) and first row (index 0) has no date, copy it
+          if (rowId === 2 && index === 0 && !row.date) {
+            return { ...row, date: value };
+          }
+        }
+
+        return row;
+      }),
+    });
+  },
+
+  clearCounterparty: (rowId, field) => {
+    get().updateRowField(rowId, field, '');
+  },
+
+  // Actions - Modal Operations
+  openCashLocationModal: (rowId, data) => {
+    set({
+      selectedRowForModal: rowId,
+      modalCounterpartyData: data,
+      showCashLocationModal: true,
+    });
+  },
+
+  closeCashLocationModal: () => {
+    set({
+      showCashLocationModal: false,
+      selectedRowForModal: null,
+      modalCounterpartyData: null,
+    });
+  },
+
+  confirmCashLocationModal: (storeId, cashLocationId, debtCategory) => {
+    const state = get();
+    if (state.selectedRowForModal !== null && state.modalCounterpartyData) {
+      set({
+        rows: state.rows.map((row) =>
+          row.id === state.selectedRowForModal
+            ? {
+                ...row,
+                internalId: state.modalCounterpartyData!.counterpartyId,
+                externalId: '',
+                counterpartyStoreId: storeId,
+                counterpartyCashLocationId: cashLocationId,
+                debtCategory: debtCategory,
+              }
+            : row
+        ),
+        showCashLocationModal: false,
+        selectedRowForModal: null,
+        modalCounterpartyData: null,
+      });
+    }
+  },
+
+  // Actions - Warning Operations
+  showWarning: (message) => {
+    set({
+      showMappingWarning: true,
+      mappingWarningMessage: message,
+    });
+  },
+
+  hideWarning: () => {
+    set({
+      showMappingWarning: false,
+      mappingWarningMessage: '',
+    });
+  },
+
+  // Actions - Submit
+  submitExcelEntry: async (companyId, selectedStoreId, userId, accounts, counterparties) => {
+    const state = get();
+
+    // Validate form
+    const { isValid, error } = validateExcelForm(state.rows, accounts);
+    if (!isValid) {
+      return { success: false, error };
+    }
+
+    set({ submitting: true });
+
+    try {
+      // Transform rows to transaction lines
+      const transactionLines: TransactionLine[] = state.rows.map((row) => {
+        const account = accounts.find((acc) => acc.accountId === row.accountId);
+        const debitValue = parseFloat(row.debit.replace(/,/g, '')) || 0;
+        const creditValue = parseFloat(row.credit.replace(/,/g, '')) || 0;
+        const amount = debitValue > 0 ? debitValue : creditValue;
+        const isDebit = debitValue > 0;
+
+        // Find counterparty data
+        const counterpartyId = row.internalId || row.externalId || null;
+        const counterparty = counterpartyId
+          ? counterparties.find((cp) => cp.counterpartyId === counterpartyId)
+          : null;
+
+        // Use debt category from row (selected by user in modal)
+        // Only use it if counterparty exists
+        let debtCategory = null;
+        if (counterpartyId && row.debtCategory) {
+          debtCategory = row.debtCategory;
+        }
+
+        return new TransactionLine(
+          isDebit,
+          row.accountId,
+          account?.accountName || '', // accountName
+          amount,
+          row.detail || '',
+          account?.categoryTag || null, // categoryTag
+          row.locationId || null, // cashLocationId
+          null, // cashLocationName
+          null, // cashLocationType
+          counterpartyId,
+          counterparty?.counterpartyName || null, // counterpartyName
+          row.counterpartyStoreId || null,
+          null, // counterpartyStoreName
+          debtCategory,
+          null, // interestRate
+          null, // interestAccountId
+          null, // interestDueDay
+          row.date, // issueDate
+          null, // dueDate
+          null, // debtDescription
+          counterparty?.linkedCompanyId || null,
+          row.counterpartyCashLocationId || null
+        );
+      });
+
+      // Create JournalEntry entity
+      const journalEntry = new JournalEntry(
+        companyId,
+        selectedStoreId,
+        state.rows[0].date, // Use first row's date
+        transactionLines
+      );
+
+      // Submit through repository
+      const result = await repository.submitJournalEntry(
+        journalEntry,
+        userId,
+        'Excel journal entry'
+      );
+
+      if (result.success) {
+        // Reset form on success
+        set({
+          rows: [createEmptyRow(1), createEmptyRow(2)],
+          nextId: 3,
+          submitting: false,
+        });
+        return { success: true };
+      } else {
+        set({ submitting: false });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      set({ submitting: false });
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to submit journal entry',
+      };
+    }
+  },
+
+  // Reset
+  reset: () => {
+    set({
+      rows: [createEmptyRow(1), createEmptyRow(2)],
+      nextId: 3,
+      submitting: false,
+      showMappingWarning: false,
+      mappingWarningMessage: '',
+      showCashLocationModal: false,
+      selectedRowForModal: null,
+      modalCounterpartyData: null,
+    });
+  },
+}));
+
+// Helper functions
+function validateExcelForm(rows: ExcelRowData[], accounts: any[]) {
+  // Calculate totals
+  const totalDebit = rows.reduce((sum, row) => {
+    const value = parseFloat(row.debit.replace(/,/g, '')) || 0;
+    return sum + value;
+  }, 0);
+
+  const totalCredit = rows.reduce((sum, row) => {
+    const value = parseFloat(row.credit.replace(/,/g, '')) || 0;
+    return sum + value;
+  }, 0);
+
+  const difference = totalDebit - totalCredit;
+
+  // Check difference is 0
+  if (difference !== 0) {
+    return { isValid: false, error: 'Debits and credits must be balanced' };
+  }
+
+  // Check each row
+  for (const row of rows) {
+    // Date must be filled
+    if (!row.date) {
+      return { isValid: false, error: 'All rows must have a date' };
+    }
+
+    // Account must be selected
+    if (!row.accountId) {
+      return { isValid: false, error: 'All rows must have an account selected' };
+    }
+
+    // If Cash account, Location must be selected
+    const account = accounts.find((acc) => acc.accountId === row.accountId);
+    const isCashAccount = account && account.accountName.toLowerCase() === 'cash';
+    if (isCashAccount && !row.locationId) {
+      return { isValid: false, error: 'Cash accounts must have a location selected' };
+    }
+
+    // If Payable/Receivable account, either Internal or External must be selected
+    const isPayableOrReceivable =
+      account &&
+      account.categoryTag &&
+      (account.categoryTag.toLowerCase() === 'payable' ||
+        account.categoryTag.toLowerCase() === 'receivable');
+    if (isPayableOrReceivable && !row.internalId && !row.externalId) {
+      return {
+        isValid: false,
+        error: 'Payable/Receivable accounts must have a counterparty selected',
+      };
+    }
+
+    // If Internal counterparty is selected, debt category must be selected
+    if (row.internalId && !row.debtCategory) {
+      return {
+        isValid: false,
+        error: 'Internal counterparties must have a debt category selected',
+      };
+    }
+
+    // Either Debit or Credit must have a value
+    const debitValue = parseFloat(row.debit.replace(/,/g, '')) || 0;
+    const creditValue = parseFloat(row.credit.replace(/,/g, '')) || 0;
+    if (debitValue === 0 && creditValue === 0) {
+      return { isValid: false, error: 'Each row must have either a debit or credit value' };
+    }
+  }
+
+  return { isValid: true };
+}

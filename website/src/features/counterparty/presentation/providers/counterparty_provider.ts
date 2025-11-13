@@ -44,6 +44,7 @@ export const useCounterpartyStore = create<CounterpartyState>((set, get) => ({
   formData: { ...initialFormData },
 
   // ==================== Computed Values ====================
+  // Note: isFormValid is computed in the component/hook using the formData
 
   get isFormValid() {
     const { formData } = get();
@@ -54,13 +55,8 @@ export const useCounterpartyStore = create<CounterpartyState>((set, get) => ({
     );
   },
 
-  get internalCounterparties() {
-    return get().counterparties.filter((c) => c.isInternal);
-  },
-
-  get externalCounterparties() {
-    return get().counterparties.filter((c) => !c.isInternal);
-  },
+  // Note: internalCounterparties and externalCounterparties moved to useCounterparty hook
+  // using useMemo to prevent re-creating arrays on every render
 
   // ==================== Data Actions ====================
 

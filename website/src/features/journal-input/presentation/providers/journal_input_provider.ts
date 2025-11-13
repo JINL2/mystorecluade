@@ -96,7 +96,6 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
     } catch (err) {
       // Data loading errors are handled silently
       // Dropdown components will show empty state with "No items found" message
-      console.error('Failed to load initial data:', err);
       set({ loading: false });
     }
   },
@@ -153,7 +152,6 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
       );
       return mapping !== null;
     } catch (error) {
-      console.error('Error checking account mapping:', error);
       return false;
     }
   },
@@ -162,7 +160,6 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
     try {
       return await repository.getCounterpartyStores(linkedCompanyId);
     } catch (error) {
-      console.error('Error fetching counterparty stores:', error);
       return [];
     }
   },
@@ -171,7 +168,6 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
     try {
       return await repository.getCashLocations(linkedCompanyId, storeId);
     } catch (error) {
-      console.error('Error fetching counterparty cash locations:', error);
       return [];
     }
   },

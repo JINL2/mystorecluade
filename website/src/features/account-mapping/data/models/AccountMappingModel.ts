@@ -47,6 +47,9 @@ export class AccountMappingModel {
    * DB에서 받은 UTC 시간을 로컬 시간으로 변환합니다.
    */
   static fromJson(json: AccountMappingDTO, isReadOnly: boolean = false): AccountMapping {
+    // Use toLocalSafe to handle null/undefined created_at
+    const createdAt = DateTimeUtils.toLocalSafe(json.created_at) || new Date();
+
     return new AccountMapping(
       json.mapping_id,
       json.my_company_id,
@@ -59,7 +62,7 @@ export class AccountMappingModel {
       json.linked_account_code || null,
       json.linked_category_tag,
       (json.direction as MappingDirection) || 'outgoing',
-      DateTimeUtils.toLocal(json.created_at), // UTC → Local 변환
+      createdAt, // UTC → Local 변환 (null-safe)
       isReadOnly
     );
   }

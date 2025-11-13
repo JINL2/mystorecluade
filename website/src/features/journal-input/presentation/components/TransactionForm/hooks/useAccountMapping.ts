@@ -61,7 +61,6 @@ export const useAccountMapping = ({
         setAccountMappingStatus('valid');
       }
     } catch (error) {
-      console.error('Error checking account mapping:', error);
       setAccountMappingStatus('invalid');
       setShowMappingWarning(true);
     }

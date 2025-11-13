@@ -14,7 +14,7 @@ export interface CounterpartyCashLocationModalProps {
   linkedCompanyId: string;
   onGetCounterpartyStores?: (linkedCompanyId: string) => Promise<Array<{ storeId: string; storeName: string }>>;
   onGetCounterpartyCashLocations?: (linkedCompanyId: string, storeId?: string | null) => Promise<any[]>;
-  onConfirm: (storeId: string, cashLocationId: string) => void;
+  onConfirm: (storeId: string, cashLocationId: string, debtCategory: string) => void;
   onCancel: () => void;
 }
 
@@ -31,6 +31,7 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
   const [cashLocations, setCashLocations] = useState<any[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [selectedCashLocationId, setSelectedCashLocationId] = useState('');
+  const [selectedDebtCategory, setSelectedDebtCategory] = useState('');
   const [loadingStores, setLoadingStores] = useState(false);
   const [loadingCashLocations, setLoadingCashLocations] = useState(false);
 
@@ -44,7 +45,6 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
         const storesData = await onGetCounterpartyStores(linkedCompanyId);
         setStores(storesData);
       } catch (error) {
-        console.error('Error loading counterparty stores:', error);
         setStores([]);
       } finally {
         setLoadingStores(false);
@@ -68,7 +68,6 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
         const locationsData = await onGetCounterpartyCashLocations(linkedCompanyId, selectedStoreId || null);
         setCashLocations(locationsData);
       } catch (error) {
-        console.error('Error loading counterparty cash locations:', error);
         setCashLocations([]);
       } finally {
         setLoadingCashLocations(false);
@@ -85,6 +84,7 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
       setCashLocations([]);
       setSelectedStoreId('');
       setSelectedCashLocationId('');
+      setSelectedDebtCategory('');
     }
   }, [isOpen]);
 
@@ -99,9 +99,17 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
     description: location.locationType || undefined,
   }));
 
+  // Debt category options (must match database constraint)
+  const debtCategoryOptions: TossSelectorOption[] = [
+    { value: 'note', label: 'Note' },
+    { value: 'account', label: 'Account' },
+    { value: 'loan', label: 'Loan' },
+    { value: 'other', label: 'Other' },
+  ];
+
   const handleConfirm = () => {
-    if (selectedStoreId && selectedCashLocationId) {
-      onConfirm(selectedStoreId, selectedCashLocationId);
+    if (selectedStoreId && selectedCashLocationId && selectedDebtCategory) {
+      onConfirm(selectedStoreId, selectedCashLocationId, selectedDebtCategory);
     }
   };
 
@@ -109,7 +117,7 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
     onCancel();
   };
 
-  const isValid = selectedStoreId && selectedCashLocationId;
+  const isValid = selectedStoreId && selectedCashLocationId && selectedDebtCategory;
 
   if (!isOpen) return null;
 
@@ -162,6 +170,20 @@ export const CounterpartyCashLocationModal: React.FC<CounterpartyCashLocationMod
               fullWidth={true}
               emptyMessage={loadingCashLocations ? "Loading..." : "No cash locations available"}
               disabled={loadingCashLocations || !selectedStoreId}
+            />
+          </div>
+
+          <div className={styles.selectorSpacing}>
+            <TossSelector
+              label="Debt Category"
+              placeholder="Select debt category"
+              value={selectedDebtCategory}
+              options={debtCategoryOptions}
+              onChange={(value) => setSelectedDebtCategory(value)}
+              required={true}
+              searchable={false}
+              fullWidth={true}
+              emptyMessage="No categories available"
             />
           </div>
         </div>

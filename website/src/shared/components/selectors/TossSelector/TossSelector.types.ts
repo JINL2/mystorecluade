@@ -51,6 +51,12 @@ export interface TossSelectorProps {
   onChange: (value: string, option?: TossSelectorOption) => void;
 
   /**
+   * Callback when selection is completed (after dropdown closes)
+   * Useful for auto-focusing next field
+   */
+  onSelect?: (value: string, option?: TossSelectorOption) => void;
+
+  /**
    * Show "Add new" button at bottom of dropdown
    * @default false
    */

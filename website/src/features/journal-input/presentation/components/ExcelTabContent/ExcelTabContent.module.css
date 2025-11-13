@@ -52,6 +52,12 @@
   background: #f0f7ff;
 }
 
+.table input:disabled {
+  background: #F1F3F5;
+  color: #ADB5BD;
+  cursor: not-allowed;
+}
+
 /* Hide number input arrows */
 .table input[type="text"][inputmode="decimal"]::-webkit-outer-spin-button,
 .table input[type="text"][inputmode="decimal"]::-webkit-inner-spin-button {

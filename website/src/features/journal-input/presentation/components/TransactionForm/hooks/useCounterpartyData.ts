@@ -52,7 +52,6 @@ export const useCounterpartyData = ({
         const stores = await onGetCounterpartyStores(selectedCounterpartyData.linkedCompanyId);
         setCounterpartyStores(stores);
       } catch (error) {
-        console.error('Error loading counterparty stores:', error);
         setCounterpartyStores([]);
       } finally {
         setLoadingCounterpartyStores(false);
@@ -89,7 +88,6 @@ export const useCounterpartyData = ({
         );
         setCounterpartyCashLocations(locations);
       } catch (error) {
-        console.error('Error loading counterparty cash locations:', error);
         setCounterpartyCashLocations([]);
       } finally {
         setLoadingCounterpartyCashLocations(false);
