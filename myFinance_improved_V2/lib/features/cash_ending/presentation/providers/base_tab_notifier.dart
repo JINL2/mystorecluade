@@ -51,8 +51,10 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
       );
 
       if (result.success) {
+        // Optimize list copying: use List.of() + addAll() instead of spread operator
+        // This is more efficient for large lists (O(n) single allocation vs O(n) multiple allocations)
         final newFlows = loadMore
-            ? [...state.stockFlows, ...result.actualFlows]
+            ? (List<ActualFlow>.of(state.stockFlows)..addAll(result.actualFlows))
             : result.actualFlows;
 
         state = (state as dynamic).copyWith(
