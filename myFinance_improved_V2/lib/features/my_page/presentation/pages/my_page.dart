@@ -14,6 +14,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/auth_providers.dart';
 import '../providers/user_profile_providers.dart';
 import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
@@ -41,6 +42,18 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     _scrollController = ScrollController();
     _setupAnimations();
     _entryController.forward();
+
+    // Load user data when page is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
+  }
+
+  Future<void> _loadInitialData() async {
+    final authState = await ref.read(authStateProvider.future);
+    if (authState != null) {
+      await ref.read(myPageProvider.notifier).loadUserData(authState.id);
+    }
   }
 
   void _setupAnimations() {
@@ -87,7 +100,13 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, size: 24),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/');
+                      }
+                    },
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),

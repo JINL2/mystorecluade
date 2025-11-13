@@ -35,32 +35,18 @@ class FeatureGrid extends ConsumerWidget {
           return 0;
         });
 
-        return Container(
-          color: TossColors.gray100,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Text(
-                  'All Features',
-                  style: TossTextStyles.h2.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.6,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space4),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Categories (only with features)
+              ...categoriesWithFeatures.map((category) => _CategorySection(
+                    category: category,
+                  ),),
 
-                // Categories (only with features)
-                ...categoriesWithFeatures.map((category) => _CategorySection(
-                      category: category,
-                    ),),
-
-                const SizedBox(height: TossSpacing.space10),
-              ],
-            ),
+              const SizedBox(height: TossSpacing.space10),
+            ],
           ),
         );
       },
@@ -115,42 +101,18 @@ class _CategorySection extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-        border: Border.all(
-          color: TossColors.borderLight,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.textPrimary.withOpacity(0.02),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Category Header
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Text(
-                category.categoryName,
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                ),
-              ),
-            ],
+          Text(
+            category.categoryName,
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
           ),
           const SizedBox(height: TossSpacing.space4),
 
@@ -203,25 +165,27 @@ class _FeatureListItem extends StatelessWidget {
         highlightColor: TossColors.primary.withOpacity(0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space3,
             vertical: TossSpacing.space3,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Icon
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                  shape: BoxShape.circle,
                 ),
-                child: DynamicIcon(
-                  iconKey: feature.iconKey,
-                  featureName: feature.featureName,
-                  size: 20,
-                  color: TossColors.gray700,
-                  useDefaultColor: false,
+                child: Center(
+                  child: DynamicIcon(
+                    iconKey: feature.iconKey,
+                    featureName: feature.featureName,
+                    size: 20,
+                    color: TossColors.gray700,
+                    useDefaultColor: false,
+                  ),
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -238,7 +202,7 @@ class _FeatureListItem extends StatelessWidget {
                     height: 1.3,
                   ),
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                  maxLines: 2,
                 ),
               ),
 

@@ -81,14 +81,6 @@ class _FeatureCardState extends State<FeatureCard>
                   color: TossColors.gray200,
                   width: 0.5,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: TossColors.gray900.withOpacity(0.04),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

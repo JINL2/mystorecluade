@@ -5,7 +5,6 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
-import '../../../../shared/themes/toss_shadows.dart';
 import '../../domain/revenue_period.dart';
 import '../providers/homepage_providers.dart';
 
@@ -22,106 +21,138 @@ class RevenueCard extends ConsumerWidget {
     final revenueAsync = ref.watch(revenueProvider(selectedPeriod));
 
     return Container(
-      margin: const EdgeInsets.all(TossSpacing.space4),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            TossColors.primary,
-            TossColors.primary.withValues(alpha: 0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
-        boxShadow: TossShadows.elevation3,
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with period selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Revenue',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with Company/Store tabs on right
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Title with period dropdown
+              PopupMenuButton<RevenuePeriod>(
+                initialValue: selectedPeriod,
+                onSelected: (period) {
+                  ref.read(selectedRevenuePeriodProvider.notifier).state = period;
+                },
+                offset: const Offset(0, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
-                _PeriodSelector(),
-              ],
-            ),
-
-            const SizedBox(height: TossSpacing.space3),
-
-            // Company/Store tabs
-            _TabSelector(
-              selectedTab: selectedTab,
-              onTabChanged: (RevenueViewTab tab) {
-                ref.read(selectedRevenueTabProvider.notifier).state = tab;
-              },
-            ),
-
-            const SizedBox(height: TossSpacing.space4),
-
-            // Revenue amount based on selected tab
-            revenueAsync.when(
-              data: (revenue) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${revenue.currencyCode}${_formatAmount(revenue.amount)}',
-                    style: TossTextStyles.display.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 36,
-                    ),
-                  ),
-
-                  const SizedBox(height: TossSpacing.space2),
-
-                  // Growth indicator
-                  if (revenue.previousAmount != 0) ...[
-                    Row(
+                color: TossColors.surface,
+                elevation: 8,
+                itemBuilder: (context) => RevenuePeriod.values.map((period) {
+                  return PopupMenuItem(
+                    value: period,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
-                          color: revenue.isIncreased
-                              ? TossColors.white.withValues(alpha: 0.9)
-                              : TossColors.white.withValues(alpha: 0.7),
-                          size: 16,
-                        ),
-                        const SizedBox(width: TossSpacing.space1),
                         Text(
-                          '${revenue.growthPercentage.toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.white.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
+                          period.displayName,
+                          style: TossTextStyles.body.copyWith(
+                            color: period == selectedPeriod
+                                ? TossColors.primary
+                                : TossColors.textPrimary,
+                            fontWeight: period == selectedPeriod
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
+                        if (period == selectedPeriod)
+                          const Icon(
+                            Icons.check,
+                            color: TossColors.primary,
+                            size: 18,
+                          ),
                       ],
                     ),
-                  ],
-
-                  const SizedBox(height: TossSpacing.space2),
-
-                  // Last updated
-                  Text(
-                    'Last updated: ${_formatLastUpdated(revenue.lastUpdated)}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.white.withValues(alpha: 0.7),
+                  );
+                }).toList(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Revenue ${selectedPeriod.displayName}',
+                      style: TossTextStyles.h3.copyWith(
+                        fontSize: 16,
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: TossSpacing.space1),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: TossColors.textSecondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
-              loading: () => const _LoadingRevenue(),
-              error: (error, _) => _ErrorRevenue(error: error.toString()),
+
+              // Company/Store tabs on right
+              _TabSelector(
+                selectedTab: selectedTab,
+                onTabChanged: (RevenueViewTab tab) {
+                  ref.read(selectedRevenueTabProvider.notifier).state = tab;
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Revenue amount based on selected tab
+          revenueAsync.when(
+            data: (revenue) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Amount
+                Text(
+                  '${revenue.currencyCode}${_formatAmount(revenue.amount)}',
+                  style: TossTextStyles.display.copyWith(
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40,
+                    height: 1.2,
+                    letterSpacing: -1.0,
+                  ),
+                ),
+
+                const SizedBox(height: TossSpacing.space2),
+
+                // Growth indicator
+                if (revenue.previousAmount != 0) ...[
+                  Row(
+                    children: [
+                      Icon(
+                        revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
+                        color: revenue.isIncreased ? TossColors.error : TossColors.success,
+                        size: 16,
+                      ),
+                      const SizedBox(width: TossSpacing.space1),
+                      Text(
+                        '${revenue.isIncreased ? '' : '-'}${revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
+                        style: TossTextStyles.body.copyWith(
+                          color: revenue.isIncreased ? TossColors.error : TossColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                ],
+              ],
             ),
-          ],
-        ),
+            loading: () => const _LoadingRevenue(),
+            error: (error, _) => _ErrorRevenue(error: error.toString()),
+          ),
+        ],
       ),
     );
   }
@@ -134,65 +165,8 @@ class RevenueCard extends ConsumerWidget {
       (Match m) => '${m[1]},',
     );
   }
-
-  String _formatLastUpdated(DateTime lastUpdated) {
-    final difference = DateTime.now().difference(lastUpdated);
-    if (difference.inMinutes < 1) return 'Just now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
-    if (difference.inHours < 24) return '${difference.inHours}h ago';
-    return '${difference.inDays}d ago';
-  }
 }
 
-class _PeriodSelector extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: PopupMenuButton<RevenuePeriod>(
-        initialValue: selectedPeriod,
-        onSelected: (period) {
-          ref.read(selectedRevenuePeriodProvider.notifier).state = period;
-        },
-        itemBuilder: (context) => RevenuePeriod.values.map((period) {
-          return PopupMenuItem(
-            value: period,
-            child: Text(period.displayName),
-          );
-        }).toList(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space2,
-            vertical: TossSpacing.space1,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                selectedPeriod.displayName,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(
-                Icons.arrow_drop_down,
-                color: TossColors.white,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _LoadingRevenue extends StatelessWidget {
   const _LoadingRevenue();
@@ -235,12 +209,8 @@ class _TabSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      padding: const EdgeInsets.all(TossSpacing.space1 / 2),
+    return Transform.translate(
+      offset: const Offset(TossSpacing.space5, 0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -264,18 +234,19 @@ class _TabSelector extends StatelessWidget {
       onTap: () => onTabChanged(tab),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space1,
+          horizontal: 14,
+          vertical: 6,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.white.withValues(alpha: 0.25) : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          color: isSelected ? TossColors.primary : TossColors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         ),
         child: Text(
           label,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: TossColors.white,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          style: TossTextStyles.caption.copyWith(
+            fontSize: 12,
+            color: isSelected ? TossColors.white : TossColors.textTertiary,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
