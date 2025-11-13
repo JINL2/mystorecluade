@@ -79,7 +79,7 @@ class RevenueCard extends ConsumerWidget {
                     Text(
                       'Revenue ${selectedPeriod.displayName}',
                       style: TossTextStyles.h3.copyWith(
-                        fontSize: 16,
+                        fontSize: 20,
                         color: TossColors.textPrimary,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.4,
@@ -239,7 +239,7 @@ class _TabSelector extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          borderRadius: BorderRadius.circular(100),
         ),
         child: Text(
           label,

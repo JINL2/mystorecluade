@@ -67,23 +67,23 @@ class AppTheme {
       ),
     ),
     
-    // Text theme
+    // Text theme - Updated to match new typography specifications
     textTheme: TextTheme(
       displayLarge: TossTextStyles.display,
       displayMedium: TossTextStyles.h1,
       displaySmall: TossTextStyles.h2,
-      headlineLarge: TossTextStyles.h1,
+      headlineLarge: TossTextStyles.headlineLarge,  // 28px/Bold - Big revenue numbers
       headlineMedium: TossTextStyles.h2,
       headlineSmall: TossTextStyles.h3,
-      titleLarge: TossTextStyles.h3,
-      titleMedium: TossTextStyles.bodyLarge,
+      titleLarge: TossTextStyles.titleLarge,         // 17px/Bold - Section headers
+      titleMedium: TossTextStyles.titleMedium,       // 15px/Bold - "Today Revenue"
       titleSmall: TossTextStyles.body,
-      bodyLarge: TossTextStyles.bodyLarge,
-      bodyMedium: TossTextStyles.body,
-      bodySmall: TossTextStyles.bodySmall,
+      bodyLarge: TossTextStyles.bodyLarge,           // 14px/Regular - Body text
+      bodyMedium: TossTextStyles.bodyMedium,         // 14px/Semibold - Feature names
+      bodySmall: TossTextStyles.bodySmall,           // 13px/Semibold - Comparison text
       labelLarge: TossTextStyles.labelLarge,
-      labelMedium: TossTextStyles.label,
-      labelSmall: TossTextStyles.caption,
+      labelMedium: TossTextStyles.labelMedium,       // 12px/Semibold - Feature descriptions
+      labelSmall: TossTextStyles.labelSmall,         // 11px/Semibold - Quick actions
     ),
     
     // Component themes - Toss style

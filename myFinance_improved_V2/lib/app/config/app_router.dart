@@ -35,6 +35,7 @@ import '../../features/register_denomination/presentation/pages/register_denomin
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
+import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
@@ -600,6 +601,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/salesInvoice',
         name: 'salesInvoice',
         builder: (context, state) => const SalesInvoicePage(),
+      ),
+
+      // Theme Library Route
+      GoRoute(
+        path: '/library',
+        name: 'library',
+        builder: (context, state) => const ThemeLibraryPage(),
       ),
     ],
   );
