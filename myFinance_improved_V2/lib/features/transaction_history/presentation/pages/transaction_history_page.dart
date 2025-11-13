@@ -36,6 +36,9 @@ class TransactionHistoryPage extends ConsumerStatefulWidget {
 class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage> {
   final ScrollController _scrollController = ScrollController();
 
+  /// Threshold in pixels before the end of the list to trigger loading more items
+  static const double _loadMoreThreshold = 200.0;
+
   @override
   void initState() {
     super.initState();
@@ -72,8 +75,8 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
       ref.read(transactionHistoryProvider.notifier).loadMore();
     }
   }
@@ -309,8 +312,9 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                           ),
                           
                           // Transactions for this date
-                          ...dayTransactions.map((transaction) => 
+                          ...dayTransactions.map((transaction) =>
                             Padding(
+                              key: ValueKey(transaction.journalId),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: TossSpacing.space4,
                                 vertical: TossSpacing.space1,
@@ -352,15 +356,10 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     );
   }
 
+  /// Check if any filters are active
+  /// Delegates to the domain entity's hasActiveFilters getter
   bool _hasActiveFilters(TransactionFilter filter) {
-    return filter.dateFrom != null ||
-        filter.dateTo != null ||
-        filter.accountId != null ||
-        (filter.accountIds != null && filter.accountIds!.isNotEmpty) ||
-        filter.cashLocationId != null ||
-        filter.counterpartyId != null ||
-        filter.journalType != null ||
-        filter.createdBy != null;
+    return filter.hasActiveFilters;
   }
 
   String _formatDateHeader(DateTime date) {

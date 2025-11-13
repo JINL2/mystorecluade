@@ -495,7 +495,9 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             );
           },
         );
-        
+
+        if (!mounted) return;
+
         if (picked != null) {
           onChanged(picked);
         }

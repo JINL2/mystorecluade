@@ -842,7 +842,7 @@ class _OperationalSettingsContentState extends ConsumerState<_OperationalSetting
     try {
       final useCase = ref.read(updateOperationalSettingsUseCaseProvider);
       await useCase(UpdateOperationalSettingsParams(
-        storeId: widget.store['store_id'],
+        storeId: widget.store['store_id'] as String,
         huddleTime: int.tryParse(_huddleTimeController.text),
         paymentTime: int.tryParse(_paymentTimeController.text),
         allowedDistance: int.tryParse(_allowedDistanceController.text),

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/transaction.dart';
+import '../../domain/entities/transaction_extensions.dart';
 import '../../domain/entities/transaction_filter.dart';
 
 part 'transaction_providers.g.dart';
@@ -122,7 +123,7 @@ Map<String, List<Transaction>> groupedTransactions(GroupedTransactionsRef ref) {
   final Map<String, List<Transaction>> grouped = {};
 
   for (final transaction in transactions) {
-    final dateKey = '${transaction.entryDate.year}-${transaction.entryDate.month.toString().padLeft(2, '0')}-${transaction.entryDate.day.toString().padLeft(2, '0')}';
+    final dateKey = transaction.entryDate.toDateKey();
     grouped.putIfAbsent(dateKey, () => []).add(transaction);
   }
 

@@ -10,11 +10,11 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
+import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
 import '../providers/exchange_rate_provider.dart';
-// Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart
 
 class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
   const AddCurrencyBottomSheet({super.key});
