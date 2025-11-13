@@ -35,13 +35,22 @@ class StockFlowRemoteDataSource {
     try {
       // Validate required parameters
       if (cashLocationId.isEmpty) {
-        throw Exception('Cash location ID is required');
+        throw Exception(
+          'Cash location ID is required for fetching stock flow. '
+          'Company: $companyId, Store: $storeId',
+        );
       }
       if (companyId.isEmpty) {
-        throw Exception('Company ID is required');
+        throw Exception(
+          'Company ID is required for fetching stock flow. '
+          'Location: $cashLocationId, Store: $storeId',
+        );
       }
       if (storeId.isEmpty) {
-        throw Exception('Store ID is required');
+        throw Exception(
+          'Store ID is required for fetching stock flow. '
+          'Company: $companyId, Location: $cashLocationId',
+        );
       }
 
       // Call Supabase RPC function
@@ -59,7 +68,10 @@ class StockFlowRemoteDataSource {
       // Parse response into model
       return StockFlowResponseDto.fromJson(response);
     } catch (e) {
-      throw Exception('Failed to fetch stock flow data: $e');
+      throw Exception(
+        'Failed to fetch stock flow data for location $cashLocationId '
+        '(Company: $companyId, Store: $storeId, Offset: $offset, Limit: $limit): $e',
+      );
     }
   }
 }

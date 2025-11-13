@@ -27,7 +27,12 @@ class BankRemoteDataSource {
       );
     } catch (e) {
       // Re-throw with additional context
-      throw Exception('Failed to save bank balance via RPC: $e');
+      final locationId = params['p_location_id'] ?? 'unknown';
+      final amount = params['p_amount'] ?? 'unknown';
+      throw Exception(
+        'Failed to save bank balance via RPC '
+        '(Location: $locationId, Amount: $amount): $e',
+      );
     }
   }
 
@@ -50,7 +55,10 @@ class BankRemoteDataSource {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Failed to fetch bank balance history: $e');
+      throw Exception(
+        'Failed to fetch bank balance history '
+        '(Location: $locationId, Limit: $limit): $e',
+      );
     }
   }
 }

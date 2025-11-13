@@ -27,7 +27,12 @@ class VaultRemoteDataSource {
       );
     } catch (e) {
       // Re-throw with additional context
-      throw Exception('Failed to save vault transaction via RPC: $e');
+      final locationId = params['p_location_id'] ?? 'unknown';
+      final amount = params['p_amount'] ?? 'unknown';
+      throw Exception(
+        'Failed to save vault transaction via RPC '
+        '(Location: $locationId, Amount: $amount): $e',
+      );
     }
   }
 
@@ -50,7 +55,10 @@ class VaultRemoteDataSource {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Failed to fetch vault transaction history: $e');
+      throw Exception(
+        'Failed to fetch vault transaction history '
+        '(Location: $locationId, Limit: $limit): $e',
+      );
     }
   }
 }
