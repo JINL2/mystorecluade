@@ -1,35 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/counter_party_data_source.dart';
-import '../../data/repositories/counter_party_repository_impl.dart';
+import '../../di/counter_party_providers.dart' as di;
 import '../../domain/entities/counter_party.dart';
 import '../../domain/entities/counter_party_stats.dart';
-import '../../domain/repositories/counter_party_repository.dart';
 import '../../domain/value_objects/counter_party_filter.dart';
-import '../../domain/value_objects/counter_party_type.dart';
-
-// ============================================================================
-// Repository Providers
-// ============================================================================
-
-/// Supabase client provider
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Data source provider
-final counterPartyDataSourceProvider = Provider<CounterPartyDataSource>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  return CounterPartyDataSource(client);
-});
-
-/// Repository provider
-final counterPartyRepositoryProvider = Provider<CounterPartyRepository>((ref) {
-  final dataSource = ref.watch(counterPartyDataSourceProvider);
-  return CounterPartyRepositoryImpl(dataSource);
-});
+import 'counter_party_data.dart';
+import 'counter_party_params.dart';
 
 // ============================================================================
 // State Providers
@@ -43,29 +20,11 @@ final counterPartyFilterProvider = StateProvider<CounterPartyFilter>((ref) {
   return const CounterPartyFilter();
 });
 
-// ============================================================================
-// Data Providers
-// ============================================================================
-
-/// Combined data model for optimized fetching
-class CounterPartyData {
-  final List<CounterParty> counterParties;
-  final CounterPartyStats stats;
-  final DateTime fetchedAt;
-
-  const CounterPartyData({
-    required this.counterParties,
-    required this.stats,
-    required this.fetchedAt,
-  });
-
-  bool get isStale => DateTime.now().difference(fetchedAt).inSeconds > 30;
-}
-
 /// Optimized base provider - Single source of truth
 final optimizedCounterPartyDataProvider =
     FutureProvider.family<CounterPartyData, String>((ref, companyId) async {
-  final repository = ref.watch(counterPartyRepositoryProvider);
+  final repository = ref.watch(di.counterPartyRepositoryProvider);
+  final calculateStats = ref.watch(di.calculateCounterPartyStatsProvider);
 
   try {
     // Single database query
@@ -77,8 +36,8 @@ final optimizedCounterPartyDataProvider =
       ),
     );
 
-    // Efficient statistics calculation
-    final stats = _calculateStatsEfficiently(counterParties);
+    // Efficient statistics calculation using UseCase
+    final stats = calculateStats(counterParties);
 
     return CounterPartyData(
       counterParties: counterParties,
@@ -89,110 +48,6 @@ final optimizedCounterPartyDataProvider =
     throw Exception('Failed to load counter party data: $e');
   }
 });
-
-/// Efficient statistics calculation
-CounterPartyStats _calculateStatsEfficiently(List<CounterParty> counterParties) {
-  int total = 0;
-  int suppliers = 0;
-  int customers = 0;
-  int employees = 0;
-  int teamMembers = 0;
-  int myCompanies = 0;
-  int others = 0;
-  int activeCount = 0;
-  int inactiveCount = 0;
-  final List<CounterParty> recentAdditions = [];
-
-  for (final cp in counterParties) {
-    total++;
-
-    switch (cp.type) {
-      case CounterPartyType.supplier:
-        suppliers++;
-        break;
-      case CounterPartyType.customer:
-        customers++;
-        break;
-      case CounterPartyType.employee:
-        employees++;
-        break;
-      case CounterPartyType.teamMember:
-        teamMembers++;
-        break;
-      case CounterPartyType.myCompany:
-        myCompanies++;
-        break;
-      case CounterPartyType.other:
-        others++;
-        break;
-    }
-
-    if (cp.isDeleted) {
-      inactiveCount++;
-    } else {
-      activeCount++;
-    }
-
-    if (recentAdditions.length < 5) {
-      recentAdditions.add(cp);
-    }
-  }
-
-  return CounterPartyStats(
-    total: total,
-    suppliers: suppliers,
-    customers: customers,
-    employees: employees,
-    teamMembers: teamMembers,
-    myCompanies: myCompanies,
-    others: others,
-    activeCount: activeCount,
-    inactiveCount: inactiveCount,
-    recentAdditions: recentAdditions,
-  );
-}
-
-/// Apply sorting efficiently
-List<CounterParty> _applySorting(
-  List<CounterParty> counterParties,
-  CounterPartySortOption sortBy,
-  bool ascending,
-) {
-  final sortedList = List<CounterParty>.from(counterParties);
-
-  switch (sortBy) {
-    case CounterPartySortOption.name:
-      sortedList.sort((a, b) {
-        final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-        return ascending ? comparison : -comparison;
-      });
-      break;
-
-    case CounterPartySortOption.type:
-      sortedList.sort((a, b) {
-        final comparison = a.type.displayName.compareTo(b.type.displayName);
-        return ascending ? comparison : -comparison;
-      });
-      break;
-
-    case CounterPartySortOption.createdAt:
-      sortedList.sort((a, b) {
-        final comparison = a.createdAt.compareTo(b.createdAt);
-        return ascending ? comparison : -comparison;
-      });
-      break;
-
-    case CounterPartySortOption.isInternal:
-      sortedList.sort((a, b) {
-        final comparison =
-            a.isInternal.toString().compareTo(b.isInternal.toString());
-        return ascending ? comparison : -comparison;
-      });
-      break;
-  }
-
-  return sortedList;
-}
 
 // Selected company ID provider (from app state)
 final selectedCompanyIdProvider = Provider<String?>((ref) {
@@ -207,6 +62,7 @@ final optimizedCounterPartiesProvider =
     Provider<AsyncValue<List<CounterParty>>>((ref) {
   final companyId = ref.watch(selectedCompanyIdProvider);
   final filter = ref.watch(counterPartyFilterProvider);
+  final sortUseCase = ref.watch(di.sortCounterPartiesProvider);
 
   if (companyId == null) {
     return const AsyncValue.data([]);
@@ -241,8 +97,8 @@ final optimizedCounterPartiesProvider =
         }).toList();
       }
 
-      // Apply sorting
-      counterParties = _applySorting(counterParties, filter.sortBy, filter.ascending);
+      // Apply sorting using UseCase
+      counterParties = sortUseCase(counterParties, filter.sortBy, filter.ascending);
 
       return AsyncValue.data(counterParties);
     },
@@ -275,7 +131,7 @@ final optimizedCounterPartyStatsProvider =
 /// Create counter party provider
 final createCounterPartyProvider = FutureProvider.autoDispose
     .family<CounterParty, CreateCounterPartyParams>((ref, params) async {
-  final repository = ref.watch(counterPartyRepositoryProvider);
+  final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.createCounterParty(
     companyId: params.companyId,
     name: params.name,
@@ -292,7 +148,7 @@ final createCounterPartyProvider = FutureProvider.autoDispose
 /// Update counter party provider
 final updateCounterPartyProvider = FutureProvider.autoDispose
     .family<CounterParty, UpdateCounterPartyParams>((ref, params) async {
-  final repository = ref.watch(counterPartyRepositoryProvider);
+  final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.updateCounterParty(
     counterpartyId: params.counterpartyId,
     name: params.name,
@@ -309,13 +165,13 @@ final updateCounterPartyProvider = FutureProvider.autoDispose
 /// Delete counter party provider
 final deleteCounterPartyProvider =
     FutureProvider.autoDispose.family<bool, String>((ref, counterpartyId) async {
-  final repository = ref.watch(counterPartyRepositoryProvider);
+  final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.deleteCounterParty(counterpartyId);
 });
 
 /// Get unlinked companies provider
 final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final repository = ref.watch(counterPartyRepositoryProvider);
+  final repository = ref.watch(di.counterPartyRepositoryProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = ref.watch(selectedCompanyIdProvider);
 
@@ -323,7 +179,11 @@ final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((re
     return [];
   }
 
-  final userId = appState.user['user_id'] as String;
+  // Safe type checking instead of unsafe cast
+  final userId = appState.user['user_id'];
+  if (userId is! String) {
+    return [];
+  }
 
   return await repository.getUnlinkedCompanies(
     userId: userId,
@@ -373,61 +233,4 @@ class CounterPartyCacheManager {
 // ============================================================================
 // Parameter Classes
 // ============================================================================
-
-class CreateCounterPartyParams {
-  final String companyId;
-  final String name;
-  final CounterPartyType type;
-  final String? email;
-  final String? phone;
-  final String? address;
-  final String? notes;
-  final bool isInternal;
-  final String? linkedCompanyId;
-
-  CreateCounterPartyParams({
-    required this.companyId,
-    required this.name,
-    required this.type,
-    this.email,
-    this.phone,
-    this.address,
-    this.notes,
-    this.isInternal = false,
-    this.linkedCompanyId,
-  });
-}
-
-class UpdateCounterPartyParams {
-  final String counterpartyId;
-  final String name;
-  final CounterPartyType type;
-  final String? email;
-  final String? phone;
-  final String? address;
-  final String? notes;
-  final bool isInternal;
-  final String? linkedCompanyId;
-
-  UpdateCounterPartyParams({
-    required this.counterpartyId,
-    required this.name,
-    required this.type,
-    this.email,
-    this.phone,
-    this.address,
-    this.notes,
-    this.isInternal = false,
-    this.linkedCompanyId,
-  });
-}
-
-class UnlinkedCompaniesParams {
-  final String userId;
-  final String companyId;
-
-  UnlinkedCompaniesParams({
-    required this.userId,
-    required this.companyId,
-  });
-}
+// Now using Freezed classes from counter_party_params.dart

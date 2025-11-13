@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dial
 
 import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
+import '../providers/counter_party_params.dart';
 import '../providers/counter_party_providers.dart';
 import 'common/counter_party_text_field.dart';
 import 'form/company_dropdown.dart';

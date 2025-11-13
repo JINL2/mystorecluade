@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
 
 import '../../domain/entities/transaction_filter.dart';
@@ -64,8 +65,15 @@ class TransactionDataSource {
         try {
           final transaction = TransactionModel.fromJson(json as Map<String, dynamic>);
           transactions.add(transaction);
-        } catch (e) {
-          // Skip invalid transaction
+        } catch (e, stackTrace) {
+          // Log parsing errors for debugging
+          debugPrint('⚠️ Failed to parse transaction: $e');
+          if (kDebugMode) {
+            debugPrint('StackTrace: $stackTrace');
+            debugPrint('Invalid JSON: $json');
+          }
+          // In production, this could be reported to analytics/crash reporting
+          // e.g., FirebaseCrashlytics.instance.recordError(e, stackTrace);
         }
       }
 

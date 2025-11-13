@@ -30,17 +30,21 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        HapticFeedback.selectionClick();
-        // Update state when tab changes
-        ref.read(balanceSheetPageProvider.notifier).changeTab(_tabController.index);
-      }
-    });
+    _tabController.addListener(_handleTabChange);
+  }
+
+  void _handleTabChange() {
+    if (!mounted) return;
+    if (_tabController.indexIsChanging) {
+      HapticFeedback.selectionClick();
+      // Update state when tab changes
+      ref.read(balanceSheetPageProvider.notifier).changeTab(_tabController.index);
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -278,8 +282,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).state = 
-              ref.read(balanceSheetPageProvider).copyWith(hasBalanceSheetData: false);
+            ref.read(balanceSheetPageProvider.notifier).clearBalanceSheetData();
           },
         );
       },
@@ -371,8 +374,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).state = 
-              ref.read(balanceSheetPageProvider).copyWith(hasIncomeStatementData: false);
+            ref.read(balanceSheetPageProvider.notifier).clearIncomeStatementData();
           },
         );
       },

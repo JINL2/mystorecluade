@@ -709,8 +709,10 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
               (context, index) {
                 final counterParty = counterParties[index];
                 return Padding(
+                  key: ValueKey('counter_party_${counterParty.counterpartyId}'),
                   padding: const EdgeInsets.only(bottom: TossSpacing.space3),
                   child: CounterPartyListItem(
+                    key: ValueKey('list_item_${counterParty.counterpartyId}'),
                     counterParty: counterParty,
                     onEdit: () => _showEditForm(counterParty),
                     onAccountSettings: () {
@@ -814,32 +816,40 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       await ref.read(deleteCounterPartyProvider(counterParty.counterpartyId).future);
 
       // Show success message
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.success(
-            title: 'Counter Party Deleted!',
-            message: '${counterParty.name} has been deleted successfully',
-            primaryButtonText: 'Done',
-            onPrimaryPressed: () => context.pop(),
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => TossDialog.success(
+          title: 'Counter Party Deleted!',
+          message: '${counterParty.name} has been deleted successfully',
+          primaryButtonText: 'Done',
+          onPrimaryPressed: () {
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+          },
+        ),
+      );
     } catch (e) {
       // Show error message
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Failed to Delete',
-            message: 'Could not delete counter party: ${e.toString()}',
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => context.pop(),
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => TossDialog.error(
+          title: 'Failed to Delete',
+          message: 'Could not delete counter party: ${e.toString()}',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () {
+            if (Navigator.canPop(dialogContext)) {
+              Navigator.pop(dialogContext);
+            }
+          },
+        ),
+      );
     }
   }
 }

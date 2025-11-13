@@ -2,25 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
-// Feature - Data
-import '../../data/repositories/denomination_repository_impl.dart';
-import '../../data/services/denomination_template_service.dart';
+// Feature - DI (Dependency Injection)
+import '../../di/providers.dart';
 // Feature - Domain
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/denomination_repository.dart';
-// Feature - Providers
-import 'currency_providers.dart';
-
-// Repository providers
-final denominationTemplateServiceProvider = Provider<DenominationTemplateService>((ref) {
-  return DenominationTemplateService();
-});
-
-final denominationRepositoryProvider = Provider<DenominationRepository>((ref) {
-  final supabaseClient = ref.watch(supabaseClientProvider);
-  final templateService = ref.watch(denominationTemplateServiceProvider);
-  return SupabaseDenominationRepository(supabaseClient, templateService);
-});
 
 // Denominations for a specific currency
 final denominationListProvider = FutureProvider.family<List<Denomination>, String>((ref, currencyId) async {

@@ -11,6 +11,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart'
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
+import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/exchange_rate_provider.dart';
 
