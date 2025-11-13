@@ -84,21 +84,28 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   @override
   void dispose() {
-    // Dispose toolbar controller first (it may hold references to focus nodes)
-    _toolbarController?.dispose();
-
     // Dispose all controllers
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.dispose();
       }
     }
-    // Dispose all focus nodes
+
+    // Dispose all focus nodes BEFORE disposing toolbar
+    // (toolbar controller references these focus nodes but doesn't own them)
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
         focusNode.dispose();
       }
     }
+
+    // Dispose toolbar controller last
+    // Note: We already disposed its focus nodes above, so we need to clear them first
+    if (_toolbarController != null) {
+      _toolbarController!.focusNodes.clear();
+      _toolbarController!.dispose();
+    }
+
     super.dispose();
   }
 
@@ -137,20 +144,26 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
     // Dispose existing controller if any
-    _toolbarController?.dispose();
+    if (_toolbarController != null) {
+      // Clear focus nodes before disposing to prevent double-dispose
+      _toolbarController!.focusNodes.clear();
+      _toolbarController!.dispose();
+    }
 
     // Create new controller with denomination count
     _toolbarController = KeyboardToolbarController(
       fieldCount: denominations.length,
     );
 
-    // Map focus nodes to toolbar controller
+    // Map our focus nodes to toolbar controller
     for (int i = 0; i < denominations.length; i++) {
       final denom = denominations[i];
       final focusNode = _getFocusNode(currencyId, denom.denominationId);
 
-      // Replace toolbar's focus node with our focus node
+      // Dispose the default focus node created by KeyboardToolbarController
       _toolbarController!.focusNodes[i].dispose();
+
+      // Replace with our focus node (we own this, toolbar just references it)
       _toolbarController!.focusNodes[i] = focusNode;
     }
   }
