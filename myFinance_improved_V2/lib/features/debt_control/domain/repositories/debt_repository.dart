@@ -1,9 +1,9 @@
-import '../entities/debt_overview.dart';
-import '../entities/kpi_metrics.dart';
 import '../entities/aging_analysis.dart';
 import '../entities/critical_alert.dart';
-import '../entities/prioritized_debt.dart';
+import '../entities/debt_overview.dart';
+import '../entities/kpi_metrics.dart';
 import '../entities/perspective_summary.dart';
+import '../entities/prioritized_debt.dart';
 
 /// Abstract repository interface for debt control operations
 abstract class DebtRepository {

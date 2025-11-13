@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
-import '../validators/template_validation_result.dart';
-import '../enums/template_enums.dart';
+
 import '../enums/template_constants.dart';
-import '../exceptions/template_business_exception.dart';
+import '../enums/template_enums.dart';
+import '../validators/template_validation_result.dart';
 
 /// Core business entity representing a transaction template
 /// 
@@ -324,7 +324,7 @@ class TransactionTemplate extends Equatable {
           continue;
         }
 
-        final cashMap = cashObj as Map;
+        final cashMap = cashObj;
 
         // Validate required cash_location_id
         if (cashMap['cash_location_id'] == null || 
@@ -361,7 +361,7 @@ class TransactionTemplate extends Equatable {
           continue;
         }
 
-        final debtMap = debtObj as Map;
+        final debtMap = debtObj;
 
         // Validate required fields
         if (debtMap['counterparty_id'] == null || 
@@ -431,7 +431,7 @@ class TransactionTemplate extends Equatable {
           continue;
         }
 
-        final assetMap = assetObj as Map;
+        final assetMap = assetObj;
 
         // Validate required fields
         if (assetMap['asset_name'] == null || 

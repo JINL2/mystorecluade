@@ -1,13 +1,13 @@
 // lib/features/auth/data/repositories/user_repository_impl.dart
 
-import '../../domain/entities/user_entity.dart';
 import '../../domain/entities/company_entity.dart';
 import '../../domain/entities/store_entity.dart';
+import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/supabase_user_datasource.dart';
-import '../models/freezed/user_dto_mapper.dart';
 import '../models/freezed/company_dto_mapper.dart';
 import '../models/freezed/store_dto_mapper.dart';
+import '../models/freezed/user_dto_mapper.dart';
 import 'base_repository.dart';
 
 /// User Repository Implementation

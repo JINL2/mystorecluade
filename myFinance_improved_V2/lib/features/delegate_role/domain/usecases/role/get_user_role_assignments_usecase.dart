@@ -28,7 +28,7 @@ class GetUserRoleAssignmentsUseCase {
 
       // Verify role belongs to the specified company
       if (role.companyId != companyId) {
-        throw RoleValidationException(
+        throw const RoleValidationException(
           'Role does not belong to the specified company',
         );
       }

@@ -1,9 +1,9 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/get_currencies.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
+import 'package:myfinance_improved/features/homepage/domain/usecases/get_currencies.dart';
 
 import '../../homepage_mocks.dart';
 import '../../homepage_test_fixtures.dart';

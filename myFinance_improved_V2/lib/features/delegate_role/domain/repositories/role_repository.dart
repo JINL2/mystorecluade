@@ -1,5 +1,5 @@
-import '../entities/role.dart';
 import '../entities/delegatable_role.dart';
+import '../entities/role.dart';
 
 /// Abstract repository for Role management
 abstract class RoleRepository {

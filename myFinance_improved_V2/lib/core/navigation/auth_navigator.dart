@@ -104,7 +104,7 @@ class AuthNavigator {
       'companyId': companyId,
       'companyName': companyName,
       ...?additionalParams,
-    });
+    },);
   }
   
   /// Navigate to join business page

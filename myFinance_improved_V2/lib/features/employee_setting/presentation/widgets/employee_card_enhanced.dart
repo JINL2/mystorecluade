@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/employee_salary.dart';
 
@@ -22,13 +21,13 @@ class EmployeeCardEnhanced extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      margin: EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,
         vertical: TossSpacing.space2,
       ),
       child: TossCard(
         onTap: onTap,
-        padding: EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Row(
               children: [
                 // Avatar
@@ -37,7 +36,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                   child: _buildAvatar(size: 48),
                 ),
                 
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 
                 // Employee Info
                 Expanded(
@@ -55,7 +54,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
 
                       // Role Badge (moved under name)
                       TossBadge(
@@ -67,7 +66,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                   ),
                 ),
                 
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 
                 // Salary Information (moved to right)
                 Column(
@@ -80,7 +79,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                         color: TossColors.primary,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space1),
+                    const SizedBox(height: TossSpacing.space1),
                     Text(
                       employee.salaryType == 'hourly' ? '/hr' : '/mo',
                       style: TossTextStyles.bodySmall.copyWith(

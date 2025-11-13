@@ -1,16 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-
-// Feature - Domain
-import '../../domain/entities/denomination.dart';
-import '../../domain/repositories/denomination_repository.dart';
 
 // Feature - Data
 import '../../data/repositories/denomination_repository_impl.dart';
 import '../../data/services/denomination_template_service.dart';
-
+// Feature - Domain
+import '../../domain/entities/denomination.dart';
+import '../../domain/repositories/denomination_repository.dart';
 // Feature - Providers
 import 'currency_providers.dart';
 
@@ -228,7 +225,7 @@ final denominationOperationsProvider = StateNotifierProvider<DenominationOperati
 class DenominationValidationNotifier extends StateNotifier<AsyncValue<DenominationValidationResult>> {
   DenominationValidationNotifier(this._repository, this._ref) : super(const AsyncValue.data(
     DenominationValidationResult(isValid: true),
-  ));
+  ),);
   
   final DenominationRepository _repository;
   final Ref _ref;

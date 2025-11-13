@@ -1,9 +1,10 @@
 // lib/features/auth/data/datasources/supabase_user_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/freezed/user_dto.dart';
+
 import '../models/freezed/company_dto.dart';
 import '../models/freezed/store_dto.dart';
+import '../models/freezed/user_dto.dart';
 
 /// Supabase User DataSource
 ///

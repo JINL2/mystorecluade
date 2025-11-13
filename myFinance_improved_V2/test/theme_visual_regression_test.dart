@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import '../lib/main.dart' as app;
-import '../lib/core/themes/index.dart';
-import '../lib/presentation/widgets/common/toss_button.dart';
-import '../lib/presentation/widgets/common/toss_card.dart';
-import '../lib/presentation/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/main.dart' as app;
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_button.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_card.dart';
+import 'package:myfinance_improved/presentation/widgets/toss/toss_text_field.dart';
 
 /// Visual regression testing suite for theme consistency
 /// 
@@ -136,7 +136,7 @@ class ThemeVisualRegressionTest {
             report.failures.add(ComponentTestFailure(
               componentName: testName,
               difference: diff,
-            ));
+            ),);
           } else {
             report.successes.add(testName);
           }
@@ -220,7 +220,7 @@ class ThemeVisualRegressionTest {
               report.failures.add(ComponentTestFailure(
                 componentName: testName,
                 difference: diff,
-              ));
+              ),);
             }
           } else {
             await _saveBaselineScreenshot(testName, screenshot);
@@ -527,7 +527,7 @@ class ThemeVisualRegressionTest {
   }
   
   Widget _buildTextFieldComponent() {
-    return Container(
+    return SizedBox(
       width: 300,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -600,7 +600,7 @@ class ThemeVisualRegressionTest {
               ),
             ],
           ),
-        )).toList(),
+        ),).toList(),
       ),
     );
   }
@@ -671,7 +671,7 @@ class ThemeVisualRegressionTest {
               ),
             ],
           ),
-        )).toList(),
+        ),).toList(),
       ),
     );
   }
@@ -690,7 +690,7 @@ class ThemeVisualRegressionTest {
             children: List.generate(6, (index) => TossButton.primary(
               text: 'Button ${index + 1}',
               onPressed: () {},
-            )),
+            ),),
           ),
         ],
       ),
@@ -877,7 +877,7 @@ void main() {
           .toList();
       
       expect(significantFailures, isEmpty, 
-        reason: 'Found ${significantFailures.length} significant visual regressions');
+        reason: 'Found ${significantFailures.length} significant visual regressions',);
     });
     
     testWidgets('Button Component Visual Test', (tester) async {

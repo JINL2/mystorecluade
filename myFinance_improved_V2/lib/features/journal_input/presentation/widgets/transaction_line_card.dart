@@ -30,7 +30,7 @@ class TransactionLineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TossWhiteCard(
-      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       padding: EdgeInsets.zero,
       showBorder: false,
       child: ClipRRect(
@@ -50,7 +50,7 @@ class TransactionLineCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.all(TossSpacing.space3),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -74,7 +74,7 @@ class TransactionLineCard extends StatelessWidget {
                                         ),
                                         if (line.description != null &&
                                             line.description!.isNotEmpty) ...[
-                                          SizedBox(height: 2),
+                                          const SizedBox(height: 2),
                                           Text(
                                             line.description!,
                                             style: TossTextStyles.caption.copyWith(
@@ -87,7 +87,7 @@ class TransactionLineCard extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(width: TossSpacing.space2),
+                                  const SizedBox(width: TossSpacing.space2),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
@@ -112,14 +112,14 @@ class TransactionLineCard extends StatelessWidget {
                                 ],
                               ),
                               if (_hasAnyTags()) ...[
-                                SizedBox(height: TossSpacing.space2),
+                                const SizedBox(height: TossSpacing.space2),
                                 SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
                                       if (line.categoryTag != null)
                                         _buildCompactTag(
-                                            _formatCategoryTag(line.categoryTag!)),
+                                            _formatCategoryTag(line.categoryTag!),),
                                       if (line.cashLocationName != null)
                                         _buildCompactTag(line.cashLocationName!),
                                       if (line.counterpartyName != null)
@@ -137,13 +137,13 @@ class TransactionLineCard extends StatelessWidget {
                         ),
                         IconButton(
                           onPressed: onDelete,
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.close,
                             size: 18,
                             color: TossColors.gray400,
                           ),
                           padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
@@ -167,8 +167,8 @@ class TransactionLineCard extends StatelessWidget {
 
   Widget _buildCompactTag(String label) {
     return Container(
-      margin: EdgeInsets.only(right: TossSpacing.space1),
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      margin: const EdgeInsets.only(right: TossSpacing.space1),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),

@@ -5,18 +5,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
-import 'package:myfinance_improved/core/data/models/transaction_history_model.dart';
-import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/core/data/models/transaction_history_model.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'toss_base_selector.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Autonomous cash location selector with scope awareness
 /// Uses dedicated RPC function and entity providers
@@ -155,11 +150,6 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       effectiveStoreId = appState.storeChoosen;
     }
 
-    // If we still don't have a company ID, show empty state
-    if (effectiveCompanyId == null) {
-      return _buildEmptySelector();
-    }
-
     // Fetch cash locations for the specified or current company (only company_id)
     final allLocationsAsync = widget.companyId != null
         ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
@@ -180,11 +170,11 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
               // Store tab: Show company-wide locations AND store-specific locations
               if (effectiveStoreId != null && effectiveStoreId.isNotEmpty) {
                 _storeItems = allLocations.where((location) =>
-                  location.isCompanyWide || location.storeId == effectiveStoreId
+                  location.isCompanyWide || location.storeId == effectiveStoreId,
                 ).toList();
               } else {
                 _storeItems = allLocations.where((location) =>
-                  location.isCompanyWide
+                  location.isCompanyWide,
                 ).toList();
               }
 
@@ -213,7 +203,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
         allLocationsAsync.maybeWhen(
           data: (locations) => locations,
           orElse: () => [],
-        )
+        ),
       );
     }
 
@@ -361,8 +351,6 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       effectiveStoreId = appState.storeChoosen;
     }
     
-    if (effectiveCompanyId == null) return;
-    
     // CRITICAL FIX: Force refresh the cash location data before showing the bottom sheet
     // This ensures we get fresh data from RPC and don't show deleted locations
     if (widget.companyId != null) {
@@ -382,15 +370,15 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       _companyItems = allLocations;
       
       // Store tab: Show company-wide locations AND store-specific locations for selected store
-      if (effectiveStoreId != null && effectiveStoreId!.isNotEmpty) {
+      if (effectiveStoreId != null && effectiveStoreId.isNotEmpty) {
         _storeItems = allLocations.where((location) => 
           location.isCompanyWide || // Include company-wide locations (accessible from any store)
-          location.storeId == effectiveStoreId // Include store-specific locations
+          location.storeId == effectiveStoreId, // Include store-specific locations
         ).toList();
       } else {
         // If no store selected, show only company-wide locations
         _storeItems = allLocations.where((location) => 
-          location.isCompanyWide
+          location.isCompanyWide,
         ).toList();
       }
       
@@ -669,7 +657,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                       ),
                     ),
                   ),
-                )),
+                ),),
                 ],
               ),
             );
@@ -1076,7 +1064,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           padding: const EdgeInsets.all(TossSpacing.space3),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.info_outline,
                 size: TossSpacing.iconSM,
                 color: TossColors.gray400,

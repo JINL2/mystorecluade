@@ -75,26 +75,24 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
     // Extract stores from user data
     List<dynamic> stores = [];
-    if (userData is Map<String, dynamic>) {
-      final companies = userData['companies'] as List<dynamic>? ?? [];
-      if (companies.isNotEmpty) {
-        dynamic selectedCompany;
-        try {
-          selectedCompany = companies.firstWhere(
-            (c) => c['company_id'] == appState.companyChoosen,
-            orElse: () => null,
-          );
-          selectedCompany ??= companies.first;
-        } catch (e) {
-          selectedCompany = companies.first;
-        }
+    final companies = userData['companies'] as List<dynamic>? ?? [];
+    if (companies.isNotEmpty) {
+      dynamic selectedCompany;
+      try {
+        selectedCompany = companies.firstWhere(
+          (c) => c['company_id'] == appState.companyChoosen,
+          orElse: () => null,
+        );
+        selectedCompany ??= companies.first;
+      } catch (e) {
+        selectedCompany = companies.first;
+      }
 
-        if (selectedCompany != null) {
-          stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
-        }
+      if (selectedCompany != null) {
+        stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
       }
     }
-
+  
     final companyId = appState.companyChoosen;
 
     return TossScaffold(

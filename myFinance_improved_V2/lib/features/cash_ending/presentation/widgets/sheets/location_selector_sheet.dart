@@ -127,7 +127,7 @@ class LocationSelectorSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             TossIcons.locationOff,
             size: 64,
             color: TossColors.gray400,

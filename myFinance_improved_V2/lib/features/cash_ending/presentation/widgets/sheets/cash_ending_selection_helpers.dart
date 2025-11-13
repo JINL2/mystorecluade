@@ -32,7 +32,7 @@ class CashEndingSelectionHelpers {
     // Prepare items: Headquarter + Stores
     final items = <TossSelectionItem>[
       // Headquarter item
-      TossSelectionItem(
+      const TossSelectionItem(
         id: 'headquarter',
         title: 'Headquarter',
         subtitle: 'Company Level',
@@ -44,7 +44,7 @@ class CashEndingSelectionHelpers {
             title: store.storeName,
             subtitle: store.storeCode,
             icon: TossIcons.store,
-          )),
+          ),),
     ];
 
     await TossSelectionBottomSheet.show<void>(
@@ -176,7 +176,7 @@ class CashEndingSelectionHelpers {
   }
 
   static String? _getLocationSubtitle(
-      WidgetRef ref, Location location, String locationType) {
+      WidgetRef ref, Location location, String locationType,) {
     // Show currency for bank/vault if has fixed currency
     if ((locationType == 'bank' || locationType == 'vault') &&
         location.currencyId != null &&

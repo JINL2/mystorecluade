@@ -1,6 +1,9 @@
+import '../entities/attendance_location.dart';
+import '../entities/monthly_shift_status.dart';
+import '../entities/shift_card.dart';
+import '../entities/shift_metadata.dart';
 import '../entities/shift_overview.dart';
 import '../entities/shift_request.dart';
-import '../entities/attendance_location.dart';
 
 /// Attendance Repository Interface
 ///
@@ -79,8 +82,8 @@ abstract class AttendanceRepository {
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   ///
-  /// Returns list of shift card data as Map
-  Future<List<Map<String, dynamic>>> getUserShiftCards({
+  /// Returns list of ShiftCard from user_shift_cards RPC
+  Future<List<ShiftCard>> getUserShiftCards({
     required String requestDate,
     required String userId,
     required String companyId,
@@ -114,7 +117,7 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID
   ///
   /// Returns list of shift metadata
-  Future<List<Map<String, dynamic>>> getShiftMetadata({
+  Future<List<ShiftMetadata>> getShiftMetadata({
     required String storeId,
   });
 
@@ -125,7 +128,7 @@ abstract class AttendanceRepository {
   /// [requestDate] - Request date in format 'yyyy-MM-dd'
   ///
   /// Returns list of shift status data
-  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
+  Future<List<MonthlyShiftStatus>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
     required String requestDate,
@@ -138,8 +141,8 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID
   /// [requestDate] - Request date in format 'yyyy-MM-dd'
   ///
-  /// Returns created shift request data
-  Future<Map<String, dynamic>?> insertShiftRequest({
+  /// Returns created ShiftRequest
+  Future<ShiftRequest?> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,

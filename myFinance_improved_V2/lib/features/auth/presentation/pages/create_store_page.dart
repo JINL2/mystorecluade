@@ -1,33 +1,22 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Shared - Themes
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-
-// Shared - Widgets
-import '../../../../shared/widgets/toss/toss_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-
-// Core - Constants & Navigation
-import '../../../../core/constants/auth_constants.dart';
 
 // App - Providers
 import '../../../../app/providers/app_state_provider.dart';
-
+// Core - Constants & Navigation
+import '../../../../core/constants/auth_constants.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+// Domain - Exceptions
+import '../../domain/exceptions/auth_exceptions.dart';
+import '../../domain/exceptions/validation_exception.dart';
 // Presentation - Providers
 import '../providers/current_user_provider.dart';
 import '../providers/store_service.dart';
 import '../providers/usecase_providers.dart';
-
-// Domain - Exceptions
-import '../../domain/exceptions/auth_exceptions.dart';
-import '../../domain/exceptions/validation_exception.dart';
 
 /// Create Store Page - Clean Architecture Version
 ///
@@ -112,7 +101,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -120,7 +109,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _successFadeAnimation = Tween<double>(
       begin: 0.0,
@@ -128,7 +117,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _successController,
       curve: Curves.easeIn,
-    ));
+    ),);
 
     _successScaleAnimation = Tween<double>(
       begin: 0.8,
@@ -136,7 +125,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _successController,
       curve: Curves.easeOutBack,
-    ));
+    ),);
 
     // Add validation listeners
     _storeNameController.addListener(_validateStoreName);
@@ -186,7 +175,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   child: SlideTransition(
@@ -244,12 +233,12 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
   Widget _buildAuthHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       color: TossColors.white,
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
+            icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
             onPressed: () => context.pop(),
           ),
           const SizedBox(width: TossSpacing.space2),
@@ -512,21 +501,21 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             ),
             filled: true,
             fillColor: TossColors.gray50,
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space2,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.primary, width: 2),
+              borderSide: const BorderSide(color: TossColors.primary, width: 2),
             ),
           ),
         ),
@@ -643,7 +632,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       final userId = ref.read(currentUserIdProvider);
 
       if (userId == null) {
-        throw AuthException('User not authenticated');
+        throw const AuthException('User not authenticated');
       }
 
       // Create default store with company name when skipping
@@ -717,7 +706,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             scale: _successScaleAnimation,
             child: Center(
               child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space6),
+                padding: const EdgeInsets.all(TossSpacing.space6),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -728,7 +717,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                         color: TossColors.success.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.check_circle,
                         size: 48,
                         color: TossColors.success,
@@ -754,7 +743,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                     if (_storeCode != null) ...[
                       const SizedBox(height: TossSpacing.space8),
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.white,
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -800,7 +789,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                     TossPrimaryButton(
                       text: 'Go to Dashboard',
                       onPressed: _navigateToDashboard,
-                      leadingIcon: Icon(
+                      leadingIcon: const Icon(
                         Icons.arrow_forward,
                         size: 18,
                         color: TossColors.white,
@@ -825,7 +814,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: TossColors.white, size: 20),
+            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
             const SizedBox(width: TossSpacing.space2),
             Expanded(child: Text(message)),
           ],

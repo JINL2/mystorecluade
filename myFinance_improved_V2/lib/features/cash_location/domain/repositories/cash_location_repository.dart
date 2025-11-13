@@ -1,13 +1,13 @@
 // Domain Layer - Repository Interface
 // This defines WHAT operations are available, not HOW they are implemented
 
+import '../entities/bank_real_entry.dart';
 import '../entities/cash_location.dart';
 import '../entities/cash_location_detail.dart';
 import '../entities/cash_real_entry.dart';
-import '../entities/bank_real_entry.dart';
-import '../entities/vault_real_entry.dart';
 import '../entities/journal_entry.dart';
 import '../entities/stock_flow.dart';
+import '../entities/vault_real_entry.dart';
 
 /// Repository interface for cash location operations
 /// Implementation will be in data layer
@@ -85,6 +85,18 @@ abstract class CashLocationRepository {
     String? counterpartyId,
     String? ifCashLocationId,
     String? storeId,
+  });
+
+  /// Create a new cash location
+  Future<void> createCashLocation({
+    required String companyId,
+    required String storeId,
+    required String locationName,
+    required String locationType,
+    String? bankName,
+    String? accountNumber,
+    String? currencyId,
+    String? locationInfo,
   });
 
   /// Update cash location details

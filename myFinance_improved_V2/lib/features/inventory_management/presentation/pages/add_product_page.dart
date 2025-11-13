@@ -35,7 +35,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   final _weightController = TextEditingController();
 
   // Form state
-  List<XFile> _selectedImages = [];
+  final List<XFile> _selectedImages = [];
   Category? _selectedCategory;
   Brand? _selectedBrand;
   String? _selectedUnit;
@@ -370,7 +370,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       TossSelectionItem.fromGeneric(
         id: unit,
         title: unit,
-      )
+      ),
     ).toList();
 
     await TossSelectionBottomSheet.show<String>(

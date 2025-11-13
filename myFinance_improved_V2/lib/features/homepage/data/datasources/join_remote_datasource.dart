@@ -1,5 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/features/homepage/data/models/join_result_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for join operations
 /// Communicates with Supabase RPC: join_user_by_code

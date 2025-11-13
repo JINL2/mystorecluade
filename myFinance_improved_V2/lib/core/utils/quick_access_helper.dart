@@ -4,10 +4,10 @@
 // =====================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/quick_access_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
 
 /// Shared quick access functionality for enhanced selectors
 class QuickAccessHelper {
@@ -56,7 +56,7 @@ class QuickAccessHelper {
           'selection_source': selectionSource,
           'selection_type': selectionType,
         },
-      });
+      },);
     } catch (e) {
       // Silent fail
     }
@@ -86,7 +86,7 @@ class QuickAccessHelper {
           'selection_source': 'quick_access',
           'selection_type': selectionType,
         },
-      });
+      },);
     } catch (e) {
       // Silent fail
     }
@@ -116,7 +116,7 @@ class QuickAccessHelper {
           'selection_type': selectionType,
           'note': 'minimal_tracking',
         },
-      });
+      },);
     } catch (e) {
       // Silent fail
     }

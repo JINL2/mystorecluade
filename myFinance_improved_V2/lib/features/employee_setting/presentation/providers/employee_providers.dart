@@ -97,7 +97,7 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
   final employeesAsync = ref.watch(employeeSalaryListProvider);
 
-  List<EmployeeSalary> _processEmployees(List<EmployeeSalary> employees) {
+  List<EmployeeSalary> processEmployees(List<EmployeeSalary> employees) {
     // Filter employees based on search query
     List<EmployeeSalary> filtered;
     if (searchQuery.isEmpty) {
@@ -149,7 +149,7 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
 
   // Use mutable list if available, otherwise use the async provider
   if (mutableEmployees != null) {
-    return AsyncData(_processEmployees(mutableEmployees));
+    return AsyncData(processEmployees(mutableEmployees));
   }
 
   return employeesAsync.when(
@@ -159,7 +159,7 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
         ref.read(mutableEmployeeListProvider.notifier).state = employees;
       });
 
-      return AsyncData(_processEmployees(employees));
+      return AsyncData(processEmployees(employees));
     },
     loading: () => const AsyncLoading(),
     error: (error, stack) => AsyncError(error, stack),

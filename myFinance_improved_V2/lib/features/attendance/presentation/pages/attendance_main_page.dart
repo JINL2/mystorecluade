@@ -81,7 +81,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                             ],
                           ),
                           indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
+                          indicatorPadding: const EdgeInsets.all(TossSpacing.space1 / 2),
                           dividerColor: TossColors.transparent,
                           labelColor: TossColors.gray900,
                           unselectedLabelColor: TossColors.gray600,

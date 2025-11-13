@@ -3,10 +3,10 @@
 // Autonomous data providers for counterparty selectors
 // =====================================================
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'counterparty_provider.g.dart';
 
@@ -290,11 +290,6 @@ Future<List<Map<String, dynamic>>> counterpartyStores(
 
     print('🔵 DEBUG: counterpartyStores - response type: ${response.runtimeType}');
     print('🔵 DEBUG: counterpartyStores - response: $response');
-
-    if (response == null) {
-      print('🔵 DEBUG: counterpartyStores - response is null');
-      return [];
-    }
 
     final result = List<Map<String, dynamic>>.from(response as List);
     print('🔵 DEBUG: counterpartyStores - result count: ${result.length}');

@@ -1,6 +1,6 @@
-import '../entities/sales_product.dart';
 import '../entities/cash_location.dart';
 import '../entities/payment_currency.dart';
+import '../entities/sales_product.dart';
 
 /// Product repository interface for sales invoice
 abstract class ProductRepository {

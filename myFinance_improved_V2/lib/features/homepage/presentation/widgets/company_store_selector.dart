@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_company_sheet.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_store_sheet.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/join_by_code_sheet.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+
 import 'view_invite_codes_sheet.dart';
 
 /// Company & Store Selector Drawer
@@ -202,7 +203,7 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.business_outlined,
               size: 64,
               color: TossColors.textTertiary,
@@ -405,7 +406,7 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
 
                       const SizedBox(height: TossSpacing.space2),
 

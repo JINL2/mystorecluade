@@ -1,28 +1,17 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Core - Theme System
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-
-// Shared - Widgets
-import '../../../../shared/widgets/toss/toss_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
 
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
-
-// Presentation - Providers
-import '../providers/auth_service.dart';
-
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
 // Domain Layer - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
+// Presentation - Providers
+import '../providers/auth_service.dart';
 
 /// Signup Page - Clean Architecture Version
 ///
@@ -109,7 +98,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -117,7 +106,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     // Add validation listeners
     _emailController.addListener(_validateEmail);
@@ -251,7 +240,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -319,12 +308,12 @@ class _SignupPageState extends ConsumerState<SignupPage>
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               left: TossSpacing.space4,
               top: TossSpacing.space3,
             ),
             child: IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.arrow_back_ios,
                 color: TossColors.textPrimary,
                 size: 20,
@@ -338,7 +327,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ),
         ),
         Padding(
-          padding: EdgeInsets.only(
+          padding: const EdgeInsets.only(
             left: TossSpacing.space5,
           ),
           child: ClipRRect(
@@ -816,11 +805,11 @@ class _SignupPageState extends ConsumerState<SignupPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
                 Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                const Text('Account created successfully!'),
+                SizedBox(width: TossSpacing.space2),
+                Text('Account created successfully!'),
               ],
             ),
             backgroundColor: TossColors.success,
@@ -852,7 +841,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -878,7 +867,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.email_outlined, color: TossColors.white, size: 20),
+                const Icon(Icons.email_outlined, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -904,7 +893,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.lock_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.lock_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -930,7 +919,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.wifi_off, color: TossColors.white, size: 20),
+                const Icon(Icons.wifi_off, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -956,7 +945,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -982,7 +971,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -1034,13 +1023,13 @@ class _SignupPageState extends ConsumerState<SignupPage>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
           ),
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space5,
             vertical: TossSpacing.space3,
           ),
         ),
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(

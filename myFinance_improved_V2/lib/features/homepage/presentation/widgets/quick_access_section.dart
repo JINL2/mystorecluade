@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/core/constants/icon_mapper.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class QuickAccessSection extends ConsumerWidget {
   const QuickAccessSection({super.key});

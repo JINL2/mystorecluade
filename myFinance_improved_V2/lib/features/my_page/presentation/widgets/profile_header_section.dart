@@ -26,8 +26,8 @@ class ProfileHeaderSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      padding: EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space5,
         vertical: TossSpacing.space4,
       ),
@@ -54,7 +54,7 @@ class ProfileHeaderSection extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: TossSpacing.space6),
+          const SizedBox(height: TossSpacing.space6),
 
           // Name
           Text(
@@ -66,12 +66,12 @@ class ProfileHeaderSection extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
 
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
 
           // Role badge
           Center(
             child: Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
                 vertical: TossSpacing.space2,
               ),
@@ -89,7 +89,7 @@ class ProfileHeaderSection extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
 
           // Company info
           if (businessData?.companyName.isNotEmpty == true)
@@ -103,7 +103,7 @@ class ProfileHeaderSection extends StatelessWidget {
             ),
 
           if (businessData?.storeName.isNotEmpty == true) ...[
-            SizedBox(height: TossSpacing.space1),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               businessData!.storeName,
               style: TossTextStyles.body.copyWith(

@@ -93,10 +93,6 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       // Get shift request ID from the card
       final shiftRequestId = widget.card.shiftRequestId;
 
-      if (shiftRequestId == null) {
-        throw Exception('Shift request ID not found');
-      }
-
       // Use repository instead of direct Supabase call
       await ref.read(timeTableRepositoryProvider).updateBonusAmount(
         shiftRequestId: shiftRequestId,

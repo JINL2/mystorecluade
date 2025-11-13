@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
+import '../../domain/repositories/transaction_repository.dart';
+import '../../domain/usecases/create_transaction_usecase.dart';
+import '../../domain/value_objects/transaction_context.dart';
 import 'states/transaction_state.dart';
 import 'validator_providers.dart';
-import '../../domain/entities/transaction_entity.dart';
-import '../../domain/usecases/create_transaction_usecase.dart';
-import '../../domain/repositories/transaction_repository.dart';
-import '../../domain/value_objects/transaction_context.dart';
-import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Transaction Creation Notifier - 트랜잭션 생성 상태 관리

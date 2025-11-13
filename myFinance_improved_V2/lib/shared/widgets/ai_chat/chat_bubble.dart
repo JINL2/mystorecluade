@@ -32,11 +32,11 @@ class ChatBubble extends StatelessWidget {
           color: message.isUser ? TossColors.primary : TossColors.gray200,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg).copyWith(
             bottomRight: message.isUser
-                ? Radius.circular(4)
-                : Radius.circular(TossBorderRadius.lg),
+                ? const Radius.circular(4)
+                : const Radius.circular(TossBorderRadius.lg),
             bottomLeft: message.isUser
-                ? Radius.circular(TossBorderRadius.lg)
-                : Radius.circular(4),
+                ? const Radius.circular(TossBorderRadius.lg)
+                : const Radius.circular(4),
           ),
         ),
         child: message.isUser

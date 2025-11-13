@@ -16,7 +16,9 @@ import '../../domain/entities/currency.dart';
 import '../../domain/entities/vault_transaction.dart';
 import '../providers/cash_ending_provider.dart';
 import '../providers/cash_ending_state.dart';
-import '../providers/repository_providers.dart';
+import '../providers/cash_tab_provider.dart';
+import '../providers/bank_tab_provider.dart';
+import '../providers/vault_tab_provider.dart';
 import '../widgets/tabs/bank_tab.dart';
 import '../widgets/tabs/cash_tab.dart';
 import '../widgets/tabs/vault_tab.dart';
@@ -159,7 +161,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       orElse: () => state.currencies.first,
     );
 
-    // Get quantities from tab (accessing via currentState as dynamic to get the property)
+    // Get quantities from widget (accessing via currentState)
     final dynamic cashTabState = _cashTabKey.currentState;
     final quantities = (cashTabState?.denominationQuantities as Map<String, Map<String, int>>?)?[currencyId] ?? {};
 
@@ -178,7 +180,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currencyName: currency.currencyName,
         symbol: currency.symbol,
         denominations: denominationsWithQuantity,
-      )
+      ),
     ];
 
     // Create CashEnding entity
@@ -193,9 +195,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       currencies: currenciesWithData,
     );
 
-    // Save
-    final success =
-        await ref.read(cashEndingProvider.notifier).saveCashEnding(cashEnding);
+    // Save via CashTabProvider
+    final success = await ref.read(cashTabProvider.notifier).saveCashEnding(cashEnding);
 
     if (!mounted) {
       return;
@@ -204,16 +205,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     if (success) {
       await TossDialogs.showCashEndingSaved(context: context);
       cashTabState?.clearQuantities?.call();
-
-      // Refresh Real section data (like lib_old lines 1234-1236)
-      // Reload stock flows to show the newly saved cash ending
-      if (state.selectedCashLocationId != null && state.selectedCashLocationId!.isNotEmpty) {
-        cashTabState?.reloadStockFlows?.call();
-      }
+      // Stock flows are automatically reloaded by the notifier
     } else {
+      final tabState = ref.read(cashTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,
-        error: state.errorMessage ?? 'Failed to save cash ending',
+        error: tabState.errorMessage ?? 'Failed to save cash ending',
       );
     }
   }
@@ -266,41 +263,23 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       createdAt: now,
     );
 
-    try {
-      // Use BankRepository (Clean Architecture pattern)
-      await ref.read(bankRepositoryProvider).saveBankBalance(bankBalance);
+    // Save via BankTabProvider
+    final success = await ref.read(bankTabProvider.notifier).saveBankBalance(bankBalance);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
+    if (success) {
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
       await TossDialogs.showBankBalanceSaved(context: context);
       bankTabState?.clearAmount?.call();
-
-      // Reload stock flows
-      if (state.selectedBankLocationId != null &&
-          state.selectedBankLocationId!.isNotEmpty) {
-        bankTabState?.reloadStockFlows?.call();
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      // Parse error message for user-friendly display
-      String errorMessage = 'Failed to save bank balance';
-      if (e.toString().contains('network')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (e.toString().contains('duplicate')) {
-        errorMessage = 'Bank balance for today already exists.';
-      } else if (e.toString().contains('permission')) {
-        errorMessage = 'You do not have permission to save bank balance.';
-      } else {
-        errorMessage = 'An unexpected error occurred. Please try again.';
-      }
-
+      // Stock flows are automatically reloaded by the notifier
+    } else {
+      final tabState = ref.read(bankTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,
-        error: errorMessage,
+        error: tabState.errorMessage ?? 'Failed to save bank balance',
       );
     }
   }
@@ -364,12 +343,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       denominations: denominationsWithQuantity,
     );
 
-    try {
-      // Use VaultRepository (Clean Architecture pattern)
-      await ref.read(vaultRepositoryProvider).saveVaultTransaction(vaultTransaction);
+    // Save via VaultTabProvider
+    final success = await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
+    if (success) {
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
@@ -379,25 +358,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       );
 
       vaultTabState?.clearQuantities?.call();
-
-      // Reload stock flows
-      if (state.selectedVaultLocationId != null &&
-          state.selectedVaultLocationId!.isNotEmpty) {
-        vaultTabState?.reloadStockFlows?.call();
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      String errorMessage;
-      if (e.toString().contains('permission')) {
-        errorMessage = 'You do not have permission to save vault transactions.';
-      } else {
-        errorMessage = 'An unexpected error occurred. Please try again.';
-      }
-
+      // Stock flows are automatically reloaded by the notifier
+    } else {
+      final tabState = ref.read(vaultTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,
-        error: errorMessage,
+        error: tabState.errorMessage ?? 'Failed to save vault transaction',
       );
     }
   }

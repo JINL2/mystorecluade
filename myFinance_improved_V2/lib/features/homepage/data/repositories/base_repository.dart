@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
 import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Base repository class with common error handling and logging
 ///
@@ -52,18 +52,18 @@ abstract class BaseRepository {
         return const Left(AuthFailure(
           message: 'Please log in to continue',
           code: 'AUTH_REQUIRED',
-        ));
+        ),);
       }
       return Left(UnknownFailure(
         message: fallbackErrorMessage ?? e.toString(),
         code: 'UNKNOWN_ERROR',
-      ));
+      ),);
     } catch (e) {
       homepageLogger.e('Unexpected error in $errorContext: $e');
       return Left(UnknownFailure(
         message: fallbackErrorMessage ?? 'An unexpected error occurred. Please try again.',
         code: 'UNKNOWN_ERROR',
-      ));
+      ),);
     }
   }
 

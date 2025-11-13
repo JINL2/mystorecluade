@@ -3,8 +3,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 
 class SettingsSection extends StatelessWidget {
   final VoidCallback onEditProfile;
@@ -24,7 +24,7 @@ class SettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -40,7 +40,7 @@ class SettingsSection extends StatelessWidget {
         children: [
           // Section Header - Using TossSectionHeader
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               border: Border(
                 bottom: BorderSide(
                   color: TossColors.gray100,
@@ -48,7 +48,7 @@ class SettingsSection extends StatelessWidget {
                 ),
               ),
             ),
-            child: TossSectionHeader(
+            child: const TossSectionHeader(
               title: 'Settings',
               icon: Icons.settings,
               backgroundColor: TossColors.white,
@@ -66,13 +66,13 @@ class SettingsSection extends StatelessWidget {
                 color: TossColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.person_outline,
                 color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
-            trailing: Icon(
+            trailing: const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
               size: TossSpacing.iconSM,
@@ -89,13 +89,13 @@ class SettingsSection extends StatelessWidget {
                 color: TossColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.notifications_outlined,
                 color: TossColors.info,
                 size: TossSpacing.iconSM,
               ),
             ),
-            trailing: Icon(
+            trailing: const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
               size: TossSpacing.iconSM,
@@ -112,13 +112,13 @@ class SettingsSection extends StatelessWidget {
                 color: TossColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.security_outlined,
                 color: TossColors.success,
                 size: TossSpacing.iconSM,
               ),
             ),
-            trailing: Icon(
+            trailing: const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
               size: TossSpacing.iconSM,
@@ -128,11 +128,11 @@ class SettingsSection extends StatelessWidget {
 
           // Sign Out - Using TossListTile with destructive styling
           Container(
-            padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
             child: InkWell(
               onTap: onSignOut,
               child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Row(
                   children: [
                     Container(
@@ -142,13 +142,13 @@ class SettingsSection extends StatelessWidget {
                         color: TossColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.logout,
                         color: TossColors.error,
                         size: TossSpacing.iconSM,
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space3),
+                    const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: Text(
                         'Sign Out',
@@ -158,7 +158,7 @@ class SettingsSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.chevron_right,
                       color: TossColors.gray400,
                       size: TossSpacing.iconSM,

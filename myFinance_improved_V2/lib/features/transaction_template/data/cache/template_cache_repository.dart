@@ -9,6 +9,7 @@
 /// - Follows production pattern from transaction_template/data/cache
 ///
 /// Clean Architecture: DATA LAYER - Infrastructure
+library;
 import '../../domain/entities/template_entity.dart';
 
 class TemplateCacheRepository {

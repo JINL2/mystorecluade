@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved_v1/features/cash_ending/data/repositories/cash_ending_repository_impl.dart';
+import 'package:mockito/mockito.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/data/repositories/bank_repository_impl.dart';
+import 'package:myfinance_improved_v1/features/cash_ending/data/repositories/cash_ending_repository_impl.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/data/repositories/vault_repository_impl.dart';
-import 'package:myfinance_improved_v1/features/cash_ending/domain/entities/cash_ending.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/domain/entities/bank_balance.dart';
+import 'package:myfinance_improved_v1/features/cash_ending/domain/entities/cash_ending.dart';
 import 'package:myfinance_improved_v1/features/cash_ending/domain/entities/vault_balance.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Generate mocks for Supabase client
 @GenerateMocks([SupabaseClient])
@@ -68,8 +68,8 @@ void main() {
             .thenAnswer((_) async => {
                   'success': true,
                   'message': 'Cash ending saved successfully',
-                  'session_id': 'session_abc123'
-                });
+                  'session_id': 'session_abc123',
+                },);
 
         // Act
         final result = await cashEndingRepository.saveCashEnding(cashEnding);
@@ -95,7 +95,7 @@ void main() {
           ],
           'p_total_amount': 1500.0,
           'p_session_id': 'session_abc123',
-        })).called(1);
+        },),).called(1);
 
         expect(result.isSuccess, isTrue);
         expect(result.sessionId, equals('session_abc123'));
@@ -114,10 +114,10 @@ void main() {
 
         // Mock RPC error response
         when(mockSupabase.rpc('insert_cashier_amount_lines', params: anyNamed('params')))
-            .thenThrow(PostgrestException(
+            .thenThrow(const PostgrestException(
               message: 'Invalid denomination data',
               code: '23503',
-            ));
+            ),);
 
         // Act & Assert
         expect(
@@ -144,8 +144,8 @@ void main() {
             .thenAnswer((_) async => {
                   'success': true,
                   'message': 'Bank balance saved successfully',
-                  'transaction_id': 'bank_txn_123'
-                });
+                  'transaction_id': 'bank_txn_123',
+                },);
 
         // Act
         final result = await bankRepository.saveBankBalance(bankBalance);
@@ -158,7 +158,7 @@ void main() {
           'p_currency_id': 'currency_usd',
           'p_total_amount': 25000.0,
           'p_session_id': 'bank_session_xyz',
-        })).called(1);
+        },),).called(1);
 
         expect(result.isSuccess, isTrue);
         expect(result.transactionId, equals('bank_txn_123'));
@@ -177,7 +177,7 @@ void main() {
             .eq('company_id', companyId)
             .eq('location_id', locationId)
             .order('created_at', ascending: false)
-            .limit(limit))
+            .limit(limit),)
             .thenAnswer((_) async => [
                   {
                     'id': 'bank_1',
@@ -186,9 +186,9 @@ void main() {
                     'created_at': '2024-01-15T10:30:00Z',
                     'user_id': 'user_1',
                     'currency': {'symbol': '\$', 'currency_code': 'USD'},
-                    'user': {'full_name': 'John Doe'}
+                    'user': {'full_name': 'John Doe'},
                   }
-                ]);
+                ],);
 
         // Act
         final result = await bankRepository.getBankTransactions(
@@ -229,8 +229,8 @@ void main() {
             .thenAnswer((_) async => {
                   'success': true,
                   'message': 'Vault transaction completed',
-                  'transaction_id': 'vault_txn_456'
-                });
+                  'transaction_id': 'vault_txn_456',
+                },);
 
         // Act
         final result = await vaultRepository.saveVaultBalance(vaultBalance);
@@ -251,7 +251,7 @@ void main() {
           ],
           'p_total_amount': 2000.0,
           'p_session_id': 'vault_session_abc',
-        })).called(1);
+        },),).called(1);
 
         expect(result.isSuccess, isTrue);
         expect(result.transactionId, equals('vault_txn_456'));
@@ -274,10 +274,10 @@ void main() {
                     'created_at': '2024-01-15T11:00:00Z',
                     'user_full_name': 'Jane Smith',
                     'denomination_details': [
-                      {'denomination_id': 'denom_100', 'quantity': 15}
-                    ]
+                      {'denomination_id': 'denom_100', 'quantity': 15},
+                    ],
                   }
-                ]);
+                ],);
 
         // Act
         final result = await vaultRepository.getVaultTransactionHistory(
@@ -291,7 +291,7 @@ void main() {
           'p_company_id': companyId,
           'p_location_id': locationId,
           'p_limit': limit,
-        })).called(1);
+        },),).called(1);
 
         expect(result, hasLength(1));
         expect(result.first['transaction_type'], equals('credit'));
@@ -319,10 +319,10 @@ void main() {
 
         // Mock insufficient funds error (original behavior)
         when(mockSupabase.rpc('vault_amount_insert', params: anyNamed('params')))
-            .thenThrow(PostgrestException(
+            .thenThrow(const PostgrestException(
               message: 'Insufficient vault balance for debit operation',
               code: '23514',
-            ));
+            ),);
 
         // Act & Assert - Verify error handling matches original
         expect(
@@ -351,13 +351,13 @@ void main() {
             }
           ],
           'total_amount': 400.0,
-          'session_id': 'legacy_session_123'
+          'session_id': 'legacy_session_123',
         };
 
         // Verify that repository can handle legacy format
         expect(legacyCashData['company_id'], isA<String>());
         expect(legacyCashData['denomination_lines'], isA<List>());
-        expect((legacyCashData['denomination_lines'] as List).first, isA<Map>());
+        expect((legacyCashData['denomination_lines']! as List).first, isA<Map>());
       });
     });
 
@@ -375,10 +375,10 @@ void main() {
 
         // Mock validation error
         when(mockSupabase.rpc('insert_cashier_amount_lines', params: anyNamed('params')))
-            .thenThrow(PostgrestException(
+            .thenThrow(const PostgrestException(
               message: 'Company ID is required',
               code: '23502',
-            ));
+            ),);
 
         // Act & Assert
         try {

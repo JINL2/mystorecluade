@@ -228,13 +228,13 @@ class DynamicIcon extends StatelessWidget {
   final bool useDefaultColor;
 
   const DynamicIcon({
-    Key? key,
+    super.key,
     required this.iconKey,
     this.featureName,
     this.size = 24,
     this.color,
     this.useDefaultColor = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_company.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
-import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
 
 /// StateNotifier for managing Company creation state
 class CompanyNotifier extends StateNotifier<CompanyState> {
@@ -24,7 +24,7 @@ class CompanyNotifier extends StateNotifier<CompanyState> {
       companyName: companyName,
       companyTypeId: companyTypeId,
       baseCurrencyId: baseCurrencyId,
-    ));
+    ),);
 
     homepageLogger.d('Result received from use case');
     result.fold(

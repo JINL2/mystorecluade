@@ -41,7 +41,7 @@ class EmptyStateScreen extends StatelessWidget {
                     color: TossColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.business_outlined,
                     size: 60,
                     color: TossColors.primary,
@@ -119,7 +119,7 @@ class EmptyStateScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                             vertical: TossSpacing.space4,
                           ),
-                          side: BorderSide(
+                          side: const BorderSide(
                             color: TossColors.primary,
                             width: 1.5,
                           ),
@@ -163,7 +163,7 @@ class EmptyStateScreen extends StatelessWidget {
                     // Show logout confirmation
                     _showLogoutDialog(context);
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.logout_rounded,
                     size: 20,
                     color: TossColors.textTertiary,

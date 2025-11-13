@@ -15,6 +15,7 @@
 /// - UI State: 1
 /// - Data State: 4 (ShiftMetadata, MonthlyShiftStatus, ManagerOverview, SelectedRequests)
 /// - Form State: 2 (AddShiftForm, ShiftDetailsForm)
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

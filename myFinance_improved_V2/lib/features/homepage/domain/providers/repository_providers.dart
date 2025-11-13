@@ -12,6 +12,7 @@
 /// - Easy testing (mock repositories at domain level)
 /// - Clear separation of concerns
 /// - Implementation changes without affecting presentation layer
+library;
 
 // Export only the public repository providers
 export '../../data/repositories/repository_providers.dart'

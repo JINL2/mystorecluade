@@ -20,14 +20,14 @@ class PermissionSet {
   factory PermissionSet.create(Set<String> permissions) {
     // Business rule: Custom roles must have at least one permission
     if (permissions.isEmpty) {
-      throw RoleValidationException(
+      throw const RoleValidationException(
         'Role must have at least one permission',
       );
     }
 
     // Business rule: Max 100 permissions per role
     if (permissions.length > maxPermissions) {
-      throw RoleValidationException(
+      throw const RoleValidationException(
         'Role cannot have more than $maxPermissions permissions',
       );
     }

@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/journal_entry.dart';
-import 'states/journal_entry_state.dart';
 import 'journal_entry_notifier.dart';
+import 'states/journal_entry_state.dart';
 
 // =============================================================================
 // State Management Providers

@@ -3,7 +3,6 @@
 import '../../domain/entities/store_entity.dart';
 import '../../domain/repositories/store_repository.dart';
 import '../datasources/supabase_store_datasource.dart';
-import '../models/freezed/store_dto.dart';
 import '../models/freezed/store_dto_mapper.dart';
 import 'base_repository.dart';
 

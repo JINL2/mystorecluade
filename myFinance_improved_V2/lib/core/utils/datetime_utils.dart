@@ -62,7 +62,7 @@ class DateTimeUtils {
   static DateTime toLocal(String utcString) {
     // Handle empty string
     if (utcString.isEmpty) {
-      throw FormatException('Cannot parse empty string as DateTime');
+      throw const FormatException('Cannot parse empty string as DateTime');
     }
 
     try {
@@ -87,7 +87,7 @@ class DateTimeUtils {
             .replaceFirst(' ', 'T');
 
         if (cleanString.isEmpty) {
-          throw FormatException('String became empty after cleaning');
+          throw const FormatException('String became empty after cleaning');
         }
 
         final result = DateTime.parse('${cleanString}Z').toLocal();

@@ -7,7 +7,6 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/time_table_providers.dart';
 import '../calendar/calendar_month_header.dart';
 import '../calendar/time_table_calendar.dart';

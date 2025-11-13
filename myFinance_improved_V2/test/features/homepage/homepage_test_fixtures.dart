@@ -1,8 +1,8 @@
 import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/company_type.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
 
 /// Test fixture data for homepage feature
 ///

@@ -5,9 +5,8 @@ import '../../domain/entities/company_entity.dart';
 import '../../domain/repositories/company_repository.dart';
 import '../../domain/usecases/create_company_usecase.dart';
 import '../../domain/value_objects/company_type.dart';
-import '../../domain/value_objects/currency.dart';
 import '../../domain/value_objects/create_company_command.dart';
-
+import '../../domain/value_objects/currency.dart';
 // Providers
 import '../providers/repository_providers.dart';
 import 'usecase_providers.dart';

@@ -1,3 +1,4 @@
+import '../entities/shift_metadata.dart';
 import '../repositories/attendance_repository.dart';
 
 /// Get shift metadata for a store
@@ -8,7 +9,7 @@ class GetShiftMetadata {
 
   GetShiftMetadata(this._repository);
 
-  Future<List<Map<String, dynamic>>> call({
+  Future<List<ShiftMetadata>> call({
     required String storeId,
   }) {
     return _repository.getShiftMetadata(storeId: storeId);

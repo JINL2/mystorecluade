@@ -1,8 +1,8 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
 import 'package:myfinance_improved/features/homepage/data/models/company_model.dart';
 import 'package:myfinance_improved/features/homepage/data/models/company_type_model.dart';
 import 'package:myfinance_improved/features/homepage/data/models/currency_model.dart';
-import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for company operations
 /// Handles all direct Supabase communication for company feature

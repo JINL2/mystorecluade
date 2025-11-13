@@ -23,20 +23,17 @@ class CashEndingException implements Exception {
 
 /// Exception thrown when required data is missing
 class MissingDataException extends CashEndingException {
-  const MissingDataException(String message, {String? code})
-      : super(message, code: code);
+  const MissingDataException(super.message, {super.code});
 }
 
 /// Exception thrown when save operation fails
 class SaveFailedException extends CashEndingException {
-  const SaveFailedException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const SaveFailedException(super.message, {super.code, super.originalError});
 }
 
 /// Exception thrown when fetch operation fails
 class FetchFailedException extends CashEndingException {
-  const FetchFailedException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const FetchFailedException(super.message, {super.code, super.originalError});
 }
 
 /// Exception thrown when no denominations are entered
@@ -53,6 +50,5 @@ class LocationNotSelectedException extends CashEndingException {
 
 /// Exception thrown when data source operation fails (Supabase, network, etc.)
 class DataSourceException extends CashEndingException {
-  const DataSourceException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const DataSourceException(super.message, {super.code, super.originalError});
 }

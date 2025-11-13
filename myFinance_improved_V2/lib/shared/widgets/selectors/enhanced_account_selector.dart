@@ -5,16 +5,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/core/utils/account_type_utils.dart';
+import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
-import 'package:myfinance_improved/core/utils/account_type_utils.dart';
 
 /// Enhanced account selector with quick access to frequently used accounts
 class EnhancedAccountSelector extends ConsumerStatefulWidget {
@@ -161,7 +161,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   ],
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.keyboard_arrow_down,
                 color: TossColors.gray500,
               ),
@@ -235,7 +235,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_drop_down,
               color: TossColors.textSecondary,
             ),
@@ -405,7 +405,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                         child: ElevatedButton(
                           onPressed: () {
                             widget.onMultiChanged?.call(
-                              _tempSelectedIds.isEmpty ? null : _tempSelectedIds
+                              _tempSelectedIds.isEmpty ? null : _tempSelectedIds,
                             );
                             Navigator.pop(context);
                           },
@@ -510,7 +510,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.flash_on,
                 size: TossSpacing.iconXS,
                 color: TossColors.warning,
@@ -567,7 +567,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                             child: Container(
                               width: 8,
                               height: 8,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: TossColors.warning,
                                 shape: BoxShape.circle,
                               ),
@@ -603,7 +603,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                   ),
                                   child: Text(
-                                    '${usageCount}×',
+                                    '$usageCount×',
                                     style: TossTextStyles.caption.copyWith(
                                       color: TossColors.warning,
                                       fontSize: 10,
@@ -644,7 +644,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           } catch (e) {
             return const SizedBox.shrink();
           }
-        }).toList(),
+        }),
       ],
     );
   }
@@ -660,7 +660,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.flash_on,
                 size: TossSpacing.iconXS,
                 color: TossColors.warning,
@@ -692,7 +692,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
             // Account not found in current list, show basic info
             return _buildQuickAccountItem(quickAccount);
           }
-        }).toList(),
+        }),
       ],
     );
   }
@@ -874,7 +874,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.warning,
                         shape: BoxShape.circle,
                       ),
@@ -912,7 +912,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           child: Text(
-                            '${usageCount}×',
+                            '$usageCount×',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.warning,
                               fontSize: 10,
@@ -944,7 +944,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
 
             // Selection indicator
             if (isSelected)
-              Icon(
+              const Icon(
                 Icons.check_circle,
                 size: TossSpacing.iconSM,
                 color: TossColors.primary,
@@ -1000,7 +1000,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Text(
-                  '${usageCount}×',
+                  '$usageCount×',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.warning,
                     fontSize: 10,
@@ -1047,7 +1047,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       ),
       child: Row(
         children: [
-          SizedBox(
+          const SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
@@ -1088,7 +1088,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               size: TossSpacing.iconSM,
               color: TossColors.error,
@@ -1114,7 +1114,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.refresh,
               size: TossSpacing.iconSM,
               color: TossColors.error,

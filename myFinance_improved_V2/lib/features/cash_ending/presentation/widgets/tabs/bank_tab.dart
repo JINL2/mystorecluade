@@ -4,17 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/stock_flow.dart';
+import '../../providers/bank_tab_provider.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../../providers/repository_providers.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
@@ -39,12 +40,6 @@ class BankTab extends ConsumerStatefulWidget {
 }
 class _BankTabState extends ConsumerState<BankTab> {
   final TextEditingController _bankAmountController = TextEditingController();
-  // Stock flow data for Real section
-  List<ActualFlow> _actualFlows = [];
-  LocationSummary? _locationSummary;
-  bool _isLoadingFlows = false;
-  bool _hasMoreFlows = false;
-  int _flowsOffset = 0;
   String? _previousLocationId;
   @override
   void initState() {
@@ -55,17 +50,17 @@ class _BankTabState extends ConsumerState<BankTab> {
       (previous, next) {
         if (next != null && next.isNotEmpty && next != previous) {
           _previousLocationId = next;
-          _loadStockFlows();
+          _loadStockFlowsFromProvider(next);
         }
       },
     );
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(cashEndingProvider);
-      _previousLocationId = state.selectedBankLocationId;
-      if (state.selectedBankLocationId != null &&
-          state.selectedBankLocationId!.isNotEmpty) {
-        _loadStockFlows();
+      final pageState = ref.read(cashEndingProvider);
+      _previousLocationId = pageState.selectedBankLocationId;
+      if (pageState.selectedBankLocationId != null &&
+          pageState.selectedBankLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedBankLocationId!);
       }
     });
   }
@@ -77,98 +72,84 @@ class _BankTabState extends ConsumerState<BankTab> {
   @override
   void didUpdateWidget(BankTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final state = ref.read(cashEndingProvider);
-    if (state.selectedBankLocationId != _previousLocationId) {
-      _loadStockFlows();
+    final pageState = ref.read(cashEndingProvider);
+    if (pageState.selectedBankLocationId != _previousLocationId) {
+      _previousLocationId = pageState.selectedBankLocationId;
+      if (pageState.selectedBankLocationId != null &&
+          pageState.selectedBankLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedBankLocationId!);
+      }
     }
   }
-  /// Load stock flows for the selected location
-  Future<void> _loadStockFlows({bool loadMore = false}) async {
-    final state = ref.read(cashEndingProvider);
-    if (state.selectedBankLocationId == null ||
-        state.selectedBankLocationId!.isEmpty ||
-        state.selectedStoreId == null) {
+
+  /// Load stock flows via provider
+  void _loadStockFlowsFromProvider(String locationId) {
+    final pageState = ref.read(cashEndingProvider);
+
+    if (pageState.selectedStoreId == null || pageState.selectedStoreId!.isEmpty) {
       return;
     }
-    if (_isLoadingFlows) return;
-    setState(() {
-      _isLoadingFlows = true;
-      if (!loadMore) {
-        _flowsOffset = 0;
-        _actualFlows = [];
-      }
-    });
-    try {
-      final repository = ref.read(stockFlowRepositoryProvider);
-      final result = await repository.getLocationStockFlow(
-        companyId: widget.companyId,
-        storeId: state.selectedStoreId!,
-        cashLocationId: state.selectedBankLocationId!,
-        offset: _flowsOffset,
-        limit: 20,
-      );
-      if (result.success) {
-        setState(() {
-          if (loadMore) {
-            _actualFlows.addAll(result.actualFlows);
-          } else {
-            _actualFlows = result.actualFlows;
-            _locationSummary = result.locationSummary;
-          }
-          _hasMoreFlows = result.pagination?.hasMore ?? false;
-          _flowsOffset += result.actualFlows.length;
-        });
-      }
-    } catch (e) {
-      // Error loading stock flows
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingFlows = false;
-        });
-      }
-    }
+
+    ref.read(bankTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: locationId,
+    );
   }
+
+  /// Load more flows for pagination
   void _loadMoreFlows() {
-    _loadStockFlows(loadMore: true);
-  }
-  void reloadStockFlows() {
-    _loadStockFlows();
+    final pageState = ref.read(cashEndingProvider);
+
+    if (pageState.selectedBankLocationId == null ||
+        pageState.selectedStoreId == null) {
+      return;
+    }
+
+    ref.read(bankTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: pageState.selectedBankLocationId!,
+      loadMore: true,
+    );
   }
   void _showFlowDetails(ActualFlow flow) {
-    final state = ref.read(cashEndingProvider);
+    final pageState = ref.read(cashEndingProvider);
+    final tabState = ref.read(bankTabProvider);
     FlowDetailBottomSheet.show(
       context: context,
       flow: flow,
-      locationSummary: _locationSummary,
-      baseCurrencySymbol: state.currencies.isNotEmpty
-          ? state.currencies.first.symbol
+      locationSummary: tabState.locationSummary,
+      baseCurrencySymbol: pageState.currencies.isNotEmpty
+          ? pageState.currencies.first.symbol
           : '\$',
     );
   }
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(cashEndingProvider);
+    final pageState = ref.watch(cashEndingProvider);
+    final tabState = ref.watch(bankTabProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Card 1: Store and Location Selection
-          _buildLocationSelectionCard(state),
+          _buildLocationSelectionCard(pageState),
           // Card 2: Bank Balance Input (show if location selected)
-          if (state.selectedBankLocationId != null &&
-              state.selectedBankLocationId!.isNotEmpty) ...[
+          if (pageState.selectedBankLocationId != null &&
+              pageState.selectedBankLocationId!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space6),
-            _buildBankBalanceCard(state),
+            _buildBankBalanceCard(pageState),
             // Card 3: Real Section
             RealSectionWidget(
-              actualFlows: _actualFlows,
-              locationSummary: _locationSummary,
-              isLoading: _isLoadingFlows,
-              hasMore: _hasMoreFlows,
-              baseCurrencySymbol: state.currencies.isNotEmpty
-                  ? state.currencies.first.symbol
+              actualFlows: tabState.stockFlows,
+              locationSummary: tabState.locationSummary,
+              isLoading: tabState.isLoadingFlows,
+              hasMore: tabState.hasMoreFlows,
+              baseCurrencySymbol: pageState.currencies.isNotEmpty
+                  ? pageState.currencies.first.symbol
                   : '\$',
               onLoadMore: _loadMoreFlows,
               onItemTap: _showFlowDetails,
@@ -340,25 +321,30 @@ class _BankTabState extends ConsumerState<BankTab> {
     // Enable button when currency is available (amount can be 0)
     // Note: Bank balance can be 0, so we don't check hasAmount
     final hasCurrency = state.selectedBankCurrencyId != null;
-    final isEnabled = hasCurrency && !state.isSaving;
-    return Center(
-      child: TossButton1.primary(
-        text: 'Save Bank Balance',
-        isLoading: state.isSaving,
-        isEnabled: isEnabled,
-        fullWidth: false,
-        onPressed: isEnabled
-            ? () async {
-                final currencyId = state.selectedBankCurrencyId!;
-                await widget.onSave(context, state, currencyId);
-              }
-            : null,
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        borderRadius: 12,
-      ),
+    return Builder(
+      builder: (context) {
+        final tabState = ref.watch(bankTabProvider);
+        final isEnabled = hasCurrency && !tabState.isSaving;
+        return Center(
+          child: TossButton1.primary(
+            text: 'Save Bank Balance',
+            isLoading: tabState.isSaving,
+            isEnabled: isEnabled,
+            fullWidth: false,
+            onPressed: isEnabled
+                ? () async {
+                    final currencyId = state.selectedBankCurrencyId!;
+                    await widget.onSave(context, state, currencyId);
+                  }
+                : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space3,
+            ),
+            borderRadius: 12,
+          ),
+        );
+      },
     );
   }
   // Expose amount for parent to access

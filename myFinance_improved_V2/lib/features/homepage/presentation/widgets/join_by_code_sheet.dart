@@ -62,9 +62,9 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
         loading: () {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Row(
+              content: const Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -72,7 +72,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                       valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                     ),
                   ),
-                  const SizedBox(width: TossSpacing.space3),
+                  SizedBox(width: TossSpacing.space3),
                   Text('Joining...'),
                 ],
               ),

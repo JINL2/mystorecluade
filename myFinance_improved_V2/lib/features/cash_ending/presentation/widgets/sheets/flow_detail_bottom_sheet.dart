@@ -117,7 +117,7 @@ class FlowDetailBottomSheet extends StatelessWidget {
       child: Column(
         children: [
           _buildInfoRow('Amount', _formatCurrency(flow.flowAmount, currencySymbol),
-              valueColor: flow.flowAmount >= 0 ? TossColors.primary : TossColors.error),
+              valueColor: flow.flowAmount >= 0 ? TossColors.primary : TossColors.error,),
           const SizedBox(height: TossSpacing.space2),
           _buildInfoRow('Balance After', _formatCurrency(flow.balanceAfter, currencySymbol)),
           const SizedBox(height: TossSpacing.space2),
@@ -156,7 +156,7 @@ class FlowDetailBottomSheet extends StatelessWidget {
 
 
   Widget _buildDenominationSection(
-      List<DenominationDetail> denominations, String currencySymbol) {
+      List<DenominationDetail> denominations, String currencySymbol,) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: denominations

@@ -42,7 +42,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   final _weightController = TextEditingController();
 
   // Form state
-  List<XFile> _selectedImages = [];
+  final List<XFile> _selectedImages = [];
   List<String> _existingImageUrls = [];
   Category? _selectedCategory;
   Brand? _selectedBrand;
@@ -409,7 +409,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       TossSelectionItem.fromGeneric(
         id: unit,
         title: unit,
-      )
+      ),
     ).toList();
 
     await TossSelectionBottomSheet.show<String>(
@@ -1194,15 +1194,15 @@ class _CategoryCreationDialogState
                                     final category = metadata.categories[index];
                                     return ListTile(
                                       leading: const Icon(Icons.help_outline,
-                                          color: TossColors.gray400),
+                                          color: TossColors.gray400,),
                                       title: Text(category.name),
                                       subtitle: Text(
-                                          '${category.productCount ?? 0} products'),
+                                          '${category.productCount ?? 0} products',),
                                       trailing:
                                           _selectedParentCategory?.id ==
                                                   category.id
                                               ? const Icon(Icons.check,
-                                                  color: TossColors.primary)
+                                                  color: TossColors.primary,)
                                               : null,
                                       onTap: () {
                                         setState(() {

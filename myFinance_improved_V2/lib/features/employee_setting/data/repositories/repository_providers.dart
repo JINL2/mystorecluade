@@ -7,6 +7,7 @@
 /// - Centralizes Data layer dependencies
 /// - Presentation layer imports this file
 /// - Maintains Clean Architecture by hiding implementation details
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

@@ -8,11 +8,13 @@
 /// - Follows Clean Architecture DataSource pattern
 ///
 /// Clean Architecture: DATA LAYER - DataSource (Infrastructure)
-import '../../domain/entities/template_entity.dart';
+library;
 import 'package:myfinance_improved/core/services/supabase_service.dart';
+
+import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/template_entity.dart';
 import '../dtos/template_dto.dart';
 import '../mappers/template_mapper.dart';
-import '../../../../core/utils/datetime_utils.dart';
 
 class TemplateDataSource {
   final SupabaseService _supabaseService;

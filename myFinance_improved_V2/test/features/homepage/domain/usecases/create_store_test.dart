@@ -1,9 +1,8 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_store.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
 
 import '../../homepage_mocks.dart';
 import '../../homepage_test_fixtures.dart';
@@ -33,7 +32,7 @@ void main() {
             huddleTime: any(named: 'huddleTime'),
             paymentTime: any(named: 'paymentTime'),
             allowedDistance: any(named: 'allowedDistance'),
-          )).thenAnswer((_) async => const Right(tStore));
+          ),).thenAnswer((_) async => const Right(tStore));
 
       // act
       final result = await useCase(tParams);
@@ -48,7 +47,7 @@ void main() {
             huddleTime: null,
             paymentTime: null,
             allowedDistance: null,
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return ValidationFailure when store name is empty', () async {
@@ -78,7 +77,7 @@ void main() {
             huddleTime: any(named: 'huddleTime'),
             paymentTime: any(named: 'paymentTime'),
             allowedDistance: any(named: 'allowedDistance'),
-          ));
+          ),);
     });
 
     test('should return ValidationFailure when store name is too short',
@@ -118,7 +117,7 @@ void main() {
             huddleTime: any(named: 'huddleTime'),
             paymentTime: any(named: 'paymentTime'),
             allowedDistance: any(named: 'allowedDistance'),
-          )).thenAnswer((_) async => const Right(tStore));
+          ),).thenAnswer((_) async => const Right(tStore));
 
       // act
       await useCase(paramsWithWhitespace);
@@ -132,7 +131,7 @@ void main() {
             huddleTime: null,
             paymentTime: null,
             allowedDistance: null,
-          )).called(1);
+          ),).called(1);
     });
 
     test('should return ValidationFailure when companyId is empty', () async {
@@ -176,7 +175,7 @@ void main() {
             huddleTime: any(named: 'huddleTime'),
             paymentTime: any(named: 'paymentTime'),
             allowedDistance: any(named: 'allowedDistance'),
-          )).thenAnswer((_) async => const Right(tStore));
+          ),).thenAnswer((_) async => const Right(tStore));
 
       // act
       await useCase(paramsWithOptionals);
@@ -190,7 +189,7 @@ void main() {
             huddleTime: 15,
             paymentTime: 30,
             allowedDistance: 100,
-          )).called(1);
+          ),).called(1);
     });
   });
 }

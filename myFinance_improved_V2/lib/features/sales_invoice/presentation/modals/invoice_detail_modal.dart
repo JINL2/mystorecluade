@@ -53,7 +53,7 @@ class InvoiceDetailModal extends StatelessWidget {
     final symbol = currencySymbol ?? '';
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xl),
@@ -66,7 +66,7 @@ class InvoiceDetailModal extends StatelessWidget {
           Container(
             width: 48,
             height: 4,
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -75,7 +75,7 @@ class InvoiceDetailModal extends StatelessWidget {
 
           // Header
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Row(
               children: [
                 Expanded(
@@ -89,7 +89,7 @@ class InvoiceDetailModal extends StatelessWidget {
                           color: TossColors.gray900,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
                         DateFormat('dd/MM/yyyy HH:mm').format(invoice.saleDate),
                         style: TossTextStyles.caption.copyWith(
@@ -101,7 +101,7 @@ class InvoiceDetailModal extends StatelessWidget {
                 ),
                 // Close button
                 IconButton(
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                   color: TossColors.gray600,
                 ),
@@ -109,18 +109,18 @@ class InvoiceDetailModal extends StatelessWidget {
             ),
           ),
 
-          Divider(height: 1, color: TossColors.gray100),
+          const Divider(height: 1, color: TossColors.gray100),
 
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 children: [
                   // Quick Summary
                   _buildQuickSummary(currencyFormat, symbol),
 
-                  SizedBox(height: TossSpacing.space4),
+                  const SizedBox(height: TossSpacing.space4),
 
                   // Customer Info
                   _buildInfoCard(
@@ -137,7 +137,7 @@ class InvoiceDetailModal extends StatelessWidget {
                           ),
                         ),
                         if (invoice.customer?.phone != null) ...[
-                          SizedBox(height: TossSpacing.space1),
+                          const SizedBox(height: TossSpacing.space1),
                           Text(
                             invoice.customer!.phone!,
                             style: TossTextStyles.caption.copyWith(
@@ -149,7 +149,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
 
                   // Items Summary
                   _buildInfoCard(
@@ -174,7 +174,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
 
                   // Payment Info
                   _buildInfoCard(
@@ -190,7 +190,7 @@ class InvoiceDetailModal extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: TossSpacing.space2,
                             vertical: TossSpacing.space1,
                           ),
@@ -214,7 +214,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
 
                   // Store Info
                   _buildInfoCard(
@@ -229,7 +229,7 @@ class InvoiceDetailModal extends StatelessWidget {
                   ),
 
                   if (invoice.createdByName != null) ...[
-                    SizedBox(height: TossSpacing.space3),
+                    const SizedBox(height: TossSpacing.space3),
                     _buildInfoCard(
                       icon: Icons.person_outline,
                       title: 'Created By',
@@ -242,7 +242,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     ),
                   ],
 
-                  SizedBox(height: TossSpacing.space4),
+                  const SizedBox(height: TossSpacing.space4),
                 ],
               ),
             ),
@@ -276,7 +276,7 @@ class InvoiceDetailModal extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -302,7 +302,7 @@ class InvoiceDetailModal extends StatelessWidget {
                       color: TossColors.gray600,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space1),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     '$symbol${formatter.format(invoice.amounts.totalAmount)}',
                     style: TossTextStyles.h2.copyWith(
@@ -313,7 +313,7 @@ class InvoiceDetailModal extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space3,
                   vertical: TossSpacing.space2,
                 ),
@@ -328,7 +328,7 @@ class InvoiceDetailModal extends StatelessWidget {
                       size: 18,
                       color: statusColor,
                     ),
-                    SizedBox(width: TossSpacing.space1),
+                    const SizedBox(width: TossSpacing.space1),
                     Text(
                       statusText,
                       style: TossTextStyles.body.copyWith(
@@ -343,9 +343,9 @@ class InvoiceDetailModal extends StatelessWidget {
           ),
 
           if (invoice.amounts.discountAmount > 0 || invoice.amounts.taxAmount > 0) ...[
-            SizedBox(height: TossSpacing.space3),
-            Divider(height: 1, color: TossColors.gray200),
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
+            const Divider(height: 1, color: TossColors.gray200),
+            const SizedBox(height: TossSpacing.space3),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -381,7 +381,7 @@ class InvoiceDetailModal extends StatelessWidget {
             color: TossColors.gray600,
           ),
         ),
-        SizedBox(height: TossSpacing.space1),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           value,
           style: TossTextStyles.body.copyWith(
@@ -399,7 +399,7 @@ class InvoiceDetailModal extends StatelessWidget {
     required Widget content,
   }) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -409,7 +409,7 @@ class InvoiceDetailModal extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.white,
               shape: BoxShape.circle,
             ),
@@ -419,7 +419,7 @@ class InvoiceDetailModal extends StatelessWidget {
               color: TossColors.primary,
             ),
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,7 +430,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     color: TossColors.gray600,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 content,
               ],
             ),

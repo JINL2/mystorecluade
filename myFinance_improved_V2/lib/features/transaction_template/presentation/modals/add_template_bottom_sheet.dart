@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/app/providers/account_provider.dart';
 
-import '../providers/template_provider.dart';
-import '../../domain/usecases/create_template_usecase.dart';
-import '../../domain/factories/template_line_factory.dart';
 import '../../domain/enums/template_constants.dart';
+import '../../domain/factories/template_line_factory.dart';
+import '../../domain/usecases/create_template_usecase.dart';
 import '../dialogs/template_creation_dialogs.dart';
+import '../providers/template_provider.dart';
 import '../widgets/wizard/account_selector_card.dart';
 import '../widgets/wizard/permissions_form.dart';
 import '../widgets/wizard/step_indicator.dart';
@@ -29,11 +29,11 @@ class AddTemplateBottomSheet extends ConsumerStatefulWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
       ),
-      builder: (context) => Padding(
+      builder: (context) => const Padding(
         // This padding prevents the modal from being pushed up by keyboard
         // We use zero padding to override the default keyboard avoidance
         padding: EdgeInsets.only(bottom: 0),
-        child: const AddTemplateBottomSheet(),
+        child: AddTemplateBottomSheet(),
       ),
     );
   }
@@ -359,7 +359,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   }
 
   bool _isStep2Valid(bool debitRequiresCounterparty, bool creditRequiresCounterparty,
-                     bool debitIsCashAccount, bool creditIsCashAccount) {
+                     bool debitIsCashAccount, bool creditIsCashAccount,) {
     // Basic validation for step 2 - account selection
     if (_selectedDebitAccountId == null || _selectedCreditAccountId == null) {
       return false;
@@ -448,7 +448,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           children: [
             // Handle bar
             Container(
-              margin: EdgeInsets.only(top: TossSpacing.space3),
+              margin: const EdgeInsets.only(top: TossSpacing.space3),
               width: 36,
               height: 4,
               decoration: BoxDecoration(
@@ -459,18 +459,18 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             
             // Header
             Padding(
-              padding: EdgeInsets.all(TossSpacing.space5),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 children: [
                   Row(
                     children: [
                       if (_currentStep > 1)
                         IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: TossColors.gray700),
+                          icon: const Icon(Icons.arrow_back_ios, color: TossColors.gray700),
                           onPressed: _previousStep,
                         )
                       else
-                        SizedBox(width: 48),
+                        const SizedBox(width: 48),
                       Expanded(
                         child: Text(
                           'New Transaction Template',
@@ -482,12 +482,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close, color: TossColors.gray700),
+                        icon: const Icon(Icons.close, color: TossColors.gray700),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
                   // Step indicator
                   StepIndicator(
                     currentStep: _currentStep,
@@ -500,7 +500,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         ),
         content: PageView(
           controller: _pageController,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             TemplateBasicInfoForm(
               nameController: _nameController,
@@ -578,16 +578,16 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     onPressed: _previousStep,
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: TossPrimaryButton(
                     text: 'Next',
                     onPressed: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
-                                            debitIsCashAccount, creditIsCashAccount) 
+                                            debitIsCashAccount, creditIsCashAccount,) 
                         ? _nextStep 
                         : null,
                     isEnabled: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
-                                            debitIsCashAccount, creditIsCashAccount),
+                                            debitIsCashAccount, creditIsCashAccount,),
                   ),
                 ),
               ],
@@ -603,7 +603,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                 onPressed: _previousStep,
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: TossPrimaryButton(
                 text: _isCreating ? 'Creating...' : 'Create',
@@ -641,7 +641,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     );
     
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -652,7 +652,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
           
           Expanded(
             child: SingleChildScrollView(
@@ -737,7 +737,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     },
                   ),
                   
-                  SizedBox(height: TossSpacing.space4),
+                  const SizedBox(height: TossSpacing.space4),
                   
                   // Credit Account Card
                   AccountSelectorCard(
@@ -817,11 +817,11 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     },
                   ),
                   
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
                   
                   // Helpful explanation
                   Container(
-                    padding: EdgeInsets.all(TossSpacing.space3),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -829,12 +829,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.info_outline,
                           size: 16,
                           color: TossColors.gray600,
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             'Debit increases assets/expenses, decreases liabilities/income.\nCredit increases liabilities/income, decreases assets/expenses.',

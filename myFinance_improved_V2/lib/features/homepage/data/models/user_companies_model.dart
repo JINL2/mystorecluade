@@ -78,7 +78,7 @@ class CompanyModel with _$CompanyModel {
       id: companyId,
       companyName: companyName,
       companyCode: companyCode ?? '',
-      role: role?.toEntity() ?? UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
+      role: role?.toEntity() ?? const UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
       stores: stores.map((model) => model.toEntity(companyId)).toList(),
     );
   }

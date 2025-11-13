@@ -1,38 +1,27 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Shared - Themes
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-
-// Shared - Widgets
-import '../../../../shared/widgets/toss/toss_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-
-// Core - Constants & Navigation
-import '../../../../core/constants/auth_constants.dart';
 
 // App - Providers
 import '../../../../app/providers/app_state_provider.dart';
-
-// Presentation - Providers
-import '../providers/company_service.dart';
-import '../providers/current_user_provider.dart';
-import '../providers/usecase_providers.dart';
-
-// Domain - Value Objects
-import '../../domain/value_objects/company_type.dart';
-import '../../domain/value_objects/currency.dart';
-
+// Core - Constants & Navigation
+import '../../../../core/constants/auth_constants.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+// Homepage - Providers (for userCompaniesProvider)
+import '../../../homepage/presentation/providers/homepage_providers.dart';
 // Domain - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
+// Domain - Value Objects
+import '../../domain/value_objects/company_type.dart';
+import '../../domain/value_objects/currency.dart';
+// Presentation - Providers
+import '../providers/company_service.dart';
+import '../providers/current_user_provider.dart';
 
 /// Create Business Page - Clean Architecture Version
 ///
@@ -111,7 +100,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -119,7 +108,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     // Add validation listeners
     _businessNameController.addListener(_validateBusinessName);
@@ -211,7 +200,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   child: SlideTransition(
@@ -242,7 +231,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
             // Bottom button - always visible at screen bottom
             Container(
-              padding: EdgeInsets.all(TossSpacing.space5),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.white,
                 boxShadow: [
@@ -267,11 +256,11 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Widget _buildAuthHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
+            icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
             onPressed: () {
               if (_currentStep > 1) {
                 // Go to previous step
@@ -385,7 +374,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
@@ -395,7 +384,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             child: DropdownButton<String>(
               value: _selectedTypeId,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
+              icon: const Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
               style: TossTextStyles.body.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -405,7 +394,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   .map((type) => DropdownMenuItem(
                         value: type.companyTypeId,
                         child: Text(type.typeName),
-                      ))
+                      ),)
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -543,7 +532,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
@@ -553,7 +542,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             child: DropdownButton<String>(
               value: _selectedCurrencyId,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
+              icon: const Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
               style: TossTextStyles.body.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -563,7 +552,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   .map((currency) => DropdownMenuItem(
                         value: currency.currencyId,
                         child: Text('${currency.currencyCode} - ${currency.currencyName}'),
-                      ))
+                      ),)
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -592,7 +581,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       isLoading: _isLoading,
       leadingIcon: _isLoading
           ? null
-          : Icon(
+          : const Icon(
               Icons.business,
               size: 18,
               color: TossColors.white,
@@ -808,7 +797,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -892,7 +881,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -970,7 +959,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       final userId = ref.read(currentUserIdProvider);
 
       if (userId == null) {
-        throw AuthException('User not authenticated');
+        throw const AuthException('User not authenticated');
       }
 
       final company = await companyService.createCompany(
@@ -983,8 +972,25 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             : null,
       );
 
-      // Invalidate app state to force refresh
-      ref.invalidate(appStateProvider);
+      // ✅ WORKFLOW: Update AppState immediately with new company
+      // This follows the same pattern as company_store_selector.dart:653-673
+
+      // 1. Add company to user's companies list in AppState (instant UI update)
+      ref.read(appStateProvider.notifier).addNewCompanyToUser(
+        companyId: company.id,
+        companyName: company.name,
+        companyCode: company.companyCode,
+        role: <String, dynamic>{'role_name': 'Owner', 'permissions': <dynamic>[]},
+      );
+
+      // 2. Set the new company as selected
+      ref.read(appStateProvider.notifier).selectCompany(
+        company.id,
+        companyName: company.name,
+      );
+
+      // 3. Invalidate providers to refresh data from server (background)
+      ref.invalidate(userCompaniesProvider);
 
       if (mounted) {
         // Show success message
@@ -992,7 +998,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: TossColors.white, size: 20),
+                const Icon(Icons.check_circle, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -1028,7 +1034,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 context.push('/onboarding/create-store', extra: {
                   'companyId': company.id,
                   'companyName': company.name,
-                });
+                },);
               } else {
                 // Go to dashboard
                 await _navigateToDashboard();
@@ -1068,50 +1074,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Future<void> _navigateToDashboard() async {
     try {
-      final userId = ref.read(currentUserIdProvider);
+      // ✅ WORKFLOW: AppState is already updated in _handleCreateCompany()
+      // No need to fetch from server again - just navigate to dashboard
+      // The userCompaniesProvider will use the cached data from AppState
 
-      if (userId == null) {
-        throw AuthException('User not authenticated');
-      }
-
-      // Small delay for backend to update
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // ✅ Use GetUserDataUseCase instead of direct RPC call
-      final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
-      final filteredResponse = await getUserDataUseCase.execute(userId);
-
-      // Update app state
-      ref.read(appStateProvider.notifier).updateUser(
-        user: filteredResponse,
-        isAuthenticated: true,
-      );
-
-      // ✅ Auto-select first company and store for better UX
-      final companies = filteredResponse['companies'] as List?;
-      if (companies != null && companies.isNotEmpty) {
-        final firstCompany = companies.first as Map<String, dynamic>;
-        final companyId = firstCompany['company_id'] as String;
-        final companyName = firstCompany['company_name'] as String;
-
-        ref.read(appStateProvider.notifier).selectCompany(
-          companyId,
-          companyName: companyName,
-        );
-
-        // Auto-select first store if available
-        final stores = firstCompany['stores'] as List?;
-        if (stores != null && stores.isNotEmpty) {
-          final firstStore = stores.first as Map<String, dynamic>;
-          final storeId = firstStore['store_id'] as String;
-          final storeName = firstStore['store_name'] as String;
-
-          ref.read(appStateProvider.notifier).selectStore(
-            storeId,
-            storeName: storeName,
-          );
-        }
-      }
+      // Small delay for smooth transition
+      await Future.delayed(const Duration(milliseconds: 300));
 
       if (mounted) {
         context.go('/');
@@ -1140,7 +1108,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             const SizedBox(height: TossSpacing.space4),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(TossSpacing.space3),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1169,7 +1137,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       ),
                       const SizedBox(width: TossSpacing.space2),
                       IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.copy,
                           color: TossColors.primary,
                           size: 20,
@@ -1177,7 +1145,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: companyCode));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Company code copied!'),
                               duration: Duration(seconds: 2),
                               behavior: SnackBarBehavior.floating,
@@ -1185,7 +1153,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                           );
                         },
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
+                        constraints: const BoxConstraints(),
                         tooltip: 'Copy code',
                       ),
                     ],
@@ -1211,7 +1179,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.primary,
                 foregroundColor: TossColors.white,
-                padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               ),
               child: const Text('Create Store'),
             ),
@@ -1226,7 +1194,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: TossColors.white, size: 20),
+            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
             const SizedBox(width: TossSpacing.space2),
             Expanded(child: Text(message)),
           ],

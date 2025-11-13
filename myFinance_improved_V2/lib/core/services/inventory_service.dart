@@ -33,28 +33,20 @@ class InventoryService {
       ).single();
 
 
-      if (response != null) {
-
-        // Check if response is a map and has the expected structure
-        if (response is Map<String, dynamic>) {
-          // Check if it has success wrapper
-          if (response.containsKey('success')) {
-            if (response['success'] == true) {
-              return response['data'] as Map<String, dynamic>? ?? response;
-            } else {
-              return null;
-            }
-          } else {
-            // Response is direct data (RPC returns data directly)
-            return response;
-          }
+      // Check if response is a map and has the expected structure
+      // Check if it has success wrapper
+      if (response.containsKey('success')) {
+        if (response['success'] == true) {
+          return response['data'] as Map<String, dynamic>? ?? response;
         } else {
           return null;
         }
       } else {
+        // Response is direct data (RPC returns data directly)
+        return response;
       }
-      return null;
-    } catch (e, stackTrace) {
+              return null;
+    } catch (e) {
       return null;
     }
   }
@@ -86,27 +78,15 @@ class InventoryService {
       ).select();
 
 
-      if (response != null) {
-
-        // The RPC with .select() should return a List
-        if (response is List) {
-
-          // Convert each item to Map<String, dynamic>
-          final List<Map<String, dynamic>> locations = [];
-          for (var item in response) {
-            if (item is Map<String, dynamic>) {
-              locations.add(item);
+      // The RPC with .select() should return a List
+      // Convert each item to Map<String, dynamic>
+      final List<Map<String, dynamic>> locations = [];
+      for (var item in response) {
+        locations.add(item);
             }
-          }
-          return locations;
-        } else {
-          // Return empty list for unexpected types
-          return [];
-        }
-      } else {
-      }
-      return null;
-    } catch (e, stackTrace) {
+      return locations;
+              return null;
+    } catch (e) {
       return null;
     }
   }

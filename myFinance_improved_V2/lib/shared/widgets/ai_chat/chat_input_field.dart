@@ -38,7 +38,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.surface,
         border: Border(
           top: BorderSide(color: TossColors.gray300, width: 1),
@@ -52,15 +52,15 @@ class _ChatInputFieldState extends State<ChatInputField> {
             hintText: 'Ask about your store...',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(24),
-              borderSide: BorderSide(color: TossColors.gray300),
+              borderSide: const BorderSide(color: TossColors.gray300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(24),
-              borderSide: BorderSide(color: TossColors.gray300),
+              borderSide: const BorderSide(color: TossColors.gray300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(24),
-              borderSide: BorderSide(color: TossColors.primary, width: 2),
+              borderSide: const BorderSide(color: TossColors.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,

@@ -5,9 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/utils/string_extensions.dart';
+
 import 'toss_base_selector.dart';
 
 /// Autonomous counterparty selector that can be used anywhere in the app

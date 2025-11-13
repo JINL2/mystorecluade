@@ -131,7 +131,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.filter_alt,
                                   size: 16,
                                   color: TossColors.primary,
@@ -160,7 +160,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                               color: TossColors.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.close,
                               size: 20,
                               color: TossColors.error,
@@ -335,7 +335,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                     child: Padding(
                       padding: EdgeInsets.all(TossSpacing.space4),
                       child: Center(
-                        child: const TossLoadingView(),
+                        child: TossLoadingView(),
                       ),
                     ),
                   ),

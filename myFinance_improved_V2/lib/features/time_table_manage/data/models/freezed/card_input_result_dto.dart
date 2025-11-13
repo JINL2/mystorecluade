@@ -67,7 +67,7 @@ class CardInputResultDto with _$CardInputResultDto {
 
     // The entire JSON represents the shift data
     // Pass it to ShiftCardDto which knows how to parse it
-    final ShiftCardDto? shiftData = ShiftCardDto.fromJson(json);
+    final ShiftCardDto shiftData = ShiftCardDto.fromJson(json);
 
     return CardInputResultDto(
       shiftRequestId: shiftRequestId,

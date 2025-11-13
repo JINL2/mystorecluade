@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'toss_colors.dart';
-import 'toss_text_styles.dart';
+
 import 'toss_border_radius.dart';
+import 'toss_colors.dart';
 import 'toss_spacing.dart';
+import 'toss_text_styles.dart';
 
 /// MyFinance Theme - Powered by Toss Design System
 /// Clean, modern, and professional financial app design
@@ -21,7 +22,7 @@ class AppTheme {
     brightness: Brightness.light,
     
     // Color scheme
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: TossColors.primary,
       onPrimary: TossColors.white,
       primaryContainer: TossColors.primarySurface,
@@ -60,7 +61,7 @@ class AppTheme {
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.textPrimary),
       toolbarHeight: 56,
-      iconTheme: IconThemeData(
+      iconTheme: const IconThemeData(
         color: TossColors.textPrimary,
         size: TossSpacing.iconMD,
       ),
@@ -89,8 +90,8 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
-        minimumSize: Size(double.infinity, TossSpacing.buttonHeightLG),
-        padding: EdgeInsets.symmetric(
+        minimumSize: const Size(double.infinity, TossSpacing.buttonHeightLG),
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.paddingMD,
           vertical: TossSpacing.paddingSM,
         ),
@@ -106,8 +107,8 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         elevation: 0,
-        minimumSize: Size(double.infinity, TossSpacing.buttonHeightLG),
-        padding: EdgeInsets.symmetric(
+        minimumSize: const Size(double.infinity, TossSpacing.buttonHeightLG),
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.paddingMD,
           vertical: TossSpacing.paddingSM,
         ),
@@ -123,7 +124,7 @@ class AppTheme {
     
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.paddingSM,
           vertical: TossSpacing.paddingXS,
         ),
@@ -141,10 +142,10 @@ class AppTheme {
       surfaceTintColor: TossColors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TossBorderRadius.card),
-        side: BorderSide(color: TossColors.border, width: 1),
+        side: const BorderSide(color: TossColors.border, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: TossSpacing.marginMD,
         vertical: TossSpacing.marginSM,
       ),
@@ -173,7 +174,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(TossBorderRadius.input),
         borderSide: const BorderSide(color: TossColors.error, width: 2),
       ),
-      contentPadding: EdgeInsets.symmetric(
+      contentPadding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.paddingMD,
         vertical: TossSpacing.paddingSM,
       ),
@@ -183,7 +184,7 @@ class AppTheme {
       helperStyle: TossTextStyles.caption.copyWith(color: TossColors.textTertiary),
     ),
     
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: TossColors.surface,
       surfaceTintColor: TossColors.transparent,
       elevation: 0,
@@ -195,7 +196,7 @@ class AppTheme {
       ),
       showDragHandle: false, // Disable default drag handle to prevent double handler confusion
       dragHandleColor: TossColors.gray300,
-      dragHandleSize: const Size(40, 4),
+      dragHandleSize: Size(40, 4),
     ),
     
     dividerTheme: const DividerThemeData(
@@ -212,7 +213,7 @@ class AppTheme {
       selectedColor: TossColors.primarySurface,
       disabledColor: TossColors.gray100,
       labelStyle: TossTextStyles.label,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.paddingSM,
         vertical: TossSpacing.paddingXS,
       ),
@@ -223,7 +224,7 @@ class AppTheme {
     ),
     
     listTileTheme: ListTileThemeData(
-      contentPadding: EdgeInsets.symmetric(
+      contentPadding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.paddingMD,
         vertical: TossSpacing.paddingSM,
       ),

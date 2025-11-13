@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/homepage_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+
 import '../../../../shared/themes/toss_shadows.dart';
 import '../../domain/revenue_period.dart';
+import '../providers/homepage_providers.dart';
 
 class RevenueCard extends ConsumerWidget {
   const RevenueCard({super.key});
@@ -239,7 +240,7 @@ class _TabSelector extends StatelessWidget {
         color: TossColors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: EdgeInsets.all(TossSpacing.space1 / 2),
+      padding: const EdgeInsets.all(TossSpacing.space1 / 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

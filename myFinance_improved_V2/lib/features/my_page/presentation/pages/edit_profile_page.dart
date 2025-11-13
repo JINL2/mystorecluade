@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -84,7 +84,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
       // Query bank account from users_bank_account table
       Map<String, dynamic>? bankResponse;
-      if (companyId != null && companyId.isNotEmpty) {
+      if (companyId.isNotEmpty) {
         try {
           bankResponse = await Supabase.instance.client
               .from('users_bank_account')
@@ -181,13 +181,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray100,
-        appBar: const TossAppBar1(
+        appBar: TossAppBar1(
           title: 'Edit Profile',
           backgroundColor: TossColors.gray100,
         ),
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(
             color: TossColors.primary,
           ),
@@ -211,14 +211,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 size: 64,
                 color: TossColors.error,
               ),
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
               Text(
                 'Failed to load profile',
                 style: TossTextStyles.h3.copyWith(
                   color: TossColors.gray900,
                 ),
               ),
-              SizedBox(height: TossSpacing.space6),
+              const SizedBox(height: TossSpacing.space6),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
@@ -267,14 +267,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               // Personal Information Section
               Container(
                 width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       // Section Header
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
@@ -285,12 +285,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.person_outline,
                               color: TossColors.primary,
                               size: TossSpacing.iconSM,
                             ),
-                            SizedBox(width: TossSpacing.space2),
+                            const SizedBox(width: TossSpacing.space2),
                             Text(
                               'Personal Information',
                               style: TossTextStyles.bodyLarge.copyWith(
@@ -303,7 +303,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       ),
                       // Form fields
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space5),
+                        padding: const EdgeInsets.all(TossSpacing.space5),
                         child: Column(
                           children: [
                             TossEnhancedTextField(
@@ -319,7 +319,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _lastNameController,
                               label: 'Last Name',
@@ -333,7 +333,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _phoneNumberController,
                               label: 'Phone Number',
@@ -359,19 +359,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
 
               // Bank Information Section
               Container(
                 width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       // Section Header
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
@@ -382,12 +382,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.account_balance_outlined,
                               color: TossColors.primary,
                               size: TossSpacing.iconSM,
                             ),
-                            SizedBox(width: TossSpacing.space2),
+                            const SizedBox(width: TossSpacing.space2),
                             Text(
                               'Bank Information',
                               style: TossTextStyles.bodyLarge.copyWith(
@@ -399,7 +399,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space5),
+                        padding: const EdgeInsets.all(TossSpacing.space5),
                         child: Column(
                           children: [
                             TossEnhancedTextField(
@@ -409,7 +409,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
                             ),
-                            SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _bankAccountController,
                               label: 'Bank Account Number',
@@ -430,7 +430,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _bankDescriptionController,
                               label: 'Description',
@@ -447,18 +447,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
 
               // Account Information (Read-only)
               Container(
                 width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
@@ -469,12 +469,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.info_outline,
                               color: TossColors.primary,
                               size: TossSpacing.iconSM,
                             ),
-                            SizedBox(width: TossSpacing.space2),
+                            const SizedBox(width: TossSpacing.space2),
                             Text(
                               'Account Information',
                               style: TossTextStyles.bodyLarge.copyWith(
@@ -486,18 +486,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space5),
+                        padding: const EdgeInsets.all(TossSpacing.space5),
                         child: Column(
                           children: [
                             _buildReadOnlyField('Email', _profile!.email),
-                            SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
                             _buildReadOnlyField('Role', _profile!.displayRole),
                             if (_profile!.companyName?.isNotEmpty == true) ...[
-                              SizedBox(height: TossSpacing.space4),
+                              const SizedBox(height: TossSpacing.space4),
                               _buildReadOnlyField('Company', _profile!.companyName!),
                             ],
                             if (_profile!.storeName?.isNotEmpty == true) ...[
-                              SizedBox(height: TossSpacing.space4),
+                              const SizedBox(height: TossSpacing.space4),
                               _buildReadOnlyField('Store', _profile!.storeName!),
                             ],
                           ],
@@ -508,7 +508,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              SizedBox(height: TossSpacing.space12),
+              const SizedBox(height: TossSpacing.space12),
             ],
           ),
         ),
@@ -527,10 +527,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             vertical: TossSpacing.space3,
             horizontal: TossSpacing.space4,
           ),
@@ -576,7 +576,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       }
 
       // Save bank information (direct query as it's outside repository scope)
-      if (companyId != null && companyId.isNotEmpty) {
+      if (companyId.isNotEmpty) {
         if (_bankNameController.text.trim() != (_originalBankName ?? '') ||
             _bankAccountController.text.trim() != (_originalBankAccount ?? '') ||
             _bankDescriptionController.text.trim() != (_originalBankDescription ?? '')) {

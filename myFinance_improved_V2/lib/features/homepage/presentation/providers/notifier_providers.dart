@@ -4,6 +4,7 @@
 /// These providers are used by UI components to trigger actions and watch state changes.
 ///
 /// Using autoDispose for automatic cleanup when no longer needed.
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/providers/use_case_providers.dart';

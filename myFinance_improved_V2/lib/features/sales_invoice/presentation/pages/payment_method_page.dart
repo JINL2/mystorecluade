@@ -1,50 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// App-level providers
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
 // Core imports
 import '../../../../core/constants/app_icons_fa.dart';
-
 // Shared imports - themes
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-
 // Shared imports - widgets
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
-
-// App-level providers
-import '../../../../app/providers/app_state_provider.dart';
-import '../../../../app/providers/auth_providers.dart';
-
-// Feature imports - sales_invoice
-import '../models/cash_location_models.dart';
-import '../models/invoice_models.dart';
-import '../providers/payment_providers.dart';
-
+// Feature imports - journal_input
+import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 // Feature imports - sale_product
 import '../../../sale_product/domain/entities/sales_product.dart';
 import '../../../sale_product/presentation/providers/cart_provider.dart';
 import '../../../sale_product/presentation/providers/sales_product_provider.dart';
-
-// Feature imports - journal_input
-import '../../../journal_input/presentation/providers/journal_input_providers.dart';
+// Feature imports - sales_invoice
+import '../models/cash_location_models.dart';
+import '../models/invoice_models.dart';
+import '../providers/payment_providers.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
   final Map<String, int> productQuantities;
 
   const PaymentMethodPage({
-    Key? key,
+    super.key,
     required this.selectedProducts,
     required this.productQuantities,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PaymentMethodPage> createState() => _PaymentMethodPageState();
@@ -91,7 +85,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     
     try {
       final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
-      if (exchangeRatesData != null && mounted) {
+      if (mounted) {
         setState(() {
           _exchangeRateData = exchangeRatesData;
         });
@@ -134,7 +128,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           // Payment Method Selection (moved to top)
           Expanded(
             child: Container(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 top: TossSpacing.space2,
                 bottom: TossSpacing.space2,
               ),
@@ -159,8 +153,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final paymentState = ref.watch(paymentMethodProvider);
         
         return SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-          physics: BouncingScrollPhysics(), // Better scroll behavior
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          physics: const BouncingScrollPhysics(), // Better scroll behavior
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag, // Dismiss keyboard on scroll
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,19 +162,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               // Unified Discount and Total Section - Shown first
               _buildUnifiedDiscountAndTotalSection(),
               
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
               
               // Cash Location Selection - Shown after discount/total
               _buildCashLocationSection(),
               
               // Currency Converter Section - Always shown if exchange rate data is available
               if (_exchangeRateData != null) ...[
-                SizedBox(height: TossSpacing.space4),
+                const SizedBox(height: TossSpacing.space4),
                 _buildCurrencyConverterSection(),
               ],
               
               // Add extra padding for better scrolling when keyboard is open
-              SizedBox(height: TossSpacing.space8),
+              const SizedBox(height: TossSpacing.space8),
             ],
           ),
         );
@@ -194,18 +188,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final paymentState = ref.watch(paymentMethodProvider);
         
         return TossWhiteCard(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.location_on,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Cash Location',
                     style: TossTextStyles.bodyLarge.copyWith(
@@ -222,14 +216,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ],
               ),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               if (paymentState.isLoading) ...[
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space4),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   child: Row(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
@@ -237,7 +231,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           color: TossColors.primary,
                         ),
                       ),
-                      SizedBox(width: TossSpacing.space3),
+                      const SizedBox(width: TossSpacing.space3),
                       Text(
                         'Loading cash locations...',
                         style: TossTextStyles.body.copyWith(
@@ -249,7 +243,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ),
               ] else if (paymentState.error != null) ...[
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space3),
+                  padding: const EdgeInsets.all(TossSpacing.space3),
                   decoration: BoxDecoration(
                     color: TossColors.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -260,12 +254,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: TossColors.error,
                         size: TossSpacing.iconSM,
                       ),
-                      SizedBox(width: TossSpacing.space2),
+                      const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Text(
                           paymentState.error!,
@@ -277,22 +271,22 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ],
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space2),
                 TextButton(
                   onPressed: () => ref.read(paymentMethodProvider.notifier).loadCurrencyData(),
-                  child: Text('Retry'),
+                  child: const Text('Retry'),
                 ),
               ] else if (paymentState.cashLocations.isEmpty) ...[
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space4),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_off,
                         size: 48,
                         color: TossColors.gray400,
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Text(
                         'No cash locations available',
                         style: TossTextStyles.body.copyWith(
@@ -307,7 +301,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 InkWell(
                   onTap: () => _showCashLocationSelection(paymentState.cashLocations),
                   child: Container(
-                    padding: EdgeInsets.all(TossSpacing.space3),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: paymentState.selectedCashLocation != null ? TossColors.primary : TossColors.gray300,
@@ -319,7 +313,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       children: [
                         if (paymentState.selectedCashLocation != null) ...[
                           _getCashLocationIcon(paymentState.selectedCashLocation!.type),
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                         ],
                         Expanded(
                           child: Text(
@@ -331,7 +325,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             ),
                           ),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.keyboard_arrow_down,
                           color: TossColors.gray500,
                           size: TossSpacing.iconMD,
@@ -359,18 +353,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         }
         
         return TossWhiteCard(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  FaIcon(
+                  const FaIcon(
                     AppIcons.dollarSign,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Payment Currency',
                     style: TossTextStyles.bodyLarge.copyWith(
@@ -387,7 +381,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ],
               ),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Currency buttons with amounts
               Wrap(
@@ -405,7 +399,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     child: Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space3,
                         vertical: TossSpacing.space2,
                       ),
@@ -422,9 +416,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         children: [
                           Text(
                             currency.flagEmoji,
-                            style: TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 16),
                           ),
-                          SizedBox(width: TossSpacing.space1),
+                          const SizedBox(width: TossSpacing.space1),
                           Text(
                             currency.currencyCode,
                             style: TossTextStyles.body.copyWith(
@@ -432,7 +426,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               color: isSelected ? TossColors.white : TossColors.gray900,
                             ),
                           ),
-                          SizedBox(width: TossSpacing.space1),
+                          const SizedBox(width: TossSpacing.space1),
                           Text(
                             currency.symbol,
                             style: TossTextStyles.caption.copyWith(
@@ -450,9 +444,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               
               // Amount input field for selected currency
               if (paymentState.focusedCurrencyId != null) ...[
-                SizedBox(height: TossSpacing.space4),
+                const SizedBox(height: TossSpacing.space4),
                 Container(
-                  constraints: BoxConstraints(
+                  constraints: const BoxConstraints(
                     minHeight: 120, // Ensure sufficient height for conversion display
                   ),
                   child: _buildAmountInput(paymentState, notifier),
@@ -512,18 +506,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final finalTotal = totalInBaseCurrency - paymentState.discountAmount;
         
         return TossWhiteCard(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.calculate_outlined,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Total',
                     style: TossTextStyles.bodyLarge.copyWith(
@@ -534,7 +528,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ],
               ),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Individual currency amounts
               ...conversionDetails.values.map((detail) {
@@ -543,8 +537,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 final convertedAmount = detail['convertedAmount'] as double;
                 
                 return Container(
-                  margin: EdgeInsets.only(bottom: TossSpacing.space2),
-                  padding: EdgeInsets.all(TossSpacing.space2),
+                  margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -553,9 +547,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     children: [
                       Text(
                         currency.flagEmoji,
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      SizedBox(width: TossSpacing.space2),
+                      const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,14 +583,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Show discount breakdown if discount is applied
               if (paymentState.discountAmount > 0) ...[
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space3),
+                  padding: const EdgeInsets.all(TossSpacing.space3),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -621,7 +615,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           ),
                         ],
                       ),
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -643,12 +637,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ],
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space2),
               ],
               
               // Total in base currency
               Container(
-                padding: EdgeInsets.all(TossSpacing.space3),
+                padding: const EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -661,9 +655,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   children: [
                     Text(
                       baseCurrency.flagEmoji,
-                      style: TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 20),
                     ),
-                    SizedBox(width: TossSpacing.space2),
+                    const SizedBox(width: TossSpacing.space2),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -701,7 +695,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       orElse: () => paymentState.currencyResponse!.companyCurrencies.first,
     );
     
-    if (focusedCurrency == null) return SizedBox.shrink();
+    if (focusedCurrency == null) return const SizedBox.shrink();
     
     final baseCurrency = paymentState.currencyResponse?.baseCurrency;
     final currentAmount = paymentState.currencyAmounts[focusedCurrency.currencyId];
@@ -726,7 +720,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     }
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -742,9 +736,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             children: [
               Text(
                 focusedCurrency.flagEmoji,
-                style: TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 20),
               ),
-              SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
               Text(
                 'Amount in ${focusedCurrency.currencyCode}',
                 style: TossTextStyles.body.copyWith(
@@ -754,10 +748,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               ),
             ],
           ),
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           TextFormField(
             controller: _amountController,
-            keyboardType: TextInputType.numberWithOptions(decimal: false),
+            keyboardType: const TextInputType.numberWithOptions(decimal: false),
             autofocus: true,
             style: TossTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
@@ -775,27 +769,27 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               ),
               filled: true,
               fillColor: TossColors.white,
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space3,
                 vertical: TossSpacing.space3,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: TossColors.gray300,
                   width: 1,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: TossColors.primary,
                   width: 1.5,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: TossColors.gray300,
                   width: 1,
                 ),
@@ -817,11 +811,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               focusedCurrency.currencyCode != baseCurrency.currencyCode &&
               convertedAmount != null && 
               convertedAmount > 0) ...[
-            SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(TossSpacing.space3), // Increased padding
-              margin: EdgeInsets.only(bottom: TossSpacing.space2), // Added bottom margin
+              padding: const EdgeInsets.all(TossSpacing.space3), // Increased padding
+              margin: const EdgeInsets.only(bottom: TossSpacing.space2), // Added bottom margin
               decoration: BoxDecoration(
                 color: TossColors.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -831,12 +825,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.swap_horiz,
                         size: 16,
                         color: TossColors.primary,
                       ),
-                      SizedBox(width: TossSpacing.space1),
+                      const SizedBox(width: TossSpacing.space1),
                       Text(
                         'Converted Amount',
                         style: TossTextStyles.caption.copyWith(
@@ -846,14 +840,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: TossSpacing.space1),
+                  const SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Text(
                         baseCurrency.flagEmoji,
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      SizedBox(width: TossSpacing.space1),
+                      const SizedBox(width: TossSpacing.space1),
                       Expanded(
                         child: Text(
                           '${baseCurrency.symbol} ${convertedAmount.toStringAsFixed(2)} ${baseCurrency.currencyCode}',
@@ -865,7 +859,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: TossSpacing.space1),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     'Exchange Rate: ${focusedCurrency.exchangeRateToBase!.toStringAsFixed(4)}',
                     style: TossTextStyles.caption.copyWith(
@@ -887,7 +881,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     double cartTotal = 0;
     for (final product in widget.selectedProducts) {
       final quantity = widget.productQuantities[product.productId] ?? 0;
-      final price = product.pricing?.sellingPrice ?? 0;
+      final price = product.pricing.sellingPrice ?? 0;
       cartTotal += price * quantity;
     }
     
@@ -896,7 +890,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final finalTotal = cartTotal - discountAmount;
     
     return TossWhiteCard(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -905,7 +899,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             children: [
               // Subtotal with item count
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,
                   horizontal: 0,
                 ),
@@ -921,14 +915,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         // Item count in circle
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: TossSpacing.space2,
                             vertical: TossSpacing.space1,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: TossColors.gray400,
                             shape: BoxShape.circle,
                           ),
@@ -955,7 +949,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               
               // Discount line - cleaner Toss design
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,
                   horizontal: 0,
                 ),
@@ -972,7 +966,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(width: TossSpacing.space3),
+                          const SizedBox(width: TossSpacing.space3),
                           // Simplified toggle buttons
                           Container(
                             height: 28,
@@ -992,7 +986,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
                                   },
                                   child: Container(
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 4,
                                     ),
@@ -1023,7 +1017,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
                                   },
                                   child: Container(
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 4,
                                     ),
@@ -1050,10 +1044,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           ),
                           // Show calculated percentage inline
                           if (discountAmount > 0 && cartTotal > 0) ...[
-                            SizedBox(width: TossSpacing.space2),
+                            const SizedBox(width: TossSpacing.space2),
                             Text(
                               '(${((discountAmount / cartTotal) * 100).toStringAsFixed(2)}%)',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: TossColors.gray500,
                                 fontWeight: FontWeight.w500,
@@ -1069,13 +1063,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       child: TextFormField(
                         controller: _discountController,
                         keyboardType: TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: TossColors.gray900,
                         ),
                         textAlign: TextAlign.right,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: '0',
                           hintStyle: TextStyle(
                             fontSize: 15,
@@ -1120,7 +1114,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               
               // Divider line - only show when there's a discount
               if (discountAmount > 0) ...[
-                Padding(
+                const Padding(
                   padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
                   child: Divider(
                     color: TossColors.gray300,
@@ -1131,7 +1125,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               
               // Final Total
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,
                   horizontal: 0,
                 ),
@@ -1169,7 +1163,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     double cartTotal = 0;
     for (final product in widget.selectedProducts) {
       final quantity = widget.productQuantities[product.productId] ?? 0;
-      final price = product.pricing?.sellingPrice ?? 0;
+      final price = product.pricing.sellingPrice ?? 0;
       cartTotal += price * quantity;
     }
     
@@ -1188,18 +1182,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     if (otherCurrencies.isEmpty) return Container();
     
     return TossWhiteCard(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.currency_exchange,
                 color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
-              SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
               Text(
                 'Currency Converter',
                 style: TossTextStyles.bodyLarge.copyWith(
@@ -1210,7 +1204,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             ],
           ),
           
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
           // Currency buttons
           Wrap(
@@ -1229,7 +1223,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 },
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space3,
                     vertical: TossSpacing.space2,
                   ),
@@ -1251,7 +1245,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           color: isSelected ? TossColors.white : TossColors.gray700,
                         ),
                       ),
-                      SizedBox(width: TossSpacing.space1),
+                      const SizedBox(width: TossSpacing.space1),
                       Text(
                         currencyCode,
                         style: TossTextStyles.body.copyWith(
@@ -1268,9 +1262,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           
           // Show converted amount if a currency is selected
           if (_selectedCurrencyCode != null) ...[
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
             Container(
-              padding: EdgeInsets.all(TossSpacing.space3),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1289,7 +1283,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space1),
+                  const SizedBox(height: TossSpacing.space1),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1301,8 +1295,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               color: TossColors.gray700,
                             ),
                           ),
-                          SizedBox(width: TossSpacing.space2),
-                          Icon(
+                          const SizedBox(width: TossSpacing.space2),
+                          const Icon(
                             Icons.arrow_forward,
                             size: 16,
                             color: TossColors.gray500,
@@ -1344,18 +1338,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         }
         
         return TossWhiteCard(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.discount_outlined,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Discount',
                     style: TossTextStyles.bodyLarge.copyWith(
@@ -1366,11 +1360,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ],
               ),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Discount amount input
               Container(
-                padding: EdgeInsets.all(TossSpacing.space3),
+                padding: const EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray50,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1386,9 +1380,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       children: [
                         Text(
                           baseCurrency.flagEmoji,
-                          style: TextStyle(fontSize: 20),
+                          style: const TextStyle(fontSize: 20),
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Text(
                           'Discount in ${baseCurrency.currencyCode}',
                           style: TossTextStyles.body.copyWith(
@@ -1398,10 +1392,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     TextFormField(
                       controller: _discountController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       style: TossTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
@@ -1418,27 +1412,27 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         ),
                         filled: true,
                         fillColor: TossColors.white,
-                        contentPadding: EdgeInsets.symmetric(
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: TossSpacing.space3,
                           vertical: TossSpacing.space3,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: TossColors.gray300,
                             width: 1,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: TossColors.primary,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: TossColors.gray300,
                             width: 1,
                           ),
@@ -1468,7 +1462,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         double cartTotal = 0;
         for (final product in widget.selectedProducts) {
           final quantity = widget.productQuantities[product.productId] ?? 0;
-          final price = product.pricing?.sellingPrice ?? 0;
+          final price = product.pricing.sellingPrice ?? 0;
           cartTotal += price * quantity;
         }
         
@@ -1481,13 +1475,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: ElevatedButton(
             onPressed: canProceed ? () => _proceedToInvoice() : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: canProceed ? TossColors.primary : TossColors.gray300,
               foregroundColor: TossColors.white,
-              padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -1510,14 +1504,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.lg),
         ),
       ),
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1532,10 +1526,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       color: TossColors.gray900,
                     ),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.close,
                       color: TossColors.gray600,
                     ),
@@ -1543,7 +1537,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 ],
               ),
               
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               
               // Location list
               ...locations.map((location) {
@@ -1554,8 +1548,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   },
                   child: Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(TossSpacing.space3),
-                    margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
+                    margin: const EdgeInsets.only(bottom: TossSpacing.space2),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: TossColors.gray200,
@@ -1566,7 +1560,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     child: Row(
                       children: [
                         _getCashLocationIcon(location.type),
-                        SizedBox(width: TossSpacing.space3),
+                        const SizedBox(width: TossSpacing.space3),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1578,11 +1572,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   color: TossColors.gray900,
                                 ),
                               ),
-                              SizedBox(height: TossSpacing.space1),
+                              const SizedBox(height: TossSpacing.space1),
                               Row(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       horizontal: TossSpacing.space2,
                                       vertical: TossSpacing.space1,
                                     ),
@@ -1603,7 +1597,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     ),
                                   ),
                                   if (location.currencyCode.isNotEmpty) ...[
-                                    SizedBox(width: TossSpacing.space2),
+                                    const SizedBox(width: TossSpacing.space2),
                                     Text(
                                       location.currencyCode,
                                       style: TossTextStyles.caption.copyWith(
@@ -1620,7 +1614,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
               
               SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
             ],
@@ -1690,7 +1684,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         
         // Only include unit_price if we have it
         // If not provided, the RPC will use the product's selling_price from the database
-        final sellingPrice = product.pricing?.sellingPrice;
+        final sellingPrice = product.pricing.sellingPrice;
         if (sellingPrice != null && sellingPrice > 0) {
           itemData['unit_price'] = sellingPrice;
         }
@@ -1720,7 +1714,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       barrierDismissible: false,
       builder: (context) => Center(
         child: Container(
-          padding: EdgeInsets.all(TossSpacing.space5),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -1728,8 +1722,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: TossColors.primary),
-              SizedBox(height: TossSpacing.space3),
+              const CircularProgressIndicator(color: TossColors.primary),
+              const SizedBox(height: TossSpacing.space3),
               Text(
                 'Creating invoice...',
                 style: TossTextStyles.body.copyWith(
@@ -1796,7 +1790,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           // Only create journal if we have a cash location
           if (paymentState.selectedCashLocation != null) {
             // Create description based on products and discount
-            String journalDescription = "";
+            String journalDescription = '';
             
             // Get the base currency code
             final baseCurrencyCode = _exchangeRateData?['base_currency']?['currency_code'] ?? 'VND';
@@ -1807,39 +1801,39 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             } else if (widget.selectedProducts.isNotEmpty) {
               // Multiple products - show first product + count
               final additionalCount = widget.selectedProducts.length - 1;
-              journalDescription = "${widget.selectedProducts.first.productName} +$additionalCount products";
+              journalDescription = '${widget.selectedProducts.first.productName} +$additionalCount products';
             }
             
             // Add discount information if there's a discount
             if (paymentState.discountAmount > 0) {
               final discountFormatted = paymentState.discountAmount.toStringAsFixed(0);
-              journalDescription += " ${discountFormatted}${baseCurrencyCode} discount";
+              journalDescription += " $discountFormatted$baseCurrencyCode discount";
             }
             
             // If no products (shouldn't happen), use a default description
             if (journalDescription.isEmpty) {
-              journalDescription = "Sales - Invoice $invoiceNumber";
+              journalDescription = 'Sales - Invoice $invoiceNumber';
             }
             
             // Prepare journal lines for cash sales
             final journalLines = [
               {
                 // Cash account (debit) - increase cash
-                "account_id": "d4a7a16e-45a1-47fe-992b-ff807c8673f0", // Fixed cash account ID
-                "description": journalDescription,
-                "debit": totalAmount.toDouble(), // Ensure it's a double
-                "credit": 0.0,
+                'account_id': 'd4a7a16e-45a1-47fe-992b-ff807c8673f0', // Fixed cash account ID
+                'description': journalDescription,
+                'debit': totalAmount.toDouble(), // Ensure it's a double
+                'credit': 0.0,
                 // Include cash object for cash transactions (required!)
-                "cash": {
-                  "cash_location_id": paymentState.selectedCashLocation!.id,
-                }
+                'cash': {
+                  'cash_location_id': paymentState.selectedCashLocation!.id,
+                },
               },
               {
                 // Sales revenue account (credit) - increase revenue
-                "account_id": "e45e7d41-7fda-43a1-ac55-9779f3e59697", // Fixed sales revenue account ID
-                "description": journalDescription,
-                "debit": 0.0,
-                "credit": totalAmount.toDouble(), // Ensure it's a double
+                'account_id': 'e45e7d41-7fda-43a1-ac55-9779f3e59697', // Fixed sales revenue account ID
+                'description': journalDescription,
+                'debit': 0.0,
+                'credit': totalAmount.toDouble(), // Ensure it's a double
                 // No cash object needed for non-cash accounts
               }
             ];
@@ -1900,7 +1894,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             isDismissible: false,
             isScrollControlled: true,
             builder: (context) => Container(
-              margin: EdgeInsets.all(TossSpacing.space4),
+              margin: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -1908,13 +1902,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   BoxShadow(
                     color: TossColors.black.withOpacity(0.1),
                     blurRadius: 20,
-                    offset: Offset(0, -5),
+                    offset: const Offset(0, -5),
                   ),
                 ],
               ),
               child: SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.all(TossSpacing.space5),
+                  padding: const EdgeInsets.all(TossSpacing.space5),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1926,7 +1920,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           color: TossColors.success.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Icon(
                             Icons.check_rounded,
                             color: TossColors.success,
@@ -1934,7 +1928,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                       
                       // Success title
                       Text(
@@ -1944,11 +1938,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       
                       // Invoice number
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: TossSpacing.space3,
                           vertical: TossSpacing.space1,
                         ),
@@ -1964,12 +1958,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                       
                       // Total amount
                       Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -1983,9 +1977,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(height: TossSpacing.space1),
+                            const SizedBox(height: TossSpacing.space1),
                             Text(
-                              _formatNumber((totalAmount as num).toInt()),
+                              _formatNumber((totalAmount).toInt()),
                               style: TossTextStyles.h2.copyWith(
                                 color: TossColors.primary,
                                 fontWeight: FontWeight.w700,
@@ -1997,10 +1991,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       
                       // Warnings if any
                       if (warningMessage.isNotEmpty) ...[
-                        SizedBox(height: TossSpacing.space3),
+                        const SizedBox(height: TossSpacing.space3),
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(TossSpacing.space3),
+                          padding: const EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.warning.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -2014,12 +2008,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.info_outline,
                                     size: 16,
                                     color: TossColors.warning,
                                   ),
-                                  SizedBox(width: TossSpacing.space1),
+                                  const SizedBox(width: TossSpacing.space1),
                                   Text(
                                     'Notice',
                                     style: TossTextStyles.caption.copyWith(
@@ -2029,7 +2023,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: TossSpacing.space1),
+                              const SizedBox(height: TossSpacing.space1),
                               Text(
                                 warningMessage.trim(),
                                 style: TossTextStyles.caption.copyWith(
@@ -2043,7 +2037,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         ),
                       ],
                       
-                      SizedBox(height: TossSpacing.space5),
+                      const SizedBox(height: TossSpacing.space5),
                       
                       // OK button
                       SizedBox(
@@ -2059,7 +2053,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
                             foregroundColor: TossColors.white,
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               vertical: TossSpacing.space3,
                             ),
                             shape: RoundedRectangleBorder(

@@ -4,6 +4,7 @@
 /// Following Clean Architecture pattern - Domain layer only depends on abstractions.
 ///
 /// Import repositories through domain facade to maintain clean separation.
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../usecases/create_company.dart';

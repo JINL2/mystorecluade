@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/exchange_rate_provider.dart';
@@ -71,7 +68,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           .eq('company_id', companyId)
           .single();
           
-      if (companyResult != null && companyResult['base_currency_id'] != null) {
+      if (companyResult['base_currency_id'] != null) {
         baseCurrencyId = companyResult['base_currency_id'] as String;
         
         // Query currency_types to get base currency symbol and code
@@ -81,13 +78,11 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
             .eq('currency_id', baseCurrencyId!)
             .single();
             
-        if (currencyResult != null) {
-          setState(() {
-            baseCurrencySymbol = currencyResult['symbol'] as String;
-            baseCurrencyCode = currencyResult['currency_code'] as String;
-          });
-        }
-      }
+        setState(() {
+          baseCurrencySymbol = currencyResult['symbol'] as String;
+          baseCurrencyCode = currencyResult['currency_code'] as String;
+        });
+            }
     } catch (e) {
       debugPrint('Error fetching base currency: $e');
     }

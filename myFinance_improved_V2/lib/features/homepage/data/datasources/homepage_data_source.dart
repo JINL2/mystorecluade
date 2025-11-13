@@ -162,7 +162,7 @@ class HomepageDataSource {
         throw Exception('Invalid categories data returned from database');
       }
 
-      final models = (response as List<dynamic>)
+      final models = (response)
           .map((json) {
             return CategoryFeaturesModel.fromJson(json as Map<String, dynamic>);
           })
@@ -195,7 +195,7 @@ class HomepageDataSource {
         throw Exception('Invalid quick access features data returned from database');
       }
 
-      final models = (response as List<dynamic>)
+      final models = (response)
           .map((json) {
             final model = TopFeatureModel.fromJson(json as Map<String, dynamic>);
             return model;

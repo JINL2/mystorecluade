@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'toss_colors.dart';
-import 'toss_text_styles.dart';
-import 'toss_spacing.dart';
-import 'toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Theme compatibility layer for gradual migration
@@ -250,7 +246,7 @@ class ThemeCompatibility {
   /// Gradually enable features based on rollout percentage
   static void enableFeaturesForUser(String userId, Map<String, int> rolloutPercentages) {
     final userHash = userId.hashCode.abs();
-    final maxHash = 0xFFFFFFFF;
+    const maxHash = 0xFFFFFFFF;
     
     // Check each feature rollout
     rolloutPercentages.forEach((feature, percentage) {

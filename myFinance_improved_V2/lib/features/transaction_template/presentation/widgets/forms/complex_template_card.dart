@@ -7,11 +7,12 @@
 /// - Guides users to appropriate interface
 ///
 /// Usage: ComplexTemplateCard(onOpenDetailed: callback)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class ComplexTemplateCard extends StatelessWidget {
   final VoidCallback? onOpenDetailed;
@@ -30,7 +31,7 @@ class ComplexTemplateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -41,8 +42,8 @@ class ComplexTemplateCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.settings, color: TossColors.gray600, size: 20),
-              SizedBox(width: TossSpacing.space2),
+              const Icon(Icons.settings, color: TossColors.gray600, size: 20),
+              const SizedBox(width: TossSpacing.space2),
               Text(
                 title,
                 style: TossTextStyles.bodyLarge.copyWith(
@@ -52,17 +53,17 @@ class ComplexTemplateCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             description,
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray600,
             ),
           ),
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           TextButton.icon(
             onPressed: onOpenDetailed,
-            icon: Icon(Icons.open_in_full, size: 16),
+            icon: const Icon(Icons.open_in_full, size: 16),
             label: Text(buttonText),
             style: TextButton.styleFrom(
               foregroundColor: TossColors.primary,

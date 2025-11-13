@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/vault_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Vault operations
 ///
@@ -21,12 +22,17 @@ class VaultRemoteDataSource {
   Future<void> saveVaultTransaction(Map<String, dynamic> params) async {
     try {
       await _client.rpc<void>(
-        'vault_amount_insert',
+        CashEndingConstants.rpcInsertVaultAmount,
         params: params,
       );
     } catch (e) {
       // Re-throw with additional context
-      throw Exception('Failed to save vault transaction via RPC: $e');
+      final locationId = params['p_location_id'] ?? 'unknown';
+      final amount = params['p_amount'] ?? 'unknown';
+      throw Exception(
+        'Failed to save vault transaction via RPC '
+        '(Location: $locationId, Amount: $amount): $e',
+      );
     }
   }
 
@@ -49,7 +55,10 @@ class VaultRemoteDataSource {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Failed to fetch vault transaction history: $e');
+      throw Exception(
+        'Failed to fetch vault transaction history '
+        '(Location: $locationId, Limit: $limit): $e',
+      );
     }
   }
 }

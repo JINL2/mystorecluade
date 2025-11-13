@@ -1,23 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Data Layer - DataSources
+import '../../data/datasources/supabase_auth_datasource.dart';
+import '../../data/datasources/supabase_company_datasource.dart';
+import '../../data/datasources/supabase_store_datasource.dart';
+import '../../data/datasources/supabase_user_datasource.dart';
+// Data Layer - Repositories
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/company_repository_impl.dart';
+import '../../data/repositories/store_repository_impl.dart';
+import '../../data/repositories/user_repository_impl.dart';
 // Domain Layer
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/company_repository.dart';
 import '../../domain/repositories/store_repository.dart';
 import '../../domain/repositories/user_repository.dart';
-
-// Data Layer - DataSources
-import '../../data/datasources/supabase_auth_datasource.dart';
-import '../../data/datasources/supabase_user_datasource.dart';
-import '../../data/datasources/supabase_company_datasource.dart';
-import '../../data/datasources/supabase_store_datasource.dart';
-
-// Data Layer - Repositories
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/repositories/user_repository_impl.dart';
-import '../../data/repositories/company_repository_impl.dart';
-import '../../data/repositories/store_repository_impl.dart';
 
 /// Repository Providers
 ///

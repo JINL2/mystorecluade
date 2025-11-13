@@ -27,7 +27,7 @@ class JoinByCode {
       return const Left(ValidationFailure(
         message: 'Please enter a valid code',
         code: 'EMPTY_CODE',
-      ));
+      ),);
     }
 
     // Validate code format (alphanumeric, 5-20 characters)
@@ -36,7 +36,7 @@ class JoinByCode {
       return const Left(ValidationFailure(
         message: 'Code must be 5-20 alphanumeric characters',
         code: 'INVALID_CODE_FORMAT',
-      ));
+      ),);
     }
 
     // Call repository

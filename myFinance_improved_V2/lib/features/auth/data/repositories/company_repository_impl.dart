@@ -1,12 +1,11 @@
 // lib/features/auth/data/repositories/company_repository_impl.dart
 
 import '../../domain/entities/company_entity.dart';
+import '../../domain/exceptions/auth_exceptions.dart';
+import '../../domain/repositories/company_repository.dart';
 import '../../domain/value_objects/company_type.dart';
 import '../../domain/value_objects/currency.dart';
-import '../../domain/repositories/company_repository.dart';
-import '../../domain/exceptions/auth_exceptions.dart';
 import '../datasources/supabase_company_datasource.dart';
-import '../models/freezed/company_dto.dart';
 import '../models/freezed/company_dto_mapper.dart';
 import 'base_repository.dart';
 
@@ -133,10 +132,10 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
         // Map specific errors
         if (e.toString().contains('INVALID_CODE') ||
             e.toString().contains('Invalid company code')) {
-          throw InvalidCompanyCodeException();
+          throw const InvalidCompanyCodeException();
         } else if (e.toString().contains('ALREADY_MEMBER') ||
                    e.toString().contains('already a member')) {
-          throw AlreadyMemberException();
+          throw const AlreadyMemberException();
         }
         rethrow;
       }

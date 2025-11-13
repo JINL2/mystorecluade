@@ -247,7 +247,7 @@ class NotificationRepository {
             response = null;
           }
         } else {
-          throw upsertError;
+          rethrow;
         }
       }
       
@@ -259,7 +259,7 @@ class NotificationRepository {
         throw Exception('Database operation returned null response');
       }
       
-    } catch (e, stack) {
+    } catch (e) {
       // Only log errors in debug mode to reduce console spam
       if (kDebugMode) {
         
@@ -336,7 +336,7 @@ class NotificationRepository {
                 ? DateTime.parse(userResponse['updated_at'])
                 : DateTime.now(),
             lastUsedAt: DateTime.now(),
-          )
+          ),
         ];
       }
       

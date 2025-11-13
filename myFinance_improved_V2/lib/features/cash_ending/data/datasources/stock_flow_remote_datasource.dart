@@ -2,6 +2,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/freezed/stock_flow_dto.dart';
+import '../../core/constants.dart';
 
 /// Remote data source for stock flow operations
 /// Handles API calls to Supabase RPC functions
@@ -34,18 +35,27 @@ class StockFlowRemoteDataSource {
     try {
       // Validate required parameters
       if (cashLocationId.isEmpty) {
-        throw Exception('Cash location ID is required');
+        throw Exception(
+          'Cash location ID is required for fetching stock flow. '
+          'Company: $companyId, Store: $storeId',
+        );
       }
       if (companyId.isEmpty) {
-        throw Exception('Company ID is required');
+        throw Exception(
+          'Company ID is required for fetching stock flow. '
+          'Location: $cashLocationId, Store: $storeId',
+        );
       }
       if (storeId.isEmpty) {
-        throw Exception('Store ID is required');
+        throw Exception(
+          'Store ID is required for fetching stock flow. '
+          'Company: $companyId, Location: $cashLocationId',
+        );
       }
 
       // Call Supabase RPC function
       final response = await _client.rpc<Map<String, dynamic>>(
-        'get_location_stock_flow',
+        CashEndingConstants.rpcGetLocationStockFlow,
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -58,7 +68,10 @@ class StockFlowRemoteDataSource {
       // Parse response into model
       return StockFlowResponseDto.fromJson(response);
     } catch (e) {
-      throw Exception('Failed to fetch stock flow data: $e');
+      throw Exception(
+        'Failed to fetch stock flow data for location $cashLocationId '
+        '(Company: $companyId, Store: $storeId, Offset: $offset, Limit: $limit): $e',
+      );
     }
   }
 }

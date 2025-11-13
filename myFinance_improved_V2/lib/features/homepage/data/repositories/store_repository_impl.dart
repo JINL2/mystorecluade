@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
+import 'package:myfinance_improved/features/homepage/data/datasources/store_remote_datasource.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
 import 'package:myfinance_improved/features/homepage/domain/repositories/store_repository.dart';
-import 'package:myfinance_improved/features/homepage/data/datasources/store_remote_datasource.dart';
+
 import 'base_repository.dart';
 
 /// Implementation of StoreRepository
@@ -29,7 +30,7 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
       return const Left(NotFoundFailure(
         message: 'Selected company no longer exists',
         code: 'COMPANY_NOT_FOUND',
-      ));
+      ),);
     }
 
     final hasPermission =
@@ -38,7 +39,7 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
       return const Left(PermissionFailure(
         message: 'You do not have permission to create stores for this company',
         code: 'INSUFFICIENT_PERMISSIONS',
-      ));
+      ),);
     }
 
     final isDuplicate =
@@ -47,7 +48,7 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
       return const Left(ValidationFailure(
         message: 'A store with this name already exists in your company',
         code: 'DUPLICATE_STORE_NAME',
-      ));
+      ),);
     }
 
     // Execute with automatic error handling

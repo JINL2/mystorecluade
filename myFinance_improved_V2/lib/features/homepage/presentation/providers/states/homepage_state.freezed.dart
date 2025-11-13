@@ -46,6 +46,8 @@ abstract class $HomepageStateCopyWith<$Res> {
       bool isLoadingRevenue,
       bool isLoadingTopFeatures,
       String? errorMessage});
+
+  $RevenueCopyWith<$Res>? get revenue;
 }
 
 /// @nodoc
@@ -102,6 +104,20 @@ class _$HomepageStateCopyWithImpl<$Res, $Val extends HomepageState>
               as String?,
     ) as $Val);
   }
+
+  /// Create a copy of HomepageState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RevenueCopyWith<$Res>? get revenue {
+    if (_value.revenue == null) {
+      return null;
+    }
+
+    return $RevenueCopyWith<$Res>(_value.revenue!, (value) {
+      return _then(_value.copyWith(revenue: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -120,6 +136,9 @@ abstract class _$$HomepageStateImplCopyWith<$Res>
       bool isLoadingRevenue,
       bool isLoadingTopFeatures,
       String? errorMessage});
+
+  @override
+  $RevenueCopyWith<$Res>? get revenue;
 }
 
 /// @nodoc

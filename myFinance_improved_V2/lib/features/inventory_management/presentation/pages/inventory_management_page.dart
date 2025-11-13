@@ -105,13 +105,13 @@ class _InventoryManagementPageState
       children: [
         // Filter and Sort Controls
         Container(
-          margin: EdgeInsets.fromLTRB(
+          margin: const EdgeInsets.fromLTRB(
             TossSpacing.space4,
             TossSpacing.space3,
             TossSpacing.space4,
             TossSpacing.space2,
           ),
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
             vertical: TossSpacing.space2,
           ),
@@ -138,7 +138,7 @@ class _InventoryManagementPageState
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space3,
                       vertical: TossSpacing.space2,
                     ),
@@ -147,7 +147,7 @@ class _InventoryManagementPageState
                         Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.filter_list_rounded,
                               size: 18,
                               color: TossColors.gray600,
@@ -159,7 +159,7 @@ class _InventoryManagementPageState
                                 child: Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: TossColors.primary,
                                     shape: BoxShape.circle,
                                   ),
@@ -167,7 +167,7 @@ class _InventoryManagementPageState
                               ),
                           ],
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             _hasActiveFilters()
@@ -180,8 +180,8 @@ class _InventoryManagementPageState
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space1),
-                        Icon(
+                        const SizedBox(width: TossSpacing.space1),
+                        const Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
                           color: TossColors.gray500,
@@ -196,7 +196,7 @@ class _InventoryManagementPageState
               Container(
                 width: 1,
                 height: 32,
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                 color: TossColors.gray200,
               ),
 
@@ -210,18 +210,18 @@ class _InventoryManagementPageState
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space3,
                       vertical: TossSpacing.space2,
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.swap_vert_rounded,
                           size: 18,
                           color: TossColors.gray600,
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             _getSortLabel(),
@@ -232,8 +232,8 @@ class _InventoryManagementPageState
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space1),
-                        Icon(
+                        const SizedBox(width: TossSpacing.space1),
+                        const Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
                           color: TossColors.gray500,
@@ -249,7 +249,7 @@ class _InventoryManagementPageState
 
         // Search Field
         Container(
-          margin: EdgeInsets.fromLTRB(
+          margin: const EdgeInsets.fromLTRB(
             TossSpacing.space4,
             TossSpacing.space2,
             TossSpacing.space4,
@@ -279,13 +279,13 @@ class _InventoryManagementPageState
 
           // Products content
           if (displayProducts.isEmpty && !pageState.isLoading)
-            Container(
+            SizedBox(
               height: MediaQuery.of(context).size.height * 0.5,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.inventory_2,
                       size: 64,
                       color: TossColors.gray400,
@@ -302,23 +302,23 @@ class _InventoryManagementPageState
               ),
             )
           else if (pageState.isLoading && displayProducts.isEmpty)
-            Container(
+            SizedBox(
               height: MediaQuery.of(context).size.height * 0.5,
-              child: Center(
+              child: const Center(
                 child: CircularProgressIndicator(),
               ),
             )
           else
             Container(
-              margin: EdgeInsets.all(TossSpacing.space4),
+              margin: const EdgeInsets.all(TossSpacing.space4),
               child: TossWhiteCard(
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
                     // Section Header
                     Container(
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.all(TossSpacing.space4),
+                      decoration: const BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
                             color: TossColors.gray100,
@@ -328,12 +328,12 @@ class _InventoryManagementPageState
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.inventory_2_rounded,
                             color: TossColors.primary,
                             size: 20,
                           ),
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Text(
                             'Products',
                             style: TossTextStyles.bodyLarge.copyWith(
@@ -341,9 +341,9 @@ class _InventoryManagementPageState
                               color: TossColors.gray900,
                             ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space2,
                               vertical: TossSpacing.space1,
                             ),
@@ -373,7 +373,7 @@ class _InventoryManagementPageState
                         children: [
                           _buildProductListTile(product),
                           if (index < displayProducts.length - 1)
-                            Divider(
+                            const Divider(
                               height: 1,
                               color: TossColors.gray100,
                               indent: TossSpacing.space4,
@@ -381,14 +381,14 @@ class _InventoryManagementPageState
                             ),
                         ],
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
             ),
 
           // Bottom padding to prevent FAB overlap
-          SizedBox(height: 80),
+          const SizedBox(height: 80),
         ],
       ),
     );
@@ -416,10 +416,10 @@ class _InventoryManagementPageState
                   product.images.first,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+                      const Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
                 ),
               )
-            : Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+            : const Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -432,7 +432,7 @@ class _InventoryManagementPageState
               color: TossColors.gray900,
             ),
           ),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
             product.onHand.toString(),
             style: TossTextStyles.body.copyWith(
@@ -524,23 +524,23 @@ class _InventoryManagementPageState
         case _SortOption.nameDesc:
           filtered.sort((a, b) => _sortAscending
               ? a.name.compareTo(b.name)
-              : b.name.compareTo(a.name));
+              : b.name.compareTo(a.name),);
           break;
         case _SortOption.priceAsc:
         case _SortOption.priceDesc:
           filtered.sort((a, b) => _sortAscending
               ? a.salePrice.compareTo(b.salePrice)
-              : b.salePrice.compareTo(a.salePrice));
+              : b.salePrice.compareTo(a.salePrice),);
           break;
         case _SortOption.stockAsc:
         case _SortOption.stockDesc:
           filtered.sort((a, b) => _sortAscending
               ? a.onHand.compareTo(b.onHand)
-              : b.onHand.compareTo(a.onHand));
+              : b.onHand.compareTo(a.onHand),);
           break;
         case _SortOption.valueDesc:
           filtered.sort((a, b) =>
-              (b.onHand * b.salePrice).compareTo(a.onHand * a.salePrice));
+              (b.onHand * b.salePrice).compareTo(a.onHand * a.salePrice),);
           break;
       }
     }
@@ -555,7 +555,7 @@ class _InventoryManagementPageState
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.surface,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xl),
@@ -570,8 +570,8 @@ class _InventoryManagementPageState
           children: [
             // Header
             Container(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
                     color: TossColors.gray200,
@@ -597,7 +597,7 @@ class _InventoryManagementPageState
                         });
                         Navigator.pop(context);
                       },
-                      child: Text('Clear All'),
+                      child: const Text('Clear All'),
                     ),
                 ],
               ),
@@ -609,7 +609,7 @@ class _InventoryManagementPageState
               children: [
                 // Stock Status Filter
                 Padding(
-                  padding: EdgeInsets.all(TossSpacing.space4),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -619,7 +619,7 @@ class _InventoryManagementPageState
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Wrap(
                         spacing: TossSpacing.space2,
                         runSpacing: TossSpacing.space2,
@@ -644,7 +644,7 @@ class _InventoryManagementPageState
               ],
             ),
 
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),
@@ -656,7 +656,7 @@ class _InventoryManagementPageState
       context: context,
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.surface,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xl),
@@ -668,8 +668,8 @@ class _InventoryManagementPageState
           children: [
             // Header
             Container(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
                     color: TossColors.gray200,
@@ -697,19 +697,19 @@ class _InventoryManagementPageState
                 _buildSortOption('Name (A-Z)', _SortOption.nameAsc),
                 _buildSortOption('Name (Z-A)', _SortOption.nameDesc),
                 _buildSortOption(
-                    'Price (Low to High)', _SortOption.priceAsc),
+                    'Price (Low to High)', _SortOption.priceAsc,),
                 _buildSortOption(
-                    'Price (High to Low)', _SortOption.priceDesc),
+                    'Price (High to Low)', _SortOption.priceDesc,),
                 _buildSortOption(
-                    'Stock (Low to High)', _SortOption.stockAsc),
+                    'Stock (Low to High)', _SortOption.stockAsc,),
                 _buildSortOption(
-                    'Stock (High to Low)', _SortOption.stockDesc),
+                    'Stock (High to Low)', _SortOption.stockDesc,),
                 _buildSortOption(
-                    'Value (High to Low)', _SortOption.valueDesc),
+                    'Value (High to Low)', _SortOption.valueDesc,),
               ],
             ),
 
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),
@@ -727,7 +727,7 @@ class _InventoryManagementPageState
         ),
       ),
       trailing: isSelected
-          ? Icon(Icons.check, color: TossColors.primary)
+          ? const Icon(Icons.check, color: TossColors.primary)
           : null,
       onTap: () {
         setState(() {

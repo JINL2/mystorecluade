@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -52,7 +52,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
         title: 'Privacy & Security',
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(TossSpacing.screenPaddingMobile),
+        padding: const EdgeInsets.all(TossSpacing.screenPaddingMobile),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -64,7 +64,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossWhiteCard(
               padding: EdgeInsets.zero,
@@ -96,11 +96,11 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
 
             // Change Password Form (Expandable)
             if (_showChangePassword) ...[
-              SizedBox(height: TossSpacing.space6),
+              const SizedBox(height: TossSpacing.space6),
               _buildChangePasswordForm(),
             ],
 
-            SizedBox(height: TossSpacing.space8),
+            const SizedBox(height: TossSpacing.space8),
 
             // Support
             Text(
@@ -110,7 +110,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossWhiteCard(
               padding: EdgeInsets.zero,
@@ -148,7 +148,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Row(
           children: [
             Container(
@@ -164,7 +164,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 color: isDestructive ? TossColors.error : TossColors.gray700,
               ),
             ),
-            SizedBox(width: TossSpacing.space4),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +176,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                       color: isDestructive ? TossColors.error : TossColors.gray900,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space1),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     subtitle,
                     style: TossTextStyles.caption.copyWith(
@@ -199,7 +199,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
 
   Widget _buildChangePasswordForm() {
     return TossWhiteCard(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Form(
         key: _formKey,
         child: Column(
@@ -212,7 +212,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossTextField(
               controller: _currentPasswordController,
@@ -237,7 +237,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 },
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossTextField(
               controller: _newPasswordController,
@@ -265,7 +265,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 },
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossTextField(
               controller: _confirmPasswordController,
@@ -294,7 +294,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
               ),
             ),
 
-            SizedBox(height: TossSpacing.space6),
+            const SizedBox(height: TossSpacing.space6),
 
             Row(
               children: [
@@ -305,7 +305,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                     fullWidth: true,
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: TossPrimaryButton(
                     text: 'Update Password',

@@ -77,7 +77,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
         _storeId = storeId,
         super(AiChatState(
           sessionId: sessionId,
-        )) {
+        ),) {
     // Load chat history when notifier is created
     _loadHistory();
   }
@@ -146,7 +146,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
       // Generate current date and timezone
       final now = DateTime.now();
       final currentDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final timezone = 'Asia/Seoul';  // Korean timezone
+      const timezone = 'Asia/Seoul';  // Korean timezone
 
       final response = await _sendChatMessageUseCase(
         question: enrichedQuestion,

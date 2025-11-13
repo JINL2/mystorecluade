@@ -415,7 +415,7 @@ class TimeTableDatasource {
       // Get current user ID
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) {
-        throw TimeTableException('User not authenticated');
+        throw const TimeTableException('User not authenticated');
       }
 
       // Call toggle_shift_approval (returns void)
