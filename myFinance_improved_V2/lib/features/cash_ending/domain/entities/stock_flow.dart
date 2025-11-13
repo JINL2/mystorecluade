@@ -49,31 +49,46 @@ class ActualFlow {
     required this.currentDenominations,
   });
 
-  String getFormattedDate() {
+  /// Parse DateTime from createdAt - simplified single-pass parsing
+  /// Returns null if parsing fails
+  DateTime? _parseDateTime() {
     try {
-      final date = DateTime.parse(createdAt);
-      return '${date.day}/${date.month}';
+      // Try parsing with Z suffix first (UTC format from DB)
+      return DateTime.parse('${createdAt}Z');
     } catch (e) {
-      return createdAt;
+      try {
+        // Fallback to regular ISO 8601 parsing
+        return DateTime.parse(createdAt);
+      } catch (e2) {
+        return null;
+      }
     }
   }
 
-  String getFormattedTime() {
+  /// Get local DateTime for display
+  /// Returns null if parsing fails
+  DateTime? _getLocalDateTime() {
+    final parsed = _parseDateTime();
+    if (parsed != null) return parsed.toLocal();
+
+    // Fallback to DateTimeUtils
     try {
-      // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
-      // Example: "2025-10-27 17:54:41.715" should be treated as UTC
-      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
-      final localDateTime = utcDateTime.toLocal();
-      return DateTimeUtils.formatTimeOnly(localDateTime);
+      return DateTimeUtils.toLocal(createdAt);
     } catch (e) {
-      // Fallback: try parsing with toLocal if Z format fails
-      try {
-        final localDateTime = DateTimeUtils.toLocal(createdAt);
-        return DateTimeUtils.formatTimeOnly(localDateTime);
-      } catch (e2) {
-        return '';
-      }
+      return null;
     }
+  }
+
+  String getFormattedDate() {
+    final date = _parseDateTime();
+    if (date == null) return createdAt;
+    return '${date.day}/${date.month}';
+  }
+
+  String getFormattedTime() {
+    final localDate = _getLocalDateTime();
+    if (localDate == null) return '';
+    return DateTimeUtils.formatTimeOnly(localDate);
   }
 }
 
