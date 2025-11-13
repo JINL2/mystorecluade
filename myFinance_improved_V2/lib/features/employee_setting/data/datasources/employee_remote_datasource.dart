@@ -195,13 +195,18 @@ class EmployeeRemoteDataSource {
                 try {
                   return EmployeeSalaryModel.fromJson(json);
                 } catch (e) {
+                  // Log parsing error but continue with other items
+                  print('Warning: Failed to parse employee salary: $e');
                   return null;
                 }
               })
               .whereType<EmployeeSalaryModel>()
               .toList(),
         )
-        .handleError((error) {
+        .handleError((Object error) {
+          // Log stream error
+          print('Error in employee salary stream: $error');
+          // Return empty list on error but keep stream alive
           return <EmployeeSalaryModel>[];
         });
   }

@@ -16,7 +16,7 @@ import '../../domain/entities/employee_salary.dart';
 import '../providers/employee_providers.dart';
 class SalaryEditModal extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
-  final Function(double, String, String, String, String) onSave;
+  final void Function(double, String, String, String, String) onSave;
 
   const SalaryEditModal({
     super.key,

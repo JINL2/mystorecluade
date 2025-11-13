@@ -46,13 +46,25 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
   
   @override
   void dispose() {
-    // Dispose all controllers and focus nodes
+    // Safe disposal with error handling
     for (var controller in _currencyControllers.values) {
-      controller.dispose();
+      try {
+        controller.dispose();
+      } catch (e) {
+        debugPrint('Error disposing controller: $e');
+      }
     }
+
     for (var node in _currencyFocusNodes.values) {
-      node.dispose();
+      try {
+        node.dispose();
+      } catch (e) {
+        debugPrint('Error disposing focus node: $e');
+      }
     }
+
+    _currencyControllers.clear();
+    _currencyFocusNodes.clear();
     super.dispose();
   }
   

@@ -23,6 +23,7 @@ import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../domain/entities/transaction_line.dart';
 // Presentation
 import '../providers/journal_input_providers.dart';
+import '../providers/states/journal_entry_state.dart';
 import '../widgets/add_transaction_dialog.dart';
 import '../widgets/transaction_line_card.dart';
 
@@ -88,38 +89,55 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   Future<void> _addTransactionLine([bool? isDebit]) async {
     final state = ref.read(journalEntryStateProvider);
 
-    // Suggest the difference amount if there is one
-    double? suggestedAmount;
+    final suggestedAmount = _calculateSuggestedAmount(state);
+    final defaultIsDebit = _determineDefaultIsDebit(state, isDebit);
+    final usedCashLocations = _getUsedCashLocations(state);
+
+    final result = await _showTransactionDialog(
+      defaultIsDebit: defaultIsDebit,
+      suggestedAmount: suggestedAmount,
+      blockedCashLocationIds: usedCashLocations,
+    );
+
+    if (result != null) {
+      _handleTransactionResult(result);
+    }
+  }
+
+  /// Calculate suggested amount based on difference
+  double? _calculateSuggestedAmount(JournalEntryState state) {
     final difference = state.difference;
-    if (difference.abs() > 0.01) {
-      suggestedAmount = difference.abs();
-    }
+    return difference.abs() > 0.01 ? difference.abs() : null;
+  }
 
-    // Determine default type
-    bool defaultIsDebit;
+  /// Determine default transaction type (debit/credit)
+  bool _determineDefaultIsDebit(JournalEntryState state, bool? isDebit) {
+    if (isDebit != null) return isDebit;
 
-    if (isDebit != null) {
-      defaultIsDebit = isDebit;
-    } else {
-      // Auto-determine based on which side needs balancing
-      final totalDebits = state.totalDebits;
-      final totalCredits = state.totalCredits;
-      if (totalDebits < totalCredits) {
-        defaultIsDebit = true;
-      } else if (totalCredits < totalDebits) {
-        defaultIsDebit = false;
-      } else {
-        defaultIsDebit = true;
-      }
-    }
+    // Auto-determine based on which side needs balancing
+    final totalDebits = state.totalDebits;
+    final totalCredits = state.totalCredits;
 
-    // Get already used cash locations
-    final usedCashLocations = state.transactionLines
+    if (totalDebits < totalCredits) return true;
+    if (totalCredits < totalDebits) return false;
+    return true; // Default to debit
+  }
+
+  /// Get cash locations already used in transaction lines
+  Set<String> _getUsedCashLocations(JournalEntryState state) {
+    return state.transactionLines
         .where((line) => line.categoryTag == 'cash' && line.cashLocationId != null)
         .map((line) => line.cashLocationId!)
         .toSet();
+  }
 
-    final result = await showModalBottomSheet<TransactionLine>(
+  /// Show transaction dialog
+  Future<TransactionLine?> _showTransactionDialog({
+    required bool defaultIsDebit,
+    required double? suggestedAmount,
+    required Set<String> blockedCashLocationIds,
+  }) async {
+    return showModalBottomSheet<TransactionLine>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -131,20 +149,20 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         child: AddTransactionDialog(
           initialIsDebit: defaultIsDebit,
           suggestedAmount: suggestedAmount,
-          blockedCashLocationIds: usedCashLocations,
+          blockedCashLocationIds: blockedCashLocationIds,
         ),
       ),
     );
+  }
 
-    if (result != null) {
-      ref.read(journalEntryStateProvider.notifier).addTransactionLine(result);
+  /// Handle transaction result
+  void _handleTransactionResult(TransactionLine result) {
+    ref.read(journalEntryStateProvider.notifier).addTransactionLine(result);
 
-      // If the transaction line has a counterparty cash location, update state
-      if (result.counterpartyCashLocationId != null) {
-        ref.read(journalEntryStateProvider.notifier).setCounterpartyCashLocation(
-          result.counterpartyCashLocationId,
-        );
-      }
+    // Update counterparty cash location if present
+    if (result.counterpartyCashLocationId != null) {
+      ref.read(journalEntryStateProvider.notifier)
+         .setCounterpartyCashLocation(result.counterpartyCashLocationId);
     }
   }
 
@@ -191,10 +209,35 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   }
 
   Future<void> _submitJournalEntry() async {
+    // Validate entry
+    if (!_validateJournalEntry()) {
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await _performSubmission();
+      if (mounted) {
+        await _handleSubmissionSuccess();
+      }
+    } catch (e) {
+      if (mounted) {
+        _handleSubmissionError(e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  /// Validate journal entry before submission
+  bool _validateJournalEntry() {
     final journalEntry = ref.read(journalEntryStateProvider);
 
     if (!journalEntry.canSubmit()) {
-      showDialog(
+      showDialog<void>(
         context: context,
         barrierDismissible: true,
         builder: (context) => TossDialog.error(
@@ -206,112 +249,108 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
           onPrimaryPressed: () => context.pop(),
         ),
       );
-      return;
+      return false;
     }
 
-    setState(() => _isSubmitting = true);
+    return true;
+  }
 
-    try {
-      final appState = ref.read(appStateProvider);
+  /// Perform journal entry submission
+  Future<void> _performSubmission() async {
+    final appState = ref.read(appStateProvider);
+    final notifier = ref.read(journalEntryStateProvider.notifier);
 
-      // Get current journal entry as entity
-      final notifier = ref.read(journalEntryStateProvider.notifier);
-      final currentEntry = notifier.getCurrentJournalEntry();
+    // Validate user authentication
+    if (appState.userId.isEmpty) {
+      throw Exception('User not authenticated');
+    }
 
-      // Update description
-      final updatedJournalEntry = currentEntry.copyWith(
-        overallDescription: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
-      );
+    // Build journal entry with description
+    final currentEntry = notifier.getCurrentJournalEntry();
+    final updatedJournalEntry = currentEntry.copyWith(
+      overallDescription: _descriptionController.text.isNotEmpty
+        ? _descriptionController.text
+        : null,
+    );
 
-      // Get user ID from app state or auth
-      final userId = appState.userId;
-      if (userId.isEmpty) {
-        throw Exception('User not authenticated');
-      }
+    // Submit to repository
+    final submitFunction = ref.read(submitJournalEntryProvider);
+    await submitFunction(
+      updatedJournalEntry,
+      appState.userId,
+      appState.companyChoosen,
+      appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+    );
 
-      // Submit the journal entry
-      final submitFunction = ref.read(submitJournalEntryProvider);
-      await submitFunction(
-        updatedJournalEntry,
-        userId,
-        appState.companyChoosen,
-        appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
-      );
+    // Clear form after successful submission
+    _descriptionController.clear();
+    notifier.clear();
+  }
 
-      // Show success message
-      if (mounted) {
-        // Clear the form and reset journal entry immediately after success
-        _descriptionController.clear();
-        notifier.clear();
-
-        // Show success dialog
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: TossColors.success,
-                    size: 64,
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'Success!',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'Journal entry created successfully',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop(); // Close dialog
-                    context.pop(); // Navigate back to previous page
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: TossColors.primary,
-                  ),
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Submission Failed',
-            message: 'Failed to submit journal entry: ${e.toString()}',
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => context.pop(),
+  /// Handle successful submission
+  Future<void> _handleSubmissionSuccess() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: TossColors.success,
+                size: 64,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Success!',
+                style: TossTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                'Journal entry created successfully',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close dialog
+                context.pop(); // Navigate back
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: TossColors.primary,
+              ),
+              child: const Text('OK'),
+            ),
+          ],
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
+      },
+    );
+  }
+
+  /// Handle submission error
+  Future<void> _handleSubmissionError(Object error) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: 'Submission Failed',
+        message: 'Failed to submit journal entry: ${error.toString()}',
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () => context.pop(),
+      ),
+    );
   }
 
   @override

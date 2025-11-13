@@ -6,6 +6,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
+import '../../domain/usecases/search_and_sort_employees_usecase.dart';
 import 'employee_notifier.dart';
 import 'states/employee_state.dart';
 import 'use_case_providers.dart';
@@ -97,54 +98,25 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
   final employeesAsync = ref.watch(employeeSalaryListProvider);
 
+  // ✅ Read UseCase once at Provider level instead of inside function
+  final searchAndSortUseCase = ref.read(searchAndSortEmployeesUseCaseProvider);
+
   List<EmployeeSalary> processEmployees(List<EmployeeSalary> employees) {
-    // Filter employees based on search query
-    List<EmployeeSalary> filtered;
-    if (searchQuery.isEmpty) {
-      filtered = employees;
-    } else {
-      final query = searchQuery.toLowerCase();
-      filtered = employees.where((employee) {
-        return employee.fullName.toLowerCase().contains(query) ||
-            employee.email.toLowerCase().contains(query) ||
-            (employee.roleName.toLowerCase().contains(query)) ||
-            employee.displayDepartment.toLowerCase().contains(query);
-      }).toList();
-    }
+    // Convert string sort option to enum
+    final sortOptionEnum = _convertToSortOption(sortOption);
+    final sortDirectionEnum = sortAscending
+        ? SortDirection.ascending
+        : SortDirection.descending;
 
-    // Sort employees based on selected option and direction
-    switch (sortOption) {
-      case 'name':
-        filtered.sort((a, b) {
-          final comparison = a.fullName.compareTo(b.fullName);
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-      case 'salary':
-        filtered.sort((a, b) {
-          final comparison = a.salaryAmount.compareTo(b.salaryAmount);
-          // For salary, default to high-to-low (descending)
-          return sortAscending ? -comparison : comparison;
-        });
-        break;
-      case 'role':
-        filtered.sort((a, b) {
-          final aRole = a.roleName;
-          final bRole = b.roleName;
-          final comparison = aRole.compareTo(bRole);
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-      case 'recent':
-        filtered.sort((a, b) {
-          final comparison = (a.updatedAt ?? DateTime.now()).compareTo(b.updatedAt ?? DateTime.now());
-          // For recent, default to newest first (descending)
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-    }
-
-    return filtered;
+    // ✅ Delegate to UseCase - Clean Architecture compliance
+    return searchAndSortUseCase.execute(
+      SearchAndSortParams(
+        employees: employees,
+        searchQuery: searchQuery,
+        sortOption: sortOptionEnum,
+        sortDirection: sortDirectionEnum,
+      ),
+    );
   }
 
   // Use mutable list if available, otherwise use the async provider
@@ -231,4 +203,20 @@ Future<void> refreshEmployees(WidgetRef ref) async {
   ref.invalidate(employeeSalaryListProvider);
   ref.invalidate(currencyTypesProvider);
   ref.invalidate(rolesProvider);
+}
+
+/// Convert string sort option to enum
+EmployeeSortOption _convertToSortOption(String? sortOption) {
+  switch (sortOption) {
+    case 'name':
+      return EmployeeSortOption.name;
+    case 'salary':
+      return EmployeeSortOption.salary;
+    case 'role':
+      return EmployeeSortOption.role;
+    case 'recent':
+      return EmployeeSortOption.recent;
+    default:
+      return EmployeeSortOption.name;
+  }
 }

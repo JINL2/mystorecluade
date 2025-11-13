@@ -1,14 +1,17 @@
-// lib/features/delegate_role/presentation/providers/usecases/usecase_providers.dart
+// lib/features/delegate_role/domain/providers/usecase_providers.dart
+//
+// ✅ CLEAN ARCHITECTURE: Domain Layer UseCase Providers
+// UseCases are business logic and belong to Domain layer
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/usecases/role/assign_user_to_role_usecase.dart';
-import '../../../domain/usecases/role/create_role_usecase.dart';
-import '../../../domain/usecases/role/get_role_members_usecase.dart';
-import '../../../domain/usecases/role/get_user_role_assignments_usecase.dart';
-import '../../../domain/usecases/role/update_role_details_usecase.dart';
-import '../../../domain/usecases/role/update_role_permissions_usecase.dart';
-import '../repositories/repository_providers.dart';
+import '../usecases/role/assign_user_to_role_usecase.dart';
+import '../usecases/role/create_role_usecase.dart';
+import '../usecases/role/get_role_members_usecase.dart';
+import '../usecases/role/get_user_role_assignments_usecase.dart';
+import '../usecases/role/update_role_details_usecase.dart';
+import '../usecases/role/update_role_permissions_usecase.dart';
+import 'repository_providers.dart';
 
 // ============================================================================
 // Role UseCase Providers - Tier 3: Business Logic Layer

@@ -662,7 +662,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     vertical: TossSpacing.space2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
@@ -753,8 +753,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: Center(
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -790,9 +790,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       // Extract user ID from user object
       String userId = '';
       try {
-        if (appState.user is Map && appState.user['user_id'] != null) {
+        if (appState.user['user_id'] != null) {
           userId = appState.user['user_id'].toString();
-        } else if (appState.user is Map && appState.user['id'] != null) {
+        } else if (appState.user['id'] != null) {
           userId = appState.user['id'].toString();
         }
       } catch (e) {
@@ -844,8 +844,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: Center(
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -881,9 +881,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       // Extract user ID from user object
       String userId = '';
       try {
-        if (appState.user is Map && appState.user['user_id'] != null) {
+        if (appState.user['user_id'] != null) {
           userId = appState.user['user_id'].toString();
-        } else if (appState.user is Map && appState.user['id'] != null) {
+        } else if (appState.user['id'] != null) {
           userId = appState.user['id'].toString();
         }
       } catch (e) {
@@ -952,7 +952,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: TossColors.success.withOpacity(0.1),
+                    color: TossColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1045,7 +1045,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: TossColors.error.withOpacity(0.1),
+                    color: TossColors.error.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -2165,7 +2165,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
@@ -2283,7 +2283,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: TossColors.primary.withOpacity(0.1),
+                                        color: TossColors.primary.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(

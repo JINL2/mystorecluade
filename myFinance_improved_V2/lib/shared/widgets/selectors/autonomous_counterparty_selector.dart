@@ -3,6 +3,7 @@
 // Truly reusable counterparty selector using entity providers
 // =====================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
@@ -15,7 +16,13 @@ import 'toss_base_selector.dart';
 /// Uses dedicated RPC function and entity providers
 class AutonomousCounterpartySelector extends ConsumerWidget {
   final String? selectedCounterpartyId;
+
+  // Legacy callbacks (deprecated but maintained for backward compatibility)
   final SingleSelectionCallback? onChanged;
+
+  // ✅ NEW: Type-safe callback
+  final OnCounterpartySelectedCallback? onCounterpartySelected;
+
   final String? label;
   final String? hint;
   final String? errorText;
@@ -28,6 +35,7 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
     super.key,
     this.selectedCounterpartyId,
     this.onChanged,
+    this.onCounterpartySelected,  // ✅ NEW
     this.label,
     this.hint,
     this.errorText,
@@ -53,32 +61,58 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
       counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
     }
 
-    print('DEBUG: AutonomousCounterpartySelector - counterpartiesAsync state: ${counterpartiesAsync.when(
-      data: (data) => 'data: ${data.length} items',
-      loading: () => 'loading',
-      error: (error, stack) => 'error: $error',
-    )}');
+    // Debug logging removed for production
 
 
     // Find selected counterparty
     CounterpartyData? selectedCounterparty;
-    if (selectedCounterpartyId != null) {
-      counterpartiesAsync.whenData((counterparties) {
-        try {
-          selectedCounterparty = counterparties.firstWhere((cp) => cp.id == selectedCounterpartyId);
-        } catch (e) {
-          selectedCounterparty = null;
-        }
-      });
+    final counterpartiesList = counterpartiesAsync.maybeWhen(
+      data: (counterparties) => counterparties,
+      orElse: () => <CounterpartyData>[],
+    );
+
+    if (selectedCounterpartyId != null && counterpartiesList.isNotEmpty) {
+      try {
+        selectedCounterparty = counterpartiesList.firstWhere(
+          (cp) => cp.id == selectedCounterpartyId,
+          orElse: () => throw StateError('Counterparty not found'),
+        );
+      } catch (e) {
+        debugPrint('⚠️ Selected counterparty $selectedCounterpartyId not found in list');
+        selectedCounterparty = null;
+      }
     }
 
     return TossSingleSelector<CounterpartyData>(
-      items: counterpartiesAsync.maybeWhen(
-        data: (counterparties) => counterparties,
-        orElse: () => [],
-      ),
+      items: counterpartiesList,
       selectedItem: selectedCounterparty,
-      onChanged: onChanged ?? (_) {},
+      onChanged: (selectedId) {
+        // ✅ Legacy callback (always call for backward compatibility)
+        onChanged?.call(selectedId);
+
+        if (selectedId == null) {
+          return;
+        }
+
+        // ✅ Find the selected counterparty data
+        try {
+          final selected = counterpartiesList.firstWhere(
+            (cp) => cp.id == selectedId,
+            orElse: () => throw StateError('Counterparty not found'),
+          );
+
+          debugPrint('🎯 Counterparty selected: ${selected.name} (${selected.id})');
+
+          // ✅ NEW: Type-safe callback
+          onCounterpartySelected?.call(selected);
+
+          // ✅ Legacy callback (backward compatibility)
+          onChanged?.call(selectedId);
+        } catch (e) {
+          debugPrint('❌ Failed to find selected counterparty: $e');
+          onChanged?.call(selectedId);
+        }
+      },
       isLoading: counterpartiesAsync.isLoading,
       config: SelectorConfig(
         label: label ?? _getCounterpartyTypeLabel(),

@@ -13,9 +13,9 @@ import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.d
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
 
-import '../providers/repositories/repository_providers.dart';
+import '../../domain/providers/repository_providers.dart';
+import '../../domain/providers/usecase_providers.dart';
 import '../providers/state/state_providers.dart';
-import '../providers/usecases/usecase_providers.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
