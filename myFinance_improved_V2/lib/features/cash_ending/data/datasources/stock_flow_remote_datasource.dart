@@ -2,6 +2,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/freezed/stock_flow_dto.dart';
+import '../../core/constants.dart';
 
 /// Remote data source for stock flow operations
 /// Handles API calls to Supabase RPC functions
@@ -45,7 +46,7 @@ class StockFlowRemoteDataSource {
 
       // Call Supabase RPC function
       final response = await _client.rpc<Map<String, dynamic>>(
-        'get_location_stock_flow',
+        CashEndingConstants.rpcGetLocationStockFlow,
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,

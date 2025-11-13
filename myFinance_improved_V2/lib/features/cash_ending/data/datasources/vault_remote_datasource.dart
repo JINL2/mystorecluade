@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/vault_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Vault operations
 ///
@@ -21,7 +22,7 @@ class VaultRemoteDataSource {
   Future<void> saveVaultTransaction(Map<String, dynamic> params) async {
     try {
       await _client.rpc<void>(
-        'vault_amount_insert',
+        CashEndingConstants.rpcInsertVaultAmount,
         params: params,
       );
     } catch (e) {

@@ -1,11 +1,13 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_notifier.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/repositories/cash_ending_repository.dart';
-import '../../domain/repositories/location_repository.dart';
-import '../../domain/repositories/currency_repository.dart';
+
+import '../../core/constants.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/exceptions/cash_ending_exception.dart';
+import '../../domain/repositories/cash_ending_repository.dart';
+import '../../domain/repositories/currency_repository.dart';
+import '../../domain/repositories/location_repository.dart';
 import 'cash_ending_state.dart';
 
 /// State Notifier for Cash Ending feature
@@ -48,11 +50,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     String? storeId,
   }) async {
     // Set appropriate loading state
-    if (locationType == 'cash') {
+    if (locationType == CashEndingConstants.locationTypeCash) {
       state = state.copyWith(isLoadingCashLocations: true, errorMessage: null);
-    } else if (locationType == 'bank') {
+    } else if (locationType == CashEndingConstants.locationTypeBank) {
       state = state.copyWith(isLoadingBankLocations: true, errorMessage: null);
-    } else if (locationType == 'vault') {
+    } else if (locationType == CashEndingConstants.locationTypeVault) {
       state = state.copyWith(isLoadingVaultLocations: true, errorMessage: null);
     }
 
@@ -64,17 +66,17 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       );
 
       // Update appropriate state based on type
-      if (locationType == 'cash') {
+      if (locationType == CashEndingConstants.locationTypeCash) {
         state = state.copyWith(
           cashLocations: locations,
           isLoadingCashLocations: false,
         );
-      } else if (locationType == 'bank') {
+      } else if (locationType == CashEndingConstants.locationTypeBank) {
         state = state.copyWith(
           bankLocations: locations,
           isLoadingBankLocations: false,
         );
-      } else if (locationType == 'vault') {
+      } else if (locationType == CashEndingConstants.locationTypeVault) {
         state = state.copyWith(
           vaultLocations: locations,
           isLoadingVaultLocations: false,
@@ -84,11 +86,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       final errorMsg =
           e is CashEndingException ? e.message : 'Failed to load $locationType locations';
 
-      if (locationType == 'cash') {
+      if (locationType == CashEndingConstants.locationTypeCash) {
         state = state.copyWith(isLoadingCashLocations: false, errorMessage: errorMsg);
-      } else if (locationType == 'bank') {
+      } else if (locationType == CashEndingConstants.locationTypeBank) {
         state = state.copyWith(isLoadingBankLocations: false, errorMessage: errorMsg);
-      } else if (locationType == 'vault') {
+      } else if (locationType == CashEndingConstants.locationTypeVault) {
         state = state.copyWith(isLoadingVaultLocations: false, errorMessage: errorMsg);
       }
     }
@@ -187,9 +189,9 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
     // Auto-load all location types (cash, bank, vault) like lib_old
     await Future.wait([
-      loadLocations(companyId: companyId, locationType: 'cash', storeId: storeId),
-      loadLocations(companyId: companyId, locationType: 'bank', storeId: storeId),
-      loadLocations(companyId: companyId, locationType: 'vault', storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeCash, storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeBank, storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeVault, storeId: storeId),
     ]);
   }
 

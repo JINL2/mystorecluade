@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/bank_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Bank operations
 ///
@@ -21,7 +22,7 @@ class BankRemoteDataSource {
   Future<void> saveBankBalance(Map<String, dynamic> params) async {
     try {
       await _client.rpc<void>(
-        'bank_amount_insert_v2',
+        CashEndingConstants.rpcInsertBankAmount,
         params: params,
       );
     } catch (e) {
