@@ -663,6 +663,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                   AccountSelectorCard(
                     type: AccountType.debit,
                     selectedAccountId: _selectedDebitAccountId,
+                    selectedAccountCategoryTag: _selectedDebitAccountCategoryTag,  // ✅ NEW
                     selectedCounterpartyId: _selectedDebitCounterpartyId,
                     selectedCounterpartyData: _selectedDebitCounterpartyData,
                     selectedStoreId: _selectedDebitStoreId,
@@ -671,21 +672,17 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     otherAccountIsCash: creditIsCashAccount,
                     otherAccountRequiresCounterparty: creditRequiresCounterparty,
                     onAccountChanged: (accountId) {
-                      // ✅ FIX: Save account data when selected
-                      final accountAsync = ref.read(accountByIdProvider(accountId ?? ''));
-                      final accountName = accountAsync.maybeWhen(
-                        data: (account) => account?.name,
-                        orElse: () => null,
-                      );
-                      final categoryTag = accountAsync.maybeWhen(
-                        data: (account) => account?.categoryTag,
-                        orElse: () => null,
-                      );
-
+                      setState(() {
+                        _selectedDebitAccountId = accountId;
+                      });
+                    },
+                    // ✅ NEW: Type-safe callback receives all data
+                    onAccountChangedWithData: (accountId, accountName, categoryTag) {
                       setState(() {
                         _selectedDebitAccountId = accountId;
                         _selectedDebitAccountName = accountName;
                         _selectedDebitAccountCategoryTag = categoryTag;
+                        // Reset dependent selections
                         _selectedDebitCounterpartyId = null;
                         _selectedDebitCounterpartyData = null;
                         _selectedDebitMyCashLocationId = null;
@@ -743,6 +740,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                   AccountSelectorCard(
                     type: AccountType.credit,
                     selectedAccountId: _selectedCreditAccountId,
+                    selectedAccountCategoryTag: _selectedCreditAccountCategoryTag,  // ✅ NEW
                     selectedCounterpartyId: _selectedCreditCounterpartyId,
                     selectedCounterpartyData: _selectedCreditCounterpartyData,
                     selectedStoreId: _selectedCreditStoreId,
@@ -751,21 +749,17 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     otherAccountIsCash: debitIsCashAccount,
                     otherAccountRequiresCounterparty: debitRequiresCounterparty,
                     onAccountChanged: (accountId) {
-                      // ✅ FIX: Save account data when selected
-                      final accountAsync = ref.read(accountByIdProvider(accountId ?? ''));
-                      final accountName = accountAsync.maybeWhen(
-                        data: (account) => account?.name,
-                        orElse: () => null,
-                      );
-                      final categoryTag = accountAsync.maybeWhen(
-                        data: (account) => account?.categoryTag,
-                        orElse: () => null,
-                      );
-
+                      setState(() {
+                        _selectedCreditAccountId = accountId;
+                      });
+                    },
+                    // ✅ NEW: Type-safe callback receives all data
+                    onAccountChangedWithData: (accountId, accountName, categoryTag) {
                       setState(() {
                         _selectedCreditAccountId = accountId;
                         _selectedCreditAccountName = accountName;
                         _selectedCreditAccountCategoryTag = categoryTag;
+                        // Reset dependent selections
                         _selectedCreditCounterpartyId = null;
                         _selectedCreditCounterpartyData = null;
                         _selectedCreditMyCashLocationId = null;

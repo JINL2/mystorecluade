@@ -1,10 +1,15 @@
 // Presentation Providers
 // Riverpod providers for UI state management
+//
+// Clean Architecture Compliance:
+// ✅ Only imports from Domain layer (entities, repositories interface)
+// ✅ No direct imports from Data layer
+// ✅ Repository implementation is provided via dependency injection
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/journal_entry.dart';
+import '../../domain/providers/repository_providers.dart';
 import 'journal_entry_notifier.dart';
 import 'states/journal_entry_state.dart';
 

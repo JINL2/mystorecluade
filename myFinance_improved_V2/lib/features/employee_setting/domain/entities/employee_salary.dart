@@ -189,9 +189,4 @@ class EmployeeSalary {
     if (nextReviewDate == null) return false;
     return DateTime.now().isAfter(nextReviewDate!);
   }
-
-  String get displayDepartment => department ?? 'General';
-  String get displayWorkLocation => workLocation ?? 'Office';
-  String get displayEmploymentType => employmentType ?? 'Full-time';
-  String get displayEmploymentStatus => employmentStatus ?? 'Active';
 }

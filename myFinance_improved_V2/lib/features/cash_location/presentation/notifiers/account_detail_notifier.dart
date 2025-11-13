@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/stock_flow.dart';
 import '../../domain/usecases/create_error_adjustment_use_case.dart';
 import '../../domain/usecases/create_foreign_currency_translation_use_case.dart';
 import '../../domain/usecases/get_stock_flow_use_case.dart';

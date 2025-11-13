@@ -6,9 +6,9 @@ import '../../../domain/entities/delegatable_role.dart';
 import '../../../domain/entities/delegation_audit.dart';
 import '../../../domain/entities/role.dart';
 import '../../../domain/entities/role_delegation.dart';
-import '../infrastructure/datasource_providers.dart';
-import '../repositories/repository_providers.dart';
-import '../usecases/usecase_providers.dart';
+import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/usecase_providers.dart';
+import '../../../data/providers/datasource_providers.dart';
 
 // ============================================================================
 // State Providers - Tier 4: UI State Management

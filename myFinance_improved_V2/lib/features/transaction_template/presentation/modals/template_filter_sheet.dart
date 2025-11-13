@@ -86,15 +86,16 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
               
               const SizedBox(height: TossSpacing.space4),
               
-              // Account Selector - Enhanced with Frequently Used
+              // Account Selector - Enhanced with type-safe callback
               EnhancedAccountSelector(
                 selectedAccountId: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
-                contextType: 'template_filter', // Enable usage tracking
-                showQuickAccess: true, // Enable "Frequently Used" section
-                maxQuickItems: 5, // Show top 5 frequently used accounts
-                onChanged: (accountId) {
+                contextType: 'template_filter',
+                showQuickAccess: true,
+                maxQuickItems: 5,
+                // ✅ Type-safe callback
+                onAccountSelected: (account) {
                   setState(() {
-                    _selectedAccountIds = accountId != null ? [accountId] : null;
+                    _selectedAccountIds = [account.id];
                   });
                 },
                 label: 'Account',

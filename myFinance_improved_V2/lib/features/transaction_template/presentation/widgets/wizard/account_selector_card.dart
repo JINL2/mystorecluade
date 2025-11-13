@@ -10,8 +10,6 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/account_provider.dart';
-import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -27,12 +25,14 @@ enum AccountType { debit, credit }
 class AccountSelectorCard extends ConsumerStatefulWidget {
   final AccountType type;
   final String? selectedAccountId;
+  final String? selectedAccountCategoryTag;  // ✅ NEW: Pass category tag from parent
   final String? selectedCounterpartyId;
   final Map<String, dynamic>? selectedCounterpartyData;
   final String? selectedStoreId;
   final String? selectedCashLocationId;
   final String? selectedMyCashLocationId;
   final Function(String?) onAccountChanged;
+  final Function(String?, String?, String?) onAccountChangedWithData;  // ✅ NEW: (id, name, categoryTag)
   final Function(String?) onCounterpartyChanged;
   final Function(String?, String?) onStoreChanged;
   final Function(String?) onCashLocationChanged;
@@ -47,12 +47,14 @@ class AccountSelectorCard extends ConsumerStatefulWidget {
     super.key,
     required this.type,
     this.selectedAccountId,
+    this.selectedAccountCategoryTag,  // ✅ NEW
     this.selectedCounterpartyId,
     this.selectedCounterpartyData,
     this.selectedStoreId,
     this.selectedCashLocationId,
     this.selectedMyCashLocationId,
     required this.onAccountChanged,
+    required this.onAccountChangedWithData,  // ✅ NEW
     required this.onCounterpartyChanged,
     required this.onStoreChanged,
     required this.onCashLocationChanged,
@@ -69,21 +71,16 @@ class AccountSelectorCard extends ConsumerStatefulWidget {
 }
 
 class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
-  
+
+  // ✅ IMPROVED: Use categoryTag passed from parent instead of Provider re-fetch
   bool get _requiresCounterparty {
-    final accountAsync = ref.watch(accountByIdProvider(widget.selectedAccountId ?? ''));
-    return accountAsync.maybeWhen(
-      data: (account) => account?.categoryTag == 'payable' || account?.categoryTag == 'receivable',
-      orElse: () => false,
-    );
+    final categoryTag = widget.selectedAccountCategoryTag?.toLowerCase();
+    return categoryTag == 'payable' || categoryTag == 'receivable';
   }
-  
+
   bool get _isCashAccount {
-    final accountAsync = ref.watch(accountByIdProvider(widget.selectedAccountId ?? ''));
-    return accountAsync.maybeWhen(
-      data: (account) => account?.categoryTag == 'cash',
-      orElse: () => false,
-    );
+    final categoryTag = widget.selectedAccountCategoryTag?.toLowerCase();
+    return categoryTag == 'cash';
   }
   
   bool get _showCounterpartyCashLocationWarning {
@@ -143,14 +140,18 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           ),
           const SizedBox(height: TossSpacing.space3),
           
-          // Account selector
+          // Account selector - Enhanced with type-safe callback
           EnhancedAccountSelector(
             selectedAccountId: widget.selectedAccountId,
             contextType: 'template',
             showQuickAccess: true,
             maxQuickItems: 5,
-            onChanged: (accountId) {
-              widget.onAccountChanged(accountId);
+            // ✅ Type-safe callback: Pass all data to parent
+            onAccountSelected: (account) {
+              widget.onAccountChanged(account.id);
+              // ✅ NEW: Pass account data (id, name, categoryTag)
+              widget.onAccountChangedWithData(account.id, account.name, account.categoryTag);
+
               // Reset dependent selections when account changes
               widget.onCounterpartyChanged(null);
               widget.onCounterpartyDataChanged(null);
@@ -168,11 +169,27 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
             const SizedBox(height: TossSpacing.space3),
             AutonomousCounterpartySelector(
               selectedCounterpartyId: widget.selectedCounterpartyId,
-              onChanged: (counterpartyId) {
-                widget.onCounterpartyChanged(counterpartyId);
-                widget.onCounterpartyDataChanged(null);
+              // ✅ NEW: Type-safe callback
+              onCounterpartySelected: (counterparty) {
+                widget.onCounterpartyChanged(counterparty.id);
+                // Pass full counterparty data
+                widget.onCounterpartyDataChanged({
+                  'name': counterparty.name,
+                  'is_internal': counterparty.isInternal,
+                  'linked_company_id': counterparty.linkedCompanyId,
+                });
+                // Reset dependent selections
                 widget.onStoreChanged(null, null);
                 widget.onCashLocationChanged(null);
+              },
+              // ✅ Legacy callback for null case
+              onChanged: (counterpartyId) {
+                if (counterpartyId == null) {
+                  widget.onCounterpartyChanged(null);
+                  widget.onCounterpartyDataChanged(null);
+                  widget.onStoreChanged(null, null);
+                  widget.onCashLocationChanged(null);
+                }
               },
               label: 'Counterparty',
               hint: 'Select counterparty',
@@ -190,8 +207,18 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
             const SizedBox(height: TossSpacing.space3),
             AutonomousCashLocationSelector(
               selectedLocationId: widget.selectedMyCashLocationId,
-              onChanged: widget.onMyCashLocationChanged,
-              onChangedWithName: widget.onMyCashLocationChangedWithName,
+              // ✅ NEW: Type-safe callback
+              onCashLocationSelected: (cashLocation) {
+                widget.onMyCashLocationChanged(cashLocation.id);
+                widget.onMyCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+              },
+              // ✅ Legacy callback for null case
+              onChanged: (locationId) {
+                if (locationId == null) {
+                  widget.onMyCashLocationChanged(null);
+                  widget.onMyCashLocationChangedWithName(null, null);
+                }
+              },
               label: 'Cash Location',
               hint: 'Select cash location',
               showSearch: true,
@@ -205,35 +232,16 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
   }
   
   Widget _buildInternalCounterpartySection() {
-    return Consumer(
-      builder: (context, ref, child) {
-        // ✅ FIXED: Load counterparty data from provider
-        final counterpartyAsync = ref.watch(counterpartyByIdProvider(widget.selectedCounterpartyId!));
+    // ✅ IMPROVED: Use data passed from callback instead of Provider re-fetch
+    if (widget.selectedCounterpartyData == null) {
+      return const SizedBox.shrink();
+    }
 
-        return counterpartyAsync.when(
-          data: (counterparty) {
-            if (counterparty == null) return const SizedBox.shrink();
+    final counterpartyData = widget.selectedCounterpartyData!;
+    final isInternal = counterpartyData['is_internal'] as bool? ?? false;
+    final linkedCompanyId = counterpartyData['linked_company_id'] as String?;
 
-            // Convert CounterpartyData to Map for compatibility
-            final counterpartyData = {
-              'name': counterparty.name,  // Add name for Party display in template card
-              'is_internal': counterparty.isInternal,
-              'linked_company_id': counterparty.additionalData?['linked_company_id'] as String?,
-            };
-
-            // ✅ FIXED: Use Future.microtask to avoid setState during build
-            // Only update if data actually changed
-            if (widget.selectedCounterpartyData?['name'] != counterpartyData['name'] ||
-                widget.selectedCounterpartyData?['linked_company_id'] != counterpartyData['linked_company_id'] ||
-                widget.selectedCounterpartyData?['is_internal'] != counterpartyData['is_internal']) {
-              Future.microtask(() {
-                if (mounted) {
-                  widget.onCounterpartyDataChanged(counterpartyData);
-                }
-              });
-            }
-
-            if (counterparty.isInternal && counterpartyData['linked_company_id'] != null) {
+    if (isInternal && linkedCompanyId != null) {
           return Column(
             children: [
               const SizedBox(height: TossSpacing.space3),
@@ -294,8 +302,18 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                   companyId: counterpartyData['linked_company_id'] as String?,
                   storeId: widget.selectedStoreId,
                   selectedLocationId: widget.selectedCashLocationId,
-                  onChanged: widget.onCashLocationChanged,
-                  onChangedWithName: widget.onCashLocationChangedWithName,
+                  // ✅ NEW: Type-safe callback
+                  onCashLocationSelected: (cashLocation) {
+                    widget.onCashLocationChanged(cashLocation.id);
+                    widget.onCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+                  },
+                  // ✅ Legacy callback for null case
+                  onChanged: (locationId) {
+                    if (locationId == null) {
+                      widget.onCashLocationChanged(null);
+                      widget.onCashLocationChangedWithName(null, null);
+                    }
+                  },
                   label: 'Counterparty Cash Location',
                   hint: 'Select counterparty cash location',
                   showSearch: true,
@@ -305,16 +323,8 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
               ],
             ],
           );
-            } else {
-              return const SizedBox.shrink();
-            }
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) {
-            return const SizedBox.shrink();
-          },
-        );
-      },
-    );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 }

@@ -20,8 +20,14 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
   final String? companyId; // Optional: Use specific company (e.g., for counterparty)
   final String? storeId; // Optional: Use specific store (e.g., for counterparty)
   final String? selectedLocationId;
+
+  // Legacy callbacks (deprecated but maintained for backward compatibility)
   final SingleSelectionCallback? onChanged;
-  final SingleSelectionWithNameCallback? onChangedWithName; // New: Returns both ID and name
+  final SingleSelectionWithNameCallback? onChangedWithName; // Partial: Returns ID and name
+
+  // ✅ NEW: Type-safe callback
+  final OnCashLocationSelectedCallback? onCashLocationSelected;
+
   final String? label;
   final String? hint;
   final String? errorText;
@@ -38,7 +44,8 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
     this.storeId, // Optional store ID
     this.selectedLocationId,
     this.onChanged,
-    this.onChangedWithName, // New parameter
+    this.onChangedWithName, // Partial callback (kept for backward compatibility)
+    this.onCashLocationSelected, // ✅ NEW: Type-safe callback
     this.label,
     this.hint,
     this.errorText,
@@ -535,8 +542,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                             onTap: isBlocked
                               ? null  // Disable tap if blocked
                               : () {
+                                  // ✅ NEW: Type-safe callback (전체 엔티티 전달)
+                                  widget.onCashLocationSelected?.call(item);
+
+                                  // ✅ Legacy callbacks (backward compatibility)
                                   widget.onChanged?.call(item.id);
                                   widget.onChangedWithName?.call(item.id, item.name);
+
                                   Navigator.pop(context);
                                 },
                             child: Container(
@@ -933,8 +945,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                           onTap: isBlocked
                             ? null  // Disable tap if blocked
                             : () {
+                                // ✅ NEW: Type-safe callback (전체 엔티티 전달)
+                                widget.onCashLocationSelected?.call(item);
+
+                                // ✅ Legacy callbacks (backward compatibility)
                                 widget.onChanged?.call(item.id);
                                 widget.onChangedWithName?.call(item.id, item.name);
+
                                 Navigator.pop(context);
                               },
                           child: Container(
@@ -1103,6 +1120,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
   Widget _buildClearOption(BuildContext context) {
     return InkWell(
       onTap: () {
+        // Note: Type-safe callback doesn't support null, only use legacy callbacks for clearing
         widget.onChanged?.call(null);
         widget.onChangedWithName?.call(null, null);
         Navigator.pop(context);

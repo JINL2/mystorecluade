@@ -5,7 +5,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/features/delegate_role/domain/entities/role.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/providers/state/state_providers.dart';
-import 'package:myfinance_improved/features/delegate_role/presentation/providers/usecases/usecase_providers.dart';
+import 'package:myfinance_improved/features/delegate_role/domain/providers/usecase_providers.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/role_management_sheet.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -301,7 +301,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
   }
 
   Widget _buildRoleItem(Role role) {
-    final memberCount = role.memberCount ?? 0;
+    final memberCount = role.memberCount;
     final permissionCount = role.permissions.length;
     final roleName = role.roleName.toLowerCase();
     final isOwnerRole = roleName == 'owner';

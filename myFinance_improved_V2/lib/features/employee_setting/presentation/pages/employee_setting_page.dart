@@ -28,21 +28,22 @@ class EmployeeSettingPageV2 extends ConsumerStatefulWidget {
   ConsumerState<EmployeeSettingPageV2> createState() => _EmployeeSettingPageV2State();
 }
 
-class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2> 
+class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     with WidgetsBindingObserver, TickerProviderStateMixin {
+  // ✅ Constants
+  static const double _scrollToTopThreshold = 200.0;
+
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   bool _showScrollToTop = false;
-  
+
   // Remove local filter states - using providers instead
-  
+
   // Animation controllers
   late AnimationController _filterAnimationController;
   late AnimationController _cardAnimationController;
   late Animation<double> _filterAnimation;
   late Animation<double> _cardAnimation;
-
-  bool _isFirstBuild = true;
 
   @override
   void initState() {
@@ -77,11 +78,6 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Refresh data every time the page becomes visible
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-    }
 
     // Reset loading states and refresh data on page entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -129,9 +125,9 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   }
 
   void _onScroll() {
-    if (_scrollController.offset > 200 && !_showScrollToTop) {
+    if (_scrollController.offset > _scrollToTopThreshold && !_showScrollToTop) {
       setState(() => _showScrollToTop = true);
-    } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+    } else if (_scrollController.offset <= _scrollToTopThreshold && _showScrollToTop) {
       setState(() => _showScrollToTop = false);
     }
   }
@@ -267,7 +263,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   
   void _showEmployeeDetails(EmployeeSalary employee) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -283,10 +279,10 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       ),
     );
   }
-  
+
   void _showSalaryEdit(EmployeeSalary employee) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -803,7 +799,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   
   
   void _showSortOptionsSheet() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isDismissible: true, // Allow tap-outside-to-dismiss
@@ -1035,7 +1031,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   void _showFilterOptionsSheet() {
     final employeesAsync = ref.read(filteredEmployeesProvider);
     employeesAsync.whenData((employees) {
-      showModalBottomSheet(
+      showModalBottomSheet<void>(
         context: context,
         backgroundColor: TossColors.transparent,
         isScrollControlled: true,

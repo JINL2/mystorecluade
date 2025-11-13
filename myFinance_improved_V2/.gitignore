@@ -53,3 +53,7 @@ ios/fastlane/Preview.html
 ios/fastlane/screenshots
 ios/fastlane/test_output
 
+# Claude Code configuration
+.clauderc
+.claude/
+

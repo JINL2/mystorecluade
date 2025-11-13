@@ -61,6 +61,63 @@ class AccountData with _$AccountData {
   bool get isEquity => type.toLowerCase() == 'equity';
   bool get isIncome => type.toLowerCase() == 'income';
   bool get isExpense => type.toLowerCase() == 'expense';
+
+  // Category tag helpers
+  bool get requiresCounterparty =>
+      categoryTag?.toLowerCase() == 'payable' ||
+      categoryTag?.toLowerCase() == 'receivable';
+  bool get isCash => categoryTag?.toLowerCase() == 'cash';
+  bool get isPayable => categoryTag?.toLowerCase() == 'payable';
+  bool get isReceivable => categoryTag?.toLowerCase() == 'receivable';
+}
+
+// =====================================================
+// QUICK ACCESS ACCOUNT DATA MODEL
+// =====================================================
+@freezed
+class QuickAccessAccount with _$QuickAccessAccount {
+  const factory QuickAccessAccount({
+    @JsonKey(name: 'account_id')
+    required String accountId,
+    @JsonKey(name: 'account_name')
+    required String accountName,
+    @JsonKey(name: 'account_type')
+    required String accountType,
+    @JsonKey(name: 'usage_count')
+    required int usageCount,
+    @JsonKey(name: 'last_used')
+    required DateTime lastUsed,
+    @JsonKey(name: 'usage_score')
+    required double usageScore,
+    @JsonKey(name: 'exists_in_system')
+    @Default(true) bool existsInSystem,
+  }) = _QuickAccessAccount;
+
+  factory QuickAccessAccount.fromJson(Map<String, dynamic> json) =>
+      _$QuickAccessAccountFromJson(json);
+
+  // Helper methods
+  const QuickAccessAccount._();
+
+  String get displayName => accountName;
+
+  bool get isHighlyUsed => usageCount > 5;
+
+  bool get isRecentlyUsed =>
+      lastUsed.isAfter(DateTime.now().subtract(const Duration(days: 7)));
+
+  bool get isModeratelyUsed =>
+      lastUsed.isAfter(DateTime.now().subtract(const Duration(days: 30)));
+
+  /// Convert to AccountData for selector usage
+  AccountData toAccountData() {
+    return AccountData(
+      id: accountId,
+      name: accountName,
+      type: accountType,
+      transactionCount: usageCount,
+    );
+  }
 }
 
 // =====================================================
@@ -166,6 +223,12 @@ class CounterpartyData with _$CounterpartyData {
   bool get isCustomer => type.toLowerCase().contains('customer');
   bool get isVendor => type.toLowerCase().contains('vendor');
   bool get isSupplier => type.toLowerCase().contains('supplier');
+
+  // ✅ Type-safe accessor for linked_company_id
+  String? get linkedCompanyId =>
+      additionalData?['linked_company_id'] as String?;
+
+  bool get hasLinkedCompany => linkedCompanyId != null && linkedCompanyId!.isNotEmpty;
 }
 
 // =====================================================
@@ -277,6 +340,11 @@ typedef SingleSelectionCallback = void Function(String? selectedId);
 typedef SingleSelectionWithNameCallback = void Function(String? selectedId, String? selectedName);
 typedef MultiSelectionCallback = void Function(List<String>? selectedIds);
 typedef DataSelectionCallback<T> = void Function(T? selectedData);
+
+// ✅ Type-safe callback types for entity-based selectors
+typedef OnCounterpartySelectedCallback = void Function(CounterpartyData counterparty);
+typedef OnCashLocationSelectedCallback = void Function(CashLocationData cashLocation);
+typedef OnMultiCounterpartySelectedCallback = void Function(List<CounterpartyData> counterparties);
 typedef MultiDataSelectionCallback<T> = void Function(List<T>? selectedData);
 
 // =====================================================

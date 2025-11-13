@@ -124,15 +124,14 @@ class RoleSelectionHelper {
 
     try {
       // Show loading dialog
-      if (context.mounted) {
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: TossLoadingView(),
-          ),
-        );
-      }
+      if (!context.mounted) return false;
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: TossLoadingView(),
+        ),
+      );
 
       // Update role in database
       final roleRepository = ref.read(roleRepositoryProvider);
@@ -144,9 +143,8 @@ class RoleSelectionHelper {
       );
 
       // Close loading dialog
-      if (context.mounted) {
-        context.pop();
-      }
+      if (!context.mounted) return false;
+      context.pop();
 
       // Callback to update local state
       onRoleUpdated(selectedRole.roleName);
@@ -155,28 +153,25 @@ class RoleSelectionHelper {
       await refreshEmployees(ref);
 
       // Show success dialog
-      if (context.mounted) {
-        await TossDialogs.showCashEndingSaved(
-          context: context,
-          message: 'Role updated successfully',
-        );
-      }
+      if (!context.mounted) return false;
+      await TossDialogs.showCashEndingSaved(
+        context: context,
+        message: 'Role updated successfully',
+      );
 
       return true;
     } catch (e) {
       // Close loading dialog
-      if (context.mounted) {
-        context.pop();
-      }
+      if (!context.mounted) return false;
+      context.pop();
 
       // Show error dialog
-      if (context.mounted) {
-        await TossDialogs.showValidationError(
-          context: context,
-          title: 'Failed to Update Role',
-          message: e.toString().replaceAll('Exception:', '').trim(),
-        );
-      }
+      if (!context.mounted) return false;
+      await TossDialogs.showValidationError(
+        context: context,
+        title: 'Failed to Update Role',
+        message: e.toString().replaceAll('Exception:', '').trim(),
+      );
       return false;
     }
   }

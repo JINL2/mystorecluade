@@ -1,10 +1,10 @@
-// lib/features/delegate_role/presentation/providers/infrastructure/datasource_providers.dart
+// lib/features/delegate_role/data/providers/datasource_providers.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../data/datasources/delegation_remote_data_source.dart';
-import '../../../data/datasources/role_remote_data_source.dart';
+import '../datasources/delegation_remote_data_source.dart';
+import '../datasources/role_remote_data_source.dart';
 
 // ============================================================================
 // Infrastructure Layer - Tier 1: External Dependencies

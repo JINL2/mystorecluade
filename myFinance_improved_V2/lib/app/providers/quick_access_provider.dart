@@ -1,9 +1,11 @@
 // =====================================================
 // QUICK ACCESS PROVIDER
-// Simple provider to fetch user's most used accounts and templates from database
+// Type-safe provider to fetch user's most used accounts and templates from database
 // =====================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,7 +17,7 @@ part 'quick_access_provider.g.dart';
 @riverpod
 class QuickAccessAccounts extends _$QuickAccessAccounts {
   @override
-  Future<List<Map<String, dynamic>>> build({
+  Future<List<QuickAccessAccount>> build({
     String? contextType,
     int limit = 8,
   }) async {
@@ -30,18 +32,35 @@ class QuickAccessAccounts extends _$QuickAccessAccounts {
       if (userId == null) return [];
 
       // Call database RPC function to get user's most used accounts
-      final response = await supabase.client.rpc('get_user_quick_access_accounts', params: {
-        'p_user_id': userId,
-        'p_company_id': appState.companyChoosen,
-        'p_limit': limit,
-      },);
+      final response = await supabase.client.rpc(
+        'get_user_quick_access_accounts',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': appState.companyChoosen,
+          'p_limit': limit,
+        },
+      );
 
       if (response == null) return [];
 
-      // Return raw data from database - no processing needed
-      return List<Map<String, dynamic>>.from(response as List);
-    } catch (e) {
-      print('Error fetching quick access accounts: $e');
+      // Type-safe conversion with error handling
+      final accounts = <QuickAccessAccount>[];
+      for (final item in (response as List)) {
+        try {
+          final json = item as Map<String, dynamic>;
+          accounts.add(QuickAccessAccount.fromJson(json));
+        } catch (e) {
+          debugPrint('⚠️ Failed to parse QuickAccessAccount: $e');
+          debugPrint('   Data: $item');
+          // Skip invalid entries instead of crashing
+          continue;
+        }
+      }
+
+      return accounts;
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error fetching quick access accounts: $e');
+      debugPrint('StackTrace: $stackTrace');
       return [];
     }
   }
@@ -54,17 +73,17 @@ class QuickAccessAccounts extends _$QuickAccessAccounts {
 
 // Convenience providers for different contexts
 @riverpod
-Future<List<Map<String, dynamic>>> transactionQuickAccess(TransactionQuickAccessRef ref) {
+Future<List<QuickAccessAccount>> transactionQuickAccess(TransactionQuickAccessRef ref) {
   return ref.watch(quickAccessAccountsProvider(contextType: 'transaction').future);
 }
 
 @riverpod
-Future<List<Map<String, dynamic>>> templateQuickAccess(TemplateQuickAccessRef ref) {
+Future<List<QuickAccessAccount>> templateQuickAccess(TemplateQuickAccessRef ref) {
   return ref.watch(quickAccessAccountsProvider(contextType: 'template').future);
 }
 
 @riverpod
-Future<List<Map<String, dynamic>>> journalQuickAccess(JournalQuickAccessRef ref) {
+Future<List<QuickAccessAccount>> journalQuickAccess(JournalQuickAccessRef ref) {
   return ref.watch(quickAccessAccountsProvider(contextType: 'journal_entry').future);
 }
 

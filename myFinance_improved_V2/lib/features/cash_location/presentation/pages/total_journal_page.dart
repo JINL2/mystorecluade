@@ -12,8 +12,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
-// Import domain entities and providers
-import '../../domain/entities/journal_entry.dart';
+// Import providers (includes domain entities via export)
 import '../providers/cash_location_providers.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
@@ -523,13 +522,13 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     if (widget.journalType == 'journal') {
       // Journal tab filters
       if (_selectedFilter == 'Money In') {
-        filtered = filtered.where((t) => t.isIncome == true).toList();
+        filtered = filtered.where((TransactionDisplay t) => t.isIncome == true).toList();
       } else if (_selectedFilter == 'Money Out') {
-        filtered = filtered.where((t) => t.isIncome == false).toList();
+        filtered = filtered.where((TransactionDisplay t) => t.isIncome == false).toList();
       } else if (_selectedFilter == 'Today') {
         // Filter by today's date
         final today = DateTime.now();
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == today.year &&
@@ -542,7 +541,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       } else if (_selectedFilter == 'Yesterday') {
         // Filter by yesterday's date
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == yesterday.year &&
@@ -555,7 +554,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       } else if (_selectedFilter == 'Last Week') {
         // Filter by last week
         final lastWeek = DateTime.now().subtract(const Duration(days: 7));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastWeek);
@@ -566,12 +565,12 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       }
     } else {
       // Real tab filters - show only expenses
-      filtered = filtered.where((t) => t.isIncome == false).toList();
-      
+      filtered = filtered.where((TransactionDisplay t) => t.isIncome == false).toList();
+
       // Apply date filters for real tab too
       if (_selectedFilter == 'Today') {
         final today = DateTime.now();
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == today.year &&
@@ -583,7 +582,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Yesterday') {
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == yesterday.year &&
@@ -595,7 +594,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Last Week') {
         final lastWeek = DateTime.now().subtract(const Duration(days: 7));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastWeek);
@@ -605,7 +604,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Last Month') {
         final lastMonth = DateTime.now().subtract(const Duration(days: 30));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastMonth);
@@ -975,7 +974,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
       }
     }
     
-    return filteredLines.map((line) => _buildJournalLine(line)).toList();
+    return filteredLines.map((JournalLine line) => _buildJournalLine(line)).toList();
   }
   
   Widget _buildJournalLine(JournalLine line) {

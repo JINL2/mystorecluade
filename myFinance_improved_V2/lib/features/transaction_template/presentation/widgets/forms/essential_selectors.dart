@@ -100,6 +100,11 @@ class EssentialSelectors extends StatelessWidget {
   Widget _buildCounterpartySelector() {
     return AutonomousCounterpartySelector(
       selectedCounterpartyId: selectedCounterpartyId,
+      // ✅ NEW: Type-safe callback
+      onCounterpartySelected: (counterparty) {
+        onCounterpartyChanged?.call(counterparty.id);
+      },
+      // ✅ Legacy callback maintained for compatibility
       onChanged: onCounterpartyChanged,
       label: 'Counterparty',
       hint: 'Select counterparty',

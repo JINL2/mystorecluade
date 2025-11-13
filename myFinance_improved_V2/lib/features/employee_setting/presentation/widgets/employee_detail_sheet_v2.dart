@@ -13,8 +13,8 @@ import '../providers/employee_providers.dart';
 
 class EmployeeDetailSheetV2 extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
-  final Function(EmployeeSalary) onUpdate;
-  final Function(EmployeeSalary) onEditSalary;
+  final void Function(EmployeeSalary) onUpdate;
+  final void Function(EmployeeSalary) onEditSalary;
   final VoidCallback onManageRoles;
 
   const EmployeeDetailSheetV2({

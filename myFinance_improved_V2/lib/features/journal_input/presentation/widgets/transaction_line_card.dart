@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/extensions/string_extensions.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -119,7 +120,7 @@ class TransactionLineCard extends StatelessWidget {
                                     children: [
                                       if (line.categoryTag != null)
                                         _buildCompactTag(
-                                            _formatCategoryTag(line.categoryTag!),),
+                                            line.categoryTag!.formatCategoryTag(),),
                                       if (line.cashLocationName != null)
                                         _buildCompactTag(line.cashLocationName!),
                                       if (line.counterpartyName != null)
@@ -183,12 +184,4 @@ class TransactionLineCard extends StatelessWidget {
     );
   }
 
-  String _formatCategoryTag(String categoryTag) {
-    switch (categoryTag.toLowerCase()) {
-      case 'fixedasset':
-        return 'Fixed Asset';
-      default:
-        return categoryTag[0].toUpperCase() + categoryTag.substring(1);
-    }
-  }
 }

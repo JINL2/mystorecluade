@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-// Updated to use new architecture paths
-import '../../../../app/providers/counterparty_provider.dart';
+// Use app-level providers (working implementation)
+import '../../../../app/providers/journal_input_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -21,8 +21,8 @@ import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../shared/widgets/toss/toss_secondary_button.dart';
+import '../../domain/entities/debt_category.dart';
 import '../../domain/entities/transaction_line.dart';
-import '../providers/journal_input_providers.dart';
 import 'exchange_rate_calculator.dart';
 
 
@@ -56,7 +56,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyStoreName;
   String? _selectedCashLocationId;
+  String? _selectedCashLocationName;  // ✅ NEW: Cash location name
+  String? _selectedCashLocationType;  // ✅ NEW: Cash location type
   String? _selectedCounterpartyCashLocationId;
+  String? _selectedCounterpartyCashLocationName;  // ✅ NEW: Counterparty cash location name
   String? _linkedCompanyId;
   bool _isInternal = false;
   
@@ -86,8 +89,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   Map<String, dynamic>? _accountMapping;
   String? _mappingError;
   
-  final List<String> _debtCategories = ['note', 'account', 'loan', 'other'];
-  
   @override
   void initState() {
     super.initState();
@@ -107,6 +108,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       _selectedCounterpartyStoreId = line.counterpartyStoreId;
       _selectedCounterpartyStoreName = line.counterpartyStoreName;
       _selectedCashLocationId = line.cashLocationId;
+      _selectedCashLocationName = line.cashLocationName; // ✅ Load cash location name
+      _selectedCashLocationType = line.cashLocationType; // ✅ Load cash location type
       _selectedCounterpartyCashLocationId = line.counterpartyCashLocationId; // Load existing counterparty cash location
       // Format amount with thousand separators
       final formatter = NumberFormat('#,##0.##', 'en_US');
@@ -196,8 +199,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     if (_selectedCounterpartyId == null) return;
 
     try {
-      final appState = ref.read(appStateProvider);
-      final counterparties = await ref.read(journalCounterpartiesProvider(appState.companyChoosen).future);
+      final counterparties = await ref.read(journalCounterpartiesProvider.future);
       final counterparty = counterparties.firstWhere(
         (c) => c['counterparty_id'] == _selectedCounterpartyId,
         orElse: () => <String, dynamic>{},
@@ -209,36 +211,55 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           _isInternal = counterparty['is_internal'] == true;
         });
       }
-    } catch (e) {
-      // Silently handle error loading counterparty details
+    } catch (e, stackTrace) {
+      // Log error for debugging
+      debugPrint('Error loading counterparty details: $e');
+      debugPrint('StackTrace: $stackTrace');
+
+      // Optional: Show user-friendly error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to load counterparty details'),
+            backgroundColor: TossColors.error,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
   
   Future<void> _checkAccountMapping() async {
-    if (_selectedAccountId == null || 
-        _selectedCounterpartyId == null || 
+    debugPrint('🔍 _checkAccountMapping START: accountId=$_selectedAccountId, counterpartyId=$_selectedCounterpartyId, isInternal=$_isInternal, categoryTag=$_selectedCategoryTag');
+
+    if (_selectedAccountId == null ||
+        _selectedCounterpartyId == null ||
         !_isInternal ||
         (_selectedCategoryTag != 'payable' && _selectedCategoryTag != 'receivable')) {
+      debugPrint('⚠️ _checkAccountMapping SKIPPED - conditions not met');
       setState(() {
         _accountMapping = null;
         _mappingError = null;
       });
       return;
     }
-    
+
+    debugPrint('✅ _checkAccountMapping - conditions met, proceeding...');
     setState(() {
       _mappingError = null;
     });
-    
+
     try {
       final appState = ref.read(appStateProvider);
       final checkMapping = ref.read(checkAccountMappingProvider);
+      debugPrint('🔍 Checking mapping: company=${appState.companyChoosen}, counterparty=$_selectedCounterpartyId, account=$_selectedAccountId');
       final mapping = await checkMapping(
         appState.companyChoosen,
         _selectedCounterpartyId!,
         _selectedAccountId!,
       );
-      
+
+      debugPrint('🔍 Mapping result: $mapping');
       setState(() {
         _accountMapping = mapping;
         if (mapping == null) {
@@ -246,7 +267,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           _showMappingRequiredDialog();
         }
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ _checkAccountMapping ERROR: $e');
+      debugPrint('Stack trace: $stackTrace');
       setState(() {
         _mappingError = 'Error checking account mapping';
       });
@@ -346,12 +369,19 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   
   
   void _showNumberpadModal() {
+    if (!mounted) return;
+
     TossNumberpadModal.show(
       context: context,
       title: 'Enter Amount',
-      initialValue: _amountController.text.isEmpty ? null : _amountController.text.replaceAll(',', ''),
+      initialValue: _amountController.text.isEmpty
+        ? null
+        : _amountController.text.replaceAll(',', ''),
       allowDecimal: true,
       onConfirm: (result) {
+        // Check mounted before updating state
+        if (!mounted) return;
+
         // Format the result with thousand separators
         final formatter = NumberFormat('#,##0.##', 'en_US');
         final numericValue = double.tryParse(result) ?? 0;
@@ -436,8 +466,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       counterpartyStoreId: _selectedCounterpartyStoreId,
       counterpartyStoreName: _selectedCounterpartyStoreName,
       cashLocationId: _selectedCashLocationId,
-      cashLocationName: null, // Managed by AutonomousCashLocationSelector
-      cashLocationType: null, // Managed by AutonomousCashLocationSelector
+      cashLocationName: _selectedCashLocationName, // ✅ Use data from callback
+      cashLocationType: _selectedCashLocationType, // ✅ Use data from callback
       linkedCompanyId: _linkedCompanyId,
       counterpartyCashLocationId: _selectedCounterpartyCashLocationId, // Add counterparty cash location
       debtCategory: _debtCategory,
@@ -654,48 +684,36 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     
                     const SizedBox(height: 20),
                     
-                    // Account Selection - Using AutonomousAccountSelector
+                    // Account Selection - Enhanced with Type-safe callback
                     Consumer(
                       builder: (context, ref, child) {
-                        final accountsAsync = ref.watch(journalAccountsProvider);
-                        
                         return EnhancedAccountSelector(
                           selectedAccountId: _selectedAccountId,
-                          contextType: 'journal_entry', // Enable usage tracking
-                          onChanged: (selectedId) {
-                            if (selectedId != null) {
-                              // Find the selected account from the list to get details
-                              accountsAsync.whenData((accounts) {
-                                final account = accounts.firstWhere(
-                                  (a) => a['account_id'] == selectedId,
-                                  orElse: () => {},
-                                );
-                                if (account.isNotEmpty) {
-                                  setState(() {
-                                    _selectedAccountId = selectedId;
-                                    _selectedAccountName = account['account_name'] as String?;
-                                    _selectedCategoryTag = account['category_tag'] as String?;
-                                    // Reset all dependent fields when account changes
-                                    _selectedCashLocationId = null;
-                                    _selectedCounterpartyId = null;
-                                    _selectedCounterpartyName = null;
-                                    _selectedCounterpartyStoreId = null;
-                                    _selectedCounterpartyStoreName = null;
-                                    _linkedCompanyId = null;
-                                    _isInternal = false;
-                                    _accountMapping = null;
-                                    _mappingError = null;
-                                  });
-                                }
-                              });
-                            }
+                          contextType: 'journal_entry',
+                          // ✅ NEW: Type-safe callback
+                          onAccountSelected: (account) {
+                            setState(() {
+                              _selectedAccountId = account.id;
+                              _selectedAccountName = account.name;
+                              _selectedCategoryTag = account.categoryTag;
+                              // Reset all dependent fields when account changes
+                              _selectedCashLocationId = null;
+                              _selectedCounterpartyId = null;
+                              _selectedCounterpartyName = null;
+                              _selectedCounterpartyStoreId = null;
+                              _selectedCounterpartyStoreName = null;
+                              _linkedCompanyId = null;
+                              _isInternal = false;
+                              _accountMapping = null;
+                              _mappingError = null;
+                            });
                           },
                           label: 'Account',
                           hint: 'Select account',
                           showSearch: true,
                           showTransactionCount: false,
-                          showQuickAccess: true, // Enable "Frequently Used" section
-                          maxQuickItems: 5, // Show top 5 frequently used accounts
+                          showQuickAccess: true,
+                          maxQuickItems: 5,
                         );
                       },
                     ),
@@ -705,12 +723,25 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       const SizedBox(height: 20),
                       AutonomousCashLocationSelector(
                         selectedLocationId: _selectedCashLocationId,
-                        onChanged: (locationId) {
+                        // ✅ NEW: Type-safe callback - No Provider re-fetch needed!
+                        onCashLocationSelected: (cashLocation) {
+                          debugPrint('🎯 Cash location selected: ${cashLocation.name} (${cashLocation.id})');
+
                           setState(() {
-                            _selectedCashLocationId = locationId;
-                            // Find the selected location to get name and type
-                            // This will be handled by the widget's internal state
+                            _selectedCashLocationId = cashLocation.id;
+                            _selectedCashLocationName = cashLocation.name;
+                            _selectedCashLocationType = cashLocation.type;
                           });
+                        },
+                        // ✅ Legacy callback for null case
+                        onChanged: (locationId) {
+                          if (locationId == null) {
+                            setState(() {
+                              _selectedCashLocationId = null;
+                              _selectedCashLocationName = null;
+                              _selectedCashLocationType = null;
+                            });
+                          }
                         },
                         label: 'Cash Location',
                         hint: 'Select cash location',
@@ -739,42 +770,37 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         builder: (context, ref, child) {
                           return AutonomousCounterpartySelector(
                             selectedCounterpartyId: _selectedCounterpartyId,
-                            onChanged: (counterpartyId) async {
-                              if (counterpartyId != null) {
-                                // Get counterparty details from the provider
-                                try {
-                                  final counterpartyAsync = await ref.read(
-                                    counterpartyByIdProvider(counterpartyId).future,
-                                  );
-                                  
-                                  if (counterpartyAsync != null) {
-                                    setState(() {
-                                      _selectedCounterpartyId = counterpartyId;
-                                      _selectedCounterpartyName = counterpartyAsync.name;
-                                      _isInternal = counterpartyAsync.isInternal;
-                                      // Check if there's a linked company ID in additionalData
-                                      _linkedCompanyId = counterpartyAsync.additionalData?['linked_company_id'] as String?;
-                                    });
-                                    
-                                    // Check account mapping after setting counterparty
-                                    _checkAccountMapping();
-                                  }
-                                } catch (e) {
-                                  // Fallback to old method if new provider fails
-                                  setState(() {
-                                    _selectedCounterpartyId = counterpartyId;
-                                    _selectedCounterpartyName = null;
-                                    _isInternal = false;
-                                  });
-                                  await _loadCounterpartyDetails();
-                                  _checkAccountMapping();
-                                }
-                              } else {
+                            // ✅ NEW: Type-safe callback - No async/await needed!
+                            onCounterpartySelected: (counterparty) {
+                              debugPrint('🎯 Counterparty selected: ${counterparty.name} (${counterparty.id})');
+
+                              setState(() {
+                                _selectedCounterpartyId = counterparty.id;
+                                _selectedCounterpartyName = counterparty.name;
+                                _isInternal = counterparty.isInternal;
+                                // ✅ Type-safe accessor
+                                _linkedCompanyId = counterparty.linkedCompanyId;
+
+                                // Reset dependent fields
+                                _selectedCounterpartyStoreId = null;
+                                _selectedCounterpartyStoreName = null;
+                                _selectedCounterpartyCashLocationId = null;
+                              });
+
+                              debugPrint('🔍 Calling _checkAccountMapping...');
+                              _checkAccountMapping();
+                            },
+                            // ✅ Legacy callback for null case
+                            onChanged: (counterpartyId) {
+                              if (counterpartyId == null) {
                                 setState(() {
                                   _selectedCounterpartyId = null;
                                   _selectedCounterpartyName = null;
                                   _isInternal = false;
                                   _linkedCompanyId = null;
+                                  _selectedCounterpartyStoreId = null;
+                                  _selectedCounterpartyStoreName = null;
+                                  _selectedCounterpartyCashLocationId = null;
                                 });
                               }
                             },
@@ -953,10 +979,23 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           companyId: _linkedCompanyId, // Use the counterparty's company ID
                           storeId: _selectedCounterpartyStoreId, // Use the counterparty's store ID if available
                           selectedLocationId: _selectedCounterpartyCashLocationId,
-                          onChanged: (locationId) {
+                          // ✅ NEW: Type-safe callback
+                          onCashLocationSelected: (cashLocation) {
+                            debugPrint('🎯 Counterparty cash location selected: ${cashLocation.name} (${cashLocation.id})');
+
                             setState(() {
-                              _selectedCounterpartyCashLocationId = locationId;
+                              _selectedCounterpartyCashLocationId = cashLocation.id;
+                              _selectedCounterpartyCashLocationName = cashLocation.name;
                             });
+                          },
+                          // ✅ Legacy callback for null case
+                          onChanged: (locationId) {
+                            if (locationId == null) {
+                              setState(() {
+                                _selectedCounterpartyCashLocationId = null;
+                                _selectedCounterpartyCashLocationName = null;
+                              });
+                            }
                           },
                           label: 'Counterparty Cash Location',
                           hint: 'Select counterparty cash location',
@@ -1031,9 +1070,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         label: 'Debt Category',
                         value: _debtCategory,
                         hint: 'Select debt category',
-                        items: _debtCategories.map((category) => TossDropdownItem<String>(
-                          value: category,
-                          label: category[0].toUpperCase() + category.substring(1),
+                        items: DebtCategory.values.map((category) => TossDropdownItem<String>(
+                          value: category.value,
+                          label: category.displayName,
                         ),).toList(),
                         onChanged: (value) {
                           setState(() {
