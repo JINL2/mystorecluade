@@ -3,6 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants.dart';
+import '../../domain/entities/stock_flow.dart';
 import '../../domain/repositories/stock_flow_repository.dart';
 import 'base_tab_state.dart';
 
