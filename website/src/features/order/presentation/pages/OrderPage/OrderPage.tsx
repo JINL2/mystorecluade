@@ -1,9 +1,10 @@
 /**
  * OrderPage Component
  * Purchase Orders management with New Order and Order List tabs
+ * Following 2025 Best Practice: Uses Zustand provider for state management
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useOrder } from '../../hooks/useOrder';
@@ -13,20 +14,24 @@ import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import styles from './OrderPage.module.css';
 
-type TabType = 'new-order' | 'order-list';
-
 // Format number with thousand separators (integer only, following backup pattern)
 const formatNumber = (value: number): string => {
   return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
 export const OrderPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('new-order');
   const { currentCompany, currentStore } = useAppState();
-  const { orders, loading, error, refresh } = useOrder(
-    currentCompany?.company_id || '',
-    currentStore?.store_id || null
-  );
+
+  // Use order hook with Zustand provider
+  const {
+    orders,
+    activeTab,
+    loading,
+    error,
+    setActiveTab,
+    refresh,
+  } = useOrder(currentCompany?.company_id || '', currentStore?.store_id || null);
+
   const { messageState, closeMessage, showError } = useErrorMessage();
 
   // Handle order loading error

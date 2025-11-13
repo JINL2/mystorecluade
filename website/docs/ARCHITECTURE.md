@@ -9,7 +9,7 @@
 - **Frontend**: React 18 + TypeScript 5
 - **Build Tool**: Vite 5
 - **Styling**: CSS Modules + Toss Design System
-- **State Management**: React Context + Custom Hooks (Zustand if needed)
+- **State Management**: Zustand + Custom Hooks (2025 Best Practice)
 - **Routing**: React Router v6
 - **Backend**: Supabase (Auth, Database, RPC)
 - **Package Manager**: npm
@@ -20,12 +20,13 @@
 1. [Core Principles](#core-principles)
 2. [Complete Directory Structure](#complete-directory-structure)
 3. [Layer Details](#layer-details)
-4. [The Law: What Goes Where](#the-law-what-goes-where)
-5. [Import Rules](#import-rules)
-6. [File Separation Rules](#file-separation-rules)
-7. [Practical Examples](#practical-examples)
-8. [Common Mistakes](#common-mistakes)
-9. [Enforcement](#enforcement)
+4. [State Management Architecture](#state-management-architecture)
+5. [The Law: What Goes Where](#the-law-what-goes-where)
+6. [Import Rules](#import-rules)
+7. [File Separation Rules](#file-separation-rules)
+8. [Practical Examples](#practical-examples)
+9. [Common Mistakes](#common-mistakes)
+10. [Enforcement](#enforcement)
 
 ---
 
@@ -211,10 +212,16 @@ website/
     │   │       │       ├── RegisterForm.tsx
     │   │       │       └── RegisterForm.module.css
     │   │       │
+    │   │       ├── providers/               # State management providers
+    │   │       │   ├── states/              # State type definitions
+    │   │       │   │   ├── auth_state.ts    # Auth state interface
+    │   │       │   │   └── types.ts         # Shared state types
+    │   │       │   └── auth_provider.ts     # Zustand Auth store (2025 Best Practice)
+    │   │       │
     │   │       └── hooks/                   # Feature-specific Custom Hooks
     │   │           ├── useLogin.ts          # Login logic (Validation + Repository)
     │   │           ├── useRegister.ts       # Registration logic (Validation + Repository)
-    │   │           └── useAuthForm.ts       # Form state management
+    │   │           └── useAuth.ts           # Hook that uses auth provider
     │   │
     │   ├── dashboard/            # Dashboard feature
     │   │   ├── domain/
@@ -242,8 +249,13 @@ website/
     │   │       │   └── QuickActions/
     │   │       │       ├── QuickActions.tsx
     │   │       │       └── QuickActions.module.css
+    │   │       ├── providers/               # State management providers
+    │   │       │   ├── states/              # State type definitions
+    │   │       │   │   ├── dashboard_state.ts  # Dashboard state interface
+    │   │       │   │   └── types.ts         # Shared state types
+    │   │       │   └── dashboard_provider.ts  # Zustand Dashboard store (2025 Best Practice)
     │   │       └── hooks/
-    │   │           └── useDashboard.ts      # Dashboard logic (Repository calls)
+    │   │           └── useDashboard.ts      # Dashboard logic (Repository calls + Provider)
     │   │
     │   ├── inventory/            # Inventory management feature
     │   │   ├── domain/
@@ -282,8 +294,14 @@ website/
     │   │       │       ├── ProductRow.tsx
     │   │       │       └── ProductRow.module.css
     │   │       │
+    │   │       ├── providers/               # State management providers
+    │   │       │   ├── states/              # State type definitions
+    │   │       │   │   ├── inventory_state.ts  # Inventory state interface
+    │   │       │   │   └── types.ts         # Shared state types
+    │   │       │   └── inventory_provider.ts  # Zustand Inventory store (2025 Best Practice)
+    │   │       │
     │   │       └── hooks/
-    │   │           ├── useInventory.ts      # Inventory management logic (Repository calls)
+    │   │           ├── useInventory.ts      # Inventory management logic (Repository calls + Provider)
     │   │           ├── useProducts.ts       # Product management logic (Validation + Repository)
     │   │           └── useExcelImport.ts    # Excel import logic (Validation + Repository)
     │   │
@@ -641,8 +659,13 @@ features/my_feature/
     │       ├── MyComponent.tsx
     │       ├── MyComponent.module.css
     │       └── MyComponent.types.ts
+    ├── providers/            # State management providers
+    │   ├── states/           # State type definitions
+    │   │   ├── my_feature_state.ts  # Feature state interface
+    │   │   └── types.ts      # Shared state types
+    │   └── my_feature_provider.ts  # Zustand store (2025 Best Practice)
     └── hooks/                # Feature-specific Custom Hooks
-        └── useMyFeature.ts   # Validation execution + Repository calls
+        └── useMyFeature.ts   # Validation execution + Repository calls + Provider usage
 ```
 
 **🔑 Important**:
@@ -651,6 +674,382 @@ features/my_feature/
 ```
 
 **Example**: See [Practical Examples](#practical-examples) section
+
+---
+
+## State Management Architecture
+
+### 📦 Zustand + Custom Hooks Pattern (2025 Best Practice)
+
+**Philosophy**: Following 2025 industry trends, we use **Zustand** for state management combined with custom hooks pattern for clean separation of concerns.
+
+**Why Zustand?**
+- ✅ Lightweight and fast (minimal bundle size)
+- ✅ No boilerplate code
+- ✅ Simple API with hooks
+- ✅ TypeScript-first
+- ✅ No Provider hell
+- ✅ Industry standard in 2025
+
+### State Management Layers
+
+#### 1. **Global State** (`shared/hooks/`)
+For authentication and app-wide state that needs to be accessed across multiple features.
+
+```typescript
+// ✅ shared/hooks/useAuth.ts
+// Global authentication state using Zustand or Context
+```
+
+**What belongs in global state:**
+- Authentication state (user, session)
+- Theme settings
+- App configuration
+- Shared UI state (sidebar open/closed)
+
+#### 2. **Feature State** (`features/*/presentation/providers/`)
+For feature-specific state management using Zustand.
+
+**Folder Structure:**
+```
+features/journal-input/presentation/
+├── providers/
+│   ├── states/
+│   │   ├── journal_input_state.ts  # State interface definitions
+│   │   └── types.ts                # Shared state types
+│   └── journal_input_provider.ts   # Zustand store definition
+└── hooks/
+    └── useJournalInput.ts          # Custom hook that uses the provider
+```
+
+**Example Store Definition:**
+```typescript
+// ✅ features/journal-input/presentation/providers/states/journal_input_state.ts
+export interface JournalInputState {
+  // State
+  date: Date;
+  description: string;
+  transactionLines: TransactionLine[];
+  totalDebits: number;
+  totalCredits: number;
+  isBalanced: boolean;
+  loading: boolean;
+  error: string | null;
+
+  // Actions
+  setDate: (date: Date) => void;
+  setDescription: (description: string) => void;
+  addTransactionLine: (line: TransactionLine) => void;
+  updateTransactionLine: (index: number, line: TransactionLine) => void;
+  removeTransactionLine: (index: number) => void;
+  reset: () => void;
+
+  // Async actions
+  submitJournalEntry: () => Promise<{ success: boolean; error?: string }>;
+}
+
+// ✅ features/journal-input/presentation/providers/journal_input_provider.ts
+import { create } from 'zustand';
+import { JournalInputState } from './states/journal_input_state';
+import { JournalInputDataSource } from '../../data/datasources/JournalInputDataSource';
+
+const dataSource = new JournalInputDataSource();
+
+export const useJournalInputStore = create<JournalInputState>((set, get) => ({
+  // Initial state
+  date: new Date(),
+  description: '',
+  transactionLines: [],
+  totalDebits: 0,
+  totalCredits: 0,
+  isBalanced: false,
+  loading: false,
+  error: null,
+
+  // Actions
+  setDate: (date) => set({ date }),
+
+  setDescription: (description) => set({ description }),
+
+  addTransactionLine: (line) => set((state) => {
+    const newLines = [...state.transactionLines, line];
+    return {
+      transactionLines: newLines,
+      ...calculateTotals(newLines),
+    };
+  }),
+
+  updateTransactionLine: (index, line) => set((state) => {
+    const newLines = [...state.transactionLines];
+    newLines[index] = line;
+    return {
+      transactionLines: newLines,
+      ...calculateTotals(newLines),
+    };
+  }),
+
+  removeTransactionLine: (index) => set((state) => {
+    const newLines = state.transactionLines.filter((_, i) => i !== index);
+    return {
+      transactionLines: newLines,
+      ...calculateTotals(newLines),
+    };
+  }),
+
+  reset: () => set({
+    date: new Date(),
+    description: '',
+    transactionLines: [],
+    totalDebits: 0,
+    totalCredits: 0,
+    isBalanced: false,
+    error: null,
+  }),
+
+  // Async actions
+  submitJournalEntry: async () => {
+    const state = get();
+
+    if (!state.isBalanced) {
+      return { success: false, error: 'Journal entry must be balanced' };
+    }
+
+    set({ loading: true, error: null });
+
+    try {
+      await dataSource.submitJournalEntry({
+        companyId: '...', // Get from context
+        storeId: '...',
+        date: state.date,
+        description: state.description,
+        transactionLines: state.transactionLines,
+        // ...
+      });
+
+      get().reset(); // Reset after successful submission
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      set({ error: errorMessage });
+      return { success: false, error: errorMessage };
+    } finally {
+      set({ loading: false });
+    }
+  },
+}));
+
+// Helper function
+function calculateTotals(lines: TransactionLine[]) {
+  const totalDebits = lines
+    .filter((line) => line.isDebit)
+    .reduce((sum, line) => sum + line.amount, 0);
+
+  const totalCredits = lines
+    .filter((line) => !line.isDebit)
+    .reduce((sum, line) => sum + line.amount, 0);
+
+  const isBalanced = totalDebits === totalCredits && totalDebits > 0;
+
+  return { totalDebits, totalCredits, isBalanced };
+}
+```
+
+**Custom Hook Wrapper:**
+```typescript
+// ✅ features/journal-input/presentation/hooks/useJournalInput.ts
+import { useJournalInputStore } from '../providers/journal_input_provider';
+
+export const useJournalInput = () => {
+  // Select only the needed state and actions
+  const date = useJournalInputStore((state) => state.date);
+  const description = useJournalInputStore((state) => state.description);
+  const transactionLines = useJournalInputStore((state) => state.transactionLines);
+  const totalDebits = useJournalInputStore((state) => state.totalDebits);
+  const totalCredits = useJournalInputStore((state) => state.totalCredits);
+  const isBalanced = useJournalInputStore((state) => state.isBalanced);
+  const loading = useJournalInputStore((state) => state.loading);
+  const error = useJournalInputStore((state) => state.error);
+
+  const setDate = useJournalInputStore((state) => state.setDate);
+  const setDescription = useJournalInputStore((state) => state.setDescription);
+  const addTransactionLine = useJournalInputStore((state) => state.addTransactionLine);
+  const updateTransactionLine = useJournalInputStore((state) => state.updateTransactionLine);
+  const removeTransactionLine = useJournalInputStore((state) => state.removeTransactionLine);
+  const reset = useJournalInputStore((state) => state.reset);
+  const submitJournalEntry = useJournalInputStore((state) => state.submitJournalEntry);
+
+  return {
+    // State
+    date,
+    description,
+    transactionLines,
+    totalDebits,
+    totalCredits,
+    isBalanced,
+    loading,
+    error,
+
+    // Actions
+    setDate,
+    setDescription,
+    addTransactionLine,
+    updateTransactionLine,
+    removeTransactionLine,
+    reset,
+    submitJournalEntry,
+  };
+};
+```
+
+**Component Usage:**
+```typescript
+// ✅ features/journal-input/presentation/pages/JournalInputPage/JournalInputPage.tsx
+import React from 'react';
+import { useJournalInput } from '../../hooks/useJournalInput';
+
+export const JournalInputPage: React.FC = () => {
+  const {
+    transactionLines,
+    totalDebits,
+    totalCredits,
+    isBalanced,
+    loading,
+    addTransactionLine,
+    submitJournalEntry,
+  } = useJournalInput();
+
+  const handleSubmit = async () => {
+    const result = await submitJournalEntry();
+    if (result.success) {
+      alert('Journal entry submitted successfully!');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Journal Entry</h1>
+      <div>Debits: {totalDebits}</div>
+      <div>Credits: {totalCredits}</div>
+      <div>Balanced: {isBalanced ? 'Yes' : 'No'}</div>
+
+      <button onClick={handleSubmit} disabled={!isBalanced || loading}>
+        {loading ? 'Submitting...' : 'Submit Entry'}
+      </button>
+
+      {/* Transaction list */}
+    </div>
+  );
+};
+```
+
+### Best Practices
+
+#### 1. **Selector Optimization**
+Always select only the state you need to prevent unnecessary re-renders.
+
+```typescript
+// ❌ Bad - Component re-renders on any state change
+const state = useJournalInputStore();
+
+// ✅ Good - Component re-renders only when transactionLines changes
+const transactionLines = useJournalInputStore((state) => state.transactionLines);
+```
+
+#### 2. **Actions Grouping**
+Group actions logically and separate them from state.
+
+```typescript
+// ✅ Good - Actions grouped separately
+const { addLine, removeLine, updateLine } = useJournalInputStore(
+  (state) => ({
+    addLine: state.addTransactionLine,
+    removeLine: state.removeTransactionLine,
+    updateLine: state.updateTransactionLine,
+  })
+);
+```
+
+#### 3. **Async Actions in Store**
+Keep async operations (Repository calls) in the store, not in hooks.
+
+```typescript
+// ✅ Good - Async logic in store
+submitJournalEntry: async () => {
+  set({ loading: true });
+  try {
+    await dataSource.submitJournalEntry(/* ... */);
+    return { success: true };
+  } catch (error) {
+    set({ error: error.message });
+    return { success: false };
+  } finally {
+    set({ loading: false });
+  }
+}
+```
+
+#### 4. **Type Safety**
+Always define comprehensive TypeScript types for your store.
+
+```typescript
+// ✅ types.ts - Separate type definitions
+export interface JournalInputState {
+  // State properties with explicit types
+  date: Date;
+  description: string;
+  transactionLines: TransactionLine[];
+
+  // Action signatures
+  setDate: (date: Date) => void;
+  submitJournalEntry: () => Promise<SubmitResult>;
+}
+```
+
+#### 5. **Provider File Size**
+Keep provider files under 30KB. If larger, split into multiple providers.
+
+```typescript
+// ✅ Good - Separate providers for different concerns
+// journal_input_provider.ts - Entry state
+// journal_filter_provider.ts - Filter state
+// journal_history_provider.ts - History state
+```
+
+### State Management Rules
+
+#### ✅ What belongs in Zustand Provider (`features/*/presentation/providers/`):
+- Feature-specific UI state (form data, filters, selections)
+- Loading/error states
+- Computed values (derived state)
+- Feature-specific actions
+- Repository calls (async operations)
+
+#### ❌ What does NOT belong in Provider:
+- Domain entities → `features/*/domain/entities/`
+- Validation rules → `features/*/domain/validators/`
+- Data transformation → `features/*/data/models/`
+- Repository implementations → `features/*/data/repositories/`
+
+### Migration Path (Old → New)
+
+**Before (useState in Component):**
+```typescript
+// ❌ Old way - State scattered in components
+export const JournalInputPage: React.FC = () => {
+  const [transactionLines, setTransactionLines] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // ... 50 lines of state management
+};
+```
+
+**After (Zustand Provider):**
+```typescript
+// ✅ New way - Centralized state in provider
+export const JournalInputPage: React.FC = () => {
+  const { transactionLines, loading, addLine } = useJournalInput();
+  // Clean component focusing on UI
+};
+```
 
 ---
 
@@ -2111,12 +2510,17 @@ features/[feature-name]/
 └── presentation/     # UI layer + Business logic execution
     ├── pages/
     ├── components/
-    └── hooks/        # Feature-specific custom hooks (Validation execution + Repository calls)
+    ├── providers/    # State management providers (2025 Best Practice)
+    │   ├── states/   # State type definitions
+    │   └── *_provider.ts  # Zustand provider implementation
+    └── hooks/        # Feature-specific custom hooks (Validation execution + Repository calls + Provider usage)
 ```
 
 **🔑 Core Pattern**:
 - `domain/validators/`: **Define validation rules only** (static methods)
-- `presentation/hooks/`: Validation **execution** + Repository calls (business logic flow)
+- `presentation/providers/states/`: **State type definitions** (TypeScript interfaces)
+- `presentation/providers/`: **Zustand providers** (feature state management)
+- `presentation/hooks/`: Validation **execution** + Repository calls + Provider usage (business logic flow)
 
 ### 4. **File Size Limits = Strictly Enforced**
 React + TypeScript file size rules:

@@ -1,0 +1,377 @@
+/**
+ * IconTabContent Component Styles
+ */
+
+/* ==================== BALANCE SUMMARY ==================== */
+.balanceSummaryCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.balanceSummaryGrid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0;
+  align-items: center;
+}
+
+.balanceItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  min-width: 180px;
+}
+
+.balanceItem.clickable {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.balanceItem.clickable:hover {
+  background: var(--toss-gray-50);
+}
+
+.balanceLabel {
+  font-size: var(--font-small);
+  color: var(--toss-gray-600);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.balanceAmount {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.balanceAmount.debit {
+  color: var(--toss-primary);
+}
+
+.balanceAmount.credit {
+  color: var(--toss-success);
+}
+
+.balanceAmount.difference {
+  color: var(--toss-gray-700);
+}
+
+.balanceAmount.unbalanced {
+  color: var(--toss-error);
+}
+
+.balanceCount {
+  font-size: var(--font-small);
+  color: var(--toss-gray-500);
+}
+
+.balanceDivider {
+  width: 1px;
+  height: 60px;
+  background: var(--toss-gray-200);
+}
+
+/* ==================== DESCRIPTION CARD ==================== */
+.descriptionCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.descriptionLabel {
+  display: block;
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--toss-gray-700);
+  margin-bottom: var(--space-3);
+}
+
+.descriptionTextarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-body);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  transition: border-color var(--transition-fast);
+}
+
+.descriptionTextarea:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.descriptionTextarea::placeholder {
+  color: var(--toss-gray-400);
+}
+
+/* ==================== TRANSACTION SECTION ==================== */
+.transactionSection {
+  margin-bottom: var(--space-6);
+}
+
+/* ==================== EMPTY STATE ==================== */
+.emptyState {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-6);
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--toss-gray-900);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.emptyText {
+  font-size: var(--font-body);
+  color: var(--toss-gray-600);
+  margin: 0;
+}
+
+/* ==================== TRANSACTION LINES ==================== */
+.transactionLineCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all var(--transition-fast);
+}
+
+.transactionLineCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.transactionLineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  gap: var(--space-4);
+}
+
+.transactionLineHeader.debit {
+  background: rgba(0, 100, 255, 0.04);
+  border-left: 4px solid var(--toss-primary);
+}
+
+.transactionLineHeader.credit {
+  background: rgba(0, 200, 150, 0.04);
+  border-left: 4px solid var(--toss-success);
+}
+
+.transactionLineType {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.transactionLineType.debit {
+  background: var(--toss-primary);
+  color: white;
+}
+
+.transactionLineType.credit {
+  background: var(--toss-success);
+  color: white;
+}
+
+.transactionLineAccount {
+  flex: 1;
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--toss-gray-900);
+  margin: 0 var(--space-4);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactionLineAmount {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.transactionLineAmount.debit {
+  color: var(--toss-primary);
+}
+
+.transactionLineAmount.credit {
+  color: var(--toss-success);
+}
+
+.transactionLineBody {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--toss-gray-100);
+}
+
+.transactionLineDescription {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--toss-gray-700);
+  font-size: var(--font-small);
+  margin-bottom: var(--space-3);
+}
+
+.transactionLineTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.transactionTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.transactionTag.category {
+  background: rgba(147, 51, 234, 0.1);
+  color: rgb(147, 51, 234);
+}
+
+.transactionTag.cash {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+}
+
+.transactionTag.counterparty {
+  background: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.transactionLineActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.transactionActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: transparent;
+}
+
+.transactionActionBtn.edit {
+  color: var(--toss-primary);
+}
+
+.transactionActionBtn.edit:hover {
+  background: rgba(0, 100, 255, 0.1);
+}
+
+.transactionActionBtn.delete {
+  color: var(--toss-error);
+}
+
+.transactionActionBtn.delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.actionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==================== ACTIONS FOOTER ==================== */
+.actionsFooter {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.addTransactionBtn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.submitBtn {
+  flex: 1;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .balanceSummaryGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto;
+  }
+
+  .balanceDivider {
+    width: 100%;
+    height: 1px;
+    margin: var(--space-2) 0;
+  }
+
+  .balanceItem {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .transactionLineHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .transactionLineAccount {
+    margin: 0;
+  }
+
+  .actionsFooter {
+    flex-direction: column;
+  }
+
+  .addTransactionBtn,
+  .submitBtn {
+    width: 100%;
+  }
+}

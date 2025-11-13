@@ -11,6 +11,10 @@ export interface OrderProduct {
   quantityReceived: number;
   quantityRemaining: number;
   unit: string;
+
+  // Computed properties (available in OrderProductEntity)
+  isFullyReceived?: boolean;
+  progressPercentage?: number;
 }
 
 export class OrderProductEntity implements OrderProduct {

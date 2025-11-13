@@ -1,58 +1,42 @@
 /**
  * useCashEnding Hook
- * Custom hook for cash ending management
+ * Custom hook wrapper for cash ending state management
+ * Following 2025 Best Practice - Zustand Provider Wrapper Pattern
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { CashEnding } from '../../domain/entities/CashEnding';
-import { CashEndingRepositoryImpl } from '../../data/repositories/CashEndingRepositoryImpl';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { useCallback, useEffect } from 'react';
+import { useCashEndingStore } from '../providers/cash_ending_provider';
 
+/**
+ * Custom hook for cash ending management
+ * Wraps Zustand store and provides selected state/actions
+ */
 export const useCashEnding = (companyId: string, storeId: string | null) => {
-  const [cashEndings, setCashEndings] = useState<CashEnding[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    DateTimeUtils.toDateOnly(new Date())
-  );
+  // Select only needed state to prevent unnecessary re-renders
+  const cashEndings = useCashEndingStore((state) => state.cashEndings);
+  const loading = useCashEndingStore((state) => state.isLoading);
+  const error = useCashEndingStore((state) => state.error);
+  const selectedDate = useCashEndingStore((state) => state.selectedDate);
 
-  const repository = new CashEndingRepositoryImpl();
+  // Select actions
+  const setSelectedDate = useCashEndingStore((state) => state.setSelectedDate);
+  const loadCashEndings = useCashEndingStore((state) => state.loadCashEndings);
+  const refresh = useCashEndingStore((state) => state.refresh);
 
-  const loadCashEndings = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await repository.getCashEndings(companyId, storeId);
-
-      if (!result.success) {
-        setError(result.error || 'Failed to load cash endings');
-        setCashEndings([]);
-        return;
-      }
-
-      setCashEndings(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setCashEndings([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, storeId]);
-
+  // Load cash endings when companyId or storeId changes
   useEffect(() => {
     if (companyId) {
-      loadCashEndings();
+      loadCashEndings(companyId, storeId);
     }
   }, [companyId, storeId, loadCashEndings]);
 
-  const changeDate = useCallback((date: string) => {
-    setSelectedDate(date);
-  }, []);
-
-  const refresh = useCallback(() => {
-    loadCashEndings();
-  }, [loadCashEndings]);
+  // Wrap changeDate for backward compatibility
+  const changeDate = useCallback(
+    (date: string) => {
+      setSelectedDate(date);
+    },
+    [setSelectedDate]
+  );
 
   return {
     cashEndings,

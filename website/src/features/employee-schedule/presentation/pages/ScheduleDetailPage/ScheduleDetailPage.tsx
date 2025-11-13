@@ -3,7 +3,7 @@
  * Weekly schedule view for a specific store
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { TossButton } from '@/shared/components/toss/TossButton';
@@ -24,6 +24,7 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
   const scheduleStoreId = storeId || '';
   const currentUserId = currentUser?.user_id || '';
 
+  // Get all state and actions from provider
   const {
     shifts,
     employees,
@@ -37,19 +38,16 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     getAssignmentsForDate,
     getWeekDays,
     createAssignment,
+    isAddEmployeeModalOpen,
+    selectedDate,
+    addingEmployee,
+    notification,
+    openAddEmployeeModal,
+    closeAddEmployeeModal,
+    setAddingEmployee,
+    showNotification,
+    clearNotification,
   } = useSchedule(companyId, scheduleStoreId);
-
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [addingEmployee, setAddingEmployee] = useState(false);
-
-  // Notification state
-  const [notification, setNotification] = useState<{
-    variant: 'success' | 'error' | 'warning' | 'info';
-    title?: string;
-    message: string;
-  } | null>(null);
 
   // Get selected store name
   const stores = currentCompany?.stores || [];
@@ -61,24 +59,12 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     navigate('/employee/schedule');
   };
 
-  // Handler to open add employee modal
-  const handleOpenAddEmployeeModal = (date: string) => {
-    setSelectedDate(date);
-    setIsModalOpen(true);
-  };
-
-  // Handler to close modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedDate('');
-  };
-
   // Handler to add employee to shift
   const handleAddEmployee = async (shiftId: string, employeeId: string, date: string) => {
     setAddingEmployee(true);
     try {
       if (!currentUserId) {
-        setNotification({
+        showNotification({
           variant: 'error',
           title: 'Authentication Error',
           message: 'You must be logged in to add employees to shifts',
@@ -89,7 +75,7 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
       const result = await createAssignment(shiftId, employeeId, date, currentUserId);
 
       if (!result.success) {
-        setNotification({
+        showNotification({
           variant: 'error',
           title: 'Failed to Add Employee',
           message: result.error || 'Failed to add employee to shift',
@@ -98,14 +84,17 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
       }
 
       // Success - show success message and close modal
-      setNotification({
+      showNotification({
         variant: 'success',
         title: 'Success',
         message: 'Employee successfully added to shift',
       });
-      handleCloseModal();
+      closeAddEmployeeModal();
+
+      // Refresh schedule data after successful creation
+      refresh();
     } catch (error) {
-      setNotification({
+      showNotification({
         variant: 'error',
         title: 'Unexpected Error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -340,7 +329,7 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
                       {/* Add Employee Button */}
                       <button
                         className={styles.addEmployeeButton}
-                        onClick={() => handleOpenAddEmployeeModal(date)}
+                        onClick={() => openAddEmployeeModal(date)}
                       >
                         <svg
                           className={styles.addIcon}
@@ -389,8 +378,8 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
 
       {/* Add Employee Modal */}
       <AddEmployeeModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isAddEmployeeModalOpen}
+        onClose={closeAddEmployeeModal}
         selectedDate={selectedDate}
         shifts={shifts}
         employees={employees}
@@ -405,7 +394,7 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
           title={notification.title}
           message={notification.message}
           isOpen={true}
-          onClose={() => setNotification(null)}
+          onClose={clearNotification}
         />
       )}
     </>

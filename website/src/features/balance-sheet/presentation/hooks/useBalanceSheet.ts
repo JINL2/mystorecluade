@@ -2,138 +2,76 @@
  * useBalanceSheet Hook
  * Custom hook for balance sheet data management
  *
- * Following Clean Architecture:
- * - Hook EXECUTES validation (using Validator)
- * - Hook calls Repository for data operations
- * - Validator defines rules, Hook executes them
+ * Following Clean Architecture and 2025 Best Practice:
+ * - Hook is a wrapper around Zustand Provider
+ * - Selector optimization to prevent unnecessary re-renders
+ * - Clean API for components
+ * - Only exposes PUBLIC actions (ARCHITECTURE.md compliance)
+ * - Internal state setters (setBalanceSheet, setLoading, setError) are NOT exposed
  */
 
-import { useState, useCallback } from 'react';
-import { BalanceSheetData } from '../../domain/entities/BalanceSheetData';
-import { BalanceSheetRepositoryImpl } from '../../data/repositories/BalanceSheetRepositoryImpl';
-import { BalanceSheetValidator } from '../../domain/validators/BalanceSheetValidator';
+import { useBalanceSheetStore } from '../providers/balance_sheet_provider';
 
-export const useBalanceSheet = (companyId: string, initialStoreId: string | null) => {
-  const [balanceSheet, setBalanceSheet] = useState<BalanceSheetData | null>(null);
-  const [loading, setLoading] = useState(false); // Start with false - no auto-load
-  const [error, setError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [storeId, setStoreId] = useState<string | null>(initialStoreId);
-  const [startDate, setStartDate] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
+/**
+ * Balance Sheet Hook
+ * Provides optimized selectors for balance sheet state and actions
+ */
+export const useBalanceSheet = () => {
+  // ============================================
+  // STATE SELECTORS (optimized)
+  // ============================================
 
-  const repository = new BalanceSheetRepositoryImpl();
+  const companyId = useBalanceSheetStore((state) => state.companyId);
+  const storeId = useBalanceSheetStore((state) => state.storeId);
+  const startDate = useBalanceSheetStore((state) => state.startDate);
+  const endDate = useBalanceSheetStore((state) => state.endDate);
+  const balanceSheet = useBalanceSheetStore((state) => state.balanceSheet);
+  const loading = useBalanceSheetStore((state) => state.loading);
+  const error = useBalanceSheetStore((state) => state.error);
+  const validationErrors = useBalanceSheetStore((state) => state.validationErrors);
 
-  const loadBalanceSheet = useCallback(
-    async (
-      overrideStoreId?: string | null,
-      overrideStartDate?: string | null,
-      overrideEndDate?: string | null
-    ) => {
-      // Use override values if provided, otherwise use state values
-      const finalStoreId = overrideStoreId !== undefined ? overrideStoreId : storeId;
-      const finalStartDate = overrideStartDate !== undefined ? overrideStartDate : startDate;
-      const finalEndDate = overrideEndDate !== undefined ? overrideEndDate : endDate;
+  // ============================================
+  // ACTION SELECTORS (PUBLIC API ONLY)
+  // ============================================
 
-      // Step 1: Validate filters using Validator
-      const validationResult = BalanceSheetValidator.validateFilters({
-        companyId,
-        storeId: finalStoreId,
-        startDate: finalStartDate,
-        endDate: finalEndDate,
-      });
+  const setCompanyId = useBalanceSheetStore((state) => state.setCompanyId);
+  const setStoreId = useBalanceSheetStore((state) => state.setStoreId);
+  const setDateRange = useBalanceSheetStore((state) => state.setDateRange);
+  const setStartDate = useBalanceSheetStore((state) => state.setStartDate);
+  const setEndDate = useBalanceSheetStore((state) => state.setEndDate);
+  const loadBalanceSheet = useBalanceSheetStore((state) => state.loadBalanceSheet);
+  const refresh = useBalanceSheetStore((state) => state.refresh);
+  const reset = useBalanceSheetStore((state) => state.reset);
+  const clearFilters = useBalanceSheetStore((state) => state.clearFilters);
 
-      if (validationResult.length > 0) {
-        console.log('🚫 Validation errors:', validationResult);
-
-        // Convert validation errors to map
-        const errorMap: Record<string, string> = {};
-        validationResult.forEach((err) => {
-          errorMap[err.field] = err.message;
-        });
-
-        setValidationErrors(errorMap);
-        setError('Please fix validation errors');
-        setBalanceSheet(null);
-        return { success: false, errors: validationResult };
-      }
-
-      // Clear validation errors
-      setValidationErrors({});
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Step 2: Call Repository for data
-        const result = await repository.getBalanceSheet(
-          companyId,
-          finalStoreId,
-          finalStartDate,
-          finalEndDate
-        );
-
-        if (!result.success) {
-          setError(result.error || 'Failed to load balance sheet');
-          setBalanceSheet(null);
-          return { success: false, error: result.error };
-        }
-
-        // Step 3: Validate balance equation (business rule check)
-        if (result.data) {
-          const balanceCheck = BalanceSheetValidator.validateBalanceEquation(
-            result.data.totalAssets,
-            result.data.totalLiabilitiesAndEquity
-          );
-
-          if (!balanceCheck.valid) {
-            console.warn('⚠️ Balance equation warning:', balanceCheck.message);
-          }
-        }
-
-        setBalanceSheet(result.data || null);
-        return { success: true, data: result.data };
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-        setError(errorMessage);
-        setBalanceSheet(null);
-        return { success: false, error: errorMessage };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [companyId, storeId, startDate, endDate]
-  );
-
-  // Removed auto-load useEffect - user must click Search button to load data
-
-  const changeDateRange = useCallback((start: string | null, end: string | null) => {
-    setStartDate(start);
-    setEndDate(end);
-    // Clear validation errors when user changes input
-    setValidationErrors({});
-  }, []);
-
-  const changeStore = useCallback((store: string | null) => {
-    setStoreId(store);
-    // Clear validation errors when user changes input
-    setValidationErrors({});
-  }, []);
-
-  const refresh = useCallback(() => {
-    loadBalanceSheet();
-  }, [loadBalanceSheet]);
+  // ============================================
+  // RETURN API (PUBLIC INTERFACE)
+  // ============================================
 
   return {
-    balanceSheet,
-    loading,
-    error,
-    validationErrors, // Expose validation errors for UI
+    // State (read-only)
+    companyId,
     storeId,
     startDate,
     endDate,
-    changeDateRange,
-    changeStore,
+    balanceSheet,
+    loading,
+    error,
+    validationErrors,
+
+    // Public Actions (user-facing operations)
+    setCompanyId,
+    setStoreId,
+    setDateRange,
+    setStartDate,
+    setEndDate,
+    loadBalanceSheet,
     refresh,
-    loadBalanceSheet, // Expose for manual triggering
+    reset,
+    clearFilters,
+
+    // Convenience aliases (backward compatibility)
+    changeStore: setStoreId,
+    changeDateRange: setDateRange,
   };
 };

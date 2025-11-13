@@ -1,9 +1,14 @@
 /**
  * InventoryPage Component
  * Inventory management with stock levels and product information
+ *
+ * Following 2025 Best Practice:
+ * - Clean component focusing on UI only
+ * - All state managed by Zustand provider
+ * - Optimized re-renders with selective subscriptions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useInventory } from '../../hooks/useInventory';
 import { useInventoryMetadata } from '../../hooks/useInventoryMetadata';
 import { Navbar } from '@/shared/components/common/Navbar';
@@ -21,45 +26,53 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
 
-  // State for store selection
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  // Get all state and actions from inventory provider
+  const {
+    inventory,
+    currencySymbol,
+    currencyCode,
+    selectedStoreId,
+    searchQuery,
+    selectedProducts,
+    isModalOpen,
+    selectedProductData,
+    isAddProductModalOpen,
+    loading,
+    error,
+    notification,
+
+    setSelectedStoreId,
+    setSearchQuery,
+    toggleProductSelection,
+    selectAllProducts,
+    clearSelection,
+    openModal,
+    closeModal,
+    openAddProductModal,
+    closeAddProductModal,
+    showNotification,
+    hideNotification,
+    loadInventory,
+    updateProduct,
+    refresh,
+  } = useInventory();
+
+  // Fetch inventory metadata (categories, brands, product types, units)
+  const { metadata, loading: metadataLoading, error: metadataError, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
 
   // Initialize with first store when company loads
   useEffect(() => {
     if (currentCompany?.stores && currentCompany.stores.length > 0 && !selectedStoreId) {
       setSelectedStoreId(currentCompany.stores[0].store_id);
     }
-  }, [currentCompany, selectedStoreId]);
+  }, [currentCompany, selectedStoreId, setSelectedStoreId]);
 
-  // State for search
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // State for bulk selection
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
-
-  // State for product details modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProductData, setSelectedProductData] = useState<any>(null);
-
-  // State for add product modal
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-
-  // State for notification
-  const [notification, setNotification] = useState<{
-    isOpen: boolean;
-    variant: 'success' | 'error';
-    message: string;
-  }>({
-    isOpen: false,
-    variant: 'success',
-    message: '',
-  });
-
-  const { inventory, loading, error, refresh, currencySymbol, currencyCode, updateProduct } =
-    useInventory(companyId, selectedStoreId, searchQuery);
-
-  // Fetch inventory metadata (categories, brands, product types, units)
-  const { metadata, loading: metadataLoading, error: metadataError, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
+  // Load inventory when dependencies change
+  useEffect(() => {
+    if (companyId && selectedStoreId) {
+      loadInventory(companyId, selectedStoreId, searchQuery);
+    }
+  }, [companyId, selectedStoreId, searchQuery, loadInventory]);
 
   // Helper function to format currency with strikethrough symbol
   const formatCurrency = (amount: number): string => {
@@ -73,30 +86,22 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   // Handle select all checkbox
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      const allIds = new Set(inventory.map((item) => item.productId));
-      setSelectedProducts(allIds);
+      selectAllProducts();
     } else {
-      setSelectedProducts(new Set());
+      clearSelection();
     }
   };
 
   // Handle individual checkbox
   const handleCheckboxChange = (productId: string, checked: boolean) => {
-    const newSelected = new Set(selectedProducts);
-    if (checked) {
-      newSelected.add(productId);
-    } else {
-      newSelected.delete(productId);
-    }
-    setSelectedProducts(newSelected);
+    toggleProductSelection(productId);
   };
 
   // Handle edit product
   const handleEditProduct = (productId: string) => {
     const product = inventory.find((item) => item.productId === productId);
     if (product) {
-      setSelectedProductData(product);
-      setIsModalOpen(true);
+      openModal(product);
     }
   };
 
@@ -120,7 +125,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
 
   // Handle add product
   const handleAddProduct = () => {
-    setIsAddProductModalOpen(true);
+    openAddProductModal();
   };
 
   // Clear search
@@ -228,7 +233,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           message={error}
           onClose={() => {}}
           confirmText="Try Again"
-          onConfirm={refresh}
+          onConfirm={() => loadInventory(companyId, selectedStoreId, searchQuery)}
           closeOnBackdropClick={false}
           closeOnEscape={false}
           zIndex={9999}
@@ -488,7 +493,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       {/* Product Details Modal */}
       <ProductDetailsModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={closeModal}
         productId={selectedProductData?.productId || ''}
         companyId={companyId}
         productData={selectedProductData}
@@ -496,21 +501,15 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         onSave={async (updatedData) => {
           const result = await updateProduct(
             selectedProductData?.productId || '',
+            companyId,
+            selectedStoreId || '',
             updatedData
           );
 
           if (result.success) {
-            setNotification({
-              isOpen: true,
-              variant: 'success',
-              message: 'Product updated successfully!',
-            });
+            showNotification('success', 'Product updated successfully!');
           } else {
-            setNotification({
-              isOpen: true,
-              variant: 'error',
-              message: result.error || 'Failed to update product',
-            });
+            showNotification('error', result.error || 'Failed to update product');
           }
         }}
         onMetadataRefresh={refreshMetadata}
@@ -519,7 +518,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       {/* Add Product Modal */}
       <AddProductModal
         isOpen={isAddProductModalOpen}
-        onClose={() => setIsAddProductModalOpen(false)}
+        onClose={closeAddProductModal}
         companyId={companyId}
         storeId={selectedStoreId}
         metadata={metadata}
@@ -535,7 +534,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         isOpen={notification.isOpen}
         variant={notification.variant}
         message={notification.message}
-        onClose={() => setNotification({ ...notification, isOpen: false })}
+        onClose={hideNotification}
         autoCloseDuration={2000}
         zIndex={9999}
       />

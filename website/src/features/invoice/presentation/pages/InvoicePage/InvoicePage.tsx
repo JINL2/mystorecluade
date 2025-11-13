@@ -1,18 +1,18 @@
 /**
  * InvoicePage Component
  * Invoice list and management
+ * Refactored to use Zustand provider pattern (2025 Best Practice)
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useInvoice } from '../../hooks/useInvoice';
-import { useInvoiceDetail } from '../../hooks/useInvoiceDetail';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { DateFilterTabs, type DateFilterType } from '../../components/DateFilterTabs';
+import { DateFilterTabs } from '../../components/DateFilterTabs';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import type { InvoicePageProps } from './InvoicePage.types';
 import styles from './InvoicePage.module.css';
@@ -24,43 +24,50 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   // Get company ID from app state
   const companyId = currentCompany?.company_id || '';
 
-  // Store selection state
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(
-    localStorage.getItem('storeChoosen') || null
-  );
-
-  // Date filter state
-  const [activeFilter, setActiveFilter] = useState<DateFilterType>('all');
-
-  // Modal state
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
-
-  // Invoice detail hook
-  const { detail, loading: detailLoading, fetchDetail, clearDetail } = useInvoiceDetail();
-
-  // Refund state
-  const [refunding, setRefunding] = useState(false);
+  // Get all state and actions from useInvoice hook (which wraps Zustand store)
+  const {
+    invoices,
+    loading,
+    error,
+    pagination,
+    currentPage,
+    searchQuery,
+    selectedStoreId,
+    activeFilter,
+    selectedInvoice,
+    invoiceDetail,
+    detailLoading,
+    refunding,
+    setSelectedStoreId,
+    setSelectedInvoice,
+    changeDateRange,
+    changeSearch,
+    changePage,
+    fetchInvoiceDetail,
+    refundInvoice,
+    refresh,
+    clearDetail,
+  } = useInvoice(companyId);
 
   // Fetch detail when invoice is selected
   useEffect(() => {
     if (selectedInvoice?.invoiceId) {
-      fetchDetail(selectedInvoice.invoiceId);
+      fetchInvoiceDetail(selectedInvoice.invoiceId);
     }
-  }, [selectedInvoice, fetchDetail]);
+  }, [selectedInvoice, fetchInvoiceDetail]);
 
   // Clear detail when modal closes
   const handleCloseModal = () => {
-    setSelectedInvoice(null);
     clearDetail();
   };
 
   // Handle refund
   const handleRefund = async () => {
-    if (!selectedInvoice || !detail) return;
+    if (!selectedInvoice || !invoiceDetail) return;
 
     const confirmed = window.confirm(
       `Are you sure you want to refund invoice ${selectedInvoice.invoiceNumber}?\n\n` +
-      `Total Amount: ${selectedInvoice.formatCurrency(detail.amounts.total_amount)}\n\n` +
+      `Total Amount: ${selectedInvoice.formatCurrency(invoiceDetail.amounts.total_amount)}\n\n` +
       `This action will:\n` +
       `- Reverse the payment\n` +
       `- Restore inventory quantities\n` +
@@ -70,7 +77,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
 
     if (!confirmed) return;
 
-    setRefunding(true);
     try {
       const result = await refundInvoice(selectedInvoice.invoiceId);
 
@@ -92,8 +98,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
         title: 'Refund Error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred'
       });
-    } finally {
-      setRefunding(false);
     }
   };
 
@@ -102,39 +106,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     selectedStoreId,
     storesCount: currentCompany?.stores?.length || 0,
   });
-
-  const {
-    invoices,
-    loading,
-    error,
-    pagination,
-    currentPage,
-    searchQuery,
-    changeDateRange,
-    changeSearch,
-    changePage,
-    refresh,
-    refundInvoice,
-  } = useInvoice(companyId, selectedStoreId);
-
-  // Handle store change
-  const handleStoreChange = (storeId: string | null) => {
-    console.log('🟢 InvoicePage.handleStoreChange - storeId:', storeId);
-    console.log('🟢 InvoicePage.handleStoreChange - previous selectedStoreId:', selectedStoreId);
-    setSelectedStoreId(storeId);
-    if (storeId) {
-      localStorage.setItem('storeChoosen', storeId);
-    } else {
-      localStorage.removeItem('storeChoosen');
-    }
-    console.log('🟢 InvoicePage.handleStoreChange - localStorage updated');
-  };
-
-  // Handle date filter change
-  const handleDateFilterChange = (filter: DateFilterType, start: string, end: string) => {
-    setActiveFilter(filter);
-    changeDateRange(start, end);
-  };
 
   // Get stores from current company
   const stores = currentCompany?.stores || [];
@@ -231,7 +202,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
           <StoreSelector
             stores={stores}
             selectedStoreId={selectedStoreId}
-            onStoreSelect={handleStoreChange}
+            onStoreSelect={setSelectedStoreId}
             companyId={companyId}
             width="280px"
           />
@@ -241,7 +212,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
         <div className={styles.dateFilterContainer}>
           <DateFilterTabs
             activeFilter={activeFilter}
-            onFilterChange={handleDateFilterChange}
+            onFilterChange={changeDateRange}
           />
         </div>
 
@@ -401,18 +372,18 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
             <div className={styles.modalBody}>
               {detailLoading ? (
                 <LoadingAnimation fullscreen size="large" />
-              ) : detail ? (
+              ) : invoiceDetail ? (
                 <>
                   {/* Quick Summary */}
                   <div className={styles.modalSummary}>
                     <div>
                       <p className={styles.summaryLabel}>Total Amount</p>
                       <p className={styles.summaryAmount}>
-                        {selectedInvoice.formatCurrency(detail.amounts.total_amount)}
+                        {selectedInvoice.formatCurrency(invoiceDetail.amounts.total_amount)}
                       </p>
                     </div>
-                    <span className={`${styles.statusBadge} ${styles[detail.invoice.status]}`}>
-                      {detail.invoice.status.toUpperCase()}
+                    <span className={`${styles.statusBadge} ${styles[invoiceDetail.invoice.status]}`}>
+                      {invoiceDetail.invoice.status.toUpperCase()}
                     </span>
                   </div>
 
@@ -424,7 +395,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                       </svg>
                       <span className={styles.sectionTitle}>Store</span>
                     </div>
-                    <p className={styles.sectionContent}>{detail.invoice.store_name}</p>
+                    <p className={styles.sectionContent}>{invoiceDetail.invoice.store_name}</p>
                   </div>
 
                   {/* Customer */}
@@ -435,7 +406,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                       </svg>
                       <span className={styles.sectionTitle}>Customer</span>
                     </div>
-                    <p className={styles.sectionContent}>{detail.invoice.customer_name || 'Walk-in'}</p>
+                    <p className={styles.sectionContent}>{invoiceDetail.invoice.customer_name || 'Walk-in'}</p>
                   </div>
 
                   {/* Items Table */}
@@ -444,7 +415,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M17,18A2,2 0 0,1 19,20A2,2 0 0,1 17,22C15.89,22 15,21.1 15,20C15,18.89 15.89,18 17,18M1,2H4.27L5.21,4H20A1,1 0 0,1 21,5C21,5.17 20.95,5.34 20.88,5.5L17.3,11.97C16.96,12.58 16.3,13 15.55,13H8.1L7.2,14.63L7.17,14.75A0.25,0.25 0 0,0 7.42,15H19V17H7C5.89,17 5,16.1 5,15C5,14.65 5.09,14.32 5.24,14.04L6.6,11.59L3,4H1V2M7,18A2,2 0 0,1 9,20A2,2 0 0,1 7,22C5.89,22 5,21.1 5,20C5,18.89 5.89,18 7,18M16,11L18.78,6H6.14L8.5,11H16Z"/>
                       </svg>
-                      <span className={styles.sectionTitle}>Items ({detail.items.length})</span>
+                      <span className={styles.sectionTitle}>Items ({invoiceDetail.items.length})</span>
                     </div>
                     <div className={styles.itemsTable}>
                       <table>
@@ -459,7 +430,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {detail.items.map((item) => (
+                          {invoiceDetail.items.map((item) => (
                             <tr key={item.item_id}>
                               <td>{item.product_name}</td>
                               <td>{item.sku}</td>
@@ -487,12 +458,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                       <div className={styles.paymentInfo}>
                         <div className={styles.paymentRow}>
                           <span>Method:</span>
-                          <span className={styles.paymentValue}>{detail.payment.method.toUpperCase()}</span>
+                          <span className={styles.paymentValue}>{invoiceDetail.payment.method.toUpperCase()}</span>
                         </div>
                         <div className={styles.paymentRow}>
                           <span>Status:</span>
-                          <span className={`${styles.paymentBadge} ${detail.payment.status === 'paid' ? styles.paymentPaid : styles.paymentPending}`}>
-                            {detail.payment.status.toUpperCase()}
+                          <span className={`${styles.paymentBadge} ${invoiceDetail.payment.status === 'paid' ? styles.paymentPaid : styles.paymentPending}`}>
+                            {invoiceDetail.payment.status.toUpperCase()}
                           </span>
                         </div>
                       </div>
@@ -509,26 +480,26 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                       <div className={styles.amountSummary}>
                         <div className={styles.amountRow}>
                           <span>Subtotal:</span>
-                          <span>{selectedInvoice.formatCurrency(detail.amounts.subtotal)}</span>
+                          <span>{selectedInvoice.formatCurrency(invoiceDetail.amounts.subtotal)}</span>
                         </div>
                         <div className={styles.amountRow}>
                           <span>Tax:</span>
-                          <span>{selectedInvoice.formatCurrency(detail.amounts.tax_amount)}</span>
+                          <span>{selectedInvoice.formatCurrency(invoiceDetail.amounts.tax_amount)}</span>
                         </div>
                         <div className={styles.amountRow}>
                           <span>Discount:</span>
-                          <span>{selectedInvoice.formatCurrency(detail.amounts.discount_amount)}</span>
+                          <span>{selectedInvoice.formatCurrency(invoiceDetail.amounts.discount_amount)}</span>
                         </div>
                         <div className={`${styles.amountRow} ${styles.totalRow}`}>
                           <span>Total:</span>
-                          <span>{selectedInvoice.formatCurrency(detail.amounts.total_amount)}</span>
+                          <span>{selectedInvoice.formatCurrency(invoiceDetail.amounts.total_amount)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Inventory Impact */}
-                  {detail.inventory_movements && detail.inventory_movements.length > 0 && (
+                  {invoiceDetail.inventory_movements && invoiceDetail.inventory_movements.length > 0 && (
                     <div className={styles.modalSection}>
                       <div className={styles.sectionHeader}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -547,7 +518,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {detail.inventory_movements.map((movement, idx) => (
+                            {invoiceDetail.inventory_movements.map((movement, idx) => (
                               <tr key={idx}>
                                 <td>{movement.product_name}</td>
                                 <td className={movement.quantity_change < 0 ? styles.negative : styles.positive}>
@@ -564,7 +535,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
                   )}
 
                   {/* Refund Button */}
-                  {detail.invoice.status === 'completed' && (
+                  {invoiceDetail.invoice.status === 'completed' && (
                     <div className={styles.modalActions}>
                       <TossButton
                         variant="error"

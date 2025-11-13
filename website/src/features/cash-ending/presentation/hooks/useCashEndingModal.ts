@@ -1,78 +1,26 @@
 /**
  * useCashEndingModal Hook
- * Manages modal state for Make Error and Foreign Currency Translation
+ * Custom hook wrapper for modal state management
+ * Following 2025 Best Practice - Zustand Provider Wrapper Pattern
  */
 
-import { useState, useCallback } from 'react';
-import { CashEnding } from '../../domain/entities/CashEnding';
+import { useCashEndingStore } from '../providers/cash_ending_provider';
 
-export interface ModalState {
-  isOpen: boolean;
-  type: 'error' | 'exchange' | null;
-  locationId: string | null;
-  locationName: string;
-  storeId: string | null;
-  difference: number;
-}
+export type { ModalState } from '../providers/states/types';
 
+/**
+ * Custom hook for cash ending modal management
+ * Wraps Zustand store modal state and actions
+ */
 export const useCashEndingModal = () => {
-  const [modalState, setModalState] = useState<ModalState>({
-    isOpen: false,
-    type: null,
-    locationId: null,
-    locationName: '',
-    storeId: null,
-    difference: 0,
-  });
+  // Select modal state
+  const modalState = useCashEndingStore((state) => state.modalState);
 
-  /**
-   * Open modal for Make Error
-   */
-  const openErrorModal = useCallback((cashEnding: CashEnding) => {
-    setModalState({
-      isOpen: true,
-      type: 'error',
-      locationId: cashEnding.locationId,
-      locationName: cashEnding.locationName,
-      storeId: cashEnding.storeId,
-      difference: cashEnding.difference,
-    });
-  }, []);
-
-  /**
-   * Open modal for Foreign Currency Translation
-   */
-  const openExchangeModal = useCallback((cashEnding: CashEnding) => {
-    setModalState({
-      isOpen: true,
-      type: 'exchange',
-      locationId: cashEnding.locationId,
-      locationName: cashEnding.locationName,
-      storeId: cashEnding.storeId,
-      difference: cashEnding.difference,
-    });
-  }, []);
-
-  /**
-   * Close modal
-   */
-  const closeModal = useCallback(() => {
-    setModalState({
-      isOpen: false,
-      type: null,
-      locationId: null,
-      locationName: '',
-      storeId: null,
-      difference: 0,
-    });
-  }, []);
-
-  /**
-   * Reset modal state
-   */
-  const resetModal = useCallback(() => {
-    closeModal();
-  }, [closeModal]);
+  // Select modal actions
+  const openErrorModal = useCashEndingStore((state) => state.openErrorModal);
+  const openExchangeModal = useCashEndingStore((state) => state.openExchangeModal);
+  const closeModal = useCashEndingStore((state) => state.closeModal);
+  const resetModal = useCashEndingStore((state) => state.resetModal);
 
   return {
     modalState,

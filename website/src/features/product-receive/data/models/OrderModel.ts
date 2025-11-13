@@ -65,7 +65,7 @@ export class OrderModel {
         total_products: entity.items?.length || 0,
         total_ordered: entity.totalItems,
         total_received: entity.receivedItems,
-        completion_rate: entity.progressPercentage,
+        completion_rate: entity.progressPercentage || 0,
       },
     };
   }

@@ -1,195 +1,64 @@
 /**
  * useSchedule Hook
- * Presentation layer - Custom hook for schedule data management
+ * Presentation layer - Custom hook wrapper for schedule provider (2025 Best Practice)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { ScheduleShift } from '../../domain/entities/ScheduleShift';
-import { ScheduleAssignment } from '../../domain/entities/ScheduleAssignment';
-import { ScheduleEmployee } from '../../domain/entities/ScheduleEmployee';
-import { ScheduleRepositoryImpl } from '../../data/repositories/ScheduleRepositoryImpl';
-import { ScheduleValidator } from '../../domain/validators/ScheduleValidator';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { useEffect } from 'react';
+import { useScheduleStore } from '../providers/schedule_provider';
 
+/**
+ * Custom hook that wraps the Zustand schedule store
+ * Provides selective access to state and actions
+ */
 export const useSchedule = (companyId: string, storeId: string) => {
-  // Get current week's start and end dates
-  const getWeekRange = (date: Date = new Date()) => {
-    const start = new Date(date);
-    start.setDate(start.getDate() - start.getDay()); // Start on Sunday
-    start.setHours(0, 0, 0, 0);
+  // Select only needed state (optimized for re-renders)
+  const shifts = useScheduleStore((state) => state.shifts);
+  const assignments = useScheduleStore((state) => state.assignments);
+  const employees = useScheduleStore((state) => state.employees);
+  const loading = useScheduleStore((state) => state.loading);
+  const loadingEmployees = useScheduleStore((state) => state.loadingEmployees);
+  const error = useScheduleStore((state) => state.error);
+  const currentWeek = useScheduleStore((state) => state.currentWeek);
+  const selectedStoreId = useScheduleStore((state) => state.selectedStoreId);
+  const isAddEmployeeModalOpen = useScheduleStore((state) => state.isAddEmployeeModalOpen);
+  const selectedDate = useScheduleStore((state) => state.selectedDate);
+  const addingEmployee = useScheduleStore((state) => state.addingEmployee);
+  const notification = useScheduleStore((state) => state.notification);
 
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6); // End on Saturday
-    end.setHours(23, 59, 59, 999);
+  // Select actions
+  const loadScheduleData = useScheduleStore((state) => state.loadScheduleData);
+  const loadEmployees = useScheduleStore((state) => state.loadEmployees);
+  const goToPreviousWeek = useScheduleStore((state) => state.goToPreviousWeek);
+  const goToNextWeek = useScheduleStore((state) => state.goToNextWeek);
+  const goToCurrentWeek = useScheduleStore((state) => state.goToCurrentWeek);
+  const getWeekRange = useScheduleStore((state) => state.getWeekRange);
+  const getWeekDays = useScheduleStore((state) => state.getWeekDays);
+  const getAssignmentsForDate = useScheduleStore((state) => state.getAssignmentsForDate);
+  const createAssignment = useScheduleStore((state) => state.createAssignment);
+  const setSelectedStore = useScheduleStore((state) => state.setSelectedStore);
+  const openAddEmployeeModal = useScheduleStore((state) => state.openAddEmployeeModal);
+  const closeAddEmployeeModal = useScheduleStore((state) => state.closeAddEmployeeModal);
+  const setAddingEmployee = useScheduleStore((state) => state.setAddingEmployee);
+  const showNotification = useScheduleStore((state) => state.showNotification);
+  const clearNotification = useScheduleStore((state) => state.clearNotification);
 
-    return {
-      startDate: DateTimeUtils.toDateOnly(start),
-      endDate: DateTimeUtils.toDateOnly(end),
-    };
-  };
-
-  const [shifts, setShifts] = useState<ScheduleShift[]>([]);
-  const [assignments, setAssignments] = useState<ScheduleAssignment[]>([]);
-  const [employees, setEmployees] = useState<ScheduleEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingEmployees, setLoadingEmployees] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-
-  const repository = new ScheduleRepositoryImpl();
-
-  const loadScheduleData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { startDate, endDate } = getWeekRange(currentWeek);
-
-      const result = await repository.getScheduleData(companyId, storeId, startDate, endDate);
-
-      if (!result.success) {
-        setError(result.error || 'Failed to load schedule data');
-        setShifts([]);
-        setAssignments([]);
-        return;
-      }
-
-      setShifts(result.shifts || []);
-      setAssignments(result.assignments || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setShifts([]);
-      setAssignments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, storeId, currentWeek]);
-
-  // Load employees for the store
-  const loadEmployees = useCallback(async () => {
-    setLoadingEmployees(true);
-
-    try {
-      const result = await repository.getEmployees(companyId, storeId);
-
-      if (!result.success || !result.employees) {
-        console.error('Failed to load employees:', result.error);
-        setEmployees([]);
-        return;
-      }
-
-      setEmployees(result.employees);
-    } catch (err) {
-      console.error('Error loading employees:', err);
-      setEmployees([]);
-    } finally {
-      setLoadingEmployees(false);
-    }
-  }, [companyId, storeId]);
-
+  // Load data when companyId, storeId, or currentWeek changes
   useEffect(() => {
     if (companyId && storeId) {
-      loadScheduleData();
-      loadEmployees();
+      loadScheduleData(companyId, storeId);
+      loadEmployees(companyId, storeId);
     }
   }, [companyId, storeId, currentWeek, loadScheduleData, loadEmployees]);
 
+  // Refresh function that reloads with current params
   const refresh = () => {
-    loadScheduleData();
-  };
-
-  const goToPreviousWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() - 7);
-    setCurrentWeek(newWeek);
-  };
-
-  const goToNextWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() + 7);
-    setCurrentWeek(newWeek);
-  };
-
-  const goToCurrentWeek = () => {
-    setCurrentWeek(new Date());
-  };
-
-  // Get assignments for a specific date
-  const getAssignmentsForDate = (date: string): ScheduleAssignment[] => {
-    return assignments.filter((a) => a.date === date);
-  };
-
-  // Get week days array
-  const getWeekDays = (): string[] => {
-    const { startDate } = getWeekRange(currentWeek);
-    const days: string[] = [];
-    const start = new Date(startDate);
-
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(start);
-      day.setDate(day.getDate() + i);
-      days.push(day.toISOString().split('T')[0]);
-    }
-
-    return days;
-  };
-
-  // Create a new shift assignment
-  const createAssignment = async (
-    shiftId: string,
-    employeeId: string,
-    date: string,
-    approvedBy: string
-  ): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> => {
-    try {
-      // 1. Validate using Domain Validator (검증 규칙 실행)
-      const validationErrors = ScheduleValidator.validateAssignment({
-        shiftId,
-        employeeId,
-        date,
-      });
-
-      if (validationErrors.length > 0) {
-        const fieldErrors: Record<string, string> = {};
-        validationErrors.forEach((err) => {
-          fieldErrors[err.field] = err.message;
-        });
-        return {
-          success: false,
-          error: validationErrors[0].message, // Use first error as main error message
-          fieldErrors,
-        };
-      }
-
-      // 2. Call Repository (데이터 처리)
-      const result = await repository.createAssignment(
-        employeeId,
-        shiftId,
-        storeId,
-        date,
-        approvedBy
-      );
-
-      if (!result.success) {
-        return {
-          success: false,
-          error: result.error || 'Failed to create assignment',
-        };
-      }
-
-      // Refresh schedule data after successful creation
-      await loadScheduleData();
-
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'An unexpected error occurred',
-      };
+    if (companyId && storeId) {
+      loadScheduleData(companyId, storeId);
     }
   };
 
   return {
+    // State
     shifts,
     assignments,
     employees,
@@ -197,12 +66,26 @@ export const useSchedule = (companyId: string, storeId: string) => {
     loadingEmployees,
     error,
     currentWeek,
+    selectedStoreId,
+    isAddEmployeeModalOpen,
+    selectedDate,
+    addingEmployee,
+    notification,
+
+    // Actions
     refresh,
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
-    getAssignmentsForDate,
+    getWeekRange,
     getWeekDays,
+    getAssignmentsForDate,
     createAssignment,
+    setSelectedStore,
+    openAddEmployeeModal,
+    closeAddEmployeeModal,
+    setAddingEmployee,
+    showNotification,
+    clearNotification,
   };
 };

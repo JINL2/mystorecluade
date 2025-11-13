@@ -1,79 +1,72 @@
 /**
  * useEmployees Hook
- * Presentation layer - Custom hook for employee data management
+ * Custom hook wrapper for employee setting store (2025 Best Practice)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Employee } from '../../domain/entities/Employee';
-import { EmployeeStats } from '../../domain/entities/EmployeeStats';
-import { EmployeeRepositoryImpl } from '../../data/repositories/EmployeeRepositoryImpl';
+import { useEmployeeSettingStore } from '../providers/employee_setting_provider';
 
-export const useEmployees = (companyId: string) => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [stats, setStats] = useState<EmployeeStats>(EmployeeStats.empty());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [storeFilter, setStoreFilter] = useState<string | null>(null);
+/**
+ * Custom hook that provides access to employee setting state and actions
+ * Uses Zustand store for state management
+ */
+export const useEmployees = () => {
+  // Select state (optimized selectors to prevent unnecessary re-renders)
+  const employees = useEmployeeSettingStore((state) => state.employees);
+  const stats = useEmployeeSettingStore((state) => state.stats);
+  const loading = useEmployeeSettingStore((state) => state.loading);
+  const error = useEmployeeSettingStore((state) => state.error);
 
-  const repository = new EmployeeRepositoryImpl();
+  const isEditModalOpen = useEmployeeSettingStore((state) => state.isEditModalOpen);
+  const selectedEmployee = useEmployeeSettingStore((state) => state.selectedEmployee);
+  const deleteConfirm = useEmployeeSettingStore((state) => state.deleteConfirm);
+  const searchQuery = useEmployeeSettingStore((state) => state.searchQuery);
+  const storeFilter = useEmployeeSettingStore((state) => state.storeFilter);
 
-  const loadEmployees = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const filteredEmployees = useEmployeeSettingStore((state) => state.filteredEmployees);
 
-    try {
-      const result = await repository.getEmployees({
-        companyId,
-        storeId: storeFilter,
-        searchQuery,
-      });
+  // Select actions
+  const setEmployees = useEmployeeSettingStore((state) => state.setEmployees);
+  const setStats = useEmployeeSettingStore((state) => state.setStats);
+  const setLoading = useEmployeeSettingStore((state) => state.setLoading);
+  const setError = useEmployeeSettingStore((state) => state.setError);
 
-      if (!result.success) {
-        setError(result.error || 'Failed to load employees');
-        setEmployees([]);
-        setStats(EmployeeStats.empty());
-        return;
-      }
+  const openEditModal = useEmployeeSettingStore((state) => state.openEditModal);
+  const closeEditModal = useEmployeeSettingStore((state) => state.closeEditModal);
+  const openDeleteConfirm = useEmployeeSettingStore((state) => state.openDeleteConfirm);
+  const closeDeleteConfirm = useEmployeeSettingStore((state) => state.closeDeleteConfirm);
+  const setSearchQuery = useEmployeeSettingStore((state) => state.setSearchQuery);
+  const setStoreFilter = useEmployeeSettingStore((state) => state.setStoreFilter);
 
-      setEmployees(result.employees || []);
-      setStats(result.stats || EmployeeStats.empty());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setEmployees([]);
-      setStats(EmployeeStats.empty());
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, storeFilter, searchQuery]);
-
-  useEffect(() => {
-    if (companyId) {
-      loadEmployees();
-    }
-  }, [companyId, storeFilter, searchQuery, loadEmployees]);
-
-  const refresh = () => {
-    loadEmployees();
-  };
-
-  const search = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const filterByStore = (storeId: string | null) => {
-    setStoreFilter(storeId);
-  };
+  const loadEmployees = useEmployeeSettingStore((state) => state.loadEmployees);
+  const refreshEmployees = useEmployeeSettingStore((state) => state.refreshEmployees);
+  const deleteEmployee = useEmployeeSettingStore((state) => state.deleteEmployee);
 
   return {
+    // State
     employees,
     stats,
     loading,
     error,
+    isEditModalOpen,
+    selectedEmployee,
+    deleteConfirm,
     searchQuery,
     storeFilter,
-    refresh,
-    search,
-    filterByStore,
+    filteredEmployees,
+
+    // Actions
+    setEmployees,
+    setStats,
+    setLoading,
+    setError,
+    openEditModal,
+    closeEditModal,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setSearchQuery,
+    setStoreFilter,
+    loadEmployees,
+    refreshEmployees,
+    deleteEmployee,
   };
 };

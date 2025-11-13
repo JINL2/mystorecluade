@@ -1,9 +1,11 @@
 /**
  * BalanceSheetPage Component
  * Balance sheet financial statement with assets, liabilities, and equity
+ *
+ * Following Clean Architecture - Global state passed via props from parent
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useBalanceSheet } from '../../hooks/useBalanceSheet';
@@ -18,22 +20,37 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
 
-  const { balanceSheet, loading, error, changeDateRange, changeStore, loadBalanceSheet } =
-    useBalanceSheet(companyId, null);
+  const {
+    balanceSheet,
+    loading,
+    error,
+    setCompanyId,
+    setDateRange,
+    setStoreId,
+    loadBalanceSheet,
+    clearFilters,
+  } = useBalanceSheet();
+
+  // Initialize company ID when component mounts or company changes
+  // setCompanyId is a stable Zustand selector function, no need in dependency array
+  useEffect(() => {
+    if (companyId) {
+      setCompanyId(companyId);
+    }
+  }, [companyId]);
 
   const handleSearch = (filters: FilterValues) => {
     console.log('Searching with filters:', filters);
     // Update state for next time
-    changeStore(filters.storeId);
-    changeDateRange(filters.startDate, filters.endDate);
+    setStoreId(filters.storeId);
+    setDateRange(filters.startDate, filters.endDate);
     // Pass filter values directly to loadBalanceSheet to avoid async state update issue
     loadBalanceSheet(filters.storeId, filters.startDate, filters.endDate);
   };
 
   const handleClear = () => {
     console.log('Filters cleared');
-    changeStore(null);
-    changeDateRange(null, null);
+    clearFilters();
     // Don't load data - show empty state
   };
 
@@ -70,7 +87,12 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
           </div>
 
         {/* Filter Component */}
-        <BalanceSheetFilter onSearch={handleSearch} onClear={handleClear} />
+        <BalanceSheetFilter
+          stores={currentCompany?.stores || []}
+          companyId={companyId}
+          onSearch={handleSearch}
+          onClear={handleClear}
+        />
 
         {/* Content Card */}
         <div className={styles.contentCard}>

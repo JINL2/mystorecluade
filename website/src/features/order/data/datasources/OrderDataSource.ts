@@ -13,7 +13,7 @@ export interface CompanyCurrency {
 }
 
 export class OrderDataSource {
-  async getOrders(companyId: string, storeId: string | null) {
+  async getOrders(companyId: string, _storeId: string | null) {
     const supabase = supabaseService.getClient();
 
     // RPC function only accepts p_company_id parameter

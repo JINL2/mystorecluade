@@ -1,79 +1,115 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Currency } from '../../domain/entities/Currency';
-import type { CurrencyTypeDTO } from '../../data/models/CurrencyTypeModel';
-import { CurrencyRepositoryImpl } from '../../data/repositories/CurrencyRepositoryImpl';
-import { CurrencyValidator } from '../../domain/validators/CurrencyValidator';
+/**
+ * useCurrency Hook
+ *
+ * Custom hook for currency management that wraps the Zustand store.
+ * Following ARCHITECTURE.md pattern: Zustand + Custom Hooks (2025 Best Practice)
+ *
+ * Key principles:
+ * - Selector optimization: Only subscribe to needed state slices
+ * - No local state management (all in Zustand store)
+ * - Clean API for components
+ * - Prevents unnecessary re-renders through fine-grained selectors
+ */
 
+import { useEffect } from 'react';
+import { useCurrencyStore } from '../providers/currency_provider';
+
+/**
+ * Currency management hook
+ *
+ * Provides access to currency state and actions from Zustand store.
+ * Uses selector pattern to prevent unnecessary re-renders.
+ *
+ * @param companyId - Current company ID
+ * @param userId - Current user ID
+ * @returns Currency state and actions
+ */
 export const useCurrency = (companyId: string, userId: string) => {
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [loading, setLoading] = useState(true);
-  const repository = new CurrencyRepositoryImpl();
+  // ========================================
+  // Selector Pattern: Subscribe to specific state slices
+  // This prevents re-renders when unrelated state changes
+  // ========================================
 
-  const load = useCallback(async () => {
-    if (!companyId) return;
-    setLoading(true);
-    const result = await repository.getCurrencies(companyId);
-    if (result.success) setCurrencies(result.data || []);
-    setLoading(false);
-  }, [companyId]);
+  // Core data state
+  const currencies = useCurrencyStore((state) => state.currencies);
+  const loading = useCurrencyStore((state) => state.loading);
+  const error = useCurrencyStore((state) => state.error);
 
-  useEffect(() => { load(); }, [load]);
+  // UI state
+  const editingCurrency = useCurrencyStore((state) => state.editingCurrency);
+  const showAddModal = useCurrencyStore((state) => state.showAddModal);
+  const currencyToRemove = useCurrencyStore((state) => state.currencyToRemove);
+  const isRemoving = useCurrencyStore((state) => state.isRemoving);
+  const notification = useCurrencyStore((state) => state.notification);
 
-  const getAllCurrencyTypes = useCallback(async (): Promise<CurrencyTypeDTO[]> => {
-    const result = await repository.getAllCurrencyTypes();
-    return result.success ? (result.data || []) : [];
-  }, []);
+  // Actions (these don't cause re-renders as they're stable references)
+  const setContext = useCurrencyStore((state) => state.setContext);
+  const setEditingCurrency = useCurrencyStore((state) => state.setEditingCurrency);
+  const setShowAddModal = useCurrencyStore((state) => state.setShowAddModal);
+  const setCurrencyToRemove = useCurrencyStore((state) => state.setCurrencyToRemove);
+  const setNotification = useCurrencyStore((state) => state.setNotification);
+  const clearNotification = useCurrencyStore((state) => state.clearNotification);
 
-  const setDefault = useCallback(async (currencyId: string) => {
-    if (!companyId) return { success: false, error: 'No company selected' };
-    const result = await repository.setDefaultCurrency(currencyId, companyId);
-    if (result.success) await load();
-    return result;
-  }, [load, companyId]);
+  // Async operations
+  const loadCurrencies = useCurrencyStore((state) => state.loadCurrencies);
+  const getAllCurrencyTypes = useCurrencyStore((state) => state.getAllCurrencyTypes);
+  const updateExchangeRate = useCurrencyStore((state) => state.updateExchangeRate);
+  const addCurrency = useCurrencyStore((state) => state.addCurrency);
+  const removeCurrency = useCurrencyStore((state) => state.removeCurrency);
+  const setDefaultCurrency = useCurrencyStore((state) => state.setDefaultCurrency);
 
-  const updateExchangeRate = useCallback(async (currencyId: string, newRate: number | string) => {
-    if (!companyId) return { success: false, error: 'No company selected' };
-    if (!userId) return { success: false, error: 'No user ID' };
+  // UI action handlers
+  const handleEditCurrency = useCurrencyStore((state) => state.handleEditCurrency);
+  const handleRemoveCurrency = useCurrencyStore((state) => state.handleRemoveCurrency);
+  const confirmRemoveCurrency = useCurrencyStore((state) => state.confirmRemoveCurrency);
 
-    // Validate exchange rate using domain validator
-    const validationResult = CurrencyValidator.validateExchangeRate(newRate);
-    if (!validationResult.isValid) {
-      return { success: false, error: validationResult.error };
+  // ========================================
+  // Effects: Initialize context and load data
+  // ========================================
+
+  useEffect(() => {
+    // Set company and user context when they change
+    if (companyId && userId) {
+      setContext(companyId, userId);
+      loadCurrencies();
     }
+  }, [companyId, userId, setContext, loadCurrencies]);
 
-    const rate = typeof newRate === 'string' ? parseFloat(newRate) : newRate;
-    const result = await repository.updateExchangeRate(currencyId, companyId, rate, userId);
-    if (result.success) await load();
-    return result;
-  }, [load, companyId, userId]);
+  // ========================================
+  // Return API: Clean interface for components
+  // ========================================
 
-  const addCurrency = useCallback(async (currencyId: string, exchangeRate: number | string) => {
-    if (!companyId) {
-      return { success: false, error: 'No company selected' };
-    }
-    if (!userId) {
-      return { success: false, error: 'No user ID' };
-    }
+  return {
+    // Core data state
+    currencies,
+    loading,
+    error,
 
-    // Validate using domain validator (ARCHITECTURE.md pattern)
-    const validationResult = CurrencyValidator.validateAddCurrency(currencyId, exchangeRate);
-    if (!validationResult.isValid) {
-      return { success: false, error: validationResult.error };
-    }
+    // UI state
+    editingCurrency,
+    showAddModal,
+    currencyToRemove,
+    isRemoving,
+    notification,
 
-    const rate = typeof exchangeRate === 'string' ? parseFloat(exchangeRate) : exchangeRate;
-    const result = await repository.addCurrency(currencyId, companyId, rate, userId);
+    // State setters
+    setEditingCurrency,
+    setShowAddModal,
+    setCurrencyToRemove,
+    setNotification,
+    clearNotification,
 
-    if (result.success) await load();
-    return result;
-  }, [load, companyId, userId]);
+    // Async operations
+    loadCurrencies,
+    getAllCurrencyTypes,
+    updateExchangeRate,
+    addCurrency,
+    removeCurrency,
+    setDefaultCurrency,
 
-  const removeCurrency = useCallback(async (currencyId: string) => {
-    if (!companyId) return { success: false, error: 'No company selected' };
-    const result = await repository.removeCurrency(currencyId, companyId);
-    if (result.success) await load();
-    return result;
-  }, [load, companyId]);
-
-  return { currencies, loading, getAllCurrencyTypes, setDefault, updateExchangeRate, addCurrency, removeCurrency };
+    // UI action handlers
+    handleEditCurrency,
+    handleRemoveCurrency,
+    confirmRemoveCurrency,
+  };
 };

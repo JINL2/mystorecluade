@@ -55,6 +55,21 @@ export class AuthValidator {
   }
 
   /**
+   * Validate name (first name or last name)
+   */
+  static validateName(name: string, fieldName: string): ValidationError | null {
+    if (!name || name.trim() === '') {
+      return { field: fieldName.toLowerCase().replace(' ', ''), message: `${fieldName} is required` };
+    }
+
+    if (name.trim().length < 2) {
+      return { field: fieldName.toLowerCase().replace(' ', ''), message: `${fieldName} must be at least 2 characters` };
+    }
+
+    return null;
+  }
+
+  /**
    * Validate login credentials
    */
   static validateLoginCredentials(email: string, password: string): ValidationError[] {
@@ -75,7 +90,9 @@ export class AuthValidator {
   static validateSignupCredentials(
     email: string,
     password: string,
-    passwordConfirmation: string
+    passwordConfirmation: string,
+    firstName: string,
+    lastName: string
   ): ValidationError[] {
     const errors: ValidationError[] = [];
 
@@ -87,6 +104,12 @@ export class AuthValidator {
 
     const confirmationError = this.validatePasswordConfirmation(password, passwordConfirmation);
     if (confirmationError) errors.push(confirmationError);
+
+    const firstNameError = this.validateName(firstName, 'First name');
+    if (firstNameError) errors.push(firstNameError);
+
+    const lastNameError = this.validateName(lastName, 'Last name');
+    if (lastNameError) errors.push(lastNameError);
 
     return errors;
   }

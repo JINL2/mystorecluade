@@ -14,6 +14,8 @@ export interface LoginCredentials {
 export interface SignupCredentials {
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
   metadata?: Record<string, any>;
 }
 

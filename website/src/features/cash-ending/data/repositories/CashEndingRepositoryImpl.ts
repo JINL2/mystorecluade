@@ -25,7 +25,7 @@ interface JournalLine {
 interface CreateJournalParams {
   companyId: string;
   userId: string;
-  storeId: string;
+  storeId: string | null;
   cashLocationId: string;
   difference: number;
   type: 'error' | 'exchange';

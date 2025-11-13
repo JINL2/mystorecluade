@@ -140,4 +140,16 @@ export interface TossSelectorProps {
    * @default false
    */
   showBadges?: boolean;
+
+  /**
+   * Inline mode for table cells (no label, minimal padding)
+   * @default false
+   */
+  inline?: boolean;
+
+  /**
+   * Allow typing to filter (makes it editable like input)
+   * @default false
+   */
+  editable?: boolean;
 }

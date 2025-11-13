@@ -1,6 +1,7 @@
 /**
  * JournalInputPage Component
  * Journal entry input page with transaction lines management
+ * Refactored: Modal logic separated into TransactionModal component
  */
 
 import React, { useState } from 'react';
@@ -10,17 +11,14 @@ import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useJournalInput } from '../../hooks/useJournalInput';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { TossButton } from '@/shared/components/toss/TossButton';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
-import { TransactionForm } from '../../components/TransactionForm';
 import type { TransactionFormData } from '../../components/TransactionForm';
 import type { JournalInputPageProps } from './JournalInputPage.types';
 import { TransactionLine } from '../../../domain/entities/TransactionLine';
-import {
-  formatCurrency,
-  formatJournalDate,
-  formatCategoryTag,
-} from '@/core/utils/formatters';
+import { IconTabContent } from '../../components/IconTabContent';
+import { ExcelTabContent } from '../../components/ExcelTabContent';
+import { TransactionModal } from '../../components/TransactionModal';
+import { formatJournalDate } from '@/core/utils/formatters';
 import styles from './JournalInputPage.module.css';
 
 export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
@@ -51,6 +49,9 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<'debit' | 'credit'>('debit');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // Tab state - Excel is default
+  const [activeTab, setActiveTab] = useState<'icon' | 'excel'>('excel');
 
   // Form validation state from TransactionForm
   const [isFormValid, setIsFormValid] = useState(false);
@@ -84,20 +85,6 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   // Auto-select transaction type based on balance (lower side gets selected)
   const getAutoTransactionType = (): 'debit' | 'credit' => {
     return journalEntry.totalDebits <= journalEntry.totalCredits ? 'debit' : 'credit';
-  };
-
-  const handleAddDebit = () => {
-    setEditingIndex(null);
-    setIsFormValid(false);
-    setModalTransactionType(getAutoTransactionType());
-    setIsTransactionModalOpen(true);
-  };
-
-  const handleAddCredit = () => {
-    setEditingIndex(null);
-    setIsFormValid(false);
-    setModalTransactionType(getAutoTransactionType());
-    setIsTransactionModalOpen(true);
   };
 
   const handleAddTransaction = () => {
@@ -194,13 +181,6 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     }
   };
 
-  // Get submit button text based on state
-  const getSubmitButtonText = () => {
-    if (journalEntry.transactionLines.length === 0) return 'Add transactions to submit';
-    if (!journalEntry.isBalanced) return 'Balance debits and credits';
-    return 'Submit Journal Entry';
-  };
-
   if (loading) {
     return (
       <>
@@ -253,280 +233,88 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
           />
         </div>
 
-        {/* Balance Summary */}
-        <div className={styles.balanceSummaryCard}>
-          <div className={styles.balanceSummaryGrid}>
-            <div className={`${styles.balanceItem} ${styles.clickable}`} onClick={handleAddDebit}>
-              <div className={styles.balanceLabel}>Debits</div>
-              <div className={`${styles.balanceAmount} ${styles.debit}`}>
-                {formatCurrency(journalEntry.totalDebits)}
-              </div>
-              <div className={styles.balanceCount}>{journalEntry.debitCount} items</div>
-            </div>
-            <div className={styles.balanceDivider}></div>
-            <div className={`${styles.balanceItem} ${styles.clickable}`} onClick={handleAddCredit}>
-              <div className={styles.balanceLabel}>Credits</div>
-              <div className={`${styles.balanceAmount} ${styles.credit}`}>
-                {formatCurrency(journalEntry.totalCredits)}
-              </div>
-              <div className={styles.balanceCount}>{journalEntry.creditCount} items</div>
-            </div>
-            <div className={styles.balanceDivider}></div>
-            <div className={styles.balanceItem}>
-              <div className={styles.balanceLabel}>Difference</div>
-              <div
-                className={`${styles.balanceAmount} ${styles.difference} ${
-                  !journalEntry.isBalanced ? styles.unbalanced : ''
-                }`}
-              >
-                {formatCurrency(Math.abs(journalEntry.difference))}
-              </div>
-              <div className={styles.balanceCount}>&nbsp;</div>
-            </div>
+        {/* Input Method Tabs */}
+        <div className={styles.tabsContainer}>
+          <div className={`${styles.tabsWrapper} ${activeTab === 'icon' ? styles.iconActive : ''}`}>
+            <button
+              className={`${styles.tab} ${activeTab === 'excel' ? styles.active : ''}`}
+              onClick={() => setActiveTab('excel')}
+            >
+              <svg className={styles.tabIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12.9,14.5L15.8,19H14L12,15.6L10,19H8.2L11.1,14.5L8.2,10H10L12,13.4L14,10H15.8L12.9,14.5Z"/>
+              </svg>
+              Excel
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'icon' ? styles.active : ''}`}
+              onClick={() => setActiveTab('icon')}
+            >
+              <svg className={styles.tabIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/>
+              </svg>
+              Icon
+            </button>
           </div>
         </div>
 
-        {/* Description Input */}
-        <div className={styles.descriptionCard}>
-          <label className={styles.descriptionLabel} htmlFor="journalDescription">
-            Description (Optional)
-          </label>
-          <textarea
-            id="journalDescription"
-            className={styles.descriptionTextarea}
-            rows={2}
-            placeholder="Enter journal description..."
+        {/* Tab Content */}
+        {activeTab === 'icon' && (
+          <IconTabContent
+            journalEntry={journalEntry}
+            accounts={accounts}
+            cashLocations={cashLocations}
+            counterparties={counterparties}
+            companyId={companyId}
+            selectedStoreId={selectedStoreId}
+            submitting={submitting}
+            onAddTransaction={handleAddTransaction}
+            onEditTransaction={handleEditTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
+            onSubmit={handleSubmit}
           />
-        </div>
+        )}
 
-        {/* Transaction Lines */}
-        <div className={styles.transactionSection}>
-          {journalEntry.transactionLines.length === 0 ? (
-            <div className={styles.emptyState}>
-              <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
-                {/* Background Circle */}
-                <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
-
-                {/* Document Stack */}
-                <rect x="35" y="40" width="50" height="60" rx="4" fill="white" stroke="#0064FF" strokeWidth="2"/>
-                <rect x="40" y="35" width="50" height="60" rx="4" fill="white" stroke="#0064FF" strokeWidth="2"/>
-
-                {/* Document Lines */}
-                <line x1="48" y1="45" x2="75" y2="45" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="48" y1="52" x2="70" y2="52" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="48" y1="59" x2="72" y2="59" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-
-                {/* Plus Symbol */}
-                <circle cx="60" cy="75" r="12" fill="#0064FF"/>
-                <path d="M56 75 H64 M60 71 V79" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-              </svg>
-              <h3 className={styles.emptyTitle}>No transactions added</h3>
-              <p className={styles.emptyText}>Click Debits or Credits above to add transactions</p>
-            </div>
-          ) : (
-            <>
-              {journalEntry.transactionLines.map((line, index) => (
-                <div key={index} className={styles.transactionLineCard}>
-                  <div
-                    className={`${styles.transactionLineHeader} ${
-                      line.isDebit ? styles.debit : styles.credit
-                    }`}
-                  >
-                    <div
-                      className={`${styles.transactionLineType} ${
-                        line.isDebit ? styles.debit : styles.credit
-                      }`}
-                    >
-                      {line.typeDisplay}
-                    </div>
-                    <div className={styles.transactionLineAccount}>
-                      {line.accountName || 'No Account Selected'}
-                    </div>
-                    <div
-                      className={`${styles.transactionLineAmount} ${
-                        line.isDebit ? styles.debit : styles.credit
-                      }`}
-                    >
-                      {formatCurrency(line.amount)}
-                    </div>
-                  </div>
-                  <div className={styles.transactionLineBody}>
-                    {line.description && (
-                      <div className={styles.transactionLineDescription}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M14,10H19.5L14,4.5V10M5,3H15L21,9V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3M9,12H16V14H9V12M9,16H14V18H9V16Z" />
-                        </svg>
-                        <span>{line.description}</span>
-                      </div>
-                    )}
-                    <div className={styles.transactionLineTags}>
-                      {line.categoryTag && (
-                        <div className={`${styles.transactionTag} ${styles.category}`}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.63,5.84C17.27,5.33 16.67,5 16,5L5,5.01C3.9,5.01 3,5.9 3,7V17C3,18.1 3.9,19 5,19H16C16.67,19 17.27,18.67 17.63,18.16L22,12L17.63,5.84Z" />
-                          </svg>
-                          {formatCategoryTag(line.categoryTag)}
-                        </div>
-                      )}
-                      {line.cashLocationName && (
-                        <div className={`${styles.transactionTag} ${styles.cash}`}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M11,8C11,9.66 9.66,11 8,11C6.34,11 5,9.66 5,8C5,6.34 6.34,5 8,5C9.66,5 11,6.34 11,8M14,20H2V18C2,15.79 4.69,14 8,14C11.31,14 14,15.79 14,18V20M22,8V18H24V8H22M18,10V16H20V10H18M16,13V16H17V13H16Z" />
-                          </svg>
-                          {line.cashLocationName}
-                        </div>
-                      )}
-                      {line.counterpartyName && (
-                        <div className={`${styles.transactionTag} ${styles.counterparty}`}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z" />
-                          </svg>
-                          {line.counterpartyName}
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.transactionLineActions}>
-                      <button
-                        className={`${styles.transactionActionBtn} ${styles.edit}`}
-                        onClick={() => handleEditTransaction(index)}
-                      >
-                        <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
-                        </svg>
-                        Edit
-                      </button>
-                      <button
-                        className={`${styles.transactionActionBtn} ${styles.delete}`}
-                        onClick={() => handleDeleteTransaction(index)}
-                      >
-                        <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-                        </svg>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Actions Footer */}
-          <div className={styles.actionsFooter}>
-            <TossButton
-              variant="outline"
-              size="lg"
-              onClick={handleAddTransaction}
-              className={styles.addTransactionBtn}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
-                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-              </svg>
-              Add Transaction
-            </TossButton>
-            <TossButton
-              variant="primary"
-              size="lg"
-              onClick={handleSubmit}
-              disabled={!journalEntry.canSubmit()}
-              loading={submitting}
-              className={styles.submitBtn}
-            >
-              {getSubmitButtonText()}
-            </TossButton>
-          </div>
-        </div>
+        {/* Excel Tab Content */}
+        {activeTab === 'excel' && (
+          <ExcelTabContent
+            accounts={accounts}
+            cashLocations={cashLocations}
+            counterparties={counterparties}
+            companyId={companyId}
+            selectedStoreId={selectedStoreId}
+            userId={user?.id || ''}
+            onCheckAccountMapping={checkAccountMapping}
+            onGetCounterpartyStores={getCounterpartyStores}
+            onGetCounterpartyCashLocations={getCounterpartyCashLocations}
+            onSubmitSuccess={() => setShowSuccessMessage(true)}
+            onSubmitError={(error) => {
+              setErrorMessageText(error);
+              setShowErrorMessage(true);
+            }}
+          />
+        )}
       </div>
 
       {/* Transaction Modal */}
-      {isTransactionModalOpen && (() => {
-        // Get initial data for edit mode
-        const isEditMode = editingIndex !== null;
-        const editingLine = isEditMode ? journalEntry.transactionLines[editingIndex] : null;
-        const initialData = editingLine ? {
-          accountId: editingLine.accountId,
-          accountName: editingLine.accountName,
-          categoryTag: editingLine.categoryTag || undefined,
-          amount: editingLine.amount,
-          description: editingLine.description || undefined,
-          isDebit: editingLine.isDebit,
-          cashLocationId: editingLine.cashLocationId || undefined,
-          counterpartyId: editingLine.counterpartyId || undefined,
-          // Counterparty-related fields
-          counterpartyStoreId: editingLine.counterpartyStoreId || undefined,
-          counterpartyCashLocationId: editingLine.counterpartyCashLocationId || undefined,
-          // Debt-related fields
-          debtCategory: editingLine.debtCategory || undefined,
-          interestRate: editingLine.interestRate || undefined,
-          interestAccountId: editingLine.interestAccountId || undefined,
-          interestDueDay: editingLine.interestDueDay || undefined,
-          issueDate: editingLine.issueDate || undefined,
-          dueDate: editingLine.dueDate || undefined,
-          debtDescription: editingLine.debtDescription || undefined,
-        } : undefined;
-
-        // Get the cash location ID that should be hidden from dropdown
-        // If editing a line that has cash location, allow it to remain selectable
-        // Otherwise, hide the cash location that's already used in other transactions
-        const disabledCashLocationId = isEditMode
-          ? (editingLine?.cashLocationId ? null : journalEntry.getCashLocationId())
-          : journalEntry.getCashLocationId();
-
-        return (
-          <div className={styles.modalOverlay} onClick={handleTransactionCancel}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.modalHeader}>
-                <h2 className={styles.modalTitle}>{isEditMode ? 'Edit Transaction' : 'Add Transaction'}</h2>
-                <button className={styles.modalClose} onClick={handleTransactionCancel}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                  </svg>
-                </button>
-              </div>
-              <div className={styles.modalBody}>
-                <TransactionForm
-                  isDebit={modalTransactionType === 'debit'}
-                  onSubmit={handleTransactionSubmit}
-                  onCancel={handleTransactionCancel}
-                  accounts={accounts}
-                  cashLocations={cashLocations}
-                  counterparties={counterparties}
-                  companyId={companyId}
-                  storeId={selectedStoreId}
-                  suggestedAmount={Math.abs(journalEntry.difference)}
-                  initialData={initialData}
-                  isEditMode={isEditMode}
-                  disabledCashLocationId={disabledCashLocationId}
-                  onCheckAccountMapping={checkAccountMapping}
-                  onGetCounterpartyStores={getCounterpartyStores}
-                  onGetCounterpartyCashLocations={getCounterpartyCashLocations}
-                  onValidationChange={setIsFormValid}
-                />
-              </div>
-              <div className={styles.modalFooter}>
-                <TossButton variant="outline" size="lg" onClick={handleTransactionCancel}>
-                  Cancel
-                </TossButton>
-                <TossButton
-                  variant="primary"
-                  size="lg"
-                  disabled={!isFormValid}
-                  onClick={() => {
-                    // Submit form by triggering the hidden submit button
-                    const form = document.querySelector('form');
-                    if (form) {
-                      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-                      submitBtn?.click();
-                    }
-                  }}
-                >
-                  {isEditMode ? 'Update' : 'Add'}
-                </TossButton>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      <TransactionModal
+        isOpen={isTransactionModalOpen}
+        isEditMode={editingIndex !== null}
+        editingIndex={editingIndex}
+        journalEntry={journalEntry}
+        modalTransactionType={modalTransactionType}
+        accounts={accounts}
+        cashLocations={cashLocations}
+        counterparties={counterparties}
+        companyId={companyId}
+        selectedStoreId={selectedStoreId}
+        isFormValid={isFormValid}
+        onSubmit={handleTransactionSubmit}
+        onCancel={handleTransactionCancel}
+        onCheckAccountMapping={checkAccountMapping}
+        onGetCounterpartyStores={getCounterpartyStores}
+        onGetCounterpartyCashLocations={getCounterpartyCashLocations}
+        onValidationChange={setIsFormValid}
+      />
 
       {/* Validation Error Message */}
       <ErrorMessage

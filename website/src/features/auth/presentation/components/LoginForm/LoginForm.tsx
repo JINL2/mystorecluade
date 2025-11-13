@@ -30,7 +30,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     if (result.success) {
       onSuccess?.();
     } else {
-      onError?.(error || 'Login failed');
+      // Build comprehensive error message
+      // Priority: result.error > loginError state > fieldErrors > default message
+      const errorMessage =
+        result.error ||
+        error ||
+        Object.values(fieldErrors).join(', ') ||
+        'Login failed';
+
+      onError?.(errorMessage);
     }
   };
 

@@ -3,7 +3,7 @@
  * Employee management page matching backup design
  */
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useEmployees } from '../../hooks/useEmployees';
 import { EmployeeCard } from '../../components/EmployeeCard';
@@ -18,6 +18,33 @@ import styles from './EmployeeSettingPage.module.css';
 export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
+
+  // Get all state and actions from Zustand store
+  const {
+    employees,
+    stats,
+    loading,
+    error,
+    isEditModalOpen,
+    selectedEmployee,
+    deleteConfirm,
+    storeFilter,
+    openEditModal,
+    closeEditModal,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setStoreFilter,
+    loadEmployees,
+    refreshEmployees,
+    deleteEmployee,
+  } = useEmployees();
+
+  // Load employees when component mounts or companyId changes
+  useEffect(() => {
+    if (companyId) {
+      loadEmployees(companyId);
+    }
+  }, [companyId, loadEmployees]);
 
   // Show error if no company selected
   if (!companyId) {
@@ -48,83 +75,29 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
       </>
     );
   }
-  const { employees, stats, loading, error, storeFilter, filterByStore, refresh } =
-    useEmployees(companyId);
 
-  // Modal state
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<{
-    userId: string;
-    fullName: string;
-    email: string;
-    roleName: string;
-    storeName: string;
-    salaryType: 'monthly' | 'hourly';
-    salaryAmount: number;
-    currencyId: string;
-    currencyCode: string;
-    salaryId: string;
-    companyId: string;
-    accountId: string;
-    initials: string;
-  } | null>(null);
-
-  // Delete confirmation state
-  const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; name: string } | null>(null);
-
+  // Handlers
   const handleEditEmployee = (userId: string) => {
-    const employee = employees.find((emp) => emp.userId === userId);
-    if (employee) {
-      setSelectedEmployee({
-        userId: employee.userId,
-        fullName: employee.fullName,
-        email: employee.email,
-        roleName: employee.displayRole,
-        storeName: employee.displayStore,
-        salaryType: employee.salaryType,
-        salaryAmount: employee.salaryAmount,
-        currencyId: employee.currencyId,
-        currencyCode: employee.currencyCode,
-        salaryId: employee.salaryId,
-        companyId: employee.companyId,
-        accountId: employee.accountId,
-        initials: employee.initials,
-      });
-      setIsEditModalOpen(true);
-    }
+    openEditModal(userId);
   };
 
   const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setSelectedEmployee(null);
+    closeEditModal();
   };
 
   const handleSaveEmployee = () => {
     // Refresh employee list after save
-    refresh();
+    refreshEmployees();
   };
 
   const handleDeleteEmployee = (userId: string) => {
-    const employee = employees.find((emp) => emp.userId === userId);
-    if (employee) {
-      setDeleteConfirm({
-        userId: employee.userId,
-        name: employee.fullName,
-      });
-    }
+    openDeleteConfirm(userId);
   };
 
-  const confirmDeleteEmployee = () => {
+  const confirmDeleteEmployee = async () => {
     if (!deleteConfirm) return;
 
-    // TODO: Implement actual delete RPC call
-    console.log('Delete employee:', deleteConfirm.userId);
-
-    // Close confirmation dialog
-    setDeleteConfirm(null);
-
-    // Refresh employee list
-    refresh();
+    await deleteEmployee(companyId);
   };
 
   // Get stores from current company
@@ -167,7 +140,7 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
             </svg>
             <h2 className={styles.errorTitle}>Failed to Load Employees</h2>
             <p className={styles.errorMessage}>{error}</p>
-            <button onClick={refresh} className={styles.retryButton}>
+            <button onClick={refreshEmployees} className={styles.retryButton}>
               Try Again
             </button>
           </div>
@@ -206,7 +179,7 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
           <StoreSelector
             stores={stores}
             selectedStoreId={storeFilter}
-            onStoreSelect={filterByStore}
+            onStoreSelect={setStoreFilter}
             companyId={companyId}
             width="100%"
           />
@@ -282,7 +255,7 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
           title="Confirm Delete"
           message={`Are you sure you want to delete ${deleteConfirm?.name}? This action cannot be undone.`}
           isOpen={!!deleteConfirm}
-          onClose={() => setDeleteConfirm(null)}
+          onClose={closeDeleteConfirm}
           showCancelButton={true}
           confirmText="Delete"
           cancelText="Cancel"

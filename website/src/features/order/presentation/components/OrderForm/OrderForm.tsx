@@ -1,17 +1,14 @@
 /**
  * OrderForm Component
  * New purchase order creation form
- * Uses Clean Architecture: Validator for validation logic
+ * Following 2025 Best Practice: Uses Zustand provider for state management
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useCounterparties } from '../../hooks/useCounterparties';
-import { Counterparty } from '../../../data/models/CounterpartyModel';
 import { useProducts } from '../../hooks/useProducts';
-import { Product } from '../../../data/models/ProductModel';
-import { OrderValidator } from '../../../domain/validators/OrderValidator';
-import { OrderItem as DomainOrderItem } from '../../../domain/entities/Order';
+import { useOrderForm } from '../../hooks/useOrderForm';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -22,67 +19,47 @@ interface OrderFormProps {
   onCancel?: () => void;
 }
 
-interface SupplierInfo {
-  name: string;
-  contact: string;
-  phone: string;
-  email: string;
-  address: string;
-  bank_account: string;
-  memo: string;
-}
-
-interface OrderItem {
-  product_id: string;
-  product_name: string;
-  sku: string;
-  unit: string;
-  quantity: number;
-  unit_price: number;
-  subtotal: number;
-}
-
-type SupplierTabType = 'counter-party' | 'others';
-
-export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => {
+export const OrderForm: React.FC<OrderFormProps> = ({ onCancel }) => {
   const { currentCompany } = useAppState();
   const { counterparties, loading: loadingCounterparties, error: counterpartiesError } = useCounterparties(currentCompany?.company_id || null);
-  const { products, loading: loadingProducts, currencySymbol, searchProducts, getProductById, error: productsError } = useProducts(currentCompany?.company_id || null);
-  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
+  const { products, currencySymbol, error: productsError } = useProducts(currentCompany?.company_id || null);
+  const { messageState, closeMessage, showError } = useErrorMessage();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Form state
-  const [orderDate, setOrderDate] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
-  const [supplierTab, setSupplierTab] = useState<SupplierTabType>('counter-party');
-  const [selectedSupplier, setSelectedSupplier] = useState<Counterparty | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [supplierInfo, setSupplierInfo] = useState<SupplierInfo>({
-    name: '',
-    contact: '',
-    phone: '',
-    email: '',
-    address: '',
-    bank_account: '',
-    memo: '',
-  });
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-
-  // Product search state
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
-
-  // Initialize order date to today
-  useEffect(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    setOrderDate(`${year}-${month}-${day}`);
-  }, []);
+  // Use order form hook with Zustand provider
+  const {
+    orderDate,
+    notes,
+    supplierTab,
+    selectedSupplier,
+    supplierInfo,
+    orderItems,
+    isDropdownOpen,
+    searchTerm,
+    showSuggestions,
+    searchResults,
+    isCreating,
+    validationErrors,
+    summary,
+    isValid,
+    setOrderDate,
+    setNotes,
+    setSupplierTab,
+    setSelectedSupplier,
+    setSupplierInfo,
+    setIsDropdownOpen,
+    setSearchTerm,
+    setShowSuggestions,
+    addOrderItem,
+    updateOrderItemQuantity,
+    updateOrderItemPrice,
+    removeOrderItem,
+    searchProducts,
+    clearSearch,
+    validateForm,
+    resetForm,
+  } = useOrderForm();
 
   // Handle products error
   useEffect(() => {
@@ -122,78 +99,24 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen, showSuggestions]);
-
-  // Handle supplier selection
-  const handleSupplierSelect = (supplier: Counterparty) => {
-    setSelectedSupplier(supplier);
-    setIsDropdownOpen(false);
-  };
+  }, [isDropdownOpen, showSuggestions, setIsDropdownOpen, setShowSuggestions]);
 
   // Handle supplier tab change
-  const handleSupplierTabChange = (tab: SupplierTabType) => {
+  const handleSupplierTabChange = (tab: 'counter-party' | 'others') => {
     setSupplierTab(tab);
-    if (tab === 'others') {
-      setSelectedSupplier(null);
-    } else {
-      setSupplierInfo({
-        name: '',
-        contact: '',
-        phone: '',
-        email: '',
-        address: '',
-        bank_account: '',
-        memo: '',
-      });
-    }
   };
 
   // Handle product search
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-
-    if (value.length >= 1) {
-      const results = searchProducts(value).slice(0, 10); // Limit to 10 results
-      setSearchResults(results);
-      setShowSuggestions(true);
-    } else {
-      setSearchResults([]);
-      setShowSuggestions(false);
-    }
+    searchProducts(value, products);
   };
 
   // Add product to order items
-  const handleAddProduct = (product: Product) => {
-    // Check if product already exists in order items
-    const existingItem = orderItems.find((item) => item.product_id === product.product_id);
-
-    if (existingItem) {
-      // If exists, increment quantity
-      setOrderItems((items) =>
-        items.map((item) =>
-          item.product_id === product.product_id
-            ? { ...item, quantity: item.quantity + 1, subtotal: (item.quantity + 1) * item.unit_price }
-            : item
-        )
-      );
-    } else {
-      // If not exists, add new item
-      const newItem: OrderItem = {
-        product_id: product.product_id,
-        product_name: product.product_name,
-        sku: product.sku || '',
-        unit: product.unit_of_measure || 'Unit',
-        quantity: 1,
-        unit_price: product.pricing?.selling_price || 0,
-        subtotal: product.pricing?.selling_price || 0,
-      };
-      setOrderItems((items) => [...items, newItem]);
-    }
-
-    // Clear search
-    setSearchTerm('');
-    setShowSuggestions(false);
+  const handleAddProduct = (product: any) => {
+    addOrderItem(product);
+    clearSearch();
   };
 
   // Format number with thousand separators (integer only, following backup pattern)
@@ -201,70 +124,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
     return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // Parse formatted number string to number
-  const parseFormattedNumber = (value: string): number => {
-    const cleaned = value.replace(/,/g, '');
-    return parseFloat(cleaned) || 0;
-  };
-
   // Update order item quantity
   const handleQuantityChange = (productId: string, value: string) => {
     const quantity = parseInt(value.replace(/,/g, '')) || 0;
-    setOrderItems((items) =>
-      items.map((item) =>
-        item.product_id === productId
-          ? { ...item, quantity, subtotal: quantity * item.unit_price }
-          : item
-      )
-    );
+    updateOrderItemQuantity(productId, quantity);
   };
 
   // Update order item unit price
   const handlePriceChange = (productId: string, value: string) => {
     const unitPrice = parseFloat(value.replace(/,/g, '')) || 0;
-    setOrderItems((items) =>
-      items.map((item) =>
-        item.product_id === productId
-          ? { ...item, unit_price: unitPrice, subtotal: item.quantity * unitPrice }
-          : item
-      )
-    );
-  };
-
-  // Remove order item
-  const handleRemoveItem = (productId: string) => {
-    setOrderItems((items) => items.filter((item) => item.product_id !== productId));
-  };
-
-  // Calculate summary
-  const summary = {
-    items: orderItems.length,
-    totalQuantity: orderItems.reduce((sum, item) => sum + item.quantity, 0),
-    subtotal: orderItems.reduce((sum, item) => sum + item.subtotal, 0),
-  };
-
-  // Validate form using OrderValidator
-  const isValid = () => {
-    // Convert orderItems to DomainOrderItem format for validation
-    const domainItems: DomainOrderItem[] = orderItems.map(item => ({
-      product_id: item.product_id,
-      product_name: item.product_name,
-      sku: item.sku,
-      barcode: undefined,
-      quantity_ordered: item.quantity,
-      quantity_received_total: undefined,
-      quantity_remaining: undefined,
-      unit_price: item.unit_price,
-      total_amount: item.subtotal,
-    }));
-
-    return OrderValidator.isValidOrderForm(
-      orderDate,
-      supplierTab,
-      selectedSupplier?.counterparty_id || null,
-      supplierTab === 'others' ? supplierInfo : null,
-      domainItems
-    );
+    updateOrderItemPrice(productId, unitPrice);
   };
 
   // Handle create order
@@ -272,29 +141,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
     if (!currentCompany) return;
 
     // Validate form
-    const domainItems: DomainOrderItem[] = orderItems.map(item => ({
-      product_id: item.product_id,
-      product_name: item.product_name,
-      sku: item.sku,
-      barcode: undefined,
-      quantity_ordered: item.quantity,
-      quantity_received_total: undefined,
-      quantity_remaining: undefined,
-      unit_price: item.unit_price,
-      total_amount: item.subtotal,
-    }));
-
-    const validationErrors = OrderValidator.validateOrderForm(
-      orderDate,
-      supplierTab,
-      selectedSupplier?.counterparty_id || null,
-      supplierTab === 'others' ? supplierInfo : null,
-      domainItems
-    );
-
-    if (validationErrors.length > 0) {
-      // Show validation errors to user using ErrorMessage
-      const errorMessage = validationErrors.map(err => err.message).join('\n');
+    if (!validateForm()) {
+      const errorMessage = Object.values(validationErrors).join('\n');
       showError({
         title: 'Validation Failed',
         message: errorMessage,
@@ -302,13 +150,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
       return;
     }
 
-    setIsCreating(true);
-    // TODO: Implement RPC call
-    setIsCreating(false);
+    // TODO: Implement order creation
+    showError({
+      title: 'Not Implemented',
+      message: 'Order creation is not yet implemented',
+    });
   };
 
   // Handle cancel
   const handleCancel = () => {
+    resetForm();
     if (onCancel) {
       onCancel();
     }
@@ -410,7 +261,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                               className={`${styles.dropdownOption} ${
                                 selectedSupplier?.counterparty_id === supplier.counterparty_id ? styles.selected : ''
                               }`}
-                              onClick={() => handleSupplierSelect(supplier)}
+                              onClick={() => {
+                                setSelectedSupplier(supplier);
+                                setIsDropdownOpen(false);
+                              }}
                             >
                               <div className={styles.supplierInfo}>
                                 <div className={styles.supplierName}>{supplier.name}</div>
@@ -438,7 +292,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter supplier name"
                     value={supplierInfo.name}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, name: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ name: e.target.value })}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -448,7 +302,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter contact name"
                     value={supplierInfo.contact}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, contact: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ contact: e.target.value })}
                   />
                 </div>
               </div>
@@ -460,7 +314,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter phone number"
                     value={supplierInfo.phone}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, phone: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ phone: e.target.value })}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -470,7 +324,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter email address"
                     value={supplierInfo.email}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, email: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ email: e.target.value })}
                   />
                 </div>
               </div>
@@ -482,7 +336,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter supplier address"
                     value={supplierInfo.address}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, address: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ address: e.target.value })}
                   />
                 </div>
               </div>
@@ -494,7 +348,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     className={styles.formInput}
                     placeholder="Enter bank account information"
                     value={supplierInfo.bank_account}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, bank_account: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ bank_account: e.target.value })}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -504,7 +358,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                     rows={2}
                     placeholder="Enter any additional notes..."
                     value={supplierInfo.memo}
-                    onChange={(e) => setSupplierInfo({ ...supplierInfo, memo: e.target.value })}
+                    onChange={(e) => setSupplierInfo({ memo: e.target.value })}
                   />
                 </div>
               </div>
@@ -532,8 +386,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                 {showSuggestions && searchResults.length > 0 && (
                   <div className={styles.searchSuggestions}>
                     {searchResults.map((product) => {
-                      const price = product.pricing?.selling_price || 0;
-                      const stock = product.total_stock_summary?.total_quantity_on_hand || 0;
+                      const price = product.selling_price || 0;
+                      const stock = product.quantity_on_hand || 0;
                       return (
                         <div
                           key={product.product_id}
@@ -632,7 +486,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
                       <td>
                         <button
                           className={styles.btnDelete}
-                          onClick={() => handleRemoveItem(item.product_id)}
+                          onClick={() => removeOrderItem(item.product_id)}
                           type="button"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -660,7 +514,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onSuccess, onCancel }) => 
           <button
             className={styles.btnPrimary}
             onClick={handleCreateOrder}
-            disabled={!isValid() || isCreating}
+            disabled={!isValid || isCreating}
           >
             {isCreating ? 'Creating Order...' : 'Create Order'}
           </button>

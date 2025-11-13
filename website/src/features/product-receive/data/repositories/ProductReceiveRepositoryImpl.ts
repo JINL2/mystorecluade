@@ -52,8 +52,8 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
   }
 
   async getOrderProducts(
-    companyId: string,
-    orderId: string
+    _companyId: string,
+    _orderId: string
   ): Promise<RepositoryResult<OrderProduct[]>> {
     // Note: The backup page doesn't have a separate RPC for getting order products
     // They are likely included in the order details
@@ -65,8 +65,8 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
   }
 
   async searchProducts(
-    orderId: string,
-    searchTerm: string
+    _orderId: string,
+    _searchTerm: string
   ): Promise<RepositoryResult<OrderProduct[]>> {
     // This would require a search RPC or client-side filtering
     // For now, return empty array

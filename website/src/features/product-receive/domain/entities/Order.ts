@@ -15,6 +15,11 @@ export interface Order {
   receivedItems: number;
   remainingItems: number;
   items?: OrderProduct[]; // Products in this order
+
+  // Computed properties (available in OrderEntity)
+  progressPercentage?: number;
+  isReceivable?: boolean;
+  displayName?: string;
 }
 
 export class OrderEntity implements Order {

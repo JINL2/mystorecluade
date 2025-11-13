@@ -1,141 +1,106 @@
 /**
  * useInventory Hook
- * Custom hook for inventory management
+ * Custom hook wrapper for inventory store
+ *
+ * Following 2025 Best Practice:
+ * - Optimized selectors for re-render prevention
+ * - Clean API for components
+ * - Separation of state management and component logic
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { InventoryItem } from '../../domain/entities/InventoryItem';
-import { InventoryRepositoryImpl } from '../../data/repositories/InventoryRepositoryImpl';
-import { InventoryValidator } from '../../domain/validators/InventoryValidator';
-import type { UpdateProductData } from '../../domain/repositories/IInventoryRepository';
+import { useInventoryStore } from '../providers/inventory_provider';
 
-export const useInventory = (companyId: string, storeId: string | null, searchQuery: string) => {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currencySymbol, setCurrencySymbol] = useState('₩');
-  const [currencyCode, setCurrencyCode] = useState('VND');
+export const useInventory = () => {
+  // ============================================
+  // OPTIMIZED SELECTORS
+  // ============================================
+  // Each selector independently tracks changes
+  // Components only re-render when their specific data changes
 
-  // Create repository instance once using useMemo
-  const repository = useMemo(() => new InventoryRepositoryImpl(), []);
+  // Data State
+  const inventory = useInventoryStore((state) => state.inventory);
+  const currency = useInventoryStore((state) => state.currency);
 
-  const loadInventory = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // UI State
+  const selectedStoreId = useInventoryStore((state) => state.selectedStoreId);
+  const searchQuery = useInventoryStore((state) => state.searchQuery);
+  const selectedProducts = useInventoryStore((state) => state.selectedProducts);
 
-    try {
-      // Pass search query to backend (pagination handled by backend)
-      const result = await repository.getInventory(
-        companyId,
-        storeId,
-        1, // page
-        1000, // limit - set high to get all items for now
-        searchQuery || undefined
-      );
+  // Modal State
+  const isModalOpen = useInventoryStore((state) => state.isModalOpen);
+  const selectedProductData = useInventoryStore((state) => state.selectedProductData);
+  const isAddProductModalOpen = useInventoryStore((state) => state.isAddProductModalOpen);
 
-      if (!result.success) {
-        setError(result.error || 'Failed to load inventory');
-        setInventory([]);
-        return;
-      }
+  // Loading/Error State
+  const loading = useInventoryStore((state) => state.loading);
+  const error = useInventoryStore((state) => state.error);
 
-      // Set currency symbol and code from API response
-      if (result.currency?.symbol) {
-        setCurrencySymbol(result.currency.symbol);
-      }
-      if (result.currency?.code) {
-        setCurrencyCode(result.currency.code);
-      }
+  // Notification State
+  const notification = useInventoryStore((state) => state.notification);
 
-      // Sort products by created_at DESC (newest first) on client-side
-      // This ensures the order remains consistent even after editing products
-      // createdAt is now a Date object (Local time) from InventoryItemModel
-      const sortedInventory = (result.data || []).sort((a, b) => {
-        // Handle missing dates - put items without dates at the end
-        if (!a.createdAt && !b.createdAt) return 0;
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
+  // ============================================
+  // ACTIONS
+  // ============================================
+  // Synchronous Actions
+  const setSelectedStoreId = useInventoryStore((state) => state.setSelectedStoreId);
+  const setSearchQuery = useInventoryStore((state) => state.setSearchQuery);
+  const toggleProductSelection = useInventoryStore((state) => state.toggleProductSelection);
+  const selectAllProducts = useInventoryStore((state) => state.selectAllProducts);
+  const clearSelection = useInventoryStore((state) => state.clearSelection);
 
-        // Both dates exist - compare timestamps
-        return b.createdAt.getTime() - a.createdAt.getTime(); // DESC order (newest first)
-      });
+  const openModal = useInventoryStore((state) => state.openModal);
+  const closeModal = useInventoryStore((state) => state.closeModal);
 
-      setInventory(sortedInventory);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setInventory([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, storeId, searchQuery]);
+  const openAddProductModal = useInventoryStore((state) => state.openAddProductModal);
+  const closeAddProductModal = useInventoryStore((state) => state.closeAddProductModal);
 
-  useEffect(() => {
-    if (companyId) {
-      loadInventory();
-    }
-  }, [companyId, storeId, searchQuery, loadInventory]);
+  const showNotification = useInventoryStore((state) => state.showNotification);
+  const hideNotification = useInventoryStore((state) => state.hideNotification);
 
-  const refresh = useCallback(() => {
-    loadInventory();
-  }, [loadInventory]);
+  const setLoading = useInventoryStore((state) => state.setLoading);
+  const setError = useInventoryStore((state) => state.setError);
+  const clearError = useInventoryStore((state) => state.clearError);
 
-  // Update product function with validation
-  const updateProduct = useCallback(
-    async (
-      productId: string,
-      data: UpdateProductData
-    ): Promise<{ success: boolean; error?: string }> => {
-      if (!companyId || !storeId) {
-        return {
-          success: false,
-          error: 'Company ID and Store ID are required',
-        };
-      }
+  // Asynchronous Actions
+  const loadInventory = useInventoryStore((state) => state.loadInventory);
+  const updateProduct = useInventoryStore((state) => state.updateProduct);
+  const refresh = useInventoryStore((state) => state.refresh);
 
-      // 1. Validate product data using domain validator
-      const validationErrors = InventoryValidator.validateProduct({
-        productName: data.productName,
-        sku: data.sku,
-        costPrice: data.costPrice,
-        sellingPrice: data.sellingPrice,
-        currentStock: data.currentStock,
-      });
-
-      if (validationErrors.length > 0) {
-        // Return first validation error
-        return {
-          success: false,
-          error: validationErrors[0].message,
-        };
-      }
-
-      // 2. Call repository to update product
-      try {
-        const result = await repository.updateProduct(productId, companyId, storeId, data);
-
-        if (result.success) {
-          // Refresh inventory after successful update
-          await loadInventory();
-        }
-
-        return result;
-      } catch (err) {
-        return {
-          success: false,
-          error: err instanceof Error ? err.message : 'An unexpected error occurred',
-        };
-      }
-    },
-    [companyId, storeId, repository, loadInventory]
-  );
-
+  // ============================================
+  // RETURN API
+  // ============================================
   return {
+    // State
     inventory,
+    currencySymbol: currency.symbol,
+    currencyCode: currency.code,
+    selectedStoreId,
+    searchQuery,
+    selectedProducts,
+    isModalOpen,
+    selectedProductData,
+    isAddProductModalOpen,
     loading,
     error,
-    refresh,
-    currencySymbol,
-    currencyCode,
+    notification,
+
+    // Actions
+    setSelectedStoreId,
+    setSearchQuery,
+    toggleProductSelection,
+    selectAllProducts,
+    clearSelection,
+    openModal,
+    closeModal,
+    openAddProductModal,
+    closeAddProductModal,
+    showNotification,
+    hideNotification,
+    setLoading,
+    setError,
+    clearError,
+    loadInventory,
     updateProduct,
+    refresh,
   };
 };

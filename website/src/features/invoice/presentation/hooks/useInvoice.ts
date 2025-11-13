@@ -1,154 +1,76 @@
 /**
  * useInvoice Hook
- * Custom hook for invoice management
+ * Custom hook wrapper for invoice Zustand store
+ * Following 2025 Best Practice: Zustand + Custom Hooks Pattern
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Invoice } from '../../domain/entities/Invoice';
-import { InvoiceRepositoryImpl } from '../../data/repositories/InvoiceRepositoryImpl';
-import { PaginationInfo } from '../../domain/repositories/IInvoiceRepository';
+import { useEffect } from 'react';
+import { useInvoiceStore } from '../providers/invoice_provider';
+import type { DateFilterType } from '../providers/states/types';
 
-export const useInvoice = (companyId: string, storeId: string | null) => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>(() => {
-    // Default to "all" - 10 years ago to today
-    const today = new Date();
-    const tenYearsAgo = new Date(today.getFullYear() - 10, 0, 1);
-    return {
-      start: tenYearsAgo.toISOString().split('T')[0],
-      end: today.toISOString().split('T')[0],
-    };
-  });
+/**
+ * Invoice hook that wraps Zustand store
+ * Provides clean interface for components to access invoice state and actions
+ */
+export const useInvoice = (companyId: string) => {
+  // ========== Select State from Zustand Store ==========
+  const invoices = useInvoiceStore((state) => state.invoices);
+  const loading = useInvoiceStore((state) => state.loading);
+  const error = useInvoiceStore((state) => state.error);
+  const pagination = useInvoiceStore((state) => state.pagination);
+  const currentPage = useInvoiceStore((state) => state.currentPage);
+  const searchQuery = useInvoiceStore((state) => state.searchQuery);
+  const dateRange = useInvoiceStore((state) => state.dateRange);
+  const selectedStoreId = useInvoiceStore((state) => state.selectedStoreId);
+  const activeFilter = useInvoiceStore((state) => state.activeFilter);
+  const selectedInvoice = useInvoiceStore((state) => state.selectedInvoice);
+  const invoiceDetail = useInvoiceStore((state) => state.invoiceDetail);
+  const detailLoading = useInvoiceStore((state) => state.detailLoading);
+  const refunding = useInvoiceStore((state) => state.refunding);
 
-  const repository = new InvoiceRepositoryImpl();
+  // ========== Select Actions from Zustand Store ==========
+  const setSelectedStoreId = useInvoiceStore((state) => state.setSelectedStoreId);
+  const setActiveFilter = useInvoiceStore((state) => state.setActiveFilter);
+  const setSelectedInvoice = useInvoiceStore((state) => state.setSelectedInvoice);
+  const changeDateRange = useInvoiceStore((state) => state.changeDateRange);
+  const changeSearch = useInvoiceStore((state) => state.changeSearch);
+  const changePage = useInvoiceStore((state) => state.changePage);
+  const loadInvoices = useInvoiceStore((state) => state.loadInvoices);
+  const fetchInvoiceDetail = useInvoiceStore((state) => state.fetchInvoiceDetail);
+  const refundInvoice = useInvoiceStore((state) => state.refundInvoice);
+  const refresh = useInvoiceStore((state) => state.refresh);
+  const clearDetail = useInvoiceStore((state) => state.clearDetail);
 
-  const loadInvoices = useCallback(async () => {
-    console.log('🟡 useInvoice.loadInvoices - starting...', {
-      companyId,
-      companyId_type: typeof companyId,
-      storeId,
-      storeId_type: typeof storeId,
-      currentPage,
-      searchQuery,
-      dateRange,
-      dateRange_start: dateRange.start,
-      dateRange_end: dateRange.end,
-    });
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await repository.getInvoices(
-        companyId,
-        storeId,
-        currentPage,
-        itemsPerPage,
-        searchQuery || null,
-        dateRange.start,
-        dateRange.end
-      );
-
-      console.log('🟡 useInvoice.loadInvoices - result:', result);
-      console.log('🟡 useInvoice - DETAILED RESULT:', {
-        success: result.success,
-        data_exists: !!result.data,
-        data_type: typeof result.data,
-        data_is_array: Array.isArray(result.data),
-        data_length: result.data?.length,
-        first_invoice: result.data?.[0],
-        pagination: result.pagination,
-      });
-
-      if (!result.success) {
-        console.log('❌ useInvoice - Result not successful:', result.error);
-        setError(result.error || 'Failed to load invoices');
-        setInvoices([]);
-        setPagination(null);
-        return;
-      }
-
-      console.log('🟢 useInvoice - Setting invoices:', result.data?.length || 0);
-      setInvoices(result.data || []);
-      setPagination(result.pagination || null);
-      console.log('🟡 useInvoice.loadInvoices - success, invoices:', result.data?.length);
-    } catch (err) {
-      console.error('❌ useInvoice.loadInvoices - error:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setInvoices([]);
-      setPagination(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, storeId, currentPage, itemsPerPage, searchQuery, dateRange]);
-
+  // ========== Auto-load Invoices on Mount or Filter Changes ==========
   useEffect(() => {
     if (companyId && companyId !== '') {
       console.log('🟡 useInvoice - useEffect triggered, loading invoices...');
-      loadInvoices();
+      loadInvoices(companyId);
     } else {
       console.log('🟡 useInvoice - No companyId, skipping load');
-      setLoading(false);
     }
-  }, [companyId, storeId, currentPage, searchQuery, dateRange, loadInvoices]);
+  }, [companyId, selectedStoreId, currentPage, searchQuery, dateRange, loadInvoices]);
 
-  const changeDateRange = useCallback((start: string, end: string) => {
-    console.log('🟡 useInvoice.changeDateRange:', { start, end });
-    setDateRange({ start, end });
-    setCurrentPage(1); // Reset to first page
-  }, []);
+  // ========== Wrapped Actions with Enhanced Logic ==========
+  const handleStoreChange = (storeId: string | null) => {
+    console.log('🟢 useInvoice.handleStoreChange - storeId:', storeId);
+    setSelectedStoreId(storeId);
+  };
 
-  const changeSearch = useCallback((query: string) => {
-    console.log('🟡 useInvoice.changeSearch:', query);
-    setSearchQuery(query);
-    setCurrentPage(1); // Reset to first page
-  }, []);
+  const handleDateFilterChange = (filter: DateFilterType, start: string, end: string) => {
+    console.log('🟢 useInvoice.handleDateFilterChange:', { filter, start, end });
+    setActiveFilter(filter);
+    changeDateRange(start, end);
+  };
 
-  const changePage = useCallback((page: number) => {
-    console.log('🟡 useInvoice.changePage:', page);
-    setCurrentPage(page);
-  }, []);
+  const handleRefresh = () => {
+    console.log('🟢 useInvoice.handleRefresh - reloading...');
+    refresh(companyId);
+  };
 
-  const refresh = useCallback(() => {
-    console.log('🟡 useInvoice.refresh - reloading invoices...');
-    loadInvoices();
-  }, [loadInvoices]);
-
-  const refundInvoice = useCallback(async (invoiceId: string, refundReason?: string, createdBy?: string) => {
-    console.log('🟡 useInvoice.refundInvoice - starting...', { invoiceId, refundReason });
-
-    try {
-      const result = await repository.refundInvoice(invoiceId, refundReason, createdBy);
-
-      if (!result.success) {
-        console.error('❌ useInvoice.refundInvoice - failed:', result.error);
-        return {
-          success: false,
-          error: result.error || 'Failed to refund invoice',
-        };
-      }
-
-      console.log('🟢 useInvoice.refundInvoice - success');
-      return {
-        success: true,
-        message: result.message || 'Invoice refunded successfully',
-      };
-    } catch (err) {
-      console.error('❌ useInvoice.refundInvoice - error:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'An unexpected error occurred',
-      };
-    }
-  }, []);
-
+  // ========== Return Interface ==========
   return {
+    // State
     invoices,
     loading,
     error,
@@ -156,10 +78,23 @@ export const useInvoice = (companyId: string, storeId: string | null) => {
     currentPage,
     searchQuery,
     dateRange,
-    changeDateRange,
+    selectedStoreId,
+    activeFilter,
+    selectedInvoice,
+    invoiceDetail,
+    detailLoading,
+    refunding,
+
+    // Actions
+    setSelectedStoreId: handleStoreChange,
+    setActiveFilter,
+    setSelectedInvoice,
+    changeDateRange: handleDateFilterChange,
     changeSearch,
     changePage,
-    refresh,
+    fetchInvoiceDetail,
     refundInvoice,
+    refresh: handleRefresh,
+    clearDetail,
   };
 };

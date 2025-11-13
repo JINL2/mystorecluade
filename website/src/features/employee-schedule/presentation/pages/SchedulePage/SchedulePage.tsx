@@ -3,7 +3,7 @@
  * Employee schedule management with weekly calendar view
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useSchedule } from '../../hooks/useSchedule';
@@ -14,13 +14,10 @@ import styles from './SchedulePage.module.css';
 
 export const SchedulePage: React.FC<SchedulePageProps> = () => {
   const { currentCompany, currentStore } = useAppState();
-  const [selectedStoreForSchedule, setSelectedStoreForSchedule] = useState<string | null>(null);
 
   const companyId = currentCompany?.company_id || '';
 
-  // Use selected store for schedule, or current store as fallback
-  const scheduleStoreId = selectedStoreForSchedule || currentStore?.store_id || '';
-
+  // Get selected store from provider, fallback to current store
   const {
     shifts,
     loading,
@@ -31,7 +28,9 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     goToCurrentWeek,
     getAssignmentsForDate,
     getWeekDays,
-  } = useSchedule(companyId, scheduleStoreId);
+    selectedStoreId,
+    setSelectedStore,
+  } = useSchedule(companyId, selectedStoreId || currentStore?.store_id || '');
 
   // Get all stores from current company
   const stores = currentCompany?.stores || [];
@@ -41,12 +40,12 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
 
   // Handler to show schedule for selected store
   const handleStoreClick = (storeId: string) => {
-    setSelectedStoreForSchedule(storeId);
+    setSelectedStore(storeId);
   };
 
   // Handler to go back to dashboard
   const handleBackToDashboard = () => {
-    setSelectedStoreForSchedule(null);
+    setSelectedStore(null);
   };
 
   // Format week display
@@ -88,7 +87,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
   }
 
   // If no store is selected for schedule, show dashboard
-  if (!selectedStoreForSchedule) {
+  if (!selectedStoreId) {
     return (
       <>
         <Navbar activeItem="employee" />
@@ -240,7 +239,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
   const weekDays = getWeekDays();
 
   // Get selected store name
-  const selectedStore = stores.find((s) => s.store_id === selectedStoreForSchedule);
+  const selectedStore = stores.find((s) => s.store_id === selectedStoreId);
   const selectedStoreName = selectedStore?.store_name || 'Store';
 
   return (

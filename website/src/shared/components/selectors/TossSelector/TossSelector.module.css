@@ -15,6 +15,47 @@
   width: 100%;
 }
 
+/* Inline mode for table cells */
+.tossSelectorGroup.inline {
+  gap: 0;
+}
+
+.tossSelectorGroup.inline .tossSelect {
+  padding: 8px 12px;
+  border-radius: 0;
+  border: none;
+  background: transparent !important;
+  min-height: auto;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: #212529;
+}
+
+.tossSelectorGroup.inline .tossSelect:hover:not(:disabled) {
+  background: var(--toss-gray-50, #F8F9FA) !important;
+}
+
+.tossSelectorGroup.inline .tossSelect:focus:not(:disabled) {
+  background: #f0f7ff !important;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.tossSelectorGroup.inline .tossSelect:disabled {
+  background: #F1F3F5 !important;
+  color: #ADB5BD !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.tossSelectorGroup.inline .tossSelectActive {
+  background: #f0f7ff !important;
+  border: none;
+  box-shadow: none;
+}
+
 /* Label */
 .tossSelectLabel {
   font-size: 14px;

@@ -5,9 +5,9 @@
 
 /* ==================== PAGE LAYOUT ==================== */
 .container {
-  max-width: 1200px;
+  max-width: 1400px;  /* Match BalanceSheetPage */
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
+  padding: 32px;  /* Match BalanceSheetPage */
 }
 
 /* ==================== PAGE HEADER ==================== */
@@ -90,6 +90,252 @@
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-4);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ==================== INPUT METHOD TABS ==================== */
+.tabsContainer {
+  margin-bottom: var(--space-4);
+}
+
+.tabsWrapper {
+  display: flex;
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  position: relative;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: var(--space-3);
+  text-align: center;
+  border-radius: var(--radius-md);
+  font-size: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1;
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--toss-gray-600);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tab.active {
+  color: white;
+}
+
+.tabsWrapper::before {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  width: calc(50% - var(--space-1));
+  height: calc(100% - var(--space-2));
+  background: var(--toss-primary);
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-base);
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.3);
+  transform: translateX(0);  /* Excel tab is first (default) */
+}
+
+.tabsWrapper.iconActive::before {
+  transform: translateX(100%);  /* Slide to Icon tab (second position) */
+}
+
+.tabIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ==================== EXCEL TAB CONTENT ==================== */
+.excelTabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow: visible;
+}
+
+.excelTableCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: visible;
+  position: relative;
+}
+
+.excelTableWrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-md);
+  position: static;
+}
+
+.excelTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 14px;
+}
+
+.excelTable thead {
+  background: var(--toss-gray-100);
+  position: sticky;
+  top: 0;
+  z-index: 0;
+}
+
+.excelHeaderCell {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--toss-gray-900);
+  border-right: 1px solid var(--toss-gray-200);
+  border-bottom: 2px solid var(--toss-gray-300);
+  white-space: nowrap;
+  background: var(--toss-gray-100);
+}
+
+.excelHeaderCell:last-child {
+  border-right: none;
+}
+
+.excelDataRow {
+  transition: background var(--transition-fast);
+}
+
+.excelDataRow:hover {
+  background: var(--toss-gray-50);
+}
+
+.excelCell {
+  padding: 0;
+  border-right: 1px solid var(--toss-gray-200);
+  border-bottom: 1px solid var(--toss-gray-200);
+  background: white;
+}
+
+.excelCell:last-child {
+  border-right: none;
+}
+
+.excelInput,
+.excelSelect {
+  width: 100%;
+  height: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--toss-gray-900);
+  outline: none;
+  transition: background var(--transition-fast);
+}
+
+.excelInput:focus,
+.excelSelect:focus {
+  background: rgba(0, 100, 255, 0.05);
+  outline: 2px solid var(--toss-primary);
+  outline-offset: -2px;
+}
+
+.excelInput::placeholder {
+  color: var(--toss-gray-400);
+}
+
+.excelInput[type="number"] {
+  text-align: right;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.excelInput[type="date"] {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.excelSelect {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.excelActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--toss-gray-200);
+}
+
+/* TossSelector inside Excel cell - remove padding and labels */
+.excelCell :global(.tossSelectorGroup) {
+  width: 100%;
+}
+
+.excelCell :global(.tossSelectLabel) {
+  display: none;
+}
+
+.excelCell :global(.tossSelectContainer) {
+  width: 100%;
+  position: relative;
+}
+
+.excelCell :global(.tossSelect) {
+  min-height: unset;
+  height: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.excelCell :global(.tossSelect:hover) {
+  background: transparent;
+  border: none;
+}
+
+.excelCell :global(.tossSelect:focus),
+.excelCell :global(.tossSelectActive) {
+  background: rgba(0, 100, 255, 0.05);
+  border: none;
+  box-shadow: none;
+  outline: 2px solid var(--toss-primary);
+  outline-offset: -2px;
+}
+
+.excelCell :global(.tossSelectMenu) {
+  z-index: 1000;
+}
+
+.excelCell :global(.tossSelectMessage) {
+  display: none;
+}
+
+/* Remove number input arrows */
+.excelInput[type="number"]::-webkit-inner-spin-button,
+.excelInput[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.excelInput[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* ==================== BALANCE SUMMARY ==================== */
@@ -552,6 +798,36 @@
   }
 
   .actionsFooter {
+    flex-direction: column;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: var(--font-small);
+    gap: 6px;
+  }
+
+  .tabIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .excelTableCard {
+    padding: var(--space-3);
+  }
+
+  .excelHeaderCell {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .excelInput,
+  .excelSelect {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .excelActions {
     flex-direction: column;
   }
 

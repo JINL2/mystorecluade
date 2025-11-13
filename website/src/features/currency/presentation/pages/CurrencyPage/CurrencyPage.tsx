@@ -1,4 +1,17 @@
-import React, { useState } from 'react';
+/**
+ * CurrencyPage Component
+ *
+ * Main page for currency management following ARCHITECTURE.md pattern.
+ * This component focuses ONLY on UI rendering - all state management
+ * is handled by the Zustand store via useCurrency hook.
+ *
+ * Key principles:
+ * - No local useState (all state in Zustand store)
+ * - Clean, focused component for UI only
+ * - Uses selector optimization through useCurrency hook
+ */
+
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -8,7 +21,6 @@ import { useAppState } from '@/app/providers/app_state_provider';
 import { useCurrency } from '../../hooks/useCurrency';
 import { EditCurrencyModal } from '../../components/EditCurrencyModal/EditCurrencyModal';
 import { AddCurrencyModal } from '../../components/AddCurrencyModal/AddCurrencyModal';
-import { Currency } from '../../../domain/entities/Currency';
 import styles from './CurrencyPage.module.css';
 
 export const CurrencyPage: React.FC = () => {
@@ -28,16 +40,42 @@ export const CurrencyPage: React.FC = () => {
     }
   }
 
-  const { currencies, loading, getAllCurrencyTypes, updateExchangeRate, addCurrency, removeCurrency } = useCurrency(
-    currentCompany?.company_id || '',
-    userId
-  );
-  const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [notification, setNotification] = useState<{ variant: 'success' | 'error'; message: string } | null>(null);
-  const [currencyToRemove, setCurrencyToRemove] = useState<Currency | null>(null);
-  const [isRemoving, setIsRemoving] = useState(false);
+  // ========================================
+  // Zustand Store Access (No Local State!)
+  // All state management delegated to useCurrency hook
+  // ========================================
+  const {
+    // Core data state
+    currencies,
+    loading,
 
+    // UI state
+    editingCurrency,
+    showAddModal,
+    currencyToRemove,
+    isRemoving,
+    notification,
+
+    // State setters
+    setEditingCurrency,
+    setShowAddModal,
+    setCurrencyToRemove,
+    clearNotification,
+
+    // Async operations
+    getAllCurrencyTypes,
+    updateExchangeRate,
+    addCurrency,
+
+    // UI action handlers
+    handleEditCurrency,
+    handleRemoveCurrency,
+    confirmRemoveCurrency,
+  } = useCurrency(currentCompany?.company_id || '', userId);
+
+  // ========================================
+  // Loading State
+  // ========================================
   if (loading) {
     return (
       <>
@@ -51,6 +89,9 @@ export const CurrencyPage: React.FC = () => {
     );
   }
 
+  // ========================================
+  // No Company State
+  // ========================================
   if (!currentCompany) {
     return (
       <>
@@ -67,61 +108,22 @@ export const CurrencyPage: React.FC = () => {
     );
   }
 
+  // ========================================
+  // Computed Values (from state)
+  // ========================================
   const totalCurrencies = currencies.length;
   const activeCurrencies = currencies.length;
   const primaryCurrency = currencies.find(c => c.isDefault);
 
-  const handleEditCurrency = (currency: Currency) => {
-    setEditingCurrency(currency);
-  };
-
-  const handleSaveExchangeRate = async (currencyId: string, newRate: number | string) => {
-    return await updateExchangeRate(currencyId, newRate);
-  };
-
-  const handleRemoveCurrency = (currency: Currency) => {
-    // Prevent removing base currency
-    if (currency.isDefault) {
-      setNotification({
-        variant: 'error',
-        message: 'Cannot remove the base currency. Please change the base currency in company settings first.'
-      });
-      setTimeout(() => setNotification(null), 3000);
-      return;
-    }
-
-    // Show confirm modal
-    setCurrencyToRemove(currency);
-  };
-
-  const handleConfirmRemove = async () => {
-    if (!currencyToRemove) return;
-
-    setIsRemoving(true);
-    const result = await removeCurrency(currencyToRemove.currencyId);
-    setIsRemoving(false);
-
-    if (result.success) {
-      setNotification({
-        variant: 'success',
-        message: `${currencyToRemove.code} removed successfully!`
-      });
-      setTimeout(() => setNotification(null), 2000);
-      setCurrencyToRemove(null);
-    } else {
-      setNotification({
-        variant: 'error',
-        message: result.error || 'Failed to remove currency'
-      });
-      setTimeout(() => setNotification(null), 3000);
-    }
-  };
-
+  // ========================================
+  // Main UI Render (Clean, focused on presentation only)
+  // ========================================
   return (
     <>
       <Navbar activeItem="setting" />
       <div className={styles.pageContainer}>
         <main className={styles.pageContent}>
+          {/* Page Header */}
           <div className={styles.pageHeader}>
             <div className={styles.pageHeaderContent}>
               <h1 className={styles.pageTitle}>Currency Settings</h1>
@@ -135,6 +137,7 @@ export const CurrencyPage: React.FC = () => {
             </TossButton>
           </div>
 
+          {/* Stats Cards */}
           {currencies.length > 0 && (
             <div className={styles.statsCard}>
               <div className={styles.statsGrid}>
@@ -154,6 +157,7 @@ export const CurrencyPage: React.FC = () => {
             </div>
           )}
 
+          {/* Currency List */}
           <div className={styles.currencySection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Configured Currencies</h2>
@@ -195,34 +199,22 @@ export const CurrencyPage: React.FC = () => {
         </main>
       </div>
 
+      {/* Add Currency Modal */}
       <AddCurrencyModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         existingCurrencies={currencies}
         baseCurrencyCode={primaryCurrency?.code || ''}
         onGetAllCurrencyTypes={getAllCurrencyTypes}
-        onAddCurrency={async (currencyId: string, exchangeRate: number | string) => {
-          const result = await addCurrency(currencyId, exchangeRate);
-          if (result.success) {
-            // Find currency name for success message
-            const allTypes = await getAllCurrencyTypes();
-            const addedCurrency = allTypes.find(ct => ct.currencyId === currencyId);
-            setNotification({
-              variant: 'success',
-              message: `${addedCurrency?.code || 'Currency'} added successfully!`
-            });
-            setTimeout(() => setNotification(null), 2000);
-            // Modal will be closed by AddCurrencyModal's onClose() call
-          }
-          return result;
-        }}
+        onAddCurrency={addCurrency}
       />
 
+      {/* Edit Currency Modal */}
       <EditCurrencyModal
         currency={editingCurrency}
         baseCurrencyCode={primaryCurrency?.code || ''}
         onClose={() => setEditingCurrency(null)}
-        onSave={handleSaveExchangeRate}
+        onSave={updateExchangeRate}
       />
 
       {/* Global Notification Message */}
@@ -230,7 +222,7 @@ export const CurrencyPage: React.FC = () => {
         variant={notification?.variant || 'error'}
         message={notification?.message || ''}
         isOpen={!!notification}
-        onClose={() => setNotification(null)}
+        onClose={clearNotification}
         autoCloseDuration={2000}
         zIndex={10000}
       />
@@ -239,7 +231,7 @@ export const CurrencyPage: React.FC = () => {
       <ConfirmModal
         isOpen={!!currencyToRemove}
         onClose={() => setCurrencyToRemove(null)}
-        onConfirm={handleConfirmRemove}
+        onConfirm={confirmRemoveCurrency}
         variant="error"
         title="Remove Currency"
         message={`Are you sure you want to remove ${currencyToRemove?.code}? This action cannot be undone.`}

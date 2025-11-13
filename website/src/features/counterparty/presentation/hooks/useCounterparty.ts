@@ -1,111 +1,79 @@
 /**
  * useCounterparty Hook
- * Feature-specific business logic execution (Validation + Repository)
+ * Custom hook wrapper for counterparty store (2025 Best Practice)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Counterparty, CounterpartyTypeValue } from '../../domain/entities/Counterparty';
-import { CounterpartyRepositoryImpl } from '../../data/repositories/CounterpartyRepositoryImpl';
-import { CounterpartyValidator } from '../../domain/validators/CounterpartyValidator';
+import { useCounterpartyStore } from '../providers/counterparty_provider';
 
-export const useCounterparty = (companyId: string) => {
-  const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const repository = new CounterpartyRepositoryImpl();
+/**
+ * Custom hook that provides access to counterparty state and actions
+ * Uses Zustand store for state management
+ */
+export const useCounterparty = () => {
+  // Select state (optimized selectors to prevent unnecessary re-renders)
+  const counterparties = useCounterpartyStore((state) => state.counterparties);
+  const loading = useCounterpartyStore((state) => state.loading);
+  const error = useCounterpartyStore((state) => state.error);
 
-  const loadCounterparties = useCallback(async () => {
-    if (!companyId) {
-      setCounterparties([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await repository.getCounterparties(companyId);
-      if (!result.success) {
-        setError(result.error || 'Failed to load');
-        setCounterparties([]);
-        return;
-      }
-      setCounterparties(result.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error occurred');
-      setCounterparties([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId]);
+  const showModal = useCounterpartyStore((state) => state.showModal);
+  const showDeleteModal = useCounterpartyStore((state) => state.showDeleteModal);
+  const deleteId = useCounterpartyStore((state) => state.deleteId);
 
-  useEffect(() => {
-    loadCounterparties();
-  }, [loadCounterparties]);
+  const formData = useCounterpartyStore((state) => state.formData);
+  const isFormValid = useCounterpartyStore((state) => state.isFormValid);
+  const internalCounterparties = useCounterpartyStore((state) => state.internalCounterparties);
+  const externalCounterparties = useCounterpartyStore((state) => state.externalCounterparties);
 
-  const createCounterparty = useCallback(
-    async (
-      name: string,
-      type: CounterpartyTypeValue,
-      isInternal: boolean,
-      linkedCompanyId: string | null,
-      email: string | null,
-      phone: string | null,
-      notes: string | null
-    ) => {
-      // 1. Check company ID
-      if (!companyId) {
-        return { success: false, error: 'Company ID required' };
-      }
+  // Select actions
+  const setCounterparties = useCounterpartyStore((state) => state.setCounterparties);
+  const setLoading = useCounterpartyStore((state) => state.setLoading);
+  const setError = useCounterpartyStore((state) => state.setError);
 
-      // 2. Validate input data (Validator 호출 - 검증 실행)
-      const validationErrors = CounterpartyValidator.validateCreate({
-        name,
-        type,
-        isInternal,
-        linkedCompanyId,
-        email,
-        phone,
-        notes,
-      });
+  const setShowModal = useCounterpartyStore((state) => state.setShowModal);
+  const setShowDeleteModal = useCounterpartyStore((state) => state.setShowDeleteModal);
+  const setDeleteId = useCounterpartyStore((state) => state.setDeleteId);
+  const openCreateModal = useCounterpartyStore((state) => state.openCreateModal);
+  const closeCreateModal = useCounterpartyStore((state) => state.closeCreateModal);
+  const openDeleteModal = useCounterpartyStore((state) => state.openDeleteModal);
+  const closeDeleteModal = useCounterpartyStore((state) => state.closeDeleteModal);
 
-      if (validationErrors.length > 0) {
-        return {
-          success: false,
-          error: validationErrors[0].message,
-        };
-      }
+  const setFormData = useCounterpartyStore((state) => state.setFormData);
+  const updateFormField = useCounterpartyStore((state) => state.updateFormField);
+  const resetForm = useCounterpartyStore((state) => state.resetForm);
 
-      // 3. Execute repository operation (Repository 호출 - 데이터 처리)
-      const result = await repository.createCounterparty(
-        companyId,
-        name,
-        type,
-        isInternal,
-        linkedCompanyId,
-        email,
-        phone,
-        notes
-      );
+  const loadCounterparties = useCounterpartyStore((state) => state.loadCounterparties);
+  const submitCounterparty = useCounterpartyStore((state) => state.submitCounterparty);
+  const confirmDelete = useCounterpartyStore((state) => state.confirmDelete);
 
-      // 4. Reload data if successful
-      if (result.success) {
-        await loadCounterparties();
-      }
+  return {
+    // State
+    counterparties,
+    loading,
+    error,
+    showModal,
+    showDeleteModal,
+    deleteId,
+    formData,
+    isFormValid,
+    internalCounterparties,
+    externalCounterparties,
 
-      return result;
-    },
-    [companyId, loadCounterparties]
-  );
-
-  const deleteCounterparty = useCallback(
-    async (counterpartyId: string) => {
-      if (!companyId) return { success: false, error: 'Company ID required' };
-      const result = await repository.deleteCounterparty(counterpartyId, companyId);
-      if (result.success) await loadCounterparties();
-      return result;
-    },
-    [companyId, loadCounterparties]
-  );
-
-  return { counterparties, loading, error, createCounterparty, deleteCounterparty, refresh: loadCounterparties };
+    // Actions
+    setCounterparties,
+    setLoading,
+    setError,
+    setShowModal,
+    setShowDeleteModal,
+    setDeleteId,
+    openCreateModal,
+    closeCreateModal,
+    openDeleteModal,
+    closeDeleteModal,
+    setFormData,
+    updateFormField,
+    resetForm,
+    loadCounterparties,
+    submitCounterparty,
+    confirmDelete,
+  };
 };

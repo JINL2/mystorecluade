@@ -9,7 +9,6 @@ import {
   InvoiceDetailResult,
   RefundResult,
 } from '../../domain/repositories/IInvoiceRepository';
-import { Invoice } from '../../domain/entities/Invoice';
 import { InvoiceDataSource } from '../datasources/InvoiceDataSource';
 import { InvoiceModel } from '../models/InvoiceModel';
 

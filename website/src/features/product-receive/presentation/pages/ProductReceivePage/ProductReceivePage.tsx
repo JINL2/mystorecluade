@@ -3,7 +3,7 @@
  * Main page for product receiving
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -16,7 +16,6 @@ import styles from './ProductReceivePage.module.css';
 
 export const ProductReceivePage: React.FC = () => {
   const { currentCompany, currentStore, setCurrentStore } = useAppState();
-  const [productSearchTerm, setProductSearchTerm] = useState('');
   const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
 
   const {
@@ -24,9 +23,10 @@ export const ProductReceivePage: React.FC = () => {
     selectedOrder,
     selectOrder,
     loadingOrders,
-    orderProducts,
+    filteredProducts,
+    productSearchTerm,
+    setProductSearchTerm,
     scannedItems,
-    totalScannedCount,
     skuInput,
     handleSkuInput,
     autocompleteResults,
@@ -83,17 +83,6 @@ export const ProductReceivePage: React.FC = () => {
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
-
-  // Filter products by search term
-  const filteredProducts = useMemo(() => {
-    if (!productSearchTerm.trim()) return orderProducts;
-    const term = productSearchTerm.toLowerCase();
-    return orderProducts.filter(
-      (p) =>
-        p.productName.toLowerCase().includes(term) ||
-        p.sku.toLowerCase().includes(term)
-    );
-  }, [orderProducts, productSearchTerm]);
 
   if (!currentCompany) {
     return (

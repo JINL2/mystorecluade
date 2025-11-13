@@ -1,9 +1,14 @@
 /**
  * IncomeStatementPage Component
- * Complete implementation matching backup functionality
+ * Complete implementation following ARCHITECTURE.md pattern
+ *
+ * State Management:
+ * - Uses Zustand provider (no local useState)
+ * - All state managed by income_statement_provider
+ * - Clean separation of concerns
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -22,6 +27,7 @@ export const IncomeStatementPage: React.FC = () => {
   const {
     monthlyData,
     twelveMonthData,
+    currentFilters,
     currency,
     loading,
     messageState,
@@ -29,14 +35,12 @@ export const IncomeStatementPage: React.FC = () => {
     loadMonthlyData,
     load12MonthData,
     clearData,
+    setCurrentFilters,
   } = useIncomeStatement();
-
-  const [currentFilters, setCurrentFilters] = useState<IncomeStatementFilters | null>(null);
 
   // Handle company change
   useEffect(() => {
     clearData();
-    setCurrentFilters(null);
   }, [currentCompany?.company_id, clearData]);
 
   // Handle search
@@ -46,6 +50,7 @@ export const IncomeStatementPage: React.FC = () => {
       return;
     }
 
+    // Update filters in provider
     setCurrentFilters(filters);
 
     const storeId = filters.store || null;
@@ -70,7 +75,6 @@ export const IncomeStatementPage: React.FC = () => {
   // Handle clear
   const handleClear = () => {
     clearData();
-    setCurrentFilters(null);
   };
 
   // Format number with currency

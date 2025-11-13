@@ -119,7 +119,7 @@ export class JournalInputDataSource {
   async submitJournalEntry(params: {
     companyId: string;
     storeId: string | null;
-    date: string;
+    date: string | Date;
     createdBy: string;
     description: string;
     transactionLines: Array<{
@@ -193,11 +193,20 @@ export class JournalInputDataSource {
       return transformedLine;
     });
 
-    // Convert date string (yyyy-MM-dd) to current datetime in UTC RPC format
+    // Convert date (string or Date) to UTC RPC format
     // Use DateTimeUtils.toRpcFormat() for consistent timezone handling
-    const now = new Date();
-    const [year, month, day] = params.date.split('-').map(Number);
-    const dateWithTime = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+    let dateWithTime: Date;
+
+    if (params.date instanceof Date) {
+      // Already a Date object with time components
+      dateWithTime = params.date;
+    } else {
+      // Convert date string (yyyy-MM-dd) to Date with current time
+      const now = new Date();
+      const [year, month, day] = params.date.split('-').map(Number);
+      dateWithTime = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+    }
+
     const utcEntryDate = DateTimeUtils.toRpcFormat(dateWithTime);
 
     // Extract main counterparty_id (first counterparty found in transaction lines)

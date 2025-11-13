@@ -123,6 +123,8 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   showDescriptions = false,
   emptyMessage = 'No options available',
   showBadges = false,
+  inline = false,
+  editable = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,6 +185,35 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
     }
   };
 
+  // Handle input change for inline mode
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  };
+
+  // Handle input focus for inline mode
+  const handleInputFocus = () => {
+    if (!disabled && inline) {
+      setIsOpen(true);
+    }
+  };
+
+  // Handle Enter key in inline input
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && filteredOptions.length > 0) {
+      e.preventDefault();
+      const firstOption = filteredOptions[0];
+      if (!firstOption.disabled) {
+        handleOptionClick(firstOption.value);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
   const handleAddClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onAddClick) {
@@ -194,6 +225,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
   const containerClasses = [
     styles.tossSelectorGroup,
     fullWidth ? styles.fullWidth : '',
+    inline ? styles.inline : '',
     className
   ].filter(Boolean).join(' ');
 
@@ -211,7 +243,7 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
 
   return (
     <div className={containerClasses} ref={containerRef}>
-      {label && (
+      {label && !inline && (
         <label
           htmlFor={id}
           className={`${styles.tossSelectLabel} ${required ? styles.required : ''}`}
@@ -221,30 +253,48 @@ export const TossSelector: React.FC<TossSelectorProps> = ({
       )}
 
       <div className={styles.tossSelectContainer}>
-        <button
-          type="button"
-          id={id}
-          className={selectClasses}
-          onClick={handleToggle}
-          disabled={disabled || loading}
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
-        >
-          <span className={`${styles.tossSelectValue} ${!displayValue ? styles.tossSelectPlaceholder : ''}`}>
-            {displayValue || placeholder}
-          </span>
+        {inline ? (
+          // Inline mode: Show input field
+          <input
+            type="text"
+            id={id}
+            className={selectClasses}
+            value={searchTerm || displayValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onKeyDown={handleInputKeyDown}
+            placeholder={placeholder}
+            disabled={disabled || loading}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+          />
+        ) : (
+          // Normal mode: Show button
+          <button
+            type="button"
+            id={id}
+            className={selectClasses}
+            onClick={handleToggle}
+            disabled={disabled || loading}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+          >
+            <span className={`${styles.tossSelectValue} ${!displayValue ? styles.tossSelectPlaceholder : ''}`}>
+              {displayValue || placeholder}
+            </span>
 
-          {loading ? (
-            <LoadingAnimation size="small" />
-          ) : (
-            <svg className={styles.tossSelectArrow} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7 10l5 5 5-5z"/>
-            </svg>
-          )}
-        </button>
+            {loading ? (
+              <LoadingAnimation size="small" />
+            ) : (
+              <svg className={styles.tossSelectArrow} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 10l5 5 5-5z"/>
+              </svg>
+            )}
+          </button>
+        )}
 
         <div className={menuClasses} style={{ maxHeight }}>
-          {searchable && (
+          {searchable && !inline && (
             <div className={styles.tossSelectSearch}>
               <input
                 ref={searchInputRef}

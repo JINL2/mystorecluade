@@ -112,7 +112,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     }
 
     // Create journal entry
-    const success = await createJournalEntry({
+    const result = await createJournalEntry({
       companyId,
       userId,
       storeId: modalState.storeId,
@@ -121,7 +121,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
       type: modalState.type
     });
 
-    if (success) {
+    if (result.success) {
       // Close modal
       closeModal();
 
@@ -138,7 +138,7 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     } else {
       showError({
         title: 'Creation Failed',
-        message: journalError || 'Failed to create journal entry. Please try again.'
+        message: result.error || journalError || 'Failed to create journal entry. Please try again.'
       });
     }
   };

@@ -1,41 +1,33 @@
 /**
  * BalanceSheetFilter Component
  * Filter component for balance sheet with store and date range selection
+ *
+ * Following Clean Architecture and 2025 Best Practice:
+ * - Uses Provider state instead of local useState (ARCHITECTURE.md compliance)
+ * - Feature-specific UI state managed in Zustand Provider
+ * - Receives stores and companyId as props from parent
  */
 
-import React, { useState } from 'react';
-import { useAppState } from '@/app/providers/app_state_provider';
+import React from 'react';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector/StoreSelector';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { BalanceSheetValidator } from '../../../domain/validators/BalanceSheetValidator';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { useBalanceSheet } from '../../hooks/useBalanceSheet';
 import { BalanceSheetFilterProps } from './BalanceSheetFilter.types';
 import styles from './BalanceSheetFilter.module.css';
 
-// Helper functions to get current month's first and last day
-// Uses DateTimeUtils to avoid timezone-related date shifting
-const getFirstDayOfMonth = (): string => {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  return DateTimeUtils.toDateOnly(firstDay);
-};
-
-const getLastDayOfMonth = (): string => {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return DateTimeUtils.toDateOnly(lastDay);
-};
-
-export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch, onClear }) => {
-  const { currentCompany } = useAppState();
-  const stores = currentCompany?.stores || [];
+export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({
+  stores = [],
+  companyId,
+  onSearch,
+  onClear,
+}) => {
   const { messageState, closeMessage, showWarning } = useErrorMessage();
 
-  const [storeId, setStoreId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>(getFirstDayOfMonth());
-  const [endDate, setEndDate] = useState<string>(getLastDayOfMonth());
+  // Use Provider state instead of local useState (ARCHITECTURE.md compliance)
+  const { storeId, startDate, endDate, setStoreId, setStartDate, setEndDate } = useBalanceSheet();
 
   const handleSearch = () => {
     // Validate date range
@@ -71,9 +63,7 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch
   };
 
   const handleClear = () => {
-    setStoreId(null);
-    setStartDate(getFirstDayOfMonth());
-    setEndDate(getLastDayOfMonth());
+    // clearFilters already resets to first/last day of month (Provider logic)
     onClear();
   };
 
@@ -96,7 +86,7 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch
               stores={stores}
               selectedStoreId={storeId}
               onStoreSelect={setStoreId}
-              companyId={currentCompany?.company_id || ''}
+              companyId={companyId || ''}
               showAllStoresOption={true}
               allStoresLabel="All Stores"
               width="100%"
@@ -108,7 +98,7 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch
             <input
               type="date"
               className={styles.dateInput}
-              value={startDate}
+              value={startDate || ''}
               onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
@@ -118,7 +108,7 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({ onSearch
             <input
               type="date"
               className={styles.dateInput}
-              value={endDate}
+              value={endDate || ''}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useStore } from '../../hooks/useStore';
+import { useStoreStore } from '../../providers/store_provider';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -11,21 +12,30 @@ export const StoreSettingPage: React.FC = () => {
   const { currentCompany } = useAppState();
   const { stores, loading, create, remove } = useStore(currentCompany?.company_id || '');
   const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteStoreId, setDeleteStoreId] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newAddress, setNewAddress] = useState('');
-  const [newPhone, setNewPhone] = useState('');
+
+  // Zustand store for modal and form state (2025 Best Practice)
+  const {
+    showAddModal,
+    setShowAddModal,
+    showDeleteModal,
+    setShowDeleteModal,
+    deleteStoreId,
+    setDeleteStoreId,
+    newName,
+    setNewName,
+    newAddress,
+    setNewAddress,
+    newPhone,
+    setNewPhone,
+    resetForm,
+  } = useStoreStore();
 
   const handleAdd = async () => {
     // 검증 로직은 useStore hook에서 처리됨 (StoreValidator 호출)
     const result = await create(newName, newAddress || null, newPhone || null);
     if (result.success) {
       setShowAddModal(false);
-      setNewName('');
-      setNewAddress('');
-      setNewPhone('');
+      resetForm(); // Zustand action to reset form state
       showSuccess({
         title: 'Store Created',
         message: `Store "${newName}" has been successfully created.`,

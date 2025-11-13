@@ -22,7 +22,7 @@ interface CreateJournalRpcParams {
   p_description: string;
   p_entry_date: string;
   p_lines: JournalLine[];
-  p_store_id: string;
+  p_store_id: string | null;
 }
 
 export class CashEndingDataSource {

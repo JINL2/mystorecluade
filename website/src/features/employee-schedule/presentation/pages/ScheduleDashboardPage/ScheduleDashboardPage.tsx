@@ -19,7 +19,7 @@ export const ScheduleDashboardPage: React.FC<ScheduleDashboardPageProps> = () =>
   const companyId = currentCompany?.company_id || '';
   const storeId = currentStore?.store_id || '';
 
-  // Get shifts data for displaying in store cards
+  // Get shifts data from provider for displaying in store cards
   const { shifts } = useSchedule(companyId, storeId);
 
   // Get all stores from current company

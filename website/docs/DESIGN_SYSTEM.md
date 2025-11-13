@@ -583,16 +583,58 @@ import { Navbar } from '@/shared/components/common/Navbar';
 
 ## Layout Patterns
 
-### Page Container
+### Page Container Standard (MANDATORY)
+
+**All feature pages MUST use these exact layout values for consistency:**
 
 ```css
 .container {
   flex: 1;
-  padding: 32px;
-  max-width: 1400px;
+  padding: 32px;              /* ⭐ REQUIRED: Standard horizontal padding */
+  max-width: 1400px;          /* ⭐ REQUIRED: Standard max content width */
   margin: 0 auto;
   width: 100%;
   background: var(--color-gray-50);
+}
+```
+
+**Standard Applied To:**
+- Balance Sheet Page ✅
+- Journal Input Page ✅
+- All feature pages (required for new pages)
+
+**Responsive Breakpoints:**
+```css
+/* Mobile (< 768px) */
+.container {
+  padding: 16px;
+}
+
+/* Tablet (768px - 1024px) */
+.container {
+  padding: 24px;
+}
+
+/* Desktop (> 1024px) */
+.container {
+  padding: 32px;
+  max-width: 1400px;
+}
+```
+
+**Implementation Example:**
+```css
+/* ❌ WRONG - Inconsistent values */
+.container {
+  max-width: 1200px;  /* Wrong max-width */
+  padding: var(--space-6) var(--space-5);  /* Inconsistent padding */
+}
+
+/* ✅ CORRECT - Standard values */
+.container {
+  max-width: 1400px;  /* Standard max-width */
+  padding: 32px;      /* Standard padding */
+  margin: 0 auto;
 }
 ```
 
