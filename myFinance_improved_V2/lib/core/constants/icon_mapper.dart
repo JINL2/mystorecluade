@@ -20,12 +20,20 @@ class IconMapper {
 
   /// DB의 icon_key 문자열을 IconData로 변환 (순수 데이터 기반)
   static IconData getIcon(String? iconKey, {String? featureName}) {
+    // Debug logging
+    print('🔑 IconMapper.getIcon() called:');
+    print('   - iconKey: "$iconKey"');
+    print('   - featureName: "$featureName"');
+
     // Only use iconKey from database - no hardcoded fallbacks
     if (iconKey == null || iconKey.isEmpty) {
+      print('   ❌ iconKey is null/empty → returning circleQuestion');
       return FontAwesomeIcons.circleQuestion; // Default when no data
     }
 
-    return _getIconFromKey(iconKey);
+    final result = _getIconFromKey(iconKey);
+    print('   ✅ Resolved to: ${result.toString()}');
+    return result;
   }
 
 
@@ -40,6 +48,54 @@ class IconMapper {
       'chartPie': FontAwesomeIcons.chartPie,
       'chartPieRegular': FontAwesomeIcons.chartPie,
       'chartBar': FontAwesomeIcons.chartColumn,
+
+      // ✅ Store & Inventory Management
+      'store': FontAwesomeIcons.store,
+      'storeAlt': FontAwesomeIcons.shopSlash,
+      'inventory': FontAwesomeIcons.boxesStacked,
+      'inventoryManagement': FontAwesomeIcons.boxesStacked,
+      'box': FontAwesomeIcons.box,
+      'boxes': FontAwesomeIcons.boxesStacked,
+      'boxesStacked': FontAwesomeIcons.boxesStacked,
+      'warehouse': FontAwesomeIcons.warehouse,
+
+      // ✅ Sales & Shopping
+      'sale': FontAwesomeIcons.tag,
+      'saleProduct': FontAwesomeIcons.tags,
+      'sales': FontAwesomeIcons.receipt,
+      'salesInvoice': FontAwesomeIcons.fileInvoiceDollar,
+      'invoice': FontAwesomeIcons.fileInvoice,
+      'receipt': FontAwesomeIcons.receipt,
+      'shopping': FontAwesomeIcons.bagShopping,
+      'shoppingBag': FontAwesomeIcons.bagShopping,
+      'shoppingCart': FontAwesomeIcons.cartShopping,
+      'cart': FontAwesomeIcons.cartShopping,
+      'tag': FontAwesomeIcons.tag,
+      'tags': FontAwesomeIcons.tags,
+
+      // ✅ Settings & Configuration
+      'storeSetting': FontAwesomeIcons.gear,
+      'setting': FontAwesomeIcons.gear,
+      'settings': FontAwesomeIcons.gear,
+
+      // ✅ User & Profile
+      'user': FontAwesomeIcons.userLarge,
+      'userLarge': FontAwesomeIcons.userLarge,
+      'myPage': FontAwesomeIcons.userLarge,
+      'profile': FontAwesomeIcons.userLarge,
+
+      // ✅ Edit & Modify
+      'edit': FontAwesomeIcons.penToSquare,
+      'editAlt': FontAwesomeIcons.pen,
+
+      // ✅ Payment & Cards
+      'creditCard': FontAwesomeIcons.creditCard,
+      'card': FontAwesomeIcons.creditCard,
+      'payment': FontAwesomeIcons.creditCard,
+
+      // ✅ Shopping Bag
+      'bag': FontAwesomeIcons.bagShopping,
+      'shoppingBag': FontAwesomeIcons.bagShopping,
       
       // 계정 & 매핑
       'sitemap': FontAwesomeIcons.sitemap,
@@ -113,14 +169,71 @@ class IconMapper {
       'mapLocation': FontAwesomeIcons.mapLocationDot,
       'mapLocationRegular': FontAwesomeIcons.mapLocationDot,
       
+      // 설정 & 관리 - Settings & Management
+      'gear': FontAwesomeIcons.gear,
+      'gears': FontAwesomeIcons.gears,
+      'settings': FontAwesomeIcons.gear,
+      'sliders': FontAwesomeIcons.sliders,
+      'slidersH': FontAwesomeIcons.sliders,
+      'wrench': FontAwesomeIcons.wrench,
+      'screwdriver': FontAwesomeIcons.screwdriver,
+      'screwdriverWrench': FontAwesomeIcons.screwdriverWrench,
+      'toolbox': FontAwesomeIcons.toolbox,
+
+      // 권한 & 역할 - Permissions & Roles
+      'userShieldAlt': FontAwesomeIcons.userShield,
+      'shieldHalved': FontAwesomeIcons.shieldHalved,
+      'shieldHeart': FontAwesomeIcons.shieldHeart,
+      'shield': FontAwesomeIcons.shield,
+      'lock': FontAwesomeIcons.lock,
+      'lockOpen': FontAwesomeIcons.lockOpen,
+      'unlock': FontAwesomeIcons.unlock,
+      'key': FontAwesomeIcons.key,
+      'fingerprint': FontAwesomeIcons.fingerprint,
+
+      // 팀 & 조직 - Team & Organization
+      'usersGear': FontAwesomeIcons.usersGear,
+      'peopleGroup': FontAwesomeIcons.peopleGroup,
+      'peopleLine': FontAwesomeIcons.peopleLine,
+      'peopleArrows': FontAwesomeIcons.peopleArrows,
+      'userGroup': FontAwesomeIcons.userGroup,
+      'usersLine': FontAwesomeIcons.usersLine,
+
+      // 문서 추가 - Additional Documents
+      'fileLines': FontAwesomeIcons.fileLines,
+      'fileCircleCheck': FontAwesomeIcons.fileCircleCheck,
+      'fileCirclePlus': FontAwesomeIcons.fileCirclePlus,
+      'fileShield': FontAwesomeIcons.fileShield,
+      'folder': FontAwesomeIcons.folder,
+      'folderOpen': FontAwesomeIcons.folderOpen,
+      'folderTree': FontAwesomeIcons.folderTree,
+
+      // 알림 & 커뮤니케이션 - Notifications & Communication
+      'bell': FontAwesomeIcons.bell,
+      'bellSlash': FontAwesomeIcons.bellSlash,
+      'envelope': FontAwesomeIcons.envelope,
+      'envelopeOpen': FontAwesomeIcons.envelopeOpen,
+      'message': FontAwesomeIcons.message,
+      'comment': FontAwesomeIcons.comment,
+      'comments': FontAwesomeIcons.comments,
+      'inbox': FontAwesomeIcons.inbox,
+
+      // 상태 & 액션 - Status & Actions
+      'check': FontAwesomeIcons.check,
+      'checkCircle': FontAwesomeIcons.circleCheck,
+      'checkDouble': FontAwesomeIcons.checkDouble,
+      'xmark': FontAwesomeIcons.xmark,
+      'ban': FontAwesomeIcons.ban,
+      'exclamation': FontAwesomeIcons.exclamation,
+      'exclamationCircle': FontAwesomeIcons.circleExclamation,
+      'exclamationTriangle': FontAwesomeIcons.triangleExclamation,
+
       // 기타 - Regular versions where available
       'handshake': FontAwesomeIcons.handshake,
       'handshakeRegular': FontAwesomeIcons.handshake,
       'wand': FontAwesomeIcons.wandMagicSparkles,
       'flask': FontAwesomeIcons.flask,
       'flaskRegular': FontAwesomeIcons.flask,
-      'gear': FontAwesomeIcons.gear,
-      'gears': FontAwesomeIcons.gears,
       'circleQuestion': FontAwesomeIcons.circleQuestion,
       'question': FontAwesomeIcons.question,
       'info': FontAwesomeIcons.info,
@@ -145,7 +258,15 @@ class IconMapper {
     };
 
     // 매핑된 아이콘 반환, 없으면 기본 아이콘
-    final result = iconMap[iconKey] ?? FontAwesomeIcons.circleQuestion;
+    final result = iconMap[iconKey];
+
+    if (result == null) {
+      print('   ⚠️ WARNING: No mapping found for iconKey="$iconKey"');
+      print('   → Add this to icon_mapper.dart:');
+      print('      \'$iconKey\': FontAwesomeIcons.yourIcon,');
+      return FontAwesomeIcons.circleQuestion;
+    }
+
     return result;
   }
 
@@ -238,9 +359,14 @@ class DynamicIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Debug logging
+    print('🎨 DynamicIcon - iconKey: $iconKey, featureName: $featureName');
+
     final iconData = IconMapper.getIcon(iconKey, featureName: featureName);
+    print('   - Resolved IconData: $iconData');
+
     // Ensure color is properly applied
-    final iconColor = color ?? 
+    final iconColor = color ??
                       (useDefaultColor ? IconMapper.getIconColor(iconKey) : Theme.of(context).iconTheme.color);
 
     return Center(

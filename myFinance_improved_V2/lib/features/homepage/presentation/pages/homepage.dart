@@ -172,19 +172,20 @@ class _HomepageState extends ConsumerState<Homepage> {
 
                     const SizedBox(width: 13),
 
-                    // Company • Store with chevrons
+                    // Store name (top) and Company name (bottom) with chevron
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Flexible(
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Company name
-                                Flexible(
-                                  child: Text(
-                                    companyName,
+                                // Store name (large, on top)
+                                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty)
+                                  Text(
+                                    storeName,
                                     style: TossTextStyles.bodyLarge.copyWith(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w700,
@@ -194,38 +195,19 @@ class _HomepageState extends ConsumerState<Homepage> {
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
+
+                                // Company name (small, on bottom)
+                                Text(
+                                  companyName,
+                                  style: TossTextStyles.caption.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: TossColors.textSecondary,
+                                    height: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-
-                                // Dot separator
-                                if (appState.storeChoosen.isNotEmpty) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                                    child: Text(
-                                      '·',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                        color: TossColors.textTertiary,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Store name
-                                  Flexible(
-                                    child: Text(
-                                      storeName,
-                                      style: TossTextStyles.bodyLarge.copyWith(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                        color: TossColors.textPrimary,
-                                        height: 1.2,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           ),
