@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/constants/icon_mapper.dart';
@@ -149,7 +149,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
-                    FontAwesomeIcons.store,
+                    LucideIcons.store,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
@@ -200,7 +200,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
             if (appState.storeChoosen.isEmpty)
               const TossEmptyView(
                 icon: Icon(
-                  FontAwesomeIcons.store,
+                  LucideIcons.store,
                   size: 64,
                   color: TossColors.gray400,
                 ),
@@ -214,7 +214,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                       children: [
                         const TossEmptyView(
                           icon: Icon(
-                            FontAwesomeIcons.clock,
+                            LucideIcons.clock,
                             size: 64,
                             color: TossColors.gray400,
                           ),
@@ -226,7 +226,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           onPressed: () {
                             _showAddShiftBottomSheet(context);
                           },
-                          icon: const Icon(FontAwesomeIcons.plus, size: TossSpacing.iconSM),
+                          icon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM),
                           label: const Text('Add Shift'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
@@ -256,7 +256,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                               _showAddShiftBottomSheet(context);
                             },
                             icon: const Icon(
-                              FontAwesomeIcons.plus,
+                              LucideIcons.plus,
                               color: TossColors.primary,
                               size: TossSpacing.iconSM,
                             ),
@@ -288,7 +288,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                 ),
                 error: (error, stack) => TossEmptyView(
                   icon: const Icon(
-                    FontAwesomeIcons.circleExclamation,
+                    LucideIcons.alertCircle,
                     size: 64,
                     color: TossColors.error,
                   ),
@@ -325,7 +325,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
             if (appState.storeChoosen.isEmpty)
               const TossEmptyView(
                 icon: Icon(
-                  FontAwesomeIcons.store,
+                  LucideIcons.store,
                   size: 64,
                   color: TossColors.gray400,
                 ),
@@ -337,7 +337,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                   if (store == null) {
                     return const TossEmptyView(
                       icon: Icon(
-                        FontAwesomeIcons.store,
+                        LucideIcons.store,
                         size: 64,
                         color: TossColors.gray400,
                       ),
@@ -384,7 +384,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                 ),
                 error: (error, stack) => TossEmptyView(
                   icon: const Icon(
-                    FontAwesomeIcons.circleExclamation,
+                    LucideIcons.alertCircle,
                     size: 64,
                     color: TossColors.error,
                   ),

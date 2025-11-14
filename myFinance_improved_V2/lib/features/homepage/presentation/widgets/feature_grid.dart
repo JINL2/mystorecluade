@@ -176,8 +176,8 @@ class _FeatureListItem extends StatelessWidget {
             children: [
               // Icon
               Container(
-                width: 44,
-                height: 44,
+                width: 36,
+                height: 36,
                 decoration: const BoxDecoration(
                   color: TossColors.gray100,
                   shape: BoxShape.circle,
@@ -394,8 +394,8 @@ class _LibraryCard extends StatelessWidget {
                   children: [
                     // Icon
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 36,
+                      height: 36,
                       decoration: const BoxDecoration(
                         color: TossColors.gray100,
                         shape: BoxShape.circle,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_icons_fa.dart';
+// import 'app_icons_fa.dart'; // Deprecated - use icon_mapper.dart instead
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -146,7 +146,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
             // Header
             Row(
               children: [
-                const FaIcon(
+                const Icon(
                   AppIcons.cart,
                   color: TossColors.primary,
                   size: TossSpacing.iconSM,

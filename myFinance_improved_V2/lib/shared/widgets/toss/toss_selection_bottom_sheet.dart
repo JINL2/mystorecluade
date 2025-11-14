@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../../core/constants/icon_mapper.dart';
@@ -134,7 +134,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     this.unselectedFontWeight = FontWeight.w400,
     this.unselectedIconColor = TossColors.gray600,
     this.borderBottomWidth = 1.0,
-    this.checkIcon = FontAwesomeIcons.circleCheck,
+    this.checkIcon = LucideIcons.checkCircle,
     this.enableHapticFeedback = false,
   });
   
@@ -156,7 +156,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     FontWeight unselectedFontWeight = FontWeight.w400,
     Color unselectedIconColor = TossColors.gray600,
     double borderBottomWidth = 1.0,
-    IconData checkIcon = FontAwesomeIcons.circleCheck,
+    IconData checkIcon = LucideIcons.checkCircle,
     bool enableHapticFeedback = false,
   }) {
     return showModalBottomSheet<T>(
@@ -263,7 +263,7 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                 decoration: InputDecoration(
                   hintText: 'Search...',
                   prefixIcon: const Icon(
-                    FontAwesomeIcons.magnifyingGlass,
+                    LucideIcons.search,
                     size: TossSpacing.iconSM,
                     color: TossColors.gray500,
                   ),

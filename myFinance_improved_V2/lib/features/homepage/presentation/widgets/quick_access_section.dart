@@ -30,8 +30,8 @@ class QuickAccessSection extends ConsumerWidget {
           padding: const EdgeInsets.only(
             left: TossSpacing.space4,
             right: TossSpacing.space4,
-            top: 8,
-            bottom: 21,
+            top: 0,
+            bottom: TossSpacing.space3,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,8 +74,8 @@ class _QuickAccessItem extends StatelessWidget {
         children: [
           // Circular icon button
           Container(
-            width: 64,
-            height: 64,
+            width: 54,
+            height: 54,
             decoration: const BoxDecoration(
               color: TossColors.primary,
               shape: BoxShape.circle,
@@ -129,8 +129,8 @@ class _LoadingQuickAccess extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64,
-                height: 64,
+                width: 54,
+                height: 54,
                 decoration: const BoxDecoration(
                   color: TossColors.gray200,
                   shape: BoxShape.circle,

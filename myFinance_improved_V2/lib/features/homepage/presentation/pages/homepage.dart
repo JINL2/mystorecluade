@@ -101,10 +101,6 @@ class _HomepageState extends ConsumerState<Homepage> {
                   child: RevenueCard(),
                 ),
 
-              const SliverToBoxAdapter(
-                child: SizedBox(height: TossSpacing.space4),
-              ),
-
               // Quick Access Section
               const SliverToBoxAdapter(
                 child: QuickAccessSection(),
@@ -321,8 +317,8 @@ class _HomepageState extends ConsumerState<Homepage> {
           ),
           if (showBadge && badgeCount > 0)
             Positioned(
-              top: -4,
-              right: -6,
+              top: 2,
+              right: 2,
               child: Container(
                 constraints: const BoxConstraints(minWidth: 16),
                 height: 16,

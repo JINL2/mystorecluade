@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../core/utils/number_formatter.dart';
@@ -407,7 +407,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             children: [
               Row(
                 children: [
-                  FaIcon(
+                  Icon(
                     IconMapper.getIcon('clock'),
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
@@ -487,7 +487,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             ),
             child: Row(
               children: [
-                FaIcon(
+                Icon(
                   IconMapper.getIcon('stopwatch'),
                   color: TossColors.success,
                   size: TossSpacing.iconSM,

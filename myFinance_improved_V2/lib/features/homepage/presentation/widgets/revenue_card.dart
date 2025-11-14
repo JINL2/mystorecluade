@@ -117,35 +117,38 @@ class RevenueCard extends ConsumerWidget {
                   '${revenue.currencyCode}${_formatAmount(revenue.amount)}',
                   style: TossTextStyles.display.copyWith(
                     color: TossColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 40,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 36,
                     height: 1.2,
                     letterSpacing: -1.0,
                   ),
                 ),
 
-                const SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space4),
 
                 // Growth indicator
                 if (revenue.previousAmount != 0) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
-                        color: revenue.isIncreased ? TossColors.error : TossColors.success,
-                        size: 16,
-                      ),
-                      const SizedBox(width: TossSpacing.space1),
-                      Text(
-                        '${revenue.isIncreased ? '' : '-'}${revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
-                        style: TossTextStyles.body.copyWith(
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
                           color: revenue.isIncreased ? TossColors.error : TossColors.success,
-                          fontWeight: FontWeight.w600,
+                          size: 16,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          '${revenue.isIncreased ? '' : '-'}${revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
+                          style: TossTextStyles.body.copyWith(
+                            color: revenue.isIncreased ? TossColors.error : TossColors.success,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space2),
                 ],
               ],
             ),

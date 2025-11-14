@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 // Core imports
-import '../../../../core/constants/app_icons_fa.dart';
+// import 'app_icons_fa.dart'; // Deprecated - use icon_mapper.dart instead
 // Shared imports - themes
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -359,8 +359,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             children: [
               Row(
                 children: [
-                  const FaIcon(
-                    AppIcons.dollarSign,
+                  const Icon(
+                    LucideIcons.dollarSign,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
