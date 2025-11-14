@@ -6,7 +6,7 @@
  * @version 2.0
  */
 
-import { createClient, SupabaseClient, Session, User } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import type { Database } from '@/core/types/supabase.types';
 
 // Supabase configuration from environment variables
@@ -73,7 +73,7 @@ class SupabaseService {
    * Call Supabase RPC function
    */
   public async rpc<T>(functionName: string, params?: Record<string, any>): Promise<T> {
-    const { data, error } = await this.client.rpc(functionName, params);
+    const { data, error } = await this.client.rpc(functionName as any, params as any);
     if (error) throw error;
     return data as T;
   }
@@ -277,7 +277,7 @@ export class DatabaseService {
    */
   async getUserCompaniesAndStores() {
     try {
-      const { data, error } = await this.supabase.rpc('get_user_companies_and_stores');
+      const { data, error } = await this.supabase.rpc('get_user_companies_and_stores' as any);
 
       if (error) throw error;
 
@@ -296,9 +296,9 @@ export class DatabaseService {
    */
   async getCategoriesWithFeatures(companyId: string) {
     try {
-      const { data, error } = await this.supabase.rpc('get_categories_with_features', {
+      const { data, error } = await this.supabase.rpc('get_categories_with_features' as any, {
         p_company_id: companyId,
-      });
+      } as any);
 
       if (error) throw error;
 
@@ -325,7 +325,7 @@ export class DatabaseService {
     } = {}
   ) {
     try {
-      let query = this.supabase.from(table).select(options.select || '*');
+      let query = this.supabase.from(table as any).select(options.select || '*');
 
       // Apply filters
       if (options.filters) {
