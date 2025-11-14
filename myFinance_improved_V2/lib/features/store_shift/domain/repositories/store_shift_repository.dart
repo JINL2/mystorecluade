@@ -85,4 +85,20 @@ abstract class StoreShiftRepository {
     required double longitude,
     required String address,
   });
+
+  /// Update operational settings
+  ///
+  /// Parameters:
+  /// - [storeId]: The ID of the store
+  /// - [huddleTime]: Huddle time in minutes (optional)
+  /// - [paymentTime]: Payment time in minutes (optional)
+  /// - [allowedDistance]: Check-in distance in meters (optional)
+  ///
+  /// Throws an exception if the operation fails
+  Future<void> updateOperationalSettings({
+    required String storeId,
+    int? huddleTime,
+    int? paymentTime,
+    int? allowedDistance,
+  });
 }

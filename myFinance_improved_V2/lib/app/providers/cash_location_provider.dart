@@ -3,11 +3,11 @@
 // Autonomous data providers for cash location selectors
 // =====================================================
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
-import 'package:myfinance_improved/core/data/models/transaction_history_model.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/data/models/transaction_history_model.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'cash_location_provider.g.dart';
 
@@ -32,7 +32,7 @@ class CashLocationList extends _$CashLocationList {
       // Only pass company_id to get ALL locations for the company
       
       // Add a small delay to ensure any cache invalidation has taken effect
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 10));
       
       final response = await supabase.client.rpc(
         'get_cash_locations',
@@ -229,7 +229,7 @@ Future<List<CashLocationData>> storeFilteredCashLocations(StoreFilteredCashLocat
   if (storeId.isNotEmpty) {
     return allLocations.where((location) => 
       location.isCompanyWide || // Company-wide locations accessible from any store
-      location.storeId == storeId // Store-specific locations
+      location.storeId == storeId, // Store-specific locations
     ).toList();
   } else {
     // No store selected, return only company-wide locations

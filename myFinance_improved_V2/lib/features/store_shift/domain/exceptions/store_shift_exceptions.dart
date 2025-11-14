@@ -11,8 +11,7 @@ abstract class StoreShiftException implements Exception {
 
 /// Exception thrown when shift data is not found
 class ShiftNotFoundException extends StoreShiftException {
-  const ShiftNotFoundException([String message = 'Shift not found', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ShiftNotFoundException([super.message = 'Shift not found', super.stackTrace]);
 
   @override
   String toString() => 'ShiftNotFoundException: $message';
@@ -20,8 +19,7 @@ class ShiftNotFoundException extends StoreShiftException {
 
 /// Exception thrown when store data is not found
 class StoreNotFoundException extends StoreShiftException {
-  const StoreNotFoundException([String message = 'Store not found', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const StoreNotFoundException([super.message = 'Store not found', super.stackTrace]);
 
   @override
   String toString() => 'StoreNotFoundException: $message';
@@ -29,8 +27,7 @@ class StoreNotFoundException extends StoreShiftException {
 
 /// Exception thrown when shift data validation fails
 class InvalidShiftDataException extends StoreShiftException {
-  const InvalidShiftDataException([String message = 'Invalid shift data', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const InvalidShiftDataException([super.message = 'Invalid shift data', super.stackTrace]);
 
   @override
   String toString() => 'InvalidShiftDataException: $message';
@@ -38,8 +35,7 @@ class InvalidShiftDataException extends StoreShiftException {
 
 /// Exception thrown when shift creation fails
 class ShiftCreationException extends StoreShiftException {
-  const ShiftCreationException([String message = 'Failed to create shift', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ShiftCreationException([super.message = 'Failed to create shift', super.stackTrace]);
 
   @override
   String toString() => 'ShiftCreationException: $message';
@@ -47,8 +43,7 @@ class ShiftCreationException extends StoreShiftException {
 
 /// Exception thrown when shift update fails
 class ShiftUpdateException extends StoreShiftException {
-  const ShiftUpdateException([String message = 'Failed to update shift', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ShiftUpdateException([super.message = 'Failed to update shift', super.stackTrace]);
 
   @override
   String toString() => 'ShiftUpdateException: $message';
@@ -56,8 +51,7 @@ class ShiftUpdateException extends StoreShiftException {
 
 /// Exception thrown when shift deletion fails
 class ShiftDeletionException extends StoreShiftException {
-  const ShiftDeletionException([String message = 'Failed to delete shift', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const ShiftDeletionException([super.message = 'Failed to delete shift', super.stackTrace]);
 
   @override
   String toString() => 'ShiftDeletionException: $message';
@@ -65,8 +59,7 @@ class ShiftDeletionException extends StoreShiftException {
 
 /// Exception thrown when store location update fails
 class StoreLocationUpdateException extends StoreShiftException {
-  const StoreLocationUpdateException([String message = 'Failed to update store location', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const StoreLocationUpdateException([super.message = 'Failed to update store location', super.stackTrace]);
 
   @override
   String toString() => 'StoreLocationUpdateException: $message';
@@ -74,8 +67,7 @@ class StoreLocationUpdateException extends StoreShiftException {
 
 /// Exception thrown when user is unauthorized to perform operation
 class UnauthorizedException extends StoreShiftException {
-  const UnauthorizedException([String message = 'User is not authenticated', StackTrace? stackTrace])
-      : super(message, stackTrace);
+  const UnauthorizedException([super.message = 'User is not authenticated', super.stackTrace]);
 
   @override
   String toString() => 'UnauthorizedException: $message';

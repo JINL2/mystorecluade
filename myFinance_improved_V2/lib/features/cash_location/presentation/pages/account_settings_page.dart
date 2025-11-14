@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/features/cash_location/presentation/providers/cash_location_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -10,10 +9,10 @@ import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
@@ -80,10 +79,8 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _loadCashLocationData() async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
-      final location = await repository.getCashLocationById(
-        locationId: widget.locationId,
-      );
+      final useCase = ref.read(getCashLocationByIdUseCaseProvider);
+      final location = await useCase(widget.locationId);
 
       if (location == null) {
         // If not found by ID, try loading by name
@@ -116,13 +113,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   Future<void> _loadCashLocationDataByName() async {
     try {
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(cashLocationRepositoryProvider);
+      final useCase = ref.read(getCashLocationByNameUseCaseProvider);
 
-      final location = await repository.getCashLocationByName(
-        locationName: widget.accountName,
-        locationType: widget.locationType,
+      final location = await useCase(
         companyId: appState.companyChoosen,
         storeId: appState.storeChoosen,
+        locationName: widget.accountName,
       );
 
       if (location == null) return;
@@ -162,7 +158,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Account Settings',
         backgroundColor: TossColors.gray50,
       ),
@@ -179,12 +175,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                     // Account Info
                     _buildAccountInfo(),
                     
-                    SizedBox(height: TossSpacing.space4),
+                    const SizedBox(height: TossSpacing.space4),
                     
                     // Settings Options
                     _buildSettingsOptions(),
                     
-                    SizedBox(height: TossSpacing.space4),
+                    const SizedBox(height: TossSpacing.space4),
                     
                     // Delete Account Button
                     _buildDeleteSection(),
@@ -202,12 +198,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Widget _buildAccountInfo() {
     return Container(
-      margin: EdgeInsets.only(
+      margin: const EdgeInsets.only(
         left: TossSpacing.space4,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
       ),
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -217,7 +213,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Account Name (like Balance/Accounts heading)
-          Container(
+          SizedBox(
             width: double.infinity,
             child: Text(
               _currentAccountName,
@@ -228,7 +224,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             ),
           ),
           
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           
           // Account Location (like "65% of total balance")
           Text(
@@ -245,8 +241,8 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Widget _buildSettingsOptions() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      padding: EdgeInsets.fromLTRB(
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.fromLTRB(
         TossSpacing.space5,
         TossSpacing.space4,
         TossSpacing.space5,
@@ -312,7 +308,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           
           // Main Account switch
           Container(
-            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
             child: Row(
               children: [
                 Text(
@@ -353,7 +349,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
         child: Row(
           children: [
             // Label - lighter weight for secondary information
@@ -380,8 +376,8 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             ),
             
             // Arrow
-            SizedBox(width: TossSpacing.space2),
-            Icon(
+            const SizedBox(width: TossSpacing.space2),
+            const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
               size: 20,
@@ -394,14 +390,14 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Widget _buildDeleteSection() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: GestureDetector(
         onTap: () {
           // Show delete confirmation dialog
           _showDeleteConfirmation();
         },
         child: Container(
-          padding: EdgeInsets.all(TossSpacing.space5),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -606,7 +602,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             canPop: false,
             child: Center(
               child: Container(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 decoration: BoxDecoration(
                   color: TossColors.white,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -615,7 +611,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const TossLoadingView(),
-                    SizedBox(height: TossSpacing.space4),
+                    const SizedBox(height: TossSpacing.space4),
                     Text(
                       'Deleting...',
                       style: TossTextStyles.body.copyWith(
@@ -699,12 +695,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationName(String newName) async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
 
-      await repository.updateCashLocation(
+      await useCase(UpdateCashLocationParams(
         locationId: widget.locationId,
-        name: newName,
-      );
+        locationName: newName,
+      ));
 
       // Update the current name after successful DB update
       _currentAccountName = newName;
@@ -741,13 +737,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationNote(String newNote) async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
 
-      await repository.updateCashLocation(
+      await useCase(UpdateCashLocationParams(
         locationId: widget.locationId,
-        name: _currentAccountName,
-        note: newNote,
-      );
+        locationName: _currentAccountName,
+        locationInfo: newNote,
+      ));
 
       if (mounted) {
         await showDialog(
@@ -777,13 +773,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationDescription(String newDescription) async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
 
-      await repository.updateCashLocation(
+      await useCase(UpdateCashLocationParams(
         locationId: widget.locationId,
-        name: _currentAccountName,
-        description: newDescription,
-      );
+        locationName: _currentAccountName,
+        locationInfo: newDescription,
+      ));
 
       if (mounted) {
         await showDialog(
@@ -813,16 +809,16 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateMainAccountStatus(bool isMain) async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
       final appState = ref.read(appStateProvider);
+      final useCase = ref.read(updateMainAccountStatusUseCaseProvider);
 
-      await repository.updateMainAccountStatus(
+      await useCase(UpdateMainAccountStatusParams(
         locationId: widget.locationId,
-        isMain: isMain,
+        isMainAccount: isMain,
         companyId: appState.companyChoosen,
         storeId: appState.storeChoosen,
         locationType: widget.locationType,
-      );
+      ));
 
       // Invalidate cache to refresh the list
       // TODO: Fix provider invalidation after proper setup
@@ -860,9 +856,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<bool> _deleteCashLocation() async {
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
+      final useCase = ref.read(deleteCashLocationUseCaseProvider);
 
-      await repository.deleteCashLocation(widget.locationId);
+      await useCase(widget.locationId);
 
       // Don't show success message here, it will be shown after dialog closes
       return true; // Return success
@@ -930,11 +926,11 @@ class _SimpleNameEditSheet extends StatelessWidget {
               
               // Header and Content
               Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     
                     Text(
                       'Change account name',
@@ -943,7 +939,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // Input field with underline
                     TextField(
@@ -976,14 +972,14 @@ class _SimpleNameEditSheet extends StatelessWidget {
                             width: 2,
                           ),
                         ),
-                        contentPadding: EdgeInsets.only(
+                        contentPadding: const EdgeInsets.only(
                           bottom: TossSpacing.space2,
                           top: TossSpacing.space1,
                         ),
                         fillColor: TossColors.transparent,
                         filled: false,
                         suffixIcon: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.cancel,
                             color: TossColors.gray400,
                             size: 20,
@@ -995,7 +991,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // Bottom button
                     SizedBox(
@@ -1021,7 +1017,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                   ],
                 ),
               ),
@@ -1079,11 +1075,11 @@ class _SimpleNoteEditSheet extends StatelessWidget {
               
               // Header and Content
               Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     
                     Text(
                       'Add note',
@@ -1092,7 +1088,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // Multi-line input field with underline
                     TextField(
@@ -1127,7 +1123,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                             width: 2,
                           ),
                         ),
-                        contentPadding: EdgeInsets.only(
+                        contentPadding: const EdgeInsets.only(
                           bottom: TossSpacing.space2,
                           top: TossSpacing.space1,
                         ),
@@ -1142,7 +1138,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // Bottom button
                     SizedBox(
@@ -1168,7 +1164,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                   ],
                 ),
               ),

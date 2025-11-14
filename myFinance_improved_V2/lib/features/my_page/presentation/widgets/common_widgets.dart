@@ -10,7 +10,7 @@ class CommonDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       color: TossColors.gray100,
     );
   }

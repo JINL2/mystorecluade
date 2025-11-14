@@ -1,10 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TossSearchField extends StatefulWidget {
   const TossSearchField({
@@ -121,7 +122,7 @@ class _TossSearchFieldState extends State<TossSearchField> {
               : null,
           suffixIcon: _showClearButton
               ? IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.clear,
                     color: TossColors.textTertiary,
                     size: 20,
@@ -147,7 +148,7 @@ class _TossSearchFieldState extends State<TossSearchField> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
+            borderSide: const BorderSide(
               color: TossColors.primary,
               width: 1.5,
             ),

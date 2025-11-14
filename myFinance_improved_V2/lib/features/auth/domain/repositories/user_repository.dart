@@ -1,8 +1,8 @@
 // lib/features/auth/domain/repositories/user_repository.dart
 
-import '../entities/user_entity.dart';
 import '../entities/company_entity.dart';
 import '../entities/store_entity.dart';
+import '../entities/user_entity.dart';
 
 /// User repository interface.
 ///
@@ -64,4 +64,10 @@ abstract class UserRepository {
     required String userId,
     required String storeId,
   });
+
+  /// Get user's complete data including companies and stores
+  ///
+  /// Returns raw data map with user info, companies, and stores.
+  /// Used for app initialization and data refresh.
+  Future<Map<String, dynamic>> getUserCompleteData(String userId);
 }

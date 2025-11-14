@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart'
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/role.dart';
 import '../providers/employee_providers.dart';
 class RoleManagementModal extends ConsumerStatefulWidget {
@@ -54,7 +55,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       },
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.background,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(16),
@@ -64,7 +65,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
         children: [
           // Drag handle for visual cue
           Container(
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -77,7 +78,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
           
           // Search Bar
           Padding(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: TossSearchField(
               hintText: 'Search available roles...',
               onChanged: (value) {
@@ -105,12 +106,12 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.search_off,
                           size: 64,
                           color: TossColors.gray400,
                         ),
-                        SizedBox(height: TossSpacing.space3),
+                        const SizedBox(height: TossSpacing.space3),
                         Text(
                           _searchQuery.isEmpty 
                               ? 'No other roles available to assign' 
@@ -125,7 +126,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                 }
                 
                 return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                   itemCount: filteredRoles.length,
                   itemBuilder: (context, index) {
                     final role = filteredRoles[index];
@@ -151,29 +152,29 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                   },
                 );
               },
-              loading: () => Center(
+              loading: () => const Center(
                 child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.error_outline,
                       size: 64,
                       color: TossColors.error,
                     ),
-                    SizedBox(height: TossSpacing.space3),
+                    const SizedBox(height: TossSpacing.space3),
                     Text(
                       'Failed to load roles',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.error,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     TextButton(
                       onPressed: () => ref.invalidate(rolesProvider),
-                      child: Text('Retry'),
+                      child: const Text('Retry'),
                     ),
                   ],
                 ),
@@ -191,8 +192,8 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
   
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray200,
@@ -212,7 +213,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 Text(
                   'Assign or update role for this employee',
                   style: TossTextStyles.bodySmall.copyWith(
@@ -223,7 +224,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, color: TossColors.gray600),
+            icon: const Icon(Icons.close, color: TossColors.gray600),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -234,10 +235,10 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
   
   Widget _buildBottomActions() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.background,
-        border: Border(
+        border: const Border(
           top: BorderSide(
             color: TossColors.gray200,
             width: 1,
@@ -247,7 +248,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -260,7 +261,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               flex: 2,
               child: TossPrimaryButton(
@@ -283,7 +284,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
           title: 'Role Required',
           message: 'Please select a role before saving',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -295,7 +296,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
+      builder: (context) => const Center(
         child: TossLoadingView(),
       ),
     );
@@ -304,7 +305,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       // Update user role in database with timeout
       final roleRepository = ref.read(roleRepositoryProvider);
       await roleRepository.updateUserRole(widget.userId, _selectedRoleId!).timeout(
-        Duration(seconds: 10),
+        const Duration(seconds: 10),
         onTimeout: () {
           throw Exception('Request timed out. Please check your connection and try again.');
         },
@@ -327,7 +328,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       Navigator.of(context, rootNavigator: false).pop(true);
 
       // Show success dialog on parent context
-      Future.delayed(Duration(milliseconds: 500), () async {
+      Future.delayed(const Duration(milliseconds: 500), () async {
         if (context.mounted) {
           await showDialog(
             context: context,
@@ -336,7 +337,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
               title: 'Role Updated!',
               message: 'Employee role has been updated successfully',
               primaryButtonText: 'Done',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }
@@ -355,7 +356,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             title: 'Failed to Update Role',
             message: 'Could not update employee role: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -381,8 +382,8 @@ class _RoleItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: TossSpacing.space3),
-        padding: EdgeInsets.all(TossSpacing.space4),
+        margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.background,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -406,7 +407,7 @@ class _RoleItem extends StatelessWidget {
                 ),
               ),
               child: isSelected
-                  ? Icon(
+                  ? const Icon(
                       Icons.check,
                       size: 16,
                       color: TossColors.background,
@@ -414,7 +415,7 @@ class _RoleItem extends StatelessWidget {
                   : null,
             ),
             
-            SizedBox(width: TossSpacing.space4),
+            const SizedBox(width: TossSpacing.space4),
             
             // Role Info
             Expanded(
@@ -434,7 +435,7 @@ class _RoleItem extends StatelessWidget {
                       ),
                       if (isCurrent) ...[
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: TossSpacing.space2,
                             vertical: TossSpacing.space1,
                           ),

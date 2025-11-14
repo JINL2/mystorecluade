@@ -182,7 +182,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconSM),
+                      const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconSM),
                       const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Text(
@@ -495,7 +495,9 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             );
           },
         );
-        
+
+        if (!mounted) return;
+
         if (picked != null) {
           onChanged(picked);
         }
@@ -536,7 +538,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                 ),
               ],
             ),
-            Icon(
+            const Icon(
               Icons.calendar_today,
               size: TossSpacing.iconXS,
               color: TossColors.gray500,

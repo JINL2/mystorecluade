@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-import '../firebase_stub.dart';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../config/notification_config.dart';
-import '../models/notification_payload.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+import '../firebase_stub.dart';
 import '../models/notification_db_model.dart';
+import '../models/notification_payload.dart';
 import '../repositories/notification_repository.dart';
 import '../utils/notification_logger.dart';
 import 'fcm_service.dart';
 import 'local_notification_service.dart';
-import 'token_manager.dart';
 import 'notification_display_manager.dart';
+import 'token_manager.dart';
 
 /// Main notification service that coordinates all notification functionality
 class NotificationService {
@@ -210,7 +212,7 @@ class NotificationService {
               
               // Filter for user's unread notifications
               final userNotifications = data.where((item) => 
-                item['user_id'] == userId && item['is_read'] == false
+                item['user_id'] == userId && item['is_read'] == false,
               ).toList();
               
               for (final item in userNotifications) {

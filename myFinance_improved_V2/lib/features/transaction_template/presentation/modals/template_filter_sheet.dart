@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_icons.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+
+import '../../domain/value_objects/template_filter.dart';
 // Updated imports to use new application layer providers
 import '../providers/template_provider.dart';
-import '../../domain/value_objects/template_filter.dart';
 
 class TemplateFilterSheet extends ConsumerStatefulWidget {
   const TemplateFilterSheet({super.key});
@@ -72,7 +73,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(TossIcons.close, color: TossColors.gray700),
+                    icon: const Icon(TossIcons.close, color: TossColors.gray700),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -85,15 +86,16 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
               
               const SizedBox(height: TossSpacing.space4),
               
-              // Account Selector - Enhanced with Frequently Used
+              // Account Selector - Enhanced with type-safe callback
               EnhancedAccountSelector(
                 selectedAccountId: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
-                contextType: 'template_filter', // Enable usage tracking
-                showQuickAccess: true, // Enable "Frequently Used" section
-                maxQuickItems: 5, // Show top 5 frequently used accounts
-                onChanged: (accountId) {
+                contextType: 'template_filter',
+                showQuickAccess: true,
+                maxQuickItems: 5,
+                // ✅ Type-safe callback
+                onAccountSelected: (account) {
                   setState(() {
-                    _selectedAccountIds = accountId != null ? [accountId] : null;
+                    _selectedAccountIds = [account.id];
                   });
                 },
                 label: 'Account',
@@ -179,13 +181,13 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
           suffixIcon: _searchController.text.isNotEmpty 
               ? InkWell(
                   onTap: () => setState(() => _searchController.clear()),
-                  child: Icon(
+                  child: const Icon(
                     TossIcons.close,
                     color: TossColors.gray500,
                     size: TossSpacing.iconSM,
                   ),
                 )
-              : Icon(
+              : const Icon(
                   TossIcons.search,
                   color: TossColors.gray400,
                   size: TossSpacing.iconSM,

@@ -1,41 +1,35 @@
 // lib/features/cash_location/domain/entities/stock_flow.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../core/utils/datetime_utils.dart';
+
+part 'stock_flow.freezed.dart';
+part 'stock_flow.g.dart';
 
 /// Domain entities for stock flow tracking in cash locations
 /// These classes represent the core business logic for tracking
 /// journal flows and actual cash flows
 
-class JournalFlow {
-  final String flowId;
-  final String createdAt;
-  final String systemTime;
-  final double balanceBefore;
-  final double flowAmount;
-  final double balanceAfter;
-  final String journalId;
-  final String journalDescription;
-  final String journalType;
-  final String accountId;
-  final String accountName;
-  final CreatedBy createdBy;
-  final CounterAccount? counterAccount;
+@freezed
+class JournalFlow with _$JournalFlow {
+  const JournalFlow._();
 
-  JournalFlow({
-    required this.flowId,
-    required this.createdAt,
-    required this.systemTime,
-    required this.balanceBefore,
-    required this.flowAmount,
-    required this.balanceAfter,
-    required this.journalId,
-    required this.journalDescription,
-    required this.journalType,
-    required this.accountId,
-    required this.accountName,
-    required this.createdBy,
-    this.counterAccount,
-  });
+  const factory JournalFlow({
+    required String flowId,
+    required String createdAt,
+    required String systemTime,
+    required double balanceBefore,
+    required double flowAmount,
+    required double balanceAfter,
+    required String journalId,
+    required String journalDescription,
+    required String journalType,
+    required String accountId,
+    required String accountName,
+    required CreatedBy createdBy,
+    CounterAccount? counterAccount,
+  }) = _JournalFlow;
 
   String getFormattedDate() {
     try {
@@ -50,7 +44,7 @@ class JournalFlow {
     try {
       // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
       // Example: "2025-10-27 17:54:41.715" should be treated as UTC
-      final utcDateTime = DateTime.parse(createdAt + 'Z'); // Add Z to force UTC parsing
+      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
       final localDateTime = utcDateTime.toLocal();
       return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
@@ -63,30 +57,26 @@ class JournalFlow {
       }
     }
   }
+
+  factory JournalFlow.fromJson(Map<String, dynamic> json) =>
+      _$JournalFlowFromJson(json);
 }
 
-class ActualFlow {
-  final String flowId;
-  final String createdAt;
-  final String systemTime;
-  final double balanceBefore;
-  final double flowAmount;
-  final double balanceAfter;
-  final CurrencyInfo currency;
-  final CreatedBy createdBy;
-  final List<DenominationDetail> currentDenominations;
+@freezed
+class ActualFlow with _$ActualFlow {
+  const ActualFlow._();
 
-  ActualFlow({
-    required this.flowId,
-    required this.createdAt,
-    required this.systemTime,
-    required this.balanceBefore,
-    required this.flowAmount,
-    required this.balanceAfter,
-    required this.currency,
-    required this.createdBy,
-    required this.currentDenominations,
-  });
+  const factory ActualFlow({
+    required String flowId,
+    required String createdAt,
+    required String systemTime,
+    required double balanceBefore,
+    required double flowAmount,
+    required double balanceAfter,
+    required CurrencyInfo currency,
+    required CreatedBy createdBy,
+    required List<DenominationDetail> currentDenominations,
+  }) = _ActualFlow;
 
   String getFormattedDate() {
     try {
@@ -101,7 +91,7 @@ class ActualFlow {
     try {
       // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
       // Example: "2025-10-27 17:54:41.715" should be treated as UTC
-      final utcDateTime = DateTime.parse(createdAt + 'Z'); // Add Z to force UTC parsing
+      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
       final localDateTime = utcDateTime.toLocal();
       return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
@@ -114,130 +104,118 @@ class ActualFlow {
       }
     }
   }
+
+  factory ActualFlow.fromJson(Map<String, dynamic> json) =>
+      _$ActualFlowFromJson(json);
 }
 
-class LocationSummary {
-  final String cashLocationId;
-  final String locationName;
-  final String locationType;
-  final String? bankName;
-  final String? bankAccount;
-  final String currencyCode;
-  final String currencyId;
-  final String? baseCurrencySymbol;
+@freezed
+class LocationSummary with _$LocationSummary {
+  const factory LocationSummary({
+    required String cashLocationId,
+    required String locationName,
+    required String locationType,
+    String? bankName,
+    String? bankAccount,
+    required String currencyCode,
+    required String currencyId,
+    String? baseCurrencySymbol,
+  }) = _LocationSummary;
 
-  LocationSummary({
-    required this.cashLocationId,
-    required this.locationName,
-    required this.locationType,
-    this.bankName,
-    this.bankAccount,
-    required this.currencyCode,
-    required this.currencyId,
-    this.baseCurrencySymbol,
-  });
+  factory LocationSummary.fromJson(Map<String, dynamic> json) =>
+      _$LocationSummaryFromJson(json);
 }
 
-class CounterAccount {
-  final String accountId;
-  final String accountName;
-  final String accountType;
-  final double debit;
-  final double credit;
-  final String description;
+@freezed
+class CounterAccount with _$CounterAccount {
+  const factory CounterAccount({
+    required String accountId,
+    required String accountName,
+    required String accountType,
+    required double debit,
+    required double credit,
+    required String description,
+  }) = _CounterAccount;
 
-  CounterAccount({
-    required this.accountId,
-    required this.accountName,
-    required this.accountType,
-    required this.debit,
-    required this.credit,
-    required this.description,
-  });
+  factory CounterAccount.fromJson(Map<String, dynamic> json) =>
+      _$CounterAccountFromJson(json);
 }
 
-class CurrencyInfo {
-  final String currencyId;
-  final String currencyCode;
-  final String currencyName;
-  final String symbol;
+@freezed
+class CurrencyInfo with _$CurrencyInfo {
+  const factory CurrencyInfo({
+    required String currencyId,
+    required String currencyCode,
+    required String currencyName,
+    required String symbol,
+  }) = _CurrencyInfo;
 
-  CurrencyInfo({
-    required this.currencyId,
-    required this.currencyCode,
-    required this.currencyName,
-    required this.symbol,
-  });
+  factory CurrencyInfo.fromJson(Map<String, dynamic> json) =>
+      _$CurrencyInfoFromJson(json);
 }
 
-class CreatedBy {
-  final String userId;
-  final String fullName;
+@freezed
+class CreatedBy with _$CreatedBy {
+  const factory CreatedBy({
+    required String userId,
+    required String fullName,
+  }) = _CreatedBy;
 
-  CreatedBy({
-    required this.userId,
-    required this.fullName,
-  });
+  factory CreatedBy.fromJson(Map<String, dynamic> json) =>
+      _$CreatedByFromJson(json);
 }
 
-class DenominationDetail {
-  final String denominationId;
-  final double denominationValue;
-  final String denominationType;
-  final int previousQuantity;
-  final int currentQuantity;
-  final int quantityChange;
-  final double subtotal;
-  final String? currencySymbol;
+@freezed
+class DenominationDetail with _$DenominationDetail {
+  const factory DenominationDetail({
+    required String denominationId,
+    required double denominationValue,
+    required String denominationType,
+    required int previousQuantity,
+    required int currentQuantity,
+    required int quantityChange,
+    required double subtotal,
+    String? currencySymbol,
+  }) = _DenominationDetail;
 
-  DenominationDetail({
-    required this.denominationId,
-    required this.denominationValue,
-    required this.denominationType,
-    required this.previousQuantity,
-    required this.currentQuantity,
-    required this.quantityChange,
-    required this.subtotal,
-    this.currencySymbol,
-  });
+  factory DenominationDetail.fromJson(Map<String, dynamic> json) =>
+      _$DenominationDetailFromJson(json);
 }
 
-class StockFlowData {
-  final LocationSummary? locationSummary;
-  final List<JournalFlow> journalFlows;
-  final List<ActualFlow> actualFlows;
+@freezed
+class StockFlowData with _$StockFlowData {
+  const factory StockFlowData({
+    LocationSummary? locationSummary,
+    required List<JournalFlow> journalFlows,
+    required List<ActualFlow> actualFlows,
+  }) = _StockFlowData;
 
-  StockFlowData({
-    this.locationSummary,
-    required this.journalFlows,
-    required this.actualFlows,
-  });
+  factory StockFlowData.fromJson(Map<String, dynamic> json) =>
+      _$StockFlowDataFromJson(json);
 }
 
-class PaginationInfo {
-  final int offset;
-  final int limit;
-  final int totalJournalFlows;
-  final int totalActualFlows;
-  final bool hasMore;
+@freezed
+class PaginationInfo with _$PaginationInfo {
+  const factory PaginationInfo({
+    required int offset,
+    required int limit,
+    required int totalJournalFlows,
+    required int totalActualFlows,
+    required bool hasMore,
+  }) = _PaginationInfo;
 
-  PaginationInfo({
-    required this.offset,
-    required this.limit,
-    required this.totalJournalFlows,
-    required this.totalActualFlows,
-    required this.hasMore,
-  });
+  factory PaginationInfo.fromJson(Map<String, dynamic> json) =>
+      _$PaginationInfoFromJson(json);
 }
 
-class StockFlowResponse {
-  final bool success;
-  final StockFlowData? data;
-  final PaginationInfo? pagination;
+@freezed
+class StockFlowResponse with _$StockFlowResponse {
+  const factory StockFlowResponse({
+    required bool success,
+    StockFlowData? data,
+    PaginationInfo? pagination,
+  }) = _StockFlowResponse;
 
-  StockFlowResponse({
-    required this.success,
-    this.data,
-    this.pagination,
-  });
+  factory StockFlowResponse.fromJson(Map<String, dynamic> json) =>
+      _$StockFlowResponseFromJson(json);
 }

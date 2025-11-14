@@ -131,14 +131,14 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
             Container(
               width: 40,
               height: 4,
-              margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+              margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 children: [
                   Text(
@@ -148,7 +148,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
                       color: TossColors.gray900,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space6),
+                  const SizedBox(height: TossSpacing.space6),
                   _AvatarOption(
                     icon: Icons.camera_alt_outlined,
                     title: 'Take Photo',
@@ -169,7 +169,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
                       }
                     },
                   ),
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
                   _AvatarOption(
                     icon: Icons.photo_library_outlined,
                     title: 'Choose from Gallery',
@@ -191,7 +191,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
                     },
                   ),
                   if (hasProfileImage) ...[
-                    SizedBox(height: TossSpacing.space3),
+                    const SizedBox(height: TossSpacing.space3),
                     _AvatarOption(
                       icon: Icons.delete_outline,
                       title: 'Remove Photo',
@@ -202,7 +202,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
                       isDestructive: true,
                     ),
                   ],
-                  SizedBox(height: TossSpacing.space3),
+                  const SizedBox(height: TossSpacing.space3),
                   _AvatarOption(
                     icon: Icons.close,
                     title: 'Cancel',
@@ -223,7 +223,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text('Permission Required'),
         content: const Text(
-            'This app needs access to your photos to change your profile picture. Please enable photo access in Settings.'),
+            'This app needs access to your photos to change your profile picture. Please enable photo access in Settings.',),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -261,7 +261,7 @@ class _AvatarOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space4,
         ),
@@ -276,7 +276,7 @@ class _AvatarOption extends StatelessWidget {
               size: 24,
               color: isDestructive ? TossColors.error : TossColors.gray700,
             ),
-            SizedBox(width: TossSpacing.space4),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(
               child: Text(
                 title,

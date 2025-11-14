@@ -2,21 +2,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/repositories/employee_repository.dart';
-import '../../domain/value_objects/salary_update_request.dart';
+import '../../domain/usecases/update_employee_salary_usecase.dart';
 import 'states/employee_state.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-/// 🎯 Employee Notifier - 상태 관리 + 비즈니스 로직 조율
+/// 🎯 Employee Notifier - 상태 관리 + UseCase 조율
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
-/// Flutter 표준 구조: Notifier가 직접 Repository 호출
-/// Controller 레이어 없이 Domain Layer와 직접 통신
+/// Hybrid 구조:
+/// - 단순 CRUD: Repository 직접 호출 (loadEmployees, searchEmployees)
+/// - 복잡한 로직: UseCase 호출 (updateEmployeeSalary)
 class EmployeeNotifier extends StateNotifier<EmployeeState> {
   final EmployeeRepository _repository;
+  final UpdateEmployeeSalaryUseCase _updateSalaryUseCase;
 
   EmployeeNotifier({
     required EmployeeRepository repository,
+    required UpdateEmployeeSalaryUseCase updateSalaryUseCase,
   })  : _repository = repository,
+        _updateSalaryUseCase = updateSalaryUseCase,
         super(const EmployeeState());
 
   /// 직원 급여 목록 로드 (직접 Repository 호출)
@@ -42,7 +46,7 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
     }
   }
 
-  /// 직원 급여 업데이트 (직접 Repository 호출)
+  /// 직원 급여 업데이트 (UseCase 호출)
   Future<bool> updateEmployeeSalary({
     required String salaryId,
     required double salaryAmount,
@@ -53,8 +57,8 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
     state = state.copyWith(isUpdatingSalary: true, errorMessage: null);
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출
-      final request = SalaryUpdateRequest(
+      // ✅ UseCase 호출: 비즈니스 로직 분리
+      final command = UpdateEmployeeSalaryCommand(
         salaryId: salaryId,
         salaryAmount: salaryAmount,
         salaryType: salaryType,
@@ -62,18 +66,25 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
         changeReason: changeReason,
       );
 
-      await _repository.updateSalary(request);
+      final result = await _updateSalaryUseCase.execute(command);
 
-      state = state.copyWith(isUpdatingSalary: false);
+      if (result.isSuccess) {
+        state = state.copyWith(isUpdatingSalary: false);
 
-      // 자동 새로고침
-      // Note: companyId는 filteredEmployees에서 가져올 수 있음
-      if (state.employees.isNotEmpty) {
-        final companyId = state.employees.first.companyId;
-        await loadEmployees(companyId: companyId);
+        // 자동 새로고침
+        if (state.employees.isNotEmpty) {
+          final companyId = state.employees.first.companyId;
+          await loadEmployees(companyId: companyId);
+        }
+
+        return true;
+      } else {
+        state = state.copyWith(
+          isUpdatingSalary: false,
+          errorMessage: result.errorMessage ?? 'Failed to update salary',
+        );
+        return false;
       }
-
-      return true;
     } catch (e) {
       state = state.copyWith(
         isUpdatingSalary: false,

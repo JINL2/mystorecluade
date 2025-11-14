@@ -1,5 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/features/homepage/data/models/store_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for store operations
 /// Handles all direct Supabase communication for store feature
@@ -174,7 +174,7 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
 
   @override
   Future<bool> checkDuplicateStoreName(
-      String storeName, String companyId) async {
+      String storeName, String companyId,) async {
     final response = await supabaseClient
         .from('stores')
         .select('store_id')

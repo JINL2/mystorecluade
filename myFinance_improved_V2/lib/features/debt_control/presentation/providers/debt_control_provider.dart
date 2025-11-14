@@ -51,7 +51,7 @@ class DebtControlNotifier extends AsyncNotifier<DebtControlState> {
               isLoadingOverview: false,
             ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Provide default state instead of error for better UX
       state = AsyncValue.data(
         state.value?.copyWith(
@@ -120,7 +120,7 @@ class DebtControlNotifier extends AsyncNotifier<DebtControlState> {
               isLoadingDebts: false,
             ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Provide empty list instead of error for better UX
       state = AsyncValue.data(
         state.value?.copyWith(
@@ -194,7 +194,7 @@ class DebtControlNotifier extends AsyncNotifier<DebtControlState> {
           ),
         );
       }
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Silently fail for better UX
     }
   }

@@ -127,7 +127,7 @@ class CurrencySelectorSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             TossIcons.currency,
             size: 64,
             color: TossColors.gray400,

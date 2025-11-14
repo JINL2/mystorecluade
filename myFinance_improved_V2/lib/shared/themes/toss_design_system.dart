@@ -4,13 +4,9 @@
 /// 
 /// Last Updated: 2024
 /// Version: 1.0.0
+library;
 
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'toss_border_radius.dart';
-import 'toss_shadows.dart';
-import 'toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Master design system class that provides all Toss design tokens
@@ -211,7 +207,7 @@ class TossDesignSystem {
     VoidCallback? onTap,
   }) {
     return Container(
-      margin: margin ?? EdgeInsets.symmetric(
+      margin: margin ?? const EdgeInsets.symmetric(
         horizontal: TossSpacing.marginMD,
         vertical: TossSpacing.marginSM,
       ),
@@ -228,7 +224,7 @@ class TossDesignSystem {
           onTap: onTap,
           borderRadius: BorderRadius.circular(TossBorderRadius.card),
           child: Padding(
-            padding: padding ?? EdgeInsets.all(TossSpacing.paddingMD),
+            padding: padding ?? const EdgeInsets.all(TossSpacing.paddingMD),
             child: child,
           ),
         ),

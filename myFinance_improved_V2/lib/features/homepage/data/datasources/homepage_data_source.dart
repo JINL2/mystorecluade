@@ -13,45 +13,6 @@ class HomepageDataSource {
 
   HomepageDataSource(this._supabaseService);
 
-  /// Filter deleted companies and stores from RPC response
-  ///
-  /// ✅ Removes companies where is_deleted = true
-  /// ✅ Removes stores where is_deleted = true within each company
-  /// ✅ Updates company_count and store_count after filtering
-  ///
-  /// This should be called on raw JSON before parsing into models.
-  static Map<String, dynamic> filterDeletedCompaniesAndStores(Map<String, dynamic> data) {
-    if (data['companies'] == null || data['companies'] is! List) {
-      return data;
-    }
-
-    final companies = data['companies'] as List<dynamic>;
-
-    // Filter deleted companies and their deleted stores
-    final filteredCompanies = companies.where((company) {
-      final isDeleted = company['is_deleted'] == true;
-      return !isDeleted;
-    }).map((company) {
-      // Also filter deleted stores within each company
-      if (company['stores'] != null && company['stores'] is List) {
-        final stores = company['stores'] as List<dynamic>;
-        final filteredStores = stores.where((store) {
-          final isDeleted = store['is_deleted'] == true;
-          return !isDeleted;
-        }).toList();
-
-        company['stores'] = filteredStores;
-        company['store_count'] = filteredStores.length;
-      }
-      return company;
-    }).toList();
-
-    data['companies'] = filteredCompanies;
-    data['company_count'] = filteredCompanies.length;
-
-    return data;
-  }
-
   // === Revenue Operations ===
 
   /// Fetch revenue data via get_dashboard_revenue RPC
@@ -151,10 +112,34 @@ class HomepageDataSource {
     try {
       final data = response as Map<String, dynamic>;
 
-      // ✅ Filter out deleted companies and stores using static helper
-      final filteredData = filterDeletedCompaniesAndStores(data);
+      // ✅ Filter out deleted companies and stores
+      if (data['companies'] != null && data['companies'] is List) {
+        final companies = data['companies'] as List<dynamic>;
 
-      final model = UserCompaniesModel.fromJson(filteredData);
+        // Filter deleted companies and their deleted stores
+        final filteredCompanies = companies.where((company) {
+          final isDeleted = company['is_deleted'] == true;
+          return !isDeleted;
+        }).map((company) {
+          // Also filter deleted stores within each company
+          if (company['stores'] != null && company['stores'] is List) {
+            final stores = company['stores'] as List<dynamic>;
+            final filteredStores = stores.where((store) {
+              final isDeleted = store['is_deleted'] == true;
+              return !isDeleted;
+            }).toList();
+
+            company['stores'] = filteredStores;
+            company['store_count'] = filteredStores.length;
+          }
+          return company;
+        }).toList();
+
+        data['companies'] = filteredCompanies;
+        data['company_count'] = filteredCompanies.length;
+      }
+
+      final model = UserCompaniesModel.fromJson(data);
       return model;
     } catch (e) {
       rethrow;
@@ -177,7 +162,7 @@ class HomepageDataSource {
         throw Exception('Invalid categories data returned from database');
       }
 
-      final models = (response as List<dynamic>)
+      final models = (response)
           .map((json) {
             return CategoryFeaturesModel.fromJson(json as Map<String, dynamic>);
           })
@@ -210,10 +195,9 @@ class HomepageDataSource {
         throw Exception('Invalid quick access features data returned from database');
       }
 
-      final models = (response as List<dynamic>)
+      final models = (response)
           .map((json) {
-            final model = TopFeatureModel.fromJson(json as Map<String, dynamic>);
-            return model;
+            return TopFeatureModel.fromJson(json as Map<String, dynamic>);
           })
           .toList();
 

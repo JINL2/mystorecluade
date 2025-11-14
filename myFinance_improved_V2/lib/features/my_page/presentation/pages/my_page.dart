@@ -3,17 +3,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/auth_providers.dart';
 import '../providers/user_profile_providers.dart';
 import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
@@ -41,6 +42,18 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     _scrollController = ScrollController();
     _setupAnimations();
     _entryController.forward();
+
+    // Load user data when page is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
+  }
+
+  Future<void> _loadInitialData() async {
+    final authState = await ref.read(authStateProvider.future);
+    if (authState != null) {
+      await ref.read(myPageProvider.notifier).loadUserData(authState.id);
+    }
   }
 
   void _setupAnimations() {
@@ -87,7 +100,13 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, size: 24),
-                    onPressed: () => context.safePop(),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/');
+                      }
+                    },
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -134,7 +153,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                                       ),
                                     ),
 
-                                    SizedBox(height: TossSpacing.space4),
+                                    const SizedBox(height: TossSpacing.space4),
 
                                     // Settings Section
                                     FadeTransition(
@@ -148,7 +167,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                                     ),
 
                                     // Bottom spacing
-                                    SizedBox(height: TossSpacing.space12),
+                                    const SizedBox(height: TossSpacing.space12),
                                   ],
                                 ),
                               ),
@@ -212,7 +231,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Image Selection Failed',
             message: 'Failed to pick image: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -232,7 +251,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       barrierDismissible: false,
       builder: (context) => Center(
         child: Container(
-          padding: EdgeInsets.all(TossSpacing.space6),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(12),
@@ -241,7 +260,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               const TossLoadingView(),
-              SizedBox(height: TossSpacing.space3),
+              const SizedBox(height: TossSpacing.space3),
               Text(
                 'Uploading...',
                 style: TossTextStyles.caption.copyWith(
@@ -279,7 +298,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Profile Picture Updated!',
             message: 'Your profile picture has been updated successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -309,7 +328,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Upload Failed',
             message: 'Failed to upload profile picture: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -322,7 +341,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       barrierDismissible: false,
       builder: (context) => Center(
         child: Container(
-          padding: EdgeInsets.all(TossSpacing.space6),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(12),
@@ -349,7 +368,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Profile Picture Removed!',
             message: 'Your profile picture has been removed successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -365,7 +384,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Remove Failed',
             message: 'Failed to remove profile picture: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -374,7 +393,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   void _navigateToEditProfile() async {
     HapticFeedback.lightImpact();
-    await context.safePush('/edit-profile');
+    await context.push('/edit-profile');
 
     if (mounted) {
       ref.invalidate(currentUserProfileProvider);
@@ -383,12 +402,12 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   void _navigateToNotifications() {
     HapticFeedback.lightImpact();
-    context.safePush('/notifications-settings');
+    context.push('/notifications-settings');
   }
 
   void _navigateToPrivacySecurity() {
     HapticFeedback.lightImpact();
-    context.safePush('/privacy-security');
+    context.push('/privacy-security');
   }
 
   void _handleSignOut() async {
@@ -407,7 +426,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       try {
         await Supabase.instance.client.auth.signOut();
         if (mounted) {
-          context.safeGo('/auth/login');
+          context.go('/auth/login');
         }
       } catch (e) {
         if (mounted) {
@@ -418,7 +437,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
               title: 'Sign Out Failed',
               message: 'Failed to sign out: $e',
               primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }

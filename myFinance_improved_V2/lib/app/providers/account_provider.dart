@@ -3,10 +3,9 @@
 // Autonomous data providers for account selectors
 // =====================================================
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_provider.g.dart';
 

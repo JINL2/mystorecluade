@@ -102,7 +102,7 @@ class _ShiftCalendarViewState extends ConsumerState<ShiftCalendarView> {
               : state.error != null
                   ? Center(
                       child: Text(
-                        '데이터를 불러오는 중 오류가 발생했습니다:\n${state.error}',
+                        'Error occurred while loading data:\n${state.error}',
                         textAlign: TextAlign.center,
                       ),
                     )

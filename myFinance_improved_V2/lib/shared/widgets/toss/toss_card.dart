@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Toss-style card with micro-interactions
@@ -47,7 +42,7 @@ class _TossCardState extends State<TossCard>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: TossAnimations.standard,
-    ));
+    ),);
     
     _shadowAnimation = Tween<double>(
       begin: 0.08,
@@ -55,7 +50,7 @@ class _TossCardState extends State<TossCard>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: TossAnimations.standard,
-    ));
+    ),);
   }
   
   @override
@@ -70,7 +65,7 @@ class _TossCardState extends State<TossCard>
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            padding: widget.padding ?? EdgeInsets.all(TossSpacing.space5),
+            padding: widget.padding ?? const EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
               color: widget.backgroundColor ?? TossColors.white,
               borderRadius: BorderRadius.circular(widget.borderRadius),

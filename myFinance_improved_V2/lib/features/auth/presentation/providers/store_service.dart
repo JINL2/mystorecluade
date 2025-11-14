@@ -2,35 +2,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Domain Layer
 import '../../domain/entities/store_entity.dart';
+import '../../domain/repositories/store_repository.dart';
+import '../../domain/usecases/create_store_usecase.dart';
 import '../../domain/value_objects/create_store_command.dart';
 
 // Providers
+import '../providers/repository_providers.dart';
 import 'usecase_providers.dart';
-import 'repository_providers.dart';
 
 /// Store Service
 ///
 /// Provides high-level store operations.
-/// This service follows the legacy pattern of Provider<Service> for minimal
-/// UI code changes during migration.
+/// Facade pattern to simplify UI interactions.
 ///
 /// Responsibilities:
 /// - Execute store-related UseCases
 /// - Provide simple data queries
-/// - Coordinate business operations
-///
-/// Usage:
-/// ```dart
-/// final storeService = ref.read(storeServiceProvider);
-/// final store = await storeService.createStore(
-///   name: 'Main Store',
-///   companyId: 'company-id',
-/// );
-/// ```
 class StoreService {
-  const StoreService(this.ref);
+  final CreateStoreUseCase _createStoreUseCase;
+  final StoreRepository _storeRepository;
 
-  final Ref ref;
+  const StoreService({
+    required CreateStoreUseCase createStoreUseCase,
+    required StoreRepository storeRepository,
+  })  : _createStoreUseCase = createStoreUseCase,
+        _storeRepository = storeRepository;
 
   /// Create a new store
   ///
@@ -57,8 +53,8 @@ class StoreService {
     int? paymentTimeDays,
     double? allowedDistanceMeters,
   }) async {
-    try {
-      final command = CreateStoreCommand(
+    return await _createStoreUseCase.execute(
+      CreateStoreCommand(
         name: name.trim(),
         companyId: companyId,
         address: address?.trim(),
@@ -67,33 +63,22 @@ class StoreService {
         huddleTimeMinutes: huddleTimeMinutes,
         paymentTimeDays: paymentTimeDays,
         allowedDistanceMeters: allowedDistanceMeters,
-      );
-
-      return await ref.read(createStoreUseCaseProvider).execute(command);
-    } catch (e) {
-      rethrow;
-    }
+      ),
+    );
   }
 
   /// Check if store code exists
   ///
   /// Validates that a store code is valid and exists in the system.
-  /// Used for joining existing stores or checking duplicates.
-  ///
   /// Returns true if code exists, false otherwise.
   Future<bool> isStoreCodeExists({
     required String companyId,
     required String storeCode,
-  }) async {
-    try {
-      final repository = ref.read(storeRepositoryProvider);
-      return await repository.codeExists(
-        companyId: companyId,
-        storeCode: storeCode.trim(),
-      );
-    } catch (e) {
-      rethrow;
-    }
+  }) {
+    return _storeRepository.codeExists(
+      companyId: companyId,
+      storeCode: storeCode.trim(),
+    );
   }
 }
 
@@ -101,5 +86,8 @@ class StoreService {
 ///
 /// Provides StoreService instance with all dependencies injected.
 final storeServiceProvider = Provider<StoreService>((ref) {
-  return StoreService(ref);
+  return StoreService(
+    createStoreUseCase: ref.watch(createStoreUseCaseProvider),
+    storeRepository: ref.watch(storeRepositoryProvider),
+  );
 });

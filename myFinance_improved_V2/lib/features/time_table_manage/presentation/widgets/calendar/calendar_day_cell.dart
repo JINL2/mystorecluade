@@ -75,7 +75,7 @@ class CalendarDayCell extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.marginXS / 2,
                       ),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.warning,
                         shape: BoxShape.circle,
                       ),
@@ -89,7 +89,7 @@ class CalendarDayCell extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.marginXS / 2,
                       ),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.error,
                         shape: BoxShape.circle,
                       ),
@@ -103,7 +103,7 @@ class CalendarDayCell extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.marginXS / 2,
                       ),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.success,
                         shape: BoxShape.circle,
                       ),
@@ -116,7 +116,7 @@ class CalendarDayCell extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: TossSpacing.marginXS / 2),
                 child: Text(
-                  '${dailyData!.shifts.length}개',
+                  '${dailyData!.shifts.length} shifts',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray600,
                     fontSize: 10,

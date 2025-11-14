@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Safe version of TossCard that prevents memory leaks
@@ -49,7 +44,7 @@ class TossCardSafe extends StatelessWidget {
   
   Widget _buildStaticCard() {
     final card = Container(
-      padding: padding ?? EdgeInsets.all(TossSpacing.space5),
+      padding: padding ?? const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: backgroundColor ?? TossColors.white,
         borderRadius: BorderRadius.circular(borderRadius),
@@ -78,10 +73,10 @@ class TossCardSafe extends StatelessWidget {
   }) {
     return TossCardSafe(
       key: key,
-      child: child,
       onTap: onTap,
       padding: padding,
-      enableAnimation: false, // Never animate in lists
+      enableAnimation: false,
+      child: child, // Never animate in lists
     );
   }
   
@@ -94,11 +89,11 @@ class TossCardSafe extends StatelessWidget {
   }) {
     return TossCardSafe(
       key: key,
-      child: child,
       padding: padding,
       backgroundColor: backgroundColor,
       enableAnimation: false, // Never animate forms
-      onTap: null, // Forms shouldn't be tappable cards
+      onTap: null,
+      child: child, // Forms shouldn't be tappable cards
     );
   }
 }
@@ -144,7 +139,7 @@ class _TossCardAnimatedState extends State<_TossCardAnimated>
       ).animate(CurvedAnimation(
         parent: _controller!,
         curve: TossAnimations.standard,
-      ));
+      ),);
     }
   }
   
@@ -157,7 +152,7 @@ class _TossCardAnimatedState extends State<_TossCardAnimated>
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      padding: widget.padding ?? EdgeInsets.all(TossSpacing.space5),
+      padding: widget.padding ?? const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: widget.backgroundColor ?? TossColors.white,
         borderRadius: BorderRadius.circular(widget.borderRadius),

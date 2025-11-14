@@ -159,7 +159,7 @@ class BalanceSheetInput extends ConsumerWidget {
             ),
 
             // Arrow
-            Icon(
+            const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
               size: 20,

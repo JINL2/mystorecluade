@@ -9,9 +9,27 @@ import 'store_shift_repository_impl.dart';
 /// Data Layer Dependency Injection
 /// ========================================
 ///
-/// This file contains all DI configuration for the data layer.
-/// Presentation layer should NOT import this file.
-/// Instead, presentation imports domain interfaces only.
+/// This file contains DI configuration for the data layer.
+///
+/// ⚠️ IMPORTANT: This file should ONLY be imported in app initialization,
+/// NOT in the Presentation layer.
+///
+/// Presentation layer imports domain/providers/repository_provider.dart instead.
+///
+/// Usage in main.dart or app initialization:
+/// ```dart
+/// import 'features/store_shift/data/repositories/repository_providers.dart';
+/// import 'features/store_shift/domain/providers/repository_provider.dart';
+///
+/// ProviderScope(
+///   overrides: [
+///     storeShiftRepositoryProvider.overrideWithProvider(
+///       storeShiftRepositoryImplProvider,
+///     ),
+///   ],
+///   child: MyApp(),
+/// )
+/// ```
 
 /// Data Source Provider
 ///
@@ -22,12 +40,13 @@ final storeShiftDataSourceProvider = Provider<StoreShiftDataSource>((ref) {
   return StoreShiftDataSource(supabaseService);
 });
 
-/// Repository Provider
+/// Repository Implementation Provider
 ///
-/// Provides the repository implementation.
-/// Returns the interface type (StoreShiftRepository) to maintain
-/// Clean Architecture dependency rules.
-final storeShiftRepositoryProvider = Provider<StoreShiftRepository>((ref) {
+/// This provider supplies the concrete implementation of StoreShiftRepository.
+/// It should be used to override the abstract provider defined in Domain layer.
+///
+/// ✅ Clean Architecture: Domain defines the interface, Data provides implementation
+final storeShiftRepositoryImplProvider = Provider<StoreShiftRepository>((ref) {
   final dataSource = ref.watch(storeShiftDataSourceProvider);
   return StoreShiftRepositoryImpl(dataSource);
 });

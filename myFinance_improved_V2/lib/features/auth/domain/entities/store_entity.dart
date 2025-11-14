@@ -1,46 +1,41 @@
 // lib/features/auth/domain/entities/store_entity.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../value_objects/validation_result.dart';
+
+part 'store_entity.freezed.dart';
 
 /// Store entity representing a physical or virtual location of a company.
 ///
 /// A store belongs to a company and can have multiple employees.
 /// This entity contains all business rules for store validation.
-class Store {
-  final String id;
-  final String name;
-  final String companyId;
-  final String? storeCode; // Unique code within company
-  final String? phone;
-  final String? address;
-  final String? timezone; // e.g., "Asia/Seoul", "America/New_York"
-  final String? description;
-  final bool isActive;
+///
+/// Migrated to Freezed for:
+/// - Immutability guarantees
+/// - Automatic copyWith generation
+/// - Type-safe equality
+/// - Reduced boilerplate
+@freezed
+class Store with _$Store {
+  const Store._();
 
-  // Operational settings
-  final int? huddleTimeMinutes; // Meeting duration in minutes
-  final int? paymentTimeDays; // Payment terms in days
-  final double? allowedDistanceMeters; // Allowed distance for attendance
-
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-
-  const Store({
-    required this.id,
-    required this.name,
-    required this.companyId,
-    this.storeCode,
-    this.phone,
-    this.address,
-    this.timezone,
-    this.description,
-    this.isActive = true,
-    this.huddleTimeMinutes,
-    this.paymentTimeDays,
-    this.allowedDistanceMeters,
-    required this.createdAt,
-    this.updatedAt,
-  });
+  const factory Store({
+    required String id,
+    required String name,
+    required String companyId,
+    String? storeCode, // Unique code within company
+    String? phone,
+    String? address,
+    String? timezone, // e.g., "Asia/Seoul", "America/New_York"
+    String? description,
+    @Default(true) bool isActive,
+    // Operational settings
+    int? huddleTimeMinutes, // Meeting duration in minutes
+    int? paymentTimeDays, // Payment terms in days
+    double? allowedDistanceMeters, // Allowed distance for attendance
+    required DateTime createdAt,
+    DateTime? updatedAt,
+  }) = _Store;
 
   /// Validates the store entity
   ValidationResult validate() {
@@ -110,55 +105,5 @@ class Store {
       return '$name ($storeCode)';
     }
     return name;
-  }
-
-  /// Create a copy with updated fields
-  Store copyWith({
-    String? id,
-    String? name,
-    String? companyId,
-    String? storeCode,
-    String? phone,
-    String? address,
-    String? timezone,
-    String? description,
-    bool? isActive,
-    int? huddleTimeMinutes,
-    int? paymentTimeDays,
-    double? allowedDistanceMeters,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return Store(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      companyId: companyId ?? this.companyId,
-      storeCode: storeCode ?? this.storeCode,
-      phone: phone ?? this.phone,
-      address: address ?? this.address,
-      timezone: timezone ?? this.timezone,
-      description: description ?? this.description,
-      isActive: isActive ?? this.isActive,
-      huddleTimeMinutes: huddleTimeMinutes ?? this.huddleTimeMinutes,
-      paymentTimeDays: paymentTimeDays ?? this.paymentTimeDays,
-      allowedDistanceMeters: allowedDistanceMeters ?? this.allowedDistanceMeters,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Store &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
-
-  @override
-  String toString() {
-    return 'Store(id: $id, name: $name, companyId: $companyId, storeCode: $storeCode, isActive: $isActive)';
   }
 }

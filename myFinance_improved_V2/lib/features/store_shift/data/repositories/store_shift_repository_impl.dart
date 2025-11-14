@@ -86,4 +86,19 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
       address: address,
     );
   }
+
+  @override
+  Future<void> updateOperationalSettings({
+    required String storeId,
+    int? huddleTime,
+    int? paymentTime,
+    int? allowedDistance,
+  }) async {
+    await _dataSource.updateOperationalSettings(
+      storeId: storeId,
+      huddleTime: huddleTime,
+      paymentTime: paymentTime,
+      allowedDistance: allowedDistance,
+    );
+  }
 }

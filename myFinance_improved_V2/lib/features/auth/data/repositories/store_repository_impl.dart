@@ -3,7 +3,7 @@
 import '../../domain/entities/store_entity.dart';
 import '../../domain/repositories/store_repository.dart';
 import '../datasources/supabase_store_datasource.dart';
-import '../models/store_model.dart';
+import '../models/freezed/store_dto_mapper.dart';
 import 'base_repository.dart';
 
 /// Store Repository Implementation
@@ -23,14 +23,14 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
   @override
   Future<Store> create(Store store) {
     return execute(() async {
-      // Convert Entity to Model
-      final model = StoreModel.fromEntity(store);
+      // Convert Entity to insert map (without ID)
+      final insertMap = store.toInsertMap();
 
       // Call DataSource with operational settings
-      final createdModel = await _dataSource.createStore(model.toInsertMap());
+      final createdDto = await _dataSource.createStore(insertMap);
 
-      // Convert Model back to Entity
-      return createdModel.toEntity();
+      // Convert DTO back to Entity
+      return createdDto.toEntity();
     });
   }
 
@@ -66,8 +66,6 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
   @override
   Future<Store> update(Store store) {
     return execute(() async {
-      final model = StoreModel.fromEntity(store);
-
       final updateData = {
         'store_name': store.name,
         'store_code': store.storeCode,
@@ -78,12 +76,12 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
         'allowed_distance': store.allowedDistanceMeters?.toInt(),
       };
 
-      final updatedModel = await _dataSource.updateStore(
+      final updatedDto = await _dataSource.updateStore(
         store.id,
         updateData,
       );
 
-      return updatedModel.toEntity();
+      return updatedDto.toEntity();
     });
   }
 

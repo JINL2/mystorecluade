@@ -40,7 +40,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
         title: 'Notifications',
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(TossSpacing.screenPaddingMobile),
+        padding: const EdgeInsets.all(TossSpacing.screenPaddingMobile),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -52,7 +52,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossWhiteCard(
               padding: EdgeInsets.zero,
@@ -100,7 +100,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
               ),
             ),
 
-            SizedBox(height: TossSpacing.space8),
+            const SizedBox(height: TossSpacing.space8),
 
             // Email Notifications
             Text(
@@ -110,7 +110,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
 
             TossWhiteCard(
               padding: EdgeInsets.zero,
@@ -151,9 +151,9 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
             ),
 
             // Note about in-app notifications
-            SizedBox(height: TossSpacing.space8),
+            const SizedBox(height: TossSpacing.space8),
             Container(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -161,7 +161,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
               child: Row(
                 children: [
                   const Icon(Icons.info_outline, color: TossColors.gray600, size: 20),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
                       'In-app notifications have been disabled. You can view all notifications in the notification center.',
@@ -187,7 +187,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
     bool enabled = true,
   }) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Row(
         children: [
           Expanded(
@@ -201,7 +201,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     color: enabled ? TossColors.gray900 : TossColors.gray500,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 Text(
                   subtitle,
                   style: TossTextStyles.caption.copyWith(

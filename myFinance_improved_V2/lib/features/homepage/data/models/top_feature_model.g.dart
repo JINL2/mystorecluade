@@ -11,6 +11,7 @@ _$TopFeatureModelImpl _$$TopFeatureModelImplFromJson(
     _$TopFeatureModelImpl(
       featureId: json['feature_id'] as String,
       featureName: json['feature_name'] as String?,
+      featureDescription: json['feature_description'] as String?,
       categoryId: json['category_id'] as String?,
       clickCount: (json['click_count'] as num?)?.toInt(),
       lastClicked: json['last_clicked'] == null
@@ -26,6 +27,7 @@ Map<String, dynamic> _$$TopFeatureModelImplToJson(
     <String, dynamic>{
       'feature_id': instance.featureId,
       'feature_name': instance.featureName,
+      'feature_description': instance.featureDescription,
       'category_id': instance.categoryId,
       'click_count': instance.clickCount,
       'last_clicked': instance.lastClicked?.toIso8601String(),

@@ -49,7 +49,7 @@ extension TokenManagerEnhanced on TokenManager {
           'duration_ms': DateTime.now().difference(attemptStart).inMilliseconds,
         });
         
-      } catch (error, stackTrace) {
+      } catch (error) {
         // Error occurred - log and prepare for retry
         attemptResults.add({
           'attempt': attempt + 1,

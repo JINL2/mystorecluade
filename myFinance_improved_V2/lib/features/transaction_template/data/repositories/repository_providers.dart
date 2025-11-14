@@ -11,15 +11,17 @@
 /// NOTE: These providers override the abstract providers from Domain layer.
 /// Presentation layer should import from domain/providers/repository_providers.dart,
 /// NOT from this file.
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+
 import '../../domain/providers/repository_providers.dart' as domain_providers;
 import '../../domain/repositories/template_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
-import '../datasources/template_data_source.dart';
 import '../cache/template_cache_repository.dart';
+import '../datasources/template_data_source.dart';
 import 'supabase_template_repository.dart';
 import 'supabase_transaction_repository.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
 
 /// Supabase service provider (Data layer internal)
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {

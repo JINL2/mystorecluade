@@ -143,14 +143,15 @@ class __$$MonthlyShiftStatusStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$MonthlyShiftStatusStateImpl implements _MonthlyShiftStatusState {
+class _$MonthlyShiftStatusStateImpl extends _MonthlyShiftStatusState {
   const _$MonthlyShiftStatusStateImpl(
       {final Map<String, List<MonthlyShiftStatus>> dataByMonth = const {},
       final Set<String> loadedMonths = const {},
       this.isLoading = false,
       this.error})
       : _dataByMonth = dataByMonth,
-        _loadedMonths = loadedMonths;
+        _loadedMonths = loadedMonths,
+        super._();
 
   final Map<String, List<MonthlyShiftStatus>> _dataByMonth;
   @override
@@ -213,12 +214,13 @@ class _$MonthlyShiftStatusStateImpl implements _MonthlyShiftStatusState {
           _$MonthlyShiftStatusStateImpl>(this, _$identity);
 }
 
-abstract class _MonthlyShiftStatusState implements MonthlyShiftStatusState {
+abstract class _MonthlyShiftStatusState extends MonthlyShiftStatusState {
   const factory _MonthlyShiftStatusState(
       {final Map<String, List<MonthlyShiftStatus>> dataByMonth,
       final Set<String> loadedMonths,
       final bool isLoading,
       final String? error}) = _$MonthlyShiftStatusStateImpl;
+  const _MonthlyShiftStatusState._() : super._();
 
   @override
   Map<String, List<MonthlyShiftStatus>> get dataByMonth;
@@ -426,9 +428,200 @@ abstract class _ManagerOverviewState implements ManagerOverviewState {
 }
 
 /// @nodoc
+mixin _$ManagerShiftCardsState {
+  Map<String, ManagerShiftCards> get dataByMonth =>
+      throw _privateConstructorUsedError;
+  bool get isLoading => throw _privateConstructorUsedError;
+  String? get error => throw _privateConstructorUsedError;
+
+  /// Create a copy of ManagerShiftCardsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ManagerShiftCardsStateCopyWith<ManagerShiftCardsState> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ManagerShiftCardsStateCopyWith<$Res> {
+  factory $ManagerShiftCardsStateCopyWith(ManagerShiftCardsState value,
+          $Res Function(ManagerShiftCardsState) then) =
+      _$ManagerShiftCardsStateCopyWithImpl<$Res, ManagerShiftCardsState>;
+  @useResult
+  $Res call(
+      {Map<String, ManagerShiftCards> dataByMonth,
+      bool isLoading,
+      String? error});
+}
+
+/// @nodoc
+class _$ManagerShiftCardsStateCopyWithImpl<$Res,
+        $Val extends ManagerShiftCardsState>
+    implements $ManagerShiftCardsStateCopyWith<$Res> {
+  _$ManagerShiftCardsStateCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ManagerShiftCardsState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? dataByMonth = null,
+    Object? isLoading = null,
+    Object? error = freezed,
+  }) {
+    return _then(_value.copyWith(
+      dataByMonth: null == dataByMonth
+          ? _value.dataByMonth
+          : dataByMonth // ignore: cast_nullable_to_non_nullable
+              as Map<String, ManagerShiftCards>,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ManagerShiftCardsStateImplCopyWith<$Res>
+    implements $ManagerShiftCardsStateCopyWith<$Res> {
+  factory _$$ManagerShiftCardsStateImplCopyWith(
+          _$ManagerShiftCardsStateImpl value,
+          $Res Function(_$ManagerShiftCardsStateImpl) then) =
+      __$$ManagerShiftCardsStateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {Map<String, ManagerShiftCards> dataByMonth,
+      bool isLoading,
+      String? error});
+}
+
+/// @nodoc
+class __$$ManagerShiftCardsStateImplCopyWithImpl<$Res>
+    extends _$ManagerShiftCardsStateCopyWithImpl<$Res,
+        _$ManagerShiftCardsStateImpl>
+    implements _$$ManagerShiftCardsStateImplCopyWith<$Res> {
+  __$$ManagerShiftCardsStateImplCopyWithImpl(
+      _$ManagerShiftCardsStateImpl _value,
+      $Res Function(_$ManagerShiftCardsStateImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ManagerShiftCardsState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? dataByMonth = null,
+    Object? isLoading = null,
+    Object? error = freezed,
+  }) {
+    return _then(_$ManagerShiftCardsStateImpl(
+      dataByMonth: null == dataByMonth
+          ? _value._dataByMonth
+          : dataByMonth // ignore: cast_nullable_to_non_nullable
+              as Map<String, ManagerShiftCards>,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ManagerShiftCardsStateImpl implements _ManagerShiftCardsState {
+  const _$ManagerShiftCardsStateImpl(
+      {final Map<String, ManagerShiftCards> dataByMonth = const {},
+      this.isLoading = false,
+      this.error})
+      : _dataByMonth = dataByMonth;
+
+  final Map<String, ManagerShiftCards> _dataByMonth;
+  @override
+  @JsonKey()
+  Map<String, ManagerShiftCards> get dataByMonth {
+    if (_dataByMonth is EqualUnmodifiableMapView) return _dataByMonth;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_dataByMonth);
+  }
+
+  @override
+  @JsonKey()
+  final bool isLoading;
+  @override
+  final String? error;
+
+  @override
+  String toString() {
+    return 'ManagerShiftCardsState(dataByMonth: $dataByMonth, isLoading: $isLoading, error: $error)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ManagerShiftCardsStateImpl &&
+            const DeepCollectionEquality()
+                .equals(other._dataByMonth, _dataByMonth) &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.error, error) || other.error == error));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(_dataByMonth), isLoading, error);
+
+  /// Create a copy of ManagerShiftCardsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ManagerShiftCardsStateImplCopyWith<_$ManagerShiftCardsStateImpl>
+      get copyWith => __$$ManagerShiftCardsStateImplCopyWithImpl<
+          _$ManagerShiftCardsStateImpl>(this, _$identity);
+}
+
+abstract class _ManagerShiftCardsState implements ManagerShiftCardsState {
+  const factory _ManagerShiftCardsState(
+      {final Map<String, ManagerShiftCards> dataByMonth,
+      final bool isLoading,
+      final String? error}) = _$ManagerShiftCardsStateImpl;
+
+  @override
+  Map<String, ManagerShiftCards> get dataByMonth;
+  @override
+  bool get isLoading;
+  @override
+  String? get error;
+
+  /// Create a copy of ManagerShiftCardsState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ManagerShiftCardsStateImplCopyWith<_$ManagerShiftCardsStateImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$SelectedShiftRequestsState {
   Set<String> get selectedIds => throw _privateConstructorUsedError;
   Map<String, bool> get approvalStates => throw _privateConstructorUsedError;
+  Map<String, String> get requestIds => throw _privateConstructorUsedError;
 
   /// Create a copy of SelectedShiftRequestsState
   /// with the given fields replaced by the non-null parameter values.
@@ -444,7 +637,10 @@ abstract class $SelectedShiftRequestsStateCopyWith<$Res> {
       _$SelectedShiftRequestsStateCopyWithImpl<$Res,
           SelectedShiftRequestsState>;
   @useResult
-  $Res call({Set<String> selectedIds, Map<String, bool> approvalStates});
+  $Res call(
+      {Set<String> selectedIds,
+      Map<String, bool> approvalStates,
+      Map<String, String> requestIds});
 }
 
 /// @nodoc
@@ -465,6 +661,7 @@ class _$SelectedShiftRequestsStateCopyWithImpl<$Res,
   $Res call({
     Object? selectedIds = null,
     Object? approvalStates = null,
+    Object? requestIds = null,
   }) {
     return _then(_value.copyWith(
       selectedIds: null == selectedIds
@@ -475,6 +672,10 @@ class _$SelectedShiftRequestsStateCopyWithImpl<$Res,
           ? _value.approvalStates
           : approvalStates // ignore: cast_nullable_to_non_nullable
               as Map<String, bool>,
+      requestIds: null == requestIds
+          ? _value.requestIds
+          : requestIds // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>,
     ) as $Val);
   }
 }
@@ -488,7 +689,10 @@ abstract class _$$SelectedShiftRequestsStateImplCopyWith<$Res>
       __$$SelectedShiftRequestsStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({Set<String> selectedIds, Map<String, bool> approvalStates});
+  $Res call(
+      {Set<String> selectedIds,
+      Map<String, bool> approvalStates,
+      Map<String, String> requestIds});
 }
 
 /// @nodoc
@@ -508,6 +712,7 @@ class __$$SelectedShiftRequestsStateImplCopyWithImpl<$Res>
   $Res call({
     Object? selectedIds = null,
     Object? approvalStates = null,
+    Object? requestIds = null,
   }) {
     return _then(_$SelectedShiftRequestsStateImpl(
       selectedIds: null == selectedIds
@@ -518,6 +723,10 @@ class __$$SelectedShiftRequestsStateImplCopyWithImpl<$Res>
           ? _value._approvalStates
           : approvalStates // ignore: cast_nullable_to_non_nullable
               as Map<String, bool>,
+      requestIds: null == requestIds
+          ? _value._requestIds
+          : requestIds // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>,
     ));
   }
 }
@@ -527,9 +736,11 @@ class __$$SelectedShiftRequestsStateImplCopyWithImpl<$Res>
 class _$SelectedShiftRequestsStateImpl implements _SelectedShiftRequestsState {
   const _$SelectedShiftRequestsStateImpl(
       {final Set<String> selectedIds = const {},
-      final Map<String, bool> approvalStates = const {}})
+      final Map<String, bool> approvalStates = const {},
+      final Map<String, String> requestIds = const {}})
       : _selectedIds = selectedIds,
-        _approvalStates = approvalStates;
+        _approvalStates = approvalStates,
+        _requestIds = requestIds;
 
   final Set<String> _selectedIds;
   @override
@@ -549,9 +760,18 @@ class _$SelectedShiftRequestsStateImpl implements _SelectedShiftRequestsState {
     return EqualUnmodifiableMapView(_approvalStates);
   }
 
+  final Map<String, String> _requestIds;
+  @override
+  @JsonKey()
+  Map<String, String> get requestIds {
+    if (_requestIds is EqualUnmodifiableMapView) return _requestIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_requestIds);
+  }
+
   @override
   String toString() {
-    return 'SelectedShiftRequestsState(selectedIds: $selectedIds, approvalStates: $approvalStates)';
+    return 'SelectedShiftRequestsState(selectedIds: $selectedIds, approvalStates: $approvalStates, requestIds: $requestIds)';
   }
 
   @override
@@ -562,14 +782,17 @@ class _$SelectedShiftRequestsStateImpl implements _SelectedShiftRequestsState {
             const DeepCollectionEquality()
                 .equals(other._selectedIds, _selectedIds) &&
             const DeepCollectionEquality()
-                .equals(other._approvalStates, _approvalStates));
+                .equals(other._approvalStates, _approvalStates) &&
+            const DeepCollectionEquality()
+                .equals(other._requestIds, _requestIds));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
       const DeepCollectionEquality().hash(_selectedIds),
-      const DeepCollectionEquality().hash(_approvalStates));
+      const DeepCollectionEquality().hash(_approvalStates),
+      const DeepCollectionEquality().hash(_requestIds));
 
   /// Create a copy of SelectedShiftRequestsState
   /// with the given fields replaced by the non-null parameter values.
@@ -584,14 +807,16 @@ class _$SelectedShiftRequestsStateImpl implements _SelectedShiftRequestsState {
 abstract class _SelectedShiftRequestsState
     implements SelectedShiftRequestsState {
   const factory _SelectedShiftRequestsState(
-          {final Set<String> selectedIds,
-          final Map<String, bool> approvalStates}) =
-      _$SelectedShiftRequestsStateImpl;
+      {final Set<String> selectedIds,
+      final Map<String, bool> approvalStates,
+      final Map<String, String> requestIds}) = _$SelectedShiftRequestsStateImpl;
 
   @override
   Set<String> get selectedIds;
   @override
   Map<String, bool> get approvalStates;
+  @override
+  Map<String, String> get requestIds;
 
   /// Create a copy of SelectedShiftRequestsState
   /// with the given fields replaced by the non-null parameter values.

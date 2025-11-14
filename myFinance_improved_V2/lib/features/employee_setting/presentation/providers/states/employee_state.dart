@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/employee_salary.dart';
+import '../../extensions/employee_display_extension.dart';
 
 part 'employee_state.freezed.dart';
 

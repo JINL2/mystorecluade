@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/core/data/models/journal_entry_model.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
+import 'package:myfinance_improved/core/data/models/journal_entry_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Provider for the journal entry model
 final journalEntryProvider = ChangeNotifierProvider<JournalEntryModel>((ref) {
@@ -20,11 +20,6 @@ final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
         .from('accounts')
         .select('account_id, account_name, category_tag')
         .order('account_name');
-    
-    if (response == null) {
-      // Handle null response gracefully
-      return [];
-    }
     
     final accounts = List<Map<String, dynamic>>.from(response);
     return accounts;

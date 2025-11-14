@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -11,10 +11,8 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 
-// Import domain entities and providers
-import '../../domain/entities/journal_entry.dart';
+// Import providers (includes domain entities via export)
 import '../providers/cash_location_providers.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
@@ -148,9 +146,9 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray50,
-        body: const Center(
+        body: Center(
           child: Text('Please select a company and store first'),
         ),
       );
@@ -164,7 +162,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
@@ -179,7 +177,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             // Content - Transaction List fills remaining space
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space4,
                   TossSpacing.space4,
                   TossSpacing.space4,
@@ -228,7 +226,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                                 offset: 0,
                                 limit: _limit,
                               ),
-                            ));
+                            ),);
                           },
                           child: const Text('Retry'),
                         ),
@@ -324,12 +322,12 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
   }
   
   Widget _buildLoadMoreMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Center(
         child: Text(
           'Scroll to load more',
@@ -344,7 +342,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   
   Widget _buildListHeader() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: TossSpacing.space5,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
@@ -362,7 +360,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 fontSize: 14,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: TossColors.gray600,
@@ -375,9 +373,9 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Center(
-        child: const TossLoadingView(),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: const Center(
+        child: TossLoadingView(),
       ),
     );
   }
@@ -389,7 +387,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       onTap: () => _showTransactionDetailBottomSheet(transaction),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
         ),
@@ -398,7 +396,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
           // Date section
           Container(
             width: 42,
-            padding: EdgeInsets.only(left: TossSpacing.space1),
+            padding: const EdgeInsets.only(left: TossSpacing.space1),
             child: showDate
                 ? Text(
                     _formatDate(transaction.date),
@@ -411,7 +409,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 : const SizedBox.shrink(),
           ),
           
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           
           // Transaction details
           Expanded(
@@ -426,7 +424,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                     color: TossColors.gray800,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Flexible(
@@ -488,7 +486,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             ),
           ),
           
-          SizedBox(width: TossSpacing.space2),
+          const SizedBox(width: TossSpacing.space2),
           
           // Amount - different display for Real vs Journal
           if (isRealType)
@@ -524,13 +522,13 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     if (widget.journalType == 'journal') {
       // Journal tab filters
       if (_selectedFilter == 'Money In') {
-        filtered = filtered.where((t) => t.isIncome == true).toList();
+        filtered = filtered.where((TransactionDisplay t) => t.isIncome == true).toList();
       } else if (_selectedFilter == 'Money Out') {
-        filtered = filtered.where((t) => t.isIncome == false).toList();
+        filtered = filtered.where((TransactionDisplay t) => t.isIncome == false).toList();
       } else if (_selectedFilter == 'Today') {
         // Filter by today's date
         final today = DateTime.now();
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == today.year &&
@@ -543,7 +541,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       } else if (_selectedFilter == 'Yesterday') {
         // Filter by yesterday's date
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == yesterday.year &&
@@ -556,7 +554,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       } else if (_selectedFilter == 'Last Week') {
         // Filter by last week
         final lastWeek = DateTime.now().subtract(const Duration(days: 7));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastWeek);
@@ -567,12 +565,12 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       }
     } else {
       // Real tab filters - show only expenses
-      filtered = filtered.where((t) => t.isIncome == false).toList();
-      
+      filtered = filtered.where((TransactionDisplay t) => t.isIncome == false).toList();
+
       // Apply date filters for real tab too
       if (_selectedFilter == 'Today') {
         final today = DateTime.now();
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == today.year &&
@@ -584,7 +582,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Yesterday') {
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.year == yesterday.year &&
@@ -596,7 +594,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Last Week') {
         final lastWeek = DateTime.now().subtract(const Duration(days: 7));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastWeek);
@@ -606,7 +604,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
         }).toList();
       } else if (_selectedFilter == 'Last Month') {
         final lastMonth = DateTime.now().subtract(const Duration(days: 30));
-        filtered = filtered.where((t) {
+        filtered = filtered.where((TransactionDisplay t) {
           try {
             final transactionDate = DateTime.parse(t.date);
             return transactionDate.isAfter(lastMonth);
@@ -663,7 +661,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -685,7 +683,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
               
               // Filter options
               ..._getFilterOptions().map((option) => 
-                _buildFilterOption(option, _selectedFilter == option)
+                _buildFilterOption(option, _selectedFilter == option),
               ),
               
               // Bottom safe area
@@ -801,7 +799,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -976,7 +974,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
       }
     }
     
-    return filteredLines.map((line) => _buildJournalLine(line)).toList();
+    return filteredLines.map((JournalLine line) => _buildJournalLine(line)).toList();
   }
   
   Widget _buildJournalLine(JournalLine line) {
@@ -1056,7 +1054,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
         .split(' ');
     
     return words.map((word) => 
-      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : ''
+      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '',
     ).join(' ');
   }
 }

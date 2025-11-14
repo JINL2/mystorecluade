@@ -1,11 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Enhanced quantity selector with proper touch targets, haptic feedback,
@@ -127,7 +123,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
     ).animate(CurvedAnimation(
       parent: _decrementAnimationController,
       curve: TossAnimations.enter,
-    ));
+    ),);
 
     // Increment button animation
     _incrementAnimationController = AnimationController(
@@ -140,7 +136,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
     ).animate(CurvedAnimation(
       parent: _incrementAnimationController,
       curve: TossAnimations.enter,
-    ));
+    ),);
 
     // Quantity display animation
     _quantityAnimationController = AnimationController(
@@ -153,7 +149,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
     ).animate(CurvedAnimation(
       parent: _quantityAnimationController,
       curve: TossAnimations.emphasis,
-    ));
+    ),);
   }
 
   @override
@@ -301,7 +297,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.button),
           ),
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
         ),
         child: Text(
           widget.addToCartText,
@@ -327,9 +323,9 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
           enabled: widget.enabled && _pendingQuantity > widget.minQuantity,
           animation: _decrementScaleAnimation,
         ),
-        SizedBox(width: TossSpacing.space2),
+        const SizedBox(width: TossSpacing.space2),
         _buildQuantityDisplay(),
-        SizedBox(width: TossSpacing.space2),
+        const SizedBox(width: TossSpacing.space2),
         _buildActionButton(
           onPressed: _handleIncrement,
           onLongPress: () => _startLongPress(isIncrement: true),
@@ -355,7 +351,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
         Container(
           width: 40,
           height: 32,
-          margin: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+          margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
           decoration: BoxDecoration(
             color: _primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),

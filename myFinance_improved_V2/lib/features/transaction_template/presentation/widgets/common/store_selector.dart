@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/app/providers/journal_input_providers.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 class StoreSelector extends ConsumerStatefulWidget {
   final String? linkedCompanyId;
@@ -28,7 +28,7 @@ class _StoreSelectorState extends ConsumerState<StoreSelector> {
   Widget build(BuildContext context) {
     // ✅ FIXED: Load stores from journalCounterpartyStoresProvider
     final storesAsync = widget.linkedCompanyId != null && widget.linkedCompanyId!.isNotEmpty
-        ? ref.watch(journalCounterpartyStoresProvider(widget.linkedCompanyId!))
+        ? ref.watch(journalCounterpartyStoresProvider(widget.linkedCompanyId))
         : const AsyncValue<List<Map<String, dynamic>>>.data([]);
 
     return storesAsync.when(

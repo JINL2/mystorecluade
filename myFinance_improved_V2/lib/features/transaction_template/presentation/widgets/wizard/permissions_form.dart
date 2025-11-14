@@ -7,12 +7,13 @@
 /// - Informational guidance about template usage
 ///
 /// Usage: PermissionsForm(onVisibilityChanged: callback, onPermissionChanged: callback)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 class PermissionsForm extends StatelessWidget {
   final String selectedVisibility;
@@ -33,7 +34,7 @@ class PermissionsForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,7 +45,7 @@ class PermissionsForm extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
           
           // Visibility Level Dropdown
           TossDropdown<String>(
@@ -65,7 +66,7 @@ class PermissionsForm extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
 
           // Permission Level Dropdown
           TossDropdown<String>(
@@ -86,13 +87,13 @@ class PermissionsForm extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Info box about permissions
           _buildInfoBox(),
           
           // Add padding at bottom for better scroll experience
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
         ],
       ),
     );
@@ -100,7 +101,7 @@ class PermissionsForm extends StatelessWidget {
   
   Widget _buildInfoBox() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.primarySurface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -112,12 +113,12 @@ class PermissionsForm extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline,
             size: 16,
             color: TossColors.primary,
           ),
-          SizedBox(width: TossSpacing.space2),
+          const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Text(
               'Templates help standardize common transactions. Set visibility to control who can see this template, and permission to control who can use it.',

@@ -1,27 +1,29 @@
 // Domain Layer - Journal Entry Entity
 // Pure business object with business logic
 
-class JournalEntry {
-  final String journalId;
-  final String journalDescription;
-  final String entryDate;
-  final DateTime transactionDate;
-  final List<JournalLine> lines;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const JournalEntry({
-    required this.journalId,
-    required this.journalDescription,
-    required this.entryDate,
-    required this.transactionDate,
-    required this.lines,
-  });
+part 'journal_entry.freezed.dart';
+part 'journal_entry.g.dart';
+
+@freezed
+class JournalEntry with _$JournalEntry {
+  const JournalEntry._();
+
+  const factory JournalEntry({
+    required String journalId,
+    required String journalDescription,
+    required String entryDate,
+    required DateTime transactionDate,
+    required List<JournalLine> lines,
+  }) = _JournalEntry;
 
   // Helper method to get a formatted transaction for display
   TransactionDisplay? getTransactionDisplay(String locationType) {
     // Filter lines by location type (cash, bank, or vault)
     final relevantLines = lines.where((line) =>
       line.locationType == locationType ||
-      (line.locationType == null && line.accountName.toLowerCase().contains('expense'))
+      (line.locationType == null && line.accountName.toLowerCase().contains('expense')),
     ).toList();
 
     if (relevantLines.isEmpty) return null;
@@ -74,7 +76,7 @@ class JournalEntry {
         .split(' ');
 
     return words.map((word) =>
-      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : ''
+      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '',
     ).join(' ');
   }
 
@@ -83,52 +85,43 @@ class JournalEntry {
     final minute = dateTime.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
+
+  factory JournalEntry.fromJson(Map<String, dynamic> json) =>
+      _$JournalEntryFromJson(json);
 }
 
-class JournalLine {
-  final String lineId;
-  final String? cashLocationId;
-  final String? locationName;
-  final String? locationType;
-  final String accountId;
-  final String accountName;
-  final double debit;
-  final double credit;
-  final String description;
+@freezed
+class JournalLine with _$JournalLine {
+  const factory JournalLine({
+    required String lineId,
+    String? cashLocationId,
+    String? locationName,
+    String? locationType,
+    required String accountId,
+    required String accountName,
+    required double debit,
+    required double credit,
+    required String description,
+  }) = _JournalLine;
 
-  const JournalLine({
-    required this.lineId,
-    this.cashLocationId,
-    this.locationName,
-    this.locationType,
-    required this.accountId,
-    required this.accountName,
-    required this.debit,
-    required this.credit,
-    required this.description,
-  });
+  factory JournalLine.fromJson(Map<String, dynamic> json) =>
+      _$JournalLineFromJson(json);
 }
 
-class TransactionDisplay {
-  final String date;
-  final String time;
-  final String title;
-  final String locationName;
-  final String personName;
-  final double amount;
-  final bool isIncome;
-  final String description;
-  final JournalEntry journalEntry;
+@freezed
+class TransactionDisplay with _$TransactionDisplay {
+  const factory TransactionDisplay({
+    required String date,
+    required String time,
+    required String title,
+    required String locationName,
+    required String personName,
+    required double amount,
+    required bool isIncome,
+    required String description,
+    required JournalEntry journalEntry,
+  }) = _TransactionDisplay;
 
-  const TransactionDisplay({
-    required this.date,
-    required this.time,
-    required this.title,
-    required this.locationName,
-    required this.personName,
-    required this.amount,
-    required this.isIncome,
-    required this.description,
-    required this.journalEntry,
-  });
+  factory TransactionDisplay.fromJson(Map<String, dynamic> json) =>
+      _$TransactionDisplayFromJson(json);
 }

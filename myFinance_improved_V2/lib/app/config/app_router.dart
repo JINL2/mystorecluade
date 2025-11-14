@@ -4,48 +4,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/app_state.dart';
-import '../providers/app_state_provider.dart';
-import '../providers/auth_providers.dart';
+import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart';
+import '../../features/attendance/presentation/pages/attendance_main_page.dart';
+import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
 import '../../features/auth/presentation/pages/choose_role_page.dart';
 import '../../features/auth/presentation/pages/create_business_page.dart';
 import '../../features/auth/presentation/pages/create_store_page.dart';
 import '../../features/auth/presentation/pages/join_business_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
-import '../../features/homepage/presentation/pages/homepage.dart';
-import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
+import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
-import '../../features/cash_location/presentation/pages/cash_location_page.dart';
-import '../../features/attendance/presentation/pages/attendance_main_page.dart';
-import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
-import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
-import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
+import '../../features/cash_location/presentation/pages/cash_location_page.dart';
+import '../../features/counter_party/presentation/pages/counter_party_page.dart';
+import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
+import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
 import '../../features/employee_setting/presentation/pages/employee_setting_page.dart';
-import '../../features/my_page/presentation/pages/my_page.dart';
+import '../../features/homepage/presentation/pages/homepage.dart';
+import '../../features/inventory_management/presentation/pages/add_product_page.dart';
+import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
+import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
+import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
-import '../../features/journal_input/presentation/pages/journal_input_page.dart';
-import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
-import '../../features/store_shift/presentation/pages/store_shift_page.dart';
-import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
-import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
-import '../../features/counter_party/presentation/pages/counter_party_page.dart';
-import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart';
-import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
+import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
-import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
-import '../../features/inventory_management/presentation/pages/add_product_page.dart';
-import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
-import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
+import '../../features/store_shift/presentation/pages/store_shift_page.dart';
+import '../../features/theme_library/presentation/pages/theme_library_page.dart';
+import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
+import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
+import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
 import '../../shared/widgets/common/toss_scaffold.dart';
-import '../../shared/widgets/common/toss_app_bar_1.dart';
+import '../providers/app_state.dart';
+import '../providers/app_state_provider.dart';
+import '../providers/auth_providers.dart';
 
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
@@ -69,14 +69,14 @@ class RouterNotifier extends ChangeNotifier {
       (previous, next) {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
-            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
+            DateTime.now().difference(_lastAuthNavigationTime!) < const Duration(seconds: 2)) {
           return;
         }
 
         // Add delay to prevent rapid redirects
         Future.delayed(const Duration(milliseconds: 100), () {
           if (_lastAuthNavigationTime == null ||
-              DateTime.now().difference(_lastAuthNavigationTime!) >= Duration(seconds: 3)) {
+              DateTime.now().difference(_lastAuthNavigationTime!) >= const Duration(seconds: 3)) {
             notifyListeners();
           }
         });
@@ -89,14 +89,14 @@ class RouterNotifier extends ChangeNotifier {
       (previous, next) {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
-            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
+            DateTime.now().difference(_lastAuthNavigationTime!) < const Duration(seconds: 2)) {
           return;
         }
 
         // Add delay to prevent rapid redirects
         Future.delayed(const Duration(milliseconds: 100), () {
           if (_lastAuthNavigationTime == null ||
-              DateTime.now().difference(_lastAuthNavigationTime!) >= Duration(seconds: 3)) {
+              DateTime.now().difference(_lastAuthNavigationTime!) >= const Duration(seconds: 3)) {
             notifyListeners();
           }
         });
@@ -229,11 +229,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Get company count from app state
         final userData = appState.user;
-        final hasUserData = userData is Map && userData.isNotEmpty;
+        final hasUserData = userData.isNotEmpty;
 
         // Calculate company count from companies array (not company_count field)
         int companyCount = 0;
-        if (userData is Map && userData['companies'] is List) {
+        if (userData['companies'] is List) {
           companyCount = (userData['companies'] as List).length;
         }
 
@@ -276,7 +276,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         debugPrint('└─────────────────────────────────────────────────────');
         return null;
-      } catch (error, stackTrace) {
+      } catch (error) {
         debugPrint('└─────────────────────────────────────────────────────');
         return '/';
       }
@@ -339,13 +339,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Homepage
       GoRoute(
         path: '/',
-        builder: (context, state) => Homepage(), // ✅ Removed const to allow rebuilds
+        builder: (context, state) => const Homepage(), // ✅ Removed const to allow rebuilds
         routes: [
           // Time Table Management (nested route)
           GoRoute(
             path: 'timetableManage',
             name: 'timetableManage',
-            builder: (context, state) => const TimeTableManagePage(),
+            builder: (context, state) {
+              final feature = state.extra;
+              return TimeTableManagePage(feature: feature);
+            },
           ),
           // Transaction Template (nested route)
           GoRoute(
@@ -402,14 +405,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/cashEnding',
         name: 'cashEnding',
-        builder: (context, state) => const CashEndingPage(),
+        builder: (context, state) {
+          final feature = state.extra;
+          return CashEndingPage(feature: feature);
+        },
       ),
 
       // Cash Location Route
       GoRoute(
         path: '/cashLocation',
         name: 'cashLocation',
-        builder: (context, state) => const CashLocationPage(),
+        builder: (context, state) {
+          final feature = state.extra;
+          return CashLocationPage(feature: feature);
+        },
         routes: [
           GoRoute(
             path: 'account/:accountName',
@@ -598,6 +607,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/salesInvoice',
         name: 'salesInvoice',
         builder: (context, state) => const SalesInvoicePage(),
+      ),
+
+      // Theme Library Route
+      GoRoute(
+        path: '/library',
+        name: 'library',
+        builder: (context, state) => const ThemeLibraryPage(),
       ),
     ],
   );

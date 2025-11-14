@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -31,16 +31,16 @@ class ShiftListItem extends StatelessWidget {
       final hour = int.parse(shift.startTime.split(':')[0]);
 
       if (hour >= 5 && hour < 12) {
-        return (FontAwesomeIcons.sun, TossColors.success); // Morning
+        return (LucideIcons.sun, TossColors.success); // Morning
       } else if (hour >= 12 && hour < 17) {
-        return (FontAwesomeIcons.solidSun, TossColors.info); // Afternoon
+        return (LucideIcons.sun, TossColors.info); // Afternoon
       } else if (hour >= 17 && hour < 22) {
-        return (FontAwesomeIcons.cloudSun, TossColors.warning); // Evening
+        return (LucideIcons.cloudSun, TossColors.warning); // Evening
       } else {
-        return (FontAwesomeIcons.moon, TossColors.gray600); // Night
+        return (LucideIcons.moon, TossColors.gray600); // Night
       }
     } catch (e) {
-      return (FontAwesomeIcons.clock, TossColors.info); // Default
+      return (LucideIcons.clock, TossColors.info); // Default
     }
   }
 
@@ -98,7 +98,7 @@ class ShiftListItem extends StatelessWidget {
               if (onEdit != null)
                 IconButton(
                   onPressed: onEdit,
-                  icon: FaIcon(
+                  icon: Icon(
                     IconMapper.getIcon('editRegular'),
                     color: TossColors.gray500,
                     size: TossSpacing.iconSM,
@@ -112,7 +112,7 @@ class ShiftListItem extends StatelessWidget {
               if (onDelete != null)
                 IconButton(
                   onPressed: onDelete,
-                  icon: FaIcon(
+                  icon: Icon(
                     IconMapper.getIcon('trash'),
                     color: TossColors.error,
                     size: TossSpacing.iconSM,

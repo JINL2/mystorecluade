@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Keyboard toolbar that provides intuitive Done button and navigation
@@ -28,7 +24,7 @@ class TossKeyboardToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 44,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.gray50,
         border: Border(
           top: BorderSide(
@@ -71,7 +67,7 @@ class TossKeyboardToolbar extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space2,
                 ),

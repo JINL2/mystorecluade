@@ -1,6 +1,7 @@
 // Data Source: JournalEntryDataSource
 // Handles all API calls and database queries for journal entries
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -48,17 +49,22 @@ class JournalEntryDataSource {
   Future<List<Map<String, dynamic>>> getCounterpartyStores(String linkedCompanyId) async {
     try {
       if (linkedCompanyId.isEmpty) {
+        debugPrint('🔴 getCounterpartyStores: linkedCompanyId is empty');
         return [];
       }
 
+      debugPrint('🔍 getCounterpartyStores: Fetching stores for company: $linkedCompanyId');
       final response = await _supabase
           .from('stores')
           .select('store_id, store_name')
           .eq('company_id', linkedCompanyId)
           .order('store_name');
 
+      debugPrint('✅ getCounterpartyStores: Success - ${response.length} stores found');
       return List<Map<String, dynamic>>.from(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ getCounterpartyStores: Error - $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to fetch counterparty stores: $e');
     }
   }
@@ -114,6 +120,8 @@ class JournalEntryDataSource {
     required String accountId,
   }) async {
     try {
+      debugPrint('🔍 checkAccountMapping: companyId=$companyId, counterpartyId=$counterpartyId, accountId=$accountId');
+
       final response = await _supabase
           .from('account_mappings')
           .select('my_account_id, linked_account_id, direction')
@@ -123,6 +131,7 @@ class JournalEntryDataSource {
           .maybeSingle();
 
       if (response != null) {
+        debugPrint('✅ checkAccountMapping: Mapping found - $response');
         return {
           'my_account_id': response['my_account_id'],
           'linked_account_id': response['linked_account_id'],
@@ -130,8 +139,11 @@ class JournalEntryDataSource {
         };
       }
 
+      debugPrint('⚠️ checkAccountMapping: No mapping found');
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ checkAccountMapping: Error - $e');
+      debugPrint('Stack trace: $stackTrace');
       return null;
     }
   }

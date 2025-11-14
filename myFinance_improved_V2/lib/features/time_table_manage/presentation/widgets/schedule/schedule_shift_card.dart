@@ -168,7 +168,7 @@ class ScheduleShiftCard extends StatelessWidget {
                   ? TossColors.success.withValues(alpha: 0.03)
                   : TossColors.warning.withValues(alpha: 0.03)),
           border: Border(
-            top: BorderSide(
+            top: const BorderSide(
               color: TossColors.gray100,
               width: 1,
             ),

@@ -26,10 +26,10 @@ class CartSummaryBar extends StatelessWidget {
     final formatter = NumberFormat('#,###');
 
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        border: Border(
+        border: const Border(
           top: BorderSide(
             color: TossColors.gray200,
             width: 1,
@@ -61,9 +61,9 @@ class CartSummaryBar extends StatelessWidget {
                         color: TossColors.gray900,
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space2),
+                    const SizedBox(width: TossSpacing.space2),
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space2,
                         vertical: TossSpacing.space1,
                       ),
@@ -90,7 +90,7 @@ class CartSummaryBar extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
 
             // Action Buttons
             Row(
@@ -101,8 +101,8 @@ class CartSummaryBar extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: onReset,
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                      side: BorderSide(color: TossColors.gray300),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                      side: const BorderSide(color: TossColors.gray300),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
@@ -116,7 +116,7 @@ class CartSummaryBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
 
                 // Continue Button
                 Expanded(
@@ -124,7 +124,7 @@ class CartSummaryBar extends StatelessWidget {
                     onPressed: onDone,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
-                      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),

@@ -7,13 +7,15 @@
 /// - Complex: Gray with settings icon (complex setup required)
 ///
 /// Usage: QuickStatusIndicator(analysis: templateAnalysis)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import '../../../domain/value_objects/template_analysis_result.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+
 import '../../../domain/enums/template_enums.dart';
+import '../../../domain/value_objects/template_analysis_result.dart';
 
 class QuickStatusIndicator extends StatelessWidget {
   final TemplateAnalysisResult analysis;
@@ -30,7 +32,7 @@ class QuickStatusIndicator extends StatelessWidget {
     final statusInfo = _getStatusInfo();
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: statusInfo.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -51,7 +53,7 @@ class QuickStatusIndicator extends StatelessWidget {
               size: 18,
             ),
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,13 +84,13 @@ class QuickStatusIndicator extends StatelessWidget {
   _StatusInfo _getStatusInfo() {
     switch (analysis.complexity) {
       case FormComplexity.simple:
-        return _StatusInfo(
+        return const _StatusInfo(
           color: TossColors.success,
           icon: Icons.flash_on,
           title: 'Ready for instant creation',
         );
       case FormComplexity.withCash:
-        return _StatusInfo(
+        return const _StatusInfo(
           color: TossColors.primary,
           icon: Icons.speed,
           title: 'Cash location needed',
@@ -100,7 +102,7 @@ class QuickStatusIndicator extends StatelessWidget {
           title: '${analysis.missingFields} quick selections needed',
         );
       case FormComplexity.complex:
-        return _StatusInfo(
+        return const _StatusInfo(
           color: TossColors.gray600,
           icon: Icons.settings,
           title: 'Complex setup required',

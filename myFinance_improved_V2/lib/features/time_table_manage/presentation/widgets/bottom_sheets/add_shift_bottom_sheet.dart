@@ -1,130 +1,37 @@
 // ignore_for_file: avoid_dynamic_calls, inference_failure_on_function_invocation, argument_type_not_assignable, invalid_assignment, non_bool_condition, non_bool_negation_expression, non_bool_operand, use_of_void_result
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // App-level providers
 import '../../../../../app/providers/app_state_provider.dart';
-
 // Core utilities
 import '../../../../../core/utils/datetime_utils.dart';
-
-// Feature providers
-import '../../providers/time_table_providers.dart';
-
+import '../../../../../shared/themes/toss_border_radius.dart';
 // Shared themes
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_border_radius.dart';
-
+import '../../../../../shared/themes/toss_text_styles.dart';
 // Shared widgets
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+// Feature providers
+import '../../providers/time_table_providers.dart';
 
 /// AddShiftBottomSheet
 ///
 /// Bottom sheet for adding new shifts to the schedule
-class AddShiftBottomSheet extends ConsumerStatefulWidget {
-  final VoidCallback? onShiftAdded;
+/// ✅ Refactored to use Riverpod Provider (addShiftFormProvider)
+class AddShiftBottomSheet extends ConsumerWidget {
+  final Future<void> Function()? onShiftAdded;
 
   const AddShiftBottomSheet({
     super.key,
     this.onShiftAdded,
   });
 
-  @override
-  ConsumerState<AddShiftBottomSheet> createState() => _AddShiftBottomSheetState();
-}
-
-class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
-  bool _isLoading = true;
-  bool _isSaving = false;
-  String? _error;
-
-  // Data from RPC
-  List<Map<String, dynamic>> _employees = [];
-  List<Map<String, dynamic>> _shifts = [];
-
-  // Selected values
-  String? _selectedEmployeeId;
-  String? _selectedShiftId;
-  DateTime? _selectedDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchScheduleData();
-  }
-
-  /// Helper method to format UTC time string to local time (HH:mm format)
-  ///
-  /// The database stores times in UTC format. This method converts them
-  /// to the user's local timezone for display.
-  String _formatShiftTime(String? utcTime) {
-    if (utcTime == null || utcTime.isEmpty) {
-      return '--:--';
-    }
-
-    try {
-      // Try to parse as full DateTime first (e.g., "2024-01-01T09:00:00Z")
-      if (utcTime.contains('T') || utcTime.contains('Z')) {
-        final localTime = DateTimeUtils.toLocal(utcTime);
-        return DateTimeUtils.formatTimeOnly(localTime);
-      }
-
-      // If it's just a time string (e.g., "09:00:00"), treat as UTC time
-      // Create a dummy date to parse the time
-      final today = DateTime.now().toUtc();
-      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      final fullUtcString = '${dateStr}T$utcTime${utcTime.endsWith('Z') ? '' : 'Z'}';
-      final localTime = DateTimeUtils.toLocal(fullUtcString);
-      return DateTimeUtils.formatTimeOnly(localTime);
-    } catch (e) {
-      // If conversion fails, return original time
-      return utcTime;
-    }
-  }
-  
-  Future<void> _fetchScheduleData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-      
-      // Get store_id from app state
-      final appState = ref.read(appStateProvider);
-      final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-      
-      if (storeId == null || storeId.isEmpty) {
-        setState(() {
-          _error = 'Please select a store first';
-          _isLoading = false;
-        });
-        return;
-      }
-      
-      // Use repository instead of direct Supabase call
-      final response = await ref.read(timeTableRepositoryProvider).getScheduleData(
-        storeId: storeId,
-      );
-
-      setState(() {
-        _employees = List<Map<String, dynamic>>.from(response['store_employees'] ?? []);
-        _shifts = List<Map<String, dynamic>>.from(response['store_shifts'] ?? []);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Error: ${e.toString()}';
-        _isLoading = false;
-      });
-    }
-  }
-  
-  Future<void> _selectDate() async {
+  Future<void> _selectDate(BuildContext context, WidgetRef ref, String storeId) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -133,7 +40,7 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: TossColors.primary,
               onPrimary: TossColors.white,
               surface: TossColors.white,
@@ -144,52 +51,41 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         );
       },
     );
-    
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+
+    if (picked != null) {
+      ref.read(addShiftFormProvider(storeId).notifier).selectDate(picked);
     }
   }
-  
-  Future<void> _saveShift() async {
-    try {
-      setState(() {
-        _isSaving = true;
-      });
-      
-      // Get required data from app state
-      final appState = ref.read(appStateProvider);
-      final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-      final approvedBy = appState.user['user_id'] ?? '';
-      
-      if (storeId == null || storeId.isEmpty || approvedBy.isEmpty) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Error',
-            message: 'Missing store or user information',
-            primaryButtonText: 'OK',
-          ),
-        );
-        setState(() {
-          _isSaving = false;
-        });
-        return;
-      }
-      
-      // Format the date as yyyy-MM-dd
-      final formattedDate = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
 
-      // Use repository instead of direct Supabase call
-      await ref.read(timeTableRepositoryProvider).insertSchedule(
-        userId: _selectedEmployeeId!,
-        shiftId: _selectedShiftId!,
-        storeId: storeId,
-        requestDate: formattedDate,
-        approvedBy: approvedBy,
+  Future<void> _saveShift(BuildContext context, WidgetRef ref, String storeId) async {
+    final appState = ref.read(appStateProvider);
+    final approvedBy = appState.user['user_id'] ?? '';
+
+    if (approvedBy.isEmpty) {
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'User information not found',
+          primaryButtonText: 'OK',
+        ),
       );
+      return;
+    }
+
+    // Save via Provider
+    final success = await ref.read(addShiftFormProvider(storeId).notifier).saveShift(
+          approvedBy: approvedBy,
+        );
+
+    if (!context.mounted) return;
+
+    if (success) {
+      // Notify parent widget to refresh data BEFORE showing success dialog
+      if (onShiftAdded != null) {
+        await onShiftAdded!();
+      }
 
       // Show success message
       await showDialog<bool>(
@@ -202,43 +98,50 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         ),
       );
 
-      // Notify parent widget
-      widget.onShiftAdded?.call();
-
       // Close the bottom sheet
-      if (mounted) {
+      if (context.mounted) {
         Navigator.pop(context, true);
       }
-      
-    } catch (e) {
-      // Show error message
-      if (mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Error',
-            message: e.toString(),
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-
-      setState(() {
-        _isSaving = false;
-      });
+    } else {
+      // Error is already set in state, will be displayed
+      final error = ref.read(addShiftFormProvider(storeId)).error;
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: error ?? 'Failed to save shift',
+          primaryButtonText: 'OK',
+        ),
+      );
     }
   }
-  
+
   @override
-  Widget build(BuildContext context) {
-    // Check if all required fields are filled
-    final bool isFormValid = _selectedEmployeeId != null && 
-                            _selectedShiftId != null && 
-                            _selectedDate != null && 
-                            !_isLoading && 
-                            !_isSaving;
-    
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Get storeId from app state
+    final appState = ref.watch(appStateProvider);
+    final storeId = appState.storeChoosen;
+
+    if (storeId.isEmpty) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: const Center(
+          child: Text('Please select a store first'),
+        ),
+      );
+    }
+
+    // Watch form state
+    final formState = ref.watch(addShiftFormProvider(storeId));
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: const BoxDecoration(
@@ -260,7 +163,7 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
-          
+
           // Header
           Container(
             padding: const EdgeInsets.all(TossSpacing.space5),
@@ -291,20 +194,20 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
               ],
             ),
           ),
-          
+
           // Divider
           Container(
             height: 1,
             color: TossColors.gray200,
           ),
-          
+
           // Content
           Expanded(
-            child: _isLoading
+            child: formState.isLoadingData
                 ? const Center(
                     child: TossLoadingView(),
                   )
-                : _error != null
+                : formState.error != null
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -316,7 +219,7 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                             ),
                             const SizedBox(height: TossSpacing.space3),
                             Text(
-                              _error!,
+                              formState.error!,
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.error,
                               ),
@@ -324,7 +227,9 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                             ),
                             const SizedBox(height: TossSpacing.space4),
                             InkWell(
-                              onTap: _fetchScheduleData,
+                              onTap: () {
+                                ref.read(addShiftFormProvider(storeId).notifier).loadScheduleData();
+                              },
                               borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -353,136 +258,52 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Employee Dropdown
-                            Text(
-                              'Employee',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            TossDropdown<String>(
+                              label: 'Employee',
+                              hint: 'Select Employee',
+                              value: formState.selectedEmployeeId,
+                              items: formState.employees.map((employee) {
+                                return TossDropdownItem<String>(
+                                  value: employee['user_id'] as String,
+                                  label: employee['user_name'] as String? ?? 'Unknown',
+                                );
+                              }).toList(),
+                              onChanged: formState.isSaving
+                                  ? null
+                                  : (value) {
+                                      ref.read(addShiftFormProvider(storeId).notifier).selectEmployee(value);
+                                    },
+                              isLoading: false,
                             ),
-                            const SizedBox(height: TossSpacing.space2),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedEmployeeId,
-                                  hint: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space3,
-                                    ),
-                                    child: Text(
-                                      'Select Employee',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray500,
-                                      ),
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  icon: const Padding(
-                                    padding: EdgeInsets.only(right: TossSpacing.space3),
-                                    child: Icon(
-                                      Icons.arrow_drop_down,
-                                      color: TossColors.gray600,
-                                    ),
-                                  ),
-                                  items: _employees.map((employee) {
-                                    return DropdownMenuItem<String>(
-                                      value: employee['user_id'],
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: TossSpacing.space3,
-                                        ),
-                                        child: Text(
-                                          employee['full_name'] ?? 'Unknown',
-                                          style: TossTextStyles.body.copyWith(
-                                            color: TossColors.gray900,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: _isSaving ? null : (value) {
-                                    setState(() {
-                                      _selectedEmployeeId = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            
-                            const SizedBox(height: TossSpacing.space5),
-                            
-                            // Shift Dropdown
-                            Text(
-                              'Shift',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: TossSpacing.space2),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedShiftId,
-                                  hint: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space3,
-                                    ),
-                                    child: Text(
-                                      'Select Shift',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray500,
-                                      ),
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  icon: const Padding(
-                                    padding: EdgeInsets.only(right: TossSpacing.space3),
-                                    child: Icon(
-                                      Icons.arrow_drop_down,
-                                      color: TossColors.gray600,
-                                    ),
-                                  ),
-                                  items: _shifts.map((shift) {
-                                    // Convert UTC times to local time for display
-                                    final startTime = _formatShiftTime(shift['start_time']);
-                                    final endTime = _formatShiftTime(shift['end_time']);
 
-                                    return DropdownMenuItem<String>(
-                                      value: shift['shift_id'],
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: TossSpacing.space3,
-                                        ),
-                                        child: Text(
-                                          '${shift['shift_name']} ($startTime - $endTime)',
-                                          style: TossTextStyles.body.copyWith(
-                                            color: TossColors.gray900,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: _isSaving ? null : (value) {
-                                    setState(() {
-                                      _selectedShiftId = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            
                             const SizedBox(height: TossSpacing.space5),
-                            
-                            // Date Selector
+
+                            // Shift Dropdown
+                            TossDropdown<String>(
+                              label: 'Shift',
+                              hint: 'Select Shift',
+                              value: formState.selectedShiftId,
+                              items: formState.shifts.map((shift) {
+                                final shiftName = shift['shift_name'] as String? ?? 'Shift';
+                                final startTime = shift['start_time'] as String? ?? '--:--';
+                                final endTime = shift['end_time'] as String? ?? '--:--';
+
+                                return TossDropdownItem<String>(
+                                  value: shift['shift_id'] as String,
+                                  label: '$shiftName ($startTime - $endTime)',
+                                );
+                              }).toList(),
+                              onChanged: formState.isSaving
+                                  ? null
+                                  : (value) {
+                                      ref.read(addShiftFormProvider(storeId).notifier).selectShift(value);
+                                    },
+                              isLoading: false,
+                            ),
+
+                            const SizedBox(height: TossSpacing.space5),
+
+                            // Date Picker
                             Text(
                               'Date',
                               style: TossTextStyles.bodyLarge.copyWith(
@@ -492,13 +313,16 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                             ),
                             const SizedBox(height: TossSpacing.space2),
                             InkWell(
-                              onTap: _isSaving ? null : _selectDate,
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              onTap: formState.isSaving ? null : () => _selectDate(context, ref, storeId),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               child: Container(
                                 padding: const EdgeInsets.all(TossSpacing.space4),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: TossColors.gray300),
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                  color: TossColors.gray50,
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                  border: Border.all(
+                                    color: TossColors.gray200,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -508,32 +332,31 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                                       color: TossColors.gray600,
                                     ),
                                     const SizedBox(width: TossSpacing.space3),
-                                    Expanded(
-                                      child: Text(
-                                        _selectedDate != null
-                                            ? '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}'
-                                            : 'Select Date',
-                                        style: TossTextStyles.body.copyWith(
-                                          color: _selectedDate != null
-                                              ? TossColors.gray900
-                                              : TossColors.gray500,
-                                        ),
+                                    Text(
+                                      formState.selectedDate != null
+                                          ? DateTimeUtils.toDateOnly(formState.selectedDate!)
+                                          : 'Select Date',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: formState.selectedDate != null
+                                            ? TossColors.gray900
+                                            : TossColors.gray500,
                                       ),
                                     ),
+                                    const Spacer(),
                                     const Icon(
-                                      Icons.chevron_right,
-                                      size: 20,
+                                      Icons.arrow_forward_ios,
+                                      size: 16,
                                       color: TossColors.gray400,
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            
-                            const SizedBox(height: TossSpacing.space4),
-                            
-                            // Required fields note
-                            if (!isFormValid)
+
+                            const SizedBox(height: TossSpacing.space5),
+
+                            // Validation message
+                            if (!formState.isFormValid && !formState.isSaving)
                               Container(
                                 padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
@@ -547,14 +370,14 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                                   children: [
                                     const Icon(
                                       Icons.info_outline,
-                                      size: 16,
+                                      size: 20,
                                       color: TossColors.warning,
                                     ),
                                     const SizedBox(width: TossSpacing.space2),
                                     Expanded(
                                       child: Text(
                                         'Please select all required fields to continue',
-                                        style: TossTextStyles.caption.copyWith(
+                                        style: TossTextStyles.bodySmall.copyWith(
                                           color: TossColors.warning,
                                         ),
                                       ),
@@ -566,91 +389,76 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                         ),
                       ),
           ),
-          
+
+          // Divider
+          Container(
+            height: 1,
+            color: TossColors.gray200,
+          ),
+
           // Bottom buttons
           Container(
             padding: const EdgeInsets.all(TossSpacing.space5),
-            decoration: const BoxDecoration(
-              color: TossColors.white,
-              border: Border(
-                top: BorderSide(
-                  color: TossColors.gray200,
-                  width: 1,
-                ),
-              ),
-            ),
             child: Row(
               children: [
+                // Cancel button
                 Expanded(
-                  child: Opacity(
-                    opacity: _isSaving ? 0.5 : 1.0,
-                    child: AbsorbPointer(
-                      absorbing: _isSaving,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context, false);
-                        },
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        child: Container(
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Cancel',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                color: TossColors.gray700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                  child: InkWell(
+                    onTap: formState.isSaving ? null : () => Navigator.pop(context, false),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Cancel',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
+
                 const SizedBox(width: TossSpacing.space3),
+
+                // Save button
                 Expanded(
-                  child: Opacity(
-                    opacity: isFormValid ? 1.0 : 0.5,
-                    child: AbsorbPointer(
-                      absorbing: !isFormValid,
-                      child: InkWell(
-                        onTap: isFormValid
-                            ? () async {
-                                HapticFeedback.mediumImpact();
-                                await _saveShift();
-                              }
-                            : null,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        child: Container(
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: isFormValid
-                                ? TossColors.primary
-                                : TossColors.gray200,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
-                          child: Center(
-                            child: _isSaving
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: TossLoadingView(),
-                                  )
-                                : Text(
-                                    'Save',
-                                    style: TossTextStyles.bodyLarge.copyWith(
-                                      color: isFormValid
-                                          ? TossColors.white
-                                          : TossColors.gray400,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                          ),
-                        ),
+                  child: InkWell(
+                    onTap: formState.isFormValid && !formState.isSaving
+                        ? () => _saveShift(context, ref, storeId)
+                        : null,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                      decoration: BoxDecoration(
+                        color: formState.isFormValid && !formState.isSaving
+                            ? TossColors.primary
+                            : TossColors.gray300,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      child: Center(
+                        child: formState.isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                                ),
+                              )
+                            : Text(
+                                'Save',
+                                style: TossTextStyles.bodyLarge.copyWith(
+                                  color: formState.isFormValid ? TossColors.white : TossColors.gray500,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                   ),

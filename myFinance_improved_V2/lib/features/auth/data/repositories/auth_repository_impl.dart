@@ -3,6 +3,7 @@
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/supabase_auth_datasource.dart';
+import '../models/freezed/user_dto_mapper.dart';
 import 'base_repository.dart';
 
 /// Auth Repository Implementation

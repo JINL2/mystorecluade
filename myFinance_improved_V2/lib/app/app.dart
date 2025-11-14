@@ -67,6 +67,21 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       restorationScopeId: 'myfinance_app',
+
+      // Global keyboard dismissal handler
+      // Applies to ALL screens: TextField keyboards + custom modals (numberpad, etc.)
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () {
+            // Dismiss system keyboard (iOS/Android native keyboard)
+            // This unfocuses any active TextField
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          // Allow underlying widgets to receive tap events
+          behavior: HitTestBehavior.translucent,
+          child: child,
+        );
+      },
     );
   }
 }

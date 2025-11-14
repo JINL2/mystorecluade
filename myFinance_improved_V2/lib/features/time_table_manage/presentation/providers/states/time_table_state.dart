@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/manager_overview.dart';
+import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 
 part 'time_table_state.freezed.dart';
@@ -15,6 +16,14 @@ class MonthlyShiftStatusState with _$MonthlyShiftStatusState {
     @Default(false) bool isLoading,
     String? error,
   }) = _MonthlyShiftStatusState;
+
+  const MonthlyShiftStatusState._();
+
+  /// Get flattened list of all monthly shift statuses
+  /// Used for compatibility with existing page logic
+  List<MonthlyShiftStatus> get allMonthlyStatuses {
+    return dataByMonth.values.expand((list) => list).toList();
+  }
 }
 
 /// Manager Overview State - UI state for manager overview
@@ -29,6 +38,18 @@ class ManagerOverviewState with _$ManagerOverviewState {
   }) = _ManagerOverviewState;
 }
 
+/// Manager Shift Cards State - UI state for manager shift cards
+///
+/// Manages manager shift cards data with monthly caching
+@freezed
+class ManagerShiftCardsState with _$ManagerShiftCardsState {
+  const factory ManagerShiftCardsState({
+    @Default({}) Map<String, ManagerShiftCards> dataByMonth,
+    @Default(false) bool isLoading,
+    String? error,
+  }) = _ManagerShiftCardsState;
+}
+
 /// Selected Shift Requests State - UI state for multi-select approval
 ///
 /// Tracks selected shift requests for batch operations
@@ -37,5 +58,6 @@ class SelectedShiftRequestsState with _$SelectedShiftRequestsState {
   const factory SelectedShiftRequestsState({
     @Default({}) Set<String> selectedIds,
     @Default({}) Map<String, bool> approvalStates,
+    @Default({}) Map<String, String> requestIds, // Maps display ID to actual shift_request_id
   }) = _SelectedShiftRequestsState;
 }

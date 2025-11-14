@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
+
 import '../../../../core/utils/datetime_utils.dart';
+import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
 import '../providers/exchange_rate_provider.dart';
-// Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart
 
 class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
   const AddCurrencyBottomSheet({super.key});
@@ -109,7 +107,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       // Note: API gives rate from base to target, so we need to get rate from selected currency to base currency
       final rate = await exchangeRateService.getExchangeRate(
         selectedCurrencyType!.currencyCode, 
-        baseCurrencyCode!
+        baseCurrencyCode!,
       );
       
       if (mounted) {
@@ -180,7 +178,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                 style: IconButton.styleFrom(
                   backgroundColor: TossColors.gray100,
                   shape: const CircleBorder(),
-                  padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
+                  padding: const EdgeInsets.all(TossSpacing.space2 * 0.75),
                   minimumSize: const Size(28, 28),
                 ),
               ),
@@ -194,12 +192,12 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               ),
             ),
             IconButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.close, color: TossColors.gray600),
               style: IconButton.styleFrom(
                 backgroundColor: TossColors.gray100,
                 shape: const CircleBorder(),
-                padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
+                padding: const EdgeInsets.all(TossSpacing.space2 * 0.75),
                 minimumSize: const Size(28, 28),
               ),
             ),
@@ -467,7 +465,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                 if (currencies.isEmpty) {
                   return TossPrimaryButton(
                     text: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                   );
                 }
                 
@@ -477,7 +475,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     Expanded(
                       child: TossSecondaryButton(
                         text: 'Cancel',
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                       ),
                     ),
                     const SizedBox(width: TossSpacing.space3),
@@ -630,7 +628,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     TextFormField(
                       controller: exchangeRateController,
                       enabled: !isFetchingExchangeRate && suggestedExchangeRate != null,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         hintText: isFetchingExchangeRate ? 'Fetching rate...' : 'Enter exchange rate',
                         suffixText: baseCurrencySymbol,
@@ -662,7 +660,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                           const SizedBox(
                             width: 12,
                             height: 12,
-                            child: const TossLoadingView(),
+                            child: TossLoadingView(),
                           ),
                           const SizedBox(width: TossSpacing.space2),
                           Text(
@@ -676,7 +674,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     ] else if (suggestedExchangeRate != null) ...[
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.trending_up,
                             size: 14,
                             color: TossColors.success,
@@ -713,7 +711,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               Expanded(
                 child: TossSecondaryButton(
                   text: 'Cancel',
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -854,7 +852,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       ref.read(localDenominationListProvider.notifier).reset(selectedCurrencyId!);
       
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
 
         // Show success message
         await showDialog<bool>(

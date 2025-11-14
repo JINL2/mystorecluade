@@ -1,16 +1,16 @@
 import '../entities/transaction_entity.dart';
+import '../enums/approval_level.dart';
+import '../exceptions/transaction_business_exception.dart';
+import '../exceptions/validation_error.dart';
+import '../exceptions/validation_exception.dart';
+import '../repositories/transaction_repository.dart';
+import '../validators/transaction_validator.dart';
 import '../value_objects/transaction_amount.dart';
-import '../value_objects/transaction_status.dart';
-import '../value_objects/transaction_metadata.dart';
 import '../value_objects/transaction_context.dart';
 import '../value_objects/transaction_counterparty.dart';
 import '../value_objects/transaction_location.dart';
-import '../repositories/transaction_repository.dart';
-import '../validators/transaction_validator.dart';
-import '../enums/approval_level.dart';
-import '../exceptions/transaction_business_exception.dart';
-import '../exceptions/validation_exception.dart';
-import '../exceptions/validation_error.dart';
+import '../value_objects/transaction_metadata.dart';
+import '../value_objects/transaction_status.dart';
 
 /// Use case for creating a new transaction
 /// 
@@ -42,7 +42,7 @@ class CreateTransactionUseCase {
               fieldValue: '',
               validationRule: 'entity_validation',
               message: error,
-            )
+            ),
           ).toList(),
         );
       }

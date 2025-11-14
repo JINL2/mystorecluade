@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import '../../domain/entities/bank_real_entry.dart' as bank;
 import '../../domain/entities/vault_real_entry.dart' as vault;
 import '../providers/cash_location_providers.dart';
 
@@ -64,13 +65,13 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     final storeId = appState.storeChoosen;
     
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
-      final newEntries = await repository.getVaultReal(
+      final useCase = ref.read(getVaultRealUseCaseProvider);
+      final newEntries = await useCase(VaultRealParams(
         companyId: companyId,
         storeId: storeId,
         offset: _currentOffset + _limit,
         limit: _limit,
-      );
+      ));
       
       setState(() {
         if (newEntries.isEmpty || newEntries.length < _limit) {
@@ -98,7 +99,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         amount: entry.totalAmount,
         currencySymbol: entry.getCurrencySymbol(),
         realEntry: entry,
-      ));
+      ),);
     }
     
     return displayItems;
@@ -128,9 +129,9 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray50,
-        body: const Center(
+        body: Center(
           child: Text('Please select a company and store first'),
         ),
       );
@@ -143,11 +144,11 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Vault Total Real',
         backgroundColor: TossColors.gray50,
       ),
@@ -158,7 +159,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
             // Content - Vault Real List fills remaining space
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space4,
                   TossSpacing.space4,
                   TossSpacing.space4,
@@ -206,7 +207,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                                 offset: 0,
                                 limit: _limit,
                               ),
-                            ));
+                            ),);
                           },
                           child: const Text('Retry'),
                         ),
@@ -298,12 +299,12 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
   }
   
   Widget _buildLoadMoreMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Center(
         child: Text(
           'Scroll to load more',
@@ -318,7 +319,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
   
   Widget _buildListHeader() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: TossSpacing.space5,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
@@ -336,7 +337,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                 fontSize: 14,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: TossColors.gray600,
@@ -349,9 +350,9 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
   
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Center(
-        child: const TossLoadingView(),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: const Center(
+        child: TossLoadingView(),
       ),
     );
   }
@@ -363,7 +364,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
       onTap: () => _showVaultDetailBottomSheet(item),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
         ),
@@ -372,7 +373,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
             // Date section
             Container(
               width: 42,
-              padding: EdgeInsets.only(left: TossSpacing.space1),
+              padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
                       _formatDate(item.date),
@@ -385,7 +386,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                   : const SizedBox.shrink(),
             ),
             
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             
             // Real details
             Expanded(
@@ -400,7 +401,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                       color: TossColors.gray800,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Flexible(
@@ -420,7 +421,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               ),
             ),
             
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             
             // Amount (can be negative)
             Text(
@@ -533,7 +534,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -555,7 +556,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               
               // Filter options
               ..._getFilterOptions().map((option) => 
-                _buildFilterOption(option, _selectedFilter == option)
+                _buildFilterOption(option, _selectedFilter == option),
               ),
               
               // Bottom safe area
@@ -666,7 +667,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -762,7 +763,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                     ...realEntry.currencySummary.expand((currency) =>
                       currency.denominations
                         .where((d) => d.quantity != 0) // Only show non-zero quantities
-                        .map((denomination) => _buildRunningDenominationItem(denomination, currency.symbol))
+                        .map((denomination) => _buildRunningDenominationItem(denomination, currency.symbol)),
                     ),
                   ],
                   
@@ -810,7 +811,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
     );
   }
   
-  Widget _buildRunningDenominationItem(vault.Denomination denomination, String symbol) {
+  Widget _buildRunningDenominationItem(bank.Denomination denomination, String symbol) {
     final isNegative = denomination.quantity < 0;
     
     return Container(

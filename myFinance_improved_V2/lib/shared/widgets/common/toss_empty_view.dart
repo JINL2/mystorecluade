@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TossEmptyView extends StatelessWidget {
   const TossEmptyView({
@@ -21,13 +21,13 @@ class TossEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space6),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
               icon!,
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
             ],
             Text(
               title,
@@ -37,7 +37,7 @@ class TossEmptyView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (description != null) ...[
-              SizedBox(height: TossSpacing.space2),
+              const SizedBox(height: TossSpacing.space2),
               Text(
                 description!,
                 style: TossTextStyles.body.copyWith(
@@ -47,7 +47,7 @@ class TossEmptyView extends StatelessWidget {
               ),
             ],
             if (action != null) ...[
-              SizedBox(height: TossSpacing.space6),
+              const SizedBox(height: TossSpacing.space6),
               action!,
             ],
           ],

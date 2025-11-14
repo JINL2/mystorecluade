@@ -32,11 +32,11 @@ class JoinCompanyUseCase {
     final trimmedCode = companyCode.trim().toUpperCase();
 
     if (trimmedCode.isEmpty) {
-      throw ValidationException('Company code is required');
+      throw const ValidationException('Company code is required');
     }
 
     if (trimmedCode.length < 6) {
-      throw ValidationException('Company code must be at least 6 characters');
+      throw const ValidationException('Company code must be at least 6 characters');
     }
 
     // Step 2: Join company via repository

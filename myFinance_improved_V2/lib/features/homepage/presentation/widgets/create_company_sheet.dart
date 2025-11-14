@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/company_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../../core/homepage_logger.dart';
+import '../providers/homepage_providers.dart';
+import '../providers/notifier_providers.dart';
+import '../providers/states/company_state.dart';
 
 /// Create Company Bottom Sheet Widget
 /// Uses Riverpod StateNotifier for state management
@@ -45,14 +49,10 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
       _selectedCurrencyId != null;
 
   void _createCompany() {
-    print('🟡 [CreateCompany] Button pressed');
-    print('🟡 [CreateCompany] _isFormValid: $_isFormValid');
-    print('🟡 [CreateCompany] Name: "${_nameController.text.trim()}"');
-    print('🟡 [CreateCompany] CompanyTypeId: $_selectedCompanyTypeId');
-    print('🟡 [CreateCompany] CurrencyId: $_selectedCurrencyId');
+    homepageLogger.d('Button pressed - isFormValid: $_isFormValid, Name: "${_nameController.text.trim()}", CompanyTypeId: $_selectedCompanyTypeId, CurrencyId: $_selectedCurrencyId');
 
     if (!_isFormValid) {
-      print('🔴 [CreateCompany] Form is invalid, showing alert');
+      homepageLogger.w('Form is invalid, showing alert');
 
       // Build list of missing fields
       final missingFields = <String>[];
@@ -95,7 +95,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  )),
+                  ),),
             ],
           ),
           actions: [
@@ -109,7 +109,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
       return;
     }
 
-    print('✅ [CreateCompany] Calling createCompany...');
+    homepageLogger.i('Calling createCompany...');
     ref.read(companyNotifierProvider.notifier).createCompany(
           companyName: _nameController.text.trim(),
           companyTypeId: _selectedCompanyTypeId!,
@@ -132,14 +132,14 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
   Widget build(BuildContext context) {
     // Listen to company state changes
     ref.listen<CompanyState>(companyNotifierProvider, (previous, next) {
-      print('🟣 [CreateCompanySheet] State changed: ${next.runtimeType}');
+      homepageLogger.d('State changed: ${next.runtimeType}');
 
       next.when(
         initial: () {
           // Do nothing
         },
         loading: () {
-          print('🟣 [CreateCompanySheet] Showing loading SnackBar');
+          homepageLogger.d('Showing loading SnackBar');
           // Show loading snackbar
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -163,7 +163,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
           );
         },
         error: (message, errorCode) {
-          print('🟣 [CreateCompanySheet] Showing error SnackBar: $message');
+          homepageLogger.e('Showing error SnackBar: $message');
           // Hide loading, show error
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +186,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
           );
         },
         created: (company) {
-          print('🟣 [CreateCompanySheet] Company created successfully: ${company.name}');
+          homepageLogger.i('Company created successfully: ${company.name}');
           // Hide loading
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -276,7 +276,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -336,7 +336,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                                 .map((type) => TossDropdownItem(
                                       value: type.id,
                                       label: type.typeName,
-                                    ))
+                                    ),)
                                 .toList(),
                             onChanged: (value) {
                               setState(() => _selectedCompanyTypeId = value);
@@ -347,9 +347,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                             items: [],
                             isLoading: true,
                           ),
-                          error: (_, __) => TossDropdown<String>(
+                          error: (_, __) => const TossDropdown<String>(
                             label: 'Company Type',
-                            items: const [],
+                            items: [],
                             errorText: 'Failed to load company types',
                           ),
                         );
@@ -373,7 +373,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                                       value: currency.id,
                                       label: '${currency.name} (${currency.code})',
                                       subtitle: currency.symbol,
-                                    ))
+                                    ),)
                                 .toList(),
                             onChanged: (value) {
                               setState(() => _selectedCurrencyId = value);
@@ -384,9 +384,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                             items: [],
                             isLoading: true,
                           ),
-                          error: (_, __) => TossDropdown<String>(
+                          error: (_, __) => const TossDropdown<String>(
                             label: 'Base Currency',
-                            items: const [],
+                            items: [],
                             errorText: 'Failed to load currencies',
                           ),
                         );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 /// Confirm/Cancel Dialog - 사용자에게 작업 확인을 요청하는 다이얼로그
 ///
@@ -182,7 +182,7 @@ class TossConfirmCancelDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius ?? TossBorderRadius.lg),
       ),
       child: Container(
-        padding: contentPadding ?? EdgeInsets.all(TossSpacing.space5),
+        padding: contentPadding ?? const EdgeInsets.all(TossSpacing.space5),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(borderRadius ?? TossBorderRadius.lg),
@@ -201,7 +201,7 @@ class TossConfirmCancelDialog extends StatelessWidget {
             ),
 
             if (message != null) ...[
-              SizedBox(height: TossSpacing.space5),
+              const SizedBox(height: TossSpacing.space5),
 
               // Message - 기본: 15sp, 중앙 정렬, line height 1.5
               Text(
@@ -217,11 +217,11 @@ class TossConfirmCancelDialog extends StatelessWidget {
 
             // Custom Content (예: Difference Amount)
             if (customContent != null) ...[
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
               customContent!,
             ],
 
-            SizedBox(height: TossSpacing.space5),
+            const SizedBox(height: TossSpacing.space5),
 
             // Buttons - 가로 배치
             Row(
@@ -253,7 +253,7 @@ class TossConfirmCancelDialog extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
 
                 // Confirm Button - 색상 버튼 (기본: primary, 위험한 작업: error)
                 Expanded(

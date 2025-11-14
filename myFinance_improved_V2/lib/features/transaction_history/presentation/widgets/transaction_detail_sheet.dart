@@ -117,7 +117,7 @@ class TransactionDetailSheet extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.copy,
             size: 20,
             color: TossColors.gray500,
@@ -134,7 +134,7 @@ class TransactionDetailSheet extends StatelessWidget {
           },
         ),
         IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.close,
             color: TossColors.gray700,
           ),

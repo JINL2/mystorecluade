@@ -7,11 +7,12 @@
 /// - Proper keyboard navigation and text input actions
 ///
 /// Usage: TemplateBasicInfoForm(nameController: controller, onChanged: callback)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 class TemplateBasicInfoForm extends StatelessWidget {
   final TextEditingController nameController;
@@ -34,7 +35,7 @@ class TemplateBasicInfoForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,7 +46,7 @@ class TemplateBasicInfoForm extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
           
           // Name field
           TossTextField(
@@ -57,7 +58,7 @@ class TemplateBasicInfoForm extends StatelessWidget {
             onChanged: (_) => onChanged?.call(),
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Description field
           TossTextField(
@@ -71,7 +72,7 @@ class TemplateBasicInfoForm extends StatelessWidget {
           ),
           
           // Add padding at bottom for better scroll experience
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
         ],
       ),
     );

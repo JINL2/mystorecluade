@@ -1,6 +1,7 @@
 class Feature {
   final String featureId;
   final String featureName;
+  final String? featureDescription;
   final String featureRoute;
   final String featureIcon;
   final String? iconKey;
@@ -9,6 +10,7 @@ class Feature {
   const Feature({
     required this.featureId,
     required this.featureName,
+    this.featureDescription,
     required this.featureRoute,
     required this.featureIcon,
     this.iconKey,

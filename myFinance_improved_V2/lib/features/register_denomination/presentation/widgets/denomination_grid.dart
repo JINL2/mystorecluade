@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+
 import '../../domain/entities/denomination.dart';
-import '../providers/denomination_providers.dart';
 import '../providers/currency_providers.dart';
+import '../providers/denomination_providers.dart';
 
 class DenominationGrid extends ConsumerWidget {
   final List<Denomination> denominations;
@@ -84,7 +81,7 @@ class DenominationGrid extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: Text(
               'Cancel',
               style: TossTextStyles.labelLarge.copyWith(
@@ -94,7 +91,7 @@ class DenominationGrid extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              context.pop();
               await _removeDenominationWithRefresh(context, ref, denomination);
             },
             child: Text(
@@ -157,7 +154,7 @@ class DenominationGrid extends ConsumerWidget {
             title: 'Delete',
             isDestructive: true,
             onTap: () async {
-              Navigator.of(context).pop(); // Close the bottom sheet first
+              context.pop(); // Close the bottom sheet first
               await _removeDenominationWithRefresh(context, ref, denomination);
             },
           ),

@@ -10,16 +10,11 @@ import 'validation_error.dart';
 /// - Data format validation failures
 class ValidationException extends DomainException {
   const ValidationException(
-    String message, {
-    String? errorCode,
-    Map<String, dynamic>? context,
-    Exception? innerException,
-  }) : super(
-          message,
-          errorCode: errorCode,
-          context: context,
-          innerException: innerException,
-        );
+    super.message, {
+    super.errorCode,
+    super.context,
+    super.innerException,
+  });
 
   /// Creates exception for required field validation
   factory ValidationException.requiredField(String fieldName) {

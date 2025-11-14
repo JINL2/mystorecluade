@@ -42,7 +42,7 @@ class DebtDetailNotifier
           isLoadingCommunications: false,
         ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       state = AsyncValue.data(
         state.value!.copyWith(
           communications: const [],
@@ -71,7 +71,7 @@ class DebtDetailNotifier
           isLoadingPaymentPlans: false,
         ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       state = AsyncValue.data(
         state.value!.copyWith(
           paymentPlans: const [],
@@ -106,7 +106,7 @@ class DebtDetailNotifier
           actionInProgress: null,
         ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       state = AsyncValue.data(
         state.value!.copyWith(
           isPerformingAction: false,
@@ -141,7 +141,7 @@ class DebtDetailNotifier
           actionInProgress: null,
         ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       state = AsyncValue.data(
         state.value!.copyWith(
           isPerformingAction: false,
@@ -182,7 +182,7 @@ class DebtDetailNotifier
           actionInProgress: null,
         ),
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       state = AsyncValue.data(
         state.value!.copyWith(
           isPerformingAction: false,

@@ -1,10 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/services/exchange_rate_service.dart';
 
-// Exchange rate service provider
-final exchangeRateServiceProvider = Provider<ExchangeRateService>((ref) {
-  return ExchangeRateService();
-});
+// Feature - DI (Dependency Injection)
+import '../../di/providers.dart';
 
 // Provider to fetch exchange rate between two currencies
 final exchangeRateProvider = FutureProvider.autoDispose.family<double?, ExchangeRateParams>((ref, params) async {

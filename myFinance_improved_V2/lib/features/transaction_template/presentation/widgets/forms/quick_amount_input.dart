@@ -7,13 +7,14 @@
 /// - Automatic formatting and validation
 ///
 /// Usage: QuickAmountInput(controller: controller, onChanged: callback)
+library;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 
 class QuickAmountInput extends StatefulWidget {
   final TextEditingController controller;
@@ -108,7 +109,7 @@ class _QuickAmountInputState extends State<QuickAmountInput> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -123,7 +124,7 @@ class _QuickAmountInputState extends State<QuickAmountInput> {
               BoxShadow(
                 color: TossColors.primary.withValues(alpha: 0.1),
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ] : null,
           ),
@@ -146,7 +147,7 @@ class _QuickAmountInputState extends State<QuickAmountInput> {
                     fontWeight: FontWeight.w400,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: TossSpacing.space5,
                     horizontal: TossSpacing.space4,
                   ),

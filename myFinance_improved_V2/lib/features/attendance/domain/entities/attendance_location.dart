@@ -23,6 +23,24 @@ class AttendanceLocation {
     return 'POINT($longitude $latitude)';
   }
 
+  /// Alias for backward compatibility
+  String toPostGIS() => toPostGISPoint();
+
+  /// Parse from PostGIS POINT format
+  static AttendanceLocation? fromPostGIS(String? postGISString) {
+    if (postGISString == null || postGISString.isEmpty) return null;
+
+    final regex = RegExp(r'POINT\((-?\d+\.?\d*)\s+(-?\d+\.?\d*)\)');
+    final match = regex.firstMatch(postGISString);
+    if (match != null) {
+      final lng = double.parse(match.group(1)!);
+      final lat = double.parse(match.group(2)!);
+      return AttendanceLocation(latitude: lat, longitude: lng);
+    }
+
+    return null;
+  }
+
   @override
   String toString() => 'AttendanceLocation(lat: $latitude, lng: $longitude)';
 

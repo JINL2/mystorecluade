@@ -55,7 +55,7 @@ class DenominationInput extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray700,
                       fontSize: _getResponsiveFontSize(
-                          '$currencySymbol$formattedAmount', 'denomination'),
+                          '$currencySymbol$formattedAmount', 'denomination',),
                     ),
                     overflow: TextOverflow.clip,
                     maxLines: 1,
@@ -105,7 +105,7 @@ class DenominationInput extends StatelessWidget {
                 const SizedBox(width: 1), // Ultra-minimal spacing
 
                 // Quantity input (TextField with numeric keyboard) - Optimized width
-                Container(
+                SizedBox(
                   width: 46,
                   height: 32,
                   child: TextField(
@@ -124,7 +124,7 @@ class DenominationInput extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
                       fontSize: _getOptimalQuantityFontSize(
-                          controller.text.isEmpty ? '0' : controller.text),
+                          controller.text.isEmpty ? '0' : controller.text,),
                     ),
                     decoration: InputDecoration(
                       hintText: '0',
@@ -139,18 +139,18 @@ class DenominationInput extends StatelessWidget {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         borderSide: const BorderSide(
-                            color: TossColors.gray200, width: 1.0),
+                            color: TossColors.gray200, width: 1.0,),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         borderSide: const BorderSide(
-                            color: TossColors.gray200, width: 1.0),
+                            color: TossColors.gray200, width: 1.0,),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         borderSide: BorderSide(
                             color: TossColors.primary.withOpacity(0.3),
-                            width: 1.0),
+                            width: 1.0,),
                       ),
                       fillColor: TossColors.surface,
                       filled: true,
@@ -162,7 +162,7 @@ class DenominationInput extends StatelessWidget {
                         controller.text = '99999';
                         controller.selection =
                             TextSelection.fromPosition(
-                                const TextPosition(offset: 5));
+                                const TextPosition(offset: 5),);
                       }
                       onChanged();
                     },
@@ -216,7 +216,7 @@ class DenominationInput extends StatelessWidget {
                     final subtotalText = _calculateSubtotal(
                         denomination.value.toInt().toString(),
                         controller.text,
-                        currencySymbol);
+                        currencySymbol,);
 
                     return Text(
                       subtotalText,
@@ -230,7 +230,7 @@ class DenominationInput extends StatelessWidget {
                       maxLines: 1,
                       textAlign: TextAlign.right,
                     );
-                  }),
+                  },),
                 ),
               ],
             ),
@@ -277,7 +277,7 @@ class DenominationInput extends StatelessWidget {
       return '$safeSymbol${NumberFormat('#,###').format(subtotal)}';
     } catch (e) {
       // Fallback for number formatting errors
-      return '${safeSymbol}${subtotal.toString()}';
+      return '$safeSymbol${subtotal.toString()}';
     }
   }
 
@@ -338,7 +338,6 @@ class DenominationInput extends StatelessWidget {
   double _getUnifiedMonetaryFontSize(int effectiveLength, String containerType) {
     // Accessibility minimum: 12px for mobile readability (WCAG compliant)
     const double minAccessibleSize = 12.0;
-    const double maxOptimalSize = 16.0;
 
     // Unified breakpoints for both denomination and total
     double baseSize;

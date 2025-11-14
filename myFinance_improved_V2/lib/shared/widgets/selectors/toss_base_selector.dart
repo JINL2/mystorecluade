@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
 /// Configuration for selector widgets
 class SelectorConfig {
   final String label;
@@ -72,7 +68,7 @@ class TossSingleSelector<T> extends StatelessWidget {
           onTap: () => _showSelector(context),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space3,
             ),
@@ -90,7 +86,7 @@ class TossSingleSelector<T> extends StatelessWidget {
                 Expanded(
                   child: Text(
                     selectedItem != null
-                        ? itemTitleBuilder(selectedItem!)
+                        ? itemTitleBuilder(selectedItem as T)
                         : config.hint,
                     style: TossTextStyles.body.copyWith(
                       color: selectedItem != null
@@ -137,7 +133,7 @@ class TossSingleSelector<T> extends StatelessWidget {
             title: itemTitleBuilder(item),
             subtitle: itemSubtitleBuilder(item),
             isSelected: selectedItem != null && 
-                itemIdBuilder(item) == itemIdBuilder(selectedItem!),
+                itemIdBuilder(item) == itemIdBuilder(selectedItem as T),
           );
         }).toList(),
         onItemSelected: (item) {
@@ -199,7 +195,7 @@ class TossMultiSelector<T> extends StatelessWidget {
           onTap: () => _showSelector(context),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space3,
             ),

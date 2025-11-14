@@ -28,21 +28,22 @@ class EmployeeSettingPageV2 extends ConsumerStatefulWidget {
   ConsumerState<EmployeeSettingPageV2> createState() => _EmployeeSettingPageV2State();
 }
 
-class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2> 
+class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     with WidgetsBindingObserver, TickerProviderStateMixin {
+  // ✅ Constants
+  static const double _scrollToTopThreshold = 200.0;
+
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   bool _showScrollToTop = false;
-  
+
   // Remove local filter states - using providers instead
-  
+
   // Animation controllers
   late AnimationController _filterAnimationController;
   late AnimationController _cardAnimationController;
   late Animation<double> _filterAnimation;
   late Animation<double> _cardAnimation;
-
-  bool _isFirstBuild = true;
 
   @override
   void initState() {
@@ -77,11 +78,6 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Refresh data every time the page becomes visible
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-    }
 
     // Reset loading states and refresh data on page entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -129,9 +125,9 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   }
 
   void _onScroll() {
-    if (_scrollController.offset > 200 && !_showScrollToTop) {
+    if (_scrollController.offset > _scrollToTopThreshold && !_showScrollToTop) {
       setState(() => _showScrollToTop = true);
-    } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+    } else if (_scrollController.offset <= _scrollToTopThreshold && _showScrollToTop) {
       setState(() => _showScrollToTop = false);
     }
   }
@@ -181,7 +177,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       },
       child: TossScaffold(
         backgroundColor: TossColors.gray100,
-        appBar: TossAppBar1(
+        appBar: const TossAppBar1(
           title: 'Team Management',
           backgroundColor: TossColors.gray100,
         ),
@@ -226,7 +222,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                       )
                     else
                       SliverPadding(
-                        padding: EdgeInsets.only(
+                        padding: const EdgeInsets.only(
                           left: TossSpacing.space4,
                           right: TossSpacing.space4,
                           bottom: TossSpacing.space4,
@@ -267,7 +263,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   
   void _showEmployeeDetails(EmployeeSalary employee) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -283,10 +279,10 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       ),
     );
   }
-  
+
   void _showSalaryEdit(EmployeeSalary employee) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -390,13 +386,13 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       children: [
         // Filter and Sort Controls
         Container(
-          margin: EdgeInsets.fromLTRB(
+          margin: const EdgeInsets.fromLTRB(
             TossSpacing.space4,
             TossSpacing.space3,
             TossSpacing.space4,
             TossSpacing.space2,
           ),
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
             vertical: TossSpacing.space2,
           ),
@@ -423,7 +419,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space3,
                       vertical: TossSpacing.space2,
                     ),
@@ -444,7 +440,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                                 child: Container(
                                   width: 16,
                                   height: 16,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: TossColors.primary,
                                     shape: BoxShape.circle,
                                   ),
@@ -462,7 +458,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                               ),
                           ],
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             _hasActiveFilters() ? '${_getActiveFilterCount()} filters active' : 'Filters',
@@ -472,7 +468,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
                           color: TossColors.gray500,
@@ -499,7 +495,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space3,
                       vertical: TossSpacing.space2,
                     ),
@@ -510,7 +506,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                           size: 22,
                           color: sortOption != null ? TossColors.primary : TossColors.gray600,
                         ),
-                        SizedBox(width: TossSpacing.space2),
+                        const SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             _getSortLabel(sortOption),
@@ -529,8 +525,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                             size: 16,
                             color: TossColors.primary,
                           ),
-                        SizedBox(width: TossSpacing.space1),
-                        Icon(
+                        const SizedBox(width: TossSpacing.space1),
+                        const Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
                           color: TossColors.gray500,
@@ -546,7 +542,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
         
         // Search Field
         Container(
-          margin: EdgeInsets.fromLTRB(
+          margin: const EdgeInsets.fromLTRB(
             TossSpacing.space4,
             TossSpacing.space2,
             TossSpacing.space4,
@@ -574,8 +570,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
         children: [
           // Section Header
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: const BoxDecoration(
               border: Border(
                 bottom: BorderSide(
                   color: TossColors.gray100,
@@ -585,12 +581,12 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.groups_rounded,
                   color: TossColors.primary,
                   size: 20,
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Team Members',
                   style: TossTextStyles.bodyLarge.copyWith(
@@ -598,9 +594,9 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                     color: TossColors.gray900,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
                     vertical: TossSpacing.space1,
                   ),
@@ -624,12 +620,12 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           ...employees.asMap().entries.map((entry) {
             final index = entry.key;
             final employee = entry.value;
-            
+
             return Column(
               children: [
                 _buildEmployeeCard(employee, index),
-                if (index < employees.length - 1) 
-                  Divider(
+                if (index < employees.length - 1)
+                  const Divider(
                     height: 1,
                     color: TossColors.gray100,
                     indent: TossSpacing.space4,
@@ -637,7 +633,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -649,13 +645,13 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       child: InkWell(
         onTap: () => _showEmployeeDetails(employee),
         borderRadius: index == 0 
-            ? BorderRadius.only(
+            ? const BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.lg),
                 topRight: Radius.circular(TossBorderRadius.lg),
               )
             : BorderRadius.zero,
         child: Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Row(
             children: [
               // Profile Image with better styling
@@ -690,7 +686,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                 ),
               ),
               
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               
               // Employee Info
               Expanded(
@@ -714,7 +710,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                         ),
                         if (employee.isActive)
                           Container(
-                            margin: EdgeInsets.only(left: TossSpacing.space2),
+                            margin: const EdgeInsets.only(left: TossSpacing.space2),
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
@@ -728,10 +724,10 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                           ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     // Role or department info
                     Text(
-                      employee.roleName ?? employee.department ?? 'No role assigned',
+                      employee.roleName.isNotEmpty ? employee.roleName : (employee.department ?? 'No role assigned'),
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -743,7 +739,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
               
               // Salary Info with better formatting
               Container(
-                padding: EdgeInsets.only(left: TossSpacing.space2),
+                padding: const EdgeInsets.only(left: TossSpacing.space2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -764,10 +760,10 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                 ),
               ),
               
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               
               // Arrow icon
-              Icon(
+              const Icon(
                 Icons.chevron_right_rounded,
                 color: TossColors.gray300,
                 size: 20,
@@ -803,7 +799,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   
   
   void _showSortOptionsSheet() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isDismissible: true, // Allow tap-outside-to-dismiss
@@ -848,7 +844,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).padding.bottom,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xl),
@@ -862,7 +858,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           Container(
             width: 48,
             height: 4,
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -871,7 +867,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           
           // Title
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Text(
               'Sort by',
               style: TossTextStyles.h3.copyWith(
@@ -894,7 +890,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                     ref.read(employeeSortDirectionProvider.notifier).state = !isAscending;
                   } else {
                     // Set new sort option with default direction
-                    ref.read(employeeSortOptionProvider.notifier).state = option['value'] as String;
+                    ref.read(employeeSortOptionProvider.notifier).state = (option['value']! as String);
                     // Reset to default direction for each sort type
                     if (option['value'] == 'name' || option['value'] == 'role') {
                       ref.read(employeeSortDirectionProvider.notifier).state = true; // A-Z by default
@@ -906,21 +902,21 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   Navigator.pop(context);
                 },
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space4,
                     vertical: TossSpacing.space3,
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        option['icon'] as IconData,
+                        option['icon']! as IconData,
                         size: 20,
                         color: isSelected ? TossColors.primary : TossColors.gray600,
                       ),
-                      SizedBox(width: TossSpacing.space3),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: Text(
-                          option['label'] as String,
+                          option['label']! as String,
                           style: TossTextStyles.body.copyWith(
                             color: isSelected ? TossColors.primary : TossColors.gray900,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -930,12 +926,12 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                       // Show direction indicator for selected item
                       if (isSelected) ...[                    
                         Icon(
-                          option['directionIcon'] as IconData,
+                          option['directionIcon']! as IconData,
                           size: 16,
                           color: TossColors.primary,
                         ),
-                        SizedBox(width: TossSpacing.space2),
-                        Icon(
+                        const SizedBox(width: TossSpacing.space2),
+                        const Icon(
                           Icons.check_rounded,
                           color: TossColors.primary,
                           size: 20,
@@ -946,9 +942,9 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                 ),
               ),
             );
-          }).toList(),
-          
-          SizedBox(height: TossSpacing.space4),
+          }),
+
+          const SizedBox(height: TossSpacing.space4),
         ],
       ),
     );
@@ -980,7 +976,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   curve: TossAnimations.decelerate,
                 );
               },
-              child: Icon(Icons.arrow_upward_rounded),
+              child: const Icon(Icons.arrow_upward_rounded),
             ),
           ),
         ],
@@ -1035,7 +1031,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   void _showFilterOptionsSheet() {
     final employeesAsync = ref.read(filteredEmployeesProvider);
     employeesAsync.whenData((employees) {
-      showModalBottomSheet(
+      showModalBottomSheet<void>(
         context: context,
         backgroundColor: TossColors.transparent,
         isScrollControlled: true,
@@ -1059,7 +1055,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xl),
@@ -1073,7 +1069,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           Container(
             width: 48,
             height: 4,
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -1082,7 +1078,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           
           // Title
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Row(
               children: [
                 Text(
@@ -1091,7 +1087,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 if (_hasActiveFilters())
                   TossSecondaryButton(
                     text: 'Clear All',
@@ -1139,7 +1135,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             ),
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
         ],
       ),
     );
@@ -1152,21 +1148,21 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     IconData icon,
     List<EmployeeSalary> allEmployees,
     ValueChanged<String?> onChanged,
-    {Map<String, String>? customLabels}
+    {Map<String, String>? customLabels,}
   ) {
     return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space6),
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space6),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Title
           Padding(
-            padding: EdgeInsets.only(bottom: TossSpacing.space3),
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
             child: Row(
               children: [
                 Icon(icon, size: 20, color: TossColors.gray600),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Text(
                   title,
                   style: TossTextStyles.labelLarge.copyWith(
@@ -1211,7 +1207,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
               onChanged,
               count: count,
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -1223,7 +1219,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     String? selectedValue,
     IconData icon,
     ValueChanged<String?> onChanged,
-    {int? count}
+    {int? count,}
   ) {
     final isSelected = value == selectedValue;
     
@@ -1232,7 +1228,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       child: InkWell(
         onTap: () => onChanged(value),
         child: Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space4,
             vertical: TossSpacing.space3,
           ),
@@ -1243,7 +1239,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                 size: 20,
                 color: TossColors.gray600,
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   label,
@@ -1261,7 +1257,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   ),
                 ),
               if (isSelected)
-                Icon(
+                const Icon(
                   Icons.check_rounded,
                   color: TossColors.primary,
                   size: 20,

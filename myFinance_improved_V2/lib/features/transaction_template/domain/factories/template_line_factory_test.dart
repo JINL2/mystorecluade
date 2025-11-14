@@ -2,6 +2,7 @@
 ///
 /// Tests the Domain layer factory for creating template transaction lines
 /// Verifies correct data structure generation based on account types
+library;
 
 import 'template_line_factory.dart';
 

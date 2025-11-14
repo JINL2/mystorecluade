@@ -1,11 +1,10 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+
 import 'package:flutter/foundation.dart';
-import 'toss_colors.dart';
-import 'toss_text_styles.dart';
-import 'toss_border_radius.dart';
-import 'theme_compatibility.dart';
+import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+
+import 'theme_compatibility.dart';
 
 /// Theme validator for runtime consistency checking
 class ThemeValidator {
@@ -245,20 +244,18 @@ class ThemeValidator {
   /// Validate BorderRadius
   void _validateBorderRadius(BorderRadius radius, String location, String? filePath, int? lineNumber) {
     // Get the radius value (assuming circular)
-    if (radius is BorderRadius) {
-      final topLeft = radius.topLeft.x;
-      if (!_isStandardRadius(topLeft)) {
-        _reportIssue(
-          type: 'radius',
-          location: location,
-          currentValue: 'BorderRadius.circular($topLeft)',
-          suggestedValue: _suggestBorderRadius(topLeft) ?? 'Use TossBorderRadius constants',
-          filePath: filePath,
-          lineNumber: lineNumber,
-        );
-      }
+    final topLeft = radius.topLeft.x;
+    if (!_isStandardRadius(topLeft)) {
+      _reportIssue(
+        type: 'radius',
+        location: location,
+        currentValue: 'BorderRadius.circular($topLeft)',
+        suggestedValue: _suggestBorderRadius(topLeft) ?? 'Use TossBorderRadius constants',
+        filePath: filePath,
+        lineNumber: lineNumber,
+      );
     }
-  }
+    }
   
   /// Validate Card widget
   void _validateCard(Card card, String? filePath, int? lineNumber) {

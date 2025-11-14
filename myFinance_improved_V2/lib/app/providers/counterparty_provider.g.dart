@@ -754,7 +754,7 @@ class _SearchCounterpartiesProviderElement
 }
 
 String _$counterpartyStoresHash() =>
-    r'45c42b2384c762b81bfb152fbb7c3e7801d6be71';
+    r'38d455087bcb549504c22f439ad6138842e4a505';
 
 /// Get stores for a counterparty company
 ///

@@ -6,6 +6,7 @@
 /// - Clean Architecture: DOMAIN LAYER - Factories
 ///
 /// Usage: TemplateLineFactory.createLine(...)
+library;
 
 /// Factory for creating template transaction lines with FLAT structure
 class TemplateLineFactory {
@@ -126,7 +127,7 @@ class TemplateLineFactory {
         counterpartyName: debitCounterpartyName,
         counterpartyCashLocationId: debitCounterpartyCashLocationId,
         counterpartyCashLocationName: debitCounterpartyCashLocationName,
-      ));
+      ),);
     }
 
     // Create credit line
@@ -144,7 +145,7 @@ class TemplateLineFactory {
         counterpartyName: creditCounterpartyName,
         counterpartyCashLocationId: creditCounterpartyCashLocationId,
         counterpartyCashLocationName: creditCounterpartyCashLocationName,
-      ));
+      ),);
     }
 
     return lines;

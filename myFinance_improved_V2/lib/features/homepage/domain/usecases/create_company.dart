@@ -24,21 +24,21 @@ class CreateCompany {
       return const Left(ValidationFailure(
         message: 'Please enter a valid company name',
         code: 'INVALID_NAME',
-      ));
+      ),);
     }
 
     if (params.companyName.trim().length < 2) {
       return const Left(ValidationFailure(
         message: 'Company name must be at least 2 characters',
         code: 'NAME_TOO_SHORT',
-      ));
+      ),);
     }
 
     if (params.companyName.trim().length > 100) {
       return const Left(ValidationFailure(
         message: 'Company name must be less than 100 characters',
         code: 'NAME_TOO_LONG',
-      ));
+      ),);
     }
 
     // Validate company type ID
@@ -46,7 +46,7 @@ class CreateCompany {
       return const Left(ValidationFailure(
         message: 'Please select a valid business type',
         code: 'INVALID_COMPANY_TYPE',
-      ));
+      ),);
     }
 
     // Validate currency ID
@@ -54,7 +54,7 @@ class CreateCompany {
       return const Left(ValidationFailure(
         message: 'Please select a valid currency',
         code: 'INVALID_CURRENCY',
-      ));
+      ),);
     }
 
     // Delegate to repository

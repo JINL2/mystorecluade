@@ -122,8 +122,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     if (widget.locationId == null) return;
     
     try {
-      final service = ref.read(stockFlowServiceProvider);
-      final response = await service.getLocationStockFlow(
+      final useCase = ref.read(getStockFlowUseCaseProvider);
+      final response = await useCase(
         StockFlowParams(
           companyId: companyId,
           storeId: storeId,
@@ -662,7 +662,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     vertical: TossSpacing.space2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
@@ -753,8 +753,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: Center(
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -790,44 +790,46 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       // Extract user ID from user object
       String userId = '';
       try {
-        if (appState.user is Map && appState.user['user_id'] != null) {
-          userId = appState.user['user_id'];
-        } else if (appState.user is Map && appState.user['id'] != null) {
-          userId = appState.user['id'];
+        if (appState.user['user_id'] != null) {
+          userId = appState.user['user_id'].toString();
+        } else if (appState.user['id'] != null) {
+          userId = appState.user['id'].toString();
         }
       } catch (e) {
         // Handle error if user object structure is unexpected
       }
-      
+
       if (widget.locationId == null || widget.locationId!.isEmpty) {
         Navigator.pop(context); // Close loading
         _showErrorDialog('Location ID is missing');
         return;
       }
-      
-      // Call the service
-      final service = ref.read(cashJournalServiceProvider);
-      final result = await service.createErrorJournal(
-        differenceAmount: errorAmount,
-        companyId: companyId,
-        userId: userId,
-        locationName: widget.accountName,
-        cashLocationId: widget.locationId!,
-        storeId: storeId,
+
+      // Call the use case
+      final useCase = ref.read(createErrorAdjustmentUseCaseProvider);
+      final result = await useCase(
+        CreateErrorAdjustmentParams(
+          differenceAmount: errorAmount,
+          companyId: companyId,
+          userId: userId,
+          locationName: widget.accountName,
+          cashLocationId: widget.locationId!,
+          storeId: storeId,
+        ),
       );
       
       Navigator.pop(context); // Close loading dialog
       
       if (result['success'] == true) {
         // Refresh data immediately after successful creation
-        await Future.delayed(Duration(milliseconds: 500)); // Small delay to ensure server processing
+        await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
         await _onRefresh();
         
         // Show success message after refresh
         _showSuccessDialog(isError: true);
       } else {
         // Show error message
-        final errorMsg = result['error'] ?? 'Failed to create journal entry';
+        final errorMsg = (result['error'] ?? 'Failed to create journal entry').toString();
         _showErrorDialog(errorMsg);
       }
     } catch (e) {
@@ -842,8 +844,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: Center(
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -875,48 +877,50 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
-      
+
       // Extract user ID from user object
       String userId = '';
       try {
-        if (appState.user is Map && appState.user['user_id'] != null) {
-          userId = appState.user['user_id'];
-        } else if (appState.user is Map && appState.user['id'] != null) {
-          userId = appState.user['id'];
+        if (appState.user['user_id'] != null) {
+          userId = appState.user['user_id'].toString();
+        } else if (appState.user['id'] != null) {
+          userId = appState.user['id'].toString();
         }
       } catch (e) {
         // Handle error if user object structure is unexpected
       }
-      
+
       if (widget.locationId == null || widget.locationId!.isEmpty) {
         Navigator.pop(context); // Close loading
         _showErrorDialog('Location ID is missing');
         return;
       }
-      
-      // Call the service
-      final service = ref.read(cashJournalServiceProvider);
-      final result = await service.createForeignCurrencyTranslation(
-        differenceAmount: errorAmount,
-        companyId: companyId,
-        userId: userId,
-        locationName: widget.accountName,
-        cashLocationId: widget.locationId!,
-        storeId: storeId,
+
+      // Call the use case
+      final useCase = ref.read(createForeignCurrencyTranslationUseCaseProvider);
+      final result = await useCase(
+        CreateForeignCurrencyTranslationParams(
+          differenceAmount: errorAmount,
+          companyId: companyId,
+          userId: userId,
+          locationName: widget.accountName,
+          cashLocationId: widget.locationId!,
+          storeId: storeId,
+        ),
       );
       
       Navigator.pop(context); // Close loading dialog
       
       if (result['success'] == true) {
         // Refresh data immediately after successful creation
-        await Future.delayed(Duration(milliseconds: 500)); // Small delay to ensure server processing
+        await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
         await _onRefresh();
         
         // Show success message after refresh
         _showSuccessDialog(isError: false);
       } else {
         // Show error message
-        final errorMsg = result['error'] ?? 'Failed to create journal entry';
+        final errorMsg = (result['error'] ?? 'Failed to create journal entry').toString();
         _showErrorDialog(errorMsg);
       }
     } catch (e) {
@@ -948,7 +952,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: TossColors.success.withOpacity(0.1),
+                    color: TossColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1041,7 +1045,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: TossColors.error.withOpacity(0.1),
+                    color: TossColors.error.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -2161,7 +2165,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
@@ -2260,7 +2264,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space3),
-                        
+
                         ...flow.currentDenominations.map((denomination) => 
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -2279,7 +2283,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: TossColors.primary.withOpacity(0.1),
+                                        color: TossColors.primary.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(

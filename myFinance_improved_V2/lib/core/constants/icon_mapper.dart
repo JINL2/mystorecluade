@@ -1,151 +1,284 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../shared/themes/toss_colors.dart';
 
-/// 데이터베이스의 icon_key 문자열을 Font Awesome 아이콘으로 매핑하는 클래스
-/// 
-/// 사용법:
+/// Maps database icon_key strings to Lucide icons
+///
+/// Usage:
 /// ```dart
-/// // DB에서 가져온 icon_key
-/// String iconKey = feature['icon_key']; // 예: "wallet"
-/// 
-/// // 아이콘 가져오기
+/// // Get icon_key from database
+/// String iconKey = feature['icon_key']; // e.g., "wallet"
+///
+/// // Get IconData
 /// IconData icon = IconMapper.getIcon(iconKey);
-/// 
-/// // 위젯에서 사용
-/// FaIcon(icon)
+///
+/// // Use in widget
+/// Icon(icon)
 /// ```
 class IconMapper {
   IconMapper._();
 
-  /// DB의 icon_key 문자열을 IconData로 변환 (순수 데이터 기반)
+  /// Convert database icon_key string to IconData
   static IconData getIcon(String? iconKey, {String? featureName}) {
     // Only use iconKey from database - no hardcoded fallbacks
     if (iconKey == null || iconKey.isEmpty) {
-      return FontAwesomeIcons.circleQuestion; // Default when no data
+      return LucideIcons.helpCircle; // Default when no data
     }
 
     return _getIconFromKey(iconKey);
   }
 
-
   /// Helper method to get icon from key
   static IconData _getIconFromKey(String iconKey) {
-    // DB의 icon_key와 Font Awesome 아이콘 매핑 (Toss-style regular icons)
+    // Map database icon_key to Lucide icons
     final iconMap = {
-      // 대시보드 & 분석 - Regular versions for cleaner look
-      'dashboard': FontAwesomeIcons.chartLine,
-      'chartLine': FontAwesomeIcons.chartLine,
-      'chartLineRegular': FontAwesomeIcons.chartLine,
-      'chartPie': FontAwesomeIcons.chartPie,
-      'chartPieRegular': FontAwesomeIcons.chartPie,
-      'chartBar': FontAwesomeIcons.chartColumn,
-      
-      // 계정 & 매핑
-      'sitemap': FontAwesomeIcons.sitemap,
-      'sitemapRegular': FontAwesomeIcons.sitemap,
-      'networkWired': FontAwesomeIcons.networkWired,
-      
-      // 재무 & 돈 - Keep solid for financial icons (more recognizable)
-      'wallet': FontAwesomeIcons.wallet,
-      'walletRegular': FontAwesomeIcons.wallet,
-      'moneyCheckDollar': FontAwesomeIcons.moneyCheckDollar,
-      'cashRegister': FontAwesomeIcons.cashRegister,
-      'cashRegisterRegular': FontAwesomeIcons.cashRegister,
-      'vault': FontAwesomeIcons.vault,
-      'coins': FontAwesomeIcons.coins,
-      'handHoldingDollar': FontAwesomeIcons.handHoldingDollar,
-      'sackDollar': FontAwesomeIcons.sackDollar,
-      'fileInvoiceDollar': FontAwesomeIcons.fileInvoiceDollar,
-      
-      // 자산 & 건물 - Regular versions where available
-      'buildingColumns': FontAwesomeIcons.buildingColumns,
-      'building': FontAwesomeIcons.building,
-      'buildingRegular': FontAwesomeIcons.building,
-      'warehouse': FontAwesomeIcons.warehouse,
-      
-      // 사용자 & 직원 - Regular versions for cleaner look
-      'userCircle': FontAwesomeIcons.circleUser,
-      'userGear': FontAwesomeIcons.userGear,
-      'userGearRegular': FontAwesomeIcons.userGear, // Use solid since regular doesn't exist
-      'userClock': FontAwesomeIcons.userClock,
-      'userShield': FontAwesomeIcons.userShield,
-      'userShieldRegular': FontAwesomeIcons.userShield, // Use solid since regular doesn't exist
-      'userTag': FontAwesomeIcons.userTag,
-      'userTagRegular': FontAwesomeIcons.userTag, // Use solid since regular doesn't exist
-      'users': FontAwesomeIcons.users,
-      'userTie': FontAwesomeIcons.userTie,
-      'userRegular': FontAwesomeIcons.userLarge, // Regular user icon
-      
-      // 시간 & 일정 - Regular versions for cleaner look
-      'calendarDays': FontAwesomeIcons.calendar, // Regular calendar
-      'calendarRegular': FontAwesomeIcons.calendar,
-      'calendarCheck': FontAwesomeIcons.calendarCheck,
-      'calendarCheckRegular': FontAwesomeIcons.calendarCheck,
-      'clock': FontAwesomeIcons.clock, // Regular clock
-      'clockRegular': FontAwesomeIcons.clock,
-      'clockRotateLeft': FontAwesomeIcons.clockRotateLeft,
-      'clockRotateRegular': FontAwesomeIcons.clockRotateLeft,
-      'businessTime': FontAwesomeIcons.businessTime,
-      
-      // 문서 & 파일 - Regular versions where available
-      'fileContract': FontAwesomeIcons.fileContract,
-      'fileSignature': FontAwesomeIcons.fileSignature,
-      'fileInvoice': FontAwesomeIcons.fileInvoice,
-      'fileInvoiceRegular': FontAwesomeIcons.fileInvoice,
-      'filePen': FontAwesomeIcons.filePen,
-      'fileLines': FontAwesomeIcons.fileLines,
-      
-      // 편집 & 입력 - Regular versions for subtlety
-      'penToSquare': FontAwesomeIcons.penToSquare,
-      'pen': FontAwesomeIcons.pen,
-      'pencil': FontAwesomeIcons.pencil,
-      'editRegular': FontAwesomeIcons.penToSquare, // Clean edit icon
+      // Dashboard & Analytics
+      'dashboard': LucideIcons.lineChart,
+      'chartLine': LucideIcons.lineChart,
+      'chartLineRegular': LucideIcons.lineChart,
+      'chartPie': LucideIcons.pieChart,
+      'chartPieRegular': LucideIcons.pieChart,
+      'chartBar': LucideIcons.barChart,
 
-      // 삭제 & 액션
-      'trash': FontAwesomeIcons.trash,
-      'trashCan': FontAwesomeIcons.trashCan,
-      'trashAlt': FontAwesomeIcons.trashCan,
-      
-      // 위치 & 지도 - Regular versions
-      'mapPin': FontAwesomeIcons.locationDot,
-      'locationDot': FontAwesomeIcons.locationDot,
-      'mapLocation': FontAwesomeIcons.mapLocationDot,
-      'mapLocationRegular': FontAwesomeIcons.mapLocationDot,
-      
-      // 기타 - Regular versions where available
-      'handshake': FontAwesomeIcons.handshake,
-      'handshakeRegular': FontAwesomeIcons.handshake,
-      'wand': FontAwesomeIcons.wandMagicSparkles,
-      'flask': FontAwesomeIcons.flask,
-      'flaskRegular': FontAwesomeIcons.flask,
-      'gear': FontAwesomeIcons.gear,
-      'gears': FontAwesomeIcons.gears,
-      'circleQuestion': FontAwesomeIcons.circleQuestion,
-      'question': FontAwesomeIcons.question,
-      'info': FontAwesomeIcons.info,
-      'infoCircle': FontAwesomeIcons.circleInfo,
-      'infoCircleRegular': FontAwesomeIcons.circleInfo,
-      
-      // 거래 & 히스토리  
-      'history': FontAwesomeIcons.clockRotateLeft,
-      'transactionHistory': FontAwesomeIcons.clockRotateLeft,
+      // Store & Inventory Management
+      'store': LucideIcons.store,
+      'storeAlt': LucideIcons.store,
+      'inventory': LucideIcons.boxes,
+      'inventoryManagement': LucideIcons.boxes,
+      'box': LucideIcons.box,
+      'boxes': LucideIcons.boxes,
+      'boxesStacked': LucideIcons.boxes,
+      'warehouse': LucideIcons.warehouse,
+
+      // Sales & Shopping
+      'sale': LucideIcons.tag,
+      'saleProduct': LucideIcons.tags,
+      'sales': LucideIcons.receipt,
+      'salesInvoice': LucideIcons.fileText,
+      'invoice': LucideIcons.fileText,
+      'receipt': LucideIcons.receipt,
+      'shopping': LucideIcons.shoppingBag,
+      'shoppingBag': LucideIcons.shoppingBag,
+      'shoppingCart': LucideIcons.shoppingCart,
+      'cart': LucideIcons.shoppingCart,
+      'tag': LucideIcons.tag,
+      'tags': LucideIcons.tags,
+
+      // Settings & Configuration
+      'storeSetting': LucideIcons.settings,
+      'setting': LucideIcons.settings,
+      'settings': LucideIcons.settings,
+
+      // User & Profile
+      'user': LucideIcons.user,
+      'userLarge': LucideIcons.user,
+      'myPage': LucideIcons.user,
+      'profile': LucideIcons.user,
+
+      // Edit & Modify
+      'edit': LucideIcons.edit,
+      'editAlt': LucideIcons.pencil,
+
+      // Payment & Cards
+      'creditCard': LucideIcons.creditCard,
+      'card': LucideIcons.creditCard,
+      'payment': LucideIcons.creditCard,
+
+      // Shopping Bag
+      'bag': LucideIcons.shoppingBag,
+
+      // Account & Mapping
+      'sitemap': LucideIcons.network,
+      'sitemapRegular': LucideIcons.network,
+      'networkWired': LucideIcons.network,
+
+      // Finance & Money
+      'wallet': LucideIcons.wallet,
+      'walletRegular': LucideIcons.wallet,
+      'moneyCheckDollar': LucideIcons.banknote,
+      'cashRegister': LucideIcons.calculator,
+      'cashRegisterRegular': LucideIcons.calculator,
+      'vault': LucideIcons.archive,
+      'coins': LucideIcons.coins,
+      'handHoldingDollar': LucideIcons.hand,
+      'sackDollar': LucideIcons.banknote,
+      'fileInvoiceDollar': LucideIcons.fileText,
+
+      // Assets & Buildings
+      'buildingColumns': LucideIcons.building,
+      'building': LucideIcons.building,
+      'buildingRegular': LucideIcons.building,
+
+      // Users & Employees
+      'userCircle': LucideIcons.userCircle,
+      'userGear': LucideIcons.userCog,
+      'userGearRegular': LucideIcons.userCog,
+      'userClock': LucideIcons.userCheck,
+      'userShield': LucideIcons.shieldCheck,
+      'userShieldRegular': LucideIcons.shieldCheck,
+      'userTag': LucideIcons.users,
+      'userTagRegular': LucideIcons.users,
+      'users': LucideIcons.users,
+      'userTie': LucideIcons.user,
+      'userRegular': LucideIcons.user,
+
+      // Time & Schedule
+      'calendarDays': LucideIcons.calendar,
+      'calendarRegular': LucideIcons.calendar,
+      'calendarCheck': LucideIcons.calendarCheck,
+      'calendarCheckRegular': LucideIcons.calendarCheck,
+      'clock': LucideIcons.clock,
+      'clockRegular': LucideIcons.clock,
+      'clockRotateLeft': LucideIcons.history,
+      'clockRotateRegular': LucideIcons.history,
+      'businessTime': LucideIcons.briefcase,
+
+      // Documents & Files
+      'fileContract': LucideIcons.fileText,
+      'fileSignature': LucideIcons.fileSignature,
+      'fileInvoice': LucideIcons.fileText,
+      'fileInvoiceRegular': LucideIcons.fileText,
+      'filePen': LucideIcons.fileEdit,
+      'fileLines': LucideIcons.fileText,
+
+      // Edit & Input
+      'penToSquare': LucideIcons.edit,
+      'pen': LucideIcons.pencil,
+      'pencil': LucideIcons.pencil,
+      'editRegular': LucideIcons.edit,
+
+      // Delete & Actions
+      'trash': LucideIcons.trash2,
+      'trashCan': LucideIcons.trash,
+      'trashAlt': LucideIcons.trash,
+
+      // Location & Maps
+      'mapPin': LucideIcons.mapPin,
+      'locationDot': LucideIcons.mapPin,
+      'mapLocation': LucideIcons.map,
+      'mapLocationRegular': LucideIcons.map,
+
+      // Settings & Management
+      'gear': LucideIcons.settings,
+      'gears': LucideIcons.settings,
+      'sliders': LucideIcons.sliders,
+      'slidersH': LucideIcons.sliders,
+      'wrench': LucideIcons.wrench,
+      'screwdriver': LucideIcons.wrench,
+      'screwdriverWrench': LucideIcons.wrench,
+      'toolbox': LucideIcons.wrench,
+
+      // Permissions & Roles
+      'userShieldAlt': LucideIcons.shieldCheck,
+      'shieldHalved': LucideIcons.shield,
+      'shieldHeart': LucideIcons.shieldCheck,
+      'shield': LucideIcons.shield,
+      'lock': LucideIcons.lock,
+      'lockOpen': LucideIcons.lock,
+      'unlock': LucideIcons.unlock,
+      'key': LucideIcons.key,
+      'fingerprint': LucideIcons.fingerprint,
+
+      // Team & Organization
+      'usersGear': LucideIcons.users,
+      'peopleGroup': LucideIcons.users,
+      'peopleLine': LucideIcons.users,
+      'peopleArrows': LucideIcons.users,
+      'userGroup': LucideIcons.users,
+      'usersLine': LucideIcons.users,
+
+      // Additional Documents
+      'fileCircleCheck': LucideIcons.fileCheck,
+      'fileCirclePlus': LucideIcons.filePlus,
+      'fileShield': LucideIcons.fileText,
+      'folder': LucideIcons.folder,
+      'folderOpen': LucideIcons.folderOpen,
+      'folderTree': LucideIcons.folderTree,
+
+      // Notifications & Communication
+      'bell': LucideIcons.bell,
+      'bellSlash': LucideIcons.bellOff,
+      'envelope': LucideIcons.mail,
+      'envelopeOpen': LucideIcons.mailOpen,
+      'message': LucideIcons.messageSquare,
+      'comment': LucideIcons.messageCircle,
+      'comments': LucideIcons.messageSquare,
+      'inbox': LucideIcons.inbox,
+
+      // Status & Actions
+      'check': LucideIcons.check,
+      'checkCircle': LucideIcons.checkCircle,
+      'checkDouble': LucideIcons.checkCheck,
+      'xmark': LucideIcons.x,
+      'ban': LucideIcons.ban,
+      'exclamation': LucideIcons.alertCircle,
+      'exclamationCircle': LucideIcons.alertCircle,
+      'exclamationTriangle': LucideIcons.alertTriangle,
+
+      // Other
+      'handshake': LucideIcons.heartHandshake,
+      'handshakeRegular': LucideIcons.heartHandshake,
+      'wand': LucideIcons.wand2,
+      'flask': LucideIcons.flaskConical,
+      'flaskRegular': LucideIcons.flaskConical,
+      'circleQuestion': LucideIcons.helpCircle,
+      'question': LucideIcons.helpCircle,
+      'info': LucideIcons.info,
+      'infoCircle': LucideIcons.info,
+      'infoCircleRegular': LucideIcons.info,
+
+      // Chevron & Navigation
+      'chevronDown': LucideIcons.chevronDown,
+      'chevronUp': LucideIcons.chevronUp,
+      'chevronLeft': LucideIcons.chevronLeft,
+      'chevronRight': LucideIcons.chevronRight,
+      'angleDown': LucideIcons.chevronDown,
+      'angleUp': LucideIcons.chevronUp,
+      'angleLeft': LucideIcons.chevronLeft,
+      'angleRight': LucideIcons.chevronRight,
+      'caretDown': LucideIcons.chevronDown,
+      'caretUp': LucideIcons.chevronUp,
+
+      // History & Transactions
+      'history': LucideIcons.history,
+      'transactionHistory': LucideIcons.history,
+
+      // ✅ Lucide native names (snake_case from database)
+      'user_round_cog': LucideIcons.userCog,
+      'clock_8': LucideIcons.clock,
+      'calendar_check': LucideIcons.calendarCheck,
+      'hand_coins': LucideIcons.coins, // Changed from hand to coins for Cash Ending
+      'pen_line': LucideIcons.pencil,
+      'credit_card': LucideIcons.creditCard,
+      'file_text': LucideIcons.fileText,
+      'scale': LucideIcons.scale,
+      'map_pin': LucideIcons.mapPin,
+      'shopping_bag': LucideIcons.shoppingBag,
+      'package': LucideIcons.package,
     };
 
-    // 매핑된 아이콘 반환, 없으면 기본 아이콘
-    final result = iconMap[iconKey] ?? FontAwesomeIcons.circleQuestion;
+    // Return mapped icon or default
+    final result = iconMap[iconKey];
+
+    if (result == null) {
+      print('⚠️ WARNING: No mapping found for iconKey="$iconKey"');
+      print('→ Add this to icon_mapper.dart:');
+      print('   \'$iconKey\': LucideIcons.yourIcon,');
+      return LucideIcons.helpCircle;
+    }
+
     return result;
   }
 
-  /// 아이콘과 함께 색상도 반환 (카테고리별 색상)
+  /// Get color for icon based on category
   static Color getIconColor(String? iconKey) {
     if (iconKey == null || iconKey.isEmpty) {
       return TossColors.gray500;
     }
 
-    // 카테고리별 색상 매핑
+    // Category-based color mapping
     final colorMap = {
-      // 재무 관련 - 초록색
+      // Finance - Green
       'wallet': TossColors.success,
       'moneyCheckDollar': TossColors.success,
       'cashRegister': TossColors.success,
@@ -154,41 +287,41 @@ class IconMapper {
       'handHoldingDollar': TossColors.success,
       'sackDollar': TossColors.success,
       'fileInvoiceDollar': TossColors.success,
-      
-      // 차트 & 분석 - 파란색
+
+      // Charts & Analytics - Blue
       'dashboard': TossColors.primary,
       'chartLine': TossColors.primary,
       'chartPie': TossColors.primary,
       'chartBar': TossColors.primary,
-      
-      // 사용자 관련 - 주황색
+
+      // Users - Orange
       'userCircle': TossColors.warning,
       'userGear': TossColors.warning,
       'userClock': TossColors.warning,
       'userShield': TossColors.warning,
       'userTag': TossColors.warning,
-      
-      // 시간 관련 - 보라색
+
+      // Time - Purple
       'calendarDays': TossColors.primary,
       'calendarCheck': TossColors.primary,
       'clock': TossColors.primary,
       'clockRotateLeft': TossColors.primary,
       'businessTime': TossColors.primary,
-      
-      // 문서 관련 - 청록색
+
+      // Documents - Teal
       'fileContract': TossColors.success,
       'fileSignature': TossColors.success,
       'fileInvoice': TossColors.success,
       'filePen': TossColors.success,
-      
-      // 기본 색상
+
+      // Default
       'default': TossColors.gray500,
     };
 
     return colorMap[iconKey] ?? TossColors.gray500;
   }
 
-  /// 디버깅용: 사용 가능한 모든 아이콘 키 목록
+  /// Get all available icon keys (for debugging)
   static List<String> getAllIconKeys() {
     return [
       'dashboard', 'chartLine', 'chartPie', 'chartBar',
@@ -207,7 +340,7 @@ class IconMapper {
   }
 }
 
-/// 간편한 아이콘 위젯 - Toss-style with perfect centering
+/// Convenient icon widget - Toss-style with perfect centering
 class DynamicIcon extends StatelessWidget {
   final String? iconKey;
   final String? featureName;
@@ -216,23 +349,23 @@ class DynamicIcon extends StatelessWidget {
   final bool useDefaultColor;
 
   const DynamicIcon({
-    Key? key,
+    super.key,
     required this.iconKey,
     this.featureName,
     this.size = 24,
     this.color,
     this.useDefaultColor = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final iconData = IconMapper.getIcon(iconKey, featureName: featureName);
     // Ensure color is properly applied
-    final iconColor = color ?? 
+    final iconColor = color ??
                       (useDefaultColor ? IconMapper.getIconColor(iconKey) : Theme.of(context).iconTheme.color);
 
     return Center(
-      child: FaIcon(
+      child: Icon(
         iconData,
         size: size,
         color: iconColor,

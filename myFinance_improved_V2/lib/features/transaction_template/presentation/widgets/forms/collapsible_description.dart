@@ -7,11 +7,12 @@
 /// - Supports multi-line input for detailed descriptions
 ///
 /// Usage: CollapsibleDescription(controller: controller)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 class CollapsibleDescription extends StatelessWidget {
   final TextEditingController controller;
@@ -38,6 +39,9 @@ class CollapsibleDescription extends StatelessWidget {
           color: TossColors.gray600,
         ),
       ),
+      initiallyExpanded: initiallyExpanded,
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: TossSpacing.space2),
       children: [
         TossTextField(
           controller: controller,
@@ -45,9 +49,6 @@ class CollapsibleDescription extends StatelessWidget {
           maxLines: maxLines,
         ),
       ],
-      initiallyExpanded: initiallyExpanded,
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: EdgeInsets.only(bottom: TossSpacing.space2),
     );
   }
   

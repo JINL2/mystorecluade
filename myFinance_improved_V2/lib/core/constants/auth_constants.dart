@@ -272,7 +272,7 @@ class AuthConstants {
   static const String errorPasswordRequired = 'Please enter a password';
   
   /// Password length error message
-  static const String errorPasswordMinLength = 'Password must be at least 6 characters';
+  static const String errorPasswordMinLength = 'Password must be at least 6 characters long';
   
   /// Password match error message
   static const String errorPasswordMismatch = 'Passwords do not match';
@@ -306,7 +306,7 @@ class AuthConstants {
   static const String buttonCreateAccount = 'Create account';
   
   /// Sign in button text
-  static const String buttonSignIn = 'Sign in securely';
+  static const String buttonSignIn = 'Sign in';
   
   /// Join business button text
   static const String buttonJoinBusiness = 'Join Business';
@@ -346,7 +346,7 @@ class AuthConstants {
   // ==================== PLACEHOLDER TEXT CONSTANTS ====================
   
   /// Email placeholder
-  static const String placeholderEmail = 'your@company.com';
+  static const String placeholderEmail = 'Enter your email address';
   
   /// Business email placeholder
   static const String placeholderBusinessEmail = 'business@example.com';
@@ -378,7 +378,7 @@ class AuthConstants {
   // ==================== LABEL TEXT CONSTANTS ====================
   
   /// Business email label
-  static const String labelBusinessEmail = 'Business Email';
+  static const String labelBusinessEmail = 'Email';
   
   /// Password label
   static const String labelPassword = 'Password';

@@ -146,7 +146,7 @@ class TransactionMetadata extends Equatable {
                '${_pad(dateTime.hour)}:${_pad(dateTime.minute)}:${_pad(dateTime.second)}';
       case 'MMM dd, yyyy':
         final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',];
         return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
       default:
         return dateTime.toString();

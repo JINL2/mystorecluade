@@ -6,8 +6,8 @@ import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/cash_location_detail.dart';
 import '../../domain/entities/cash_real_entry.dart';
 import '../../domain/entities/journal_entry.dart';
-import '../../domain/entities/vault_real_entry.dart';
 import '../../domain/entities/stock_flow.dart';
+import '../../domain/entities/vault_real_entry.dart';
 import '../../domain/repositories/cash_location_repository.dart';
 import '../datasources/cash_location_data_source.dart';
 
@@ -181,6 +181,29 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
       counterpartyId: counterpartyId,
       ifCashLocationId: ifCashLocationId,
       storeId: storeId,
+    );
+  }
+
+  @override
+  Future<void> createCashLocation({
+    required String companyId,
+    required String storeId,
+    required String locationName,
+    required String locationType,
+    String? bankName,
+    String? accountNumber,
+    String? currencyId,
+    String? locationInfo,
+  }) async {
+    await dataSource.createCashLocation(
+      companyId: companyId,
+      storeId: storeId,
+      locationName: locationName,
+      locationType: locationType,
+      bankName: bankName,
+      accountNumber: accountNumber,
+      currencyId: currencyId,
+      locationInfo: locationInfo,
     );
   }
 

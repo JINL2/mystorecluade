@@ -1,44 +1,23 @@
 // lib/features/cash_ending/domain/entities/store.dart
 
-/// Domain entity representing a store
-class Store {
-  final String storeId;
-  final String storeName;
-  final String? storeCode;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Store({
-    required this.storeId,
-    required this.storeName,
-    this.storeCode,
-  });
+part 'store.freezed.dart';
+
+/// Domain entity representing a store
+///
+/// Maps to `stores` table in database.
+/// DB columns: store_id (uuid), store_name (varchar), store_code (varchar)
+@freezed
+class Store with _$Store {
+  const factory Store({
+    required String storeId,
+    required String storeName,
+    String? storeCode,
+  }) = _Store;
+
+  const Store._();
 
   /// Check if this represents the headquarter (special case)
   bool get isHeadquarter => storeId == 'headquarter';
-
-  /// Create a copy with updated fields
-  Store copyWith({
-    String? storeId,
-    String? storeName,
-    String? storeCode,
-  }) {
-    return Store(
-      storeId: storeId ?? this.storeId,
-      storeName: storeName ?? this.storeName,
-      storeCode: storeCode ?? this.storeCode,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Store &&
-        other.storeId == storeId &&
-        other.storeName == storeName &&
-        other.storeCode == storeCode;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(storeId, storeName, storeCode);
-  }
 }

@@ -1,10 +1,6 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Unified Toss button with different variants
@@ -104,7 +100,7 @@ class _TossButtonState extends State<TossButton>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: TossAnimations.standard,
-    ));
+    ),);
   }
   
   @override
@@ -197,7 +193,7 @@ class _TossButtonState extends State<TossButton>
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
             onTapCancel: _handleTapCancel,
-            child: Container(
+            child: SizedBox(
               width: widget.fullWidth ? double.infinity : null,
               child: Material(
                 color: TossColors.transparent,
@@ -207,7 +203,7 @@ class _TossButtonState extends State<TossButton>
                       : null,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space4,
                       vertical: TossSpacing.space3,
                     ),

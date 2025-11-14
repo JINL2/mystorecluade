@@ -7,7 +7,7 @@ part of 'transaction_providers.dart';
 // **************************************************************************
 
 String _$groupedTransactionsHash() =>
-    r'741982c4dc1bbcc27855bee9b6007642ba74adf3';
+    r'0d74314294faf6d63d4b1502a4ca8339bc4e529f';
 
 /// Provider for grouping transactions by date
 ///

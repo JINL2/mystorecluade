@@ -8,14 +8,16 @@
 /// Clean Architecture: DOMAIN LAYER - Dependency Injection
 ///
 /// Usage: Import this file in Presentation layer
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../repositories/template_repository.dart';
-import '../repositories/transaction_repository.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+
+import '../../data/cache/template_cache_repository.dart';
+import '../../data/datasources/template_data_source.dart';
 import '../../data/repositories/supabase_template_repository.dart';
 import '../../data/repositories/supabase_transaction_repository.dart';
-import '../../data/datasources/template_data_source.dart';
-import '../../data/cache/template_cache_repository.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
+import '../repositories/template_repository.dart';
+import '../repositories/transaction_repository.dart';
 
 /// Supabase service provider (Internal)
 final _supabaseServiceProvider = Provider<SupabaseService>((ref) {

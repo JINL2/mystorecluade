@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Simple wheel-style date picker matching Toss design system
@@ -33,9 +29,9 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
   late FixedExtentScrollController _dayController;
   late FixedExtentScrollController _yearController;
 
-  List<String> _months = [
+  final List<String> _months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
 
   @override
@@ -114,7 +110,7 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
   }
 
   Widget _buildWheelPickers() {
-    return Container(
+    return SizedBox(
       height: 200,
       child: Stack(
         children: [
@@ -357,7 +353,7 @@ class TossDatePicker extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.calendar_today,
                 color: TossColors.gray400,
                 size: 20,

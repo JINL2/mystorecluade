@@ -22,6 +22,7 @@ TopFeatureModel _$TopFeatureModelFromJson(Map<String, dynamic> json) {
 mixin _$TopFeatureModel {
   String get featureId => throw _privateConstructorUsedError;
   String? get featureName => throw _privateConstructorUsedError;
+  String? get featureDescription => throw _privateConstructorUsedError;
   String? get categoryId => throw _privateConstructorUsedError;
   int? get clickCount => throw _privateConstructorUsedError;
   DateTime? get lastClicked => throw _privateConstructorUsedError;
@@ -48,6 +49,7 @@ abstract class $TopFeatureModelCopyWith<$Res> {
   $Res call(
       {String featureId,
       String? featureName,
+      String? featureDescription,
       String? categoryId,
       int? clickCount,
       DateTime? lastClicked,
@@ -73,6 +75,7 @@ class _$TopFeatureModelCopyWithImpl<$Res, $Val extends TopFeatureModel>
   $Res call({
     Object? featureId = null,
     Object? featureName = freezed,
+    Object? featureDescription = freezed,
     Object? categoryId = freezed,
     Object? clickCount = freezed,
     Object? lastClicked = freezed,
@@ -88,6 +91,10 @@ class _$TopFeatureModelCopyWithImpl<$Res, $Val extends TopFeatureModel>
       featureName: freezed == featureName
           ? _value.featureName
           : featureName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      featureDescription: freezed == featureDescription
+          ? _value.featureDescription
+          : featureDescription // ignore: cast_nullable_to_non_nullable
               as String?,
       categoryId: freezed == categoryId
           ? _value.categoryId
@@ -128,6 +135,7 @@ abstract class _$$TopFeatureModelImplCopyWith<$Res>
   $Res call(
       {String featureId,
       String? featureName,
+      String? featureDescription,
       String? categoryId,
       int? clickCount,
       DateTime? lastClicked,
@@ -151,6 +159,7 @@ class __$$TopFeatureModelImplCopyWithImpl<$Res>
   $Res call({
     Object? featureId = null,
     Object? featureName = freezed,
+    Object? featureDescription = freezed,
     Object? categoryId = freezed,
     Object? clickCount = freezed,
     Object? lastClicked = freezed,
@@ -166,6 +175,10 @@ class __$$TopFeatureModelImplCopyWithImpl<$Res>
       featureName: freezed == featureName
           ? _value.featureName
           : featureName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      featureDescription: freezed == featureDescription
+          ? _value.featureDescription
+          : featureDescription // ignore: cast_nullable_to_non_nullable
               as String?,
       categoryId: freezed == categoryId
           ? _value.categoryId
@@ -202,6 +215,7 @@ class _$TopFeatureModelImpl extends _TopFeatureModel {
   const _$TopFeatureModelImpl(
       {required this.featureId,
       this.featureName,
+      this.featureDescription,
       this.categoryId,
       this.clickCount,
       this.lastClicked,
@@ -218,6 +232,8 @@ class _$TopFeatureModelImpl extends _TopFeatureModel {
   @override
   final String? featureName;
   @override
+  final String? featureDescription;
+  @override
   final String? categoryId;
   @override
   final int? clickCount;
@@ -232,7 +248,7 @@ class _$TopFeatureModelImpl extends _TopFeatureModel {
 
   @override
   String toString() {
-    return 'TopFeatureModel(featureId: $featureId, featureName: $featureName, categoryId: $categoryId, clickCount: $clickCount, lastClicked: $lastClicked, icon: $icon, route: $route, iconKey: $iconKey)';
+    return 'TopFeatureModel(featureId: $featureId, featureName: $featureName, featureDescription: $featureDescription, categoryId: $categoryId, clickCount: $clickCount, lastClicked: $lastClicked, icon: $icon, route: $route, iconKey: $iconKey)';
   }
 
   @override
@@ -244,6 +260,8 @@ class _$TopFeatureModelImpl extends _TopFeatureModel {
                 other.featureId == featureId) &&
             (identical(other.featureName, featureName) ||
                 other.featureName == featureName) &&
+            (identical(other.featureDescription, featureDescription) ||
+                other.featureDescription == featureDescription) &&
             (identical(other.categoryId, categoryId) ||
                 other.categoryId == categoryId) &&
             (identical(other.clickCount, clickCount) ||
@@ -257,8 +275,17 @@ class _$TopFeatureModelImpl extends _TopFeatureModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, featureId, featureName,
-      categoryId, clickCount, lastClicked, icon, route, iconKey);
+  int get hashCode => Object.hash(
+      runtimeType,
+      featureId,
+      featureName,
+      featureDescription,
+      categoryId,
+      clickCount,
+      lastClicked,
+      icon,
+      route,
+      iconKey);
 
   /// Create a copy of TopFeatureModel
   /// with the given fields replaced by the non-null parameter values.
@@ -281,6 +308,7 @@ abstract class _TopFeatureModel extends TopFeatureModel {
   const factory _TopFeatureModel(
       {required final String featureId,
       final String? featureName,
+      final String? featureDescription,
       final String? categoryId,
       final int? clickCount,
       final DateTime? lastClicked,
@@ -296,6 +324,8 @@ abstract class _TopFeatureModel extends TopFeatureModel {
   String get featureId;
   @override
   String? get featureName;
+  @override
+  String? get featureDescription;
   @override
   String? get categoryId;
   @override
