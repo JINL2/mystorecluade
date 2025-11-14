@@ -1,0 +1,1 @@
+export { ProductReceivePage } from './ProductReceivePage';

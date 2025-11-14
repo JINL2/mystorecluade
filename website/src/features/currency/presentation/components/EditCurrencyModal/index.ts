@@ -1,0 +1,1 @@
+export { EditCurrencyModal } from './EditCurrencyModal';

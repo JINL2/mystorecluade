@@ -20,6 +20,7 @@ export const TossButton: React.FC<TossButtonProps> = ({
   children,
   type = 'button',
   className = '',
+  customStyles,
   ...rest
 }) => {
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
@@ -65,11 +66,26 @@ export const TossButton: React.FC<TossButtonProps> = ({
   const content = children || label;
   const showIcon = icon && !loading;
 
+  // Build custom inline styles from customStyles prop
+  const inlineStyles: React.CSSProperties = {
+    ...(customStyles?.backgroundColor && { backgroundColor: customStyles.backgroundColor }),
+    ...(customStyles?.color && { color: customStyles.color }),
+    ...(customStyles?.borderColor && { borderColor: customStyles.borderColor }),
+    ...(customStyles?.borderWidth && { borderWidth: customStyles.borderWidth }),
+    ...(customStyles?.borderRadius && { borderRadius: customStyles.borderRadius }),
+    ...(customStyles?.width && { width: customStyles.width }),
+    ...(customStyles?.height && { height: customStyles.height }),
+    ...(customStyles?.padding && { padding: customStyles.padding }),
+    ...(customStyles?.fontSize && { fontSize: customStyles.fontSize }),
+    ...(customStyles?.fontWeight && { fontWeight: customStyles.fontWeight }),
+  };
+
   return (
     <button
       ref={buttonRef}
       type={type}
       className={buttonClasses}
+      style={inlineStyles}
       onClick={handleClick}
       disabled={disabled || loading}
       {...rest}

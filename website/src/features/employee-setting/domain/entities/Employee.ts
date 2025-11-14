@@ -17,9 +17,13 @@ export class Employee {
     public readonly storeName: string,
     public readonly storeNames: string[],
     public readonly salaryAmount: number,
+    public readonly salaryType: 'monthly' | 'hourly',
     public readonly currencyId: string,
     public readonly currencyCode: string,
     public readonly currencySymbol: string,
+    public readonly salaryId: string,
+    public readonly companyId: string,
+    public readonly accountId: string,
     public readonly profileImage: string | null = null,
     public readonly userRoleId: string | null = null
   ) {}
@@ -35,10 +39,25 @@ export class Employee {
    * Get formatted salary with currency
    */
   get formattedSalary(): string {
-    return `${this.currencySymbol}${this.salaryAmount.toLocaleString('en-US', {
+    return `${this.currencyCode}${this.salaryAmount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })}`;
+  }
+
+  /**
+   * Get salary type label (per hour or per month)
+   */
+  get salaryTypeLabel(): string {
+    return this.salaryType === 'hourly' ? 'per hour' : 'per month';
+  }
+
+  /**
+   * Check if employee is active
+   */
+  get isActive(): boolean {
+    // For now, all employees are considered active
+    return true;
   }
 
   /**
@@ -91,9 +110,13 @@ export class Employee {
     store_name: string;
     store_names: string[];
     salary_amount: number;
+    salary_type: 'monthly' | 'hourly';
     currency_id: string;
     currency_code: string;
     currency_symbol: string;
+    salary_id: string;
+    company_id: string;
+    account_id: string;
     profile_image?: string | null;
     user_role_id?: string | null;
   }): Employee {
@@ -110,9 +133,13 @@ export class Employee {
       data.store_name || 'No store assigned',
       data.store_names || [],
       data.salary_amount || 0,
+      data.salary_type || 'monthly',
       data.currency_id,
       data.currency_code,
       data.currency_symbol,
+      data.salary_id,
+      data.company_id,
+      data.account_id,
       data.profile_image || null,
       data.user_role_id || null
     );

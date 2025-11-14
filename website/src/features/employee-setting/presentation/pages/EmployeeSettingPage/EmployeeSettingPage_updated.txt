@@ -1,0 +1,12 @@
+수정사항:
+1. EditEmployeeModal import 추가
+2. useState로 modal state 관리
+3. handleEditEmployee에서 모달 열기
+4. 모달 컴포넌트 렌더링
+
+필요한 데이터:
+- salaryType, salaryId, companyId, accountId가 Employee entity에 없음
+- 임시로 mock 데이터를 사용하거나, repository에서 raw 데이터를 별도로 저장해야 함
+
+간단한 해결책:
+- 일단 기본값으로 모달을 띄우고, 실제 저장은 나중에 구현

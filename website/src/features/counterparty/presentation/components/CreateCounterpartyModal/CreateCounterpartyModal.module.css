@@ -1,0 +1,197 @@
+/* Modal overlay */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal content */
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e1e1e;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #495057;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalClose:hover {
+  background: #f1f3f5;
+  color: #1e1e1e;
+}
+
+/* Modal body */
+.modalBody {
+  padding: 24px;
+}
+
+/* Form group */
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.formLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.formInput:focus {
+  border-color: #0064ff;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.formInput::placeholder {
+  color: #adb5bd;
+}
+
+.formTextarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.formTextarea:focus {
+  border-color: #0064ff;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.formTextarea::placeholder {
+  color: #adb5bd;
+}
+
+/* Selection group */
+.selectionGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.selectionBox {
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.selectionBox:hover {
+  border-color: #0064ff;
+  background: #f0f6ff;
+}
+
+.selectionBox.active {
+  border-color: #0064ff;
+  background: #0064ff;
+  color: white;
+}
+
+/* Modal actions */
+.modalActions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.btnSecondary,
+.btnPrimary {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary {
+  background: #f1f3f5;
+  color: #495057;
+}
+
+.btnSecondary:hover {
+  background: #e9ecef;
+}
+
+.btnPrimary {
+  background: #0064ff;
+  color: white;
+}
+
+.btnPrimary:hover {
+  background: #0052cc;
+}
+
+.btnPrimary:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

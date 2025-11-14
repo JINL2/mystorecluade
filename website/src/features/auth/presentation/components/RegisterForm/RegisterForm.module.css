@@ -1,0 +1,60 @@
+/**
+ * RegisterForm Component Styles
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+/* Name Row (First Name + Last Name) */
+.nameRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* Error Alert */
+.errorAlert {
+  padding: var(--space-3) var(--space-4);
+  background-color: rgba(255, 88, 71, 0.1);
+  border: 1px solid var(--toss-error);
+  border-radius: var(--border-radius-md);
+  color: var(--toss-error);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Login Link */
+.loginLink {
+  text-align: center;
+  margin-top: calc(var(--space-3) * -1);
+  font-size: var(--font-size-sm);
+  color: var(--toss-text-secondary);
+}
+
+.loginLink a {
+  color: var(--toss-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.loginLink a:hover {
+  color: var(--toss-primary-dark);
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form {
+    gap: var(--space-4);
+  }
+
+  .nameRow {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}

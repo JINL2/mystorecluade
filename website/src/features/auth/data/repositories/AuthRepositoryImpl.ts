@@ -55,6 +55,8 @@ export class AuthRepositoryImpl implements IAuthRepository {
       const result = await this.dataSource.signUp(
         credentials.email,
         credentials.password,
+        credentials.firstName,
+        credentials.lastName,
         credentials.metadata
       );
 

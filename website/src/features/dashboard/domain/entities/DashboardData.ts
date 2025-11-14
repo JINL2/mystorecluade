@@ -60,7 +60,8 @@ export class DashboardData {
    * Format currency with symbol
    */
   formatCurrency(value: number): string {
-    return `${this.currency.symbol}${value.toLocaleString('en-US', {
+    const numValue = value || 0;
+    return `${this.currency.symbol}${numValue.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })}`;

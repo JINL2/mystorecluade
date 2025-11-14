@@ -1,9 +1,11 @@
 /**
  * Dashboard Data Source
  * Data layer - Handles Supabase RPC calls for dashboard
+ * Uses centralized message constants for error handling
  */
 
-import { supabaseService } from '@/core/services/supabase-service';
+import { supabaseService } from '@/core/services/supabase_service';
+import { DashboardMessages } from '../../domain/constants/DashboardMessages';
 
 export interface DashboardRawData {
   today_revenue: number;
@@ -11,6 +13,7 @@ export interface DashboardRawData {
   this_month_revenue: number;
   last_month_revenue: number;
   currency: {
+    currency_id?: string;
     symbol: string;
     currency_code: string;
   };
@@ -20,12 +23,18 @@ export interface DashboardRawData {
     percentage: number;
   }>;
   recent_transactions: Array<{
-    id: string;
-    date: string;
-    description: string;
-    amount: number;
-    type: 'income' | 'expense';
-    category?: string;
+    journal_id: string;
+    entry_date: string;
+    created_at: string;
+    description: string | null;
+    total_amount: number;
+    lines: Array<{
+      account_name: string;
+      account_type: 'asset' | 'liability' | 'equity' | 'income' | 'expense';
+      debit: number;
+      credit: number;
+      description: string | null;
+    }>;
   }>;
 }
 
@@ -48,17 +57,18 @@ export class DashboardDataSource {
       });
 
       if (error) {
-        console.error('Dashboard RPC error:', error);
+        // Log only actual errors, not debug info
+        console.error('Dashboard RPC error:', error.message);
         return {
           success: false,
-          error: error.message || 'Failed to fetch dashboard data',
+          error: error.message || DashboardMessages.errors.rpcFailed,
         };
       }
 
       if (!data) {
         return {
           success: false,
-          error: 'No data returned from dashboard',
+          error: DashboardMessages.errors.noDataReturned,
         };
       }
 
@@ -67,10 +77,11 @@ export class DashboardDataSource {
         data: data as DashboardRawData,
       };
     } catch (error) {
+      // Log only critical errors
       console.error('Dashboard datasource error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : DashboardMessages.errors.unknownError,
       };
     }
   }

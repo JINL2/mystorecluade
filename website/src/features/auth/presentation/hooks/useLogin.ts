@@ -1,66 +1,39 @@
 /**
  * useLogin Hook
- * Presentation layer - Login logic
+ * Presentation layer - Login logic wrapper
+ *
+ * Following ARCHITECTURE.md 2025 Best Practice:
+ * - Zustand wrapper hook (no useState)
+ * - All business logic in auth_provider.ts
+ * - Optimized selectors to prevent unnecessary re-renders
  */
 
-import { useState } from 'react';
-import { AuthRepositoryImpl } from '../../data/repositories/AuthRepositoryImpl';
-import { AuthValidator } from '../../domain/validators/AuthValidator';
-import type { LoginCredentials } from '../../domain/repositories/IAuthRepository';
+import { useAuthStore } from '../providers/auth_provider';
 
+/**
+ * Login hook
+ * Wraps Zustand auth store login functionality
+ *
+ * @returns Login state and action
+ */
 export const useLogin = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // ============================================
+  // OPTIMIZED SELECTORS
+  // ============================================
 
-  const repository = new AuthRepositoryImpl();
+  const loginLoading = useAuthStore((state) => state.loginLoading);
+  const loginError = useAuthStore((state) => state.loginError);
+  const loginFieldErrors = useAuthStore((state) => state.loginFieldErrors);
+  const login = useAuthStore((state) => state.login);
 
-  const login = async (email: string, password: string, rememberMe: boolean = false) => {
-    // Clear previous errors
-    setError(null);
-    setFieldErrors({});
-
-    // Validate credentials
-    const validationErrors = AuthValidator.validateLoginCredentials(email, password);
-    if (validationErrors.length > 0) {
-      const errors: Record<string, string> = {};
-      validationErrors.forEach((err) => {
-        errors[err.field] = err.message;
-      });
-      setFieldErrors(errors);
-      return { success: false };
-    }
-
-    setLoading(true);
-
-    try {
-      const credentials: LoginCredentials = {
-        email,
-        password,
-        rememberMe,
-      };
-
-      const result = await repository.signIn(credentials);
-
-      if (!result.success) {
-        setError(result.error || 'Login failed. Please try again.');
-        return { success: false };
-      }
-
-      return { success: true, user: result.user };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-      setError(errorMessage);
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ============================================
+  // RETURN API
+  // ============================================
 
   return {
     login,
-    loading,
-    error,
-    fieldErrors,
+    loading: loginLoading,
+    error: loginError,
+    fieldErrors: loginFieldErrors,
   };
 };

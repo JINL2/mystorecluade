@@ -33,7 +33,7 @@ export const OverviewCard: React.FC<OverviewCardProps> = ({
     return (
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.iconWrapper}>{icon}</div>
+          <div className={`${styles.iconWrapper} ${styles.skeletonIcon}`}></div>
           <div className={styles.title}>{title}</div>
         </div>
         <div className={styles.value}>

@@ -1,0 +1,300 @@
+/**
+ * ErrorMessage Component Styles (Toss Alert Dialog)
+ * Center-positioned alert dialog with backdrop overlay
+ */
+
+/* ==================== BACKDROP ==================== */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: backdropFadeIn 0.2s ease-out;
+  padding: 16px;
+}
+
+.backdropClosing {
+  animation: backdropFadeOut 0.2s ease-out forwards;
+}
+
+/* ==================== DIALOG BOX ==================== */
+.dialog {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  background: var(--toss-white, #FFFFFF);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 28px 24px 24px 24px;
+  animation: dialogFadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.dialogClosing {
+  animation: dialogFadeOut 0.2s ease-out forwards;
+}
+
+/* ==================== ICON ==================== */
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.iconContainer svg {
+  display: block;
+}
+
+/* ==================== TITLE ==================== */
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--toss-gray-900, #111827);
+  margin: 0 0 12px 0;
+  word-break: keep-all;
+}
+
+/* ==================== MESSAGE ==================== */
+.message {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--toss-gray-600, #6B7280);
+  margin: 0 0 24px 0;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+/* When no title, increase message top spacing */
+.dialog:not(:has(.title)) .message {
+  margin-top: 4px;
+}
+
+/* ==================== BUTTONS ==================== */
+.buttonContainer {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.confirmButton,
+.cancelButton {
+  flex: 1;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Confirm Button (Primary) */
+.confirmButton {
+  background-color: var(--toss-primary, #0064FF);
+  color: #FFFFFF;
+}
+
+.confirmButton:hover {
+  background-color: var(--toss-primary-dark, #0052CC);
+  transform: translateY(-1px);
+}
+
+.confirmButton:active {
+  background-color: var(--toss-primary-darker, #004099);
+  transform: translateY(0);
+}
+
+.confirmButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.2);
+}
+
+/* Cancel Button (Secondary) */
+.cancelButton {
+  background-color: var(--toss-gray-100, #F3F4F6);
+  color: var(--toss-gray-700, #374151);
+  border: 1px solid var(--toss-gray-200, #E5E7EB);
+}
+
+.cancelButton:hover {
+  background-color: var(--toss-gray-200, #E5E7EB);
+  border-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.cancelButton:active {
+  background-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.cancelButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.1);
+}
+
+/* Single button takes full width */
+.buttonContainer:has(> button:only-child) {
+  display: block;
+}
+
+.buttonContainer:has(> button:only-child) button {
+  width: 100%;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dialogFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 640px) {
+  .dialog {
+    width: calc(100% - 32px);
+    max-width: none;
+    padding: 24px 20px 20px 20px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .message {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .confirmButton,
+  .cancelButton {
+    width: 100%;
+    height: 48px;
+  }
+
+  /* Reverse order on mobile (confirm on top) */
+  .buttonContainer {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+/* ==================== DARK MODE SUPPORT ==================== */
+/* Toss style maintains white background in all color schemes */
+@media (prefers-color-scheme: dark) {
+  .dialog {
+    background: #FFFFFF !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  }
+
+  .title {
+    color: #111827 !important;
+  }
+
+  .message {
+    color: #6B7280 !important;
+  }
+
+  .cancelButton {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border-color: #E5E7EB !important;
+  }
+
+  .cancelButton:hover {
+    background-color: #E5E7EB !important;
+    border-color: #D1D5DB !important;
+  }
+}
+
+/* ==================== REDUCED MOTION SUPPORT ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .backdropClosing,
+  .dialog,
+  .dialogClosing {
+    animation: none;
+  }
+
+  .confirmButton:hover,
+  .cancelButton:hover {
+    transform: none;
+  }
+}
+
+/* ==================== HIGH CONTRAST MODE ==================== */
+@media (prefers-contrast: high) {
+  .dialog {
+    border: 2px solid currentColor;
+  }
+
+  .confirmButton,
+  .cancelButton {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .backdrop,
+  .dialog {
+    display: none;
+  }
+}

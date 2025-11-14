@@ -1,58 +1,61 @@
 /**
  * useDashboard Hook
  * Presentation layer - Custom hook for dashboard data management
+ *
+ * Following 2025 Best Practice:
+ * - Zustand store wrapper (selector pattern)
+ * - Clean separation of concerns
+ * - No direct useState usage
+ * - Auto-loads data on mount
  */
 
-import { useState, useEffect } from 'react';
-import { DashboardData } from '../../domain/entities/DashboardData';
-import { DashboardRepositoryImpl } from '../../data/repositories/DashboardRepositoryImpl';
+import { useEffect } from 'react';
+import { useDashboardStore } from '../providers/dashboard_provider';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
-export const useDashboard = (companyId: string) => {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export interface UseDashboardOptions {
+  autoLoad?: boolean;
+}
 
-  const repository = new DashboardRepositoryImpl();
+export const useDashboard = (
+  companyId: string,
+  options: UseDashboardOptions = {}
+) => {
+  const { autoLoad = true } = options;
 
-  const loadDashboardData = async () => {
-    setLoading(true);
-    setError(null);
+  // Select state from Zustand store
+  const data = useDashboardStore((state) => state.data);
+  const loading = useDashboardStore((state) => state.loading);
+  const error = useDashboardStore((state) => state.error);
+  const errorDialog = useDashboardStore((state) => state.errorDialog);
 
-    try {
-      // Get current date in ISO format
-      const currentDate = new Date().toISOString();
+  // Select actions from Zustand store
+  const loadDashboardData = useDashboardStore((state) => state.loadDashboardData);
+  const refreshStore = useDashboardStore((state) => state.refresh);
+  const clearError = useDashboardStore((state) => state.clearError);
 
-      const result = await repository.getDashboardData(companyId, currentDate);
-
-      if (!result.success || !result.data) {
-        setError(result.error || 'Failed to load dashboard data');
-        setData(null);
-        return;
-      }
-
-      setData(result.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Auto-load data on mount or when companyId changes
   useEffect(() => {
-    if (companyId) {
-      loadDashboardData();
+    if (companyId && autoLoad) {
+      const currentDate = DateTimeUtils.nowUtcDate();
+      loadDashboardData(companyId, currentDate);
     }
-  }, [companyId]);
+  }, [companyId, autoLoad, loadDashboardData]);
 
+  // Wrapper function for refresh to use current companyId
   const refresh = () => {
-    loadDashboardData();
+    refreshStore(companyId);
   };
 
   return {
+    // State
     data,
     loading,
     error,
+    errorDialog,
+
+    // Actions
     refresh,
+    clearError,
   };
 };

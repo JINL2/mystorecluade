@@ -10,14 +10,14 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-family);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
   user-select: none;
   border: 1px solid transparent;
-  border-radius: var(--border-radius-md);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   overflow: hidden;
@@ -38,9 +38,9 @@
 }
 
 .size-md {
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-base);
-  min-height: 40px;
+  padding: 12px 20px;
+  font-size: 14px;
+  min-height: auto;
 }
 
 .size-lg {
@@ -79,14 +79,14 @@
 }
 
 .variant-secondary {
-  background-color: var(--toss-secondary);
+  background-color: white;
   color: var(--toss-text-primary);
-  border-color: var(--toss-secondary);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .variant-secondary:hover:not(:disabled) {
-  background-color: var(--toss-secondary-dark);
-  border-color: var(--toss-secondary-dark);
+  background-color: var(--toss-gray-50);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .variant-outline {
@@ -184,7 +184,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: 8px;
   position: relative;
   z-index: 1;
 }
