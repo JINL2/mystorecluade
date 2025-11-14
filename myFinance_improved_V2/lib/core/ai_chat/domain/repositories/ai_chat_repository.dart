@@ -10,6 +10,7 @@ abstract class AiChatRepository {
     required String currentDate,
     required String timezone,
     String? featureId,
+    Map<String, dynamic>? contextInfo,
   });
 
   Future<void> saveMessageToHistory({

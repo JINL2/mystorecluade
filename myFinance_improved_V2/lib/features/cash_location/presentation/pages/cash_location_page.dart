@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/feature.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/ai_chat/ai_chat_fab.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
@@ -21,7 +26,9 @@ import 'total_real_page.dart';
 import 'vault_real_page.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
-  const CashLocationPage({super.key});
+  final dynamic feature;
+
+  const CashLocationPage({super.key, this.feature});
 
   @override
   ConsumerState<CashLocationPage> createState() => _CashLocationPageState();
@@ -31,7 +38,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   int _selectedTab = 0;
-  
+
+  // Feature info extracted once
+  String? _featureName;
+  String? _featureId;
+  bool _featureInfoExtracted = false;
+
+  // AI Chat session ID - persists while page is active
+  final String _aiChatSessionId = const Uuid().v4();
+
   @override
   void initState() {
     super.initState();
@@ -45,10 +60,55 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         // Data will be filtered client-side, no need to refresh
       }
     });
+
     // Schedule data refresh after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
+      // Extract feature info for AI Chat
+      _extractFeatureInfo();
     });
+  }
+
+  /// Extract feature name and ID from widget.feature (once)
+  void _extractFeatureInfo() {
+    if (_featureInfoExtracted) return;
+    _featureInfoExtracted = true;
+
+    if (widget.feature == null) {
+      _featureName = 'Cash Control';
+      debugPrint('[CashLocation] ⚠️  No feature provided - AI Chat will not have feature_id');
+      return;
+    }
+
+    try {
+      if (widget.feature is TopFeature) {
+        final topFeature = widget.feature as TopFeature;
+        _featureName = topFeature.featureName;
+        _featureId = topFeature.featureId;
+        debugPrint('[CashLocation] ✅ TopFeature extracted: $_featureName (ID: $_featureId)');
+      } else if (widget.feature is Feature) {
+        final feature = widget.feature as Feature;
+        _featureName = feature.featureName;
+        _featureId = feature.featureId;
+        debugPrint('[CashLocation] ✅ Feature extracted: $_featureName (ID: $_featureId)');
+      } else if (widget.feature is Map<String, dynamic>) {
+        final featureMap = widget.feature as Map<String, dynamic>;
+        _featureName = featureMap['feature_name'] as String? ?? featureMap['featureName'] as String?;
+        _featureId = featureMap['feature_id'] as String? ?? featureMap['featureId'] as String?;
+        debugPrint('[CashLocation] ✅ Map extracted: $_featureName (ID: $_featureId)');
+      } else {
+        debugPrint('[CashLocation] ⚠️  Unknown feature type: ${widget.feature.runtimeType}');
+      }
+    } catch (e) {
+      debugPrint('[CashLocation] ❌ Error extracting feature: $e');
+      _featureName = 'Cash Control';
+    }
+
+    _featureName ??= 'Cash Control';
+
+    if (_featureId == null) {
+      debugPrint('[CashLocation] ⚠️  Feature ID is null - AI Chat will not work properly');
+    }
   }
   
   @override
@@ -303,9 +363,41 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ],
         ),
       ),
+      floatingActionButton: AiChatFab(
+        featureName: _featureName ?? 'Cash Control',
+        sessionId: _aiChatSessionId,
+        pageContext: _buildPageContext(companyId, storeId),
+        featureId: _featureId,
+      ),
     );
   }
-  
+
+  /// Build page context for AI Chat
+  ///
+  /// Returns clean JSON structure for Edge Function:
+  /// {
+  ///   "store_id": "uuid",
+  ///   "location_type": "cash" | "bank" | "vault"
+  /// }
+  Map<String, dynamic> _buildPageContext(String companyId, String storeId) {
+    final locationTypes = ['cash', 'bank', 'vault'];
+    final locationType = _selectedTab < locationTypes.length
+        ? locationTypes[_selectedTab]
+        : 'cash';
+
+    final context = <String, dynamic>{
+      'location_type': locationType,
+    };
+
+    // Add store_id (cash_location is store-specific)
+    if (storeId.isNotEmpty) {
+      context['store_id'] = storeId;
+    }
+
+    debugPrint('[CashLocation] Context for AI: $context');
+    return context;
+  }
+
   // Removed _buildHeader method - now using TossAppBar
   
   Widget _buildTabBar() {

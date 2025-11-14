@@ -23,6 +23,7 @@ class AiChatRepositoryImpl implements AiChatRepository {
     required String currentDate,
     required String timezone,
     String? featureId,
+    Map<String, dynamic>? contextInfo,
   }) async {
     return await remoteDatasource.sendMessage(
       question: question,
@@ -32,6 +33,7 @@ class AiChatRepositoryImpl implements AiChatRepository {
       currentDate: currentDate,
       timezone: timezone,
       featureId: featureId,
+      contextInfo: contextInfo,
     );
   }
 

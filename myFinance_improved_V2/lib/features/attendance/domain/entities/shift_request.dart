@@ -153,11 +153,11 @@ class ShiftRequest {
   /// Create from JSON
   factory ShiftRequest.fromJson(Map<String, dynamic> json) {
     return ShiftRequest(
-      shiftRequestId: json['shift_request_id'] as String,
-      userId: json['user_id'] as String,
-      shiftId: json['shift_id'] as String,
-      storeId: json['store_id'] as String,
-      requestDate: json['request_date'] as String,
+      shiftRequestId: (json['shift_request_id'] as String?) ?? '',
+      userId: (json['user_id'] as String?) ?? '',
+      shiftId: (json['shift_id'] as String?) ?? '',
+      storeId: (json['store_id'] as String?) ?? '',
+      requestDate: (json['request_date'] as String?) ?? '',
       isApproved: json['is_approved'] as bool?,
       approvedBy: json['approved_by'] as String?,
       startTime: json['start_time'] != null ? DateTime.parse(json['start_time'] as String) : null,

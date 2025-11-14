@@ -156,6 +156,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
         currentDate: currentDate,
         timezone: timezone,
         featureId: featureId,
+        contextInfo: pageContext,
       );
 
       final aiMessage = ChatMessage(

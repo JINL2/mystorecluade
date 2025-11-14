@@ -14,6 +14,7 @@ class SendChatMessage {
     required String currentDate,
     required String timezone,
     String? featureId,
+    Map<String, dynamic>? contextInfo,
   }) async {
     return await repository.sendMessage(
       question: question,
@@ -23,6 +24,7 @@ class SendChatMessage {
       currentDate: currentDate,
       timezone: timezone,
       featureId: featureId,
+      contextInfo: contextInfo,
     );
   }
 }
