@@ -405,14 +405,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/cashEnding',
         name: 'cashEnding',
-        builder: (context, state) => const CashEndingPage(),
+        builder: (context, state) {
+          final feature = state.extra;
+          return CashEndingPage(feature: feature);
+        },
       ),
 
       // Cash Location Route
       GoRoute(
         path: '/cashLocation',
         name: 'cashLocation',
-        builder: (context, state) => const CashLocationPage(),
+        builder: (context, state) {
+          final feature = state.extra;
+          return CashLocationPage(feature: feature);
+        },
         routes: [
           GoRoute(
             path: 'account/:accountName',

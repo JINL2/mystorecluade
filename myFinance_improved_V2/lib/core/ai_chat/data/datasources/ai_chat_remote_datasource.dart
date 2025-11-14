@@ -15,8 +15,9 @@ class AiChatRemoteDatasource {
     required String currentDate,
     required String timezone,
     String? featureId,
+    Map<String, dynamic>? contextInfo,
   }) async {
-    final body = {
+    final body = <String, dynamic>{
       'question': question,
       'company_id': companyId,
       'store_id': storeId,
@@ -27,6 +28,10 @@ class AiChatRemoteDatasource {
 
     if (featureId != null) {
       body['feature_id'] = featureId;
+    }
+
+    if (contextInfo != null && contextInfo.isNotEmpty) {
+      body['context_info'] = contextInfo;
     }
 
     final response = await _client.functions.invoke(

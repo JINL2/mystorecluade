@@ -3,13 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
+import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/bank_balance.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/currency.dart';
@@ -30,7 +34,9 @@ import '../widgets/tabs/vault_tab.dart';
 /// - Bank Tab: Single amount input (no denominations)
 /// - Vault Tab: Denomination-based with In/Out toggle
 class CashEndingPage extends ConsumerStatefulWidget {
-  const CashEndingPage({super.key});
+  final dynamic feature;
+
+  const CashEndingPage({super.key, this.feature});
 
   @override
   ConsumerState<CashEndingPage> createState() => _CashEndingPageState();
@@ -43,10 +49,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   final GlobalKey<ConsumerState<BankTab>> _bankTabKey = GlobalKey();
   final GlobalKey<ConsumerState<VaultTab>> _vaultTabKey = GlobalKey();
 
+  // Feature info extracted once
+  String? _featureName;
+  String? _featureId;
+  bool _featureInfoExtracted = false;
+
+  // AI Chat session ID - persists while page is active
+  late final String _aiChatSessionId;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // Generate AI Chat session ID
+    _aiChatSessionId = const Uuid().v4();
 
     // Listen to tab changes
     _tabController.addListener(() {
@@ -75,7 +92,52 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ref.read(cashEndingProvider.notifier).selectStore(storeId, companyId);
         }
       }
+
+      // Extract feature info for AI Chat
+      _extractFeatureInfo();
     });
+  }
+
+  /// Extract feature name and ID from widget.feature (once)
+  void _extractFeatureInfo() {
+    if (_featureInfoExtracted) return;
+    _featureInfoExtracted = true;
+
+    if (widget.feature == null) {
+      _featureName = 'Cash Ending';
+      debugPrint('[CashEnding] ⚠️  No feature provided - AI Chat will not have feature_id');
+      return;
+    }
+
+    try {
+      if (widget.feature is TopFeature) {
+        final topFeature = widget.feature as TopFeature;
+        _featureName = topFeature.featureName;
+        _featureId = topFeature.featureId;
+        debugPrint('[CashEnding] ✅ TopFeature extracted: $_featureName (ID: $_featureId)');
+      } else if (widget.feature is Feature) {
+        final feature = widget.feature as Feature;
+        _featureName = feature.featureName;
+        _featureId = feature.featureId;
+        debugPrint('[CashEnding] ✅ Feature extracted: $_featureName (ID: $_featureId)');
+      } else if (widget.feature is Map<String, dynamic>) {
+        final featureMap = widget.feature as Map<String, dynamic>;
+        _featureName = featureMap['feature_name'] as String? ?? featureMap['featureName'] as String?;
+        _featureId = featureMap['feature_id'] as String? ?? featureMap['featureId'] as String?;
+        debugPrint('[CashEnding] ✅ Map extracted: $_featureName (ID: $_featureId)');
+      } else {
+        debugPrint('[CashEnding] ⚠️  Unknown feature type: ${widget.feature.runtimeType}');
+      }
+    } catch (e) {
+      debugPrint('[CashEnding] ❌ Error extracting feature: $e');
+      _featureName = 'Cash Ending';
+    }
+
+    _featureName ??= 'Cash Ending';
+
+    if (_featureId == null) {
+      debugPrint('[CashEnding] ⚠️  Feature ID is null - AI Chat will not work properly');
+    }
   }
 
   @override
@@ -87,6 +149,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   @override
   Widget build(BuildContext context) {
     final companyId = ref.read(appStateProvider).companyChoosen;
+    final state = ref.watch(cashEndingProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -124,7 +187,57 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
         ],
       ),
+      floatingActionButton: AiChatFab(
+        featureName: _featureName ?? 'Cash Ending',
+        sessionId: _aiChatSessionId,
+        pageContext: _buildPageContext(state),
+        featureId: _featureId,
+      ),
     );
+  }
+
+  /// Build page context for AI Chat
+  ///
+  /// Returns clean JSON structure for Edge Function:
+  /// {
+  ///   "store_id": "uuid" | null,
+  ///   "cash_location_id": "uuid" | null,
+  ///   "location_type": "cash" | "bank" | "vault"
+  /// }
+  Map<String, dynamic> _buildPageContext(CashEndingState state) {
+    // Determine location type based on current tab
+    final locationTypes = ['cash', 'bank', 'vault'];
+    final locationType = _tabController.index < locationTypes.length
+        ? locationTypes[_tabController.index]
+        : 'cash';
+
+    // Get current location ID based on tab
+    String? cashLocationId;
+    if (_tabController.index == 0) {
+      cashLocationId = state.selectedCashLocationId;
+    } else if (_tabController.index == 1) {
+      cashLocationId = state.selectedBankLocationId;
+    } else if (_tabController.index == 2) {
+      cashLocationId = state.selectedVaultLocationId;
+    }
+
+    // Build clean context (only non-null values)
+    final context = <String, dynamic>{
+      'location_type': locationType,
+    };
+
+    // Add store_id if selected
+    if (state.selectedStoreId != null) {
+      context['store_id'] = state.selectedStoreId;
+    }
+
+    // Add cash_location_id if selected
+    if (cashLocationId != null) {
+      context['cash_location_id'] = cashLocationId;
+    }
+
+    debugPrint('[CashEnding] Context for AI: $context');
+    return context;
   }
 
   /// Save Cash Ending (from legacy cash_service.dart)

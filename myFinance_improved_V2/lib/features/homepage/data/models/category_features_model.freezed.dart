@@ -233,6 +233,7 @@ FeatureItemModel _$FeatureItemModelFromJson(Map<String, dynamic> json) {
 mixin _$FeatureItemModel {
   String get featureId => throw _privateConstructorUsedError;
   String get featureName => throw _privateConstructorUsedError;
+  String? get featureDescription => throw _privateConstructorUsedError;
   String? get route => throw _privateConstructorUsedError;
   String? get icon => throw _privateConstructorUsedError;
   String? get iconKey => throw _privateConstructorUsedError;
@@ -257,6 +258,7 @@ abstract class $FeatureItemModelCopyWith<$Res> {
   $Res call(
       {String featureId,
       String featureName,
+      String? featureDescription,
       String? route,
       String? icon,
       String? iconKey,
@@ -280,6 +282,7 @@ class _$FeatureItemModelCopyWithImpl<$Res, $Val extends FeatureItemModel>
   $Res call({
     Object? featureId = null,
     Object? featureName = null,
+    Object? featureDescription = freezed,
     Object? route = freezed,
     Object? icon = freezed,
     Object? iconKey = freezed,
@@ -294,6 +297,10 @@ class _$FeatureItemModelCopyWithImpl<$Res, $Val extends FeatureItemModel>
           ? _value.featureName
           : featureName // ignore: cast_nullable_to_non_nullable
               as String,
+      featureDescription: freezed == featureDescription
+          ? _value.featureDescription
+          : featureDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       route: freezed == route
           ? _value.route
           : route // ignore: cast_nullable_to_non_nullable
@@ -325,6 +332,7 @@ abstract class _$$FeatureItemModelImplCopyWith<$Res>
   $Res call(
       {String featureId,
       String featureName,
+      String? featureDescription,
       String? route,
       String? icon,
       String? iconKey,
@@ -346,6 +354,7 @@ class __$$FeatureItemModelImplCopyWithImpl<$Res>
   $Res call({
     Object? featureId = null,
     Object? featureName = null,
+    Object? featureDescription = freezed,
     Object? route = freezed,
     Object? icon = freezed,
     Object? iconKey = freezed,
@@ -360,6 +369,10 @@ class __$$FeatureItemModelImplCopyWithImpl<$Res>
           ? _value.featureName
           : featureName // ignore: cast_nullable_to_non_nullable
               as String,
+      featureDescription: freezed == featureDescription
+          ? _value.featureDescription
+          : featureDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       route: freezed == route
           ? _value.route
           : route // ignore: cast_nullable_to_non_nullable
@@ -387,6 +400,7 @@ class _$FeatureItemModelImpl extends _FeatureItemModel {
   const _$FeatureItemModelImpl(
       {required this.featureId,
       required this.featureName,
+      this.featureDescription,
       this.route,
       this.icon,
       this.iconKey,
@@ -401,6 +415,8 @@ class _$FeatureItemModelImpl extends _FeatureItemModel {
   @override
   final String featureName;
   @override
+  final String? featureDescription;
+  @override
   final String? route;
   @override
   final String? icon;
@@ -412,7 +428,7 @@ class _$FeatureItemModelImpl extends _FeatureItemModel {
 
   @override
   String toString() {
-    return 'FeatureItemModel(featureId: $featureId, featureName: $featureName, route: $route, icon: $icon, iconKey: $iconKey, isShowMain: $isShowMain)';
+    return 'FeatureItemModel(featureId: $featureId, featureName: $featureName, featureDescription: $featureDescription, route: $route, icon: $icon, iconKey: $iconKey, isShowMain: $isShowMain)';
   }
 
   @override
@@ -424,6 +440,8 @@ class _$FeatureItemModelImpl extends _FeatureItemModel {
                 other.featureId == featureId) &&
             (identical(other.featureName, featureName) ||
                 other.featureName == featureName) &&
+            (identical(other.featureDescription, featureDescription) ||
+                other.featureDescription == featureDescription) &&
             (identical(other.route, route) || other.route == route) &&
             (identical(other.icon, icon) || other.icon == icon) &&
             (identical(other.iconKey, iconKey) || other.iconKey == iconKey) &&
@@ -433,8 +451,8 @@ class _$FeatureItemModelImpl extends _FeatureItemModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, featureId, featureName, route, icon, iconKey, isShowMain);
+  int get hashCode => Object.hash(runtimeType, featureId, featureName,
+      featureDescription, route, icon, iconKey, isShowMain);
 
   /// Create a copy of FeatureItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -457,6 +475,7 @@ abstract class _FeatureItemModel extends FeatureItemModel {
   const factory _FeatureItemModel(
       {required final String featureId,
       required final String featureName,
+      final String? featureDescription,
       final String? route,
       final String? icon,
       final String? iconKey,
@@ -470,6 +489,8 @@ abstract class _FeatureItemModel extends FeatureItemModel {
   String get featureId;
   @override
   String get featureName;
+  @override
+  String? get featureDescription;
   @override
   String? get route;
   @override

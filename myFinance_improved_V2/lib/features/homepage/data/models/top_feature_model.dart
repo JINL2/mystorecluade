@@ -18,6 +18,7 @@ class TopFeatureModel with _$TopFeatureModel {
   const factory TopFeatureModel({
     required String featureId,
     String? featureName,
+    String? featureDescription,
     String? categoryId,
     int? clickCount,
     DateTime? lastClicked,
@@ -35,6 +36,7 @@ class TopFeatureModel with _$TopFeatureModel {
     return TopFeature(
       featureId: featureId,
       featureName: featureName ?? '',
+      featureDescription: featureDescription,
       categoryId: categoryId,
       clickCount: clickCount ?? 0,
       lastClicked: lastClicked ?? DateTime.now(),
@@ -49,6 +51,7 @@ class TopFeatureModel with _$TopFeatureModel {
     return TopFeatureModel(
       featureId: entity.featureId,
       featureName: entity.featureName,
+      featureDescription: entity.featureDescription,
       categoryId: entity.categoryId,
       clickCount: entity.clickCount,
       lastClicked: entity.lastClicked,

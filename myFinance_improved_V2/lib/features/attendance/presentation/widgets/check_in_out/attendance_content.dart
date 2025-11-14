@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_overview.dart';
 import '../../modals/calendar_bottom_sheet.dart';
 import '../../pages/qr_scanner_page.dart';
@@ -237,7 +238,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       // Convert ShiftOverview entity to Map for backward compatibility
       final overviewEntity = results[0] as ShiftOverview;
       final overviewResponse = overviewEntity.toMap();
-      final cardsResponse = results[1] as List<Map<String, dynamic>>;
+      // Convert List<ShiftCard> to List<Map<String, dynamic>>
+      final cardsEntityList = results[1] as List<ShiftCard>;
+      final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
       final currentShift = results[2] as Map<String, dynamic>?;
       
       
