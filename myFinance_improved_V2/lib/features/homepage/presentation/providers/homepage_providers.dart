@@ -112,6 +112,7 @@ List<CategoryWithFeatures> _convertDynamicToCategories(List<dynamic> dynamicCate
         return Feature(
           featureId: feature['feature_id'] as String,
           featureName: feature['feature_name'] as String,
+          featureDescription: feature['feature_description'] as String?,
           featureRoute: feature['feature_route'] as String,
           featureIcon: feature['feature_icon'] as String,
           iconKey: feature['icon_key'] as String?,
@@ -130,6 +131,7 @@ List<dynamic> _convertCategoriesToDynamic(List<CategoryWithFeatures> categories)
     'features': category.features.map((feature) => {
       'feature_id': feature.featureId,
       'feature_name': feature.featureName,
+      'feature_description': feature.featureDescription,
       'feature_route': feature.featureRoute,
       'feature_icon': feature.featureIcon,
       'icon_key': feature.iconKey,
