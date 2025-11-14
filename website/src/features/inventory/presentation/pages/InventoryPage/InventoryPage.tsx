@@ -688,7 +688,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                     <th className={styles.quantityCell}>Quantity</th>
                     <th className={styles.priceCell}>Price ({currencyCode})</th>
                     <th className={styles.costCell}>Cost ({currencyCode})</th>
-                    <th>Status</th>
+                    <th>Move</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -727,10 +727,31 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                         <td className={styles.costCell}>
                           <div className={styles.costValue}>{formatCurrency(item.costPrice)}</div>
                         </td>
-                        <td className={styles.statusCell}>
-                          <span className={`${styles.statusBadge} ${status.class}`}>
-                            {status.text}
-                          </span>
+                        <td className={styles.moveCell}>
+                          <TossButton
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {}}
+                            disabled={item.currentStock === 0}
+                            icon={
+                              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6,13H14L10.5,16.5L11.92,17.92L17.84,12L11.92,6.08L10.5,7.5L14,11H6V13M20,6V18H11V20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4H11V6H20Z"/>
+                              </svg>
+                            }
+                            iconPosition="left"
+                            customStyles={{
+                              backgroundColor: item.currentStock === 0 ? '#F8F9FA' : 'white',
+                              color: item.currentStock === 0 ? '#ADB5BD' : '#0064FF',
+                              borderColor: item.currentStock === 0 ? '#DEE2E6' : '#0064FF',
+                              borderWidth: '1.5px',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              fontSize: '13px',
+                              cursor: item.currentStock === 0 ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            Move
+                          </TossButton>
                         </td>
                         <td className={styles.actionsCell}>
                           <TossButton

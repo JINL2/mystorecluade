@@ -436,35 +436,35 @@
 }
 
 .inventoryTable th:nth-child(2) { /* Product Name */
-  width: 28%;
+  width: 26%;
 }
 
 .inventoryTable th:nth-child(3) { /* Product Code */
-  width: 14%;
+  width: 13%;
 }
 
 .inventoryTable th:nth-child(4) { /* Brand */
-  width: 12%;
+  width: 11%;
 }
 
 .inventoryTable th:nth-child(5) { /* Quantity */
-  width: 10%;
+  width: 9%;
 }
 
 .inventoryTable th:nth-child(6) { /* Price */
-  width: 12%;
+  width: 11%;
 }
 
 .inventoryTable th:nth-child(7) { /* Cost */
-  width: 12%;
+  width: 11%;
 }
 
-.inventoryTable th:nth-child(8) { /* Status */
-  width: 12%;
+.inventoryTable th:nth-child(8) { /* Move */
+  width: 11%;
 }
 
 .inventoryTable th:nth-child(9) { /* Actions */
-  width: 10%;
+  width: 8%;
 }
 
 .productCheckbox,
@@ -641,6 +641,12 @@
 }
 
 /* Actions Cell */
+/* Move Cell Styles */
+.moveCell {
+  text-align: center;
+  vertical-align: middle;
+}
+
 .actionsCell {
   text-align: left;
 }
