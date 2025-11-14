@@ -18,6 +18,7 @@ import { ProductDetailsModal } from '../../components/ProductDetailsModal';
 import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { FilterDropdown } from '../../components/FilterDropdown/FilterDropdown';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { excelExportManager } from '@/core/utils/excel-export-utils';
 import { supabaseService } from '@/core/services/supabase_service';
@@ -37,6 +38,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     itemsPerPage,
     selectedStoreId,
     selectedProducts,
+    filterType,
+    selectedBrandFilter,
     isModalOpen,
     selectedProductData,
     isAddProductModalOpen,
@@ -48,6 +51,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     setCurrentPage,
     toggleProductSelection,
     clearSelection,
+    setFilterType,
+    setSelectedBrandFilter,
     openModal,
     closeModal,
     openAddProductModal,
@@ -89,30 +94,80 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     }
   }, [companyId, selectedStoreId, loadInventory]);
 
-  // Client-side filtering: filter inventory based on local search query
-  const filteredInventory = React.useMemo(() => {
-    if (!localSearchQuery.trim()) {
-      return inventory;
+  // Get unique brands from inventory for filter dropdown
+  const uniqueBrands = React.useMemo(() => {
+    const brands = Array.from(new Set(inventory.map((item) => item.brandName).filter(Boolean)));
+    return brands.sort();
+  }, [inventory]);
+
+  // Client-side filtering and sorting: filter inventory based on local search query and filter/sort
+  const filteredAndSortedInventory = React.useMemo(() => {
+    let result = [...inventory];
+
+    // 1. Apply search filter
+    if (localSearchQuery.trim()) {
+      const query = localSearchQuery.toLowerCase().trim();
+      result = result.filter((item) => {
+        return (
+          item.productName.toLowerCase().includes(query) ||
+          item.sku.toLowerCase().includes(query)
+        );
+      });
     }
 
-    const query = localSearchQuery.toLowerCase().trim();
-    return inventory.filter((item) => {
-      return (
-        item.productName.toLowerCase().includes(query) ||
-        item.sku.toLowerCase().includes(query)
-      );
-    });
-  }, [inventory, localSearchQuery]);
+    // 2. Apply brand filter
+    if (filterType === 'brand' && selectedBrandFilter) {
+      result = result.filter((item) => item.brandName === selectedBrandFilter);
+    }
+
+    // 3. Apply sorting
+    switch (filterType) {
+      case 'newest':
+        // Already sorted by created_at DESC in provider (newest first)
+        break;
+
+      case 'oldest':
+        // Reverse order - oldest first
+        result = result.reverse();
+        break;
+
+      case 'price_high':
+        // Sort by selling price (unitPrice) - highest first
+        result = result.sort((a, b) => b.unitPrice - a.unitPrice);
+        break;
+
+      case 'price_low':
+        // Sort by selling price (unitPrice) - lowest first
+        result = result.sort((a, b) => a.unitPrice - b.unitPrice);
+        break;
+
+      case 'cost_high':
+        // Sort by cost price - highest first
+        result = result.sort((a, b) => b.costPrice - a.costPrice);
+        break;
+
+      case 'cost_low':
+        // Sort by cost price - lowest first
+        result = result.sort((a, b) => a.costPrice - b.costPrice);
+        break;
+
+      case 'brand':
+        // When brand filter is active, keep existing order (newest first)
+        break;
+    }
+
+    return result;
+  }, [inventory, localSearchQuery, filterType, selectedBrandFilter]);
 
   // Client-side pagination: slice filtered results for current page
   const paginatedInventory = React.useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredInventory.slice(startIndex, endIndex);
-  }, [filteredInventory, currentPage, itemsPerPage]);
+    return filteredAndSortedInventory.slice(startIndex, endIndex);
+  }, [filteredAndSortedInventory, currentPage, itemsPerPage]);
 
   // Calculate total items and pages based on filtered results
-  const totalFilteredItems = filteredInventory.length;
+  const totalFilteredItems = filteredAndSortedInventory.length;
   const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
 
   // Helper function to format currency with strikethrough symbol
@@ -129,7 +184,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     if (e.target.checked) {
       // Select only filtered products, not all products
       clearSelection();
-      filteredInventory.forEach((item) => {
+      filteredAndSortedInventory.forEach((item) => {
         toggleProductSelection(item.productId);
       });
     } else {
@@ -456,8 +511,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   }
 
   // Check if all FILTERED products are selected
-  const isAllSelected = filteredInventory.length > 0 &&
-    filteredInventory.every((item) => selectedProducts.has(item.productId));
+  const isAllSelected = filteredAndSortedInventory.length > 0 &&
+    filteredAndSortedInventory.every((item) => selectedProducts.has(item.productId));
 
   return (
     <>
@@ -504,6 +559,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                   </button>
                 )}
               </div>
+              <FilterDropdown
+                filterType={filterType}
+                selectedBrandFilter={selectedBrandFilter}
+                brands={uniqueBrands}
+                onFilterChange={setFilterType}
+                onBrandFilterChange={setSelectedBrandFilter}
+              />
             </div>
             <div className={styles.inventoryActions}>
               <div className={styles.actionButtons}>
@@ -622,7 +684,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                     </th>
                     <th>Product Name</th>
                     <th>Product Code</th>
-                    <th>Barcode</th>
+                    <th>Brand</th>
                     <th className={styles.quantityCell}>Quantity</th>
                     <th className={styles.priceCell}>Price ({currencyCode})</th>
                     <th className={styles.costCell}>Cost ({currencyCode})</th>
@@ -652,7 +714,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                           <span className={styles.productCode}>{item.productCode}</span>
                         </td>
                         <td className={styles.barcodeCell}>
-                          <span className={styles.barcode}>{item.barcode || 'N/A'}</span>
+                          <span className={styles.barcode}>{item.brandName || 'N/A'}</span>
                         </td>
                         <td className={styles.quantityCell}>
                           <span className={`${styles.quantityValue} ${quantityClass}`}>
@@ -703,7 +765,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           )}
 
           {/* Pagination */}
-          {filteredInventory.length > 0 && (
+          {filteredAndSortedInventory.length > 0 && (
             <div className={styles.pagination}>
               <div className={styles.paginationInfo}>
                 Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, totalFilteredItems)} of {totalFilteredItems} products

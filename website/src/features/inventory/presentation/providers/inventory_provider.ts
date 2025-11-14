@@ -42,6 +42,10 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   searchQuery: '',
   selectedProducts: new Set(),
 
+  // Filter state
+  filterType: 'newest',
+  selectedBrandFilter: null,
+
   isModalOpen: false,
   selectedProductData: null,
   isAddProductModalOpen: false,
@@ -82,6 +86,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     })),
 
   clearSelection: () => set({ selectedProducts: new Set() }),
+
+  setFilterType: (filterType) => set({ filterType, currentPage: 1 }),
+
+  setSelectedBrandFilter: (brand) => set({ selectedBrandFilter: brand, currentPage: 1 }),
+
+  clearFilter: () => set({ filterType: 'newest', selectedBrandFilter: null, currentPage: 1 }),
 
   openModal: (productData) =>
     set({
