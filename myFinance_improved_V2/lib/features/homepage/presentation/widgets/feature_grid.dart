@@ -194,19 +194,39 @@ class _FeatureListItem extends StatelessWidget {
               ),
               const SizedBox(width: TossSpacing.space3),
 
-              // Feature Name
+              // Feature Name and Description
               Expanded(
-                child: Text(
-                  feature.featureName,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    letterSpacing: -0.4,
-                    height: 1.3,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      feature.featureName,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        letterSpacing: -0.4,
+                        height: 1.3,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    if (feature.featureDescription != null &&
+                        feature.featureDescription!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        feature.featureDescription!,
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                          fontSize: 13,
+                          letterSpacing: -0.2,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
                 ),
               ),
 

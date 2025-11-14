@@ -197,16 +197,7 @@ class HomepageDataSource {
 
       final models = (response)
           .map((json) {
-            final jsonMap = json as Map<String, dynamic>;
-            // Debug: Log the raw data from Supabase
-            print('🔍 DEBUG - Quick Access Feature Data: $jsonMap');
-            print('   - icon_key: ${jsonMap['icon_key']}');
-            print('   - icon: ${jsonMap['icon']}');
-            print('   - feature_name: ${jsonMap['feature_name']}');
-
-            final model = TopFeatureModel.fromJson(jsonMap);
-            print('   - Model iconKey: ${model.iconKey}');
-            return model;
+            return TopFeatureModel.fromJson(json as Map<String, dynamic>);
           })
           .toList();
 
