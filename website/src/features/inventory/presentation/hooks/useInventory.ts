@@ -34,6 +34,7 @@ export const useInventory = () => {
   // Filter State
   const filterType = useInventoryStore((state) => state.filterType);
   const selectedBrandFilter = useInventoryStore((state) => state.selectedBrandFilter);
+  const selectedCategoryFilter = useInventoryStore((state) => state.selectedCategoryFilter);
 
   // Modal State
   const isModalOpen = useInventoryStore((state) => state.isModalOpen);
@@ -59,7 +60,10 @@ export const useInventory = () => {
   const clearSelection = useInventoryStore((state) => state.clearSelection);
 
   const setFilterType = useInventoryStore((state) => state.setFilterType);
-  const setSelectedBrandFilter = useInventoryStore((state) => state.setSelectedBrandFilter);
+  const toggleBrandFilter = useInventoryStore((state) => state.toggleBrandFilter);
+  const toggleCategoryFilter = useInventoryStore((state) => state.toggleCategoryFilter);
+  const clearBrandFilter = useInventoryStore((state) => state.clearBrandFilter);
+  const clearCategoryFilter = useInventoryStore((state) => state.clearCategoryFilter);
   const clearFilter = useInventoryStore((state) => state.clearFilter);
 
   const openModal = useInventoryStore((state) => state.openModal);
@@ -97,6 +101,7 @@ export const useInventory = () => {
     selectedProducts,
     filterType,
     selectedBrandFilter,
+    selectedCategoryFilter,
     isModalOpen,
     selectedProductData,
     isAddProductModalOpen,
@@ -112,7 +117,10 @@ export const useInventory = () => {
     selectAllProducts,
     clearSelection,
     setFilterType,
-    setSelectedBrandFilter,
+    toggleBrandFilter,
+    toggleCategoryFilter,
+    clearBrandFilter,
+    clearCategoryFilter,
     clearFilter,
     openModal,
     closeModal,

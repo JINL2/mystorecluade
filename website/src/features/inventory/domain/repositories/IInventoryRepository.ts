@@ -36,6 +36,7 @@ export interface UpdateProductData {
   unit: string;
   costPrice: number;
   sellingPrice: number;
+  imageUrls?: string[]; // Image URLs array for product images
 }
 
 export interface ImportExcelResult {

@@ -10,7 +10,7 @@
 
 import type { InventoryItem, UpdateProductData, NotificationState, CurrencyInfo, UpdateProductResult } from './types';
 
-export type FilterType = 'newest' | 'oldest' | 'price_high' | 'price_low' | 'cost_high' | 'cost_low' | 'brand';
+export type FilterType = 'newest' | 'oldest' | 'price_high' | 'price_low' | 'cost_high' | 'cost_low' | 'brand' | 'category';
 
 export interface InventoryState {
   // ============================================
@@ -35,7 +35,8 @@ export interface InventoryState {
 
   // Filter state
   filterType: FilterType;
-  selectedBrandFilter: string | null;
+  selectedBrandFilter: Set<string>; // Multi-select support
+  selectedCategoryFilter: Set<string>; // Multi-select support
 
   // ============================================
   // MODAL STATE
@@ -66,7 +67,10 @@ export interface InventoryState {
   clearSelection: () => void;
 
   setFilterType: (filterType: FilterType) => void;
-  setSelectedBrandFilter: (brand: string | null) => void;
+  toggleBrandFilter: (brand: string) => void; // Multi-select toggle
+  toggleCategoryFilter: (category: string) => void; // Multi-select toggle
+  clearBrandFilter: () => void;
+  clearCategoryFilter: () => void;
   clearFilter: () => void;
 
   openModal: (productData: InventoryItem) => void;

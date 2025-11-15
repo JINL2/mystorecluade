@@ -484,12 +484,173 @@ Gap LG:         16px
 Gap XL:         24px
 ```
 
-### Screen Padding
+### Screen Padding (DEPRECATED - DO NOT USE)
+
+⚠️ **WARNING: This old padding system is DEPRECATED and causes issues when developer console is open.**
 
 ```css
+❌ DEPRECATED - DO NOT USE THESE VALUES:
 Mobile:         16px
 Tablet:         24px
 Desktop:        32px
+```
+
+**Use the new responsive padding system below instead.**
+
+---
+
+### Page Layout with Horizontal Padding (UPDATED STANDARD)
+
+**⭐ ALL PAGES MUST FOLLOW THIS RESPONSIVE PADDING SYSTEM:**
+
+This responsive padding system ensures optimal space usage across all screen sizes, preventing content from being cut off when developer tools or console are open.
+
+**IMPORTANT: Copy this EXACT CSS code to your page:**
+
+```css
+/* ⭐ STEP 1: Create .pageLayout wrapper (NOT .container) */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px or 1920px */
+  margin: 0 auto;
+}
+
+/* ⭐ STEP 2: Add responsive padding media queries */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+}
+
+/* ⭐ STEP 3: Inner container (optional, for content max-width) */
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 1400px; /* ⭐ Content width constraint (optional) */
+  margin: 0 auto;
+  width: 100%;
+}
+```
+
+**❌ COMMON MISTAKES TO AVOID:**
+```css
+/* ❌ WRONG - Fixed padding in .container */
+.container {
+  padding: 32px; /* This will cause issues! */
+}
+
+/* ❌ WRONG - Missing media queries */
+.container {
+  padding: 0 24px; /* No responsive adjustments! */
+}
+
+/* ❌ WRONG - Wrong max-width location */
+.pageLayout {
+  max-width: 1920px; /* Should be 100% by default! */
+}
+
+/* ❌ WRONG - Using old class name */
+.container {
+  padding: 0 24px; /* Should be .pageLayout! */
+}
+```
+
+**Padding Strategy:**
+- **Default (< 1600px)**: 24px - Optimal for most screens, prevents cutting when console is open
+- **Wide (1600px+)**: 48px - More breathing room on larger displays
+- **Ultra-wide (2000px+)**: 96px with 1920px max-width - Premium spacing for very large screens
+- **Mobile (≤ 768px)**: 16px - Minimal padding for small screens
+
+**Key Benefits:**
+✅ Console/DevTools-friendly - Content doesn't get cut off
+✅ Responsive across all screen sizes
+✅ Consistent spacing throughout the application
+✅ Optimal use of available screen space
+
+### Page Layout with Sidebar (Example: Inventory Page)
+
+**Structure for pages with sidebar:**
+```css
+/* Page Layout Container */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* Use responsive padding system above */
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px; /* Gap between sidebar and content */
+}
+
+/* Sidebar Component */
+Sidebar Width:  240px
+Position:       sticky
+Top:            64px (below navbar)
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+  overflow-x: hidden;
+}
+
+/* Content Container */
+.container {
+  padding: 24px 0; /* Vertical only, no horizontal padding */
+  width: 100%;
+  max-width: 100%;
+}
+```
+
+**Visual Layout Structure:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [24px padding]                                 [24px padding]│
+│                                                               │
+│  ┌──────────┐  ┌─────────────────────────────────────────┐  │
+│  │ Sidebar  │  │         Main Content                    │  │
+│  │ (240px)  │  │         (flex: 1)                       │  │
+│  │          │  │                                         │  │
+│  └──────────┘  └─────────────────────────────────────────┘  │
+│      ↑ 24px gap                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Mobile Responsive (≤768px):**
+```css
+.pageLayout {
+  padding: 0 16px; /* Reduced padding on mobile */
+}
+
+.sidebarWrapper {
+  display: none; /* Hide sidebar on mobile */
+}
+
+.mobileFilterWrapper {
+  display: block; /* Show mobile filter dropdown instead */
+}
 ```
 
 ## Border Radius
@@ -583,59 +744,166 @@ import { Navbar } from '@/shared/components/common/Navbar';
 
 ## Layout Patterns
 
-### Page Container Standard (MANDATORY)
+### Page Container Standard (UPDATED - MANDATORY)
 
-**All feature pages MUST use these exact layout values for consistency:**
+**⚠️ DEPRECATED: Old fixed padding system**
 
+The old fixed padding system (32px padding with 1400px max-width) has been replaced with a responsive padding system. Please migrate to the new system above.
+
+**New Responsive System (REQUIRED):**
+
+All feature pages MUST use the responsive padding system defined in "Page Layout with Horizontal Padding" section above.
+
+**For pages WITHOUT sidebar (standard pages):**
 ```css
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* Responsive padding - see media queries above */
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 .container {
-  flex: 1;
-  padding: 32px;              /* ⭐ REQUIRED: Standard horizontal padding */
-  max-width: 1400px;          /* ⭐ REQUIRED: Standard max content width */
+  padding: 24px 0; /* Vertical padding only */
+  max-width: 1400px; /* Content max-width */
   margin: 0 auto;
   width: 100%;
-  background: var(--color-gray-50);
 }
 ```
 
-**Standard Applied To:**
-- Balance Sheet Page ✅
-- Journal Input Page ✅
-- All feature pages (required for new pages)
-
-**Responsive Breakpoints:**
+**For pages WITH sidebar (e.g., Inventory):**
 ```css
-/* Mobile (< 768px) */
-.container {
-  padding: 16px;
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* Responsive padding - see media queries above */
+  max-width: 100%;
+  margin: 0 auto;
+}
+```
+
+**Migration Status:**
+- ✅ Inventory Page - Updated with responsive padding (REFERENCE THIS)
+- ✅ Account Mapping Page - Updated with responsive padding
+- ⏳ Balance Sheet Page - Needs migration
+- ⏳ Journal Input Page - Needs migration
+- ⏳ All other pages - Needs migration
+
+**⚠️ IMPORTANT CHECKLIST before implementing:**
+1. [ ] Use `.pageLayout` as the outer wrapper (NOT `.container`)
+2. [ ] Set `padding: 0 24px` in `.pageLayout` (NOT in `.container`)
+3. [ ] Set `max-width: 100%` in `.pageLayout` (NOT 1920px or 1400px)
+4. [ ] Add ALL THREE media queries (1600px, 2000px, 768px)
+5. [ ] Inner `.container` should have `padding: 24px 0` (vertical only)
+6. [ ] Update your JSX to wrap content with `<div className={styles.pageLayout}>`
+
+**Responsive Breakpoints (Apply to .pageLayout):**
+```css
+/* Default (< 1600px) */
+.pageLayout {
+  padding: 0 24px;
 }
 
-/* Tablet (768px - 1024px) */
-.container {
-  padding: 24px;
+/* Wide screens (1600px+) */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
 }
 
-/* Desktop (> 1024px) */
-.container {
-  padding: 32px;
-  max-width: 1400px;
+/* Ultra-wide screens (2000px+) */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile (≤ 768px) */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
 }
 ```
 
 **Implementation Example:**
-```css
-/* ❌ WRONG - Inconsistent values */
-.container {
-  max-width: 1200px;  /* Wrong max-width */
-  padding: var(--space-6) var(--space-5);  /* Inconsistent padding */
-}
 
-/* ✅ CORRECT - Standard values */
+**❌ WRONG - Like Account Mapping Page (DO NOT COPY THIS):**
+```css
 .container {
-  max-width: 1400px;  /* Standard max-width */
-  padding: 32px;      /* Standard padding */
+  padding: 32px; /* ❌ Fixed horizontal padding - causes cut-off issues */
+  max-width: 1400px;
   margin: 0 auto;
 }
+
+/* Only mobile media query, missing 1600px and 2000px */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px; /* ❌ Not responsive enough */
+  }
+}
+```
+
+**✅ CORRECT - Like Inventory Page (COPY THIS PATTERN):**
+```css
+/* Step 1: Outer wrapper with responsive padding */
+.pageLayout {
+  padding: 0 24px; /* ✅ Horizontal padding only */
+  max-width: 100%; /* ✅ Full width by default */
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+}
+
+/* Step 2: Inner container for content width (optional) */
+.container {
+  padding: 24px 0; /* ✅ Vertical padding only */
+  max-width: 1400px; /* ✅ Content constraint */
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Step 3: ALL THREE media queries are REQUIRED */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ✅ Increase on wide screens */
+  }
+}
+
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ✅ Max padding */
+    max-width: 1920px; /* ✅ Cap width on ultra-wide */
+  }
+}
+
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ✅ Reduce on mobile */
+  }
+}
+```
+
+**JSX Structure:**
+```tsx
+// ❌ WRONG
+<div className={styles.container}>
+  <Navbar />
+  {/* content */}
+</div>
+
+// ✅ CORRECT
+<>
+  <Navbar />
+  <div className={styles.pageLayout}>
+    <div className={styles.container}>
+      {/* content */}
+    </div>
+  </div>
+</>
 ```
 
 ### Page Header

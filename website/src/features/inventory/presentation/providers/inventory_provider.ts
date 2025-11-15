@@ -44,7 +44,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   // Filter state
   filterType: 'newest',
-  selectedBrandFilter: null,
+  selectedBrandFilter: new Set<string>(), // Multi-select
+  selectedCategoryFilter: new Set<string>(), // Multi-select
 
   isModalOpen: false,
   selectedProductData: null,
@@ -89,9 +90,38 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   setFilterType: (filterType) => set({ filterType, currentPage: 1 }),
 
-  setSelectedBrandFilter: (brand) => set({ selectedBrandFilter: brand, currentPage: 1 }),
+  toggleBrandFilter: (brand) =>
+    set((state) => {
+      const newBrands = new Set(state.selectedBrandFilter);
+      if (newBrands.has(brand)) {
+        newBrands.delete(brand);
+      } else {
+        newBrands.add(brand);
+      }
+      return { selectedBrandFilter: newBrands, currentPage: 1 };
+    }),
 
-  clearFilter: () => set({ filterType: 'newest', selectedBrandFilter: null, currentPage: 1 }),
+  toggleCategoryFilter: (category) =>
+    set((state) => {
+      const newCategories = new Set(state.selectedCategoryFilter);
+      if (newCategories.has(category)) {
+        newCategories.delete(category);
+      } else {
+        newCategories.add(category);
+      }
+      return { selectedCategoryFilter: newCategories, currentPage: 1 };
+    }),
+
+  clearBrandFilter: () => set({ selectedBrandFilter: new Set<string>(), currentPage: 1 }),
+
+  clearCategoryFilter: () => set({ selectedCategoryFilter: new Set<string>(), currentPage: 1 }),
+
+  clearFilter: () => set({
+    filterType: 'newest',
+    selectedBrandFilter: new Set<string>(),
+    selectedCategoryFilter: new Set<string>(),
+    currentPage: 1
+  }),
 
   openModal: (productData) =>
     set({
@@ -181,7 +211,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
       // Total items = all loaded products (we load all at once now)
       const totalItems = sortedInventory.length;
-      console.log('✅ Loaded all products:', totalItems);
 
       set({ inventory: sortedInventory, totalItems, loading: false });
     } catch (err) {

@@ -3,13 +3,19 @@
  * Account mapping configuration page styling
  */
 
-.container {
-  flex: 1;
+/* ⭐ NEW: Page Layout with responsive horizontal padding */
+.pageLayout {
   min-height: 100vh;
-  padding: var(--space-6);
   background: white;
-  max-width: 1400px;
+  padding: 0 24px;              /* ⭐ Responsive horizontal padding */
+  max-width: 100%;              /* ⭐ Full flexibility */
   margin: 0 auto;
+  width: 100%;
+}
+
+/* ⭐ Inner container for content (vertical padding only) */
+.container {
+  padding: 32px 0;              /* ⭐ Vertical padding only - no horizontal */
   width: 100%;
 }
 
@@ -502,9 +508,25 @@
 }
 
 /* Responsive Design */
+/* ⭐ Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* ⭐ Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile (< 768px) */
 @media (max-width: 768px) {
-  .container {
-    padding: var(--space-4);
+  .pageLayout {
+    padding: 0 16px;            /* ⭐ Mobile standard padding */
   }
 
   .pageHeader {

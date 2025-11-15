@@ -92,6 +92,7 @@ export class InventoryDataSource {
       p_cost_price: productData.costPrice,
       p_selling_price: productData.sellingPrice,
       p_new_quantity: productData.currentStock,
+      p_image_urls: productData.imageUrls || null, // Image URLs array (JSONB)
     };
 
     const { data, error } = await supabase.rpc('inventory_edit_product', params);

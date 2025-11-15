@@ -1,0 +1,135 @@
+/**
+ * InventoryHeader Component Styles
+ * Styles extracted from InventoryPage for header section
+ * Following ARCHITECTURE.md: CSS ≤ 20KB
+ */
+
+.inventoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 12px;
+  border-bottom: 1px solid var(--color-gray-200);
+  gap: 16px;
+}
+
+.inventoryTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Mobile Filter Wrapper - Hidden on desktop, shown on mobile */
+.mobileFilterWrapper {
+  display: none;
+}
+
+.inventoryTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.inventoryActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search Bar Styles */
+.inventorySearchWrapper {
+  position: relative;
+  min-width: 280px;
+}
+
+.inventorySearch {
+  width: 100%;
+  padding: 10px 8px 10px 44px;
+  border: 1px solid #0064FF; /* Toss Blue */
+  border-radius: 8px; /* MD - DESIGN_SYSTEM.md Input radius */
+  font-size: 14px;
+  background: var(--color-white);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.inventorySearch:focus {
+  outline: none;
+  border-color: #0064FF; /* Toss Blue */
+  background: var(--color-white);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+}
+
+.inventorySearch::placeholder {
+  color: var(--color-gray-500);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-gray-500);
+  pointer-events: none;
+}
+
+.searchClear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchClear:hover {
+  color: var(--color-gray-900);
+  background: var(--color-gray-100);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .inventoryHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inventoryTitleSection {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .inventorySearchWrapper {
+    width: 100%;
+  }
+
+  .actionButtons {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .mobileFilterWrapper {
+    display: block;
+  }
+}

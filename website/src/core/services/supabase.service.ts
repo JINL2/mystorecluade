@@ -263,6 +263,117 @@ export class AuthService {
 }
 
 /**
+ * Storage Service
+ */
+export class StorageService {
+  private supabase: SupabaseClient<Database>;
+
+  constructor() {
+    this.supabase = SupabaseService.getInstance().getClient();
+  }
+
+  /**
+   * Upload image to Supabase Storage
+   * @param bucket - Storage bucket name (e.g., 'inventory_image')
+   * @param path - File path within bucket (e.g., '{company_id}/filename.jpg')
+   * @param file - File object or base64 data URL
+   * @param options - Upload options
+   * @returns Public URL of uploaded file
+   */
+  async uploadImage(
+    bucket: string,
+    path: string,
+    file: File | string,
+    options?: { upsert?: boolean }
+  ): Promise<{ success: boolean; data?: string; error?: string }> {
+    try {
+      let fileToUpload: File | Blob;
+
+      // Handle base64 data URL conversion
+      if (typeof file === 'string') {
+        const base64Response = await fetch(file);
+        const blob = await base64Response.blob();
+        fileToUpload = blob;
+      } else {
+        fileToUpload = file;
+      }
+
+      // Upload to Storage
+      const { data, error } = await this.supabase.storage
+        .from(bucket)
+        .upload(path, fileToUpload, {
+          cacheControl: '3600',
+          upsert: options?.upsert ?? false,
+        });
+
+      if (error) {
+        console.error('Upload error:', error);
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = this.supabase.storage.from(bucket).getPublicUrl(path);
+
+      return {
+        success: true,
+        data: publicUrl,
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Delete image from Supabase Storage
+   * @param bucket - Storage bucket name
+   * @param path - File path within bucket
+   */
+  async deleteImage(bucket: string, path: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await this.supabase.storage.from(bucket).remove([path]);
+
+      if (error) {
+        console.error('Delete error:', error);
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Delete error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Get public URL for a file
+   * @param bucket - Storage bucket name
+   * @param path - File path within bucket
+   */
+  getPublicUrl(bucket: string, path: string): string {
+    const {
+      data: { publicUrl },
+    } = this.supabase.storage.from(bucket).getPublicUrl(path);
+
+    return publicUrl;
+  }
+}
+
+/**
  * Database Service
  */
 export class DatabaseService {
@@ -365,3 +476,4 @@ export class DatabaseService {
 export const supabaseService = SupabaseService.getInstance();
 export const authService = new AuthService();
 export const databaseService = new DatabaseService();
+export const storageService = new StorageService();

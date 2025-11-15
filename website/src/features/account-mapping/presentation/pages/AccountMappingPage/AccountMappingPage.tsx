@@ -177,7 +177,8 @@ export const AccountMappingPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="setting" />
-      <div className={styles.container}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
         <div className={styles.pageHeader}>
           <div>
             <h1 className={styles.pageTitle}>Account Mapping</h1>
@@ -386,6 +387,7 @@ export const AccountMappingPage: React.FC = () => {
           message={errorMessageText}
           zIndex={10000}
         />
+        </div>
       </div>
     </>
   );
