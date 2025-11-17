@@ -110,38 +110,14 @@ class LocationSelector extends StatelessWidget {
                 color: TossColors.gray200,
                 width: 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [
-                if (selectedLocationId != null) ...[
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: TossColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Icon(
-                      _getLocationIcon(),
-                      size: 20,
-                      color: TossColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space3),
-                ],
                 Expanded(
                   child: Text(
                     locationName,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.labelLarge.copyWith(
                       color: selectedLocationId != null ? TossColors.gray900 : TossColors.gray500,
-                      fontWeight: selectedLocationId != null ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

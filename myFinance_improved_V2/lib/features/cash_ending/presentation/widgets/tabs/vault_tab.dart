@@ -15,9 +15,13 @@ import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/vault_tab_provider.dart';
+import '../collapsible_currency_section.dart';
+import '../currency_pill_selector.dart';
+import '../denomination_grid_header.dart';
 import '../denomination_input.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
+import '../section_label.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
 import '../sheets/flow_detail_bottom_sheet.dart';
@@ -250,20 +254,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
               pageState.selectedVaultLocationId!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space6),
             _buildVaultCountingCard(pageState),
-
-            // Card 3: Real Section
-            const SizedBox(height: TossSpacing.space6),
-            RealSectionWidget(
-              actualFlows: tabState.stockFlows,
-              locationSummary: tabState.locationSummary,
-              isLoading: tabState.isLoadingFlows,
-              hasMore: tabState.hasMoreFlows,
-              baseCurrencySymbol: pageState.currencies.isNotEmpty
-                  ? pageState.currencies.first.symbol
-                  : '\$',
-              onLoadMore: _loadMoreFlows,
-              onItemTap: _showFlowDetails,
-            ),
           ],
         ],
       ),
@@ -271,54 +261,55 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   Widget _buildLocationSelectionCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Store Selector
-          StoreSelector(
-            stores: state.stores,
-            selectedStoreId: state.selectedStoreId,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Store Selector
+        StoreSelector(
+          stores: state.stores,
+          selectedStoreId: state.selectedStoreId,
+          onTap: () {
+            CashEndingSelectionHelpers.showStoreSelector(
+              context: context,
+              ref: ref,
+              stores: state.stores,
+              selectedStoreId: state.selectedStoreId,
+              companyId: widget.companyId,
+            );
+          },
+        ),
+
+        // Vault Location Selector (show if store selected)
+        if (state.selectedStoreId != null) ...[
+          const SizedBox(height: TossSpacing.space4),
+          LocationSelector(
+            locationType: 'vault',
+            isLoading: false,
+            locations: state.vaultLocations,
+            selectedLocationId: state.selectedVaultLocationId,
             onTap: () {
-              CashEndingSelectionHelpers.showStoreSelector(
+              CashEndingSelectionHelpers.showLocationSelector(
                 context: context,
                 ref: ref,
-                stores: state.stores,
-                selectedStoreId: state.selectedStoreId,
-                companyId: widget.companyId,
+                locationType: 'vault',
+                locations: state.vaultLocations,
+                selectedLocationId: state.selectedVaultLocationId,
               );
             },
           ),
-
-          // Vault Location Selector (show if store selected)
-          if (state.selectedStoreId != null) ...[
-            const SizedBox(height: TossSpacing.space6),
-            LocationSelector(
-              locationType: 'vault',
-              isLoading: false,
-              locations: state.vaultLocations,
-              selectedLocationId: state.selectedVaultLocationId,
-              onTap: () {
-                CashEndingSelectionHelpers.showLocationSelector(
-                  context: context,
-                  ref: ref,
-                  locationType: 'vault',
-                  locations: state.vaultLocations,
-                  selectedLocationId: state.selectedVaultLocationId,
-                );
-              },
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 
   Widget _buildVaultCountingCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: _buildVaultCountingSection(state),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel(text: 'Vault Transaction'),
+        const SizedBox(height: TossSpacing.space2),
+        _buildVaultCountingSection(state),
+      ],
     );
   }
 
@@ -351,12 +342,10 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       );
     }
 
-    final selectedCurrencyId =
-        state.selectedVaultCurrencyId ?? state.currencies.first.currencyId;
-    final currency = state.currencies.firstWhere(
-      (c) => c.currencyId == selectedCurrencyId,
-      orElse: () => state.currencies.first,
-    );
+    // Get selected currencies (support multiple like cash tab)
+    final selectedCurrencyIds = state.selectedVaultCurrencyIds.isEmpty
+        ? [state.currencies.first.currencyId]
+        : state.selectedVaultCurrencyIds;
 
     // Wrap in Stack to render toolbar separately from Column
     return Stack(
@@ -365,140 +354,109 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        // Header: "Vault Count" title + Currency selector
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Vault Count',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
-            if (state.currencies.length > 1)
-              GestureDetector(
-                onTap: () {
-                  CurrencySelectorSheet.show(
-                    context: context,
-                    ref: ref,
-                    currencies: state.currencies,
-                    selectedCurrencyId: selectedCurrencyId,
-                    tabType: 'vault',
-                  );
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currency.currencyCode,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_drop_down,
-                      color: TossColors.primary,
-                      size: 24,
-                    ),
-                  ],
-                ),
-              ),
-          ],
+        // Transaction Type Toggle
+        _buildDebitCreditToggle(),
+
+        const SizedBox(height: TossSpacing.space5),
+
+        // Currency Pills
+        CurrencyPillSelector(
+          availableCurrencies: state.currencies,
+          selectedCurrencyIds: selectedCurrencyIds,
+          onAddCurrency: () {
+            // Show only currencies not already selected
+            final availableCurrencies = state.currencies.where((c) =>
+              !state.selectedVaultCurrencyIds.contains(c.currencyId)
+            ).toList();
+
+            if (availableCurrencies.isEmpty) {
+              return; // All currencies already added
+            }
+
+            CurrencySelectorSheet.show(
+              context: context,
+              ref: ref,
+              currencies: availableCurrencies,
+              selectedCurrencyId: null,
+              tabType: 'vault',
+            );
+          },
+          onRemoveCurrency: (currencyId) {
+            ref.read(cashEndingProvider.notifier).removeVaultCurrency(currencyId);
+          },
         ),
 
         const SizedBox(height: TossSpacing.space5),
 
-        // Denomination Inputs
-        if (currency.denominations.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space8),
-              child: Text(
-                'No denominations configured for this currency',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          )
-        else ...[
-          // Initialize toolbar controller for this currency
-          Builder(
-            builder: (context) {
-              // Initialize toolbar controller when building denominations
-              if (_toolbarController == null ||
-                  _toolbarController!.focusNodes.length != currency.denominations.length) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _initializeToolbarController(currency.denominations, selectedCurrencyId);
-                });
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          ...currency.denominations.asMap().entries.map((entry) {
-            final denom = entry.value;
-            final controller = _getController(selectedCurrencyId, denom.denominationId);
-            final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
+        // Currency accordion sections - show all selected currencies
+        ...state.currencies.where((currency) {
+          return selectedCurrencyIds.contains(currency.currencyId);
+        }).map((currency) {
+          // Initialize controllers and focus nodes for this currency
+          _controllers.putIfAbsent(currency.currencyId, () => {});
+          _focusNodes.putIfAbsent(currency.currencyId, () => {});
 
-            return DenominationInput(
-              denomination: denom,
-              controller: controller,
-              focusNode: focusNode,
-              currencySymbol: currency.symbol,
-              onChanged: () {
-                setState(() {}); // Update total display
-              },
+          for (final denom in currency.denominations) {
+            _controllers[currency.currencyId]!.putIfAbsent(
+              denom.denominationId,
+              () => TextEditingController(),
             );
-          }),
-        ],
+            _focusNodes[currency.currencyId]!.putIfAbsent(
+              denom.denominationId,
+              () => FocusNode(),
+            );
+          }
 
-        const SizedBox(height: TossSpacing.space8),
+          // Initialize toolbar controller for this currency
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_toolbarController == null ||
+                _toolbarController!.focusNodes.length != currency.denominations.length) {
+              _initializeToolbarController(currency.denominations, currency.currencyId);
+            }
+          });
 
-        // Debit/Credit Toggle (In/Out) - From legacy lines 1095-1117
-        _buildDebitCreditToggle(),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space4),
+            child: CollapsibleCurrencySection(
+              currency: currency,
+              controllers: _controllers[currency.currencyId]!,
+              focusNodes: _focusNodes[currency.currencyId]!,
+              totalAmount: _calculateTotal(currency.currencyId, currency.denominations),
+              onChanged: () => setState(() {}),
+            ),
+          );
+        }),
 
-        const SizedBox(height: TossSpacing.space8),
-
-        // Total Display
-        TotalDisplay(
-          totalAmount:
-              _calculateTotal(selectedCurrencyId, currency.denominations),
-          currencySymbol: currency.symbol,
-          label: _transactionType == 'debit' ? 'In Total' : 'Out Total',
-        ),
-
-        const SizedBox(height: TossSpacing.space10),
+        const SizedBox(height: TossSpacing.space6),
 
         // Submit Button
         Builder(
           builder: (context) {
             final tabState = ref.watch(vaultTabProvider);
-            return Center(
-              child: TossButton1.primary(
-                text: 'Save Vault Transaction',
-                isLoading: tabState.isSaving,
-                isEnabled: !tabState.isSaving,
-                fullWidth: false,
-                onPressed: !tabState.isSaving
-                    ? () async {
-                        await widget.onSave(
-                          context,
-                          state,
-                          selectedCurrencyId,
-                          _transactionType,
-                        );
-                      }
-                    : null,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-                borderRadius: 12,
+            final firstCurrencyId = selectedCurrencyIds.first;
+            return TossButton1.primary(
+              text: 'Save Vault Transaction',
+              isLoading: tabState.isSaving,
+              isEnabled: !tabState.isSaving,
+              fullWidth: true,
+              onPressed: !tabState.isSaving
+                  ? () async {
+                      await widget.onSave(
+                        context,
+                        state,
+                        firstCurrencyId,
+                        _transactionType,
+                      );
+                    }
+                  : null,
+              textStyle: TossTextStyles.titleLarge.copyWith(
+                color: TossColors.white,
               ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+              borderRadius: 12,
             );
           },
         ),
@@ -543,7 +501,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
             label: 'Out',
             value: 'credit',
             isSelected: _transactionType == 'credit',
-            activeColor: TossColors.success,
+            activeColor: TossColors.primary,
           ),
         ),
       ],

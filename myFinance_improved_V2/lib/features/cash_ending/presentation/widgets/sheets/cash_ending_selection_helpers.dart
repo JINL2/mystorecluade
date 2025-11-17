@@ -29,23 +29,12 @@ class CashEndingSelectionHelpers {
     required String? selectedStoreId,
     required String companyId,
   }) async {
-    // Prepare items: Headquarter + Stores
-    final items = <TossSelectionItem>[
-      // Headquarter item
-      const TossSelectionItem(
-        id: 'headquarter',
-        title: 'Headquarter',
-        subtitle: 'Company Level',
-        icon: TossIcons.business,
-      ),
-      // Store items
-      ...stores.map((store) => TossSelectionItem(
-            id: store.storeId,
-            title: store.storeName,
-            subtitle: store.storeCode,
-            icon: TossIcons.store,
-          ),),
-    ];
+    // Prepare items: Stores only
+    final items = stores.map((store) => TossSelectionItem(
+          id: store.storeId,
+          title: store.storeName,
+          icon: TossIcons.store,
+        ),).toList();
 
     await TossSelectionBottomSheet.show<void>(
       context: context,
@@ -53,6 +42,7 @@ class CashEndingSelectionHelpers {
       items: items,
       selectedId: selectedStoreId,
       // Cash Ending styling
+      showSubtitle: false,
       selectedFontWeight: FontWeight.w700,
       unselectedFontWeight: FontWeight.w500,
       unselectedIconColor: TossColors.gray500,

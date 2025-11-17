@@ -1,4 +1,4 @@
-// lib/features/cash_ending/presentation/widgets/total_display.dart
+// lib/features/cash_ending/presentation/widgets/grand_total_section.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,19 +7,19 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 
-/// Total display widget
+/// Grand total section displayed at the bottom
 ///
-/// Shows the total amount calculated from denominations.
-class TotalDisplay extends StatelessWidget {
+/// Shows the final total amount in base currency
+class GrandTotalSection extends StatelessWidget {
   final double totalAmount;
   final String currencySymbol;
   final String label;
 
-  const TotalDisplay({
+  const GrandTotalSection({
     super.key,
     required this.totalAmount,
     required this.currencySymbol,
-    this.label = 'Total',
+    this.label = 'Grand total',
   });
 
   @override
@@ -27,26 +27,28 @@ class TotalDisplay extends StatelessWidget {
     final formatter = NumberFormat('#,###');
     final formattedAmount = '$currencySymbol${formatter.format(totalAmount.toInt())}';
 
-    return Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray700,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.gray900,
             ),
           ),
           Text(
             formattedAmount,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.primary,
             ),
           ),
         ],
+      ),
     );
   }
 }

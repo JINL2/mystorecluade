@@ -26,6 +26,7 @@ import '../providers/vault_tab_provider.dart';
 import '../widgets/tabs/bank_tab.dart';
 import '../widgets/tabs/cash_tab.dart';
 import '../widgets/tabs/vault_tab.dart';
+import 'cash_ending_completion_page.dart';
 
 /// Cash Ending Page
 ///
@@ -268,33 +269,36 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    // Get currency
-    final currency = state.currencies.firstWhere(
-      (c) => c.currencyId == currencyId,
-      orElse: () => state.currencies.first,
-    );
-
     // Get quantities from widget (accessing via currentState)
     final dynamic cashTabState = _cashTabKey.currentState;
-    final quantities = (cashTabState?.denominationQuantities as Map<String, Map<String, int>>?)?[currencyId] ?? {};
+    final allQuantities = (cashTabState?.denominationQuantities as Map<String, Map<String, int>>?) ?? {};
 
-    // Note: Allow saving even if quantities are empty or all zeros
-    // This is valid - it records that cash count is 0
+    // Process ALL selected currencies (fallback to currencyId parameter if selectedCashCurrencyIds is empty)
+    final currencyIdsToProcess = state.selectedCashCurrencyIds.isNotEmpty
+        ? state.selectedCashCurrencyIds
+        : [currencyId];
 
-    final denominationsWithQuantity = currency.denominations.map((denom) {
-      final quantity = quantities[denom.denominationId] ?? 0;
-      return denom.copyWith(quantity: quantity);
-    }).toList();
+    final currenciesWithData = currencyIdsToProcess.map((currId) {
+      final currency = state.currencies.firstWhere(
+        (c) => c.currencyId == currId,
+        orElse: () => state.currencies.first,
+      );
 
-    final currenciesWithData = [
-      Currency(
+      final quantities = allQuantities[currId] ?? {};
+
+      final denominationsWithQuantity = currency.denominations.map((denom) {
+        final quantity = quantities[denom.denominationId] ?? 0;
+        return denom.copyWith(quantity: quantity);
+      }).toList();
+
+      return Currency(
         currencyId: currency.currencyId,
         currencyCode: currency.currencyCode,
         currencyName: currency.currencyName,
         symbol: currency.symbol,
         denominations: denominationsWithQuantity,
-      ),
-    ];
+      );
+    }).toList();
 
     // Create CashEnding entity
     final now = DateTime.now();
@@ -316,7 +320,41 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
 
     if (success) {
-      await TossDialogs.showCashEndingSaved(context: context);
+      // Calculate grand total across all currencies
+      double grandTotal = 0.0;
+      final Map<String, Map<String, int>> denominationQuantitiesMap = {};
+
+      for (final currencyData in currenciesWithData) {
+        // Calculate total for this currency
+        final currencyTotal = currencyData.denominations.fold<double>(
+          0,
+          (sum, denom) => sum + (denom.value * denom.quantity),
+        );
+        grandTotal += currencyTotal;
+
+        // Build denomination quantities map for this currency
+        final currencyQuantities = <String, int>{};
+        for (final denom in currencyData.denominations) {
+          if (denom.quantity > 0) {
+            currencyQuantities[denom.value.toString()] = denom.quantity;
+          }
+        }
+        denominationQuantitiesMap[currencyData.currencyId] = currencyQuantities;
+      }
+
+      // Navigate to completion page
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => CashEndingCompletionPage(
+            tabType: 'cash',
+            grandTotal: grandTotal,
+            currencies: currenciesWithData,
+            storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
+            locationName: state.cashLocations.firstWhere((l) => l.locationId == state.selectedCashLocationId).locationName,
+            denominationQuantities: denominationQuantitiesMap,
+          ),
+        ),
+      );
       cashTabState?.clearQuantities?.call();
       // Stock flows are automatically reloaded by the notifier
     } else {
@@ -385,7 +423,22 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
-      await TossDialogs.showBankBalanceSaved(context: context);
+      // Get currency for completion page
+      final currency = state.currencies.firstWhere((c) => c.currencyId == currencyId);
+
+      // Navigate to completion page
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => CashEndingCompletionPage(
+            tabType: 'bank',
+            grandTotal: totalAmount.toDouble(),
+            currencies: [currency],
+            storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
+            locationName: state.bankLocations.firstWhere((l) => l.locationId == state.selectedBankLocationId).locationName,
+          ),
+        ),
+      );
+
       bankTabState?.clearAmount?.call();
       // Stock flows are automatically reloaded by the notifier
     } else {
@@ -465,9 +518,28 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
-      await TossDialogs.showVaultTransactionSaved(
-        context: context,
-        transactionType: transactionType,
+      // Get currency for completion page
+      final currency = state.currencies.firstWhere((c) => c.currencyId == currencyId);
+
+      // Calculate grand total
+      final grandTotal = denominationsWithQuantity.fold<double>(
+        0,
+        (sum, denom) => sum + (denom.value * denom.quantity),
+      );
+
+      // Navigate to completion page
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => CashEndingCompletionPage(
+            tabType: 'vault',
+            grandTotal: grandTotal,
+            currencies: [currency],
+            storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
+            locationName: state.vaultLocations.firstWhere((l) => l.locationId == state.selectedVaultLocationId).locationName,
+            denominationQuantities: {currencyId: quantities},
+            transactionType: transactionType,
+          ),
+        ),
       );
 
       vaultTabState?.clearQuantities?.call();

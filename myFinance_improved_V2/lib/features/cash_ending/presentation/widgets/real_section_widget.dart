@@ -50,7 +50,10 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.card,
+            border: Border.all(
+              color: TossColors.gray200,
+              width: 1,
+            ),
           ),
           child: Column(
             children: [

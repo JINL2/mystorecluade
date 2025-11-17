@@ -96,36 +96,14 @@ class StoreSelector extends StatelessWidget {
                 color: TossColors.gray200,
                 width: 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: Icon(
-                    TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
-                    size: 20,
-                    color: TossColors.primary,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Text(
                     storeName,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.labelLarge.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

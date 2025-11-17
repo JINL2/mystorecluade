@@ -14,9 +14,15 @@ import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/cash_tab_provider.dart';
+import '../../providers/cash_tab_state.dart';
+import '../collapsible_currency_section.dart';
+import '../currency_pill_selector.dart';
+import '../denomination_grid_header.dart';
 import '../denomination_input.dart';
+import '../grand_total_section.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
+import '../section_label.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
 import '../sheets/flow_detail_bottom_sheet.dart';
@@ -239,27 +245,20 @@ class _CashTabState extends ConsumerState<CashTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card 1: Store and Location Selection
+          // Store and Location Selection
           _buildLocationSelectionCard(pageState),
 
-          // Card 2: Cash Counting (show if location selected)
+          // Cash Counting (show if location selected)
           if (pageState.selectedCashLocationId != null &&
               pageState.selectedCashLocationId!.isNotEmpty) ...[
-            const SizedBox(height: TossSpacing.space6),
-            _buildCashCountingCard(pageState),
+            const SizedBox(height: TossSpacing.space5),
+            _buildCashCountingSection(pageState),
 
-            // Card 3: Real Section
-            const SizedBox(height: TossSpacing.space6),
-            RealSectionWidget(
-              actualFlows: tabState.stockFlows,
-              locationSummary: tabState.locationSummary,
-              isLoading: tabState.isLoadingFlows,
-              hasMore: tabState.hasMoreFlows,
-              baseCurrencySymbol: pageState.currencies.isNotEmpty
-                  ? pageState.currencies.first.symbol
-                  : '\$',
-              onLoadMore: _loadMoreFlows,
-              onItemTap: _showFlowDetails,
+            // Submit button at end of content (inside scroll)
+            const SizedBox(height: TossSpacing.space5),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 64),
+              child: _buildSubmitButton(pageState, tabState),
             ),
           ],
         ],
@@ -268,52 +267,41 @@ class _CashTabState extends ConsumerState<CashTab> {
   }
 
   Widget _buildLocationSelectionCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Store Selector
-          StoreSelector(
-            stores: state.stores,
-            selectedStoreId: state.selectedStoreId,
-            onTap: () {
-              CashEndingSelectionHelpers.showStoreSelector(
-                context: context,
-                ref: ref,
-                stores: state.stores,
-                selectedStoreId: state.selectedStoreId,
-                companyId: widget.companyId,
-              );
-            },
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Store Selector
+        StoreSelector(
+          stores: state.stores,
+          selectedStoreId: state.selectedStoreId,
+          onTap: () {
+            CashEndingSelectionHelpers.showStoreSelector(
+              context: context,
+              ref: ref,
+              stores: state.stores,
+              selectedStoreId: state.selectedStoreId,
+              companyId: widget.companyId,
+            );
+          },
+        ),
 
-          // Location Selector (always show like lib_old)
-          const SizedBox(height: TossSpacing.space6),
-          LocationSelector(
-            locationType: 'cash',
-            isLoading: false,
-            locations: state.cashLocations,
-            selectedLocationId: state.selectedCashLocationId,
-            onTap: () {
-              CashEndingSelectionHelpers.showLocationSelector(
-                context: context,
-                ref: ref,
-                locationType: 'cash',
-                locations: state.cashLocations,
-                selectedLocationId: state.selectedCashLocationId,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCashCountingCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: _buildCashCountingSection(state),
+        const SizedBox(height: TossSpacing.space4),
+        LocationSelector(
+          locationType: 'cash',
+          isLoading: false,
+          locations: state.cashLocations,
+          selectedLocationId: state.selectedCashLocationId,
+          onTap: () {
+            CashEndingSelectionHelpers.showLocationSelector(
+              context: context,
+              ref: ref,
+              locationType: 'cash',
+              locations: state.cashLocations,
+              selectedLocationId: state.selectedCashLocationId,
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -346,171 +334,144 @@ class _CashTabState extends ConsumerState<CashTab> {
       );
     }
 
-    final selectedCurrencyId =
-        state.selectedCashCurrencyId ?? state.currencies.first.currencyId;
-    final currency = state.currencies.firstWhere(
-      (c) => c.currencyId == selectedCurrencyId,
-      orElse: () => state.currencies.first,
-    );
+    // Calculate grand total across all currencies (in base currency)
+    double grandTotal = 0.0;
+    for (final currency in state.currencies) {
+      grandTotal += _calculateTotal(currency.currencyId, currency.denominations);
+    }
 
-    // Wrap in Stack to render toolbar separately from Column
     return Stack(
       children: [
-        // Main content in Column
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        // Header: "Cash Count" title + Currency selector
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Cash Count',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
-            if (state.currencies.length > 1)
-              GestureDetector(
-                onTap: () {
-                  CurrencySelectorSheet.show(
-                    context: context,
-                    ref: ref,
-                    currencies: state.currencies,
-                    selectedCurrencyId: selectedCurrencyId,
-                    tabType: 'cash',
-                  );
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currency.currencyCode,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_drop_down,
-                      color: TossColors.primary,
-                      size: 24,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+            // Currency Pills
+            CurrencyPillSelector(
+              availableCurrencies: state.currencies,
+              selectedCurrencyIds: state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds,
+              onAddCurrency: () {
+                // Show only currencies not already selected
+                final availableCurrencies = state.currencies.where((c) =>
+                  !state.selectedCashCurrencyIds.contains(c.currencyId)
+                ).toList();
 
-        const SizedBox(height: TossSpacing.space5),
+                if (availableCurrencies.isEmpty) {
+                  return; // All currencies already added
+                }
 
-        // Denomination Inputs
-        if (currency.denominations.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space8),
-              child: Text(
-                'No denominations configured for this currency',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          )
-        else ...[
-          // Initialize toolbar controller for this currency
-          Builder(
-            builder: (context) {
-              // Initialize toolbar controller when building denominations
-              if (_toolbarController == null ||
-                  _toolbarController!.focusNodes.length != currency.denominations.length) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _initializeToolbarController(currency.denominations, selectedCurrencyId);
-                });
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          ...currency.denominations.asMap().entries.map((entry) {
-            final denom = entry.value;
-            final controller = _getController(selectedCurrencyId, denom.denominationId);
-            final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
-
-            return DenominationInput(
-              denomination: denom,
-              controller: controller,
-              focusNode: focusNode,
-              currencySymbol: currency.symbol,
-              onChanged: () {
-                setState(() {}); // Update total display
+                CurrencySelectorSheet.show(
+                  context: context,
+                  ref: ref,
+                  currencies: availableCurrencies,
+                  selectedCurrencyId: null,
+                  tabType: 'cash',
+                );
               },
-            );
-          }),
-        ],
+              onRemoveCurrency: (currencyId) {
+                ref.read(cashEndingProvider.notifier).removeCashCurrency(currencyId);
+              },
+            ),
 
-        const SizedBox(height: TossSpacing.space8),
+            const SizedBox(height: TossSpacing.space5),
 
-        // Total Display
-        TotalDisplay(
-          totalAmount: _calculateTotal(selectedCurrencyId, currency.denominations),
-          currencySymbol: currency.symbol,
-          label: 'Cash Total',
-        ),
+            // Currency accordion sections - show all selected currencies
+            ...state.currencies.where((currency) {
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds;
+              return selectedIds.contains(currency.currencyId);
+            }).map((currency) {
+              // Initialize controllers and focus nodes for this currency
+              _controllers.putIfAbsent(currency.currencyId, () => {});
+              _focusNodes.putIfAbsent(currency.currencyId, () => {});
 
-        const SizedBox(height: TossSpacing.space10),
+              for (final denom in currency.denominations) {
+                _controllers[currency.currencyId]!.putIfAbsent(
+                  denom.denominationId,
+                  () => TextEditingController(),
+                );
+                _focusNodes[currency.currencyId]!.putIfAbsent(
+                  denom.denominationId,
+                  () => FocusNode(),
+                );
+              }
 
-        // Submit Button
-        Builder(
-          builder: (context) {
-            final tabState = ref.watch(cashTabProvider);
-            return Center(
-              child: TossButton1.primary(
-                text: 'Save Cash Ending',
-                isLoading: tabState.isSaving,
-                isEnabled: !tabState.isSaving,
-                fullWidth: false,
-                onPressed: !tabState.isSaving
-                    ? () async {
-                        try {
-                          await widget.onSave(context, state, selectedCurrencyId);
-                        } catch (e) {
-                          // Error handled by parent
-                        }
-                      }
-                    : null,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
+              // Initialize toolbar controller for this currency
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_toolbarController == null ||
+                    _toolbarController!.focusNodes.length != currency.denominations.length) {
+                  _initializeToolbarController(currency.denominations, currency.currencyId);
+                }
+              });
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: TossSpacing.space4),
+                child: CollapsibleCurrencySection(
+                  currency: currency,
+                  controllers: _controllers[currency.currencyId]!,
+                  focusNodes: _focusNodes[currency.currencyId]!,
+                  totalAmount: _calculateTotal(currency.currencyId, currency.denominations),
+                  onChanged: () => setState(() {}),
                 ),
-                borderRadius: 12,
-              ),
-            );
-          },
-        ),
-          ],
-        ), // End of Column
+              );
+            }),
 
-        // Single shared keyboard toolbar - rendered separately in Stack
+            const SizedBox(height: TossSpacing.space5),
+
+            // Grand Total
+            GrandTotalSection(
+              totalAmount: grandTotal,
+              currencySymbol: state.currencies.first.symbol,
+              label: 'Grand total (in ${state.currencies.first.currencyCode})',
+            ),
+
+            const SizedBox(height: TossSpacing.space2),
+          ],
+        ),
+
+        // Keyboard toolbar
         if (_toolbarController != null)
           KeyboardToolbar1(
             controller: _toolbarController,
             showToolbar: true,
-            // Callbacks will be evaluated when buttons are pressed
-            onPrevious: () {
-              final callback = _toolbarController!.focusPrevious;
-              callback?.call();
-            },
-            onNext: () {
-              final callback = _toolbarController!.focusNext;
-              callback?.call();
-            },
+            onPrevious: () => _toolbarController!.focusPrevious?.call(),
+            onNext: () => _toolbarController!.focusNext?.call(),
             onDone: () => _toolbarController!.unfocusAll(),
           ),
       ],
-    ); // End of Stack
+    );
+  }
+
+  Widget _buildSubmitButton(CashEndingState state, CashTabState tabState) {
+    final selectedCurrencyId = state.selectedCashCurrencyIds.isNotEmpty
+      ? state.selectedCashCurrencyIds.first
+      : state.currencies.first.currencyId;
+
+    return TossButton1.primary(
+      text: 'Submit Ending',
+      isLoading: tabState.isSaving,
+      isEnabled: !tabState.isSaving,
+      fullWidth: true,
+      onPressed: !tabState.isSaving
+          ? () async {
+              try {
+                await widget.onSave(context, state, selectedCurrencyId);
+              } catch (e) {
+                // Error handled by parent
+              }
+            }
+          : null,
+      textStyle: TossTextStyles.titleLarge.copyWith(
+        color: TossColors.white,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space4,
+      ),
+      borderRadius: 12,
+    );
   }
 
   // Expose quantities for parent to access

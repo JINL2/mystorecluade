@@ -103,9 +103,20 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     try {
       final currencies = await _currencyRepository.getCompanyCurrencies(companyId);
 
+      // Auto-select first currency if none selected
+      final selectedCashIds = state.selectedCashCurrencyIds.isEmpty && currencies.isNotEmpty
+          ? [currencies.first.currencyId]
+          : state.selectedCashCurrencyIds;
+
+      final selectedVaultIds = state.selectedVaultCurrencyIds.isEmpty && currencies.isNotEmpty
+          ? [currencies.first.currencyId]
+          : state.selectedVaultCurrencyIds;
+
       state = state.copyWith(
         currencies: currencies,
         isLoadingCurrencies: false,
+        selectedCashCurrencyIds: selectedCashIds,
+        selectedVaultCurrencyIds: selectedVaultIds,
       );
     } catch (e) {
       state = state.copyWith(
@@ -210,9 +221,32 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(selectedVaultLocationId: locationId);
   }
 
-  /// Update selected currency for cash tab
+  /// Add currency to cash tab selection
+  void addCashCurrency(String currencyId) {
+    if (!state.selectedCashCurrencyIds.contains(currencyId)) {
+      state = state.copyWith(
+        selectedCashCurrencyIds: [...state.selectedCashCurrencyIds, currencyId],
+      );
+    }
+  }
+
+  /// Remove currency from cash tab selection
+  void removeCashCurrency(String currencyId) {
+    // Keep at least one currency selected
+    if (state.selectedCashCurrencyIds.length > 1) {
+      state = state.copyWith(
+        selectedCashCurrencyIds: state.selectedCashCurrencyIds
+            .where((id) => id != currencyId)
+            .toList(),
+      );
+    }
+  }
+
+  /// Update selected currency for cash tab (legacy support - sets single currency)
   void setSelectedCashCurrency(String? currencyId) {
-    state = state.copyWith(selectedCashCurrencyId: currencyId);
+    if (currencyId != null) {
+      state = state.copyWith(selectedCashCurrencyIds: [currencyId]);
+    }
   }
 
   /// Update selected currency for bank tab
@@ -220,9 +254,32 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(selectedBankCurrencyId: currencyId);
   }
 
-  /// Update selected currency for vault tab
+  /// Add currency to vault tab selection
+  void addVaultCurrency(String currencyId) {
+    if (!state.selectedVaultCurrencyIds.contains(currencyId)) {
+      state = state.copyWith(
+        selectedVaultCurrencyIds: [...state.selectedVaultCurrencyIds, currencyId],
+      );
+    }
+  }
+
+  /// Remove currency from vault tab selection
+  void removeVaultCurrency(String currencyId) {
+    // Keep at least one currency selected
+    if (state.selectedVaultCurrencyIds.length > 1) {
+      state = state.copyWith(
+        selectedVaultCurrencyIds: state.selectedVaultCurrencyIds
+            .where((id) => id != currencyId)
+            .toList(),
+      );
+    }
+  }
+
+  /// Update selected currency for vault tab (legacy support - sets single currency)
   void setSelectedVaultCurrency(String? currencyId) {
-    state = state.copyWith(selectedVaultCurrencyId: currencyId);
+    if (currencyId != null) {
+      state = state.copyWith(selectedVaultCurrencyIds: [currencyId]);
+    }
   }
 
   /// Change current tab
