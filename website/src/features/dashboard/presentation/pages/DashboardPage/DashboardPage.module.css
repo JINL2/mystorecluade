@@ -1,24 +1,48 @@
 /**
  * DashboardPage Component Styles
- * Based on backup design system
+ * Updated to match DESIGN_SYSTEM.md responsive padding system
  */
 
-/* Dashboard Container */
-.container {
+/* ⭐ STEP 1: Create .pageLayout wrapper */
+.pageLayout {
   min-height: 100vh;
-  background: #FFFFFF; /* White - Consistent with other pages */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px or 1920px */
+  margin: 0 auto;
+}
+
+/* ⭐ STEP 2: Add responsive padding media queries */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+}
+
+/* ⭐ STEP 3: Inner container */
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 100%; /* ⭐ Use full width like Inventory page */
+  width: 100%;
 }
 
 /* Page Header */
 .header {
   padding: 0 0 24px 0;
   margin-bottom: 0;
-}
-
-.headerContent {
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
 .title {
@@ -37,14 +61,6 @@
 .lastUpdated {
   font-size: 14px;
   color: #6C757D;
-}
-
-/* Dashboard Main */
-.dashboardMain {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 32px;
-  background: #FFFFFF;
 }
 
 /* Financial Overview Cards */
@@ -337,14 +353,6 @@
 }
 
 @media (max-width: 768px) {
-  .header {
-    padding: 16px 20px;
-  }
-
-  .dashboardMain {
-    padding: 0 20px 20px;
-  }
-
   .overviewGrid {
     grid-template-columns: 1fr;
     gap: 16px;

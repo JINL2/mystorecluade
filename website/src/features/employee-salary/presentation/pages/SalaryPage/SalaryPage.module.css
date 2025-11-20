@@ -1,17 +1,42 @@
-/* ==================== BASE STYLES ==================== */
-.pageContainer {
+/* ==================== BASE STYLES - UPDATED 2025-01-07 ==================== */
+/* Following Toss Design System standards with responsive padding system */
+
+/* ⭐ STEP 1: Page Layout - Responsive Horizontal Padding */
+.pageLayout {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   background: var(--toss-white);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
+  margin: 0 auto;
 }
 
-/* ==================== PAGE LAYOUT ==================== */
-.salaryContainer {
-  flex: 1;
-  padding: var(--space-6);
-  max-width: 1400px;
-  margin: 0 auto;
+/* ⭐ STEP 2: Responsive padding media queries */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+}
+
+/* ⭐ STEP 3: Inner container (content max-width) */
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to match Navbar alignment */
   width: 100%;
 }
 

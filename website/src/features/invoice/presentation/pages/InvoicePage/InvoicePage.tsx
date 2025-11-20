@@ -115,7 +115,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     return (
       <>
         <Navbar activeItem="product" />
-        <div className={styles.container}>
+        <div className={styles.pageLayout}>
           <LoadingAnimation fullscreen size="large" />
         </div>
       </>
@@ -126,13 +126,15 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     return (
       <>
         <Navbar activeItem="product" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <div className={styles.headerLeft}>
-              <h1 className={styles.title}>Invoices</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <div className={styles.headerLeft}>
+                <h1 className={styles.title}>Invoices</h1>
+              </div>
             </div>
+            <LoadingAnimation fullscreen size="large" />
           </div>
-          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -142,30 +144,32 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     return (
       <>
         <Navbar activeItem="product" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <div className={styles.headerLeft}>
-              <h1 className={styles.title}>Invoices</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <div className={styles.headerLeft}>
+                <h1 className={styles.title}>Invoices</h1>
+              </div>
             </div>
-          </div>
-          <div className={styles.errorContainer}>
-            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Background Circle */}
-              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+            <div className={styles.errorContainer}>
+              <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
 
-              {/* Error Symbol */}
-              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
-              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
-              <circle cx="60" cy="73" r="2.5" fill="white"/>
+                {/* Error Symbol */}
+                <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+                <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+                <circle cx="60" cy="73" r="2.5" fill="white"/>
 
-              {/* Document with Error */}
-              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
-            </svg>
-            <h2 className={styles.errorTitle}>Failed to Load Invoices</h2>
-            <p className={styles.errorMessage}>{error}</p>
-            <TossButton onClick={refresh} variant="primary">
-              Try Again
-            </TossButton>
+                {/* Document with Error */}
+                <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+              </svg>
+              <h2 className={styles.errorTitle}>Failed to Load Invoices</h2>
+              <p className={styles.errorMessage}>{error}</p>
+              <TossButton onClick={refresh} variant="primary">
+                Try Again
+              </TossButton>
+            </div>
           </div>
         </div>
       </>
@@ -175,7 +179,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   return (
     <>
       <Navbar activeItem="product" />
-      <div className={styles.container}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <h1 className={styles.title}>Invoices</h1>
@@ -567,7 +572,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
         isOpen={messageState.isOpen}
         onClose={closeMessage}
       />
-    </div>
+        </div>
+      </div>
     </>
   );
 };

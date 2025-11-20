@@ -105,8 +105,10 @@ export const CounterpartyPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.container}>
-          <LoadingAnimation size="large" fullscreen />
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <LoadingAnimation size="large" fullscreen />
+          </div>
         </div>
       </>
     );
@@ -117,8 +119,10 @@ export const CounterpartyPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.container}>
-          <p>Select company</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <p>Select company</p>
+          </div>
         </div>
       </>
     );
@@ -129,19 +133,20 @@ export const CounterpartyPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="setting" />
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Counterparty</h1>
-            <p className={styles.subtitle}>Manage business partners and relationships</p>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <div>
+              <h1 className={styles.title}>Counterparty</h1>
+              <p className={styles.subtitle}>Manage business partners and relationships</p>
+            </div>
+            <button onClick={openCreateModal} className={styles.addBtn}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+              </svg>
+              Add Counterparty
+            </button>
           </div>
-          <button onClick={openCreateModal} className={styles.addBtn}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
-            Add Counterparty
-          </button>
-        </div>
 
         {/* Internal Organizations Section */}
         {internalCounterparties.length > 0 && (
@@ -311,16 +316,17 @@ export const CounterpartyPage: React.FC = () => {
         {/* Delete Confirm Modal */}
         <DeleteConfirmModal isOpen={showDeleteModal} onClose={closeDeleteModal} onConfirm={handleDelete} />
 
-        {/* ErrorMessage Component */}
-        <ErrorMessage
-          isOpen={messageState.isOpen}
-          variant={messageState.variant}
-          title={messageState.title}
-          message={messageState.message}
-          onClose={closeMessage}
-          autoCloseDuration={messageState.autoCloseDuration}
-          closeOnBackdropClick={messageState.closeOnBackdropClick}
-        />
+          {/* ErrorMessage Component */}
+          <ErrorMessage
+            isOpen={messageState.isOpen}
+            variant={messageState.variant}
+            title={messageState.title}
+            message={messageState.message}
+            onClose={closeMessage}
+            autoCloseDuration={messageState.autoCloseDuration}
+            closeOnBackdropClick={messageState.closeOnBackdropClick}
+          />
+        </div>
       </div>
     </>
   );

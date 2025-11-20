@@ -60,8 +60,10 @@ export class InventoryDataSource {
 
     // Handle direct success wrapper format: { success: true, data: { products: [], pagination: {}, currency: {} } }
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
+      const products = data.data?.products || [];
+
       return {
-        products: data.data?.products || [],
+        products: products,
         currency: data.data?.currency,
         pagination: data.data?.pagination,
       };

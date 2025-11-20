@@ -76,11 +76,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Employee Schedule</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Employee Schedule</h1>
+            </div>
+            <LoadingAnimation fullscreen />
           </div>
-          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -91,7 +93,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
           {/* Dashboard View */}
           <div className={styles.header}>
             <h1 className={styles.title}>Dashboard</h1>
@@ -186,6 +189,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
               </div>
             ))}
           </div>
+          </div>
         </div>
       </>
     );
@@ -195,11 +199,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
           <div className={styles.header}>
             <h1 className={styles.title}>Employee Schedule</h1>
           </div>
           <LoadingAnimation fullscreen />
+          </div>
         </div>
       </>
     );
@@ -209,7 +215,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
           <div className={styles.header}>
             <h1 className={styles.title}>Employee Schedule</h1>
           </div>
@@ -231,6 +238,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
               Try Again
             </TossButton>
           </div>
+          </div>
         </div>
       </>
     );
@@ -245,7 +253,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
   return (
     <>
       <Navbar activeItem="employee" />
-      <div className={styles.container}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
       {/* Page Header with Back Button */}
       <div className={styles.header}>
         <div>
@@ -377,8 +386,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
             })}
           </div>
         )}
+        </div>
       </div>
-    </div>
     </>
   );
 };

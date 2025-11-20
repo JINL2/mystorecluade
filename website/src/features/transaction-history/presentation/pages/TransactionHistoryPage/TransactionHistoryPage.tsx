@@ -186,19 +186,21 @@ export const TransactionHistoryPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="finance" />
-      <div className={styles.container}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.title}>Transaction History</h1>
-          <p className={styles.subtitle}>View all transactions</p>
-        </div>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
+          <div className={styles.pageHeader}>
+            <h1 className={styles.title}>Transaction History</h1>
+            <p className={styles.subtitle}>View all transactions</p>
+          </div>
 
-        <TransactionFilter onSearch={handleSearch} onClear={handleClear} />
+          <TransactionFilter onSearch={handleSearch} onClear={handleClear} />
 
-        <div className={styles.contentCard}>
-          {loading && renderLoadingState()}
-          {!loading && !hasSearched && renderInitialState()}
-          {!loading && hasSearched && journalEntries.length === 0 && renderEmptyResults()}
-          {!loading && hasSearched && journalEntries.length > 0 && renderTransactionTable()}
+          <div className={styles.contentCard}>
+            {loading && renderLoadingState()}
+            {!loading && !hasSearched && renderInitialState()}
+            {!loading && hasSearched && journalEntries.length === 0 && renderEmptyResults()}
+            {!loading && hasSearched && journalEntries.length > 0 && renderTransactionTable()}
+          </div>
         </div>
       </div>
 

@@ -88,9 +88,11 @@ export const ProductReceivePage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="product" />
-        <div className={styles.container}>
-          <div className={styles.emptyState}>
-            <p>Please select a company to receive products</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.emptyState}>
+              <p>Please select a company to receive products</p>
+            </div>
           </div>
         </div>
       </>
@@ -100,8 +102,8 @@ export const ProductReceivePage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="product" />
-      <div className={styles.container}>
-        <div className={styles.pageContent}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           <div className={styles.header}>
             <h1 className={styles.title}>Product Receive</h1>
             <p className={styles.subtitle}>Scan and receive products from purchase orders</p>

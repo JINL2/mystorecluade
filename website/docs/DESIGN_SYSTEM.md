@@ -543,8 +543,7 @@ This responsive padding system ensures optimal space usage across all screen siz
 /* ⭐ STEP 3: Inner container (optional, for content max-width) */
 .container {
   padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
-  max-width: 1400px; /* ⭐ Content width constraint (optional) */
-  margin: 0 auto;
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to match Navbar alignment */
   width: 100%;
 }
 ```
@@ -570,6 +569,12 @@ This responsive padding system ensures optimal space usage across all screen siz
 .container {
   padding: 0 24px; /* Should be .pageLayout! */
 }
+
+/* ❌ WRONG - Content width constraint in .container */
+.container {
+  max-width: 1400px; /* This creates extra margins! Use 100% instead */
+  margin: 0 auto;     /* This centers content and breaks Navbar alignment */
+}
 ```
 
 **Padding Strategy:**
@@ -583,6 +588,21 @@ This responsive padding system ensures optimal space usage across all screen siz
 ✅ Responsive across all screen sizes
 ✅ Consistent spacing throughout the application
 ✅ Optimal use of available screen space
+✅ Perfect alignment with Navbar - No extra margins
+
+**Why `max-width: 100%` in `.container`?**
+
+If you use `max-width: 1400px` in `.container`:
+- ❌ Content becomes **centered** on screens wider than 1400px
+- ❌ **Extra margins appear** on left and right sides
+- ❌ **Navbar and page content misalign** (Navbar stays full-width)
+- ❌ Inconsistent layout across different pages
+
+If you use `max-width: 100%` in `.container`:
+- ✅ Content uses **full available width** within `.pageLayout` padding
+- ✅ **No extra margins** - clean edge-to-edge alignment
+- ✅ **Perfect alignment** with Navbar on all screen sizes
+- ✅ Consistent layout matching Inventory page reference
 
 ### Page Layout with Sidebar (Example: Inventory Page)
 
@@ -766,8 +786,7 @@ All feature pages MUST use the responsive padding system defined in "Page Layout
 
 .container {
   padding: 24px 0; /* Vertical padding only */
-  max-width: 1400px; /* Content max-width */
-  margin: 0 auto;
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
   width: 100%;
 }
 ```
@@ -785,11 +804,13 @@ All feature pages MUST use the responsive padding system defined in "Page Layout
 ```
 
 **Migration Status:**
-- ✅ Inventory Page - Updated with responsive padding (REFERENCE THIS)
-- ✅ Account Mapping Page - Updated with responsive padding
+- ✅ Inventory Page - Updated with responsive padding + max-width: 100% (REFERENCE THIS)
+- ✅ Invoice Page - Updated with responsive padding + max-width: 100%
+- ✅ Navbar - Updated with responsive padding (24px → 48px → 96px)
+- ⏳ Account Mapping Page - Check max-width setting
 - ⏳ Balance Sheet Page - Needs migration
 - ⏳ Journal Input Page - Needs migration
-- ⏳ All other pages - Needs migration
+- ⏳ All other pages - Needs migration and max-width verification
 
 **⚠️ IMPORTANT CHECKLIST before implementing:**
 1. [ ] Use `.pageLayout` as the outer wrapper (NOT `.container`)
@@ -797,7 +818,8 @@ All feature pages MUST use the responsive padding system defined in "Page Layout
 3. [ ] Set `max-width: 100%` in `.pageLayout` (NOT 1920px or 1400px)
 4. [ ] Add ALL THREE media queries (1600px, 2000px, 768px)
 5. [ ] Inner `.container` should have `padding: 24px 0` (vertical only)
-6. [ ] Update your JSX to wrap content with `<div className={styles.pageLayout}>`
+6. [ ] **CRITICAL**: Inner `.container` must have `max-width: 100%` (NOT 1400px)
+7. [ ] Update your JSX to wrap content with `<div className={styles.pageLayout}>`
 
 **Responsive Breakpoints (Apply to .pageLayout):**
 ```css
@@ -861,8 +883,7 @@ All feature pages MUST use the responsive padding system defined in "Page Layout
 /* Step 2: Inner container for content width (optional) */
 .container {
   padding: 24px 0; /* ✅ Vertical padding only */
-  max-width: 1400px; /* ✅ Content constraint */
-  margin: 0 auto;
+  max-width: 100%; /* ✅ IMPORTANT: Use 100% to align with Navbar */
   width: 100%;
 }
 

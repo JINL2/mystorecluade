@@ -62,6 +62,11 @@ export interface InventoryTableSectionProps {
   isAllSelected: boolean;
 
   /**
+   * Loading state for table area
+   */
+  loading?: boolean;
+
+  /**
    * Callback when select all checkbox changes
    */
   onSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void;

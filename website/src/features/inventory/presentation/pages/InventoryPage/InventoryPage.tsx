@@ -163,54 +163,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <>
-        <Navbar activeItem="product" />
-        <div className={styles.pageLayout}>
-          {/* Left Sidebar - Desktop only */}
-          <div className={styles.sidebarWrapper}>
-            <FilterSidebar
-              filterType={filterType}
-              selectedBrandFilter={selectedBrandFilter}
-              selectedCategoryFilter={selectedCategoryFilter}
-              brands={[]}
-              categories={[]}
-              onFilterChange={setFilterType}
-              onBrandFilterToggle={toggleBrandFilter}
-              onCategoryFilterToggle={toggleCategoryFilter}
-              onClearBrandFilter={clearBrandFilter}
-              onClearCategoryFilter={clearCategoryFilter}
-            />
-          </div>
-
-          {/* Main Content Area */}
-          <div className={styles.mainContent}>
-            <div className={styles.container}>
-              <div className={styles.header}>
-                <h1 className={styles.title}>Inventory</h1>
-                <p className={styles.subtitle}>Manage product inventory across stores</p>
-              </div>
-
-              {/* Store Filter */}
-              <div className={styles.controlsCard}>
-                <div className={styles.controlSection}>
-                  <svg className={styles.controlIcon} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19,2H5A3,3 0 0,0 2,5V19A3,3 0 0,0 5,22H19A3,3 0 0,0 22,19V5A3,3 0 0,0 19,2M19,19H5V5H19V19Z"/>
-                  </svg>
-                  <span className={styles.controlLabel}>All Stores</span>
-                </div>
-              </div>
-
-              <div className={styles.contentCard}>
-                <LoadingAnimation fullscreen={true} size="large" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  // Remove full-page loading, will show loading in table area instead
 
   if (error) {
     return (
@@ -351,6 +304,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 totalPages={totalPages}
                 expandedProductId={expandedProductId}
                 isAllSelected={isAllSelected}
+                loading={loading}
                 onSelectAll={handleSelectAll}
                 onCheckboxChange={handleCheckboxChange}
                 onRowClick={(productId) => setExpandedProductId(expandedProductId === productId ? null : productId)}

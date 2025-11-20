@@ -75,12 +75,36 @@ export const useInventoryFilters = ({
     // 4. Apply sorting
     switch (filterType) {
       case 'newest':
-        // Already sorted by created_at DESC in provider (newest first)
+        // Sort by created_at DESC (newest first), then by SKU ASC for consistent ordering
+        // IMPORTANT: Must explicitly sort here to ensure consistent ordering across all stores
+        result = result.sort((a, b) => {
+          // Handle missing dates - put items without dates at the end
+          if (!a.createdAt && !b.createdAt) return 0;
+          if (!a.createdAt) return 1;
+          if (!b.createdAt) return -1;
+
+          // Both dates exist - compare timestamps
+          const timeDiff = b.createdAt.getTime() - a.createdAt.getTime();
+
+          // If timestamps are equal, sort by SKU (secondary sort for consistency)
+          if (timeDiff === 0) {
+            return a.sku.localeCompare(b.sku);
+          }
+
+          return timeDiff; // DESC order (newest first)
+        });
         break;
 
       case 'oldest':
-        // Reverse order - oldest first
-        result = result.reverse();
+        // Sort by created_at ASC (oldest first)
+        result = result.sort((a, b) => {
+          // Handle missing dates - put items without dates at the end
+          if (!a.createdAt && !b.createdAt) return 0;
+          if (!a.createdAt) return 1;
+          if (!b.createdAt) return -1;
+          // Both dates exist - compare timestamps
+          return a.createdAt.getTime() - b.createdAt.getTime(); // ASC order (oldest first)
+        });
         break;
 
       case 'price_high':

@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import type { InventoryTableSectionProps } from './InventoryTableSection.types';
 import styles from './InventoryTableSection.module.css';
 
@@ -24,6 +25,7 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
   totalPages,
   expandedProductId,
   isAllSelected,
+  loading = false,
   onSelectAll,
   onCheckboxChange,
   onRowClick,
@@ -35,8 +37,12 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
 }) => {
   return (
     <>
-      {/* Empty State or Table */}
-      {items.length === 0 ? (
+      {/* Loading State */}
+      {loading ? (
+        <div className={styles.loadingOverlay}>
+          <LoadingAnimation size="large" />
+        </div>
+      ) : items.length === 0 ? (
         <div className={styles.emptyState}>
           <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
             <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>

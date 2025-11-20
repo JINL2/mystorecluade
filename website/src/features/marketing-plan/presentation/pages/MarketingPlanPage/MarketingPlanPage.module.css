@@ -1,11 +1,22 @@
 /**
  * MarketingPlanPage Styles
+ * Following 2025 Design System: Responsive padding with max-width: 100%
  */
 
-.container {
+/* Page Layout - Outer wrapper with responsive padding */
+.pageLayout {
   min-height: 100vh;
-  padding: var(--space-6);
   background: var(--toss-gray-50);
+  padding: 0 24px; /* Horizontal padding only */
+  max-width: 100%; /* Full width by default */
+  margin: 0 auto;
+}
+
+/* Page Container - Inner content wrapper */
+.container {
+  padding: var(--space-6) 0; /* Vertical padding only */
+  max-width: 100%; /* Match Navbar alignment */
+  width: 100%;
 }
 
 .header {
@@ -96,10 +107,31 @@
   border-bottom: none;
 }
 
-/* Responsive Design */
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Wide screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Ultra-wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile - reduce padding */
 @media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
   .container {
-    padding: var(--space-4);
+    padding: var(--space-4) 0;
   }
 
   .title {

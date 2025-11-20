@@ -1,11 +1,19 @@
 /* TransactionHistoryPage.module.css */
 
-.container {
-  min-height: calc(100vh - 64px);
-  padding: 32px;
-  max-width: 1400px;
+/* ⭐ STEP 1: Page Layout with responsive padding */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
   margin: 0 auto;
-  background: white;
+}
+
+/* ⭐ STEP 2: Inner container */
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
+  width: 100%;
 }
 
 .pageHeader {
@@ -241,4 +249,45 @@
 
 .creditAmount {
   color: #00C896;
+}
+
+/* ⭐ STEP 3: Responsive padding media queries */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .contentCard {
+    padding: 16px;
+  }
+
+  .transactionTable th,
+  .transactionTable td {
+    padding: 12px;
+    font-size: 12px;
+  }
 }

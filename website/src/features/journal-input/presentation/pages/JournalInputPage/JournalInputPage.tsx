@@ -72,10 +72,12 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     return (
       <>
         <Navbar activeItem="finance" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Journal Input</h1>
-            <p className={styles.subtitle}>Please select a company first</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Journal Input</h1>
+              <p className={styles.subtitle}>Please select a company first</p>
+            </div>
           </div>
         </div>
       </>
@@ -185,11 +187,13 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     return (
       <>
         <Navbar activeItem="finance" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Journal Input</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Journal Input</h1>
+            </div>
+            <LoadingAnimation fullscreen />
           </div>
-          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -198,12 +202,13 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   return (
     <>
       <Navbar activeItem="finance" />
-      <div className={styles.container}>
-        {/* Page Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Journal Entry</h1>
-          <p className={styles.subtitle}>Create balanced financial transactions</p>
-        </div>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
+          {/* Page Header */}
+          <div className={styles.header}>
+            <h1 className={styles.title}>Journal Entry</h1>
+            <p className={styles.subtitle}>Create balanced financial transactions</p>
+          </div>
 
         {/* Journal Header with Date and Company Info */}
         <div className={styles.journalHeaderCard}>
@@ -293,6 +298,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             }}
           />
         )}
+        </div>
       </div>
 
       {/* Transaction Modal */}

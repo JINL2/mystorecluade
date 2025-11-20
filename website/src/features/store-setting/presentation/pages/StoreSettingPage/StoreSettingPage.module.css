@@ -1,11 +1,18 @@
-/* Page Layout - Backup Style */
-.pageContent {
-  flex: 1;
-  padding: var(--space-6);
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
+/* Page Layout - Following 2025 Design System: Responsive padding with max-width: 100% */
+/* Page Layout - Outer wrapper with responsive padding */
+.pageLayout {
+  min-height: 100vh;
   background: var(--color-gray-50);
+  padding: 0 24px; /* Horizontal padding only */
+  max-width: 100%; /* Full width by default */
+  margin: 0 auto;
+}
+
+/* Page Content - Inner content wrapper */
+.pageContent {
+  padding: var(--space-6) 0; /* Vertical padding only */
+  max-width: 100%; /* Match Navbar alignment */
+  width: 100%;
 }
 
 /* Page Header */
@@ -388,5 +395,42 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Wide screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Ultra-wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .pageContent {
+    padding: var(--space-4) 0;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .storesGrid {
+    grid-template-columns: 1fr;
   }
 }
