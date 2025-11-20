@@ -161,10 +161,6 @@ class KeyboardAwareScrollBehavior extends ScrollBehavior {
 
 /// Focus node that auto-disposes
 class AutoDisposeFocusNode extends FocusNode {
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 /// Extension methods for easier keyboard handling

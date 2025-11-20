@@ -1,5 +1,5 @@
-import '../entities/employee_salary.dart';
 import '../entities/currency_type.dart';
+import '../entities/employee_salary.dart';
 import '../value_objects/salary_update_request.dart';
 
 /// Domain Repository Interface: Employee Repository

@@ -169,6 +169,9 @@ class PasswordValidator {
   }
 
   /// Check if password is in common password list
+  ///
+  /// NOTE: Currently not used, but kept for future enhancement
+  // ignore: unused_element
   static bool _isCommonPassword(String password) {
     // List of most common passwords
     const commonPasswords = [

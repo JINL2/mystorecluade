@@ -1,23 +1,22 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_shadows.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_overview.dart';
 import '../../modals/calendar_bottom_sheet.dart';
-import '../../providers/attendance_provider.dart';
 import '../../pages/qr_scanner_page.dart';
+import '../../providers/attendance_providers.dart';
 
 class AttendanceContent extends ConsumerStatefulWidget {
   const AttendanceContent({super.key});
@@ -191,13 +190,17 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final authStateAsync = ref.read(authStateProvider);
       final user = authStateAsync.value;
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(attendanceRepositoryProvider);
+
+      // Get Use Cases
+      final getShiftOverview = ref.read(getShiftOverviewProvider);
+      final getUserShiftCards = ref.read(getUserShiftCardsProvider);
+      final getCurrentShift = ref.read(getCurrentShiftProvider);
 
       final userId = user?.id;
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
-      
-      
+
+
       if (userId == null || companyId.isEmpty || storeId.isEmpty) {
         setState(() {
           isLoading = false;
@@ -205,28 +208,28 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         });
         return;
       }
-      
+
       // IMPORTANT: RPC functions require the LAST day of the month as p_request_date
       // Calculate the last day of the month for the target date
       final lastDayOfMonth = DateTime(targetDate.year, targetDate.month + 1, 0);
       final requestDate = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
-      
-      
-      // Call both APIs in parallel
+
+
+      // Call both APIs in parallel using Use Cases
       final results = await Future.wait<dynamic>([
-        repository.getUserShiftOverview(
+        getShiftOverview(
           requestDate: requestDate,
           userId: userId,
           companyId: companyId,
           storeId: storeId,
         ),
-        repository.getUserShiftCards(
+        getUserShiftCards(
           requestDate: requestDate,
           userId: userId,
           companyId: companyId,
           storeId: storeId,
         ),
-        repository.getCurrentShift(
+        getCurrentShift(
           userId: userId,
           storeId: storeId,
         ),
@@ -235,7 +238,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       // Convert ShiftOverview entity to Map for backward compatibility
       final overviewEntity = results[0] as ShiftOverview;
       final overviewResponse = overviewEntity.toMap();
-      final cardsResponse = results[1] as List<Map<String, dynamic>>;
+      // Convert List<ShiftCard> to List<Map<String, dynamic>>
+      final cardsEntityList = results[1] as List<ShiftCard>;
+      final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
       final currentShift = results[2] as Map<String, dynamic>?;
       
       
@@ -265,8 +270,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         
         // Sort all cards by date
         allShiftCardsData.sort((a, b) {
-          final dateA = a['request_date'] ?? '';
-          final dateB = b['request_date'] ?? '';
+          final dateA = (a['request_date'] ?? '') as String;
+          final dateB = (b['request_date'] ?? '') as String;
           return dateB.compareTo(dateA); // Descending order
         });
         
@@ -288,7 +293,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             // Filter to only APPROVED shifts for status determination
             final approvedShifts = todayShifts.where((shift) => 
               shift['is_approved'] == true || 
-              shift['approval_status'] == 'approved'
+              shift['approval_status'] == 'approved',
             ).toList();
             
             if (approvedShifts.isNotEmpty) {
@@ -297,18 +302,18 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               // Check if currently working on any approved shift
               bool isCurrentlyWorking = approvedShifts.any((shift) => 
                 shift['confirm_start_time'] != null && 
-                shift['confirm_end_time'] == null
+                shift['confirm_end_time'] == null,
               );
               
               // Check if all approved shifts are finished
               bool allApprovedShiftsFinished = approvedShifts.every((shift) => 
                 shift['confirm_start_time'] != null && 
-                shift['confirm_end_time'] != null
+                shift['confirm_end_time'] != null,
               );
               
               // Check if any approved shift has started
               bool anyApprovedShiftStarted = approvedShifts.any((shift) => 
-                shift['confirm_start_time'] != null
+                shift['confirm_start_time'] != null,
               );
               
               if (isCurrentlyWorking) {
@@ -603,13 +608,13 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     
     // Parse month and year from request_month (format: "2025-08")
     String monthDisplay = 'Current Month';
-    if (requestMonth.isNotEmpty) {
+    if (requestMonth != null && requestMonth.toString().isNotEmpty) {
       final parts = requestMonth.toString().split('-');
       if (parts.length == 2) {
         final year = parts[0];
         final month = int.tryParse(parts[1]) ?? DateTime.now().month;
         final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                           'July', 'August', 'September', 'October', 'November', 'December'];
+                           'July', 'August', 'September', 'October', 'November', 'December',];
         monthDisplay = '${monthNames[month - 1]} $year';
       }
     }
@@ -710,7 +715,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.calendar_today_outlined,
                                 size: 18,
                                 color: TossColors.primary,
@@ -763,7 +768,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.access_time,
                                 size: 18,
                                 color: TossColors.info,
@@ -784,7 +789,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                actualWorkHours.toStringAsFixed(1),
+                                (actualWorkHours as num).toStringAsFixed(1),
                                 style: TossTextStyles.h2.copyWith(
                                   color: TossColors.gray900,
                                   fontWeight: FontWeight.w700,
@@ -822,7 +827,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.trending_up,
                                 size: 18,
                                 color: TossColors.success,
@@ -875,7 +880,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.trending_down,
                                 size: 18,
                                 color: TossColors.warning,
@@ -938,7 +943,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             color: TossColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.account_balance_wallet,
                             size: 20,
                             color: TossColors.primary,
@@ -959,14 +964,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${currencySymbol}${estimatedSalary}',
+                          '$currencySymbol$estimatedSalary',
                           style: TossTextStyles.display.copyWith(
                             color: TossColors.primary,
                             fontWeight: FontWeight.w800,
                             fontSize: 32,
                           ),
                         ),
-                        if ((overtimeTotal ?? 0) > 0) ...[  
+                        if (overtimeTotal != null && (overtimeTotal as num) > 0) ...[
                           const SizedBox(height: TossSpacing.space1),
                           Row(
                             children: [
@@ -980,7 +985,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: Text(
-                                  '+${currencySymbol}${(overtimeTotal * salaryAmount / 60).toStringAsFixed(0)}',
+                                  '+$currencySymbol${((overtimeTotal as num) * (salaryAmount as num) / 60).toStringAsFixed(0)}',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.success,
                                     fontWeight: FontWeight.w700,
@@ -1218,7 +1223,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.calendar_month_outlined,
                           size: 18,
                           color: TossColors.gray600,
@@ -1288,7 +1293,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       }
                     },
                     child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
                       padding: const EdgeInsets.symmetric(
                         vertical: TossSpacing.space3,
                       ),
@@ -1311,7 +1316,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               BoxShadow(
                                 color: TossColors.primary.withOpacity(0.3),
                                 blurRadius: 8,
-                                offset: Offset(0, 2),
+                                offset: const Offset(0, 2),
                               ),
                             ]
                           : null,
@@ -1390,8 +1395,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     
     // Sort by shift_request_id or any other relevant field
     selectedDateCards.sort((a, b) {
-      final idA = a['shift_request_id'] ?? '';
-      final idB = b['shift_request_id'] ?? '';
+      final idA = (a['shift_request_id'] ?? '') as String;
+      final idB = (b['shift_request_id'] ?? '') as String;
       return idA.compareTo(idB);
     });
     
@@ -1404,7 +1409,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           ? DateTime(
               int.parse(dateParts[0].toString()),
               int.parse(dateParts[1].toString()),
-              int.parse(dateParts[2].toString())
+              int.parse(dateParts[2].toString()),
             )
           : DateTime.now();
         
@@ -1475,7 +1480,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
 
         // Determine the actual working status
         String workStatus = 'pending';
-        if (isApproved) {
+        if (isApproved == true) {
           if (actualStart != null && actualEnd == null) {
             workStatus = 'working'; // Currently working (checked in but not checked out)
           } else if (actualStart != null && actualEnd != null) {
@@ -1535,7 +1540,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.event_busy,
                       size: 32,
                       color: TossColors.gray400,
@@ -1712,7 +1717,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
-                                            Icon(
+                                            const Icon(
                                               Icons.flag,
                                               size: 10,
                                               color: TossColors.error,
@@ -1734,7 +1739,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               ),
                               // Chevron
                               const SizedBox(width: TossSpacing.space3),
-                              Icon(
+                              const Icon(
                                 Icons.chevron_right,
                                 color: TossColors.gray300,
                                 size: 20,
@@ -1773,9 +1778,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.background,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
           ),
@@ -1814,11 +1819,11 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space2),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.gray50,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.close,
                         size: 18,
                         color: TossColors.gray600,
@@ -1853,7 +1858,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     ? DateTime(
                         int.parse(dateParts[0].toString()),
                         int.parse(dateParts[1].toString()),
-                        int.parse(dateParts[2].toString())
+                        int.parse(dateParts[2].toString()),
                       )
                     : DateTime.now();
                   
@@ -1996,7 +2001,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               child: Row(
                                 children: [
                                   // Date - Compact
-                                  Container(
+                                  SizedBox(
                                     width: 44,
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -2098,7 +2103,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: isApproved
+                                              color: (isApproved == true)
                                                   ? TossColors.success.withOpacity(0.1)
                                                   : TossColors.warning.withOpacity(0.1),
                                               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -2110,7 +2115,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                                   width: 4,
                                                   height: 4,
                                                   decoration: BoxDecoration(
-                                                    color: isApproved
+                                                    color: (isApproved == true)
                                                         ? TossColors.success
                                                         : TossColors.warning,
                                                     shape: BoxShape.circle,
@@ -2118,9 +2123,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  isApproved ? 'Approved' : 'Pending',
+                                                  (isApproved == true) ? 'Approved' : 'Pending',
                                                   style: TossTextStyles.caption.copyWith(
-                                                    color: isApproved
+                                                    color: (isApproved == true)
                                                         ? TossColors.success
                                                         : TossColors.warning,
                                                     fontSize: 10,
@@ -2131,7 +2136,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                             ),
                                           ),
                                           // Reported status if applicable
-                                          if (isReported) ...[
+                                          if (isReported == true) ...[
                                             const SizedBox(height: 4),
                                             Container(
                                               padding: const EdgeInsets.symmetric(
@@ -2145,7 +2150,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  Icon(
+                                                  const Icon(
                                                     Icons.flag,
                                                     size: 10,
                                                     color: TossColors.error,
@@ -2191,9 +2196,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.background,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
@@ -2413,19 +2418,21 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final hasShift = shiftsForDate.isNotEmpty;
       
       // Check approval status for shifts
-      final hasApprovedShift = hasShift && shiftsForDate.any((card) => 
-        card['is_approved'] ?? card['approval_status'] == 'approved' ?? false
-      );
-      final hasNonApprovedShift = hasShift && shiftsForDate.any((card) => 
-        !(card['is_approved'] ?? card['approval_status'] == 'approved' ?? false)
-      );
+      final hasApprovedShift = hasShift && shiftsForDate.any((card) {
+        final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+        return isApproved == true;
+      });
+      final hasNonApprovedShift = hasShift && shiftsForDate.any((card) {
+        final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+        return isApproved != true;
+      });
       
       calendarDays.add(
         InkWell(
           onTap: () => onDateSelected(date),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
-            margin: EdgeInsets.all(TossSpacing.space1 / 2),
+            margin: const EdgeInsets.all(TossSpacing.space1 / 2),
             decoration: BoxDecoration(
               color: isSelected
                   ? TossColors.primary
@@ -2503,9 +2510,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: GridView.count(
         crossAxisCount: 7,
-        children: calendarDays,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        children: calendarDays,
       ),
     );
   }
@@ -2513,14 +2520,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   static String _getMonthName(int month) {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[month - 1];
   }
   
   String _getWeekdayFull(int weekday) {
     const days = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ];
     return days[weekday - 1];
   }
@@ -2587,8 +2594,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
     final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
     final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-    
-    if (!isApproved) {
+
+    if (isApproved != true) {
       return 'Pending Approval';
     }
     
@@ -2605,8 +2612,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
     final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
     final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-    
-    if (!isApproved) {
+
+    if (isApproved != true) {
       return TossColors.warning;
     }
     
@@ -2636,7 +2643,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       ? DateTime(
           int.parse(dateParts[0].toString()),
           int.parse(dateParts[1].toString()),
-          int.parse(dateParts[2].toString())
+          int.parse(dateParts[2].toString()),
         )
       : DateTime.now();
 
@@ -2663,9 +2670,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.background,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
@@ -2765,9 +2772,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               ),
                             ],
                           ),
-                          
+
                           // Late info if exists
-                          if ((cardData['is_late'] ?? false) || (cardData['late_minutes'] ?? 0) > 0) ...[
+                          if ((cardData['is_late'] == true) || ((cardData['late_minutes'] as num?) ?? 0) > 0) ...[
                             const SizedBox(height: TossSpacing.space4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2993,9 +3000,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           ),
                           
                           const SizedBox(height: TossSpacing.space5),
-                  
+
                         // Show reported status if already reported
-                        if (cardData['is_reported'] ?? false) ...[
+                        if (cardData['is_reported'] == true) ...[
                           Container(
                             padding: const EdgeInsets.all(TossSpacing.space4),
                             decoration: BoxDecoration(
@@ -3008,7 +3015,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.info_outline_rounded,
                                   color: TossColors.warning,
                                   size: 20,
@@ -3027,7 +3034,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        (cardData['is_problem_solved'] ?? false)
+                                        (cardData['is_problem_solved'] == true)
                                             ? 'Your report has been resolved'
                                             : 'Your report is being reviewed',
                                         style: TossTextStyles.bodySmall.copyWith(
@@ -3048,12 +3055,12 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           width: double.infinity,
                           height: 52,
                           decoration: BoxDecoration(
-                            color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                            color: (cardData['is_reported'] == true) || (cardData['is_approved'] != true)
                                 ? TossColors.gray50
                                 : TossColors.background,
                             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             border: Border.all(
-                              color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                              color: (cardData['is_reported'] == true) || (cardData['is_approved'] != true)
                                   ? TossColors.gray100
                                   : TossColors.gray200,
                               width: 1,
@@ -3062,7 +3069,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           child: Material(
                             color: TossColors.transparent,
                             child: InkWell(
-                              onTap: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                              onTap: (cardData['is_reported'] == true) || (cardData['is_approved'] != true)
                                   ? null  // Disable if already reported OR not approved
                                   : () async {
                                 final shiftRequestId = cardData['shift_request_id'];
@@ -3083,9 +3090,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 }
                                 
                                 HapticFeedback.selectionClick();
-                                
+
                                 // Show the report issue dialog
-                                await _showReportIssueDialog(shiftRequestId, cardData);
+                                await _showReportIssueDialog(shiftRequestId as String, cardData);
                               },
                               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               child: Container(
@@ -3098,7 +3105,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                     Icon(
                                       Icons.flag_outlined,
                                       size: 20,
-                                      color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                      color: (cardData['is_reported'] == true) || (cardData['is_approved'] != true)
                                           ? TossColors.gray300
                                           : TossColors.gray600,
                                     ),
@@ -3107,7 +3114,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                       'Report Issue',
                                       style: TossTextStyles.body.copyWith(
                                         fontWeight: FontWeight.w500,
-                                        color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                        color: (cardData['is_reported'] == true) || (cardData['is_approved'] != true)
                                             ? TossColors.gray300
                                             : TossColors.gray700,
                                       ),
@@ -3272,7 +3279,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         // We treat this as UTC and convert to local time
         if (timeStr.contains(' ') && !timeStr.contains('T')) {
           // Parse as UTC by adding 'Z' suffix
-          final isoFormat = timeStr.replaceFirst(' ', 'T') + 'Z';
+          final isoFormat = '${timeStr.replaceFirst(' ', 'T')}Z';
           dateTime = DateTimeUtils.toLocal(isoFormat);
         } else {
           // ISO8601 format with 'T'
@@ -3376,7 +3383,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             color: TossColors.error.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.flag_outlined,
                             color: TossColors.error,
                             size: 24,
@@ -3406,7 +3413,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         ),
                         IconButton(
                           onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.close_rounded,
                             color: TossColors.gray600,
                           ),
@@ -3500,9 +3507,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                     });
 
                                     try {
-                                      // Report shift issue via datasource (handles UTC conversion)
-                                      final datasource = ref.read(attendanceDatasourceProvider);
-                                      final success = await datasource.reportShiftIssue(
+                                      // Report shift issue via use case (handles UTC conversion)
+                                      final reportShiftIssue = ref.read(reportShiftIssueProvider);
+                                      final success = await reportShiftIssue(
                                         shiftRequestId: shiftRequestId,
                                         reportReason: reason,
                                       );
@@ -3522,7 +3529,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                       Navigator.of(dialogContext).pop();
                                       
                                       // Close the shift details bottom sheet
-                                      Navigator.of(context).pop();
+                                      context.pop();
 
                                       // Refresh the main page data
                                       _fetchMonthData(selectedDate);
@@ -3567,7 +3574,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                                         color: TossColors.success.withOpacity(0.1),
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: Icon(
+                                                      child: const Icon(
                                                         Icons.check_circle_rounded,
                                                         color: TossColors.success,
                                                         size: 36,
@@ -3640,7 +3647,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                                         color: TossColors.error.withOpacity(0.1),
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: Icon(
+                                                      child: const Icon(
                                                         Icons.error_outline_rounded,
                                                         color: TossColors.error,
                                                         size: 36,
@@ -3708,7 +3715,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               ),
                             ),
                             child: isSubmitting
-                                ? SizedBox(
+                                ? const SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(

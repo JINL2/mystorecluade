@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Shared - Widgets
-import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-
-// Shared - Themes
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
-
+import 'package:go_router/go_router.dart';
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+// Shared - Themes
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+// Shared - Widgets
+import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
+// Feature - DI
+import '../../di/providers.dart';
 // Feature - Domain
 import '../../domain/entities/currency.dart';
-
 // Feature - Providers
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
-
+import 'add_denomination_bottom_sheet.dart';
 // Feature - Widgets
 import 'denomination_grid.dart';
-import 'add_denomination_bottom_sheet.dart';
 import 'edit_exchange_rate_bottom_sheet.dart';
 
 class CurrencyOverviewCard extends ConsumerWidget {
@@ -87,8 +85,8 @@ class CurrencyOverviewCard extends ConsumerWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.error_outline, color: TossColors.error, size: 32),
-                      SizedBox(height: TossSpacing.space2),
+                      const Icon(Icons.error_outline, color: TossColors.error, size: 32),
+                      const SizedBox(height: TossSpacing.space2),
                       Text(
                         'Failed to load denominations',
                         style: TossTextStyles.body.copyWith(color: TossColors.error),
@@ -417,7 +415,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                   child: Row(
                     children: [
                       const Icon(Icons.info_outline, 
-                           color: TossColors.primary, size: 20),
+                           color: TossColors.primary, size: 20,),
                       const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Text(
@@ -434,7 +432,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: Text(
                   'Understood',
                   style: TossTextStyles.body.copyWith(
@@ -474,7 +472,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: Text(
                 'Cancel',
                 style: TossTextStyles.body.copyWith(
@@ -488,18 +486,18 @@ class CurrencyOverviewCard extends ConsumerWidget {
                 final currencyOperations = ref.watch(currencyOperationsProvider);
                 
                 return currencyOperations.maybeWhen(
-                  loading: () => TextButton(
+                  loading: () => const TextButton(
                     onPressed: null,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 16,
                           height: 16,
                           child: TossLoadingView(),
                         ),
-                        const SizedBox(width: TossSpacing.space2),
-                        const Text('Removing...'),
+                        SizedBox(width: TossSpacing.space2),
+                        Text('Removing...'),
                       ],
                     ),
                   ),
@@ -586,7 +584,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
     
     // Close dialog immediately for better UX
     if (context.mounted) {
-      Navigator.of(context).pop();
+      context.pop();
     }
     
     try {

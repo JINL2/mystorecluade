@@ -1,12 +1,13 @@
 import 'package:equatable/equatable.dart';
+
+import '../exceptions/transaction_business_exception.dart';
+import '../validators/transaction_validation_result.dart';
 import '../value_objects/transaction_amount.dart';
-import '../value_objects/transaction_status.dart';
-import '../value_objects/transaction_metadata.dart';
 import '../value_objects/transaction_context.dart';
 import '../value_objects/transaction_counterparty.dart';
 import '../value_objects/transaction_location.dart';
-import '../validators/transaction_validation_result.dart';
-import '../exceptions/transaction_business_exception.dart';
+import '../value_objects/transaction_metadata.dart';
+import '../value_objects/transaction_status.dart';
 
 /// Core business entity representing a financial transaction
 /// 

@@ -7,12 +7,12 @@ part of 'quick_access_provider.dart';
 // **************************************************************************
 
 String _$transactionQuickAccessHash() =>
-    r'208909e54bc6f478facb3ea4b60faa13c5765b5c';
+    r'f58acf634384e99a56334e1034460de5886f63d5';
 
 /// See also [transactionQuickAccess].
 @ProviderFor(transactionQuickAccess)
 final transactionQuickAccessProvider =
-    AutoDisposeFutureProvider<List<Map<String, dynamic>>>.internal(
+    AutoDisposeFutureProvider<List<QuickAccessAccount>>.internal(
   transactionQuickAccess,
   name: r'transactionQuickAccessProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -25,14 +25,14 @@ final transactionQuickAccessProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TransactionQuickAccessRef
-    = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
+    = AutoDisposeFutureProviderRef<List<QuickAccessAccount>>;
 String _$templateQuickAccessHash() =>
-    r'7cb4de8e42a7bde4945cc1713bb804537549a51a';
+    r'256797ad58056027c4f89d46dd7e9a621ac20907';
 
 /// See also [templateQuickAccess].
 @ProviderFor(templateQuickAccess)
 final templateQuickAccessProvider =
-    AutoDisposeFutureProvider<List<Map<String, dynamic>>>.internal(
+    AutoDisposeFutureProvider<List<QuickAccessAccount>>.internal(
   templateQuickAccess,
   name: r'templateQuickAccessProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -45,14 +45,14 @@ final templateQuickAccessProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TemplateQuickAccessRef
-    = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
+    = AutoDisposeFutureProviderRef<List<QuickAccessAccount>>;
 String _$journalQuickAccessHash() =>
-    r'4bd0e30ff729738ffd9c82c052424256ee5684cb';
+    r'dc36a4889c90b535db03d777974a232959d3dbc4';
 
 /// See also [journalQuickAccess].
 @ProviderFor(journalQuickAccess)
 final journalQuickAccessProvider =
-    AutoDisposeFutureProvider<List<Map<String, dynamic>>>.internal(
+    AutoDisposeFutureProvider<List<QuickAccessAccount>>.internal(
   journalQuickAccess,
   name: r'journalQuickAccessProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -65,7 +65,7 @@ final journalQuickAccessProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef JournalQuickAccessRef
-    = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
+    = AutoDisposeFutureProviderRef<List<QuickAccessAccount>>;
 String _$templateTransactionQuickAccessHash() =>
     r'3c61c6ef36a8749d02ff0f230a190e5895a2b46d';
 
@@ -107,7 +107,7 @@ final templateCreationQuickAccessProvider =
 typedef TemplateCreationQuickAccessRef
     = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
 String _$quickAccessAccountsHash() =>
-    r'10f814a5131e3c72106e8acbeb7344f2bc36750c';
+    r'38f74113de5b736c993da9402f51286105479664';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -131,11 +131,11 @@ class _SystemHash {
 }
 
 abstract class _$QuickAccessAccounts
-    extends BuildlessAutoDisposeAsyncNotifier<List<Map<String, dynamic>>> {
+    extends BuildlessAutoDisposeAsyncNotifier<List<QuickAccessAccount>> {
   late final String? contextType;
   late final int limit;
 
-  FutureOr<List<Map<String, dynamic>>> build({
+  FutureOr<List<QuickAccessAccount>> build({
     String? contextType,
     int limit = 8,
   });
@@ -147,7 +147,7 @@ const quickAccessAccountsProvider = QuickAccessAccountsFamily();
 
 /// See also [QuickAccessAccounts].
 class QuickAccessAccountsFamily
-    extends Family<AsyncValue<List<Map<String, dynamic>>>> {
+    extends Family<AsyncValue<List<QuickAccessAccount>>> {
   /// See also [QuickAccessAccounts].
   const QuickAccessAccountsFamily();
 
@@ -189,7 +189,7 @@ class QuickAccessAccountsFamily
 
 /// See also [QuickAccessAccounts].
 class QuickAccessAccountsProvider extends AutoDisposeAsyncNotifierProviderImpl<
-    QuickAccessAccounts, List<Map<String, dynamic>>> {
+    QuickAccessAccounts, List<QuickAccessAccount>> {
   /// See also [QuickAccessAccounts].
   QuickAccessAccountsProvider({
     String? contextType,
@@ -226,7 +226,7 @@ class QuickAccessAccountsProvider extends AutoDisposeAsyncNotifierProviderImpl<
   final int limit;
 
   @override
-  FutureOr<List<Map<String, dynamic>>> runNotifierBuild(
+  FutureOr<List<QuickAccessAccount>> runNotifierBuild(
     covariant QuickAccessAccounts notifier,
   ) {
     return notifier.build(
@@ -256,7 +256,7 @@ class QuickAccessAccountsProvider extends AutoDisposeAsyncNotifierProviderImpl<
 
   @override
   AutoDisposeAsyncNotifierProviderElement<QuickAccessAccounts,
-      List<Map<String, dynamic>>> createElement() {
+      List<QuickAccessAccount>> createElement() {
     return _QuickAccessAccountsProviderElement(this);
   }
 
@@ -280,7 +280,7 @@ class QuickAccessAccountsProvider extends AutoDisposeAsyncNotifierProviderImpl<
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin QuickAccessAccountsRef
-    on AutoDisposeAsyncNotifierProviderRef<List<Map<String, dynamic>>> {
+    on AutoDisposeAsyncNotifierProviderRef<List<QuickAccessAccount>> {
   /// The parameter `contextType` of this provider.
   String? get contextType;
 
@@ -290,7 +290,7 @@ mixin QuickAccessAccountsRef
 
 class _QuickAccessAccountsProviderElement
     extends AutoDisposeAsyncNotifierProviderElement<QuickAccessAccounts,
-        List<Map<String, dynamic>>> with QuickAccessAccountsRef {
+        List<QuickAccessAccount>> with QuickAccessAccountsRef {
   _QuickAccessAccountsProviderElement(super.provider);
 
   @override

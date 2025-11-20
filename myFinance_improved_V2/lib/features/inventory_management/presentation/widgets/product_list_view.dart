@@ -29,7 +29,7 @@ class ProductListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       controller: scrollController,
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       itemCount: products.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == products.length) {
@@ -68,7 +68,7 @@ class _ProductListItem extends StatelessWidget {
     final currencySymbol = currency?.symbol ?? '₩';
 
     return Card(
-      margin: EdgeInsets.only(bottom: TossSpacing.space2),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       child: ListTile(
         onTap: onTap,
         title: Text(
@@ -80,7 +80,7 @@ class _ProductListItem extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: TossSpacing.space1),
+            const SizedBox(height: TossSpacing.space1),
             Text('SKU: ${product.sku}'),
             Text('Stock: ${product.onHand}'),
             Text('Price: $currencySymbol${product.salePrice.toStringAsFixed(0)}'),

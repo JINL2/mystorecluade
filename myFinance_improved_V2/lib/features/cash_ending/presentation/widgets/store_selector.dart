@@ -2,38 +2,40 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../domain/entities/store.dart';
 
-/// Store selector widget
+/// Store selector widget using TossDropdown
 ///
-/// Displays a button to select store from a list
+/// Displays a dropdown to select store from a list
 class StoreSelector extends StatelessWidget {
   final List<Store> stores;
   final String? selectedStoreId;
-  final VoidCallback onTap;
+  final ValueChanged<String?> onChanged;
   final String label;
+  final bool isLoading;
 
   const StoreSelector({
     super.key,
     required this.stores,
     required this.selectedStoreId,
-    required this.onTap,
+    required this.onChanged,
     this.label = 'Store',
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (stores.isEmpty) {
+    if (stores.isEmpty && !isLoading) {
       return Container(
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
           child: Column(
@@ -58,87 +60,29 @@ class StoreSelector extends StatelessWidget {
       );
     }
 
-    // Get selected store name
-    String storeName = 'Select Store';
-    if (selectedStoreId == 'headquarter') {
-      storeName = 'Headquarter';
-    } else if (selectedStoreId != null) {
-      try {
-        final store = stores.firstWhere(
-          (s) => s.storeId == selectedStoreId,
-        );
-        storeName = store.storeName;
-      } catch (e) {
-        storeName = 'Select Store';
-      }
-    }
+    // Build dropdown items with Headquarter as first option
+    final List<TossDropdownItem<String>> dropdownItems = [
+      const TossDropdownItem<String>(
+        value: 'headquarter',
+        label: 'Headquarter',
+        subtitle: 'Main office location',
+        icon: TossIcons.business,
+      ),
+      ...stores.map((store) => TossDropdownItem<String>(
+        value: store.storeId,
+        label: store.storeName,
+        subtitle: store.storeCode,
+        icon: TossIcons.store,
+      )),
+    ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.background,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: Icon(
-                    TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
-                    size: 20,
-                    color: TossColors.primary,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Text(
-                    storeName,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  TossIcons.forward,
-                  color: TossColors.gray400,
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return TossDropdown<String>(
+      label: label,
+      value: selectedStoreId,
+      items: dropdownItems,
+      onChanged: onChanged,
+      hint: 'Select a store',
+      isLoading: isLoading,
     );
   }
 }

@@ -28,7 +28,7 @@ class ShiftTimeDisplay extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.access_time,
               size: 16,
               color: TossColors.gray600,
@@ -46,7 +46,7 @@ class ShiftTimeDisplay extends StatelessWidget {
         if (showDuration) ...[
           const SizedBox(height: 2),
           Text(
-            '${timeRange.durationInHours.toStringAsFixed(1)}시간',
+            '${timeRange.durationInHours.toStringAsFixed(1)}h',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray600,
             ),

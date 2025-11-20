@@ -2,8 +2,8 @@ import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
-import '../../domain/revenue_period.dart';
 import '../../domain/repositories/homepage_repository.dart';
+import '../../domain/revenue_period.dart';
 import '../datasources/homepage_data_source.dart';
 
 /// Implementation of HomepageRepository using Supabase
@@ -32,7 +32,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
         period: period.name, // Convert enum to string
       );
 
-      final revenue = revenueModel.toDomain();
+      final revenue = revenueModel.toEntity();
       return revenue;
     } catch (e) {
       throw Exception('Failed to fetch revenue: $e');
@@ -45,7 +45,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
   Future<UserWithCompanies> getUserCompanies(String userId) async {
     try {
       final userCompaniesModel = await _dataSource.getUserCompanies(userId);
-      return userCompaniesModel.toDomain();
+      return userCompaniesModel.toEntity();
     } catch (e) {
       throw Exception('Failed to fetch user companies: $e');
     }
@@ -57,7 +57,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
   Future<List<CategoryWithFeatures>> getCategoriesWithFeatures() async {
     try {
       final categoriesModels = await _dataSource.getCategoriesWithFeatures();
-      final categories = categoriesModels.map((model) => model.toDomain()).toList();
+      final categories = categoriesModels.map((model) => model.toEntity()).toList();
       return categories;
     } catch (e) {
       throw Exception('Failed to fetch categories with features: $e');
@@ -75,7 +75,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
         companyId: companyId,
       );
 
-      final features = topFeaturesModels.map((model) => model.toDomain()).toList();
+      final features = topFeaturesModels.map((model) => model.toEntity()).toList();
       return features;
     } catch (e) {
       throw Exception('Failed to fetch quick access features: $e');

@@ -68,7 +68,7 @@ class KeyboardToolbar1 extends StatefulWidget {
     this.previousIcon,
     this.nextIcon,
   }) : assert(focusNode != null || controller != null,
-         'Either focusNode or controller must be provided');
+         'Either focusNode or controller must be provided',);
 
   @override
   State<KeyboardToolbar1> createState() => _KeyboardToolbar1State();

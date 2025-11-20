@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -9,11 +8,14 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import '../providers/role_providers.dart';
+
+import '../../domain/providers/repository_providers.dart';
+import '../../domain/providers/usecase_providers.dart';
+import '../providers/state/state_providers.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
@@ -56,6 +58,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       enableKeyboardToolbar: true,
       enableTapDismiss: true,
       keyboardDoneText: 'Done',
+      padding: EdgeInsets.zero, // Remove TossModal's default padding to prevent double scroll
       child: RoleManagementSheet(
         roleId: roleId,
         roleName: roleName,
@@ -148,25 +151,13 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.8,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Top spacing only (no duplicate header - TossModal handles header)
-          SizedBox(height: TossSpacing.space4),
 
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
           // Underline-style tabs
           Container(
-            margin: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+            margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
             child: Row(
               children: [
                 _buildUnderlineTab('Details', 0),
@@ -175,13 +166,13 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               ],
             ),
           ),
-          SizedBox(height: TossSpacing.space4),
 
-          // Tab content - Use Flexible instead of Expanded to prevent overflow
-          Flexible(
+          // Tab content with fixed height
+          SizedBox(
+            height: screenHeight * 0.5, // Fixed height for TabBarView
             child: TabBarView(
               controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent conflicts
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 _buildDetailsTab(),
                 _buildPermissionsTab(),
@@ -194,14 +185,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           // Hide save button when user is actively editing text
           if (widget.canEdit && !_isEditingText)
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: TossColors.background,
                 border: Border(top: BorderSide(color: TossColors.gray200)),
               ),
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(
+                  padding: const EdgeInsets.fromLTRB(
                     TossSpacing.space5,
                     TossSpacing.space4,
                     TossSpacing.space5,
@@ -221,7 +212,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         child: Container(
                           alignment: Alignment.center,
                       child: _isLoading
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -243,8 +234,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 ),
               ),
             ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -255,7 +245,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         children: [
           // Header section with title and description
           Container(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               TossSpacing.space5,
               TossSpacing.space5,
               TossSpacing.space5,
@@ -271,17 +261,17 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   color: TossColors.gray900,
                 ),
               ),
-              SizedBox(height: TossSpacing.space1),
+              const SizedBox(height: TossSpacing.space1),
               Text(
                 'Manage role information and configuration',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray600,
                 ),
               ),
-              SizedBox(height: TossSpacing.space4),
+              const SizedBox(height: TossSpacing.space4),
               // Compact stats
               Container(
-                padding: EdgeInsets.all(TossSpacing.space3),
+                padding: const EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray50,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -291,12 +281,12 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                     Expanded(
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.person,
                             size: TossSpacing.iconSM,
                             color: TossColors.gray600,
                           ),
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Text(
                             '${widget.memberCount} Members',
                             style: TossTextStyles.caption.copyWith(
@@ -316,12 +306,12 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.shield_outlined,
                             size: TossSpacing.iconSM,
                             color: TossColors.gray600,
                           ),
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Text(
                             '${widget.permissions.length} Permissions',
                             style: TossTextStyles.caption.copyWith(
@@ -342,7 +332,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         // Scrollable form content with keyboard handling
         Expanded(
           child: ScrollableFormWrapper(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               TossSpacing.space5,
               0,
               TossSpacing.space5,
@@ -359,7 +349,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space2),
                 TossEnhancedTextField(
                   controller: _roleNameController,
                   focusNode: _roleNameFocus,
@@ -372,7 +362,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   enableTapDismiss: false,
                 ),
 
-                SizedBox(height: TossSpacing.space5),
+                const SizedBox(height: TossSpacing.space5),
 
                 // Role description
                 Text(
@@ -382,7 +372,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space2),
                 TossEnhancedTextField(
                   controller: _descriptionController,
                   focusNode: _descriptionFocus,
@@ -396,7 +386,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   enableTapDismiss: false,
                 ),
 
-                SizedBox(height: TossSpacing.space5),
+                const SizedBox(height: TossSpacing.space5),
 
                 // Tags section with minimal edit button
                 Row(
@@ -414,7 +404,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         onTap: _showTagSelectionSheet,
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: TossSpacing.space2,
                             vertical: TossSpacing.space1,
                           ),
@@ -429,7 +419,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                       ),
                   ],
                 ),
-                SizedBox(height: TossSpacing.space2),
+                const SizedBox(height: TossSpacing.space2),
                 _buildTagsDisplay(),
               ],
             ),
@@ -446,7 +436,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         spacing: TossSpacing.space2,
         runSpacing: TossSpacing.space2,
         children: _selectedTags.map((tag) => Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
             vertical: TossSpacing.space2,
           ),
@@ -468,11 +458,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               fontWeight: FontWeight.w600,
             ),
           ),
-        )).toList(),
+        ),).toList(),
       );
     } else {
       return Container(
-        padding: EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -480,8 +470,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         ),
         child: Row(
           children: [
-            Icon(Icons.label_outline, color: TossColors.gray400, size: TossSpacing.iconSM),
-            SizedBox(width: TossSpacing.space2),
+            const Icon(Icons.label_outline, color: TossColors.gray400, size: TossSpacing.iconSM),
+            const SizedBox(width: TossSpacing.space2),
             Text(
               'No tags assigned',
               style: TossTextStyles.body.copyWith(
@@ -531,117 +521,101 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
 
   Widget _buildPermissionsTab() {
     final rolePermissionsAsync = ref.watch(rolePermissionsProvider(widget.roleId));
-    
+
     return rolePermissionsAsync.when(
       data: (permissionData) {
         final categories = permissionData['categories'] as List;
-        
-        return Column(
-          children: [
-            // Header section with padding
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                TossSpacing.space5,
-                TossSpacing.space5,
-                TossSpacing.space5,
-                TossSpacing.space3,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+        return SingleChildScrollView(
+          primary: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            TossSpacing.space5,
+            TossSpacing.space5,
+            TossSpacing.space5,
+            TossSpacing.space10,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Role Permissions',
-                              style: TossTextStyles.h3.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                            SizedBox(height: TossSpacing.space1),
-                            Text(
-                              widget.roleName.toLowerCase() == 'owner' 
-                                  ? 'Owner role always has full permissions'
-                                  : widget.canEdit 
-                                      ? 'Configure what this role can access and do'
-                                      : 'View permissions for this role',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                          ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Role Permissions',
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                        const SizedBox(height: TossSpacing.space1),
+                        Text(
+                          widget.roleName.toLowerCase() == 'owner'
+                              ? 'Owner role always has full permissions'
+                              : widget.canEdit
+                                  ? 'Configure what this role can access and do'
+                                  : 'View permissions for this role',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Quick actions
+                  if (widget.canEdit)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_selectedPermissions.isEmpty) {
+                            // Select all available permissions
+                            final allFeatureIds = <String>[];
+                            for (final category in categories) {
+                              final features = (category['features'] as List? ?? [])
+                                  .cast<Map<String, dynamic>>();
+                              for (final feature in features) {
+                                allFeatureIds.add(feature['feature_id'] as String);
+                              }
+                            }
+                            _selectedPermissions.addAll(allFeatureIds);
+                          } else {
+                            // Clear all selected permissions
+                            _selectedPermissions.clear();
+                          }
+                        });
+                      },
+                      child: Text(
+                        _selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray600,
                         ),
                       ),
-                      // Quick actions
-                      if (widget.canEdit)
-                        Row(
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedPermissions.isEmpty) {
-                                    // Select all available permissions
-                                    final allFeatureIds = <String>[];
-                                    for (final category in categories) {
-                                      final features = (category['features'] as List? ?? [])
-                                          .cast<Map<String, dynamic>>();
-                                      for (final feature in features) {
-                                        allFeatureIds.add(feature['feature_id'] as String);
-                                      }
-                                    }
-                                    _selectedPermissions.addAll(allFeatureIds);
-                                  } else {
-                                    // Clear all selected permissions
-                                    _selectedPermissions.clear();
-                                  }
-                                });
-                              },
-                              child: Text(
-                                _selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
-            ),
-            
-            // Scrollable permission categories
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  TossSpacing.space5,
-                  0,
-                  TossSpacing.space5,
-                  TossSpacing.space10,
-                ),
-                child: Column(
-                  children: categories.map((category) {
-                    final categoryName = category['category_name'] as String;
-                    final features = (category['features'] as List? ?? [])
-                        .cast<Map<String, dynamic>>();
-                    
-                    if (features.isEmpty) return SizedBox.shrink();
-                    
-                    return _buildPermissionCategory(categoryName, features);
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
+              const SizedBox(height: TossSpacing.space4),
+
+              // Permission categories
+              ...categories.map((category) {
+                final categoryName = category['category_name'] as String;
+                final features = (category['features'] as List? ?? [])
+                    .cast<Map<String, dynamic>>();
+
+                if (features.isEmpty) return const SizedBox.shrink();
+
+                return _buildPermissionCategory(categoryName, features);
+              }),
+            ],
+          ),
         );
       },
-      loading: () => Center(
+      loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(TossSpacing.space10),
           child: TossLoadingView(),
@@ -649,19 +623,19 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       ),
       error: (error, stack) => Center(
         child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space5),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           child: Column(
             children: [
-              Icon(Icons.error_outline, color: TossColors.error, size: 48),
-              SizedBox(height: TossSpacing.space3),
+              const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+              const SizedBox(height: TossSpacing.space3),
               Text(
                 'Failed to load permissions',
                 style: TossTextStyles.body.copyWith(color: TossColors.error),
               ),
-              SizedBox(height: TossSpacing.space2),
+              const SizedBox(height: TossSpacing.space2),
               ElevatedButton(
                 onPressed: () => ref.invalidate(rolePermissionsProvider(widget.roleId)),
-                child: Text('Retry'),
+                child: const Text('Retry'),
               ),
             ],
           ),
@@ -675,7 +649,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       children: [
         // Header section with title, description and Add Member button
         Container(
-          padding: EdgeInsets.fromLTRB(
+          padding: const EdgeInsets.fromLTRB(
             TossSpacing.space5,
             TossSpacing.space5,
             TossSpacing.space5,
@@ -697,7 +671,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                             color: TossColors.gray900,
                           ),
                         ),
-                        SizedBox(height: TossSpacing.space1),
+                        const SizedBox(height: TossSpacing.space1),
                         Text(
                           'Users assigned to this role',
                           style: TossTextStyles.body.copyWith(
@@ -709,7 +683,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   ),
                   if (widget.canEdit)
                     IconButton(
-                      icon: Icon(Icons.add, size: 24, color: TossColors.primary),
+                      icon: const Icon(Icons.add, size: 24, color: TossColors.primary),
                       onPressed: () => _showAddMemberModal(),
                       tooltip: 'Add Member',
                     ),
@@ -725,7 +699,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             future: _getRoleMembers(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
+                return const Center(
                   child: TossLoadingView(),
                 );
               }
@@ -735,8 +709,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, color: TossColors.error, size: 48),
-                      SizedBox(height: TossSpacing.space3),
+                      const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+                      const SizedBox(height: TossSpacing.space3),
                       Text(
                         'Failed to load members',
                         style: TossTextStyles.body.copyWith(color: TossColors.error),
@@ -753,19 +727,19 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.people_outline,
                         size: 64,
                         color: TossColors.gray300,
                       ),
-                      SizedBox(height: TossSpacing.space4),
+                      const SizedBox(height: TossSpacing.space4),
                       Text(
                         'No team members yet',
                         style: TossTextStyles.h3.copyWith(
                           color: TossColors.gray600,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Text(
                         'No users are currently assigned to this role',
                         style: TossTextStyles.body.copyWith(
@@ -779,10 +753,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               }
               
               return ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                 itemCount: members.length,
                 separatorBuilder: (context, index) => Container(
-                  margin: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                  margin: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
                   height: 0.5,
                   color: TossColors.gray200,
                 ),
@@ -813,7 +787,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     final someSelected = selectedCount > 0 && selectedCount < features.length;
     
     return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -823,16 +797,18 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Collapsible header with select all
           Material(
             color: TossColors.transparent,
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(TossBorderRadius.md),
+              top: const Radius.circular(TossBorderRadius.md),
               bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
             ),
             child: InkWell(
               splashFactory: InkRipple.splashFactory, // Better ripple effect
+              excludeFromSemantics: true,
               onTap: () {
                 setState(() {
                   if (isExpanded) {
@@ -843,11 +819,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 });
               },
               borderRadius: BorderRadius.vertical(
-                top: Radius.circular(TossBorderRadius.md),
+                top: const Radius.circular(TossBorderRadius.md),
                 bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
               ),
               child: Container(
-                padding: EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Row(
                   children: [
                     // Select all checkbox - improved touch target and pixel alignment
@@ -886,7 +862,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: allSelected
-                                ? Icon(
+                                ? const Icon(
                                     Icons.check,
                                     size: 14,
                                     color: TossColors.white,
@@ -907,7 +883,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         ),
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space3),
+                    const SizedBox(width: TossSpacing.space3),
                     // Category title - clickable area
                     Expanded(
                       child: Column(
@@ -938,7 +914,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                       child: AnimatedRotation(
                         turns: isExpanded ? 0.5 : 0,
                         duration: const Duration(milliseconds: 200),
-                        child: Icon(
+                        child: const Icon(
                           Icons.expand_more,
                           color: TossColors.gray600,
                           size: 24,
@@ -954,7 +930,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           // Expanded content
           if (isExpanded) ...[
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 border: Border(
                   top: BorderSide(color: TossColors.gray200, width: 1),
                 ),
@@ -968,13 +944,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   return Material(
                     color: TossColors.transparent,
                     child: InkWell(
+                      excludeFromSemantics: true,
                       onTap: widget.canEdit ? () => _togglePermission(featureId) : null,
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: TossSpacing.space4,
                           vertical: TossSpacing.space3,
                         ),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
                               color: TossColors.gray100,
@@ -984,7 +961,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         ),
                         child: Row(
                           children: [
-                            SizedBox(width: TossSpacing.space8), // Use 32px (8x4) for better alignment
+                            const SizedBox(width: TossSpacing.space8), // Use 32px (8x4) for better alignment
                             // Individual checkbox - pixel-perfect rendering
                             Container(
                               width: 32, // Increased touch target
@@ -1007,7 +984,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                 ),
                                 child: isSelected
-                                    ? Icon(
+                                    ? const Icon(
                                         Icons.check,
                                         size: 14,
                                         color: TossColors.white,
@@ -1015,7 +992,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                     : null,
                               ),
                             ),
-                            SizedBox(width: TossSpacing.space3),
+                            const SizedBox(width: TossSpacing.space3),
                             Expanded(
                               child: Text(
                                 featureName,
@@ -1042,52 +1019,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Future<List<Map<String, dynamic>>> _getRoleMembers() async {
-    final supabase = Supabase.instance.client;
-    
     try {
-      // Get user IDs from user_roles table
-      final userRolesResponse = await supabase
-          .from('user_roles')
-          .select('user_id, created_at')
-          .eq('role_id', widget.roleId)
-          .eq('is_deleted', false);
-      
-      if (userRolesResponse.isEmpty) {
-        return [];
-      }
-      
-      // Extract user IDs
-      final userIds = (userRolesResponse as List).map((item) => item['user_id']).toList();
-      
-      // Get user details from users table
-      final usersResponse = await supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email')
-          .inFilter('user_id', userIds);
-      
-      final members = <Map<String, dynamic>>[];
-      
-      for (final user in usersResponse as List) {
-        // Find the corresponding user_role entry to get created_at
-        final userRole = (userRolesResponse as List).firstWhere(
-          (role) => role['user_id'] == user['user_id'],
-          orElse: () => {'created_at': null},
-        );
-        
-        final firstName = user['first_name'] ?? '';
-        final lastName = user['last_name'] ?? '';
-        final fullName = '$firstName $lastName'.trim();
-        
-        members.add({
-          'user_id': user['user_id'],
-          'name': fullName.isEmpty ? 'Unknown User' : fullName,
-          'email': user['email'] ?? 'No email',
-          'created_at': userRole['created_at'],
-        });
-      }
-      
+      // ✅ Use GetRoleMembersUseCase instead of direct Supabase access
+      final getRoleMembersUseCase = ref.read(getRoleMembersUseCaseProvider);
+      final members = await getRoleMembersUseCase.execute(widget.roleId);
       return members;
     } catch (e) {
+      // Handle errors gracefully
+      debugPrint('Error fetching role members: $e');
       return [];
     }
   }
@@ -1132,7 +1071,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     required String joinedDate,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Row(
         children: [
           Container(
@@ -1142,9 +1081,9 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               color: TossColors.gray200,
               borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
-            child: Icon(Icons.person, color: TossColors.gray600),
+            child: const Icon(Icons.person, color: TossColors.gray600),
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1248,7 +1187,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             title: 'Role Updated Successfully!',
             message: 'Role permissions have been updated',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1262,7 +1201,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             title: 'Failed to Update Role',
             message: 'Could not update role permissions: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1331,7 +1270,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             child: AnimatedContainer(
               duration: TossAnimations.normal,
               curve: TossAnimations.standard,
-              padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
@@ -1395,42 +1334,23 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
   Future<void> _loadUserRoleAssignments() async {
     if (!mounted) return;
-    
+
     setState(() => _isLoadingRoleAssignments = true);
-    
+
     try {
-      final supabase = Supabase.instance.client;
-      
-      // Get the company ID for this role with timeout
-      final roleData = await supabase
-          .from('roles')
-          .select('company_id')
-          .eq('role_id', widget.roleId)
-          .single()
-          .timeout(const Duration(seconds: 5));
-      
-      final companyId = roleData['company_id'];
-      
-      // Get all role assignments for users in this company with timeout
-      final userRoles = await supabase
-          .from('user_roles')
-          .select('user_id, role_id, role:roles!role_id(company_id)')
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-      
-      final assignments = <String, String?>{};
-      
-      for (final userRole in userRoles) {
-        final userId = userRole['user_id'] as String;
-        final roleId = userRole['role_id'] as String;
-        final role = userRole['role'] as Map<String, dynamic>?;
-        
-        // Only include roles from the current company
-        if (role != null && role['company_id'] == companyId) {
-          assignments[userId] = roleId;
-        }
-      }
-      
+      // ✅ Use GetUserRoleAssignmentsUseCase instead of direct Supabase access
+      final getUserRoleAssignmentsUseCase = ref.read(getUserRoleAssignmentsUseCaseProvider);
+      final roleRepository = ref.read(roleRepositoryProvider);
+
+      // Get role to extract company ID
+      final role = await roleRepository.getRoleById(widget.roleId);
+
+      // Get all user role assignments for this company
+      final assignments = await getUserRoleAssignmentsUseCase.execute(
+        roleId: widget.roleId,
+        companyId: role.companyId,
+      );
+
       if (mounted) {
         setState(() {
           _userRoleAssignments = assignments;
@@ -1439,6 +1359,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
       }
     } catch (e) {
       // Graceful degradation: role name validation will still work
+      debugPrint('Error loading user role assignments: $e');
       if (mounted) {
         setState(() => _isLoadingRoleAssignments = false);
       }
@@ -1451,7 +1372,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     final roleAsync = ref.watch(roleByIdProvider(widget.roleId));
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.xl),
@@ -1461,7 +1382,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
         children: [
           // Handle bar
           Container(
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -1472,7 +1393,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
           // Header
           Padding(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Row(
               children: [
                 Expanded(
@@ -1496,7 +1417,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: TossColors.gray600),
+                  icon: const Icon(Icons.close, color: TossColors.gray600),
                   onPressed: () {
                     FocusScope.of(context).unfocus();
                     Navigator.pop(context);
@@ -1520,12 +1441,12 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.people_outline,
                           size: 64,
                           color: TossColors.gray300,
                         ),
-                        SizedBox(height: TossSpacing.space4),
+                        const SizedBox(height: TossSpacing.space4),
                         Text(
                           'No users found',
                           style: TossTextStyles.h3.copyWith(
@@ -1538,10 +1459,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                 }
 
                 return ListView.separated(
-                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                   itemCount: users.length,
                   separatorBuilder: (context, index) => Container(
-                    margin: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+                    margin: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
                     height: 0.5,
                     color: TossColors.gray200,
                   ),
@@ -1568,7 +1489,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                         },
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: isSelected 
                                 ? Color.alphaBlend(
@@ -1602,7 +1523,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                                           : TossColors.gray600,
                                 ),
                               ),
-                              SizedBox(width: TossSpacing.space3),
+                              const SizedBox(width: TossSpacing.space3),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1644,7 +1565,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                                 ),
                               ),
                               if (isSelected)
-                                Icon(
+                                const Icon(
                                   Icons.check_circle,
                                   color: TossColors.primary,
                                   size: 24,
@@ -1657,15 +1578,15 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                   },
                 );
               },
-              loading: () => Center(
+              loading: () => const Center(
                 child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, color: TossColors.error, size: 48),
-                    SizedBox(height: TossSpacing.space3),
+                    const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+                    const SizedBox(height: TossSpacing.space3),
                     Text(
                       'Failed to load users',
                       style: TossTextStyles.body.copyWith(color: TossColors.error),
@@ -1675,15 +1596,15 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
               ),
             );
               },
-              loading: () => Center(
+              loading: () => const Center(
                 child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, color: TossColors.error, size: 48),
-                    SizedBox(height: TossSpacing.space3),
+                    const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+                    const SizedBox(height: TossSpacing.space3),
                     Text(
                       'Failed to load role',
                       style: TossTextStyles.body.copyWith(color: TossColors.error),
@@ -1696,14 +1617,14 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
           // Bottom action
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.background,
               border: Border(top: BorderSide(color: TossColors.gray200)),
             ),
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space5,
                   TossSpacing.space4,
                   TossSpacing.space5,
@@ -1725,7 +1646,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                       elevation: 0,
                     ),
                     child: _isAssigning
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
@@ -1778,7 +1699,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     // Only show badge for users who already have the target role
     if (hasTargetRole) {
       return Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space2,
           vertical: TossSpacing.space1,
         ),
@@ -1801,7 +1722,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     }
     
     // No badge for owners or normal users - clean design
-    return SizedBox.shrink();
+    return const SizedBox.shrink();
   }
 
   Future<void> _assignUserToRole() async {
@@ -1810,72 +1731,18 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     setState(() => _isAssigning = true);
 
     try {
-      final supabase = Supabase.instance.client;
+      // Get roleRepository to fetch companyId
+      final roleRepository = ref.read(roleRepositoryProvider);
+      final role = await roleRepository.getRoleById(widget.roleId);
+      final companyId = role.companyId;
 
-      // Note: Removed double-check validation as it requires companyId
-      // The database-level validation below is sufficient
-      
-      // Get the company_id for this role with timeout
-      final roleData = await supabase
-          .from('roles')
-          .select('company_id')
-          .eq('role_id', widget.roleId)
-          .single()
-          .timeout(const Duration(seconds: 10));
-
-      final companyId = roleData['company_id'] as String;
-      
-      // Check if user already has this exact role (database-level validation)
-      final existingExactRole = await supabase
-          .from('user_roles')
-          .select('user_role_id')
-          .eq('user_id', _selectedUserId!)
-          .eq('role_id', widget.roleId)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-
-      if (existingExactRole.isNotEmpty) {
-        throw Exception('User is already assigned to this role');
-      }
-      
-      // Get all roles for this company to find any existing role
-      final companyRoles = await supabase
-          .from('roles')
-          .select('role_id')
-          .eq('company_id', companyId as Object)
-          .timeout(const Duration(seconds: 10));
-      
-      final roleIds = companyRoles.map((r) => r['role_id']).toList();
-      
-      // Check if user has any role in this company
-      final existingUserRoles = await supabase
-          .from('user_roles')
-          .select('user_role_id, role_id')
-          .eq('user_id', _selectedUserId!)
-          .inFilter('role_id', roleIds)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-      
-      if (existingUserRoles.isNotEmpty) {
-        // User has an existing role in this company - update it
-        // The trigger will handle deactivating the old role
-        await supabase.from('user_roles').insert({
-          'user_id': _selectedUserId!,
-          'role_id': widget.roleId,
-          'created_at': DateTimeUtils.nowUtc(),
-          'updated_at': DateTimeUtils.nowUtc(),
-          'is_deleted': false,
-        }).timeout(const Duration(seconds: 15));
-      } else {
-        // User has no role in this company - simply insert
-        await supabase.from('user_roles').insert({
-          'user_id': _selectedUserId!,
-          'role_id': widget.roleId,
-          'created_at': DateTimeUtils.nowUtc(),
-          'updated_at': DateTimeUtils.nowUtc(),
-          'is_deleted': false,
-        }).timeout(const Duration(seconds: 15));
-      }
+      // ✅ Use AssignUserToRoleUseCase instead of direct database access
+      final assignUserUseCase = ref.read(assignUserToRoleUseCaseProvider);
+      await assignUserUseCase.execute(
+        userId: _selectedUserId!,
+        roleId: widget.roleId,
+        companyId: companyId,
+      );
 
       if (mounted) {
         Navigator.pop(context);
@@ -1897,7 +1764,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             title: 'Member Added Successfully!',
             message: 'Member has been added to ${widget.roleName}',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1910,7 +1777,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             title: 'Failed to Add Member',
             message: 'Could not add member to role: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1943,7 +1810,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
   static const List<String> _suggestedTags = [
     'Critical', 'Support', 'Management', 'Operations', 
     'Temporary', 'Finance', 'Sales', 'Marketing',
-    'Technical', 'Customer Service', 'Admin', 'Restricted'
+    'Technical', 'Customer Service', 'Admin', 'Restricted',
   ];
   
   // Tag colors mapping using Toss color system
@@ -1993,7 +1860,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
               title: 'Maximum Tags Reached',
               message: 'You can only add up to ${TagValidator.MAX_TAGS} tags',
               primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
           return;
@@ -2006,7 +1873,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.xl),
@@ -2016,7 +1883,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
         children: [
           // Handle bar
           Container(
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -2027,7 +1894,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
 
           // Header
           Padding(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Row(
               children: [
                 Expanded(
@@ -2041,7 +1908,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                           color: TossColors.gray900,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
                         'Add up to ${TagValidator.MAX_TAGS} tags to help categorize this role',
                         style: TossTextStyles.bodySmall.copyWith(
@@ -2052,7 +1919,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: TossColors.gray600),
+                  icon: const Icon(Icons.close, color: TossColors.gray600),
                   onPressed: () {
                     FocusScope.of(context).unfocus();
                     Navigator.pop(context);
@@ -2066,14 +1933,14 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
           Expanded(
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.all(TossSpacing.space5),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Selected tags display (similar to Create Role modal)
                   if (_selectedTags.isNotEmpty) ...[
                     Container(
-                      padding: EdgeInsets.all(TossSpacing.space4),
+                      padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -2106,12 +1973,12 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                               ),
                             ],
                           ),
-                          SizedBox(height: TossSpacing.space3),
+                          const SizedBox(height: TossSpacing.space3),
                           Wrap(
                             spacing: TossSpacing.space2,
                             runSpacing: TossSpacing.space2,
                             children: _selectedTags.map((tag) => Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: TossSpacing.space2,
                                 vertical: TossSpacing.space1,
                               ),
@@ -2139,7 +2006,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  SizedBox(width: TossSpacing.space1),
+                                  const SizedBox(width: TossSpacing.space1),
                                   InkWell(
                                     onTap: () => _toggleTag(tag),
                                     borderRadius: BorderRadius.circular(TossBorderRadius.full),
@@ -2151,12 +2018,12 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                                   ),
                                 ],
                               ),
-                            )).toList(),
+                            ),).toList(),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space4),
+                    const SizedBox(height: TossSpacing.space4),
                   ],
 
                   // Suggested tags
@@ -2168,7 +2035,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     Wrap(
                       spacing: TossSpacing.space2,
                       runSpacing: TossSpacing.space2,
@@ -2180,7 +2047,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                           onTap: () => _toggleTag(tag),
                           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space3,
                               vertical: TossSpacing.space2,
                             ),
@@ -2195,12 +2062,12 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.add,
                                   size: 14,
                                   color: TossColors.textSecondary,
                                 ),
-                                SizedBox(width: TossSpacing.space1),
+                                const SizedBox(width: TossSpacing.space1),
                                 Text(
                                   tag,
                                   style: TossTextStyles.caption.copyWith(
@@ -2212,11 +2079,11 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                             ),
                           ),
                         ),
-                      )).toList(),
+                      ),).toList(),
                     ),
                   ],
                   
-                  SizedBox(height: TossSpacing.space10),
+                  const SizedBox(height: TossSpacing.space10),
                 ],
               ),
             ),
@@ -2224,14 +2091,14 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
 
           // Bottom action
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: TossColors.background,
               border: Border(top: BorderSide(color: TossColors.gray200)),
             ),
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space5,
                   TossSpacing.space4,
                   TossSpacing.space5,

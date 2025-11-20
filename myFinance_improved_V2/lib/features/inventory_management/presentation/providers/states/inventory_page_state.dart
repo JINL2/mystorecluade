@@ -30,7 +30,7 @@ class InventoryPageState with _$InventoryPageState {
       totalPages: 1,
       hasNext: false,
       hasPrevious: false,
-    )) PaginationResult pagination,
+    ),) PaginationResult pagination,
 
     // Filters
     String? searchQuery,

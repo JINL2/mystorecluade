@@ -50,7 +50,7 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
     if (state.error != null) {
       return TossErrorView(
         error: state.error!,
-        title: '데이터 로딩 실패',
+        title: 'Failed to Load Data',
         onRetry: _loadData,
       );
     }
@@ -61,7 +61,7 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '월별 통계',
+            'Monthly Statistics',
             style: TossTextStyles.h3,
           ),
           const SizedBox(height: 16),
@@ -76,7 +76,7 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
             ),
             child: Center(
               child: Text(
-                '통계 카드 (개발 중)',
+                'Statistics Card (In Development)',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray500,
                 ),

@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:myfinance_improved/app/providers/app_state.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/app/providers/auth_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/features/auth/presentation/providers/auth_service.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/company_store_selector.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/feature_grid.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/quick_access_section.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/revenue_card.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../auth/presentation/providers/auth_service.dart';
+import '../providers/homepage_providers.dart';
+import '../widgets/company_store_selector.dart';
+import '../widgets/empty_state_screen.dart';
+import '../widgets/feature_grid.dart';
+import '../widgets/quick_access_section.dart';
+import '../widgets/revenue_card.dart';
 
 class Homepage extends ConsumerStatefulWidget {
-  Homepage({super.key}); // ✅ Removed const to allow rebuilds
+  const Homepage({super.key}); // ✅ Removed const to allow rebuilds
 
   @override
   ConsumerState<Homepage> createState() => _HomepageState();
@@ -33,22 +32,47 @@ class _HomepageState extends ConsumerState<Homepage> {
 
     // Wait for user companies to load before building UI
     return userCompaniesAsync.when(
-      data: (_) => _buildHomepage(),
-      loading: () => Scaffold(
+      data: (userData) {
+        // Check if userData is null or has no companies
+        if (userData == null) {
+          return EmptyStateScreen(
+            errorMessage: 'You haven\'t created or joined any company yet.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        final companies = (userData['companies'] as List<dynamic>?) ?? [];
+        if (companies.isEmpty) {
+          return EmptyStateScreen(
+            errorMessage: 'You haven\'t created or joined any company yet.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        return _buildHomepage();
+      },
+      loading: () => const Scaffold(
         backgroundColor: TossColors.gray100,
         body: Center(
           child: CircularProgressIndicator(color: TossColors.primary),
         ),
       ),
-      error: (error, stack) => Scaffold(
-        backgroundColor: TossColors.gray100,
-        body: Center(
-          child: Text(
-            'Error loading data: $error',
-            style: TossTextStyles.body.copyWith(color: TossColors.error),
-          ),
-        ),
-      ),
+      error: (error, stack) {
+        // Check if it's a "no companies" error
+        final errorMessage = error.toString();
+        if (errorMessage.contains('No user companies data')) {
+          return EmptyStateScreen(
+            errorMessage: 'Unable to load your company information.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        // For other errors, show generic error screen with retry
+        return EmptyStateScreen(
+          errorMessage: 'Something went wrong: $errorMessage',
+          onRetry: () => ref.invalidate(userCompaniesProvider),
+        );
+      },
     );
   }
 
@@ -57,36 +81,174 @@ class _HomepageState extends ConsumerState<Homepage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: TossColors.gray100,
-      body: RefreshIndicator(
-        onRefresh: () => _handleRefresh(),
-        color: TossColors.primary,
-        child: CustomScrollView(
-          slivers: [
-            // App Bar
-            _buildAppBar(),
+      backgroundColor: TossColors.surface,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => _handleRefresh(),
+          color: TossColors.primary,
+          child: CustomScrollView(
+            slivers: [
+              // App Header (Non-pinned)
+              _buildAppHeader(),
 
-            // Hello Section (Pinned)
-            _buildHelloSection(),
-
-            // Revenue Card (if company selected)
-            if (appState.companyChoosen.isNotEmpty)
               const SliverToBoxAdapter(
-                child: RevenueCard(),
+                child: SizedBox(height: TossSpacing.space4),
               ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: TossSpacing.space4),
+              // Revenue Card with inline company/store selector (if company selected)
+              if (appState.companyChoosen.isNotEmpty)
+                const SliverToBoxAdapter(
+                  child: RevenueCard(),
+                ),
+
+              // Quick Access Section
+              const SliverToBoxAdapter(
+                child: QuickAccessSection(),
+              ),
+
+              // Line Divider
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 21),
+                  child: Container(
+                    height: 18,
+                    color: TossColors.borderLight,
+                  ),
+                ),
+              ),
+
+              // Feature Grid
+              const SliverToBoxAdapter(
+                child: FeatureGrid(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppHeader() {
+    final appState = ref.watch(appStateProvider);
+
+    // Get company and store names
+    final companyName = appState.companyName.isNotEmpty
+        ? appState.companyName
+        : 'Select Company';
+    final storeName = appState.storeName.isNotEmpty
+        ? appState.storeName
+        : 'Select Store';
+
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 83,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: TossColors.borderLight,
+              width: 1,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Left: Avatar + Company/Store selector
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showCompanyStoreDrawer(),
+                child: Row(
+                  children: [
+                    // Square avatar with rounded corners
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      child: _buildSquareAvatar(),
+                    ),
+
+                    const SizedBox(width: 13),
+
+                    // Store name (top) and Company name (bottom) with chevron
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Store name (large, on top)
+                                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty)
+                                  Text(
+                                    storeName,
+                                    style: TossTextStyles.bodyLarge.copyWith(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: TossColors.textPrimary,
+                                      height: 1.2,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+
+                                // Company name (small, on bottom)
+                                Text(
+                                  companyName,
+                                  style: TossTextStyles.caption.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: TossColors.textSecondary,
+                                    height: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Up arrow
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: Icon(
+                              Icons.keyboard_arrow_up_rounded,
+                              size: 20,
+                              color: TossColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
 
-            // Quick Access Section
-            const SliverToBoxAdapter(
-              child: QuickAccessSection(),
-            ),
+            const SizedBox(width: 13),
 
-            // Feature Grid
-            const SliverToBoxAdapter(
-              child: FeatureGrid(),
+            // Right: Notification + Menu
+            Row(
+              children: [
+                // Notification bell with badge
+                _buildIconGhost(
+                  icon: Icons.notifications_none_rounded,
+                  showBadge: true,
+                  badgeCount: 2,
+                  onTap: () {
+                    // TODO: Navigate to notifications
+                  },
+                ),
+
+                const SizedBox(width: 13),
+
+                // More menu
+                _buildIconGhost(
+                  icon: Icons.more_horiz_rounded,
+                  showBadge: false,
+                  onTap: () => _showProfileMenu(),
+                ),
+              ],
             ),
           ],
         ),
@@ -94,195 +256,161 @@ class _HomepageState extends ConsumerState<Homepage> {
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      pinned: true,
-      floating: false,
-      snap: false,
-      backgroundColor: TossColors.gray100,
-      surfaceTintColor: TossColors.transparent,
-      shadowColor: TossColors.transparent,
-      elevation: 0,
-      toolbarHeight: 64,
-      leading: IconButton(
-        icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
-        onPressed: () {
-          _showCompanyStoreDrawer();
-        },
-        padding: const EdgeInsets.all(TossSpacing.space3),
-      ),
-      actions: [
-        // Notifications
-        IconButton(
-          icon: Icon(
-            Icons.notifications_none_rounded,
-            color: TossColors.textSecondary,
-            size: 24,
-          ),
-          onPressed: () {
-            // TODO: Navigate to notifications
-          },
-          padding: const EdgeInsets.all(TossSpacing.space3),
-        ),
-
-        // Profile
-        Padding(
-          padding: const EdgeInsets.only(right: TossSpacing.space4),
-          child: GestureDetector(
-            onTap: () {
-              // Show popup menu
-              showMenu<String>(
-                context: context,
-                position: RelativeRect.fromLTRB(
-                  MediaQuery.of(context).size.width - 200,
-                  64 + 48,
-                  16,
-                  0,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossSpacing.space3),
-                ),
-                color: TossColors.surface,
-                elevation: 2,
-                items: [
-                  PopupMenuItem<String>(
-                    value: 'profile',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person_outline,
-                          color: TossColors.textSecondary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Text(
-                          'My Profile',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.logout_rounded,
-                          color: TossColors.error,
-                          size: 20,
-                        ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Text(
-                          'Logout',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ).then((value) async {
-                if (value == 'logout') {
-                  await _handleLogout();
-                } else if (value == 'profile') {
-                  // Navigate to My Page
-                  if (mounted) {
-                    context.go('/my-page');
-                  }
-                }
-              });
-            },
-            child: _buildProfileAvatar(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHelloSection() {
-    final appState = ref.watch(appStateProvider);
-
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _PinnedHelloDelegate(
-        appState: appState,
-      ),
-    );
-  }
-
-  /// Build profile avatar with image or initials fallback
-  Widget _buildProfileAvatar() {
-    // ✅ CRITICAL FIX: Use ref.watch() instead of ref.read() to rebuild when AppState changes
+  Widget _buildSquareAvatar() {
     final appState = ref.watch(appStateProvider);
     final profileImage = appState.user['profile_image'] as String? ?? '';
 
-    // Debug: Log profile image URL
-
-    // If profile image exists and is not empty, show image
     if (profileImage.isNotEmpty) {
-      return CircleAvatar(
-        radius: 20,
-        backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-        child: ClipOval(
-          child: Image.network(
-            profileImage,
-            width: 40,
-            height: 40,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              // If image fails to load, show initials
-              return Center(
-                child: Text(
-                  _getUserInitials(),
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              );
-            },
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              }
-              // Show loading indicator while image is loading
-              return Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: TossColors.primary,
-                    strokeWidth: 2,
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+      return Image.network(
+        profileImage,
+        width: 47,
+        height: 47,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildAvatarFallback();
+        },
       );
     }
 
-    // Fallback to initials
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-      child: Text(
-        _getUserInitials(),
-        style: TossTextStyles.bodyLarge.copyWith(
-          color: TossColors.primary,
-          fontWeight: FontWeight.w600,
+    return _buildAvatarFallback();
+  }
+
+  Widget _buildAvatarFallback() {
+    return Container(
+      width: 47,
+      height: 47,
+      decoration: BoxDecoration(
+        color: TossColors.primarySurface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Center(
+        child: Text(
+          _getUserInitials(),
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildIconGhost({
+    required IconData icon,
+    required bool showBadge,
+    int badgeCount = 0,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          SizedBox(
+            width: 47,
+            height: 47,
+            child: Icon(
+              icon,
+              size: 31,
+              color: TossColors.textPrimary,
+            ),
+          ),
+          if (showBadge && badgeCount > 0)
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 16),
+                height: 16,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: TossColors.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Center(
+                  child: Text(
+                    badgeCount.toString(),
+                    style: TossTextStyles.caption.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.white,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showProfileMenu() {
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        MediaQuery.of(context).size.width - 200,
+        80,
+        16,
+        0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossSpacing.space3),
+      ),
+      color: TossColors.surface,
+      elevation: 2,
+      items: [
+        PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.person_outline,
+                color: TossColors.textSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Text(
+                'My Profile',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'logout',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.logout_rounded,
+                color: TossColors.error,
+                size: 20,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Text(
+                'Logout',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.error,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) async {
+      if (value == 'logout') {
+        await _handleLogout();
+      } else if (value == 'profile') {
+        if (mounted) {
+          context.push('/my-page');
+        }
+      }
+    });
+  }
+
 
   String _getUserInitials() {
     final appState = ref.watch(appStateProvider);
@@ -330,15 +458,19 @@ class _HomepageState extends ConsumerState<Homepage> {
       // ✅ Read all providers BEFORE logout starts
       // This prevents "Cannot use ref after dispose" errors
       final authService = ref.read(authServiceProvider);
+      final appStateNotifier = ref.read(appStateProvider.notifier);
 
       if (!mounted) return;
 
+      // ✅ Save ScaffoldMessenger reference BEFORE async operations
+      final messenger = ScaffoldMessenger.of(context);
+
       // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      messenger.showSnackBar(
+        const SnackBar(
           content: Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -346,17 +478,21 @@ class _HomepageState extends ConsumerState<Homepage> {
                   valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              const SizedBox(width: TossSpacing.space3),
-              const Text('Logging out...'),
+              SizedBox(width: TossSpacing.space3),
+              Text('Logging out...'),
             ],
           ),
           backgroundColor: TossColors.primary,
-          duration: const Duration(seconds: 2),
+          duration: Duration(seconds: 2),
         ),
       );
 
       // ✅ Small delay to show the loading message
       await Future.delayed(const Duration(milliseconds: 300));
+
+      // ✅ Clear app state FIRST (before widget disposal)
+      // This must happen before authService.signOut() which triggers navigation
+      appStateNotifier.signOut();
 
       // ✅ Execute auth logout
       // This will:
@@ -367,26 +503,21 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 5. PopupMenu will close automatically during navigation
       await authService.signOut();
 
-      // ✅ Clear app state AFTER auth logout
-      if (mounted) {
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-        appStateNotifier.signOut();
-      }
-
       // Note: Widget is disposed here due to GoRouter redirect
       // PopupMenu closes automatically, no manual pop() needed
       // This prevents "You have popped the last page" error
 
+      // ✅ Use saved messenger reference (safe even after dispose)
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        messenger.hideCurrentSnackBar();
       }
 
       // GoRouter will automatically redirect to /auth/login
       // No manual navigation needed!
 
     } catch (e) {
+      // ✅ Only show error if widget is still mounted
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: $e'),
@@ -449,116 +580,3 @@ class _HomepageState extends ConsumerState<Homepage> {
   }
 }
 
-class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
-  final AppState appState;
-
-  const _PinnedHelloDelegate({
-    required this.appState,
-  });
-
-  @override
-  double get minExtent => 85.0;
-
-  @override
-  double get maxExtent => 85.0;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    // Debug: Check AppState values
-
-    // Extract user name from AppState
-    final firstName = appState.user['user_first_name'] as String? ?? '';
-    final lastName = appState.user['user_last_name'] as String? ?? '';
-    final userName = firstName.isNotEmpty
-        ? (lastName.isNotEmpty ? '$firstName $lastName' : firstName)
-        : 'User';
-
-
-    // Get company and store names from AppState
-    final companyName = appState.companyName.isNotEmpty
-        ? appState.companyName
-        : (appState.companyChoosen.isNotEmpty ? 'Company Selected' : 'No Company');
-    final storeName = appState.storeName;
-
-
-    return Container(
-      color: TossColors.gray100,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          boxShadow: TossShadows.card,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // User greeting with actual name
-            Text(
-              'Hello, $userName!',
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-
-            const SizedBox(height: TossSpacing.space1),
-
-            // Company and Store info with actual names
-            Row(
-              children: [
-                Text(
-                  companyName,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    letterSpacing: -0.2,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty) ...[
-                  Text(
-                    ' • ',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      storeName,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return true;
-  }
-}

@@ -9,16 +9,11 @@ import 'domain_exception.dart';
 /// - Template creation/update failures
 class TemplateBusinessException extends DomainException {
   const TemplateBusinessException(
-    String message, {
-    String? errorCode,
-    Map<String, dynamic>? context,
-    Exception? innerException,
-  }) : super(
-          message,
-          errorCode: errorCode,
-          context: context,
-          innerException: innerException,
-        );
+    super.message, {
+    super.errorCode,
+    super.context,
+    super.innerException,
+  });
 
   /// Creates exception for template not found scenarios
   factory TemplateBusinessException.notFound({

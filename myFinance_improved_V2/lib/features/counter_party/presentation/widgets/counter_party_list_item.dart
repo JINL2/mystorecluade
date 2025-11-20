@@ -9,6 +9,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 
 import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
+import '../../domain/value_objects/relative_time.dart';
 
 class CounterPartyListItem extends StatelessWidget {
   final CounterParty counterParty;
@@ -29,7 +30,7 @@ class CounterPartyListItem extends StatelessWidget {
     return Material(
       color: TossColors.transparent,
       child: Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -51,7 +52,7 @@ class CounterPartyListItem extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               
               // Content
               Expanded(
@@ -73,9 +74,9 @@ class CounterPartyListItem extends StatelessWidget {
                           ),
                         ),
                         if (counterParty.isInternal) ...[
-                          SizedBox(width: TossSpacing.space2),
+                          const SizedBox(width: TossSpacing.space2),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space2,
                               vertical: 2,
                             ),
@@ -95,7 +96,7 @@ class CounterPartyListItem extends StatelessWidget {
                       ],
                     ),
                     
-                    SizedBox(height: TossSpacing.space1),
+                    const SizedBox(height: TossSpacing.space1),
                     
                     // Type and Contact Info
                     Row(
@@ -130,9 +131,9 @@ class CounterPartyListItem extends StatelessWidget {
                     
                     // Additional Info
                     if (counterParty.lastTransactionDate != null) ...[
-                      SizedBox(height: TossSpacing.space1),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
-                        'Last transaction: ${_formatDate(counterParty.lastTransactionDate!)}',
+                        'Last transaction: ${RelativeTime.format(counterParty.lastTransactionDate!)}',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.textTertiary,
                         ),
@@ -144,7 +145,7 @@ class CounterPartyListItem extends StatelessWidget {
               
               // More Options Button
               IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_vert,
                   color: TossColors.textSecondary,
                   size: TossSpacing.iconMD,
@@ -212,31 +213,5 @@ class CounterPartyListItem extends StatelessWidget {
         onDelete?.call();
       },
     );
-  }
-
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      if (difference.inHours == 0) {
-        if (difference.inMinutes == 0) {
-          return 'Just now';
-        }
-        return '${difference.inMinutes} min ago';
-      }
-      return '${difference.inHours} hours ago';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inDays < 30) {
-      return '${(difference.inDays / 7).floor()} weeks ago';
-    } else if (difference.inDays < 365) {
-      return '${(difference.inDays / 30).floor()} months ago';
-    } else {
-      return '${(difference.inDays / 365).floor()} years ago';
-    }
   }
 }

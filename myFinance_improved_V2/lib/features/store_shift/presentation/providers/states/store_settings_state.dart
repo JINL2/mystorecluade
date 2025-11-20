@@ -49,7 +49,7 @@ class OperatingHoursState with _$OperatingHoursState {
   }) = _OperatingHoursState;
 
   /// Initial state with default hours
-  factory OperatingHoursState.initial() => OperatingHoursState(
+  factory OperatingHoursState.initial() => const OperatingHoursState(
         hours: {
           'Monday': DayHours(open: '09:00', close: '22:00'),
           'Tuesday': DayHours(open: '09:00', close: '22:00'),

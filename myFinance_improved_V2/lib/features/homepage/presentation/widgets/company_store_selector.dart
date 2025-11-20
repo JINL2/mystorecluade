@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_company_sheet.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_store_sheet.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/join_by_code_sheet.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/company.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+
 import 'view_invite_codes_sheet.dart';
 
 /// Company & Store Selector Drawer
@@ -69,7 +72,7 @@ class CompanyStoreSelector extends ConsumerWidget {
                       // Avatar
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: TossColors.primary.withOpacity(0.2),
+                        backgroundColor: TossColors.primarySurface,
                         child: Text(
                           userData['user_first_name'] != null &&
                                   (userData['user_first_name'] as String)
@@ -111,9 +114,9 @@ class CompanyStoreSelector extends ConsumerWidget {
                 ),
                 // Close Button
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(
-                    Icons.close,
+                    LucideIcons.x,
                     color: TossColors.textSecondary,
                   ),
                 ),
@@ -149,7 +152,7 @@ class CompanyStoreSelector extends ConsumerWidget {
               width: double.infinity,
               child: TossPrimaryButton(
                 text: 'Create Company',
-                leadingIcon: const Icon(Icons.add, size: 20),
+                leadingIcon: const Icon(LucideIcons.plus, size: 20),
                 onPressed: () => _showCompanyActionsBottomSheet(context, ref),
               ),
             ),
@@ -165,6 +168,7 @@ class CompanyStoreSelector extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => _CompanyActionsSheet(parentContext: context, ref: ref),
     );
   }
@@ -201,8 +205,8 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.business_outlined,
+            const Icon(
+              LucideIcons.building,
               size: 64,
               color: TossColors.textTertiary,
             ),
@@ -240,95 +244,132 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: isSelected
-                  ? TossColors.primary.withOpacity(0.3)
-                  : TossColors.border,
-              width: isSelected ? 2 : 1,
-            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Company Header
-              InkWell(
-                onTap: () {
-                  // Toggle expand/collapse of company's store list
-                  setState(() {
-                    if (expandedCompanyId == companyId) {
-                      // If already expanded, collapse it
-                      expandedCompanyId = null;
-                    } else {
-                      // Expand this company
-                      expandedCompanyId = companyId;
-                    }
-                  });
-                },
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                child: Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space4),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? TossColors.primary
-                              : TossColors.gray200,
-                          borderRadius:
-                              BorderRadius.circular(TossBorderRadius.md),
-                        ),
+              Padding(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                child: Row(
+                  children: [
+                    // Expand/Collapse Arrow (on the left)
+                    InkWell(
+                      onTap: () {
+                        // Toggle expand/collapse of company's store list
+                        setState(() {
+                          if (expandedCompanyId == companyId) {
+                            // If already expanded, collapse it
+                            expandedCompanyId = null;
+                          } else {
+                            // Expand this company
+                            expandedCompanyId = companyId;
+                          }
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
                         child: Icon(
-                          Icons.business,
-                          color: isSelected
-                              ? TossColors.white
-                              : TossColors.textSecondary,
-                          size: 20,
+                          isSelected ? LucideIcons.chevronDown : LucideIcons.chevronRight,
+                          size: 18,
+                          color: TossColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(width: TossSpacing.space3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    // Company Icon and Name
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          // Toggle expand/collapse of company's store list
+                          setState(() {
+                            if (expandedCompanyId == companyId) {
+                              // If already expanded, collapse it
+                              expandedCompanyId = null;
+                            } else {
+                              // Expand this company
+                              expandedCompanyId = companyId;
+                            }
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        child: Row(
                           children: [
-                            Text(
-                              companyName,
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w600,
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? TossColors.primary
+                                    : TossColors.gray200,
+                                borderRadius:
+                                    BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Icon(
+                                LucideIcons.building2,
+                                color: isSelected
+                                    ? TossColors.white
+                                    : TossColors.textSecondary,
+                                size: 18,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.textTertiary,
+                            const SizedBox(width: TossSpacing.space2),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    companyName,
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.textTertiary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    // 3-dot menu (on the right)
+                    InkWell(
+                      onTap: () => _showCompanyMenuBottomSheet(context, ref, company),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          LucideIcons.moreHorizontal,
+                          size: 18,
+                          color: TossColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               // Stores List (if company is selected)
               if (isSelected && stores.isNotEmpty) ...[
-                const Divider(height: 1),
                 Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space3),
+                  padding: const EdgeInsets.only(
+                    left: TossSpacing.space4,
+                    right: TossSpacing.space4,
+                    top: TossSpacing.space1,
+                    bottom: TossSpacing.space2,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Stores',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textTertiary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space2),
+                      // Store list items with + button
                       ...stores.map((store) {
                         final storeId = store['store_id'] as String;
                         final storeName = store['store_name'] as String;
@@ -352,32 +393,34 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                               storeName: storeName,
                             );
 
-                            Navigator.of(context).pop();
+                            context.pop();
                           },
                           borderRadius:
-                              BorderRadius.circular(TossBorderRadius.md),
+                              BorderRadius.circular(TossBorderRadius.sm),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space3,
-                              vertical: TossSpacing.space2,
+                            padding: const EdgeInsets.only(
+                              left: 36,
+                              right: TossSpacing.space2,
+                              top: TossSpacing.space2,
+                              bottom: TossSpacing.space2,
                             ),
                             margin: const EdgeInsets.only(
                               bottom: TossSpacing.space1,
                             ),
                             decoration: BoxDecoration(
                               color: isStoreSelected
-                                  ? TossColors.primary.withOpacity(0.1)
+                                  ? TossColors.primarySurface
                                   : Colors.transparent,
                               borderRadius:
-                                  BorderRadius.circular(TossBorderRadius.md),
+                                  BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons.store_outlined,
-                                  size: 18,
+                                  LucideIcons.store,
+                                  size: 16,
                                   color: isStoreSelected
-                                      ? TossColors.primary
+                                      ? TossColors.textPrimary
                                       : TossColors.textSecondary,
                                 ),
                                 const SizedBox(width: TossSpacing.space2),
@@ -385,121 +428,47 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                                   child: Text(
                                     storeName,
                                     style: TossTextStyles.body.copyWith(
-                                      fontWeight: isStoreSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                      color: isStoreSelected
-                                          ? TossColors.primary
-                                          : TossColors.textPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: TossColors.textPrimary,
                                     ),
                                   ),
                                 ),
                                 if (isStoreSelected)
                                   const Icon(
-                                    Icons.check,
+                                    LucideIcons.check,
                                     color: TossColors.primary,
-                                    size: 18,
+                                    size: 16,
                                   ),
                               ],
                             ),
                           ),
                         );
-                      }).toList(),
-
-                      const SizedBox(height: TossSpacing.space2),
-
-                      // View Codes and Create Store buttons side by side
-                      Row(
-                        children: [
-                          // View Codes Button
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showCodesBottomSheet(context, company),
-                              icon: const Icon(Icons.qr_code_2_rounded, size: 18),
-                              label: const Text('View codes'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: TossColors.textSecondary,
-                                side: const BorderSide(color: TossColors.border),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: TossSpacing.space3,
-                                  vertical: TossSpacing.space2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: TossSpacing.space2),
-                          // Create Store Button
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showStoreActionsBottomSheet(context, ref, company),
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Create Store'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: TossColors.primary,
-                                side: const BorderSide(color: TossColors.primary),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: TossSpacing.space3,
-                                  vertical: TossSpacing.space2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      }),
                     ],
                   ),
                 ),
               ],
 
-              // Show Create Store button even if no stores (for selected company)
+              // Show empty state if no stores (for selected company)
               if (isSelected && stores.isEmpty) ...[
-                const Divider(height: 1),
                 Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space3),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stores',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textTertiary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  padding: const EdgeInsets.only(
+                    left: TossSpacing.space4,
+                    right: TossSpacing.space4,
+                    top: TossSpacing.space1,
+                    bottom: TossSpacing.space2,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 36),
+                    child: Text(
+                      'No stores',
+                      style: TossTextStyles.caption.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.textTertiary,
                       ),
-                      const SizedBox(height: TossSpacing.space2),
-                      Text(
-                        'No stores yet',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space2),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _showStoreActionsBottomSheet(context, ref, company),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Create Store'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: TossColors.primary,
-                            side: const BorderSide(color: TossColors.primary),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space3,
-                              vertical: TossSpacing.space2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -516,7 +485,64 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => CodesBottomSheet(company: company),
+    );
+  }
+
+  /// Show company menu bottom sheet (3-dot menu)
+  void _showCompanyMenuBottomSheet(BuildContext context, WidgetRef ref, dynamic company) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      elevation: 0,
+      builder: (bottomSheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+            topRight: Radius.circular(TossBorderRadius.bottomSheet),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(
+                top: TossSpacing.space2,
+                bottom: TossSpacing.space4,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.textTertiary.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+              ),
+            ),
+            // View codes option
+            ListTile(
+              leading: const Icon(LucideIcons.qrCode, size: 20),
+              title: const Text('View Codes'),
+              onTap: () {
+                Navigator.pop(bottomSheetContext);
+                _showCodesBottomSheet(context, company);
+              },
+            ),
+            const Divider(height: 1),
+            // Create store option
+            ListTile(
+              leading: const Icon(LucideIcons.plus, size: 20),
+              title: const Text('Create Store'),
+              onTap: () {
+                Navigator.pop(bottomSheetContext);
+                _showStoreActionsBottomSheet(context, ref, company);
+              },
+            ),
+            SizedBox(height: MediaQuery.of(bottomSheetContext).padding.bottom),
+          ],
+        ),
+      ),
     );
   }
 
@@ -526,6 +552,7 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => _StoreActionsSheet(
         parentContext: context,
         ref: ref,
@@ -585,8 +612,8 @@ class _CompanyActionsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: TossColors.textSecondary),
+                  onPressed: () => context.pop(),
+                  icon: const Icon(LucideIcons.x, color: TossColors.textSecondary),
                 ),
               ],
             ),
@@ -607,7 +634,7 @@ class _CompanyActionsSheet extends StatelessWidget {
                 // Create Company
                 _buildOptionCard(
                   context,
-                  icon: Icons.business,
+                  icon: LucideIcons.building2,
                   title: 'Create Company',
                   subtitle: 'Start a new company and invite others',
                   onTap: () => _handleCreateCompany(context),
@@ -618,7 +645,7 @@ class _CompanyActionsSheet extends StatelessWidget {
                 // Join Company by Code
                 _buildOptionCard(
                   context,
-                  icon: Icons.group_add,
+                  icon: LucideIcons.userPlus,
                   title: 'Join Company',
                   subtitle: 'Enter company invite code to join',
                   onTap: () => _handleJoinCompany(context),
@@ -634,13 +661,14 @@ class _CompanyActionsSheet extends StatelessWidget {
 
   void _handleCreateCompany(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show create company sheet
     showModalBottomSheet(
       context: parentContext,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => const CreateCompanySheet(),
     ).then((company) {
       if (company != null && company is Company) {
@@ -735,7 +763,7 @@ class _CompanyActionsSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: TossColors.textTertiary),
+            const Icon(LucideIcons.chevronRight, size: 16, color: TossColors.textTertiary),
           ],
         ),
       ),
@@ -744,13 +772,14 @@ class _CompanyActionsSheet extends StatelessWidget {
 
   void _handleJoinCompany(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show join by code sheet
     showModalBottomSheet(
       context: parentContext,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => const JoinByCodeSheet(
         title: 'Join Company',
         subtitle: 'Enter company invite code',
@@ -885,8 +914,8 @@ class _StoreActionsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: TossColors.textSecondary),
+                  onPressed: () => context.pop(),
+                  icon: const Icon(LucideIcons.x, color: TossColors.textSecondary),
                 ),
               ],
             ),
@@ -907,7 +936,7 @@ class _StoreActionsSheet extends StatelessWidget {
                 // Create Store
                 _buildOptionCard(
                   context,
-                  icon: Icons.store,
+                  icon: LucideIcons.store,
                   title: 'Create Store',
                   subtitle: 'Add a new store to $companyName',
                   onTap: () => _handleCreateStore(context),
@@ -918,7 +947,7 @@ class _StoreActionsSheet extends StatelessWidget {
                 // Join Store by Code
                 _buildOptionCard(
                   context,
-                  icon: Icons.add_location,
+                  icon: LucideIcons.mapPin,
                   title: 'Join Store',
                   subtitle: 'Enter store invite code to join',
                   onTap: () => _handleJoinStore(context),
@@ -934,7 +963,7 @@ class _StoreActionsSheet extends StatelessWidget {
 
   void _handleCreateStore(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     final companyId = company['company_id'] as String;
     final companyName = company['company_name'] as String;
@@ -944,6 +973,7 @@ class _StoreActionsSheet extends StatelessWidget {
       context: parentContext,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => CreateStoreSheet(
         companyId: companyId,
         companyName: companyName,
@@ -995,13 +1025,14 @@ class _StoreActionsSheet extends StatelessWidget {
 
   void _handleJoinStore(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show join by code sheet
     showModalBottomSheet(
       context: parentContext,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      elevation: 0,
       builder: (context) => const JoinByCodeSheet(
         title: 'Join Store',
         subtitle: 'Enter store invite code',
@@ -1088,7 +1119,7 @@ class _StoreActionsSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: TossColors.textTertiary),
+            const Icon(LucideIcons.chevronRight, size: 16, color: TossColors.textTertiary),
           ],
         ),
       ),

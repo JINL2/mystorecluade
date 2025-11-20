@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/auth_providers.dart';
 import '../../data/datasources/profile_image_datasource.dart';
 import '../../data/datasources/user_profile_datasource.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
@@ -52,17 +52,10 @@ final profileEditProvider = StateNotifierProvider<ProfileEditNotifier, ProfileEd
 });
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-/// 🎯 Helper Providers (Auth & Computed)
-/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-// Auth state provider (watches Supabase auth)
-final authStateProvider = StreamProvider<User?>((ref) {
-  return Supabase.instance.client.auth.onAuthStateChange.map((event) => event.session?.user);
-});
-
-/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Computed Providers (UI Helper Providers)
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+///
+/// Note: authStateProvider is imported from app/providers/auth_providers.dart
 
 /// Current User Profile Provider - MyPageState에서 userProfile 추출
 ///

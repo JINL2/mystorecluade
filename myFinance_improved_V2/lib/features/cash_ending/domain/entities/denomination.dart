@@ -1,65 +1,27 @@
 // lib/features/cash_ending/domain/entities/denomination.dart
 
-/// Domain entity representing a single denomination (coin/bill)
-class Denomination {
-  final String denominationId;
-  final String currencyId;
-  final double value;
-  final int quantity;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Denomination({
-    required this.denominationId,
-    required this.currencyId,
-    required this.value,
-    this.quantity = 0,
-  }) {
-    // Simple validation
-    if (value <= 0) {
-      throw ArgumentError('Denomination value must be positive: $value');
-    }
-    if (quantity < 0) {
-      throw ArgumentError('Quantity cannot be negative: $quantity');
-    }
-  }
+part 'denomination.freezed.dart';
+
+/// Domain entity representing a single denomination (coin/bill)
+///
+/// Maps to `currency_denominations` table in database.
+/// DB columns: denomination_id (uuid), currency_id (uuid), value (numeric), type (text)
+@freezed
+class Denomination with _$Denomination {
+  const factory Denomination({
+    required String denominationId,
+    required String currencyId,
+    required double value,
+    @Default(0) int quantity,
+  }) = _Denomination;
+
+  const Denomination._();
 
   /// Calculate total amount for this denomination
   double get totalAmount => value * quantity;
 
   /// Check if denomination has quantity entered
   bool get hasQuantity => quantity > 0;
-
-  /// Create a copy with updated quantity
-  Denomination copyWith({
-    String? denominationId,
-    String? currencyId,
-    double? value,
-    int? quantity,
-  }) {
-    return Denomination(
-      denominationId: denominationId ?? this.denominationId,
-      currencyId: currencyId ?? this.currencyId,
-      value: value ?? this.value,
-      quantity: quantity ?? this.quantity,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Denomination &&
-        other.denominationId == denominationId &&
-        other.currencyId == currencyId &&
-        other.value == value &&
-        other.quantity == quantity;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      denominationId,
-      currencyId,
-      value,
-      quantity,
-    );
-  }
 }

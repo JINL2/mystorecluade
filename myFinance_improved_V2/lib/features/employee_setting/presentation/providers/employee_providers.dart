@@ -1,51 +1,23 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/employee_remote_datasource.dart';
-import '../../data/datasources/role_remote_datasource.dart';
-import '../../data/repositories/employee_repository_impl.dart';
-import '../../data/repositories/role_repository_impl.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
-import '../../domain/repositories/employee_repository.dart';
-import '../../domain/repositories/role_repository.dart';
+import '../../domain/usecases/search_and_sort_employees_usecase.dart';
 import 'employee_notifier.dart';
 import 'states/employee_state.dart';
-
-// ============================================================================
-// Data Source Providers
-// ============================================================================
-
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-final _employeeRemoteDataSourceProvider = Provider<EmployeeRemoteDataSource>((ref) {
-  final supabase = ref.watch(_supabaseClientProvider);
-  return EmployeeRemoteDataSource(supabase);
-});
-
-final _roleRemoteDataSourceProvider = Provider<RoleRemoteDataSource>((ref) {
-  final supabase = ref.watch(_supabaseClientProvider);
-  return RoleRemoteDataSource(supabase);
-});
+import 'use_case_providers.dart';
 
 // ============================================================================
 // Repository Providers
 // ============================================================================
-
-final employeeRepositoryProvider = Provider<EmployeeRepository>((ref) {
-  final dataSource = ref.watch(_employeeRemoteDataSourceProvider);
-  return EmployeeRepositoryImpl(dataSource);
-});
-
-final roleRepositoryProvider = Provider<RoleRepository>((ref) {
-  final dataSource = ref.watch(_roleRemoteDataSourceProvider);
-  return RoleRepositoryImpl(dataSource);
-});
+// ✅ Moved to: data/repositories/repository_providers.dart
+// - employeeRepositoryProvider
+// - roleRepositoryProvider
+// Import them from the new location above
 
 // ============================================================================
 // Employee Data Providers
@@ -126,59 +98,30 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
   final employeesAsync = ref.watch(employeeSalaryListProvider);
 
-  List<EmployeeSalary> _processEmployees(List<EmployeeSalary> employees) {
-    // Filter employees based on search query
-    List<EmployeeSalary> filtered;
-    if (searchQuery.isEmpty) {
-      filtered = employees;
-    } else {
-      final query = searchQuery.toLowerCase();
-      filtered = employees.where((employee) {
-        return employee.fullName.toLowerCase().contains(query) ||
-            employee.email.toLowerCase().contains(query) ||
-            (employee.roleName.toLowerCase().contains(query)) ||
-            employee.displayDepartment.toLowerCase().contains(query);
-      }).toList();
-    }
+  // ✅ Read UseCase once at Provider level instead of inside function
+  final searchAndSortUseCase = ref.read(searchAndSortEmployeesUseCaseProvider);
 
-    // Sort employees based on selected option and direction
-    switch (sortOption) {
-      case 'name':
-        filtered.sort((a, b) {
-          final comparison = a.fullName.compareTo(b.fullName);
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-      case 'salary':
-        filtered.sort((a, b) {
-          final comparison = a.salaryAmount.compareTo(b.salaryAmount);
-          // For salary, default to high-to-low (descending)
-          return sortAscending ? -comparison : comparison;
-        });
-        break;
-      case 'role':
-        filtered.sort((a, b) {
-          final aRole = a.roleName;
-          final bRole = b.roleName;
-          final comparison = aRole.compareTo(bRole);
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-      case 'recent':
-        filtered.sort((a, b) {
-          final comparison = (a.updatedAt ?? DateTime.now()).compareTo(b.updatedAt ?? DateTime.now());
-          // For recent, default to newest first (descending)
-          return sortAscending ? comparison : -comparison;
-        });
-        break;
-    }
+  List<EmployeeSalary> processEmployees(List<EmployeeSalary> employees) {
+    // Convert string sort option to enum
+    final sortOptionEnum = _convertToSortOption(sortOption);
+    final sortDirectionEnum = sortAscending
+        ? SortDirection.ascending
+        : SortDirection.descending;
 
-    return filtered;
+    // ✅ Delegate to UseCase - Clean Architecture compliance
+    return searchAndSortUseCase.execute(
+      SearchAndSortParams(
+        employees: employees,
+        searchQuery: searchQuery,
+        sortOption: sortOptionEnum,
+        sortDirection: sortDirectionEnum,
+      ),
+    );
   }
 
   // Use mutable list if available, otherwise use the async provider
   if (mutableEmployees != null) {
-    return AsyncData(_processEmployees(mutableEmployees));
+    return AsyncData(processEmployees(mutableEmployees));
   }
 
   return employeesAsync.when(
@@ -188,7 +131,7 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
         ref.read(mutableEmployeeListProvider.notifier).state = employees;
       });
 
-      return AsyncData(_processEmployees(employees));
+      return AsyncData(processEmployees(employees));
     },
     loading: () => const AsyncLoading(),
     error: (error, stack) => AsyncError(error, stack),
@@ -243,11 +186,11 @@ final rolesProvider = FutureProvider.autoDispose<List<Role>>((ref) async {
 
 /// Employee State Provider - 메인 직원 상태 관리
 ///
-/// ✅ This is the new standard pattern using Freezed State + StateNotifier
-/// Use this provider for new code instead of individual StateProviders above
+/// ✅ Hybrid pattern: UseCase for complex operations, Repository for simple CRUD
 final employeeProvider = StateNotifierProvider<EmployeeNotifier, EmployeeState>((ref) {
   return EmployeeNotifier(
     repository: ref.read(employeeRepositoryProvider),
+    updateSalaryUseCase: ref.read(updateEmployeeSalaryUseCaseProvider),
   );
 });
 
@@ -260,4 +203,20 @@ Future<void> refreshEmployees(WidgetRef ref) async {
   ref.invalidate(employeeSalaryListProvider);
   ref.invalidate(currencyTypesProvider);
   ref.invalidate(rolesProvider);
+}
+
+/// Convert string sort option to enum
+EmployeeSortOption _convertToSortOption(String? sortOption) {
+  switch (sortOption) {
+    case 'name':
+      return EmployeeSortOption.name;
+    case 'salary':
+      return EmployeeSortOption.salary;
+    case 'role':
+      return EmployeeSortOption.role;
+    case 'recent':
+      return EmployeeSortOption.recent;
+    default:
+      return EmployeeSortOption.name;
+  }
 }

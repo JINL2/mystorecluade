@@ -62,7 +62,7 @@ class DeepWidgetAnalyzer {
     final pageFiles = dir.listSync(recursive: true)
         .whereType<File>()
         .where((file) => file.path.endsWith('_page.dart') || 
-                        file.path.endsWith('_screen.dart'))
+                        file.path.endsWith('_screen.dart'),)
         .toList();
     
     print('  Found ${pageFiles.length} page files to analyze');
@@ -140,7 +140,7 @@ class DeepWidgetAnalyzer {
           properties: {},
           children: [],
           depth: depth + 1,
-        ));
+        ),);
       }
     }
     
@@ -225,7 +225,7 @@ class DeepWidgetAnalyzer {
       case 'Container+BoxDecoration':
         signature.properties = {
           'decoration', 'padding', 'margin', 'color', 'width', 'height',
-          'alignment', 'constraints', 'transform', 'child'
+          'alignment', 'constraints', 'transform', 'child',
         };
         signature.hasChild = true;
         signature.isLayout = true;
@@ -236,7 +236,7 @@ class DeepWidgetAnalyzer {
       case 'TossWhiteCard':
         signature.properties = {
           'child', 'padding', 'margin', 'color', 'elevation',
-          'borderRadius', 'onTap'
+          'borderRadius', 'onTap',
         };
         signature.hasChild = true;
         signature.isLayout = true;
@@ -246,7 +246,7 @@ class DeepWidgetAnalyzer {
         
       case 'Card':
         signature.properties = {
-          'child', 'color', 'elevation', 'margin', 'shape', 'borderOnForeground'
+          'child', 'color', 'elevation', 'margin', 'shape', 'borderOnForeground',
         };
         signature.hasChild = true;
         signature.isLayout = true;
@@ -256,7 +256,7 @@ class DeepWidgetAnalyzer {
       case 'ElevatedButton':
       case 'TossPrimaryButton':
         signature.properties = {
-          'onPressed', 'child', 'style', 'onLongPress', 'autofocus'
+          'onPressed', 'child', 'style', 'onLongPress', 'autofocus',
         };
         signature.hasChild = true;
         signature.hasTapHandler = true;
@@ -266,7 +266,7 @@ class DeepWidgetAnalyzer {
       case 'TextButton':
       case 'TossSecondaryButton':
         signature.properties = {
-          'onPressed', 'child', 'style', 'onLongPress', 'autofocus'
+          'onPressed', 'child', 'style', 'onLongPress', 'autofocus',
         };
         signature.hasChild = true;
         signature.hasTapHandler = true;
@@ -276,7 +276,7 @@ class DeepWidgetAnalyzer {
       case 'IconButton':
       case 'TossIconButton':
         signature.properties = {
-          'onPressed', 'icon', 'iconSize', 'color', 'padding', 'tooltip'
+          'onPressed', 'icon', 'iconSize', 'color', 'padding', 'tooltip',
         };
         signature.hasTapHandler = true;
         signature.isInteractive = true;
@@ -286,7 +286,7 @@ class DeepWidgetAnalyzer {
       case 'TossBottomSheet':
         signature.properties = {
           'context', 'builder', 'isScrollControlled', 'backgroundColor',
-          'elevation', 'shape', 'isDismissible'
+          'elevation', 'shape', 'isDismissible',
         };
         signature.isModal = true;
         signature.hasBuilder = true;
@@ -296,7 +296,7 @@ class DeepWidgetAnalyzer {
       case 'TossListTile':
         signature.properties = {
           'title', 'subtitle', 'leading', 'trailing', 'onTap',
-          'dense', 'contentPadding', 'enabled'
+          'dense', 'contentPadding', 'enabled',
         };
         signature.hasTapHandler = true;
         signature.isInteractive = true;
@@ -351,7 +351,7 @@ class DeepWidgetAnalyzer {
     final files = dir.listSync(recursive: true)
         .whereType<File>()
         .where((file) => file.path.endsWith('.dart') && 
-                        !file.path.contains('.g.dart'))
+                        !file.path.contains('.g.dart'),)
         .toList();
     
     // Sample files for context analysis
@@ -385,7 +385,7 @@ class DeepWidgetAnalyzer {
         hasState: context.contains('setState') || context.contains('State<'),
         isInList: context.contains('ListView') || context.contains('Column'),
         isInDialog: context.contains('Dialog') || context.contains('showDialog'),
-      ));
+      ),);
     }
     
     // Analyze Card usage
@@ -403,7 +403,7 @@ class DeepWidgetAnalyzer {
         hasState: context.contains('setState') || context.contains('State<'),
         isInList: context.contains('ListView') || context.contains('Column'),
         isInDialog: context.contains('Dialog') || context.contains('showDialog'),
-      ));
+      ),);
     }
   }
   
@@ -497,7 +497,7 @@ class DeepWidgetAnalyzer {
   }
   
   void _generateDeepReport() {
-    print('\n' + '=' * 80);
+    print('\n${'=' * 80}');
     print('🔬 DEEP WIDGET ANALYSIS REPORT');
     print('=' * 80);
     
@@ -622,7 +622,7 @@ class DeepWidgetAnalyzer {
     print('4. TEST each replacement in isolation before bulk changes');
     print('5. MONITOR performance metrics after each phase');
     
-    print('\n' + '=' * 80);
+    print('\n${'=' * 80}');
     print('Deep Analysis Complete!');
   }
   
@@ -727,6 +727,6 @@ enum RiskLevel {
 void main() async {
   final analyzer = DeepWidgetAnalyzer();
   await analyzer.performDeepAnalysis(
-    '/Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1'
+    '/Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1',
   );
 }

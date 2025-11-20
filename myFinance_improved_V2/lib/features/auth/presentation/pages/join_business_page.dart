@@ -1,28 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 // Core - Theme System
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-
-// Presentation - Providers
-import '../providers/repository_providers.dart';
-import '../../../../app/providers/app_state_provider.dart';
-
 // Domain Layer
-import '../../domain/usecases/join_company_usecase.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
-
-// Homepage Data Source (for filtering helper)
-import '../../../homepage/data/datasources/homepage_data_source.dart';
-
-// Navigation
+// Presentation - Providers
+import '../providers/current_user_provider.dart';
+import '../providers/usecase_providers.dart';
 
 /// Join Business Page - Clean Architecture Version
 ///
@@ -81,7 +73,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -110,8 +102,8 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
 
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: const BoxDecoration(
         color: TossColors.white,
         border: Border(
           bottom: BorderSide(
@@ -123,33 +115,11 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: TossColors.gray900),
+            icon: const Icon(Icons.arrow_back, color: TossColors.gray900),
             onPressed: () {
               // Safe navigation back - go to choose-role instead of pop
               context.go('/onboarding/choose-role');
             },
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
           ),
         ],
       ),
@@ -163,12 +133,12 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         Row(
           children: [
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: TossColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.group_add,
                 size: 32,
                 color: TossColors.success,
@@ -215,14 +185,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (_isCodeValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -245,29 +207,29 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
             ),
             filled: true,
             fillColor: TossColors.gray50,
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,
               vertical: TossSpacing.space3,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.primary, width: 2),
+              borderSide: const BorderSide(color: TossColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.error),
+              borderSide: const BorderSide(color: TossColors.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.error, width: 2),
+              borderSide: const BorderSide(color: TossColors.error, width: 2),
             ),
           ),
           validator: (value) {
@@ -294,13 +256,13 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: canJoin ? TossColors.success : TossColors.gray300,
           foregroundColor: TossColors.white,
-          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
         ),
         child: _isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
@@ -311,7 +273,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.group_add, size: 18),
+                  const Icon(Icons.group_add, size: 18),
                   const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Join Business',
@@ -331,9 +293,9 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       children: [
         Row(
           children: [
-            Expanded(child: Divider(color: TossColors.border)),
+            const Expanded(child: Divider(color: TossColors.border)),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
               child: Text(
                 'or',
                 style: TossTextStyles.caption.copyWith(
@@ -341,7 +303,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
                 ),
               ),
             ),
-            Expanded(child: Divider(color: TossColors.border)),
+            const Expanded(child: Divider(color: TossColors.border)),
           ],
         ),
         const SizedBox(height: TossSpacing.space3),
@@ -361,7 +323,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
 
   Widget _buildHelpSection() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -370,22 +332,12 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.help_outline,
-                size: 20,
-                color: TossColors.primary,
-              ),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                'Need help?',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          Text(
+            'Need help?',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: TossSpacing.space2),
           Text(
@@ -412,65 +364,51 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
     });
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
       if (userId == null) {
-        throw Exception('Not authenticated');
+        throw const AuthException('Not authenticated');
       }
 
-      // Get repository
-      final companyRepository = ref.read(companyRepositoryProvider);
-
-      // Create UseCase
-      final joinCompanyUseCase = JoinCompanyUseCase(
-        companyRepository: companyRepository,
-      );
-
-      // Execute UseCase
+      // ✅ Use JoinCompanyUseCase provider
+      final joinCompanyUseCase = ref.read(joinCompanyUseCaseProvider);
       final company = await joinCompanyUseCase.execute(
         companyCode: _codeController.text.trim(),
         userId: userId,
       );
 
-      // Reload user data with new company
-      final supabase = Supabase.instance.client;
-      final userResponse = await supabase.rpc(
-        'get_user_companies_and_stores',
-        params: {'p_user_id': userId},
+      // ✅ Use GetUserDataUseCase instead of direct RPC call
+      final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
+      final filteredResponse = await getUserDataUseCase.execute(userId);
+
+      // Update app state
+      ref.read(appStateProvider.notifier).updateUser(
+        user: filteredResponse,
+        isAuthenticated: true,
       );
 
-      if (userResponse is Map<String, dynamic>) {
-        // ✅ Filter out deleted companies and stores
-        final filteredResponse = HomepageDataSource.filterDeletedCompaniesAndStores(userResponse);
+      // ✅ Auto-select the newly joined company
+      final companies = filteredResponse['companies'] as List?;
+      if (companies != null && companies.isNotEmpty) {
+        final firstCompany = companies.first as Map<String, dynamic>;
+        final companyId = firstCompany['company_id'] as String;
+        final companyName = firstCompany['company_name'] as String;
 
-        ref.read(appStateProvider.notifier).updateUser(
-          user: filteredResponse,
-          isAuthenticated: true,
+        ref.read(appStateProvider.notifier).selectCompany(
+          companyId,
+          companyName: companyName,
         );
 
-        // ✅ Auto-select the newly joined company
-        final companies = filteredResponse['companies'] as List?;
-        if (companies != null && companies.isNotEmpty) {
-          final firstCompany = companies.first as Map<String, dynamic>;
-          final companyId = firstCompany['company_id'] as String;
-          final companyName = firstCompany['company_name'] as String;
+        // Auto-select first store if available
+        final stores = firstCompany['stores'] as List?;
+        if (stores != null && stores.isNotEmpty) {
+          final firstStore = stores.first as Map<String, dynamic>;
+          final storeId = firstStore['store_id'] as String;
+          final storeName = firstStore['store_name'] as String;
 
-          ref.read(appStateProvider.notifier).selectCompany(
-            companyId,
-            companyName: companyName,
+          ref.read(appStateProvider.notifier).selectStore(
+            storeId,
+            storeName: storeName,
           );
-
-          // Auto-select first store if available
-          final stores = firstCompany['stores'] as List?;
-          if (stores != null && stores.isNotEmpty) {
-            final firstStore = stores.first as Map<String, dynamic>;
-            final storeId = firstStore['store_id'] as String;
-            final storeName = firstStore['store_name'] as String;
-
-            ref.read(appStateProvider.notifier).selectStore(
-              storeId,
-              storeName: storeName,
-            );
-          }
         }
       }
 
@@ -516,17 +454,17 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.check_circle, color: TossColors.success, size: 28),
-            const SizedBox(width: TossSpacing.space2),
-            const Text('Success!'),
+            SizedBox(width: TossSpacing.space2),
+            Text('Success!'),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'You have successfully joined',
               textAlign: TextAlign.center,
             ),
@@ -549,7 +487,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.primary,
                 foregroundColor: TossColors.white,
-                padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               ),
               child: const Text('Go to Dashboard'),
             ),
@@ -564,7 +502,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: TossColors.white, size: 20),
+            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
             const SizedBox(width: TossSpacing.space2),
             Expanded(child: Text(message)),
           ],

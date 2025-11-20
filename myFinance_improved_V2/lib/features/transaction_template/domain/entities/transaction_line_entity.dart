@@ -169,7 +169,7 @@ class TransactionLine extends Equatable {
         if (counterpartyId != null) {
           finalDebt = DebtConfig(
             counterpartyId: counterpartyId,
-            direction: categoryTag!,
+            direction: categoryTag,
             category: DebtCategoryMapper.defaultCategory,  // ✅ 기본값 'account' 사용
             issueDate: entryDate,  // ✅ entry_date를 issue_date로 사용
             dueDate: null,         // Template에 없으면 null

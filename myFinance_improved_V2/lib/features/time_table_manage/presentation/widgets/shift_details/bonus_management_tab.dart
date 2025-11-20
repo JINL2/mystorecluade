@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/utils/input_formatters.dart';
@@ -9,11 +10,12 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../providers/time_table_providers.dart';
 import 'bonus_confirmation_dialog.dart';
 
 class BonusManagementTab extends ConsumerStatefulWidget {
-  final Map<String, dynamic> card;
+  final ShiftCard card;
 
   const BonusManagementTab({
     super.key,
@@ -49,16 +51,10 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
 
   Future<void> _showBonusConfirmationDialog() async {
     // Get current bonus from card
-    final dynamic rawBonusAmount = widget.card['bonus_amount'];
-    final num currentBonus = (rawBonusAmount is String
-        ? num.tryParse(rawBonusAmount) ?? 0
-        : rawBonusAmount ?? 0) as num;
+    final num currentBonus = widget.card.bonusAmount ?? 0;
 
-    // Get base pay
-    final dynamic rawBasePay = widget.card['base_pay'] ?? '0';
-    final num basePay = (rawBasePay is String
-        ? num.tryParse(rawBasePay.replaceAll(',', '')) ?? 0
-        : rawBasePay ?? 0) as num;
+    // Get base pay (paidHour * hourly wage)
+    final num basePay = widget.card.paidHour * (widget.card.employee.hourlyWage ?? 0);
 
     // Get typed bonus (remove commas for parsing)
     String cleanInput = bonusInputText.replaceAll(',', '');
@@ -95,11 +91,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       );
 
       // Get shift request ID from the card
-      final shiftRequestId = widget.card['shift_request_id'] as String?;
-
-      if (shiftRequestId == null) {
-        throw Exception('Shift request ID not found');
-      }
+      final shiftRequestId = widget.card.shiftRequestId;
 
       // Use repository instead of direct Supabase call
       await ref.read(timeTableRepositoryProvider).updateBonusAmount(
@@ -109,7 +101,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
 
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Update the card in parent's state by returning the new bonus amount
@@ -120,7 +112,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
     } catch (e) {
       // Close loading dialog if open
       if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Show error message
@@ -141,19 +133,86 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
   @override
   Widget build(BuildContext context) {
     // Extract salary information from card data
-    final String salaryType = (widget.card['salary_type'] ?? 'hourly') as String;
-    final String salaryAmountStr = (widget.card['salary_amount'] ?? '0') as String;
-    final dynamic rawBasePay = widget.card['base_pay'] ?? '0';
-    final dynamic rawBonusAmount = widget.card['bonus_amount'];
+    final String salaryType = widget.card.salaryType ?? 'hourly';
+    final String salaryAmountStr = widget.card.salaryAmount ?? '0';
+    final num bonusAmount = widget.card.bonusAmount ?? 0;
 
-    // Parse numeric values
+    // Parse salary amount
     final num salaryAmount = num.tryParse(salaryAmountStr.replaceAll(',', '')) ?? 0;
-    final num basePay = (rawBasePay is String
-        ? num.tryParse(rawBasePay.replaceAll(',', '')) ?? 0
-        : rawBasePay ?? 0) as num;
-    final num bonusAmount = (rawBonusAmount is String
-        ? num.tryParse(rawBonusAmount) ?? 0
-        : rawBonusAmount ?? 0) as num;
+
+    // Calculate paid hours and base pay
+    num paidHours = 0;
+    num basePay = 0;
+
+    if (salaryType == 'hourly') {
+      // Get time data - prefer confirm times, fallback to actual times
+      final String? confirmStartStr = widget.card.confirmedStartTime?.toIso8601String();
+      final String? confirmEndStr = widget.card.confirmedEndTime?.toIso8601String();
+      final String? actualStartStr = widget.card.actualStartTime?.toIso8601String();
+      final String? actualEndStr = widget.card.actualEndTime?.toIso8601String();
+      final String requestDate = widget.card.requestDate;
+
+      String? startTimeStr;
+      String? endTimeStr;
+
+      // Priority: confirm times > actual times
+      if (confirmStartStr != null && confirmStartStr.isNotEmpty && confirmStartStr != '--:--') {
+        startTimeStr = confirmStartStr;
+      } else if (actualStartStr != null && actualStartStr.isNotEmpty) {
+        startTimeStr = actualStartStr;
+      }
+
+      if (confirmEndStr != null && confirmEndStr.isNotEmpty && confirmEndStr != '--:--') {
+        endTimeStr = confirmEndStr;
+      } else if (actualEndStr != null && actualEndStr.isNotEmpty) {
+        endTimeStr = actualEndStr;
+      }
+
+      // Calculate hours if both start and end times are available
+      if (startTimeStr != null && endTimeStr != null && requestDate.isNotEmpty) {
+        try {
+          DateTime? startLocal;
+          DateTime? endLocal;
+
+          // Check if the time string is already a full timestamp or just time
+          if (startTimeStr.contains('T') || startTimeStr.contains(' ')) {
+            // Already a full timestamp (e.g., "2025-10-30T16:00:00.000")
+            startLocal = DateTime.parse(startTimeStr);
+            endLocal = DateTime.parse(endTimeStr);
+          } else {
+            // Just time (HH:mm or HH:mm:ss), need to add date
+            final startParts = startTimeStr.split(':');
+            final endParts = endTimeStr.split(':');
+
+            if (startParts.length >= 2 && endParts.length >= 2) {
+              // Create UTC DateTime and convert to local
+              final startUtc = DateTime.parse('${requestDate}T${startTimeStr.length == 5 ? '$startTimeStr:00' : startTimeStr}Z');
+              final endUtc = DateTime.parse('${requestDate}T${endTimeStr.length == 5 ? '$endTimeStr:00' : endTimeStr}Z');
+
+              startLocal = startUtc.toLocal();
+              endLocal = endUtc.toLocal();
+            } else {
+              startLocal = null;
+              endLocal = null;
+            }
+          }
+
+          if (startLocal != null && endLocal != null) {
+            // Calculate duration in hours
+            final duration = endLocal.difference(startLocal);
+            paidHours = duration.inMinutes / 60.0;
+
+            // Calculate base pay
+            basePay = salaryAmount * paidHours;
+          }
+        } catch (e) {
+          // Silently handle error - paidHours and basePay remain 0
+        }
+      }
+    } else if (salaryType == 'monthly') {
+      // For monthly salary, base pay is the monthly amount
+      basePay = salaryAmount;
+    }
 
     // Helper function to format salary type display
     String getSalaryTypeDisplay() {
@@ -217,52 +276,85 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
                       width: 1,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            getSalaryTypeDisplay(),
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                getSalaryTypeDisplay(),
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: TossSpacing.space1),
+                              Text(
+                                salaryAmount > 0
+                                    ? NumberFormat('#,###').format(salaryAmount.toInt())
+                                    : '0',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: TossSpacing.space1),
-                          Text(
-                            salaryAmount > 0
-                                ? NumberFormat('#,###').format(salaryAmount.toInt())
-                                : '0',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray900,
-                              fontWeight: FontWeight.w700,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space3,
+                              vertical: TossSpacing.space2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: salaryType == 'hourly'
+                                  ? TossColors.primary.withValues(alpha: 0.1)
+                                  : TossColors.success.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            ),
+                            child: Text(
+                              salaryType == 'hourly' ? 'Per Hour' : 'Per Month',
+                              style: TossTextStyles.caption.copyWith(
+                                color: salaryType == 'hourly'
+                                    ? TossColors.primary
+                                    : TossColors.success,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space3,
-                          vertical: TossSpacing.space2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: salaryType == 'hourly'
-                              ? TossColors.primary.withValues(alpha: 0.1)
-                              : TossColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        ),
-                        child: Text(
-                          salaryType == 'hourly' ? 'Per Hour' : 'Per Month',
-                          style: TossTextStyles.caption.copyWith(
-                            color: salaryType == 'hourly'
-                                ? TossColors.primary
-                                : TossColors.success,
-                            fontWeight: FontWeight.w600,
+                      // Show worked hours for hourly employees
+                      if (salaryType == 'hourly' && paidHours > 0) ...[
+                        const SizedBox(height: TossSpacing.space2),
+                        Container(
+                          padding: const EdgeInsets.all(TossSpacing.space2),
+                          decoration: BoxDecoration(
+                            color: TossColors.white,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: TossColors.gray600,
+                              ),
+                              const SizedBox(width: TossSpacing.space1),
+                              Text(
+                                'Worked: ${paidHours.toStringAsFixed(1)} hours',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

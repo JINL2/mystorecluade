@@ -1,5 +1,6 @@
 // Data Layer - Vault Real Models (DTOs) with Mappers
 
+import '../../domain/entities/bank_real_entry.dart' as bank_domain;
 import '../../domain/entities/vault_real_entry.dart' as domain;
 
 /// Vault Real Entry Model - DTO
@@ -79,8 +80,8 @@ class VaultCurrencySummaryModel {
     );
   }
 
-  domain.CurrencySummary toEntity() {
-    return domain.CurrencySummary(
+  bank_domain.CurrencySummary toEntity() {
+    return bank_domain.CurrencySummary(
       currencyId: currencyId,
       currencyCode: currencyCode,
       currencyName: currencyName,
@@ -114,10 +115,10 @@ class VaultDenominationModel {
     );
   }
 
-  domain.Denomination toEntity() {
+  bank_domain.Denomination toEntity() {
     // Map vault denomination to domain denomination
     // Vault has different structure, so we adapt it
-    return domain.Denomination(
+    return bank_domain.Denomination(
       denominationId: '', // Vault doesn't have ID
       denominationType: 'vault',
       denominationValue: denominationValue,

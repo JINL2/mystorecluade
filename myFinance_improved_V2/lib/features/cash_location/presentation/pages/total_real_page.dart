@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -10,7 +11,8 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
+
+import '../../domain/entities/bank_real_entry.dart' as bank;
 import '../../domain/entities/cash_real_entry.dart' as cash;
 import '../providers/cash_location_providers.dart';
 
@@ -70,14 +72,14 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     final storeId = appState.storeChoosen;
     
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
-      final newEntries = await repository.getCashReal(
+      final useCase = ref.read(getCashRealUseCaseProvider);
+      final newEntries = await useCase(CashRealParams(
         companyId: companyId,
         storeId: storeId,
         locationType: widget.locationType,
         offset: _currentOffset + _limit,
         limit: _limit,
-      );
+      ));
       
       setState(() {
         if (newEntries.isEmpty || newEntries.length < _limit) {
@@ -105,7 +107,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
         locationName: entry.locationName,
         amount: entry.totalAmount,
         realEntry: entry,
-      ));
+      ),);
     }
     
     return displayItems;
@@ -138,9 +140,9 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray50,
-        body: const Center(
+        body: Center(
           child: Text('Please select a company and store first'),
         ),
       );
@@ -154,7 +156,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
@@ -169,7 +171,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
             // Content - Cash Real List fills remaining space
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space4,
                   TossSpacing.space4,
                   TossSpacing.space4,
@@ -218,7 +220,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                                 offset: 0,
                                 limit: _limit,
                               ),
-                            ));
+                            ),);
                           },
                           child: const Text('Retry'),
                         ),
@@ -311,12 +313,12 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
   }
   
   Widget _buildLoadMoreMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Center(
         child: Text(
           'Scroll to load more',
@@ -331,7 +333,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
   
   Widget _buildListHeader() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: TossSpacing.space5,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
@@ -349,7 +351,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                 fontSize: 14,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: TossColors.gray600,
@@ -362,9 +364,9 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
   
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Center(
-        child: const TossLoadingView(),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: const Center(
+        child: TossLoadingView(),
       ),
     );
   }
@@ -374,7 +376,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
       onTap: () => _showDenominationDetailBottomSheet(item),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
         ),
@@ -383,7 +385,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
             // Date section
             Container(
               width: 42,
-              padding: EdgeInsets.only(left: TossSpacing.space1),
+              padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
                       _formatDate(item.date),
@@ -396,7 +398,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                   : const SizedBox.shrink(),
             ),
             
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             
             // Real details
             Expanded(
@@ -411,7 +413,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                       color: TossColors.gray800,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Flexible(
@@ -454,7 +456,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               ),
             ),
             
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             
             // Amount
             Text(
@@ -567,7 +569,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -589,7 +591,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               
               // Filter options
               ..._getFilterOptions().map((option) => 
-                _buildFilterOption(option, _selectedFilter == option)
+                _buildFilterOption(option, _selectedFilter == option),
               ),
               
               // Bottom safe area
@@ -706,13 +708,13 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
-                    'Cash Count Details',
+                    'Cash Count Details ^^',
                     style: TossTextStyles.h2.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -793,12 +795,12 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space3),
-                    
-                    ...realEntry.currencySummary.expand((currency) => 
-                      currency.denominations
-                        .where((d) => d.quantity > 0) // Only show denominations with quantity
-                        .map((denomination) => _buildDenominationItem(denomination, currency.symbol))
-                    ),
+
+                    ...realEntry.currencySummary.expand((currency) {
+                      return currency.denominations
+                        .where((d) => d.quantity > 0)
+                        .map((denomination) => _buildDenominationItem(denomination, currency.symbol));
+                    }),
                   ],
                   
                   // Bottom padding
@@ -845,7 +847,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
     );
   }
   
-  Widget _buildDenominationItem(cash.Denomination denomination, String symbol) {
+  Widget _buildDenominationItem(bank.Denomination denomination, String symbol) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(TossSpacing.space3),

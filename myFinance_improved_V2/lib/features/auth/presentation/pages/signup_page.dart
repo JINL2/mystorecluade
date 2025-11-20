@@ -1,24 +1,17 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Core - Theme System
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
-
-// Presentation - Providers
-import '../providers/auth_service.dart';
-
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
 // Domain Layer - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
+// Presentation - Providers
+import '../providers/auth_service.dart';
 
 /// Signup Page - Clean Architecture Version
 ///
@@ -33,7 +26,6 @@ import '../../domain/exceptions/validation_exception.dart';
 /// - Terms of Service agreement checkbox
 /// - Real-time validation with check icons
 /// - Fade + slide animations
-/// - Trust indicators (SSL, GDPR, Secure)
 ///
 /// Architecture:
 /// - Uses authServiceProvider (Clean Architecture)
@@ -83,6 +75,13 @@ class _SignupPageState extends ConsumerState<SignupPage>
   bool _isLastNameValid = false;
   int _passwordStrength = 0;
 
+  // Touch State - track if field has been interacted with
+  bool _emailTouched = false;
+  bool _passwordTouched = false;
+  bool _confirmPasswordTouched = false;
+  bool _firstNameTouched = false;
+  bool _lastNameTouched = false;
+
   @override
   void initState() {
     super.initState();
@@ -99,7 +98,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -107,7 +106,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     // Add validation listeners
     _emailController.addListener(_validateEmail);
@@ -115,6 +114,33 @@ class _SignupPageState extends ConsumerState<SignupPage>
     _confirmPasswordController.addListener(_validatePasswordMatch);
     _firstNameController.addListener(_validateFirstName);
     _lastNameController.addListener(_validateLastName);
+
+    // Add focus listeners to mark fields as touched when they lose focus
+    _emailFocusNode.addListener(() {
+      if (!_emailFocusNode.hasFocus && !_emailTouched) {
+        setState(() => _emailTouched = true);
+      }
+    });
+    _passwordFocusNode.addListener(() {
+      if (!_passwordFocusNode.hasFocus && !_passwordTouched) {
+        setState(() => _passwordTouched = true);
+      }
+    });
+    _confirmPasswordFocusNode.addListener(() {
+      if (!_confirmPasswordFocusNode.hasFocus && !_confirmPasswordTouched) {
+        setState(() => _confirmPasswordTouched = true);
+      }
+    });
+    _firstNameFocusNode.addListener(() {
+      if (!_firstNameFocusNode.hasFocus && !_firstNameTouched) {
+        setState(() => _firstNameTouched = true);
+      }
+    });
+    _lastNameFocusNode.addListener(() {
+      if (!_lastNameFocusNode.hasFocus && !_lastNameTouched) {
+        setState(() => _lastNameTouched = true);
+      }
+    });
 
     // Start animation
     _animationController.forward();
@@ -163,7 +189,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
   void _validateFirstName() {
     final firstName = _firstNameController.text.trim();
-    final isValid = firstName.length >= AuthConstants.nameMinLength;
+    final isValid = firstName.isNotEmpty;
     if (isValid != _isFirstNameValid) {
       setState(() {
         _isFirstNameValid = isValid;
@@ -173,7 +199,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
   void _validateLastName() {
     final lastName = _lastNameController.text.trim();
-    final isValid = lastName.length >= AuthConstants.nameMinLength;
+    final isValid = lastName.isNotEmpty;
     if (isValid != _isLastNameValid) {
       setState(() {
         _isLastNameValid = isValid;
@@ -214,9 +240,10 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: FadeTransition(
@@ -224,7 +251,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: TossSpacing.space4),
+                          const SizedBox(height: TossSpacing.space2),
 
                           _buildWelcomeSection(),
 
@@ -260,10 +287,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
                           const SizedBox(height: TossSpacing.space4),
 
                           _buildSignInLink(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildTrustIndicators(),
                         ],
                       ),
                     ),
@@ -279,42 +302,45 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
   // Temporary StorebaseAuthHeader implementation
   Widget _buildAuthHeader() {
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.border,
-            width: 1,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: TossSpacing.space4,
+              top: TossSpacing.space3,
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: TossColors.textPrimary,
+                size: 20,
+              ),
+              onPressed: () {
+                context.go('/auth/login');
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
+        Padding(
+          padding: const EdgeInsets.only(
+            left: TossSpacing.space5,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/app icon.png',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -332,7 +358,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Text(
-          'Join thousands of businesses using Storebase',
+          'Smart business start here',
           style: TossTextStyles.body.copyWith(
             color: TossColors.textSecondary,
             fontSize: AuthConstants.textSizeBodyLarge,
@@ -371,25 +397,18 @@ class _SignupPageState extends ConsumerState<SignupPage>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (_isFirstNameValid) ...[
-                        const SizedBox(width: TossSpacing.space1),
-                        Icon(
-                          Icons.check_circle,
-                          size: AuthConstants.iconSizeTiny,
-                          color: TossColors.success,
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  _buildTextField(
+                  TossTextField(
                     controller: _firstNameController,
                     focusNode: _firstNameFocusNode,
                     hintText: AuthConstants.placeholderFirstName,
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted: (_) => _lastNameFocusNode.requestFocus(),
                     validator: (value) {
-                      if (value == null || value.trim().length < 2) {
+                      if (!_firstNameTouched) return null;
+                      if (value == null || value.trim().isEmpty) {
                         return 'Required';
                       }
                       return null;
@@ -413,25 +432,18 @@ class _SignupPageState extends ConsumerState<SignupPage>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (_isLastNameValid) ...[
-                        const SizedBox(width: TossSpacing.space1),
-                        Icon(
-                          Icons.check_circle,
-                          size: AuthConstants.iconSizeTiny,
-                          color: TossColors.success,
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  _buildTextField(
+                  TossTextField(
                     controller: _lastNameController,
                     focusNode: _lastNameFocusNode,
                     hintText: AuthConstants.placeholderLastName,
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                     validator: (value) {
-                      if (value == null || value.trim().length < 2) {
+                      if (!_lastNameTouched) return null;
+                      if (value == null || value.trim().isEmpty) {
                         return 'Required';
                       }
                       return null;
@@ -459,18 +471,10 @@ class _SignupPageState extends ConsumerState<SignupPage>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (_isEmailValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _emailController,
           focusNode: _emailFocusNode,
           hintText: AuthConstants.placeholderEmail,
@@ -478,6 +482,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
           validator: (value) {
+            if (!_emailTouched) return null;
             if (value == null || value.isEmpty) {
               return AuthConstants.errorEmailRequired;
             }
@@ -504,21 +509,13 @@ class _SignupPageState extends ConsumerState<SignupPage>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (_isPasswordValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _passwordController,
           focusNode: _passwordFocusNode,
-          hintText: AuthConstants.placeholderPassword,
+          hintText: 'Create a password',
           obscureText: !_isPasswordVisible,
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => _confirmPasswordFocusNode.requestFocus(),
@@ -535,6 +532,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
             },
           ),
           validator: (value) {
+            if (!_passwordTouched) return null;
             if (value == null || value.isEmpty) {
               return AuthConstants.errorPasswordRequired;
             }
@@ -561,18 +559,10 @@ class _SignupPageState extends ConsumerState<SignupPage>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (_isPasswordMatch) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _confirmPasswordController,
           focusNode: _confirmPasswordFocusNode,
           hintText: AuthConstants.placeholderConfirmPassword,
@@ -591,6 +581,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
             },
           ),
           validator: (value) {
+            if (!_confirmPasswordTouched) return null;
             if (value == null || value.isEmpty) {
               return AuthConstants.errorPasswordRequired;
             }
@@ -738,13 +729,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
       text: _isLoading ? 'Creating account...' : 'Create account',
       onPressed: _isLoading || !canSignup ? null : _handleSignup,
       isLoading: _isLoading,
-      icon: _isLoading
-          ? null
-          : Icon(
-              Icons.person_add,
-              size: 18,
-              color: TossColors.white,
-            ),
+      icon: null,
     );
   }
 
@@ -764,10 +749,8 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
             _animationController.stop();
 
-            // Direct navigation back - bypasses router issues
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
+            // Navigate back to login using GoRouter
+            context.go('/auth/login');
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -786,59 +769,20 @@ class _SignupPageState extends ConsumerState<SignupPage>
     );
   }
 
-  Widget _buildTrustIndicators() {
-    return Center(
-      child: Wrap(
-        spacing: TossSpacing.space3,
-        children: [
-          _buildTrustBadge(Icons.security, '256-bit SSL'),
-          _buildTrustBadge(Icons.privacy_tip, 'GDPR Compliant'),
-          _buildTrustBadge(Icons.verified_user, 'Secure'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrustBadge(IconData icon, String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space1,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        border: Border.all(
-          color: TossColors.border,
-          width: 0.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 12,
-            color: TossColors.success,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ==========================================
   // Business Logic - Clean Architecture
   // ==========================================
 
   Future<void> _handleSignup() async {
+    // Mark all fields as touched when user tries to submit
+    setState(() {
+      _firstNameTouched = true;
+      _lastNameTouched = true;
+      _emailTouched = true;
+      _passwordTouched = true;
+      _confirmPasswordTouched = true;
+    });
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -861,11 +805,11 @@ class _SignupPageState extends ConsumerState<SignupPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
                 Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                const Text('Account created successfully!'),
+                SizedBox(width: TossSpacing.space2),
+                Text('Account created successfully!'),
               ],
             ),
             backgroundColor: TossColors.success,
@@ -897,7 +841,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -923,7 +867,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.email_outlined, color: TossColors.white, size: 20),
+                const Icon(Icons.email_outlined, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -949,7 +893,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.lock_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.lock_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -968,14 +912,14 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ),
         );
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       // Handle network errors
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.wifi_off, color: TossColors.white, size: 20),
+                const Icon(Icons.wifi_off, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -1001,7 +945,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -1027,7 +971,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -1058,65 +1002,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
   // ==========================================
   // Temporary Widget Implementations
   // ==========================================
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      obscureText: obscureText,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.textTertiary,
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: TossColors.gray50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
-    );
-  }
+  // ✅ _buildTextField removed - using TossTextField from shared/widgets
 
   Widget _buildPrimaryButton({
     required String text,
@@ -1137,13 +1023,13 @@ class _SignupPageState extends ConsumerState<SignupPage>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
           ),
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space5,
             vertical: TossSpacing.space3,
           ),
         ),
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(

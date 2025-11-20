@@ -1,30 +1,22 @@
 // lib/features/cash_location/domain/entities/currency_type.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'currency_type.freezed.dart';
+part 'currency_type.g.dart';
+
 /// Domain entity for currency types
-class CurrencyType {
-  final String? currencyId;
-  final String currencyCode;
-  final String currencyName;
-  final String symbol;
-  final int decimalPlaces;
-  final bool isActive;
+@freezed
+class CurrencyType with _$CurrencyType {
+  const factory CurrencyType({
+    String? currencyId,
+    required String currencyCode,
+    required String currencyName,
+    required String symbol,
+    @Default(2) int decimalPlaces,
+    @Default(true) bool isActive,
+  }) = _CurrencyType;
 
-  const CurrencyType({
-    this.currencyId,
-    required this.currencyCode,
-    required this.currencyName,
-    required this.symbol,
-    this.decimalPlaces = 2,
-    this.isActive = true,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CurrencyType &&
-          runtimeType == other.runtimeType &&
-          currencyId == other.currencyId;
-
-  @override
-  int get hashCode => currencyId.hashCode;
+  factory CurrencyType.fromJson(Map<String, dynamic> json) =>
+      _$CurrencyTypeFromJson(json);
 }

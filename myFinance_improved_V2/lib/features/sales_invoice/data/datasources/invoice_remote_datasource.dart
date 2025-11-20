@@ -28,7 +28,7 @@ class InvoiceRemoteDataSource {
         'p_search': filter.searchQuery,
         'p_start_date': dateRange.startDate != null ? DateTimeUtils.toUtc(dateRange.startDate!) : null,
         'p_end_date': dateRange.endDate != null ? DateTimeUtils.toUtc(dateRange.endDate!) : null,
-      });
+      },);
 
       return InvoicePageResponseModel.fromJson(response);
     } on PostgrestException catch (e) {

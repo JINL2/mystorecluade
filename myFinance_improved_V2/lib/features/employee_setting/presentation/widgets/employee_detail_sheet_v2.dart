@@ -13,8 +13,8 @@ import '../providers/employee_providers.dart';
 
 class EmployeeDetailSheetV2 extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
-  final Function(EmployeeSalary) onUpdate;
-  final Function(EmployeeSalary) onEditSalary;
+  final void Function(EmployeeSalary) onUpdate;
+  final void Function(EmployeeSalary) onEditSalary;
   final VoidCallback onManageRoles;
 
   const EmployeeDetailSheetV2({
@@ -56,7 +56,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
     ) ?? widget.employee;
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),
@@ -68,7 +68,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           Container(
             width: 40,
             height: 4,
-            margin: EdgeInsets.only(
+            margin: const EdgeInsets.only(
               top: TossSpacing.space3,
               bottom: TossSpacing.space4,
             ),
@@ -81,11 +81,11 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           // Header Section
           _buildHeader(employee),
           
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
           
           // Tab Bar
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               border: Border(
                 bottom: BorderSide(
                   color: TossColors.gray200,
@@ -101,7 +101,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
               indicatorWeight: 2,
               labelStyle: TossTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
               unselectedLabelStyle: TossTextStyles.bodySmall,
-              labelPadding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+              labelPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
               tabs: const [
                 Tab(text: 'Salary'),
                 Tab(text: 'Attendance'),
@@ -136,7 +136,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
   
   Widget _buildHeader(EmployeeSalary employee) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         children: [
           // Large Avatar
@@ -145,7 +145,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
             child: _buildAvatar(employee, size: 80),
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Name
           Text(
@@ -155,29 +155,26 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
             ),
           ),
           
-          SizedBox(height: TossSpacing.space2),
-          
-          
-          if (employee.roleName != null) ...[
-            SizedBox(height: TossSpacing.space1),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space1,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              child: Text(
-                employee.roleName!,
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w500,
-                ),
+          const SizedBox(height: TossSpacing.space2),
+
+          const SizedBox(height: TossSpacing.space1),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Text(
+              employee.roleName,
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -223,7 +220,7 @@ class _InfoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -241,7 +238,7 @@ class _InfoTab extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Employment Information Section
           _buildInfoCard(
@@ -264,7 +261,7 @@ class _InfoTab extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Bank Information Section (Only Bank Name and Bank Number as requested)
           _buildInfoCard(
@@ -309,10 +306,10 @@ class _InfoTab extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.lg),
                 topRight: Radius.circular(TossBorderRadius.lg),
               ),
@@ -326,7 +323,7 @@ class _InfoTab extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space2),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -337,7 +334,7 @@ class _InfoTab extends StatelessWidget {
                     color: color,
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Text(
                   title,
                   style: TossTextStyles.bodyLarge.copyWith(
@@ -351,7 +348,7 @@ class _InfoTab extends StatelessWidget {
           
           // Content
           Padding(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Column(
               children: children,
             ),
@@ -365,7 +362,7 @@ class _InfoTab extends StatelessWidget {
     final isEmpty = value.isEmpty || value == 'Not specified' || value == 'Not assigned';
     
     return Padding(
-      padding: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -379,7 +376,7 @@ class _InfoTab extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Text(
               value,
@@ -413,13 +410,13 @@ class _SalaryTab extends StatelessWidget {
         // Scrollable content
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Current Salary Card
                 Container(
-                  padding: EdgeInsets.all(TossSpacing.space4),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -436,7 +433,7 @@ class _SalaryTab extends StatelessWidget {
                           color: TossColors.gray600,
                         ),
                       ),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
@@ -466,7 +463,7 @@ class _SalaryTab extends StatelessWidget {
                   ),
                 ),
                 
-                SizedBox(height: TossSpacing.space5),
+                const SizedBox(height: TossSpacing.space5),
                 
                 // Salary Details
                 _buildDetailRow('Base Salary', '${employee.symbol}${NumberFormatter.formatWithCommas(employee.salaryAmount.round())} / ${employee.salaryType}'),
@@ -490,8 +487,8 @@ class _SalaryTab extends StatelessWidget {
         
         // Fixed bottom button
         Container(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(TossSpacing.space5),
+          decoration: const BoxDecoration(
             color: TossColors.background,
             border: Border(
               top: BorderSide(
@@ -517,7 +514,7 @@ class _SalaryTab extends StatelessWidget {
   
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -552,21 +549,21 @@ class _RoleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasRole = employee.roleName != null;
-    
+    final hasRole = employee.roleName.isNotEmpty;
+
     return Column(
       children: [
         // Scrollable content
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Current Role Card
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(TossSpacing.space5),
+                  padding: const EdgeInsets.all(TossSpacing.space5),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -588,9 +585,9 @@ class _RoleTab extends StatelessWidget {
                         size: 48,
                         color: hasRole ? TossColors.primary : TossColors.gray400,
                       ),
-                      SizedBox(height: TossSpacing.space3),
+                      const SizedBox(height: TossSpacing.space3),
                       Text(
-                        hasRole ? employee.roleName! : 'No Role Assigned',
+                        hasRole ? employee.roleName : 'No Role Assigned',
                         style: TossTextStyles.h3.copyWith(
                           color: hasRole ? TossColors.gray900 : TossColors.gray600,
                           fontWeight: FontWeight.w700,
@@ -606,8 +603,8 @@ class _RoleTab extends StatelessWidget {
         
         // Fixed bottom button
         Container(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(TossSpacing.space5),
+          decoration: const BoxDecoration(
             color: TossColors.background,
             border: Border(
               top: BorderSide(
@@ -630,30 +627,6 @@ class _RoleTab extends StatelessWidget {
       ],
     );
   }
-  
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: TossSpacing.space2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          Text(
-            value,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 
@@ -667,13 +640,13 @@ class _AttendanceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Current Month Summary
           Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -691,7 +664,7 @@ class _AttendanceTab extends StatelessWidget {
                     color: TossColors.gray900,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space3),
+                const SizedBox(height: TossSpacing.space3),
                 // First Row - Working Days and Hours
                 Row(
                   children: [
@@ -703,7 +676,7 @@ class _AttendanceTab extends StatelessWidget {
                         TossColors.gray900,
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space3),
+                    const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: _buildAttendanceMetric(
                         'Working Hours', 
@@ -718,7 +691,7 @@ class _AttendanceTab extends StatelessWidget {
             ),
           ),
           
-          SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space5),
           
           // Attendance Details
           Text(
@@ -727,7 +700,7 @@ class _AttendanceTab extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
           _buildDetailRow('Month', employee.month ?? 'Current'),
           _buildDetailRow(
@@ -744,30 +717,30 @@ class _AttendanceTab extends StatelessWidget {
           ),
           
           if (employee.totalWorkingDay != null && employee.totalWorkingDay! > 0) ...[
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
             _buildDetailRow(
               'Average Hours/Day', 
               '${((employee.totalWorkingHour ?? 0) / employee.totalWorkingDay!).toStringAsFixed(1)} hours',
             ),
           ],
           
-          SizedBox(height: TossSpacing.space6),
+          const SizedBox(height: TossSpacing.space6),
           
           // Performance Note
           Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
+            padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: TossColors.gray600,
                   size: 20,
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
                     'Attendance data is updated monthly and reflects actual working hours recorded.',
@@ -786,7 +759,7 @@ class _AttendanceTab extends StatelessWidget {
   
   Widget _buildAttendanceMetric(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -800,7 +773,7 @@ class _AttendanceTab extends StatelessWidget {
               color: TossColors.gray600,
             ),
           ),
-          SizedBox(height: TossSpacing.space1),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.h3.copyWith(
@@ -815,7 +788,7 @@ class _AttendanceTab extends StatelessWidget {
   
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

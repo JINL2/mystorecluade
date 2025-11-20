@@ -51,7 +51,7 @@ class TransactionAmount extends Equatable {
       (Match m) => '${m[1]},',
     );
     
-    return '\$${withCommas}.${decimalPart}';
+    return '\$$withCommas.$decimalPart';
   }
 
   /// Math operations that return new TransactionAmount instances

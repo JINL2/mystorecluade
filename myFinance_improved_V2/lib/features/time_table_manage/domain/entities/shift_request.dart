@@ -24,7 +24,7 @@ class ShiftRequest {
   bool get isPending => !isApproved;
 
   /// Get request status text
-  String get statusText => isApproved ? '승인됨' : '대기중';
+  String get statusText => isApproved ? 'Approved' : 'Pending';
 
   /// Copy with method for immutability
   ShiftRequest copyWith({

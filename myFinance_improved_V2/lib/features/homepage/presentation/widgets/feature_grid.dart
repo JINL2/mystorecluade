@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/core/constants/icon_mapper.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
-import 'package:myfinance_improved/core/domain/entities/feature.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'package:myfinance_improved/core/domain/entities/feature.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class FeatureGrid extends ConsumerWidget {
   const FeatureGrid({super.key});
@@ -35,32 +35,22 @@ class FeatureGrid extends ConsumerWidget {
           return 0;
         });
 
-        return Container(
-          color: TossColors.gray100,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Text(
-                  'All Features',
-                  style: TossTextStyles.h2.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.6,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space4),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Manual Library Card (always visible)
+              const _LibraryCard(),
+              const SizedBox(height: TossSpacing.space4),
 
-                // Categories (only with features)
-                ...categoriesWithFeatures.map((category) => _CategorySection(
-                      category: category,
-                    )),
+              // Categories (only with features)
+              ...categoriesWithFeatures.map((category) => _CategorySection(
+                    category: category,
+                  ),),
 
-                const SizedBox(height: TossSpacing.space10),
-              ],
-            ),
+              const SizedBox(height: TossSpacing.space10),
+            ],
           ),
         );
       },
@@ -115,42 +105,18 @@ class _CategorySection extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-        border: Border.all(
-          color: TossColors.borderLight,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.textPrimary.withOpacity(0.02),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Category Header
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Text(
-                category.categoryName,
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                ),
-              ),
-            ],
+          Text(
+            category.categoryName,
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
           ),
           const SizedBox(height: TossSpacing.space4),
 
@@ -173,7 +139,7 @@ class _CategorySection extends StatelessWidget {
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -196,54 +162,76 @@ class _FeatureListItem extends StatelessWidget {
           final route = feature.featureRoute.startsWith('/')
               ? feature.featureRoute
               : '/${feature.featureRoute}';
-          context.push(route);
+          context.push(route, extra: feature);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withOpacity(0.08),
         highlightColor: TossColors.primary.withOpacity(0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space3,
             vertical: TossSpacing.space3,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Icon
               Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                  shape: BoxShape.circle,
                 ),
-                child: DynamicIcon(
-                  iconKey: feature.iconKey,
-                  featureName: feature.featureName,
-                  size: 20,
-                  color: TossColors.gray700,
-                  useDefaultColor: false,
+                child: Center(
+                  child: DynamicIcon(
+                    iconKey: feature.iconKey,
+                    featureName: feature.featureName,
+                    size: 20,
+                    color: TossColors.gray700,
+                    useDefaultColor: false,
+                  ),
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
 
-              // Feature Name
+              // Feature Name and Description
               Expanded(
-                child: Text(
-                  feature.featureName,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    letterSpacing: -0.4,
-                    height: 1.3,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      feature.featureName,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        letterSpacing: -0.4,
+                        height: 1.3,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    if (feature.featureDescription != null &&
+                        feature.featureDescription!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        feature.featureDescription!,
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                          fontSize: 13,
+                          letterSpacing: -0.2,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
                 ),
               ),
 
               // Arrow
-              Icon(
+              const Icon(
                 Icons.chevron_right,
                 color: TossColors.textTertiary,
                 size: 20,
@@ -308,7 +296,7 @@ class _EmptyFeatures extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.sync,
                 size: 48,
                 color: TossColors.textTertiary,
@@ -358,7 +346,7 @@ class _ErrorFeatures extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 color: TossColors.error,
                 size: 24,
@@ -376,6 +364,100 @@ class _ErrorFeatures extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Library Card - Manual card for Design Library
+class _LibraryCard extends StatelessWidget {
+  const _LibraryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Category Header
+          Text(
+            'Design System',
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space4),
+
+          // Library Feature Item
+          Material(
+            color: TossColors.transparent,
+            child: InkWell(
+              onTap: () {
+                context.push('/library');
+              },
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              splashColor: TossColors.primary.withOpacity(0.08),
+              highlightColor: TossColors.primary.withOpacity(0.04),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: TossSpacing.space3,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Icon
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: TossColors.gray100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.palette_outlined,
+                          size: 20,
+                          color: TossColors.gray700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+
+                    // Feature Name
+                    Expanded(
+                      child: Text(
+                        'Design Library',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          letterSpacing: -0.4,
+                          height: 1.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ),
+
+                    // Arrow
+                    const Icon(
+                      Icons.chevron_right,
+                      color: TossColors.textTertiary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

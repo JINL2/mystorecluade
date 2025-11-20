@@ -1,9 +1,8 @@
 #!/usr/bin/env dart
 
 import 'dart:io';
-import 'dart:convert';
+
 import 'package:args/args.dart';
-import 'package:path/path.dart' as path;
 
 /// Automated theme migration tool
 /// 
@@ -279,7 +278,7 @@ class ThemeMigrator {
     });
     
     // Add imports if needed
-    if (needsImports && !content.contains("core/themes/index.dart")) {
+    if (needsImports && !content.contains('core/themes/index.dart')) {
       content = _addImports(content);
       result.importsAdded = true;
     }
@@ -443,26 +442,26 @@ Future<void> main(List<String> arguments) async {
     ..addOption('project-path', 
         abbr: 'p', 
         defaultsTo: 'lib/',
-        help: 'Path to the project directory')
+        help: 'Path to the project directory',)
     ..addFlag('dry-run',
         abbr: 'd',
         defaultsTo: false,
-        help: 'Show what would be changed without making changes')
+        help: 'Show what would be changed without making changes',)
     ..addFlag('backup',
         abbr: 'b',
         defaultsTo: true,
-        help: 'Create backup files')
+        help: 'Create backup files',)
     ..addFlag('verbose',
         abbr: 'v',
         defaultsTo: false,
-        help: 'Show verbose output')
+        help: 'Show verbose output',)
     ..addFlag('force',
         abbr: 'f',
         defaultsTo: false,
-        help: 'Force migration even if backup fails')
+        help: 'Force migration even if backup fails',)
     ..addFlag('help',
         abbr: 'h',
-        help: 'Show this help message');
+        help: 'Show this help message',);
 
   try {
     final results = parser.parse(arguments);

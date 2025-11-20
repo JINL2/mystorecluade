@@ -91,7 +91,7 @@ class TossAnimations {
       ).animate(CurvedAnimation(
         parent: animation,
         curve: enter,
-      )),
+      ),),
       child: child,
     );
   }
@@ -108,7 +108,7 @@ class TossAnimations {
       ).animate(CurvedAnimation(
         parent: animation,
         curve: standard,
-      )),
+      ),),
       child: child,
     );
   }
@@ -126,7 +126,7 @@ class TossAnimations {
       ).animate(CurvedAnimation(
         parent: animation,
         curve: enter,
-      )),
+      ),),
       child: fadeTransition(child: child, animation: animation),
     );
   }
@@ -296,15 +296,15 @@ class TossAnimations {
   // ==================== LOADING ANIMATIONS ====================
   
   /// Toss-style shimmer effect for loading states
-  static LinearGradient shimmerGradient = LinearGradient(
+  static LinearGradient shimmerGradient = const LinearGradient(
     colors: [
       TossColors.gray300,
       TossColors.gray100,
       TossColors.gray300,
     ],
-    stops: const [0.0, 0.5, 1.0],
-    begin: const Alignment(-1.0, -0.3),
-    end: const Alignment(1.0, 0.3),
+    stops: [0.0, 0.5, 1.0],
+    begin: Alignment(-1.0, -0.3),
+    end: Alignment(1.0, 0.3),
   );
   
   /// Pulse animation for loading indicators
@@ -315,7 +315,7 @@ class TossAnimations {
     ).animate(CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
   }
 
   // ==================== GESTURE ANIMATIONS ====================
@@ -328,7 +328,7 @@ class TossAnimations {
     ).animate(CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
   }
   
   /// Creates a long press scale animation
@@ -339,7 +339,7 @@ class TossAnimations {
     ).animate(CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
   }
   
   /// Creates a swipe animation
@@ -354,7 +354,7 @@ class TossAnimations {
     ).animate(CurvedAnimation(
       parent: controller,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
   }
 
   // ==================== SCROLL ANIMATIONS ====================
@@ -444,7 +444,7 @@ class _TossAnimatedWidgetState extends State<TossAnimatedWidget>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: widget.curve,
-    ));
+    ),);
   }
   
   @override

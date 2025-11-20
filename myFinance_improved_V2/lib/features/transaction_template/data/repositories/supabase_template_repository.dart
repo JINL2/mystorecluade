@@ -10,11 +10,13 @@
 /// - Follows production pattern from transaction_template/data/repositories
 ///
 /// Clean Architecture: DATA LAYER - Repository Implementation
+library;
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+
 import '../../domain/entities/template_entity.dart';
 import '../../domain/repositories/template_repository.dart';
-import '../datasources/template_data_source.dart';
 import '../cache/template_cache_repository.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
+import '../datasources/template_data_source.dart';
 
 class SupabaseTemplateRepository implements TemplateRepository {
   final TemplateDataSource _dataSource;

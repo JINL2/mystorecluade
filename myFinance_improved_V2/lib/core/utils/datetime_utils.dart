@@ -60,15 +60,42 @@ class DateTimeUtils {
   ///
   /// Throws FormatException if string is invalid
   static DateTime toLocal(String utcString) {
-    // If string doesn't contain timezone info (no Z, +, or -), add Z to force UTC parsing
-    if (!utcString.contains('Z') &&
-        !utcString.contains('+') &&
-        !utcString.contains('-', utcString.length - 6)) {
-      // Replace space with T for ISO 8601 format, then add Z
-      final isoFormat = utcString.replaceFirst(' ', 'T');
-      return DateTime.parse('${isoFormat}Z').toLocal();
+    // Handle empty string
+    if (utcString.isEmpty) {
+      throw const FormatException('Cannot parse empty string as DateTime');
     }
-    return DateTime.parse(utcString).toLocal();
+
+    try {
+      // If string doesn't contain timezone info (no Z, +, or -), add Z to force UTC parsing
+      if (!utcString.contains('Z') &&
+          !utcString.contains('+') &&
+          !utcString.contains('-', utcString.length - 6)) {
+        // Replace space with T for ISO 8601 format, then add Z
+        final isoFormat = utcString.replaceFirst(' ', 'T');
+        final result = DateTime.parse('${isoFormat}Z').toLocal();
+        return result;
+      }
+      final result = DateTime.parse(utcString).toLocal();
+      return result;
+    } catch (e) {
+      // Fallback: Remove timezone offset and treat as UTC
+      try {
+        // Remove any timezone offset (e.g., +00:00, -06:00, etc.)
+        final cleanString = utcString
+            .replaceAll(RegExp(r'[+-]\d{2}:\d{2}$'), '')
+            .replaceAll('Z', '')
+            .replaceFirst(' ', 'T');
+
+        if (cleanString.isEmpty) {
+          throw const FormatException('String became empty after cleaning');
+        }
+
+        final result = DateTime.parse('${cleanString}Z').toLocal();
+        return result;
+      } catch (fallbackError) {
+        rethrow;
+      }
+    }
   }
 
   /// Safely converts UTC string to local DateTime (null-safe version)

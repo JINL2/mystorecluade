@@ -1,0 +1,586 @@
+import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+
+/// 매장 관리 앱을 위한 Font Awesome 아이콘 시스템 (300+ 아이콘)
+/// 
+/// 사용법:
+/// ```dart
+/// // 기본 사용
+/// Icon(AppIcons.dashboard)
+/// 
+/// // 색상과 크기 지정
+/// Icon(
+///   AppIcons.sales,
+///   color: TossColors.success,
+///   size: 30,
+/// )
+/// ```
+class AppIcons {
+  AppIcons._();
+
+  // ==================== 1. 대시보드 & 홈 (15개) ====================
+  static const IconData dashboard = LucideIcons.chartLine;
+  static const IconData dashboardAlt = LucideIcons.gaugeHigh;
+  static const IconData home = LucideIcons.house;
+  static const IconData homeAlt = LucideIcons.houseChimney;
+  static const IconData homeUser = LucideIcons.houseUser;
+  static const IconData homeLaptop = LucideIcons.houseLaptop;
+  static const IconData homeSignal = LucideIcons.houseSignal;
+  static const IconData grid = LucideIcons.tableColumns;
+  static const IconData gridAlt = LucideIcons.tableCells;
+  static const IconData overview = LucideIcons.eye;
+  static const IconData summary = LucideIcons.listCheck;
+  static const IconData workspace = LucideIcons.desktop;
+  static const IconData control = LucideIcons.gamepad;
+  static const IconData panel = LucideIcons.tablet;
+  static const IconData monitor = LucideIcons.tv;
+
+  // ==================== 2. 매장 & 비즈니스 (20개) ====================
+  static const IconData store = LucideIcons.shop;
+  static const IconData storeAlt = LucideIcons.store;
+  static const IconData storeSlash = LucideIcons.storeSlash;
+  static const IconData building = LucideIcons.building;
+  static const IconData buildingColumns = LucideIcons.buildingColumns;
+  static const IconData buildingFlag = LucideIcons.buildingFlag;
+  static const IconData buildingLock = LucideIcons.buildingLock;
+  static const IconData buildingShield = LucideIcons.buildingShield;
+  static const IconData buildingUser = LucideIcons.buildingUser;
+  static const IconData industry = LucideIcons.industry;
+  static const IconData warehouse = LucideIcons.warehouse;
+  static const IconData factory = LucideIcons.industry;
+  static const IconData office = LucideIcons.briefcase;
+  static const IconData company = LucideIcons.sitemap;
+  static const IconData branch = LucideIcons.codeBranch;
+  static const IconData franchise = LucideIcons.networkWired;
+  static const IconData business = LucideIcons.businessTime;
+  static const IconData enterprise = LucideIcons.city;
+  static const IconData marketplace = LucideIcons.shopify;
+  static const IconData mall = LucideIcons.bagShopping;
+
+  // ==================== 3. 재무 & 돈 (30개) ====================
+  static const IconData money = LucideIcons.moneyBill;
+  static const IconData moneyWave = LucideIcons.moneyBillWave;
+  static const IconData moneyCheck = LucideIcons.moneyCheck;
+  static const IconData moneyCheckDollar = LucideIcons.moneyCheckDollar;
+  static const IconData moneyBills = LucideIcons.moneyBill1Wave;
+  static const IconData cash = LucideIcons.sackDollar;
+  static const IconData cashRegister = LucideIcons.cashRegister;
+  static const IconData wallet = LucideIcons.wallet;
+  static const IconData piggyBank = LucideIcons.piggyBank;
+  static const IconData vault = LucideIcons.vault;
+  static const IconData coins = LucideIcons.coins;
+  static const IconData bitcoin = LucideIcons.bitcoin;
+  static const IconData ethereum = LucideIcons.ethereum;
+  static const IconData dollarSign = LucideIcons.dollarSign;
+  static const IconData euroSign = LucideIcons.euroSign;
+  static const IconData yenSign = LucideIcons.yenSign;
+  static const IconData wonSign = LucideIcons.wonSign;
+  static const IconData rubleSign = LucideIcons.rubleSign;
+  static const IconData rupeeSign = LucideIcons.rupeeSign;
+  static const IconData creditCard = LucideIcons.creditCard;
+  static const IconData ccVisa = LucideIcons.ccVisa;
+  static const IconData ccMastercard = LucideIcons.ccMastercard;
+  static const IconData ccAmex = LucideIcons.ccAmex;
+  static const IconData ccPaypal = LucideIcons.ccPaypal;
+  static const IconData ccStripe = LucideIcons.ccStripe;
+  static const IconData ccApplePay = LucideIcons.ccApplePay;
+  static const IconData googlePay = LucideIcons.googlePay;
+  static const IconData amazonPay = LucideIcons.amazonPay;
+  static const IconData paypal = LucideIcons.paypal;
+  static const IconData stripe = LucideIcons.stripe;
+
+  // ==================== 4. 차트 & 분석 (25개) ====================
+  static const IconData chartLine = LucideIcons.chartLine;
+  static const IconData chartBar = LucideIcons.chartColumn;
+  static const IconData chartPie = LucideIcons.chartPie;
+  static const IconData chartArea = LucideIcons.chartArea;
+  static const IconData chartGantt = LucideIcons.chartGantt;
+  static const IconData chartSimple = LucideIcons.chartSimple;
+  static const IconData chartMixed = LucideIcons.squarePollVertical;
+  static const IconData analytics = LucideIcons.magnifyingGlassChart;
+  static const IconData diagram = LucideIcons.diagramProject;
+  static const IconData diagramNext = LucideIcons.diagramNext;
+  static const IconData diagramPredecessor = LucideIcons.diagramPredecessor;
+  static const IconData diagramSuccessor = LucideIcons.diagramSuccessor;
+  static const IconData trend = LucideIcons.arrowTrendUp;
+  static const IconData trendDown = LucideIcons.arrowTrendDown;
+  static const IconData growth = LucideIcons.seedling;
+  static const IconData performance = LucideIcons.gaugeHigh;
+  static const IconData gauge = LucideIcons.gauge;
+  static const IconData gaugeSimple = LucideIcons.gaugeSimple;
+  static const IconData gaugeHigh = LucideIcons.gaugeHigh;
+  static const IconData signal = LucideIcons.signal;
+  static const IconData signalPerfect = LucideIcons.signal;
+  static const IconData poll = LucideIcons.squarePollHorizontal;
+  static const IconData ranking = LucideIcons.rankingStar;
+  static const IconData medal = LucideIcons.medal;
+  static const IconData trophy = LucideIcons.trophy;
+
+  // ==================== 5. 재고 & 제품 (25개) ====================
+  static const IconData inventory = LucideIcons.boxesStacked;
+  static const IconData inventoryAlt = LucideIcons.boxesStacked;
+  static const IconData box = LucideIcons.box;
+  static const IconData boxOpen = LucideIcons.boxOpen;
+  static const IconData boxArchive = LucideIcons.boxArchive;
+  static const IconData boxesPacking = LucideIcons.boxesPacking;
+  static const IconData package = LucideIcons.cube;
+  static const IconData packages = LucideIcons.cubes;
+  static const IconData packageStacked = LucideIcons.cubesStacked;
+  static const IconData product = LucideIcons.tag;
+  static const IconData products = LucideIcons.tags;
+  static const IconData barcode = LucideIcons.barcode;
+  static const IconData qrcode = LucideIcons.qrcode;
+  static const IconData scanner = LucideIcons.expand;
+  static const IconData pallet = LucideIcons.pallet;
+  static const IconData palletBoxes = LucideIcons.boxesStacked;
+  static const IconData container = LucideIcons.squareFull;
+  static const IconData containerStorage = LucideIcons.database;
+  static const IconData shelf = LucideIcons.bars;
+  static const IconData stock = LucideIcons.layerGroup;
+  static const IconData stockOut = LucideIcons.circleExclamation;
+  static const IconData stockIn = LucideIcons.circleCheck;
+  static const IconData supply = LucideIcons.truckRampBox;
+  static const IconData supplyChain = LucideIcons.link;
+  static const IconData logistics = LucideIcons.route;
+
+  // ==================== 6. 쇼핑 & 판매 (20개) ====================
+  static const IconData cart = LucideIcons.cartShopping;
+  static const IconData cartPlus = LucideIcons.cartPlus;
+  static const IconData cartArrow = LucideIcons.cartArrowDown;
+  static const IconData cartFlatbed = LucideIcons.cartFlatbed;
+  static const IconData basket = LucideIcons.basketShopping;
+  static const IconData bag = LucideIcons.bagShopping;
+  static const IconData sale = LucideIcons.percent;
+  static const IconData discount = LucideIcons.ticketSimple;
+  static const IconData coupon = LucideIcons.ticket;
+  static const IconData gift = LucideIcons.gift;
+  static const IconData gifts = LucideIcons.gifts;
+  static const IconData giftCard = LucideIcons.creditCard;
+  static const IconData receipt = LucideIcons.receipt;
+  static const IconData invoice = LucideIcons.fileInvoice;
+  static const IconData invoiceDollar = LucideIcons.fileInvoiceDollar;
+  static const IconData bill = LucideIcons.fileLines;
+  static const IconData purchase = LucideIcons.handHoldingDollar;
+  static const IconData checkout = LucideIcons.cashRegister;
+  static const IconData pos = LucideIcons.desktop;
+  static const IconData terminal = LucideIcons.terminal;
+
+  // ==================== 7. 사용자 & 직원 (30개) ====================
+  static const IconData user = LucideIcons.user;
+  static const IconData userAlt = LucideIcons.userLarge;
+  static const IconData userCircle = LucideIcons.circleUser;
+  static const IconData userTie = LucideIcons.userTie;
+  static const IconData userGraduate = LucideIcons.userGraduate;
+  static const IconData userDoctor = LucideIcons.userDoctor;
+  static const IconData userNurse = LucideIcons.userNurse;
+  static const IconData userSecret = LucideIcons.userSecret;
+  static const IconData userShield = LucideIcons.userShield;
+  static const IconData userLock = LucideIcons.userLock;
+  static const IconData userCheck = LucideIcons.userCheck;
+  static const IconData userClock = LucideIcons.userClock;
+  static const IconData userEdit = LucideIcons.userPen;
+  static const IconData userGear = LucideIcons.userGear;
+  static const IconData userPlus = LucideIcons.userPlus;
+  static const IconData userMinus = LucideIcons.userMinus;
+  static const IconData userXmark = LucideIcons.userXmark;
+  static const IconData userSlash = LucideIcons.userSlash;
+  static const IconData userTag = LucideIcons.userTag;
+  static const IconData users = LucideIcons.users;
+  static const IconData usersGear = LucideIcons.usersGear;
+  static const IconData usersLine = LucideIcons.usersLine;
+  static const IconData usersRays = LucideIcons.usersRays;
+  static const IconData usersRectangle = LucideIcons.usersRectangle;
+  static const IconData usersSlash = LucideIcons.usersSlash;
+  static const IconData userGroup = LucideIcons.userGroup;
+  static const IconData peopleArrows = LucideIcons.peopleArrows;
+  static const IconData peopleCarry = LucideIcons.peopleCarryBox;
+  static const IconData peopleGroup = LucideIcons.peopleGroup;
+  static const IconData peopleLine = LucideIcons.peopleLine;
+
+  // ==================== 8. 시간 & 일정 (25개) ====================
+  static const IconData clock = LucideIcons.clock;
+  static const IconData clockRotate = LucideIcons.clockRotateLeft;
+  static const IconData stopwatch = LucideIcons.stopwatch;
+  static const IconData stopwatch20 = LucideIcons.stopwatch20;
+  static const IconData hourglass = LucideIcons.hourglass;
+  static const IconData hourglassStart = LucideIcons.hourglassStart;
+  static const IconData hourglassHalf = LucideIcons.hourglassHalf;
+  static const IconData hourglassEnd = LucideIcons.hourglassEnd;
+  static const IconData calendar = LucideIcons.calendar;
+  static const IconData calendarDays = LucideIcons.calendarDays;
+  static const IconData calendarWeek = LucideIcons.calendarWeek;
+  static const IconData calendarDay = LucideIcons.calendarDay;
+  static const IconData calendarCheck = LucideIcons.calendarCheck;
+  static const IconData calendarPlus = LucideIcons.calendarPlus;
+  static const IconData calendarMinus = LucideIcons.calendarMinus;
+  static const IconData calendarXmark = LucideIcons.calendarXmark;
+  static const IconData businessTime = LucideIcons.businessTime;
+  static const IconData timeline = LucideIcons.timeline;
+  static const IconData history = LucideIcons.clockRotateLeft;
+  static const IconData schedule = LucideIcons.calendarDays;
+  static const IconData alarm = LucideIcons.bell;
+  static const IconData timer = LucideIcons.stopwatch;
+  static const IconData deadline = LucideIcons.hourglassEnd;
+  static const IconData shift = LucideIcons.userClock;
+  static const IconData timesheet = LucideIcons.fileLines;
+
+  // ==================== 9. 문서 & 파일 (30개) ====================
+  static const IconData file = LucideIcons.file;
+  static const IconData fileAlt = LucideIcons.fileLines;
+  static const IconData fileBlank = LucideIcons.file;
+  static const IconData fileContract = LucideIcons.fileContract;
+  static const IconData fileInvoice = LucideIcons.fileInvoice;
+  static const IconData fileInvoiceDollar = LucideIcons.fileInvoiceDollar;
+  static const IconData filePdf = LucideIcons.filePdf;
+  static const IconData fileExcel = LucideIcons.fileExcel;
+  static const IconData fileWord = LucideIcons.fileWord;
+  static const IconData filePowerpoint = LucideIcons.filePowerpoint;
+  static const IconData fileImage = LucideIcons.fileImage;
+  static const IconData fileVideo = LucideIcons.fileVideo;
+  static const IconData fileAudio = LucideIcons.fileAudio;
+  static const IconData fileCode = LucideIcons.fileCode;
+  static const IconData fileArchive = LucideIcons.fileZipper;
+  static const IconData fileCsv = LucideIcons.fileCsv;
+  static const IconData fileDownload = LucideIcons.fileArrowDown;
+  static const IconData fileUpload = LucideIcons.fileArrowUp;
+  static const IconData fileExport = LucideIcons.fileExport;
+  static const IconData fileImport = LucideIcons.fileImport;
+  static const IconData fileSignature = LucideIcons.fileSignature;
+  static const IconData fileShield = LucideIcons.fileShield;
+  static const IconData fileMedical = LucideIcons.fileMedical;
+  static const IconData fileCircleCheck = LucideIcons.fileCircleCheck;
+  static const IconData fileCircleXmark = LucideIcons.fileCircleXmark;
+  static const IconData fileCirclePlus = LucideIcons.fileCirclePlus;
+  static const IconData fileCircleMinus = LucideIcons.fileCircleMinus;
+  static const IconData folder = LucideIcons.folder;
+  static const IconData folderOpen = LucideIcons.folderOpen;
+  static const IconData folderTree = LucideIcons.folderTree;
+
+  // ==================== 10. 통신 & 메시지 (20개) ====================
+  static const IconData message = LucideIcons.message;
+  static const IconData messages = LucideIcons.comments;
+  static const IconData comment = LucideIcons.comment;
+  static const IconData comments = LucideIcons.comments;
+  static const IconData commentDots = LucideIcons.commentDots;
+  static const IconData commentSms = LucideIcons.commentSms;
+  static const IconData envelope = LucideIcons.envelope;
+  static const IconData envelopeOpen = LucideIcons.envelopeOpen;
+  static const IconData envelopeCircle = LucideIcons.envelopeCircleCheck;
+  static const IconData inbox = LucideIcons.inbox;
+  static const IconData paperPlane = LucideIcons.paperPlane;
+  static const IconData phone = LucideIcons.phone;
+  static const IconData phoneVolume = LucideIcons.phoneVolume;
+  static const IconData phoneSlash = LucideIcons.phoneSlash;
+  static const IconData phoneFlip = LucideIcons.phoneFlip;
+  static const IconData video = LucideIcons.video;
+  static const IconData videoSlash = LucideIcons.videoSlash;
+  static const IconData voicemail = LucideIcons.voicemail;
+  static const IconData headset = LucideIcons.headset;
+  static const IconData microphone = LucideIcons.microphone;
+
+  // ==================== 11. 보안 & 권한 (20개) ====================
+  static const IconData lock = LucideIcons.lock;
+  static const IconData lockOpen = LucideIcons.lockOpen;
+  static const IconData unlock = LucideIcons.unlock;
+  static const IconData key = LucideIcons.key;
+  static const IconData shield = LucideIcons.shield;
+  static const IconData shieldHalved = LucideIcons.shieldHalved;
+  static const IconData shieldHeart = LucideIcons.shieldHeart;
+  static const IconData shieldVirus = LucideIcons.shieldVirus;
+  static const IconData fingerprint = LucideIcons.fingerprint;
+  static const IconData idCard = LucideIcons.idCard;
+  static const IconData idCardClip = LucideIcons.idCardClip;
+  static const IconData idBadge = LucideIcons.idBadge;
+  static const IconData passport = LucideIcons.passport;
+  static const IconData certificate = LucideIcons.certificate;
+  static const IconData stamp = LucideIcons.stamp;
+  static const IconData signature = LucideIcons.signature;
+  static const IconData userSecret2 = LucideIcons.userSecret;
+  static const IconData mask = LucideIcons.mask;
+  static const IconData eyeSlash = LucideIcons.eyeSlash;
+  static const IconData ban = LucideIcons.ban;
+
+  // ==================== 12. 교통 & 배송 (20개) ====================
+  static const IconData truck = LucideIcons.truck;
+  static const IconData truckFast = LucideIcons.truckFast;
+  static const IconData truckMoving = LucideIcons.truckMoving;
+  static const IconData truckLoading = LucideIcons.truckRampBox;
+  static const IconData truckDroplet = LucideIcons.truckDroplet;
+  static const IconData van = LucideIcons.vanShuttle;
+  static const IconData car = LucideIcons.car;
+  static const IconData carSide = LucideIcons.carSide;
+  static const IconData carRear = LucideIcons.carRear;
+  static const IconData motorcycle = LucideIcons.motorcycle;
+  static const IconData bicycle = LucideIcons.bicycle;
+  static const IconData plane = LucideIcons.plane;
+  static const IconData ship = LucideIcons.ship;
+  static const IconData train = LucideIcons.train;
+  static const IconData subway = LucideIcons.trainSubway;
+  static const IconData bus = LucideIcons.bus;
+  static const IconData taxi = LucideIcons.taxi;
+  static const IconData helicopter = LucideIcons.helicopter;
+  static const IconData rocket = LucideIcons.rocket;
+  static const IconData drone = LucideIcons.satelliteDish;
+
+  // ==================== 13. 액션 & 조작 (30개) ====================
+  static const IconData add = LucideIcons.plus;
+  static const IconData minus = LucideIcons.minus;
+  static const IconData times = LucideIcons.xmark;
+  static const IconData check = LucideIcons.check;
+  static const IconData checkDouble = LucideIcons.checkDouble;
+  static const IconData checkCircle = LucideIcons.circleCheck;
+  static const IconData checkSquare = LucideIcons.squareCheck;
+  static const IconData plusCircle = LucideIcons.circlePlus;
+  static const IconData plusSquare = LucideIcons.squarePlus;
+  static const IconData minusCircle = LucideIcons.circleMinus;
+  static const IconData minusSquare = LucideIcons.squareMinus;
+  static const IconData timesCircle = LucideIcons.circleXmark;
+  static const IconData timesSquare = LucideIcons.squareXmark;
+  static const IconData edit = LucideIcons.penToSquare;
+  static const IconData editAlt = LucideIcons.pen;
+  static const IconData pencil = LucideIcons.pencil;
+  static const IconData eraser = LucideIcons.eraser;
+  static const IconData trash = LucideIcons.trash;
+  static const IconData trashCan = LucideIcons.trashCan;
+  static const IconData trashRestore = LucideIcons.trashArrowUp;
+  static const IconData save = LucideIcons.floppyDisk;
+  static const IconData copy = LucideIcons.copy;
+  static const IconData paste = LucideIcons.paste;
+  static const IconData cut = LucideIcons.scissors;
+  static const IconData undo = LucideIcons.arrowRotateLeft;
+  static const IconData redo = LucideIcons.arrowRotateRight;
+  static const IconData refresh = LucideIcons.arrowsRotate;
+  static const IconData sync = LucideIcons.rotate;
+  static const IconData syncAlt = LucideIcons.rotateRight;
+  static const IconData repeat = LucideIcons.repeat;
+
+  // ==================== 14. 네비게이션 (25개) ====================
+  static const IconData arrowUp = LucideIcons.arrowUp;
+  static const IconData arrowDown = LucideIcons.arrowDown;
+  static const IconData arrowLeft = LucideIcons.arrowLeft;
+  static const IconData arrowRight = LucideIcons.arrowRight;
+  static const IconData arrowUpLong = LucideIcons.arrowUpLong;
+  static const IconData arrowDownLong = LucideIcons.arrowDownLong;
+  static const IconData arrowLeftLong = LucideIcons.arrowLeftLong;
+  static const IconData arrowRightLong = LucideIcons.arrowRightLong;
+  static const IconData arrowTurnUp = LucideIcons.arrowTurnUp;
+  static const IconData arrowTurnDown = LucideIcons.arrowTurnDown;
+  static const IconData arrowsUpDown = LucideIcons.arrowsUpDown;
+  static const IconData arrowsLeftRight = LucideIcons.arrowsLeftRight;
+  static const IconData chevronUp = LucideIcons.chevronUp;
+  static const IconData chevronDown = LucideIcons.chevronDown;
+  static const IconData chevronLeft = LucideIcons.chevronLeft;
+  static const IconData chevronRight = LucideIcons.chevronRight;
+  static const IconData angleUp = LucideIcons.angleUp;
+  static const IconData angleDown = LucideIcons.angleDown;
+  static const IconData angleLeft = LucideIcons.angleLeft;
+  static const IconData angleRight = LucideIcons.angleRight;
+  static const IconData caretUp = LucideIcons.caretUp;
+  static const IconData caretDown = LucideIcons.caretDown;
+  static const IconData caretLeft = LucideIcons.caretLeft;
+  static const IconData caretRight = LucideIcons.caretRight;
+  static const IconData circleArrowUp = LucideIcons.circleArrowUp;
+
+  // ==================== 15. UI 컴포넌트 (20개) ====================
+  static const IconData bars = LucideIcons.bars;
+  static const IconData barsStaggered = LucideIcons.barsStaggered;
+  static const IconData barsProgress = LucideIcons.barsProgress;
+  static const IconData navicon = LucideIcons.bars;
+  static const IconData ellipsis = LucideIcons.ellipsis;
+  static const IconData ellipsisVertical = LucideIcons.ellipsisVertical;
+  static const IconData grip = LucideIcons.grip;
+  static const IconData gripVertical = LucideIcons.gripVertical;
+  static const IconData gripLines = LucideIcons.gripLines;
+  static const IconData gripLinesVertical = LucideIcons.gripLinesVertical;
+  static const IconData list = LucideIcons.list;
+  static const IconData listUl = LucideIcons.listUl;
+  static const IconData listOl = LucideIcons.listOl;
+  static const IconData listCheck = LucideIcons.listCheck;
+  static const IconData table = LucideIcons.table;
+  static const IconData tableCells = LucideIcons.tableCells;
+  static const IconData tableCellsLarge = LucideIcons.tableCellsLarge;
+  static const IconData tableColumns = LucideIcons.tableColumns;
+  static const IconData tableList = LucideIcons.tableList;
+  static const IconData sliders = LucideIcons.sliders;
+
+  // ==================== 16. 미디어 (15개) ====================
+  static const IconData play = LucideIcons.play;
+  static const IconData pause = LucideIcons.pause;
+  static const IconData stop = LucideIcons.stop;
+  static const IconData forward = LucideIcons.forward;
+  static const IconData backward = LucideIcons.backward;
+  static const IconData fastForward = LucideIcons.forwardFast;
+  static const IconData fastBackward = LucideIcons.backwardFast;
+  static const IconData stepForward = LucideIcons.forwardStep;
+  static const IconData stepBackward = LucideIcons.backwardStep;
+  static const IconData eject = LucideIcons.eject;
+  static const IconData volumeHigh = LucideIcons.volumeHigh;
+  static const IconData volumeLow = LucideIcons.volumeLow;
+  static const IconData volumeOff = LucideIcons.volumeOff;
+  static const IconData volumeMute = LucideIcons.volumeXmark;
+  static const IconData music = LucideIcons.music;
+
+  // ==================== 17. 도구 & 설정 (20개) ====================
+  static const IconData gear = LucideIcons.gear;
+  static const IconData gears = LucideIcons.gears;
+  static const IconData wrench = LucideIcons.wrench;
+  static const IconData screwdriver = LucideIcons.screwdriver;
+  static const IconData screwdriverWrench = LucideIcons.screwdriverWrench;
+  static const IconData hammer = LucideIcons.hammer;
+  static const IconData toolbox = LucideIcons.toolbox;
+  static const IconData compass = LucideIcons.compass;
+  static const IconData compassDrafting = LucideIcons.compassDrafting;
+  static const IconData ruler = LucideIcons.ruler;
+  static const IconData rulerCombined = LucideIcons.rulerCombined;
+  static const IconData rulerHorizontal = LucideIcons.rulerHorizontal;
+  static const IconData rulerVertical = LucideIcons.rulerVertical;
+  static const IconData paintbrush = LucideIcons.paintbrush;
+  static const IconData paintRoller = LucideIcons.paintRoller;
+  static const IconData palette = LucideIcons.palette;
+  static const IconData magnet = LucideIcons.magnet;
+  static const IconData filter = LucideIcons.filter;
+  static const IconData filterCircle = LucideIcons.filterCircleXmark;
+  static const IconData sort = LucideIcons.arrowDownWideShort;
+
+  // ==================== 18. 상태 & 알림 (20개) ====================
+  static const IconData info = LucideIcons.circleInfo;
+  static const IconData infoCircle = LucideIcons.circleInfo;
+  static const IconData question = LucideIcons.circleQuestion;
+  static const IconData questionCircle = LucideIcons.circleQuestion;
+  static const IconData exclamation = LucideIcons.circleExclamation;
+  static const IconData exclamationCircle = LucideIcons.circleExclamation;
+  static const IconData exclamationTriangle = LucideIcons.triangleExclamation;
+  static const IconData warning = LucideIcons.triangleExclamation;
+  static const IconData bell = LucideIcons.bell;
+  static const IconData bellSlash = LucideIcons.bellSlash;
+  static const IconData bellConcierge = LucideIcons.bellConcierge;
+  static const IconData notification = LucideIcons.bell;
+  static const IconData flag = LucideIcons.flag;
+  static const IconData flagCheckered = LucideIcons.flagCheckered;
+  static const IconData bookmark = LucideIcons.bookmark;
+  static const IconData bookmarkSolid = LucideIcons.solidBookmark;
+  static const IconData star = LucideIcons.star;
+  static const IconData starHalf = LucideIcons.starHalf;
+  static const IconData starHalfStroke = LucideIcons.starHalfStroke;
+  static const IconData heart = LucideIcons.heart;
+
+  // ==================== 19. 소셜 미디어 (15개) ====================
+  static const IconData facebook = LucideIcons.facebook;
+  static const IconData twitter = LucideIcons.twitter;
+  static const IconData instagram = LucideIcons.instagram;
+  static const IconData linkedin = LucideIcons.linkedin;
+  static const IconData youtube = LucideIcons.youtube;
+  static const IconData tiktok = LucideIcons.tiktok;
+  static const IconData pinterest = LucideIcons.pinterest;
+  static const IconData snapchat = LucideIcons.snapchat;
+  static const IconData reddit = LucideIcons.reddit;
+  static const IconData whatsapp = LucideIcons.whatsapp;
+  static const IconData telegram = LucideIcons.telegram;
+  static const IconData discord = LucideIcons.discord;
+  static const IconData slack = LucideIcons.slack;
+  static const IconData github = LucideIcons.github;
+  static const IconData google = LucideIcons.google;
+
+  // ==================== 20. 기타 유용한 아이콘 (25개) ====================
+  static const IconData search = LucideIcons.magnifyingGlass;
+  static const IconData searchPlus = LucideIcons.magnifyingGlassPlus;
+  static const IconData searchMinus = LucideIcons.magnifyingGlassMinus;
+  static const IconData searchDollar = LucideIcons.magnifyingGlassDollar;
+  static const IconData searchLocation = LucideIcons.magnifyingGlassLocation;
+  static const IconData print = LucideIcons.print;
+  static const IconData download = LucideIcons.download;
+  static const IconData upload = LucideIcons.upload;
+  static const IconData share = LucideIcons.share;
+  static const IconData shareNodes = LucideIcons.shareNodes;
+  static const IconData shareFromSquare = LucideIcons.shareFromSquare;
+  static const IconData link = LucideIcons.link;
+  static const IconData linkSlash = LucideIcons.linkSlash;
+  static const IconData paperclip = LucideIcons.paperclip;
+  static const IconData thumbsUp = LucideIcons.thumbsUp;
+  static const IconData thumbsDown = LucideIcons.thumbsDown;
+  static const IconData handshake = LucideIcons.handshake;
+  static const IconData handshakeAngle = LucideIcons.handshakeAngle;
+  static const IconData handshakeSlash = LucideIcons.handshakeSlash;
+  static const IconData hands = LucideIcons.hands;
+  static const IconData handsClapping = LucideIcons.handsClapping;
+  static const IconData handHolding = LucideIcons.handHolding;
+  static const IconData handHoldingDollar = LucideIcons.handHoldingDollar;
+  static const IconData handHoldingHeart = LucideIcons.handHoldingHeart;
+  static const IconData globe = LucideIcons.globe;
+
+  // ==================== 헬퍼 메서드 ====================
+  
+  /// FaIcon 위젯 생성 헬퍼
+  static Widget getIcon(
+    IconData icon, {
+    double? size,
+    Color? color,
+  }) {
+    return Icon(
+      icon,
+      size: size ?? 24,
+      color: color,
+    );
+  }
+  
+  /// 카테고리별 아이콘 그룹
+  static final Map<String, Map<String, IconData>> iconGroups = {
+    '대시보드': {
+      'dashboard': dashboard,
+      'home': home,
+      'overview': overview,
+      'monitor': monitor,
+    },
+    '재무': {
+      'money': money,
+      'cash': cash,
+      'wallet': wallet,
+      'creditCard': creditCard,
+    },
+    '재고': {
+      'inventory': inventory,
+      'box': box,
+      'warehouse': warehouse,
+      'barcode': barcode,
+    },
+    '직원': {
+      'user': user,
+      'users': users,
+      'userTie': userTie,
+      'userClock': userClock,
+    },
+    '판매': {
+      'cart': cart,
+      'sale': sale,
+      'receipt': receipt,
+      'cashRegister': cashRegister,
+    },
+  };
+  
+  /// 자주 사용하는 아이콘 매핑
+  static final Map<String, IconData> commonIcons = {
+    // 네비게이션
+    'home': home,
+    'dashboard': dashboard,
+    'settings': gear,
+    'menu': bars,
+    
+    // CRUD
+    'add': add,
+    'edit': edit,
+    'delete': trash,
+    'save': save,
+    
+    // 검색 & 필터
+    'search': search,
+    'filter': filter,
+    'sort': sort,
+    
+    // 액션
+    'refresh': refresh,
+    'download': download,
+    'upload': upload,
+    'share': share,
+    'print': print,
+  };
+}

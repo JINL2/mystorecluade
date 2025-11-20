@@ -8,12 +8,14 @@
 /// from template analysis results.
 ///
 /// Usage: EssentialSelectors(analysis: analysis, onSelectionChanged: callback)
+library;
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+
 import '../../../domain/value_objects/template_analysis_result.dart';
 
 class EssentialSelectors extends StatelessWidget {
@@ -41,7 +43,7 @@ class EssentialSelectors extends StatelessWidget {
     final selectors = _buildSelectors();
     
     if (selectors.isEmpty) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
     
     return Column(
@@ -54,11 +56,11 @@ class EssentialSelectors extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space3),
+        const SizedBox(height: TossSpacing.space3),
         ...selectors.map((selector) => Padding(
-          padding: EdgeInsets.only(bottom: TossSpacing.space3),
+          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
           child: selector,
-        )),
+        ),),
       ],
     );
   }
@@ -98,6 +100,11 @@ class EssentialSelectors extends StatelessWidget {
   Widget _buildCounterpartySelector() {
     return AutonomousCounterpartySelector(
       selectedCounterpartyId: selectedCounterpartyId,
+      // ✅ NEW: Type-safe callback
+      onCounterpartySelected: (counterparty) {
+        onCounterpartyChanged?.call(counterparty.id);
+      },
+      // ✅ Legacy callback maintained for compatibility
       onChanged: onCounterpartyChanged,
       label: 'Counterparty',
       hint: 'Select counterparty',
@@ -110,7 +117,7 @@ class EssentialSelectors extends StatelessWidget {
     // For counterparty cash location, we would need a specialized selector
     // For now, return a placeholder that matches the interface
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(8),

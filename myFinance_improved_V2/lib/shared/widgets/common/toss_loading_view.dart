@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TossLoadingView extends StatelessWidget {
   const TossLoadingView({
@@ -21,7 +21,7 @@ class TossLoadingView extends StatelessWidget {
             valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
           ),
           if (message != null) ...[
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
             Text(
               message!,
               style: TossTextStyles.body.copyWith(

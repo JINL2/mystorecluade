@@ -63,13 +63,13 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     final storeId = appState.storeChoosen;
     
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
-      final newEntries = await repository.getBankReal(
+      final useCase = ref.read(getBankRealUseCaseProvider);
+      final newEntries = await useCase(BankRealParams(
         companyId: companyId,
         storeId: storeId,
         offset: _currentOffset + _limit,
         limit: _limit,
-      );
+      ));
       
       setState(() {
         if (newEntries.isEmpty || newEntries.length < _limit) {
@@ -98,7 +98,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
         amount: entry.totalAmount,
         currencySymbol: entry.symbol,
         realEntry: entry,
-      ));
+      ),);
     }
     
     return displayItems;
@@ -126,9 +126,9 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray50,
-        body: const Center(
+        body: Center(
           child: Text('Please select a company and store first'),
         ),
       );
@@ -141,11 +141,11 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Bank Total Real',
         backgroundColor: TossColors.gray50,
       ),
@@ -156,7 +156,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
             // Content - Bank Real List fills remaining space
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space4,
                   TossSpacing.space4,
                   TossSpacing.space4,
@@ -204,7 +204,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                                 offset: 0,
                                 limit: _limit,
                               ),
-                            ));
+                            ),);
                           },
                           child: const Text('Retry'),
                         ),
@@ -296,12 +296,12 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
   }
   
   Widget _buildLoadMoreMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Center(
         child: Text(
           'Scroll to load more',
@@ -316,7 +316,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
   
   Widget _buildListHeader() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: TossSpacing.space5,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
@@ -334,7 +334,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                 fontSize: 14,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: TossColors.gray600,
@@ -347,9 +347,9 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
   
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Center(
-        child: const TossLoadingView(),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: const Center(
+        child: TossLoadingView(),
       ),
     );
   }
@@ -359,7 +359,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
       onTap: () => _showBankDetailBottomSheet(item),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
         ),
@@ -368,7 +368,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
             // Date section
             Container(
               width: 42,
-              padding: EdgeInsets.only(left: TossSpacing.space1),
+              padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
                       _formatDate(item.date),
@@ -381,7 +381,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                   : const SizedBox.shrink(),
             ),
             
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             
             // Real details
             Expanded(
@@ -396,7 +396,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                       color: TossColors.gray800,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Flexible(
@@ -439,7 +439,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
               ),
             ),
             
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             
             // Amount
             Text(
@@ -552,7 +552,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -574,7 +574,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
               
               // Filter options
               ..._getFilterOptions().map((option) => 
-                _buildFilterOption(option, _selectedFilter == option)
+                _buildFilterOption(option, _selectedFilter == option),
               ),
               
               // Bottom safe area
@@ -687,7 +687,7 @@ class _BankDetailBottomSheet extends StatelessWidget {
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

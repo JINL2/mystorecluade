@@ -30,17 +30,21 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        HapticFeedback.selectionClick();
-        // Update state when tab changes
-        ref.read(balanceSheetPageProvider.notifier).changeTab(_tabController.index);
-      }
-    });
+    _tabController.addListener(_handleTabChange);
+  }
+
+  void _handleTabChange() {
+    if (!mounted) return;
+    if (_tabController.indexIsChanging) {
+      HapticFeedback.selectionClick();
+      // Update state when tab changes
+      ref.read(balanceSheetPageProvider.notifier).changeTab(_tabController.index);
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -111,7 +115,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             ],
                           ),
                           indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
+                          indicatorPadding: const EdgeInsets.all(TossSpacing.space1 / 2),
                           dividerColor: TossColors.transparent,
                           labelColor: TossColors.gray900,
                           unselectedLabelColor: TossColors.gray500,
@@ -193,7 +197,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'non_current_assets': balanceSheet.nonCurrentAssets
                 .map((a) => {
@@ -202,7 +206,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'current_liabilities': balanceSheet.currentLiabilities
                 .map((a) => {
@@ -211,7 +215,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'non_current_liabilities': balanceSheet.nonCurrentLiabilities
                 .map((a) => {
@@ -220,7 +224,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'equity': balanceSheet.equity
                 .map((a) => {
@@ -229,7 +233,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'comprehensive_income': balanceSheet.comprehensiveIncome
                 .map((a) => {
@@ -238,7 +242,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                       'account_type': a.accountType,
                       'balance': a.balance,
                       'has_transactions': a.hasTransactions,
-                    })
+                    },)
                 .toList(),
             'totals': {
               'total_assets': balanceSheet.totals.totalAssets,
@@ -278,8 +282,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).state = 
-              ref.read(balanceSheetPageProvider).copyWith(hasBalanceSheetData: false);
+            ref.read(balanceSheetPageProvider.notifier).clearBalanceSheetData();
           },
         );
       },
@@ -352,11 +355,11 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                                         'account_name': acc.accountName,
                                         'account_type': acc.accountType,
                                         'net_amount': acc.netAmount,
-                                      })
+                                      },)
                                   .toList(),
-                            })
+                            },)
                         .toList(),
-                  })
+                  },)
               .toList(),
           'parameters': {
             'start_date': incomeStatement.dateRange.startDateFormatted,
@@ -371,8 +374,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).state = 
-              ref.read(balanceSheetPageProvider).copyWith(hasIncomeStatementData: false);
+            ref.read(balanceSheetPageProvider.notifier).clearIncomeStatementData();
           },
         );
       },

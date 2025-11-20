@@ -3,12 +3,12 @@ class FirebaseMessaging {
   static FirebaseMessaging? _instance;
   static FirebaseMessaging get instance => _instance ??= FirebaseMessaging();
   
-  static final Stream<RemoteMessage> onMessage = Stream.empty();
-  static final Stream<RemoteMessage> onMessageOpenedApp = Stream.empty();
+  static const Stream<RemoteMessage> onMessage = Stream.empty();
+  static const Stream<RemoteMessage> onMessageOpenedApp = Stream.empty();
   
   Future<String?> getToken() async => null;
   Future<String?> getAPNSToken() async => null;
-  Stream<String> get onTokenRefresh => Stream.empty();
+  Stream<String> get onTokenRefresh => const Stream.empty();
   Future<RemoteMessage?> getInitialMessage() async => null;
   Future<void> deleteToken() async {}
   Future<void> setForegroundNotificationPresentationOptions({
@@ -180,7 +180,7 @@ class FirebaseOptions {
 }
 
 class DefaultFirebaseOptions {
-  static FirebaseOptions get currentPlatform => FirebaseOptions(
+  static FirebaseOptions get currentPlatform => const FirebaseOptions(
     apiKey: '',
     appId: '',
     messagingSenderId: '',

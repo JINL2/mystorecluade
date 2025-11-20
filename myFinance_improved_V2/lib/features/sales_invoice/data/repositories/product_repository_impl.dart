@@ -1,5 +1,4 @@
 import '../../domain/entities/cash_location.dart';
-import '../../domain/entities/payment_currency.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_datasource.dart';
 import '../models/payment_currency_model.dart';

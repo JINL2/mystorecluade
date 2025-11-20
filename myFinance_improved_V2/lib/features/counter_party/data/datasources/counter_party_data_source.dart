@@ -1,5 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Counter Party Data Source - Direct Supabase interaction
 class CounterPartyDataSource {
@@ -135,7 +135,7 @@ class CounterPartyDataSource {
       final response = await _client.rpc('get_unlinked_companies', params: {
         'p_user_id': userId,
         'p_company_id': companyId,
-      });
+      },);
 
       if (response == null) return [];
       if (response is List) {

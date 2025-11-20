@@ -1,7 +1,7 @@
-import '../entities/revenue.dart';
-import '../entities/user_with_companies.dart';
 import '../entities/category_with_features.dart';
+import '../entities/revenue.dart';
 import '../entities/top_feature.dart';
+import '../entities/user_with_companies.dart';
 import '../revenue_period.dart';
 
 /// Repository interface for homepage data operations

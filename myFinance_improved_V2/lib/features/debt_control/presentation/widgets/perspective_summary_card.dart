@@ -123,7 +123,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 NumberFormatter.formatCurrency(
-                    summary.netPosition.abs(), currency),
+                    summary.netPosition.abs(), currency,),
                 style: TossTextStyles.display.copyWith(
                   color: TossColors.textInverse,
                 ),
@@ -193,7 +193,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                       return Container(
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                            horizontal: 12, vertical: 8,),
                         decoration: BoxDecoration(
                           color: TossColors.white.withValues(alpha: 0.15),
                           borderRadius:
@@ -238,7 +238,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               NumberFormatter.formatCompact(
-                                  store.netPosition.abs()),
+                                  store.netPosition.abs(),),
                               style: TossTextStyles.caption.copyWith(
                                 color:
                                     TossColors.textInverse.withValues(alpha: 0.9),
@@ -325,12 +325,12 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                       TextSpan(
                         text: 'R: ',
                         style: TossTextStyles.body.copyWith(
-                            color: TossColors.textInverse.withValues(alpha: 0.6)),
+                            color: TossColors.textInverse.withValues(alpha: 0.6),),
                       ),
                       TextSpan(
                         text: NumberFormatter.formatCompact(receivable),
                         style: TossTextStyles.body.copyWith(
-                            color: TossColors.textInverse.withValues(alpha: 0.9)),
+                            color: TossColors.textInverse.withValues(alpha: 0.9),),
                       ),
                     ],
                   ),
@@ -343,12 +343,12 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                     TextSpan(
                       text: 'P: ',
                       style: TossTextStyles.body.copyWith(
-                          color: TossColors.textInverse.withValues(alpha: 0.6)),
+                          color: TossColors.textInverse.withValues(alpha: 0.6),),
                     ),
                     TextSpan(
                       text: NumberFormatter.formatCompact(payable),
                       style: TossTextStyles.body.copyWith(
-                          color: TossColors.textInverse.withValues(alpha: 0.9)),
+                          color: TossColors.textInverse.withValues(alpha: 0.9),),
                     ),
                   ],
                 ),

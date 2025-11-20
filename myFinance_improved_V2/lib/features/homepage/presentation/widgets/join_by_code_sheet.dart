@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/auth_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/join_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/join_state.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../app/providers/auth_providers.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../providers/notifier_providers.dart';
+import '../providers/states/join_state.dart';
 
 /// Join by Code Bottom Sheet Widget
 ///
@@ -60,9 +62,9 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
         loading: () {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Row(
+              content: const Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -70,7 +72,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                       valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                     ),
                   ),
-                  const SizedBox(width: TossSpacing.space3),
+                  SizedBox(width: TossSpacing.space3),
                   Text('Joining...'),
                 ],
               ),
@@ -103,8 +105,6 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
         },
         success: (result) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-          final entityType = result.isStoreJoin ? 'store' : 'company';
 
           // Close the sheet and return result
           Navigator.of(context).pop(result);
@@ -183,7 +183,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, color: TossColors.textSecondary),
                 ),
               ],

@@ -1,3 +1,4 @@
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -30,7 +31,7 @@ class TimeTableDatasource {
       return response;
     } catch (e, stackTrace) {
       throw ShiftMetadataException(
-        '시프트 메타데이터 조회 실패: $e',
+        'Failed to fetch shift metadata: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -62,7 +63,7 @@ class TimeTableDatasource {
       return [];
     } catch (e, stackTrace) {
       throw ShiftStatusException(
-        '월별 시프트 상태 조회 실패: $e',
+        'Failed to fetch monthly shift status: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -102,7 +103,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '매니저 오버뷰 조회 실패: $e',
+        'Failed to fetch manager overview: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -137,13 +138,14 @@ class TimeTableDatasource {
 
       // Try to convert to Map if possible
       if (response is Map) {
-        return Map<String, dynamic>.from(response);
+        final converted = Map<String, dynamic>.from(response);
+        return converted;
       }
 
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '매니저 시프트 카드 조회 실패: $e',
+        'Failed to fetch manager shift cards: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -175,7 +177,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw ShiftApprovalException(
-        '시프트 승인 토글 실패: $e',
+        'Failed to toggle shift approval: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -203,7 +205,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw ShiftCreationException(
-        '시프트 생성 실패: $e',
+        'Failed to create shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -218,7 +220,7 @@ class TimeTableDatasource {
       await _supabase.from('store_shifts').delete().eq('shift_id', shiftId);
     } catch (e, stackTrace) {
       throw ShiftDeletionException(
-        '시프트 삭제 실패: $e',
+        'Failed to delete shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -250,7 +252,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '시프트 태그 삭제 실패: $e',
+        'Failed to delete shift tag: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -286,7 +288,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '스케줄 추가 실패: $e',
+        'Failed to add schedule: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -328,7 +330,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '카드 입력 실패: $e',
+        'Failed to input card: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -336,16 +338,16 @@ class TimeTableDatasource {
   }
 
   /// Get available employees for shift assignment
+  /// Uses manager_shift_get_schedule RPC
   Future<Map<String, dynamic>> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_employees_and_shifts',
+        'manager_shift_get_schedule',
         params: {
           'p_store_id': storeId,
-          'p_shift_date': shiftDate,
         },
       );
 
@@ -354,47 +356,18 @@ class TimeTableDatasource {
       }
 
       if (response is Map<String, dynamic>) {
-        return response;
+        // manager_shift_get_schedule returns {store_employees: [], store_shifts: []}
+        // Map to expected format {employees: [], shifts: []}
+        return {
+          'employees': response['store_employees'] ?? <dynamic>[],
+          'shifts': response['store_shifts'] ?? <dynamic>[],
+        };
       }
 
       return {'employees': <dynamic>[], 'shifts': <dynamic>[]};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '직원 목록 조회 실패: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Insert shift schedule for selected employees
-  Future<Map<String, dynamic>> insertShiftSchedule({
-    required String storeId,
-    required String shiftId,
-    required List<String> employeeIds,
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'insert_shift_schedule_bulk',
-        params: {
-          'p_store_id': storeId,
-          'p_shift_id': shiftId,
-          'p_employee_ids': employeeIds,
-        },
-      );
-
-      if (response == null) {
-        return {};
-      }
-
-      if (response is Map<String, dynamic>) {
-        return response;
-      }
-
-      return {};
-    } catch (e, stackTrace) {
-      throw TimeTableException(
-        '시프트 일정 추가 실패: $e',
+        'Failed to fetch employee list: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -424,39 +397,47 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '스케줄 데이터 조회 실패: $e',
+        'Failed to fetch schedule data: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
     }
   }
 
-  /// Process bulk shift approval
+  /// Process bulk shift approval using toggle_shift_approval
+  ///
+  /// Note: toggle_shift_approval returns void, so we manually construct the result
   Future<Map<String, dynamic>> processBulkApproval({
     required List<String> shiftRequestIds,
     required List<bool> approvalStates,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_process_bulk_approval',
+      // Get current user ID
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw const TimeTableException('User not authenticated');
+      }
+
+      // Call toggle_shift_approval (returns void)
+      await _supabase.rpc<dynamic>(
+        'toggle_shift_approval',
         params: {
           'p_shift_request_ids': shiftRequestIds,
-          'p_approval_states': approvalStates,
+          'p_user_id': userId,
         },
       );
 
-      if (response == null) {
-        return {};
-      }
-
-      if (response is Map<String, dynamic>) {
-        return response;
-      }
-
-      return {};
+      // Manually construct success result
+      return {
+        'total_processed': shiftRequestIds.length,
+        'success_count': shiftRequestIds.length,
+        'failure_count': 0,
+        'successful_ids': shiftRequestIds,
+        'errors': [],
+      };
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '일괄 승인 처리 실패: $e',
+        'Failed to process bulk approval: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -492,7 +473,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '시프트 업데이트 실패: $e',
+        'Failed to update shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -522,7 +503,7 @@ class TimeTableDatasource {
       return [];
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '태그 조회 실패: $e',
+        'Failed to fetch tags: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -530,33 +511,35 @@ class TimeTableDatasource {
   }
 
   /// Add bonus to shift
+  /// Note: manager_shift_add_bonus RPC doesn't exist, using direct DB update instead
   Future<Map<String, dynamic>> addBonus({
     required String shiftRequestId,
     required double bonusAmount,
     required String bonusReason,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_add_bonus',
-        params: {
-          'p_shift_request_id': shiftRequestId,
-          'p_bonus_amount': bonusAmount,
-          'p_bonus_reason': bonusReason,
+      // Update shift_requests table directly
+      await _supabase
+          .from('shift_requests')
+          .update({
+            'bonus_amount': bonusAmount,
+            'bonus_reason': bonusReason,
+          })
+          .eq('shift_request_id', shiftRequestId);
+
+      // Return success result in expected format
+      return {
+        'success': true,
+        'message': 'Bonus added successfully',
+        'data': {
+          'shift_request_id': shiftRequestId,
+          'bonus_amount': bonusAmount,
+          'bonus_reason': bonusReason,
         },
-      );
-
-      if (response == null) {
-        return {};
-      }
-
-      if (response is Map<String, dynamic>) {
-        return response;
-      }
-
-      return {};
+      };
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '보너스 추가 실패: $e',
+        'Failed to add bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -575,7 +558,7 @@ class TimeTableDatasource {
           .eq('shift_request_id', shiftRequestId);
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '보너스 업데이트 실패: $e',
+        'Failed to update bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

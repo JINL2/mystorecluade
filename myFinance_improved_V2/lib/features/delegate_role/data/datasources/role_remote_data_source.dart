@@ -1,5 +1,8 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/delegatable_role_model.dart';
 import '../models/role_model.dart';
 
@@ -72,13 +75,9 @@ class RoleRemoteDataSource {
 
       return response['role_id'] as String;
     } on PostgrestException catch (e) {
-      if (e.message.contains('jsonb')) {
-        throw Exception('Failed to save tags: Invalid tag format');
-      } else if (e.message.contains('duplicate')) {
-        throw Exception('Role name already exists');
-      } else {
-        throw Exception('Database error: ${e.message}');
-      }
+      // Data layer only handles database errors, not business validation
+      // Business rules are enforced in Domain layer (UseCases/Validators)
+      throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
@@ -104,13 +103,8 @@ class RoleRemoteDataSource {
 
       await _supabase.from('roles').update(updateData).eq('role_id', roleId);
     } on PostgrestException catch (e) {
-      if (e.message.contains('jsonb')) {
-        throw Exception('Failed to save tags: Invalid tag format');
-      } else if (e.message.contains('duplicate')) {
-        throw Exception('Role name already exists');
-      } else {
-        throw Exception('Database error: ${e.message}');
-      }
+      // Data layer only handles database errors, not business validation
+      throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to update role details: $e');
     }
@@ -208,7 +202,7 @@ class RoleRemoteDataSource {
             .map((featureId) => {
                   'role_id': roleId,
                   'feature_id': featureId,
-                })
+                },)
             .toList();
 
         await _supabase.from('role_permissions').insert(permissionInserts);
@@ -219,18 +213,37 @@ class RoleRemoteDataSource {
   }
 
   /// Get roles that can be delegated by current user
+  ///
+  /// Performance optimized: Uses 2 queries instead of 1+N
   Future<List<DelegatableRoleModel>> getDelegatableRoles(
     String companyId,
     String currentUserRole,
   ) async {
     try {
-      // Fetch all roles for the company
+      // Step 1: Fetch all roles for the company
       final rolesResponse =
           await _supabase.from('roles').select('*').eq('company_id', companyId);
 
       final roles = rolesResponse as List;
-      final canDelegateRoles = <DelegatableRoleModel>[];
+      if (roles.isEmpty) return [];
 
+      // Step 2: Fetch ALL permissions for ALL roles in a single query
+      final roleIds = roles.map((r) => r['role_id'] as String).toList();
+      final permissionsResponse = await _supabase
+          .from('role_permissions')
+          .select('role_id, feature_id')
+          .inFilter('role_id', roleIds);
+
+      // Step 3: Group permissions by role_id
+      final permissionsByRole = <String, List<String>>{};
+      for (final perm in permissionsResponse as List) {
+        final roleId = perm['role_id'] as String;
+        final featureId = perm['feature_id'] as String;
+        permissionsByRole.putIfAbsent(roleId, () => []).add(featureId);
+      }
+
+      // Step 4: Build delegatable roles list (no more DB queries)
+      final canDelegateRoles = <DelegatableRoleModel>[];
       final normalizedCurrentRole = currentUserRole.toLowerCase();
 
       for (final role in roles) {
@@ -254,30 +267,33 @@ class RoleRemoteDataSource {
         }
 
         if (canDelegate) {
-          // Get permissions for this role
-          final permissionsResponse = await _supabase
-              .from('role_permissions')
-              .select('feature_id')
-              .eq('role_id', roleId);
-
-          final permissions = (permissionsResponse as List)
-              .map((p) => p['feature_id'] as String)
-              .toList();
-
           canDelegateRoles.add(DelegatableRoleModel(
             roleId: roleId,
             roleName: roleName,
             description: description.isEmpty
                 ? 'Role type: $roleType'
                 : description,
-            permissions: permissions,
+            permissions: permissionsByRole[roleId] ?? [],
             canDelegate: canDelegate,
           ));
         }
       }
 
       return canDelegateRoles;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log error to Sentry for production monitoring
+      await SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'DataSource: Failed to get delegatable roles',
+        extra: {
+          'company_id': companyId,
+          'current_user_role': currentUserRole,
+          'layer': 'data_source',
+          'method': 'getDelegatableRoles',
+        },
+        level: SentryLevel.error,
+      );
       return [];
     }
   }
@@ -296,9 +312,19 @@ class RoleRemoteDataSource {
         return [];
       }
 
-      // Extract user IDs
-      final userIds =
-          (userRolesResponse as List).map((item) => item['user_id']).toList();
+      // Extract user IDs with safe type handling
+      final userRoles = userRolesResponse as List;
+      final userIds = userRoles
+          .map((item) {
+            if (item is Map<String, dynamic>) {
+              return item['user_id'] as String?;
+            }
+            return null;
+          })
+          .whereType<String>()
+          .toList();
+
+      if (userIds.isEmpty) return [];
 
       // Get user details from users table
       final usersResponse = await _supabase
@@ -307,16 +333,22 @@ class RoleRemoteDataSource {
           .inFilter('user_id', userIds);
 
       final members = <Map<String, dynamic>>[];
+      final users = usersResponse as List;
 
-      for (final user in usersResponse as List) {
+      for (final userData in users) {
+        if (userData is! Map<String, dynamic>) continue;
+
         // Find the corresponding user_role entry to get created_at
-        final userRole = (userRolesResponse as List).firstWhere(
-          (role) => role['user_id'] == user['user_id'],
-          orElse: () => {'created_at': null},
-        );
+        final userId = userData['user_id'] as String?;
+        if (userId == null) continue;
 
-        final firstName = user['first_name'] ?? '';
-        final lastName = user['last_name'] ?? '';
+        final userRole = userRoles.firstWhere(
+          (role) => role is Map && role['user_id'] == userId,
+          orElse: () => <String, dynamic>{},
+        ) as Map<String, dynamic>;
+
+        final firstName = userData['first_name'] as String? ?? '';
+        final lastName = userData['last_name'] as String? ?? '';
         final fullName = '$firstName $lastName'.trim();
 
         // Convert created_at from UTC to local time
@@ -326,15 +358,27 @@ class RoleRemoteDataSource {
             : null;
 
         members.add({
-          'user_id': user['user_id'],
+          'user_id': userId,
           'name': fullName.isEmpty ? 'Unknown User' : fullName,
-          'email': user['email'] ?? 'No email',
+          'email': userData['email'] as String? ?? 'No email',
           'created_at': createdAtLocal?.toIso8601String(),
         });
       }
 
       return members;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log error to Sentry for production monitoring
+      await SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'DataSource: Failed to get role members',
+        extra: {
+          'role_id': roleId,
+          'layer': 'data_source',
+          'method': 'getRoleMembers',
+        },
+        level: SentryLevel.error,
+      );
       return [];
     }
   }
@@ -365,8 +409,10 @@ class RoleRemoteDataSource {
           .eq('is_deleted', false)
           .timeout(const Duration(seconds: 10));
 
+      // Business validation moved to Domain layer (AssignUserToRoleUseCase)
+      // Data layer just performs the operation
       if (existingExactRole.isNotEmpty) {
-        throw Exception('User is already assigned to this role');
+        throw Exception('Database constraint: User already has this role');
       }
 
       // Get all roles for this company to find any existing role
@@ -431,7 +477,7 @@ class RoleRemoteDataSource {
       final usersWithRoles = <Map<String, dynamic>>[];
       final seenUsers = <String>{}; // Track unique users
 
-      for (final item in response as List) {
+      for (final item in response) {
         final firstName = item['first_name'] as String? ?? '';
         final lastName = item['last_name'] as String? ?? '';
         final fullName = '$firstName $lastName'.trim();

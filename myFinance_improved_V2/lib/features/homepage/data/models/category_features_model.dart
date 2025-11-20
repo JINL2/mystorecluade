@@ -27,7 +27,7 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
       _$CategoryFeaturesModelFromJson(json);
 
   /// Convert Model to Domain Entity
-  CategoryWithFeatures toDomain() {
+  CategoryWithFeatures toEntity() {
     return CategoryWithFeatures(
       categoryId: categoryId,
       categoryName: categoryName,
@@ -35,11 +35,12 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
           .map((featureModel) => Feature(
                 featureId: featureModel.featureId,
                 featureName: featureModel.featureName,
+                featureDescription: featureModel.featureDescription,
                 featureRoute: featureModel.route ?? '',
                 featureIcon: featureModel.icon ?? '',
                 iconKey: featureModel.iconKey,
                 isShowMain: featureModel.isShowMain,
-              ))
+              ),)
           .toList(),
     );
   }
@@ -53,11 +54,12 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
           .map((feature) => FeatureItemModel(
                 featureId: feature.featureId,
                 featureName: feature.featureName,
+                featureDescription: feature.featureDescription,
                 route: feature.featureRoute,
                 icon: feature.featureIcon,
                 iconKey: feature.iconKey,
                 isShowMain: feature.isShowMain,
-              ))
+              ),)
           .toList(),
     );
   }
@@ -72,6 +74,7 @@ class FeatureItemModel with _$FeatureItemModel {
   const factory FeatureItemModel({
     required String featureId,
     required String featureName,
+    String? featureDescription,
     String? route,
     String? icon,
     String? iconKey,

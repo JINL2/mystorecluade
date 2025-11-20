@@ -1,9 +1,10 @@
 // lib/features/auth/data/datasources/supabase_company_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/company_model.dart';
+
 import '../models/company_type_model.dart';
 import '../models/currency_model.dart';
+import '../models/freezed/company_dto.dart';
 
 /// Supabase Company DataSource
 ///
@@ -17,13 +18,13 @@ import '../models/currency_model.dart';
 /// 이 계층은 Supabase에 대한 모든 지식을 가지고 있습니다.
 abstract class CompanyDataSource {
   /// Create a new company
-  Future<CompanyModel> createCompany(Map<String, dynamic> companyData);
+  Future<CompanyDto> createCompany(Map<String, dynamic> companyData);
 
   /// Get company by ID
-  Future<CompanyModel?> getCompanyById(String companyId);
+  Future<CompanyDto?> getCompanyById(String companyId);
 
   /// Get companies by owner ID
-  Future<List<CompanyModel>> getCompaniesByOwnerId(String ownerId);
+  Future<List<CompanyDto>> getCompaniesByOwnerId(String ownerId);
 
   /// Check if company name exists
   Future<bool> isCompanyNameExists({
@@ -32,7 +33,7 @@ abstract class CompanyDataSource {
   });
 
   /// Update company
-  Future<CompanyModel> updateCompany(String companyId, Map<String, dynamic> updateData);
+  Future<CompanyDto> updateCompany(String companyId, Map<String, dynamic> updateData);
 
   /// Delete company (soft delete)
   Future<void> deleteCompany(String companyId);
@@ -44,7 +45,7 @@ abstract class CompanyDataSource {
   Future<List<CurrencyModel>> getCurrencies();
 
   /// Join company by code using RPC
-  Future<CompanyModel> joinCompanyByCode({
+  Future<CompanyDto> joinCompanyByCode({
     required String companyCode,
     required String userId,
   });
@@ -57,35 +58,24 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
   SupabaseCompanyDataSource(this._client);
 
   @override
-  Future<CompanyModel> createCompany(Map<String, dynamic> companyData) async {
+  Future<CompanyDto> createCompany(Map<String, dynamic> companyData) async {
     try {
-      // Check for duplicates
-      final duplicates = await _client
-          .from('companies')
-          .select('company_id')
-          .eq('owner_id', companyData['owner_id'] as Object)
-          .ilike('company_name', companyData['company_name'] as String)
-          .eq('is_deleted', false);
-
-      if (duplicates.isNotEmpty) {
-        throw Exception('Company name already exists');
-      }
-
-      // Insert company
+      // DataSource는 단순히 데이터만 저장
+      // Validation은 UseCase/Domain layer에서 처리됨
       final createdData = await _client
           .from('companies')
           .insert(companyData)
           .select()
           .single();
 
-      return CompanyModel.fromJson(createdData);
+      return CompanyDto.fromJson(createdData);
     } catch (e) {
       throw Exception('Failed to create company: $e');
     }
   }
 
   @override
-  Future<CompanyModel?> getCompanyById(String companyId) async {
+  Future<CompanyDto?> getCompanyById(String companyId) async {
     try {
       final companyData = await _client
           .from('companies')
@@ -96,14 +86,14 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
 
       if (companyData == null) return null;
 
-      return CompanyModel.fromJson(companyData);
+      return CompanyDto.fromJson(companyData);
     } catch (e) {
       throw Exception('Failed to get company: $e');
     }
   }
 
   @override
-  Future<List<CompanyModel>> getCompaniesByOwnerId(String ownerId) async {
+  Future<List<CompanyDto>> getCompaniesByOwnerId(String ownerId) async {
     try {
       final companiesData = await _client
           .from('companies')
@@ -112,7 +102,7 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
           .eq('is_deleted', false);
 
       return companiesData
-          .map((data) => CompanyModel.fromJson(data))
+          .map((data) => CompanyDto.fromJson(data))
           .toList();
     } catch (e) {
       throw Exception('Failed to get companies: $e');
@@ -139,7 +129,7 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
   }
 
   @override
-  Future<CompanyModel> updateCompany(
+  Future<CompanyDto> updateCompany(
     String companyId,
     Map<String, dynamic> updateData,
   ) async {
@@ -154,7 +144,7 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
           .select()
           .single();
 
-      return CompanyModel.fromJson(updatedData);
+      return CompanyDto.fromJson(updatedData);
     } catch (e) {
       throw Exception('Failed to update company: $e');
     }
@@ -197,7 +187,7 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
   }
 
   @override
-  Future<CompanyModel> joinCompanyByCode({
+  Future<CompanyDto> joinCompanyByCode({
     required String companyCode,
     required String userId,
   }) async {
@@ -214,19 +204,15 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
       final result = response as Map<String, dynamic>;
 
       if (result['success'] == true) {
-        // Return company model with the data from RPC
-        return CompanyModel(
-          companyId: result['company_id'] as String,
-          companyName: result['company_name'] as String? ??
-                       result['business_name'] as String? ??
-                       'Unknown Company',
-          companyCode: companyCode,
-          ownerId: result['owner_id'] as String? ?? userId,
-          companyTypeId: result['company_type_id'] as String? ?? '',
-          baseCurrencyId: result['base_currency_id'] as String? ?? '',
-          createdAt: result['created_at'] as String? ?? DateTime.now().toIso8601String(),
-          updatedAt: result['updated_at'] as String? ?? DateTime.now().toIso8601String(),
-        );
+        // Fetch the full company data after joining
+        final companyId = result['company_id'] as String;
+        final companyData = await _client
+            .from('companies')
+            .select()
+            .eq('company_id', companyId)
+            .single();
+
+        return CompanyDto.fromJson(companyData);
       } else {
         // RPC returned an error
         final errorCode = result['error_code'] ?? 'UNKNOWN_ERROR';

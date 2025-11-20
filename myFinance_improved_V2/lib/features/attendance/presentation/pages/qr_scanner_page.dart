@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../app/providers/auth_providers.dart';
@@ -14,7 +15,8 @@ import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
-import '../providers/attendance_provider.dart';
+import '../providers/attendance_providers.dart';
+
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
 
@@ -85,8 +87,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         message: message,
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          Navigator.of(context).pop(); // Close dialog
-          Navigator.of(context).pop(); // Return to attendance page
+          context.pop(); // Close dialog
+          context.pop(); // Return to attendance page
         },
         dismissible: false,
       ),
@@ -106,7 +108,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         subtitle: DateTimeUtils.format(DateTime.now()),
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          Navigator.of(context).pop(); // Close dialog
+          context.pop(); // Close dialog
           Navigator.of(context).pop(resultData); // Return to previous screen with result data
         },
         dismissible: false,
@@ -116,7 +118,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     // Auto close after 2 seconds and return to previous screen with result data
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pop(); // Close dialog
+        context.pop(); // Close dialog
         Navigator.of(context).pop(resultData); // Return to previous screen with result data
       }
     });
@@ -179,7 +181,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 
                 // Validate store ID format (UUID)
                 final uuidRegex = RegExp(
-                  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+                  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
                 );
                 
                 if (!uuidRegex.hasMatch(storeId)) {
@@ -192,10 +194,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Convert to UTC for database storage
                 final currentTime = DateTimeUtils.toUtc(now);
                 
-                // Submit attendance
-                final attendanceRepository = ref.read(attendanceRepositoryProvider);
+                // Submit attendance using check in use case
+                final checkInShift = ref.read(checkInShiftProvider);
 
-                final result = await attendanceRepository.updateShiftRequest(
+                final result = await checkInShift(
                   userId: userId,
                   storeId: storeId,
                   requestDate: requestDate,
@@ -205,9 +207,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     longitude: position.longitude,
                   ),
                 );
-                
+
                 // Check if the RPC call was successful
-                if (result.isEmpty) {
+                if (result == null || result.isEmpty) {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
 

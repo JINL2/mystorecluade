@@ -38,57 +38,43 @@ class DenominationInput extends StatelessWidget {
     final formattedAmount = NumberFormat('#,###').format(amount);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      height: 40, // Fixed container height to prevent overflow
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.fromLTRB(
+        0, // left - removed 8px padding
+        TossSpacing.space2, // top
+        0, // right - removed 8px padding to prevent overflow
+        TossSpacing.space2, // bottom
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left section: Denomination + × symbol (tighter spacing)
+          // Left section: Denomination display
           Expanded(
-            flex: 4,
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    '$currencySymbol$formattedAmount',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray700,
-                      fontSize: _getResponsiveFontSize(
-                          '$currencySymbol$formattedAmount', 'denomination'),
-                    ),
-                    overflow: TextOverflow.clip,
-                    maxLines: 1,
-                  ),
-                ),
-                const SizedBox(width: 4), // Closer to denomination
-                Text(
-                  '×',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            child: Text(
+              '$currencySymbol$formattedAmount',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+                fontSize: 14,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
 
-          // Center section: Compact quantity controls only
-          Expanded(
-            flex: 5,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Decrement button (compact for space efficiency)
+          // Center section: Quantity input with +/- buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+                // Decrement button
                 GestureDetector(
                   onTap: () => _decrementQuantity(),
                   child: Container(
-                    width: 20,
+                    width: 32,
                     height: 32,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: TossColors.gray200,
                         width: 1.0,
@@ -96,17 +82,17 @@ class DenominationInput extends StatelessWidget {
                     ),
                     child: const Icon(
                       TossIcons.remove,
-                      size: 12,
+                      size: 14,
                       color: TossColors.gray600,
                     ),
                   ),
                 ),
 
-                const SizedBox(width: 1), // Ultra-minimal spacing
+                const SizedBox(width: 4),
 
-                // Quantity input (TextField with numeric keyboard) - Optimized width
-                Container(
-                  width: 46,
+                // Quantity input
+                SizedBox(
+                  width: 90,
                   height: 32,
                   child: TextField(
                     controller: controller,
@@ -114,72 +100,73 @@ class DenominationInput extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(5), // Max 99999
+                      LengthLimitingTextInputFormatter(5),
                     ],
                     textAlign: TextAlign.center,
-                    // KEY FIX: scrollPadding accounts for keyboard toolbar height
-                    // Toolbar height (48) + keyboard height + comfortable padding (80)
                     scrollPadding: const EdgeInsets.only(bottom: 130),
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
-                      fontSize: _getOptimalQuantityFontSize(
-                          controller.text.isEmpty ? '0' : controller.text),
+                      fontSize: 14,
                     ),
                     decoration: InputDecoration(
                       hintText: '0',
                       hintStyle: TossTextStyles.body.copyWith(
                         color: TossColors.gray400,
-                        fontSize: _getOptimalQuantityFontSize('0'),
+                        fontSize: 14,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space1,
-                        vertical: TossSpacing.space1,
+                        horizontal: 4,
+                        vertical: 4,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(
-                            color: TossColors.gray200, width: 1.0),
+                          color: TossColors.gray200,
+                          width: 1.0,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(
-                            color: TossColors.gray200, width: 1.0),
+                          color: TossColors.gray200,
+                          width: 1.0,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        borderRadius: BorderRadius.circular(6),
                         borderSide: BorderSide(
-                            color: TossColors.primary.withOpacity(0.3),
-                            width: 1.0),
+                          color: TossColors.primary.withOpacity(0.5),
+                          width: 1.0,
+                        ),
                       ),
-                      fillColor: TossColors.surface,
+                      fillColor: TossColors.white,
                       filled: true,
                     ),
                     onChanged: (value) {
-                      // Validate max value
                       final intValue = int.tryParse(value);
                       if (intValue != null && intValue > 99999) {
                         controller.text = '99999';
-                        controller.selection =
-                            TextSelection.fromPosition(
-                                const TextPosition(offset: 5));
+                        controller.selection = TextSelection.fromPosition(
+                          const TextPosition(offset: 5),
+                        );
                       }
                       onChanged();
                     },
                   ),
                 ),
 
-                const SizedBox(width: 1), // Ultra-minimal spacing
+                const SizedBox(width: 4),
 
-                // Increment button (compact for space efficiency)
+                // Increment button
                 GestureDetector(
                   onTap: () => _incrementQuantity(),
                   child: Container(
-                    width: 20,
+                    width: 32,
                     height: 32,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: TossColors.gray200,
                         width: 1.0,
@@ -187,52 +174,39 @@ class DenominationInput extends StatelessWidget {
                     ),
                     child: const Icon(
                       TossIcons.add,
-                      size: 12,
+                      size: 14,
                       color: TossColors.gray600,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
 
-          // Right section: = symbol + Total (tighter spacing)
+          // Right section: Amount display
           Expanded(
-            flex: 4,
-            child: Row(
-              children: [
-                Text(
-                  '=',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 4), // Closer to = symbol
-                Flexible(
-                  child: Builder(builder: (context) {
-                    // Calculate once for performance and consistency
-                    final subtotalText = _calculateSubtotal(
-                        denomination.value.toInt().toString(),
-                        controller.text,
-                        currencySymbol);
+            child: Builder(
+              builder: (context) {
+                final subtotalText = _calculateSubtotal(
+                  denomination.value.toInt().toString(),
+                  controller.text,
+                  currencySymbol,
+                );
 
-                    return Text(
-                      subtotalText,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                        fontFamily: TossTextStyles.fontFamilyMono,
-                        fontSize: _getResponsiveFontSize(subtotalText, 'total'),
-                      ),
-                      overflow: TextOverflow.clip,
-                      maxLines: 1,
-                      textAlign: TextAlign.right,
-                    );
-                  }),
-                ),
-              ],
+                // Check if subtotal is zero
+                final isZero = subtotalText == '0' || subtotalText.isEmpty;
+
+                return Text(
+                  subtotalText,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isZero ? TossColors.gray600 : TossColors.gray900,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
+                );
+              },
             ),
           ),
         ],
@@ -246,8 +220,7 @@ class DenominationInput extends StatelessWidget {
   String _calculateSubtotal(String denomValue, String quantity, String currencySymbol) {
     // Edge case handling: null or empty inputs
     if (denomValue.isEmpty || quantity.isEmpty) {
-      final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-      return '${safeSymbol}0';
+      return '0';
     }
 
     // Parse values with error handling
@@ -261,23 +234,33 @@ class DenominationInput extends StatelessWidget {
       // Check for overflow (though unlikely with our constraints)
       if (subtotal < 0) {
         // Overflow occurred, use safe fallback
-        final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-        return '${safeSymbol}999,999,999,999'; // Safe maximum display
+        return '999,999,999'; // Limit to 9 digits
       }
     } catch (e) {
       // Fallback for any calculation errors
-      final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-      return '${safeSymbol}0';
+      return '0';
     }
 
-    // Format with proper currency symbol
-    final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-
+    // Format without currency symbol
     try {
-      return '$safeSymbol${NumberFormat('#,###').format(subtotal)}';
+      final formatted = NumberFormat('#,###').format(subtotal);
+
+      // If number is too long (more than 9 digits), truncate while maintaining comma alignment
+      // Remove commas to count actual digits
+      final digitsOnly = formatted.replaceAll(',', '');
+
+      if (digitsOnly.length > 9) {
+        // To maintain comma alignment with totals, we need to keep the same structure
+        // Example: 4,994,000,000 should show as 4,994,00... (not 499,400,000...)
+        // We show first 7 characters (including commas) to prevent overflow
+        final truncated = formatted.length > 7 ? formatted.substring(0, 8) : formatted;
+        return '$truncated...';
+      }
+
+      return formatted;
     } catch (e) {
       // Fallback for number formatting errors
-      return '${safeSymbol}${subtotal.toString()}';
+      return subtotal.toString();
     }
   }
 
@@ -338,7 +321,6 @@ class DenominationInput extends StatelessWidget {
   double _getUnifiedMonetaryFontSize(int effectiveLength, String containerType) {
     // Accessibility minimum: 12px for mobile readability (WCAG compliant)
     const double minAccessibleSize = 12.0;
-    const double maxOptimalSize = 16.0;
 
     // Unified breakpoints for both denomination and total
     double baseSize;

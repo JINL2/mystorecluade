@@ -127,7 +127,7 @@ class LocationSelectorSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             TossIcons.locationOff,
             size: 64,
             color: TossColors.gray400,
@@ -231,7 +231,7 @@ class LocationSelectorSheet extends ConsumerWidget {
                       location.currencyId != null &&
                       location.currencyId!.isNotEmpty)
                     Text(
-                      'Currency: ${location.currencyId}', // TODO: Show currency code
+                      'Currency: ${_getCurrencyCode(ref, location.currencyId!)}',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -249,6 +249,17 @@ class LocationSelectorSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _getCurrencyCode(WidgetRef ref, String currencyId) {
+    final state = ref.read(cashEndingProvider);
+    final currency = state.currencies.firstWhere(
+      (c) => c.currencyId == currencyId,
+      orElse: () => state.currencies.isNotEmpty
+          ? state.currencies.first
+          : throw Exception('No currencies available'),
+    );
+    return currency.currencyCode;
   }
 
   String _getLocationTypeLabel() {

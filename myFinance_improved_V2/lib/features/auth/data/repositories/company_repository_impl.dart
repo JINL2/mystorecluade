@@ -1,13 +1,12 @@
 // lib/features/auth/data/repositories/company_repository_impl.dart
 
 import '../../domain/entities/company_entity.dart';
+import '../../domain/exceptions/auth_exceptions.dart';
+import '../../domain/repositories/company_repository.dart';
 import '../../domain/value_objects/company_type.dart';
 import '../../domain/value_objects/currency.dart';
-import '../../domain/repositories/company_repository.dart';
-import '../../domain/exceptions/auth_exceptions.dart';
-import '../../domain/exceptions/validation_exception.dart';
 import '../datasources/supabase_company_datasource.dart';
-import '../models/company_model.dart';
+import '../models/freezed/company_dto_mapper.dart';
 import 'base_repository.dart';
 
 /// Company Repository Implementation
@@ -29,14 +28,14 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
   @override
   Future<Company> create(Company company) {
     return execute(() async {
-      // Convert Entity to Model
-      final model = CompanyModel.fromEntity(company);
+      // Convert Entity to insert map (without ID)
+      final insertMap = company.toInsertMap();
 
       // Call DataSource
-      final createdModel = await _dataSource.createCompany(model.toInsertMap());
+      final createdDto = await _dataSource.createCompany(insertMap);
 
-      // Convert Model back to Entity
-      return createdModel.toEntity();
+      // Convert DTO back to Entity
+      return createdDto.toEntity();
     });
   }
 
@@ -79,24 +78,18 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
   @override
   Future<Company> update(Company company) {
     return execute(() async {
-      final model = CompanyModel.fromEntity(company);
-
       final updateData = {
         'company_name': company.name,
-        'company_business_number': company.businessNumber,
-        'company_email': company.email,
-        'company_phone': company.phone,
-        'company_address': company.address,
         'company_type_id': company.companyTypeId,
         'base_currency_id': company.currencyId,
       };
 
-      final updatedModel = await _dataSource.updateCompany(
+      final updatedDto = await _dataSource.updateCompany(
         company.id,
         updateData,
       );
 
-      return updatedModel.toEntity();
+      return updatedDto.toEntity();
     });
   }
 
@@ -139,10 +132,10 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
         // Map specific errors
         if (e.toString().contains('INVALID_CODE') ||
             e.toString().contains('Invalid company code')) {
-          throw InvalidCompanyCodeException();
+          throw const InvalidCompanyCodeException();
         } else if (e.toString().contains('ALREADY_MEMBER') ||
                    e.toString().contains('already a member')) {
-          throw AlreadyMemberException();
+          throw const AlreadyMemberException();
         }
         rethrow;
       }

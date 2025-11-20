@@ -1,5 +1,5 @@
-import '../entities/user_profile.dart';
 import '../entities/business_dashboard.dart';
+import '../entities/user_profile.dart';
 
 abstract class UserProfileRepository {
   /// Get user profile by user ID

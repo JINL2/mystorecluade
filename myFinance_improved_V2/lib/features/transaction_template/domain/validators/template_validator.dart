@@ -191,13 +191,13 @@ class TemplateValidator {
   bool _hasDepartmentPrefix(String name, List<String> prefixes) {
     // Check if name starts with department code
     return prefixes.any((prefix) => 
-        name.toLowerCase().startsWith(prefix.toLowerCase()));
+        name.toLowerCase().startsWith(prefix.toLowerCase()),);
   }
 
   bool _containsUnprofessionalTerms(String name) {
     final unprofessionalTerms = ['test', 'temp', 'xxx', 'dummy'];
     return unprofessionalTerms.any((term) => 
-        name.toLowerCase().contains(term));
+        name.toLowerCase().contains(term),);
   }
 
   // NOTE: The following methods moved to UseCase:

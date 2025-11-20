@@ -35,16 +35,16 @@ class CreateShiftParams {
     final errors = <String>[];
 
     if (storeId.isEmpty) {
-      errors.add('매장 ID가 필요합니다');
+      errors.add('Store ID is required');
     }
     if (shiftDate.isEmpty) {
-      errors.add('근무 날짜가 필요합니다');
+      errors.add('Shift date is required');
     }
     if (!planEndTime.isAfter(planStartTime)) {
-      errors.add('종료 시간은 시작 시간보다 늦어야 합니다');
+      errors.add('End time must be after start time');
     }
     if (targetCount <= 0) {
-      errors.add('목표 인원은 0보다 커야 합니다');
+      errors.add('Target count must be greater than 0');
     }
 
     return errors;

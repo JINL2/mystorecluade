@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
+
 import '../toss/toss_primary_button.dart';
 import '../toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 enum TossDialogType {
   success,
   error,
@@ -196,7 +193,7 @@ class _TossDialogState extends State<TossDialog>
       curve: widget.type == TossDialogType.success 
           ? Curves.elasticOut 
           : Curves.easeOut,
-    ));
+    ),);
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -204,7 +201,7 @@ class _TossDialogState extends State<TossDialog>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     _iconScaleAnimation = Tween<double>(
       begin: 0.0,
@@ -212,7 +209,7 @@ class _TossDialogState extends State<TossDialog>
     ).animate(CurvedAnimation(
       parent: _iconController,
       curve: Curves.elasticOut,
-    ));
+    ),);
 
     // Start animations
     _controller.forward();
@@ -272,7 +269,7 @@ class _TossDialogState extends State<TossDialog>
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: Container(
-            padding: EdgeInsets.all(TossSpacing.space6),
+            padding: const EdgeInsets.all(TossSpacing.space6),
             decoration: BoxDecoration(
               color: widget.backgroundColor,
               borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -290,17 +287,17 @@ class _TossDialogState extends State<TossDialog>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildIconSection(),
-                SizedBox(height: TossSpacing.space4),
+                const SizedBox(height: TossSpacing.space4),
                 _buildTitleSection(),
                 if (widget.infoItems != null && widget.infoItems!.isNotEmpty) ...[
-                  SizedBox(height: TossSpacing.space4),
+                  const SizedBox(height: TossSpacing.space4),
                   _buildInfoSection(),
                 ],
                 if (widget.customContent != null) ...[
-                  SizedBox(height: TossSpacing.space4),
+                  const SizedBox(height: TossSpacing.space4),
                   widget.customContent!,
                 ],
-                SizedBox(height: TossSpacing.space6),
+                const SizedBox(height: TossSpacing.space6),
                 _buildButtonSection(),
               ],
             ),
@@ -353,7 +350,7 @@ class _TossDialogState extends State<TossDialog>
           textAlign: TextAlign.center,
         ),
         if (widget.subtitle != null) ...[
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             widget.subtitle!,
             style: TossTextStyles.h3.copyWith(
@@ -364,7 +361,7 @@ class _TossDialogState extends State<TossDialog>
           ),
         ],
         if (widget.message != null) ...[
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           Text(
             widget.message!,
             style: TossTextStyles.body.copyWith(
@@ -380,7 +377,7 @@ class _TossDialogState extends State<TossDialog>
 
   Widget _buildInfoSection() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -398,7 +395,7 @@ class _TossDialogState extends State<TossDialog>
               final item = entry.value;
               return Column(
                 children: [
-                  if (index > 0) SizedBox(height: TossSpacing.space3),
+                  if (index > 0) const SizedBox(height: TossSpacing.space3),
                   Row(
                     children: [
                       Icon(
@@ -406,7 +403,7 @@ class _TossDialogState extends State<TossDialog>
                         size: 18,
                         color: item.iconColor ?? TossColors.textSecondary,
                       ),
-                      SizedBox(width: TossSpacing.space3),
+                      const SizedBox(width: TossSpacing.space3),
                       Text(
                         '${item.label}: ',
                         style: TossTextStyles.body.copyWith(
@@ -439,7 +436,7 @@ class _TossDialogState extends State<TossDialog>
       return Column(
         children: widget.actions!
             .map((action) => Padding(
-                  padding: EdgeInsets.only(bottom: TossSpacing.space2),
+                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
                   child: SizedBox(
                     width: double.infinity,
                     child: action.isPrimary
@@ -454,7 +451,7 @@ class _TossDialogState extends State<TossDialog>
                             fullWidth: true,
                           ),
                   ),
-                ))
+                ),)
             .toList(),
       );
     }
@@ -468,11 +465,11 @@ class _TossDialogState extends State<TossDialog>
           fullWidth: true,
         ),
         if (widget.secondaryButtonText != null) ...[
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           TextButton(
             onPressed: widget.onSecondaryPressed ?? () => Navigator.of(context).pop(false),
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
                 vertical: TossSpacing.space3,
               ),
@@ -550,7 +547,7 @@ class TossDialogs {
           ),
         ] : null,
         customContent: companyCode != null ? Container(
-          padding: EdgeInsets.all(TossSpacing.space3),
+          padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.info.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -561,8 +558,8 @@ class TossDialogs {
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: TossColors.info, size: 20),
-              SizedBox(width: TossSpacing.space2),
+              const Icon(Icons.info_outline, color: TossColors.info, size: 20),
+              const SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Text(
                   'Share this code with employees to join your business',

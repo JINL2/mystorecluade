@@ -2,38 +2,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Domain Layer
 import '../../domain/entities/company_entity.dart';
-import '../../domain/value_objects/create_company_command.dart';
+import '../../domain/repositories/company_repository.dart';
+import '../../domain/usecases/create_company_usecase.dart';
 import '../../domain/value_objects/company_type.dart';
+import '../../domain/value_objects/create_company_command.dart';
 import '../../domain/value_objects/currency.dart';
-
 // Providers
+import '../providers/repository_providers.dart';
 import 'usecase_providers.dart';
-import 'repository_providers.dart';
 
 /// Company Service
 ///
 /// Provides high-level company operations.
-/// This service follows the legacy pattern of Provider<Service> for minimal
-/// UI code changes during migration.
+/// This service follows the Facade pattern to simplify UI interactions.
 ///
 /// Responsibilities:
 /// - Execute company-related UseCases
 /// - Provide simple data queries (types, currencies)
-/// - Coordinate business operations
+/// - Abstract complexity from UI layer
 ///
 /// Usage:
 /// ```dart
 /// final companyService = ref.read(companyServiceProvider);
-/// final company = await companyService.createCompany(
-///   name: 'My Business',
-///   typeId: 'type-id',
-///   currencyId: 'currency-id',
-/// );
+/// final company = await companyService.createCompany(...);
 /// ```
 class CompanyService {
-  const CompanyService(this.ref);
+  final CreateCompanyUseCase _createCompanyUseCase;
+  final CompanyRepository _companyRepository;
 
-  final Ref ref;
+  const CompanyService({
+    required CreateCompanyUseCase createCompanyUseCase,
+    required CompanyRepository companyRepository,
+  })  : _createCompanyUseCase = createCompanyUseCase,
+        _companyRepository = companyRepository;
 
   /// Create a new company
   ///
@@ -54,83 +55,45 @@ class CompanyService {
     required String ownerId,
     required String companyTypeId,
     required String currencyId,
-    String? email,
-    String? phone,
-    String? address,
-    String? businessNumber,
+    String? otherTypeDetail,
   }) async {
-    try {
-      final command = CreateCompanyCommand(
+    return await _createCompanyUseCase.execute(
+      CreateCompanyCommand(
         name: name.trim(),
         ownerId: ownerId,
         companyTypeId: companyTypeId,
         currencyId: currencyId,
-        email: email?.trim(),
-        phone: phone?.trim(),
-        address: address?.trim(),
-        businessNumber: businessNumber?.trim(),
-      );
-
-      return await ref.read(createCompanyUseCaseProvider).execute(command);
-    } catch (e) {
-      rethrow;
-    }
+        otherTypeDetail: otherTypeDetail,
+      ),
+    );
   }
 
   /// Get all available company types
   ///
   /// Simple data query - no UseCase needed.
   /// Returns list of company types for dropdown/selection.
-  ///
-  /// Example types:
-  /// - Retail
-  /// - Restaurant
-  /// - Service
-  /// - Manufacturing
-  Future<List<CompanyType>> getCompanyTypes() async {
-    try {
-      final repository = ref.read(companyRepositoryProvider);
-      return await repository.getCompanyTypes();
-    } catch (e) {
-      rethrow;
-    }
+  Future<List<CompanyType>> getCompanyTypes() {
+    return _companyRepository.getCompanyTypes();
   }
 
   /// Get all available currencies
   ///
   /// Simple data query - no UseCase needed.
   /// Returns list of currencies for dropdown/selection.
-  ///
-  /// Example currencies:
-  /// - USD
-  /// - EUR
-  /// - GBP
-  /// - KRW
-  Future<List<Currency>> getCurrencies() async {
-    try {
-      final repository = ref.read(companyRepositoryProvider);
-      return await repository.getCurrencies();
-    } catch (e) {
-      rethrow;
-    }
+  Future<List<Currency>> getCurrencies() {
+    return _companyRepository.getCurrencies();
   }
 
   /// Check if company name is available
   ///
   /// Validates that company name is not already taken by current user.
-  ///
   /// Returns true if name is available, false otherwise.
   Future<bool> isCompanyNameAvailable(String name, String ownerId) async {
-    try {
-      final repository = ref.read(companyRepositoryProvider);
-      final isDuplicate = await repository.nameExists(
-        name: name.trim(),
-        ownerId: ownerId,
-      );
-      return !isDuplicate;
-    } catch (e) {
-      rethrow;
-    }
+    final isDuplicate = await _companyRepository.nameExists(
+      name: name.trim(),
+      ownerId: ownerId,
+    );
+    return !isDuplicate;
   }
 }
 
@@ -138,5 +101,8 @@ class CompanyService {
 ///
 /// Provides CompanyService instance with all dependencies injected.
 final companyServiceProvider = Provider<CompanyService>((ref) {
-  return CompanyService(ref);
+  return CompanyService(
+    createCompanyUseCase: ref.watch(createCompanyUseCaseProvider),
+    companyRepository: ref.watch(companyRepositoryProvider),
+  );
 });

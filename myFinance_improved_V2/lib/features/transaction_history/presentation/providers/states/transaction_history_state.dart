@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/transaction.dart';
+import '../../../domain/entities/transaction_extensions.dart';
 
 part 'transaction_history_state.freezed.dart';
 
@@ -83,12 +84,11 @@ class GroupedTransactionsState with _$GroupedTransactionsState {
 
   /// Create from transaction list
   factory GroupedTransactionsState.fromTransactions(
-      List<Transaction> transactions) {
+      List<Transaction> transactions,) {
     final Map<String, List<Transaction>> grouped = {};
 
     for (final transaction in transactions) {
-      final dateKey =
-          '${transaction.entryDate.year}-${transaction.entryDate.month.toString().padLeft(2, '0')}-${transaction.entryDate.day.toString().padLeft(2, '0')}';
+      final dateKey = transaction.entryDate.toDateKey();
       grouped.putIfAbsent(dateKey, () => []).add(transaction);
     }
 

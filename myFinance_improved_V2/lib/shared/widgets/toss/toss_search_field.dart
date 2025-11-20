@@ -1,10 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TossSearchField extends StatefulWidget {
   const TossSearchField({
@@ -95,7 +96,7 @@ class _TossSearchFieldState extends State<TossSearchField> {
   @override
   Widget build(BuildContext context) {
     final bool isFocused = _focusNode.hasFocus;
-    final Color backgroundColor = isFocused ? TossColors.surface : TossColors.gray50;
+    final Color backgroundColor = TossColors.white;
     
     return Material(
       color: backgroundColor,
@@ -121,7 +122,7 @@ class _TossSearchFieldState extends State<TossSearchField> {
               : null,
           suffixIcon: _showClearButton
               ? IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.clear,
                     color: TossColors.textTertiary,
                     size: 20,
@@ -133,21 +134,21 @@ class _TossSearchFieldState extends State<TossSearchField> {
           fillColor: backgroundColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
-              color: TossColors.primary.withOpacity(0.4),
+            borderSide: const BorderSide(
+              color: TossColors.gray100,
               width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
-              color: TossColors.primary.withOpacity(0.4),
+            borderSide: const BorderSide(
+              color: TossColors.gray100,
               width: 1.5,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
+            borderSide: const BorderSide(
               color: TossColors.primary,
               width: 1.5,
             ),

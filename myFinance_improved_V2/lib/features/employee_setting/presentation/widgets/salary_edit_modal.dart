@@ -13,11 +13,10 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
-import '../../domain/value_objects/salary_update_request.dart';
 import '../providers/employee_providers.dart';
 class SalaryEditModal extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
-  final Function(double, String, String, String, String) onSave;
+  final void Function(double, String, String, String, String) onSave;
 
   const SalaryEditModal({
     super.key,
@@ -71,7 +70,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.background,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(16),
@@ -85,7 +84,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(TossSpacing.space5),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -94,7 +93,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                     // Current Salary Display
                     _buildCurrentSalaryCard(),
                     
-                    SizedBox(height: TossSpacing.space6),
+                    const SizedBox(height: TossSpacing.space6),
                     
                     // New Amount Input
                     Text(
@@ -103,27 +102,27 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     TextFormField(
                       controller: _amountController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                       ],
                       decoration: InputDecoration(
                         hintText: 'Enter new salary amount',
-                        prefixIcon: Icon(Icons.attach_money, color: TossColors.gray600),
+                        prefixIcon: const Icon(Icons.attach_money, color: TossColors.gray600),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          borderSide: BorderSide(color: TossColors.gray300),
+                          borderSide: const BorderSide(color: TossColors.gray300),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          borderSide: BorderSide(color: TossColors.gray300),
+                          borderSide: const BorderSide(color: TossColors.gray300),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          borderSide: BorderSide(color: TossColors.primary, width: 2),
+                          borderSide: const BorderSide(color: TossColors.primary, width: 2),
                         ),
                         filled: true,
                         fillColor: TossColors.background,
@@ -140,7 +139,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                       },
                     ),
                     
-                    SizedBox(height: TossSpacing.space5),
+                    const SizedBox(height: TossSpacing.space5),
                     
                     // Payment Type Selection
                     Text(
@@ -149,7 +148,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     Row(
                       children: [
                         Expanded(
@@ -163,7 +162,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                             },
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space3),
+                        const SizedBox(width: TossSpacing.space3),
                         Expanded(
                           child: _PaymentTypeChip(
                             label: 'Hourly',
@@ -178,7 +177,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                       ],
                     ),
                     
-                    SizedBox(height: TossSpacing.space5),
+                    const SizedBox(height: TossSpacing.space5),
                     
                     // Currency Selection
                     Text(
@@ -187,7 +186,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     currencies.when(
                       data: (currencyList) => TossDropdown<String>(
                         label: 'Currency',
@@ -213,7 +212,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                       error: (_, __) => const Text('Failed to load currencies'),
                     ),
                     
-                    SizedBox(height: TossSpacing.space5),
+                    const SizedBox(height: TossSpacing.space5),
                     
                     // Effective Date
                     Text(
@@ -222,11 +221,11 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     InkWell(
                       onTap: () => _selectDate(context),
                       child: Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -236,12 +235,12 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.calendar_today,
                               color: TossColors.gray600,
                               size: 20,
                             ),
-                            SizedBox(width: TossSpacing.space3),
+                            const SizedBox(width: TossSpacing.space3),
                             Text(
                               DateFormat('MMMM d, yyyy').format(_effectiveDate),
                               style: TossTextStyles.body,
@@ -266,8 +265,8 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray200,
@@ -287,7 +286,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 Text(
                   'Update salary information for ${widget.employee.fullName}',
                   style: TossTextStyles.bodySmall.copyWith(
@@ -298,7 +297,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, color: TossColors.gray600),
+            icon: const Icon(Icons.close, color: TossColors.gray600),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -308,7 +307,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   
   Widget _buildCurrentSalaryCard() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -325,7 +324,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
               color: TossColors.gray600,
             ),
           ),
-          SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
@@ -357,7 +356,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   
   Widget _buildBottomActions(List<CurrencyType> currencies) {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.background,
         border: const Border(
@@ -384,7 +383,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                 fullWidth: true,
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               flex: 2,
               child: TossButton1.primary(
@@ -404,12 +403,12 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _effectiveDate,
-      firstDate: DateTime.now().subtract(Duration(days: 365)),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: TossColors.primary,
               onPrimary: TossColors.background,
               surface: TossColors.background,
@@ -451,9 +450,8 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       setState(() => _isSaving = true);
 
       try {
-        // Call the repository to update in database
-        final repository = ref.read(employeeRepositoryProvider);
-        final request = SalaryUpdateRequest(
+        // ✅ Use Notifier instead of calling repository directly
+        final success = await ref.read(employeeProvider.notifier).updateEmployeeSalary(
           salaryId: widget.employee.salaryId!,
           salaryAmount: amount,
           salaryType: _selectedPaymentType,
@@ -461,7 +459,9 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           changeReason: 'Salary updated via mobile app',
         );
 
-        await repository.updateSalary(request);
+        if (!success) {
+          throw Exception('Failed to update salary');
+        }
 
         // Call the original callback to update local state with new values
         widget.onSave(
@@ -471,9 +471,6 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           selectedCurrency.currencyName,
           selectedCurrency.symbol,
         );
-
-        // Refresh the employee list to get updated data from database
-        await refreshEmployees(ref);
 
         // Close modal
         if (mounted) Navigator.pop(context);
@@ -518,7 +515,7 @@ class _PaymentTypeChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           vertical: TossSpacing.space3,
         ),
         decoration: BoxDecoration(

@@ -1,6 +1,7 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/value_objects/currency_identifier.dart';
 import '../../domain/value_objects/salary_update_request.dart';
 import '../models/currency_type_model.dart';
 import '../models/employee_salary_model.dart';
@@ -129,11 +130,12 @@ class EmployeeRemoteDataSource {
         throw Exception('No salary record found with salary_id: ${request.salaryId}');
       }
 
-      // The currency ID should already be correct from the dropdown
+      // Resolve currency identifier to UUID
+      final identifier = CurrencyIdentifier(request.currencyId);
       String currencyIdToUse = request.currencyId;
 
-      // If it's a currency code like "VND", "USD", look up the UUID
-      if (request.currencyId.length < 10) {
+      // If it's a currency code (e.g., "USD", "VND"), look up the UUID
+      if (identifier.isCode) {
         try {
           final currencyRecord = await _supabase
               .from('currency_types')
@@ -191,15 +193,20 @@ class EmployeeRemoteDataSource {
           (data) => data
               .map((json) {
                 try {
-                  return EmployeeSalaryModel.fromJson(json as Map<String, dynamic>);
+                  return EmployeeSalaryModel.fromJson(json);
                 } catch (e) {
+                  // Log parsing error but continue with other items
+                  print('Warning: Failed to parse employee salary: $e');
                   return null;
                 }
               })
               .whereType<EmployeeSalaryModel>()
               .toList(),
         )
-        .handleError((error) {
+        .handleError((Object error) {
+          // Log stream error
+          print('Error in employee salary stream: $error');
+          // Return empty list on error but keep stream alive
           return <EmployeeSalaryModel>[];
         });
   }

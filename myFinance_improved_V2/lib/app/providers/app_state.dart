@@ -6,6 +6,7 @@
 /// - Maintains cross-cutting concerns in dedicated location
 ///
 /// ✅ LOCATION: lib/app/providers/app_state.dart
+library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+
 import '../../domain/entities/currency_type.dart';
+import '../../domain/providers/use_case_providers.dart';
+import '../../domain/usecases/create_cash_location_use_case.dart';
 import '../providers/cash_location_providers.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
@@ -142,13 +144,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Account Name Field
                     _buildSectionTitle('Account Name', fieldName: 'name'),
-                    SizedBox(height: TossSpacing.space2),
+                    const SizedBox(height: TossSpacing.space2),
                     _buildTextField(
                       controller: _nameController,
                       hintText: 'Enter account name',
@@ -157,18 +159,18 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                     
                     // Bank-specific fields
                     if (widget.locationType == 'bank') ...[
-                      SizedBox(height: TossSpacing.space6),
+                      const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Bank Name', fieldName: 'bankName'),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _bankNameController,
                         hintText: 'Enter bank name',
                         fieldName: 'bankName',
                       ),
                       
-                      SizedBox(height: TossSpacing.space6),
+                      const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Account Number', fieldName: 'accountNumber'),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _accountNumberController,
                         hintText: 'Enter account number',
@@ -176,17 +178,17 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         keyboardType: TextInputType.number,
                       ),
                       
-                      SizedBox(height: TossSpacing.space6),
+                      const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Currency', fieldName: 'currency'),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       _buildCurrencyDropdown(),
                     ],
                     
                     // Description field (for cash/vault locations)
                     if (widget.locationType != 'bank') ...[
-                      SizedBox(height: TossSpacing.space6),
+                      const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Description'),
-                      SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _descriptionController,
                         hintText: 'Enter description (optional)',
@@ -194,7 +196,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                       ),
                     ],
                     
-                    SizedBox(height: TossSpacing.space8),
+                    const SizedBox(height: TossSpacing.space8),
                   ],
                 ),
               ),
@@ -250,7 +252,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         },
         onTap: () {
           // Clear error state when user starts typing in a field
-          if (showError && fieldName != null) {
+          if (showError) {
             setState(() {
               _filledFields.add(fieldName);
             });
@@ -286,7 +288,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             borderSide: BorderSide.none,
           ),
-          contentPadding: EdgeInsets.all(TossSpacing.space4),
+          contentPadding: const EdgeInsets.all(TossSpacing.space4),
         ),
       ),
     );
@@ -315,8 +317,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             color: TossColors.gray400,
           ),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.all(TossSpacing.space4),
-          suffixIcon: Icon(
+          contentPadding: const EdgeInsets.all(TossSpacing.space4),
+          suffixIcon: const Icon(
             Icons.keyboard_arrow_down,
             color: TossColors.gray400,
             size: 24,
@@ -364,12 +366,12 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                 color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
                 vertical: TossSpacing.space3,
               ),
             ),
-            icon: Icon(
+            icon: const Icon(
               Icons.keyboard_arrow_down,
               color: TossColors.gray400,
               size: 24,
@@ -386,7 +388,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                 child: Row(
                   children: [
                     // Currency symbol
-                    Container(
+                    SizedBox(
                       width: 32,
                       child: Text(
                         currency.symbol,
@@ -397,7 +399,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         ),
                       ),
                     ),
-                    SizedBox(width: TossSpacing.space2),
+                    const SizedBox(width: TossSpacing.space2),
                     // Currency name
                     Expanded(
                       child: Text(
@@ -430,9 +432,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(color: TossColors.gray300),
         ),
-        padding: EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: const Center(
-          child: const TossLoadingView(),
+          child: TossLoadingView(),
         ),
       ),
       error: (error, stack) => Container(
@@ -441,7 +443,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(color: TossColors.error),
         ),
-        padding: EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Text(
           'Failed to load currencies',
           style: TossTextStyles.body.copyWith(
@@ -466,7 +468,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     final bool isButtonEnabled = isAccountNameFilled && isBankFieldsFilled;
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: SafeArea(
         child: SizedBox(
           width: double.infinity,
@@ -553,47 +555,22 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     );
     
     try {
-      // Prepare location_info JSON based on location type
-      Map<String, dynamic> locationInfo = {};
-      
-      if (widget.locationType == 'bank') {
-        // For bank accounts, store bank-specific info
-        locationInfo = {
-          'bank_name': _bankNameController.text.trim(),
-          'account_number': _accountNumberController.text.trim(),
-        };
-      } else {
-        // For cash/vault locations, store only description
-        locationInfo = {
-          'description': _descriptionController.text.trim(),
-        };
-      }
-      
-      // Prepare the data for insertion
-      final data = {
-        'company_id': companyId,
-        'store_id': storeId,
-        'location_name': _nameController.text.trim(),
-        'location_type': widget.locationType,
-        'location_info': jsonEncode(locationInfo),
-      };
-      
-      // Add bank-specific fields if it's a bank account
-      if (widget.locationType == 'bank') {
-        data['bank_name'] = _bankNameController.text.trim();
-        data['bank_account'] = _accountNumberController.text.trim();
-        // Add currency_id for bank accounts
-        if (_selectedCurrencyId != null) {
-          data['currency_id'] = _selectedCurrencyId!;
-        }
-      }
-      
-      // Insert into Supabase
-      final supabase = Supabase.instance.client;
-      await supabase.from('cash_locations').insert(data);
+      // Use the CreateCashLocationUseCase
+      final useCase = ref.read(createCashLocationUseCaseProvider);
+
+      await useCase(CreateCashLocationParams(
+        companyId: companyId,
+        storeId: storeId,
+        locationName: _nameController.text.trim(),
+        locationType: widget.locationType,
+        bankName: widget.locationType == 'bank' ? _bankNameController.text.trim() : null,
+        accountNumber: widget.locationType == 'bank' ? _accountNumberController.text.trim() : null,
+        currencyId: _selectedCurrencyId,
+        description: _descriptionController.text.trim(),
+      ),);
       
       // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Invalidate the cash locations cache to refresh the list
       ref.invalidate(allCashLocationsProvider);
@@ -612,11 +589,11 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       }
 
       // Go back to previous screen
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
     } catch (e) {
       // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
 
       // Show error message
       if (mounted) {

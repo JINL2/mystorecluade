@@ -5,8 +5,8 @@ import '../exceptions/auth_exceptions.dart';
 import '../exceptions/validation_exception.dart';
 import '../repositories/auth_repository.dart';
 import '../validators/email_validator.dart';
-import '../validators/password_validator.dart';
 import '../validators/name_validator.dart';
+import '../validators/password_validator.dart';
 import '../value_objects/signup_command.dart';
 
 /// Signup use case.

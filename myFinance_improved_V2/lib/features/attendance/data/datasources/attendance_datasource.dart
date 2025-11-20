@@ -343,7 +343,6 @@ class AttendanceDatasource {
         'get_monthly_shift_status_manager',
         params: {
           'p_store_id': storeId,
-          'p_company_id': companyId,
           'p_request_date': requestDate,
         },
       );
@@ -385,13 +384,38 @@ class AttendanceDatasource {
         return null;
       }
 
+      Map<String, dynamic> result;
+
       if (response is List) {
         if (response.isEmpty) return null;
-        final firstItem = response.first as Map<String, dynamic>;
-        return _convertToLocalTime(firstItem);
+        result = response.first as Map<String, dynamic>;
+      } else {
+        result = response as Map<String, dynamic>;
       }
 
-      return _convertToLocalTime(response as Map<String, dynamic>);
+      // Check if response contains success/data structure from RPC
+      if (result.containsKey('success')) {
+        final success = result['success'] as bool?;
+
+        // If not successful, throw exception with error message
+        if (success == false) {
+          final message = result['message'] as String? ?? 'Unknown error';
+          final errorCode = result['error_code'] as String? ?? 'UNKNOWN';
+          throw AttendanceServerException('$errorCode: $message');
+        }
+
+        // Extract the actual data if present
+        if (result.containsKey('data') && result['data'] != null) {
+          final data = result['data'] as Map<String, dynamic>;
+          return _convertToLocalTime(data);
+        }
+
+        // If no data field but successful, return null
+        return null;
+      }
+
+      // If response doesn't have success field, treat it as direct data
+      return _convertToLocalTime(result);
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }

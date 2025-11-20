@@ -3,6 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/store_shift.dart';
+import '../../domain/repositories/store_shift_repository.dart';
+import '../../domain/usecases/create_shift.dart';
+import '../../domain/usecases/delete_shift.dart';
+import '../../domain/usecases/get_shifts.dart';
+import '../../domain/usecases/update_operational_settings.dart';
+import '../../domain/usecases/update_shift.dart';
+import '../../domain/usecases/update_store_location.dart';
+import '../../domain/value_objects/shift_params.dart';
 import 'states/shift_form_state.dart';
 import 'states/shift_page_state.dart';
 import 'states/store_settings_state.dart';
@@ -11,15 +19,69 @@ import 'states/store_settings_state.dart';
 /// Presentation Layer Providers
 /// ========================================
 ///
-/// This file contains presentation logic providers.
-/// It only imports domain layer (entities, repository interfaces).
-/// Data layer providers are imported from data/repositories/repository_providers.dart
+/// This file contains ALL providers for store_shift feature.
+/// Presentation layer is responsible for Dependency Injection.
+///
+/// ✅ Imports Data layer ONLY for DI (repository implementation)
+/// ✅ Imports Domain layer for business logic (entities, usecases, interfaces)
+///
+/// This is ACCEPTABLE in Clean Architecture:
+/// - Presentation knows about Data (for DI)
+/// - Presentation knows about Domain (for business logic)
+/// - Domain knows NOTHING about Presentation or Data
+/// - Data knows ONLY about Domain
+
+/// ========================================
+/// UseCase Providers
+/// ========================================
+
+/// Get Shifts UseCase Provider
+final getShiftsUseCaseProvider = Provider<GetShifts>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return GetShifts(repository);
+});
+
+/// Create Shift UseCase Provider
+final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return CreateShift(repository);
+});
+
+/// Update Shift UseCase Provider
+final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return UpdateShift(repository);
+});
+
+/// Delete Shift UseCase Provider
+final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return DeleteShift(repository);
+});
+
+/// Update Store Location UseCase Provider
+final updateStoreLocationUseCaseProvider = Provider<UpdateStoreLocation>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return UpdateStoreLocation(repository);
+});
+
+/// Update Operational Settings UseCase Provider
+final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSettings>((ref) {
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  return UpdateOperationalSettings(repository);
+});
 
 /// ========================================
 /// Business Logic Providers
 /// ========================================
+///
+/// These providers use UseCases from the Domain layer.
+/// They coordinate between UI state and business logic.
 
 /// Provider to fetch shifts for the selected store
+///
+/// Uses GetShifts UseCase to retrieve shifts.
+/// Returns empty list if no store is selected.
 final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) async {
   final appState = ref.watch(appStateProvider);
 
@@ -28,11 +90,15 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) a
     return [];
   }
 
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  // Use repository implementation directly in Presentation (acceptable for DI)
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return await repository.getShiftsByStoreId(appState.storeChoosen);
 });
 
 /// Provider to fetch detailed store information
+///
+/// Uses repository implementation.
+/// Returns null if no store is selected.
 final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
   final appState = ref.watch(appStateProvider);
 
@@ -41,7 +107,8 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
     return null;
   }
 
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  // Use repository implementation directly in Presentation (acceptable for DI)
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return await repository.getStoreById(appState.storeChoosen);
 });
 
@@ -109,14 +176,14 @@ final createShiftProvider = Provider.autoDispose<
     required String endTime,
     required int shiftBonus,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    return await repository.createShift(
+    final useCase = ref.read(createShiftUseCaseProvider);
+    return await useCase(CreateShiftParams(
       storeId: storeId,
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    );
+    ),);
   };
 });
 
@@ -136,14 +203,14 @@ final updateShiftProvider = Provider.autoDispose<
     String? endTime,
     int? shiftBonus,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    return await repository.updateShift(
+    final useCase = ref.read(updateShiftUseCaseProvider);
+    return await useCase(UpdateShiftParams(
       shiftId: shiftId,
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    );
+    ),);
   };
 });
 
@@ -151,8 +218,8 @@ final updateShiftProvider = Provider.autoDispose<
 final deleteShiftProvider = Provider.autoDispose<
     Future<void> Function(String shiftId)>((ref) {
   return (String shiftId) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    await repository.deleteShift(shiftId);
+    final useCase = ref.read(deleteShiftUseCaseProvider);
+    await useCase(DeleteShiftParams(shiftId));
   };
 });
 
@@ -170,12 +237,12 @@ final updateStoreLocationProvider = Provider.autoDispose<
     required double longitude,
     required String address,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    await repository.updateStoreLocation(
+    final useCase = ref.read(updateStoreLocationUseCaseProvider);
+    await useCase(UpdateStoreLocationParams(
       storeId: storeId,
       latitude: latitude,
       longitude: longitude,
       address: address,
-    );
+    ),);
   };
 });

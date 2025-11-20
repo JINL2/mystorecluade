@@ -1,19 +1,16 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 // Core - Themes
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 // Core - Navigation
 
 // App - Providers
-import '../../../../app/providers/app_state_provider.dart';
 
 // Auth - Services (Clean Architecture)
-import '../providers/auth_service.dart';
 
 /// Choose Role Page - Clean Architecture Version
 ///
@@ -61,43 +58,14 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
             children: [
               const SizedBox(height: 40),
 
-              // Storebase Logo
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.store,
-                      color: TossColors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space3),
-                  Text(
-                    'Storebase',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
               // Welcome Message
               Text(
-                'Welcome to Storebase! 🎉',
+                'Welcome to Storebase!',
                 style: TossTextStyles.h1.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.textPrimary,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
 
               const SizedBox(height: TossSpacing.space4),
@@ -107,16 +75,16 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 style: TossTextStyles.h3.copyWith(
                   color: TossColors.textSecondary,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
 
               const SizedBox(height: 60),
 
-              // Create Business Card
+              // Create Company Card
               _buildActionCard(
                 context: context,
-                title: 'Create Business',
-                subtitle: 'I want to start a new business',
+                title: 'Create Company',
+                subtitle: 'I want to start a new company',
                 icon: Icons.business,
                 color: TossColors.primary,
                 onTap: () => _navigateToPage('/onboarding/create-business'),
@@ -124,11 +92,11 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
 
               const SizedBox(height: 20),
 
-              // Join Business Card
+              // Join Company Card
               _buildActionCard(
                 context: context,
-                title: 'Join Business',
-                subtitle: 'I have a business code',
+                title: 'Join Company',
+                subtitle: 'I have a company code',
                 icon: Icons.group_add,
                 color: TossColors.success,
                 onTap: () => _navigateToPage('/onboarding/join-business'),
@@ -140,7 +108,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.help_outline,
                     color: TossColors.textSecondary,
                     size: 16,
@@ -169,60 +137,6 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
               ),
 
               const SizedBox(height: 40),
-
-              // Sign in option for existing users
-              const Divider(color: TossColors.gray200),
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Already have an account?',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  TextButton(
-                    onPressed: () async {
-                      // Sign out using Clean Architecture (AuthService)
-                      try {
-                        // Use AuthService instead of direct Supabase access
-                        final authService = ref.read(authServiceProvider);
-                        await authService.signOut();
-
-                        // TODO: Clear app state - need to add clearData() method to AppStateNotifier
-                        // await ref.read(appStateProvider.notifier).clearData();
-
-                        // Now navigate to login page
-                        if (context.mounted) {
-                          context.go('/auth/login');
-                        }
-                      } catch (e) {
-                        // If sign out fails, still try to navigate
-                        if (context.mounted) {
-                          context.go('/auth/login');
-                        }
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Go to Sign In',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -328,7 +242,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 ),
               ),
               // Arrow Icon
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios,
                 color: TossColors.textSecondary,
                 size: 16,
@@ -349,16 +263,16 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('• Choose "Create Business" if you\'re starting a new company'),
+            Text('• Choose "Create Company" if you\'re starting a new company'),
             SizedBox(height: TossSpacing.space2),
-            Text('• Choose "Join Business" if you have a business code from your employer'),
+            Text('• Choose "Join Company" if you have a company code from your employer'),
             SizedBox(height: TossSpacing.space2),
             Text('• You can always change this later in settings'),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text('Got it'),
           ),
         ],

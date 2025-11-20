@@ -1,5 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/errors/failures.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Shared utility for mapping Supabase errors to domain failures
 /// Reduces code duplication across repository implementations

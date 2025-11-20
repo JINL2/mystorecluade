@@ -1,12 +1,12 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../entities/template_entity.dart';
+import '../enums/template_enums.dart';
+import '../exceptions/template_business_exception.dart';
+import '../exceptions/validation_error.dart';
+import '../exceptions/validation_exception.dart';
 import '../repositories/template_repository.dart';
 import '../validators/template_validator.dart';
-import '../exceptions/template_business_exception.dart';
-import '../exceptions/validation_exception.dart';
-import '../exceptions/validation_error.dart';
-import '../enums/template_enums.dart';
 import '../value_objects/template_creation_data.dart';
-import '../../../../core/utils/datetime_utils.dart';
 
 /// Use case for creating a new transaction template
 /// 
@@ -58,7 +58,7 @@ class CreateTemplateUseCase {
               fieldValue: '',
               validationRule: 'entity_validation',
               message: error,
-            )
+            ),
           ).toList(),
         );
       }
@@ -80,7 +80,7 @@ class CreateTemplateUseCase {
               fieldValue: '',
               validationRule: 'data_structure_validation',
               message: error,
-            )
+            ),
           ).toList(),
         );
       }
@@ -89,7 +89,7 @@ class CreateTemplateUseCase {
       // 4. Validate against external policies (pure business rules)
       // ✅ ARCHITECTURE FIX: Permission checks removed from Domain Layer
       // Permission validation is UI Layer responsibility (canCreateTemplatesProvider)
-      final templatePolicy = TemplatePolicy(
+      const templatePolicy = TemplatePolicy(
         enforceNamingConvention: true,
         namingPattern: r'^[A-Z][a-zA-Z0-9_]*$',
         forbiddenWords: ['test', 'temp', 'dummy'],
@@ -522,7 +522,7 @@ class CreateTemplateUseCase {
             fieldValue: '',
             validationRule: 'account_access_validation',
             message: error,
-          )
+          ),
         ).toList(),
       );
     }
@@ -575,7 +575,7 @@ class CreateTemplateUseCase {
             fieldValue: '',
             validationRule: 'quota_validation',
             message: error,
-          )
+          ),
         ).toList(),
       );
     }

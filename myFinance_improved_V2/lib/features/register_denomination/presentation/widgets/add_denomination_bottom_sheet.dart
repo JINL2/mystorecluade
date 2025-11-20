@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
-import '../providers/denomination_providers.dart';
 import '../providers/currency_providers.dart';
+import '../providers/denomination_providers.dart';
 class AddDenominationBottomSheet extends ConsumerStatefulWidget {
   final Currency currency;
 
@@ -70,7 +68,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
             
             // Header
             Padding(
-              padding: EdgeInsets.fromLTRB(TossSpacing.space5, 0, TossSpacing.space2, 0),
+              padding: const EdgeInsets.fromLTRB(TossSpacing.space5, 0, TossSpacing.space2, 0),
               child: Row(
                 children: [
                   Expanded(
@@ -83,7 +81,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: const Icon(Icons.close),
                     color: TossColors.gray500,
                     padding: const EdgeInsets.all(TossSpacing.space2),
@@ -94,7 +92,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
             
             // Content
             Padding(
-              padding: EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, 0),
+              padding: const EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -213,12 +211,12 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   // Cancel button
                   Expanded(
                     child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.pop(),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          side: BorderSide(color: TossColors.gray200, width: 1),
+                          side: const BorderSide(color: TossColors.gray200, width: 1),
                         ),
                       ),
                       child: Text(
@@ -295,7 +293,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
     
     // Close bottom sheet immediately for better UX
     if (mounted) {
-      Navigator.of(context).pop();
+      context.pop();
 
       // Show immediate success message (optimistic)
       await showDialog<bool>(

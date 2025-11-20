@@ -47,6 +47,30 @@ Map<String, dynamic> _$$AccountDataImplToJson(_$AccountDataImpl instance) =>
       'additionalData': instance.additionalData,
     };
 
+_$QuickAccessAccountImpl _$$QuickAccessAccountImplFromJson(
+        Map<String, dynamic> json) =>
+    _$QuickAccessAccountImpl(
+      accountId: json['account_id'] as String,
+      accountName: json['account_name'] as String,
+      accountType: json['account_type'] as String,
+      usageCount: (json['usage_count'] as num).toInt(),
+      lastUsed: DateTime.parse(json['last_used'] as String),
+      usageScore: (json['usage_score'] as num).toDouble(),
+      existsInSystem: json['exists_in_system'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$$QuickAccessAccountImplToJson(
+        _$QuickAccessAccountImpl instance) =>
+    <String, dynamic>{
+      'account_id': instance.accountId,
+      'account_name': instance.accountName,
+      'account_type': instance.accountType,
+      'usage_count': instance.usageCount,
+      'last_used': instance.lastUsed.toIso8601String(),
+      'usage_score': instance.usageScore,
+      'exists_in_system': instance.existsInSystem,
+    };
+
 _$CashLocationDataImpl _$$CashLocationDataImplFromJson(
         Map<String, dynamic> json) =>
     _$CashLocationDataImpl(

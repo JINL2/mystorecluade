@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Pattern wrappers for consistent keyboard handling in modals
@@ -34,7 +31,7 @@ class FixedBottomModalWrapper extends StatelessWidget {
         Flexible(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: contentPadding ?? EdgeInsets.all(TossSpacing.space4),
+            padding: contentPadding ?? const EdgeInsets.all(TossSpacing.space4),
             child: scrollableContent,
           ),
         ),
@@ -48,7 +45,7 @@ class FixedBottomModalWrapper extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: TossColors.background,
-            border: keyboardHeight > 0 ? Border(
+            border: keyboardHeight > 0 ? const Border(
               top: BorderSide(color: TossColors.gray200, width: 0.5),
             ) : null,
             boxShadow: keyboardHeight > 0 ? TossShadows.bottomSheet : null,
@@ -56,7 +53,7 @@ class FixedBottomModalWrapper extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: fixedBottom,
             ),
           ),
@@ -108,7 +105,7 @@ class _ScrollableFormWrapperState extends State<ScrollableFormWrapper> {
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
-        padding: widget.padding ?? EdgeInsets.all(TossSpacing.space4).copyWith(
+        padding: widget.padding ?? const EdgeInsets.all(TossSpacing.space4).copyWith(
           bottom: TossSpacing.space4 + keyboardHeight,
         ),
         child: widget.child,
@@ -174,9 +171,9 @@ class _WizardModalWrapperState extends State<WizardModalWrapper> {
       constraints: BoxConstraints(
         maxHeight: maxHeight,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.surface,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
@@ -211,14 +208,14 @@ class _WizardModalWrapperState extends State<WizardModalWrapper> {
                   decoration: BoxDecoration(
                     color: TossColors.surface,
                     border: _isKeyboardVisible 
-                        ? Border(top: BorderSide(color: TossColors.gray200, width: 0.5))
+                        ? const Border(top: BorderSide(color: TossColors.gray200, width: 0.5))
                         : null,
                     boxShadow: _isKeyboardVisible ? TossShadows.bottomSheet : null,
                   ),
                   child: SafeArea(
                     top: false,
                     child: Padding(
-                      padding: EdgeInsets.all(TossSpacing.space4),
+                      padding: const EdgeInsets.all(TossSpacing.space4),
                       child: widget.actionButtons,
                     ),
                   ),

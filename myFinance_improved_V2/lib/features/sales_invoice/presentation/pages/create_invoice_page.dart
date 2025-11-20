@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_icons_fa.dart';
-import '../../../../core/navigation/safe_navigation.dart';
+// import 'app_icons_fa.dart'; // Deprecated - use icon_mapper.dart instead
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -63,7 +63,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
         backgroundColor: TossColors.gray100,
         leading: IconButton(
           icon: const Icon(Icons.close, size: TossSpacing.iconMD),
-          onPressed: () => SafeNavigation.instance.safePop(context: context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -146,7 +146,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
             // Header
             Row(
               children: [
-                const FaIcon(
+                const Icon(
                   AppIcons.cart,
                   color: TossColors.primary,
                   size: TossSpacing.iconSM,
@@ -236,7 +236,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
                             children: [
                               if (product.sellingPrice != null && product.sellingPrice! > 0) ...[
                                 Text(
-                                  '${state.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice!)}',
+                                  '${state.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice)}',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.primary,
                                     fontWeight: FontWeight.w600,
@@ -716,7 +716,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
           title: 'No Products Selected',
           message: 'Please add at least one product',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;

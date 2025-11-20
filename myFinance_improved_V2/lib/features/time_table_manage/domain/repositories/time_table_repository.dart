@@ -1,6 +1,16 @@
+import '../entities/available_employees_data.dart';
+import '../entities/bulk_approval_result.dart';
+import '../entities/card_input_result.dart';
 import '../entities/manager_overview.dart';
+import '../entities/manager_shift_cards.dart';
 import '../entities/monthly_shift_status.dart';
+import '../entities/operation_result.dart';
+import '../entities/schedule_data.dart';
+import '../entities/shift.dart';
+import '../entities/shift_approval_result.dart';
 import '../entities/shift_metadata.dart';
+import '../entities/shift_request.dart';
+import '../entities/tag.dart';
 import '../value_objects/create_shift_params.dart';
 
 /// Time Table Repository Interface
@@ -14,6 +24,15 @@ abstract class TimeTableRepository {
   ///
   /// Returns [ShiftMetadata] with available tags and settings
   Future<ShiftMetadata> getShiftMetadata({
+    required String storeId,
+  });
+
+  /// Get raw shift metadata for UI display
+  ///
+  /// [storeId] - Store ID
+  ///
+  /// Returns dynamic list directly from RPC for backward compatibility
+  Future<dynamic> getShiftMetadataRaw({
     required String storeId,
   });
 
@@ -46,12 +65,13 @@ abstract class TimeTableRepository {
 
   /// Get manager shift cards for employee view
   ///
-  /// [requestDate] - Date in format 'yyyy-MM-dd'
+  /// [startDate] - Start date in format 'yyyy-MM-dd'
+  /// [endDate] - End date in format 'yyyy-MM-dd'
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   ///
-  /// Returns shift cards data as Map with stores structure
-  Future<Map<String, dynamic>> getManagerShiftCards({
+  /// Returns [ManagerShiftCards] entity with cards collection
+  Future<ManagerShiftCards> getManagerShiftCards({
     required String startDate,
     required String endDate,
     required String companyId,
@@ -63,8 +83,8 @@ abstract class TimeTableRepository {
   /// [shiftRequestId] - Shift request ID
   /// [newApprovalState] - New approval state (true = approved, false = pending)
   ///
-  /// Returns updated shift request data
-  Future<Map<String, dynamic>> toggleShiftApproval({
+  /// Returns [ShiftApprovalResult] with updated request
+  Future<ShiftApprovalResult> toggleShiftApproval({
     required String shiftRequestId,
     required bool newApprovalState,
   });
@@ -73,15 +93,17 @@ abstract class TimeTableRepository {
   ///
   /// [params] - Parameters for creating the shift
   ///
-  /// Returns created shift data
-  Future<Map<String, dynamic>> createShift({
+  /// Returns created [Shift] entity
+  Future<Shift> createShift({
     required CreateShiftParams params,
   });
 
   /// Delete a shift
   ///
   /// [shiftId] - Shift ID to delete
-  Future<void> deleteShift({
+  ///
+  /// Returns [OperationResult] indicating success or failure
+  Future<OperationResult> deleteShift({
     required String shiftId,
   });
 
@@ -90,8 +112,8 @@ abstract class TimeTableRepository {
   /// [tagId] - Tag ID to delete
   /// [userId] - User ID performing the deletion
   ///
-  /// Returns deletion result
-  Future<Map<String, dynamic>> deleteShiftTag({
+  /// Returns [OperationResult] indicating success or failure
+  Future<OperationResult> deleteShiftTag({
     required String tagId,
     required String userId,
   });
@@ -101,31 +123,18 @@ abstract class TimeTableRepository {
   /// [storeId] - Store ID
   /// [shiftDate] - Shift date in format 'yyyy-MM-dd'
   ///
-  /// Returns list of available employees and existing shifts
-  Future<Map<String, dynamic>> getAvailableEmployees({
+  /// Returns [AvailableEmployeesData] with employees list and existing shifts
+  Future<AvailableEmployeesData> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
-  });
-
-  /// Insert shift schedule for selected employees
-  ///
-  /// [storeId] - Store ID
-  /// [shiftId] - Shift ID
-  /// [employeeIds] - List of employee IDs to assign
-  ///
-  /// Returns insertion result
-  Future<Map<String, dynamic>> insertShiftSchedule({
-    required String storeId,
-    required String shiftId,
-    required List<String> employeeIds,
   });
 
   /// Get schedule data (employees and shifts) for a store
   ///
   /// [storeId] - Store ID
   ///
-  /// Returns employees and shifts data
-  Future<Map<String, dynamic>> getScheduleData({
+  /// Returns [ScheduleData] with employees and shifts
+  Future<ScheduleData> getScheduleData({
     required String storeId,
   });
 
@@ -137,8 +146,8 @@ abstract class TimeTableRepository {
   /// [requestDate] - Request date in format 'yyyy-MM-dd'
   /// [approvedBy] - User ID of approver
   ///
-  /// Returns insert result
-  Future<Map<String, dynamic>> insertSchedule({
+  /// Returns [OperationResult] indicating success or failure
+  Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
@@ -151,8 +160,8 @@ abstract class TimeTableRepository {
   /// [shiftRequestIds] - List of shift request IDs
   /// [approvalStates] - List of approval states
   ///
-  /// Returns processing result
-  Future<Map<String, dynamic>> processBulkApproval({
+  /// Returns [BulkApprovalResult] with detailed processing results
+  Future<BulkApprovalResult> processBulkApproval({
     required List<String> shiftRequestIds,
     required List<bool> approvalStates,
   });
@@ -164,8 +173,8 @@ abstract class TimeTableRepository {
   /// [endTime] - End time (optional)
   /// [isProblemSolved] - Problem solved status (optional)
   ///
-  /// Returns update result
-  Future<Map<String, dynamic>> updateShift({
+  /// Returns updated [ShiftRequest] entity
+  Future<ShiftRequest> updateShift({
     required String shiftRequestId,
     String? startTime,
     String? endTime,
@@ -183,8 +192,8 @@ abstract class TimeTableRepository {
   /// [isLate] - Whether employee was late
   /// [isProblemSolved] - Whether any problem was resolved
   ///
-  /// Returns operation result
-  Future<Map<String, dynamic>> inputCard({
+  /// Returns [CardInputResult] with updated shift request
+  Future<CardInputResult> inputCard({
     required String managerId,
     required String shiftRequestId,
     required String confirmStartTime,
@@ -199,8 +208,8 @@ abstract class TimeTableRepository {
   ///
   /// [cardId] - Card ID
   ///
-  /// Returns list of tags
-  Future<List<Map<String, dynamic>>> getTagsByCardId({
+  /// Returns list of [Tag] entities
+  Future<List<Tag>> getTagsByCardId({
     required String cardId,
   });
 
@@ -210,8 +219,8 @@ abstract class TimeTableRepository {
   /// [bonusAmount] - Bonus amount
   /// [bonusReason] - Bonus reason
   ///
-  /// Returns add bonus result
-  Future<Map<String, dynamic>> addBonus({
+  /// Returns [OperationResult] indicating success or failure
+  Future<OperationResult> addBonus({
     required String shiftRequestId,
     required double bonusAmount,
     required String bonusReason,

@@ -5,6 +5,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../domain/entities/monthly_shift_status.dart';
+import '../../../domain/entities/shift_metadata.dart';
 
 /// Time Table Calendar Widget
 ///
@@ -13,8 +15,8 @@ class TimeTableCalendar extends StatelessWidget {
   final DateTime selectedDate;
   final DateTime focusedMonth;
   final void Function(DateTime) onDateSelected;
-  final dynamic shiftMetadata;
-  final List<dynamic> monthlyShiftData;
+  final ShiftMetadata? shiftMetadata;
+  final List<MonthlyShiftStatus> monthlyShiftStatusList;
 
   const TimeTableCalendar({
     super.key,
@@ -22,7 +24,7 @@ class TimeTableCalendar extends StatelessWidget {
     required this.focusedMonth,
     required this.onDateSelected,
     required this.shiftMetadata,
-    required this.monthlyShiftData,
+    required this.monthlyShiftStatusList,
   });
 
   @override
@@ -82,7 +84,7 @@ class TimeTableCalendar extends StatelessWidget {
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
-            margin: EdgeInsets.all(TossSpacing.space1 / 2),
+            margin: const EdgeInsets.all(TossSpacing.space1 / 2),
             decoration: BoxDecoration(
               color: isSelected
                   ? TossColors.primary
@@ -149,25 +151,21 @@ class TimeTableCalendar extends StatelessWidget {
   Color? _getDotColorForDate(String dateStr) {
     // Only show dots if we have both shift metadata and monthly data loaded
     if (shiftMetadata == null ||
-        shiftMetadata is! List ||
-        (shiftMetadata as List).isEmpty ||
-        monthlyShiftData.isEmpty) {
+        !shiftMetadata!.hasShifts ||
+        monthlyShiftStatusList.isEmpty) {
       return null;
     }
 
     // Find data for this date
-    Map<String, dynamic>? dayData;
-    for (var data in monthlyShiftData) {
-      if (data['request_date'] == dateStr) {
-        dayData = data as Map<String, dynamic>;
-        break;
-      }
-    }
+    final dailyData = monthlyShiftStatusList
+        .expand((status) => status.dailyShifts)
+        .where((daily) => daily.date == dateStr)
+        .firstOrNull;
 
-    if (dayData != null) {
+    if (dailyData != null) {
       // We have data for this date
-      final shifts = dayData['shifts'] as List? ?? [];
-      final allShifts = shiftMetadata as List;
+      final shifts = dailyData.shifts;
+      final activeShifts = shiftMetadata!.activeShifts;
 
       // Priority 1: Check if ANY shift has 0 approved employees
       // This includes checking if all required shifts have coverage
@@ -177,41 +175,40 @@ class TimeTableCalendar extends StatelessWidget {
 
       // First, check all active shifts from metadata
       final Set<String> coveredShiftIds = {};
-      final Map<String, Map<String, dynamic>> shiftDataMap = {};
+      final Map<String, int> shiftApprovedCounts = {};
+      final Map<String, int> shiftPendingCounts = {};
 
       // Build a map of shift data for easy lookup
-      for (var shift in shifts) {
-        final shiftId = shift['shift_id'] as String;
+      for (var shiftWithReqs in shifts) {
+        final shiftId = shiftWithReqs.shift.shiftId;
         coveredShiftIds.add(shiftId);
-        shiftDataMap[shiftId] = shift as Map<String, dynamic>;
+        shiftApprovedCounts[shiftId] = shiftWithReqs.approvedRequests.length;
+        shiftPendingCounts[shiftId] = shiftWithReqs.pendingRequests.length;
       }
 
       // Check each active shift from metadata
-      for (var metaShift in allShifts) {
-        if (metaShift['is_active'] == true) {
-          final shiftId = metaShift['shift_id'] as String;
+      for (var metaShift in activeShifts) {
+        final shiftId = metaShift.shiftId;
 
-          if (!coveredShiftIds.contains(shiftId)) {
-            // This shift has no employees at all (not in the shifts array)
+        if (!coveredShiftIds.contains(shiftId)) {
+          // This shift has no employees at all (not in the shifts array)
+          hasShiftWithNoApproved = true;
+          break;
+        } else {
+          // Check the shift data
+          final approvedCount = shiftApprovedCounts[shiftId] ?? 0;
+          final requiredEmployees = metaShift.targetCount;
+          final pendingCount = shiftPendingCounts[shiftId] ?? 0;
+
+          if (approvedCount == 0) {
+            // This shift has 0 approved employees
             hasShiftWithNoApproved = true;
             break;
-          } else {
-            // Check the shift data
-            final shiftData = shiftDataMap[shiftId];
-            final approvedCount = shiftData?['approved_count'] as int? ?? 0;
-            final requiredEmployees = shiftData?['required_employees'] as int? ?? 1;
-            final pendingCount = shiftData?['pending_count'] as int? ?? 0;
-
-            if (approvedCount == 0) {
-              // This shift has 0 approved employees
-              hasShiftWithNoApproved = true;
-              break;
-            } else if (approvedCount < requiredEmployees) {
-              // Under-staffed
-              allShiftsFullyStaffed = false;
-              if (pendingCount > 0) {
-                hasUnderStaffedShiftWithPending = true;
-              }
+          } else if (approvedCount < requiredEmployees) {
+            // Under-staffed
+            allShiftsFullyStaffed = false;
+            if (pendingCount > 0) {
+              hasUnderStaffedShiftWithPending = true;
             }
           }
         }

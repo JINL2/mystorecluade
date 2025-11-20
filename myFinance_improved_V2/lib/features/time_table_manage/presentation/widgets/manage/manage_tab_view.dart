@@ -8,6 +8,9 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_calendar_bottom_sheet.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../domain/entities/manager_overview.dart';
+import '../../../domain/entities/manager_shift_cards.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../common/stat_card_widget.dart';
 import 'manage_shift_card.dart';
 
@@ -19,12 +22,12 @@ class ManageTabView extends ConsumerWidget {
   final String? selectedFilter;
   final bool isLoadingOverview;
   final bool isLoadingCards;
-  final Map<String, Map<String, dynamic>> managerOverviewDataByMonth;
-  final Map<String, Map<String, dynamic>> managerCardsDataByMonth;
+  final Map<String, ManagerOverview> managerOverviewDataByMonth;
+  final Map<String, ManagerShiftCards> managerCardsDataByMonth;
   final void Function(String?) onFilterChanged;
   final void Function(DateTime) onDateChanged;
   final Future<void> Function(DateTime)? onMonthChanged;
-  final void Function(Map<String, dynamic>) onCardTap;
+  final void Function(ShiftCard) onCardTap;
   final String Function(int) getMonthName;
 
   const ManageTabView({
@@ -44,62 +47,52 @@ class ManageTabView extends ConsumerWidget {
 
   String _getMonthlyStatValue(String statKey) {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
-    final monthData = managerOverviewDataByMonth[monthKey];
+    final overview = managerOverviewDataByMonth[monthKey];
 
-    if (monthData == null || monthData['stores'] == null) {
+    if (overview == null) {
       return '0';
     }
 
-    final stores = monthData['stores'] as List<dynamic>? ?? [];
-    if (stores.isEmpty) {
-      return '0';
+    // Map statKey to entity properties
+    switch (statKey) {
+      case 'total_requests':
+        return overview.totalShifts.toString();
+      case 'total_problems':
+        return (overview.additionalStats['total_problems'] ?? 0).toString();
+      case 'total_approved':
+        return overview.totalApprovedRequests.toString();
+      case 'total_pending':
+        return overview.totalPendingRequests.toString();
+      case 'total_employees':
+        return overview.totalEmployees.toString();
+      case 'total_cost':
+        return overview.totalEstimatedCost.toStringAsFixed(0);
+      default:
+        return '0';
     }
-
-    final storeData = stores.first as Map<String, dynamic>;
-    final monthlyStats = storeData['monthly_stats'] as List<dynamic>? ?? [];
-
-    if (monthlyStats.isEmpty) {
-      return '0';
-    }
-
-    final monthStat = monthlyStats.first as Map<String, dynamic>;
-    final value = monthStat[statKey];
-
-    return value?.toString() ?? '0';
   }
 
   Map<String, bool> _getDateShiftStatus(DateTime date) {
     final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
-    if (monthData == null || monthData['stores'] == null) {
+    if (monthData == null) {
       return {'hasApproved': false, 'hasPending': false, 'hasProblem': false};
     }
-
-    final stores = monthData['stores'] as List<dynamic>? ?? [];
-    if (stores.isEmpty) {
-      return {'hasApproved': false, 'hasPending': false, 'hasProblem': false};
-    }
-
-    final storeData = stores.first as Map<String, dynamic>;
-    final cards = storeData['cards'] as List<dynamic>? ?? [];
 
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final dateCards = cards
-        .where((card) => (card as Map<String, dynamic>)['request_date'] == dateStr)
-        .cast<Map<String, dynamic>>()
-        .toList();
+    final dateCards = monthData.getCardsByDate(dateStr);
 
     bool hasApproved = false;
     bool hasPending = false;
     bool hasProblem = false;
 
     for (final card in dateCards) {
-      if (card['is_problem'] == true && card['is_problem_solved'] != true) {
+      if (card.hasProblem) {
         hasProblem = true;
       }
 
-      if (card['is_approved'] == true) {
+      if (card.isApproved) {
         hasApproved = true;
       } else {
         hasPending = true;
@@ -113,44 +106,85 @@ class ManageTabView extends ConsumerWidget {
     };
   }
 
-  List<Map<String, dynamic>> _getFilteredCards() {
+  List<ShiftCard> _getFilteredCards() {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
-    if (monthData == null || monthData['stores'] == null) {
+    if (monthData == null) {
       return [];
     }
-
-    final stores = monthData['stores'] as List<dynamic>? ?? [];
-    if (stores.isEmpty) {
-      return [];
-    }
-
-    final storeData = stores.first as Map<String, dynamic>;
-    final cards = storeData['cards'] as List<dynamic>? ?? [];
 
     // First filter by selected date
     final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
-    var filteredCards = cards.where((card) {
-      final cardMap = card as Map<String, dynamic>;
-      return cardMap['request_date'] == selectedDateStr;
-    }).cast<Map<String, dynamic>>().toList();
 
     // Then apply status filter
-    if (selectedFilter == null || selectedFilter == 'all') {
-      return filteredCards;
-    }
+    final filteredCards = monthData.filterByStatus(selectedFilter);
+    final filteredByDate = filteredCards.where((card) => card.requestDate == selectedDateStr).toList();
 
-    return filteredCards.where((card) {
-      if (selectedFilter == 'problem') {
-        return card['is_problem'] == true && card['is_problem_solved'] != true;
-      } else if (selectedFilter == 'approved') {
-        return card['is_approved'] == true;
-      } else if (selectedFilter == 'pending') {
-        return card['is_approved'] != true;
-      }
-      return true;
-    }).cast<Map<String, dynamic>>().toList();
+    // Return ShiftCard entities directly
+    return filteredByDate;
+  }
+
+  // DEPRECATED: Old Map conversion method (kept for reference)
+  List<Map<String, dynamic>> _getFilteredCardsAsMap() {
+    final filteredByDate = _getFilteredCards();
+
+    // Convert ShiftCard entities to Map for compatibility with existing widgets
+    final result = filteredByDate.map((card) {
+      // Format shift time as "HH:mm-HH:mm" in UTC for the widget to convert to local
+      final startHour = card.shift.planStartTime.toUtc().hour.toString().padLeft(2, '0');
+      final startMin = card.shift.planStartTime.toUtc().minute.toString().padLeft(2, '0');
+      final endHour = card.shift.planEndTime.toUtc().hour.toString().padLeft(2, '0');
+      final endMin = card.shift.planEndTime.toUtc().minute.toString().padLeft(2, '0');
+      final shiftTime = '$startHour:$startMin-$endHour:$endMin';
+
+      final noticeTagList = card.tags.map((tag) => {
+        'id': tag.tagId,
+        'type': tag.tagType,
+        'content': tag.tagContent,
+      },).toList();
+
+      return {
+        'shift_request_id': card.shiftRequestId,
+        'request_date': card.requestDate,
+        'is_approved': card.isApproved,
+        'is_problem': card.hasProblem,
+        'is_problem_solved': card.isProblemSolved,
+        'is_late': card.isLate,
+        'late_minute': card.lateMinute,
+        'is_over_time': card.isOverTime,
+        'over_time_minute': card.overTimeMinute,
+        'paid_hour': card.paidHour,
+        'is_reported': card.isReported,
+        'user_id': card.employee.userId,
+        'user_name': card.employee.userName,
+        'profile_image': card.employee.profileImage,
+        'shift_name': card.shift.shiftName ?? 'Unknown Shift',
+        'shift_time': shiftTime, // Required by ManageShiftCard widget
+        'plan_start_time': card.shift.planStartTime.toIso8601String(),
+        'plan_end_time': card.shift.planEndTime.toIso8601String(),
+        'confirm_start_time': card.confirmedStartTime?.toIso8601String(),
+        'confirm_end_time': card.confirmedEndTime?.toIso8601String(),
+        // Actual times from Entity (employee's check-in/out times from device)
+        'actual_start': card.actualStartTime?.toIso8601String(),
+        'actual_end': card.actualEndTime?.toIso8601String(),
+        // Location data from Entity
+        'is_valid_checkin_location': card.isValidCheckinLocation,
+        'checkin_distance_from_store': card.checkinDistanceFromStore,
+        'is_valid_checkout_location': card.isValidCheckoutLocation,
+        'checkout_distance_from_store': card.checkoutDistanceFromStore,
+        'salary_type': card.salaryType,
+        'salary_amount': card.salaryAmount,
+        'bonus_amount': card.bonusAmount,
+        'bonus_reason': card.bonusReason,
+        // Use 'notice_tag' to match RPC response format (legacy field name)
+        'notice_tag': noticeTagList,
+        'problem_type': card.problemType,
+        'report_reason': card.reportReason,
+      };
+    }).toList();
+
+    return result;
   }
 
   Map<String, TossCalendarIndicatorType> _buildDateIndicatorsForCalendar() {
@@ -162,30 +196,21 @@ class ManageTabView extends ConsumerWidget {
     final monthKey = '${targetMonth.year}-${targetMonth.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
-    if (monthData != null && monthData['stores'] != null) {
-      final stores = monthData['stores'] as List<dynamic>? ?? [];
-      if (stores.isNotEmpty) {
-        final storeData = stores.first as Map<String, dynamic>;
-        final cards = storeData['cards'] as List<dynamic>? ?? [];
+    if (monthData != null) {
+      for (final card in monthData.cards) {
+        final requestDate = card.requestDate;
+        final isProblem = card.hasProblem;
+        final isApproved = card.isApproved;
 
-        for (final card in cards) {
-          final cardMap = card as Map<String, dynamic>;
-          final requestDate = cardMap['request_date'] as String?;
-          if (requestDate != null) {
-            final isProblem = (cardMap['is_problem'] == true) && (cardMap['is_problem_solved'] != true);
-            final isApproved = (cardMap['is_approved'] as bool?) ?? false;
-
-            // Priority: Problem > Pending > Approved
-            if (isProblem) {
-              indicators[requestDate] = TossCalendarIndicatorType.problem;
-            } else if (!isApproved && !indicators.containsKey(requestDate)) {
-              // Only set pending if not already marked as problem
-              indicators[requestDate] = TossCalendarIndicatorType.pending;
-            } else if (isApproved && !indicators.containsKey(requestDate)) {
-              // Only set approved if not already marked as problem or pending
-              indicators[requestDate] = TossCalendarIndicatorType.approved;
-            }
-          }
+        // Priority: Problem > Pending > Approved
+        if (isProblem) {
+          indicators[requestDate] = TossCalendarIndicatorType.problem;
+        } else if (!isApproved && !indicators.containsKey(requestDate)) {
+          // Only set pending if not already marked as problem
+          indicators[requestDate] = TossCalendarIndicatorType.pending;
+        } else if (isApproved && !indicators.containsKey(requestDate)) {
+          // Only set approved if not already marked as problem or pending
+          indicators[requestDate] = TossCalendarIndicatorType.approved;
         }
       }
     }

@@ -66,6 +66,7 @@ class ShiftDetailsTabBar extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () {
                         if (controller.index != 0) {
+                          FocusScope.of(context).unfocus(); // Close keyboard
                           controller.animateTo(0);
                           HapticFeedback.lightImpact();
                         }
@@ -93,6 +94,7 @@ class ShiftDetailsTabBar extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () {
                         if (controller.index != 1) {
+                          FocusScope.of(context).unfocus(); // Close keyboard
                           controller.animateTo(1);
                           HapticFeedback.lightImpact();
                         }
@@ -120,6 +122,7 @@ class ShiftDetailsTabBar extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () {
                         if (controller.index != 2) {
+                          FocusScope.of(context).unfocus(); // Close keyboard
                           controller.animateTo(2);
                           HapticFeedback.lightImpact();
                         }

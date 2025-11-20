@@ -9,19 +9,25 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
-import '../../../domain/entities/currency.dart';
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
+import '../../providers/cash_tab_provider.dart';
+import '../../providers/cash_tab_state.dart';
+import '../collapsible_currency_section.dart';
+import '../currency_pill_selector.dart';
+import '../denomination_grid_header.dart';
 import '../denomination_input.dart';
-import '../location_selector.dart';
+import '../grand_total_section.dart';
 import '../real_section_widget.dart';
+import '../section_label.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
+import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
 import '../total_display.dart';
-import '../../providers/repository_providers.dart';
 
 /// Cash Tab - Denomination-based cash counting
 ///
@@ -53,42 +59,25 @@ class _CashTabState extends ConsumerState<CashTab> {
   // Keyboard toolbar controller
   KeyboardToolbarController? _toolbarController;
 
-  // Stock flow data for Real section
-  List<ActualFlow> _actualFlows = [];
-  LocationSummary? _locationSummary;
-  bool _isLoadingFlows = false;
-  bool _hasMoreFlows = false;
-  int _flowsOffset = 0;
   String? _previousLocationId;
+
+  // Track which currency is currently expanded (accordion behavior)
+  String? _expandedCurrencyId;
 
   @override
   void initState() {
     super.initState();
 
-    // Add listener for location changes (like lib_old pattern)
-    // This will trigger when location is auto-selected
-    ref.listenManual(
-      cashEndingProvider.select((state) => state.selectedCashLocationId),
-      (previous, next) {
-
-        // Load stock flows when location changes
-        if (next != null && next.isNotEmpty && next != previous) {
-          _previousLocationId = next;
-          _loadStockFlows();
-        }
-      },
-    );
-
     // Load initial data after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(cashEndingProvider);
+      if (!mounted) return;
 
-      _previousLocationId = state.selectedCashLocationId;
+      final pageState = ref.read(cashEndingProvider);
+      _previousLocationId = pageState.selectedCashLocationId;
 
-      if (state.selectedCashLocationId != null &&
-          state.selectedCashLocationId!.isNotEmpty) {
-        _loadStockFlows();
-      } else {
+      if (pageState.selectedCashLocationId != null &&
+          pageState.selectedCashLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedCashLocationId!);
       }
     });
   }
@@ -101,27 +90,47 @@ class _CashTabState extends ConsumerState<CashTab> {
         controller.dispose();
       }
     }
-    // Dispose all focus nodes
+
+    // Dispose all focus nodes BEFORE disposing toolbar
+    // (toolbar controller references these focus nodes but doesn't own them)
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
         focusNode.dispose();
       }
     }
-    // Dispose toolbar controller
-    _toolbarController?.dispose();
+
+    // Dispose toolbar controller last
+    // Note: We already disposed its focus nodes above, so we need to clear them first
+    if (_toolbarController != null) {
+      _toolbarController!.focusNodes.clear();
+      _toolbarController!.dispose();
+    }
+
     super.dispose();
   }
 
   @override
   void didUpdateWidget(CashTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reload flows if location changed
-    final state = ref.read(cashEndingProvider);
+    if (!mounted) return;
 
-    if (state.selectedCashLocationId != _previousLocationId) {
-      _previousLocationId = state.selectedCashLocationId;
-      _loadStockFlows();
-    } else {
+    // Reload flows if location changed
+    final pageState = ref.read(cashEndingProvider);
+
+    if (pageState.selectedCashLocationId != _previousLocationId) {
+      _previousLocationId = pageState.selectedCashLocationId;
+      if (pageState.selectedCashLocationId != null &&
+          pageState.selectedCashLocationId!.isNotEmpty) {
+        _loadStockFlowsFromProvider(pageState.selectedCashLocationId!);
+
+        // Auto-expand first currency when location is selected
+        final selectedIds = pageState.selectedCashCurrencyIds.isEmpty
+            ? [pageState.currencies.first.currencyId]
+            : pageState.selectedCashCurrencyIds;
+        if (selectedIds.isNotEmpty) {
+          _expandedCurrencyId = selectedIds.first;
+        }
+      }
     }
   }
 
@@ -145,20 +154,26 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
     // Dispose existing controller if any
-    _toolbarController?.dispose();
+    if (_toolbarController != null) {
+      // Clear focus nodes before disposing to prevent double-dispose
+      _toolbarController!.focusNodes.clear();
+      _toolbarController!.dispose();
+    }
 
     // Create new controller with denomination count
     _toolbarController = KeyboardToolbarController(
       fieldCount: denominations.length,
     );
 
-    // Map focus nodes to toolbar controller
+    // Map our focus nodes to toolbar controller
     for (int i = 0; i < denominations.length; i++) {
       final denom = denominations[i];
       final focusNode = _getFocusNode(currencyId, denom.denominationId);
 
-      // Replace toolbar's focus node with our focus node
+      // Dispose the default focus node created by KeyboardToolbarController
       _toolbarController!.focusNodes[i].dispose();
+
+      // Replace with our focus node (we own this, toolbar just references it)
       _toolbarController!.focusNodes[i] = focusNode;
     }
   }
@@ -178,113 +193,76 @@ class _CashTabState extends ConsumerState<CashTab> {
     return total;
   }
 
-  /// Load stock flows for the selected location
-  Future<void> _loadStockFlows({bool loadMore = false}) async {
-    final state = ref.read(cashEndingProvider);
+  /// Load stock flows via provider
+  void _loadStockFlowsFromProvider(String locationId) {
+    final pageState = ref.read(cashEndingProvider);
 
-
-    if (state.selectedCashLocationId == null ||
-        state.selectedCashLocationId!.isEmpty ||
-        state.selectedStoreId == null) {
+    if (pageState.selectedStoreId == null || pageState.selectedStoreId!.isEmpty) {
       return;
     }
 
-    if (_isLoadingFlows) {
-      return;
-    }
-
-    setState(() {
-      _isLoadingFlows = true;
-      if (!loadMore) {
-        _flowsOffset = 0;
-        _actualFlows = [];
-      }
-    });
-
-    try {
-      final repository = ref.read(stockFlowRepositoryProvider);
-
-      final result = await repository.getLocationStockFlow(
-        companyId: widget.companyId,
-        storeId: state.selectedStoreId!,
-        cashLocationId: state.selectedCashLocationId!,
-        offset: _flowsOffset,
-        limit: 20,
-      );
-
-
-      if (result.success) {
-        if (result.actualFlows.isNotEmpty) {
-        }
-
-        setState(() {
-          if (loadMore) {
-            _actualFlows.addAll(result.actualFlows);
-          } else {
-            _actualFlows = result.actualFlows;
-            _locationSummary = result.locationSummary;
-          }
-          _hasMoreFlows = result.pagination?.hasMore ?? false;
-          _flowsOffset += result.actualFlows.length;
-        });
-
-      }
-    } catch (e, stackTrace) {
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingFlows = false;
-        });
-      }
-    }
+    ref.read(cashTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: locationId,
+    );
   }
 
   /// Load more flows for pagination
   void _loadMoreFlows() {
-    _loadStockFlows(loadMore: true);
-  }
+    final pageState = ref.read(cashEndingProvider);
 
-  /// Reload stock flows (called after save)
-  /// Public method exposed for parent to call after successful save
-  void reloadStockFlows() {
-    _loadStockFlows();
+    if (pageState.selectedCashLocationId == null ||
+        pageState.selectedStoreId == null) {
+      return;
+    }
+
+    ref.read(cashTabProvider.notifier).loadStockFlows(
+      companyId: widget.companyId,
+      storeId: pageState.selectedStoreId!,
+      locationId: pageState.selectedCashLocationId!,
+      loadMore: true,
+    );
   }
 
   /// Show flow details in bottom sheet
   void _showFlowDetails(ActualFlow flow) {
-    // TODO: Implement flow details bottom sheet
+    final pageState = ref.read(cashEndingProvider);
+    final tabState = ref.read(cashTabProvider);
+    FlowDetailBottomSheet.show(
+      context: context,
+      flow: flow,
+      locationSummary: tabState.locationSummary,
+      baseCurrencySymbol: pageState.currencies.isNotEmpty
+          ? pageState.currencies.first.symbol
+          : '\$',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(cashEndingProvider);
+    final pageState = ref.watch(cashEndingProvider);
+    final tabState = ref.watch(cashTabProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card 1: Store and Location Selection
-          _buildLocationSelectionCard(state),
+          // Store and Location Selection
+          _buildLocationSelectionCard(pageState),
 
-          // Card 2: Cash Counting (show if location selected)
-          if (state.selectedCashLocationId != null &&
-              state.selectedCashLocationId!.isNotEmpty) ...[
-            const SizedBox(height: TossSpacing.space6),
-            _buildCashCountingCard(state),
+          // Cash Counting (show if location selected)
+          if (pageState.selectedCashLocationId != null &&
+              pageState.selectedCashLocationId!.isNotEmpty) ...[
+            const SizedBox(height: TossSpacing.space5),
+            _buildCashCountingSection(pageState),
 
-            // Card 3: Real Section
-            const SizedBox(height: TossSpacing.space6),
-            RealSectionWidget(
-              actualFlows: _actualFlows,
-              locationSummary: _locationSummary,
-              isLoading: _isLoadingFlows,
-              hasMore: _hasMoreFlows,
-              baseCurrencySymbol: state.currencies.isNotEmpty
-                  ? state.currencies.first.symbol
-                  : '\$',
-              onLoadMore: _loadMoreFlows,
-              onItemTap: _showFlowDetails,
+            // Submit button at end of content (inside scroll)
+            const SizedBox(height: TossSpacing.space5),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 64),
+              child: _buildSubmitButton(pageState, tabState),
             ),
           ],
         ],
@@ -293,52 +271,42 @@ class _CashTabState extends ConsumerState<CashTab> {
   }
 
   Widget _buildLocationSelectionCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Store Selector
-          StoreSelector(
-            stores: state.stores,
-            selectedStoreId: state.selectedStoreId,
-            onTap: () {
-              CashEndingSelectionHelpers.showStoreSelector(
-                context: context,
-                ref: ref,
-                stores: state.stores,
-                selectedStoreId: state.selectedStoreId,
-                companyId: widget.companyId,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Store Selector
+        StoreSelector(
+          stores: state.stores,
+          selectedStoreId: state.selectedStoreId,
+          onChanged: (storeId) async {
+            if (storeId != null) {
+              await ref.read(cashEndingProvider.notifier).selectStore(
+                storeId,
+                widget.companyId,
               );
-            },
-          ),
+            }
+          },
+        ),
 
-          // Location Selector (always show like lib_old)
-          const SizedBox(height: TossSpacing.space6),
-          LocationSelector(
-            locationType: 'cash',
-            isLoading: false,
-            locations: state.cashLocations,
-            selectedLocationId: state.selectedCashLocationId,
-            onTap: () {
-              CashEndingSelectionHelpers.showLocationSelector(
-                context: context,
-                ref: ref,
-                locationType: 'cash',
-                locations: state.cashLocations,
-                selectedLocationId: state.selectedCashLocationId,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCashCountingCard(CashEndingState state) {
-    return TossCard(
-      padding: const EdgeInsets.all(TossSpacing.space5),
-      child: _buildCashCountingSection(state),
+        const SizedBox(height: TossSpacing.space4),
+        TossDropdown<String>(
+          label: 'Cash Location',
+          hint: 'Select Cash Location',
+          value: state.selectedCashLocationId,
+          isLoading: false,
+          items: state.cashLocations.map((location) =>
+            TossDropdownItem<String>(
+              value: location.locationId,
+              label: location.locationName,
+            )
+          ).toList(),
+          onChanged: (locationId) {
+            if (locationId != null) {
+              ref.read(cashEndingProvider.notifier).setSelectedCashLocation(locationId);
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -371,167 +339,162 @@ class _CashTabState extends ConsumerState<CashTab> {
       );
     }
 
-    final selectedCurrencyId =
-        state.selectedCashCurrencyId ?? state.currencies.first.currencyId;
-    final currency = state.currencies.firstWhere(
-      (c) => c.currencyId == selectedCurrencyId,
-      orElse: () => state.currencies.first,
-    );
+    // Calculate grand total across all currencies (in base currency)
+    double grandTotal = 0.0;
+    for (final currency in state.currencies) {
+      grandTotal += _calculateTotal(currency.currencyId, currency.denominations);
+    }
 
-    // Wrap in Stack to render toolbar separately from Column
     return Stack(
       children: [
-        // Main content in Column
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        // Header: "Cash Count" title + Currency selector
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Cash Count',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
-            if (state.currencies.length > 1)
-              GestureDetector(
-                onTap: () {
-                  CurrencySelectorSheet.show(
-                    context: context,
-                    ref: ref,
-                    currencies: state.currencies,
-                    selectedCurrencyId: selectedCurrencyId,
-                    tabType: 'cash',
-                  );
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currency.currencyCode,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_drop_down,
-                      color: TossColors.primary,
-                      size: 24,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+            // Currency Pills
+            CurrencyPillSelector(
+              availableCurrencies: state.currencies,
+              selectedCurrencyIds: state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds,
+              onAddCurrency: () {
+                // Show only currencies not already selected
+                final availableCurrencies = state.currencies.where((c) =>
+                  !state.selectedCashCurrencyIds.contains(c.currencyId)
+                ).toList();
 
-        const SizedBox(height: TossSpacing.space5),
+                if (availableCurrencies.isEmpty) {
+                  return; // All currencies already added
+                }
 
-        // Denomination Inputs
-        if (currency.denominations.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space8),
-              child: Text(
-                'No denominations configured for this currency',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          )
-        else ...[
-          // Initialize toolbar controller for this currency
-          Builder(
-            builder: (context) {
-              // Initialize toolbar controller when building denominations
-              if (_toolbarController == null ||
-                  _toolbarController!.focusNodes.length != currency.denominations.length) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _initializeToolbarController(currency.denominations, selectedCurrencyId);
-                });
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          ...currency.denominations.asMap().entries.map((entry) {
-            final index = entry.key;
-            final denom = entry.value;
-            final controller = _getController(selectedCurrencyId, denom.denominationId);
-            final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
-
-            return DenominationInput(
-              denomination: denom,
-              controller: controller,
-              focusNode: focusNode,
-              currencySymbol: currency.symbol,
-              onChanged: () {
-                setState(() {}); // Update total display
+                CurrencySelectorSheet.show(
+                  context: context,
+                  ref: ref,
+                  currencies: availableCurrencies,
+                  selectedCurrencyId: null,
+                  tabType: 'cash',
+                );
               },
-            );
-          }),
-        ],
-
-        const SizedBox(height: TossSpacing.space8),
-
-        // Total Display
-        TotalDisplay(
-          totalAmount: _calculateTotal(selectedCurrencyId, currency.denominations),
-          currencySymbol: currency.symbol,
-          label: 'Cash Total',
-        ),
-
-        const SizedBox(height: TossSpacing.space10),
-
-        // Submit Button
-        Center(
-          child: TossButton1.primary(
-            text: 'Save Cash Ending',
-            isLoading: state.isSaving,
-            isEnabled: !state.isSaving,
-            fullWidth: false,
-            onPressed: !state.isSaving
-                ? () async {
-                    try {
-                      await widget.onSave(context, state, selectedCurrencyId);
-                    } catch (e) {
-                      // Error handled by parent
-                    }
-                  }
-                : null,
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
+              onRemoveCurrency: (currencyId) {
+                ref.read(cashEndingProvider.notifier).removeCashCurrency(currencyId);
+              },
             ),
-            borderRadius: 12,
-          ),
-        ),
-          ],
-        ), // End of Column
 
-        // Single shared keyboard toolbar - rendered separately in Stack
+            const SizedBox(height: TossSpacing.space5),
+
+            // Currency accordion sections - show all selected currencies
+            ...state.currencies.where((currency) {
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds;
+              return selectedIds.contains(currency.currencyId);
+            }).map((currency) {
+              // Initialize controllers and focus nodes for this currency
+              _controllers.putIfAbsent(currency.currencyId, () => {});
+              _focusNodes.putIfAbsent(currency.currencyId, () => {});
+
+              for (final denom in currency.denominations) {
+                _controllers[currency.currencyId]!.putIfAbsent(
+                  denom.denominationId,
+                  () => TextEditingController(),
+                );
+                _focusNodes[currency.currencyId]!.putIfAbsent(
+                  denom.denominationId,
+                  () => FocusNode(),
+                );
+              }
+
+              // Initialize toolbar controller for this currency
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+
+                if (_toolbarController == null ||
+                    _toolbarController!.focusNodes.length != currency.denominations.length) {
+                  _initializeToolbarController(currency.denominations, currency.currencyId);
+                }
+              });
+
+              // Get selected currency IDs
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: TossSpacing.space4),
+                child: CollapsibleCurrencySection(
+                  currency: currency,
+                  controllers: _controllers[currency.currencyId]!,
+                  focusNodes: _focusNodes[currency.currencyId]!,
+                  totalAmount: _calculateTotal(currency.currencyId, currency.denominations),
+                  onChanged: () => setState(() {}),
+                  isExpanded: _expandedCurrencyId == currency.currencyId,
+                  onToggle: () {
+                    setState(() {
+                      // Toggle: if this currency is expanded, collapse it; otherwise expand it
+                      if (_expandedCurrencyId == currency.currencyId) {
+                        _expandedCurrencyId = null;
+                      } else {
+                        _expandedCurrencyId = currency.currencyId;
+                      }
+                    });
+                  },
+                ),
+              );
+            }),
+
+            const SizedBox(height: TossSpacing.space5),
+
+            // Grand Total
+            GrandTotalSection(
+              totalAmount: grandTotal,
+              currencySymbol: state.currencies.first.symbol,
+              label: 'Grand total ${state.currencies.first.currencyCode}',
+            ),
+
+            const SizedBox(height: TossSpacing.space2),
+          ],
+        ),
+
+        // Keyboard toolbar
         if (_toolbarController != null)
           KeyboardToolbar1(
             controller: _toolbarController,
             showToolbar: true,
-            // Callbacks will be evaluated when buttons are pressed
-            onPrevious: () {
-              final callback = _toolbarController!.focusPrevious;
-              callback?.call();
-            },
-            onNext: () {
-              final callback = _toolbarController!.focusNext;
-              callback?.call();
-            },
+            onPrevious: () => _toolbarController!.focusPrevious?.call(),
+            onNext: () => _toolbarController!.focusNext?.call(),
             onDone: () => _toolbarController!.unfocusAll(),
           ),
       ],
-    ); // End of Stack
+    );
+  }
+
+  Widget _buildSubmitButton(CashEndingState state, CashTabState tabState) {
+    final selectedCurrencyId = state.selectedCashCurrencyIds.isNotEmpty
+      ? state.selectedCashCurrencyIds.first
+      : state.currencies.first.currencyId;
+
+    return TossButton1.primary(
+      text: 'Submit Ending',
+      isLoading: tabState.isSaving,
+      isEnabled: !tabState.isSaving,
+      fullWidth: true,
+      onPressed: !tabState.isSaving
+          ? () async {
+              try {
+                await widget.onSave(context, state, selectedCurrencyId);
+              } catch (e) {
+                // Error handled by parent
+              }
+            }
+          : null,
+      textStyle: TossTextStyles.titleLarge.copyWith(
+        color: TossColors.white,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space4,
+      ),
+      borderRadius: 12,
+    );
   }
 
   // Expose quantities for parent to access

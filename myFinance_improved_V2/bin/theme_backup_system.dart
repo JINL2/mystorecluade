@@ -1,9 +1,10 @@
 #!/usr/bin/env dart
 
-import 'dart:io';
 import 'dart:convert';
-import 'package:path/path.dart' as path;
+import 'dart:io';
+
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
 /// Comprehensive backup system for theme migration safety
 /// 
@@ -202,8 +203,8 @@ class ThemeBackupSystem {
           'status': statusResult.exitCode,
           'diff': diffResult.exitCode,
           'log': logResult.exitCode,
-        }
-      }));
+        },
+      }),);
       
       result.gitSnapshotCreated = true;
       
@@ -516,25 +517,25 @@ Future<void> main(List<String> arguments) async {
     ..addOption('project-path', 
         abbr: 'p', 
         defaultsTo: '.',
-        help: 'Path to the project directory')
+        help: 'Path to the project directory',)
     ..addOption('backup-path', 
-        help: 'Path to store backups')
+        help: 'Path to store backups',)
     ..addOption('tag',
         abbr: 't',
-        help: 'Backup tag/name')
+        help: 'Backup tag/name',)
     ..addFlag('verbose',
         abbr: 'v',
         defaultsTo: false,
-        help: 'Show verbose output')
+        help: 'Show verbose output',)
     ..addFlag('git-state',
         defaultsTo: true,
-        help: 'Include git state in backup')
+        help: 'Include git state in backup',)
     ..addFlag('verify',
         defaultsTo: true,
-        help: 'Verify backup integrity')
+        help: 'Verify backup integrity',)
     ..addFlag('help',
         abbr: 'h',
-        help: 'Show this help message');
+        help: 'Show this help message',);
 
   try {
     final results = parser.parse(arguments);

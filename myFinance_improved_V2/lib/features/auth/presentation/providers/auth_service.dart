@@ -2,33 +2,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Domain Layer
 import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/signup_usecase.dart';
 import '../../domain/value_objects/login_command.dart';
 import '../../domain/value_objects/signup_command.dart';
 
 // Providers
-import 'usecase_providers.dart';
 import 'session_manager_provider.dart';
+import 'usecase_providers.dart';
 
 /// Authentication Service
 ///
 /// Provides high-level authentication operations with session management.
-/// This service follows the legacy pattern of Provider<Service> for minimal
-/// UI code changes during migration.
+/// Facade pattern to simplify authentication flow.
 ///
 /// Responsibilities:
 /// - Execute authentication UseCases
 /// - Manage session tracking
 /// - Coordinate with session manager
-///
-/// Usage:
-/// ```dart
-/// final authService = ref.read(authServiceProvider);
-/// await authService.signIn(email: 'user@example.com', password: 'password');
-/// ```
 class AuthService {
-  const AuthService(this.ref);
+  final LoginUseCase _loginUseCase;
+  final SignupUseCase _signupUseCase;
+  final LogoutUseCase _logoutUseCase;
+  final Ref _ref; // Still needed for session manager
 
-  final Ref ref;
+  const AuthService({
+    required LoginUseCase loginUseCase,
+    required SignupUseCase signupUseCase,
+    required LogoutUseCase logoutUseCase,
+    required Ref ref,
+  })  : _loginUseCase = loginUseCase,
+        _signupUseCase = signupUseCase,
+        _logoutUseCase = logoutUseCase,
+        _ref = ref;
 
   /// Sign in with email and password
   ///
@@ -44,22 +51,18 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    try {
-      // 1. Execute login UseCase
-      final command = LoginCommand(
+    // 1. Execute login UseCase
+    final user = await _loginUseCase.execute(
+      LoginCommand(
         email: email.trim(),
         password: password,
-      );
+      ),
+    );
 
-      final user = await ref.read(loginUseCaseProvider).execute(command);
+    // 2. Record login for session management
+    await _ref.read(sessionManagerProvider.notifier).recordLogin();
 
-      // 2. Record login for session management
-      await ref.read(sessionManagerProvider.notifier).recordLogin();
-
-      return user;
-    } catch (e) {
-      rethrow;
-    }
+    return user;
   }
 
   /// Sign up new user with email and password
@@ -79,25 +82,21 @@ class AuthService {
     required String firstName,
     required String lastName,
   }) async {
-    try {
-      // 1. Execute signup UseCase
-      final command = SignupCommand(
+    // 1. Execute signup UseCase
+    final user = await _signupUseCase.execute(
+      SignupCommand(
         email: email.trim(),
         password: password,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-      );
+      ),
+    );
 
-      final user = await ref.read(signupUseCaseProvider).execute(command);
+    // 2. Record login for session management
+    // (Signup is treated as login for session tracking)
+    await _ref.read(sessionManagerProvider.notifier).recordLogin();
 
-      // 2. Record login for session management
-      // (Signup is treated as login for session tracking)
-      await ref.read(sessionManagerProvider.notifier).recordLogin();
-
-      return user;
-    } catch (e) {
-      rethrow;
-    }
+    return user;
   }
 
   /// Sign out current user
@@ -110,47 +109,34 @@ class AuthService {
   ///
   /// This method ensures complete cleanup without manual invalidation.
   Future<void> signOut() async {
-    try {
-      // 1. Clear session first
-      await ref.read(sessionManagerProvider.notifier).clearSession();
+    // 1. Clear session first
+    await _ref.read(sessionManagerProvider.notifier).clearSession();
 
-      // 2. Execute logout UseCase
-      await ref.read(logoutUseCaseProvider).execute();
+    // 2. Execute logout UseCase
+    await _logoutUseCase.execute();
 
-      // 3. Invalidate all providers automatically
-      // This is safer than manual invalidation as it catches all providers
-      final container = ref.container;
-      final allProviders = container.getAllProviderElements();
+    // 3. Invalidate all providers automatically
+    // This is safer than manual invalidation as it catches all providers
+    final container = _ref.container;
+    final allProviders = container.getAllProviderElements();
 
-      for (final element in allProviders) {
-        // Skip auth-related providers to avoid recursion
-        if (!element.origin.name.toString().contains('auth') &&
-            !element.origin.name.toString().contains('session')) {
-          element.invalidateSelf();
-        }
+    for (final element in allProviders) {
+      // Skip auth-related providers to avoid recursion
+      if (!element.origin.name.toString().contains('auth') &&
+          !element.origin.name.toString().contains('session')) {
+        element.invalidateSelf();
       }
-    } catch (e) {
-      rethrow;
     }
   }
 
   /// Get session status for debugging
-  ///
-  /// Returns cache status including:
-  /// - isFreshLogin
-  /// - isUserDataStale
-  /// - areFeaturesStale
-  /// - cache expiry times
   Map<String, dynamic> getSessionStatus() {
-    final sessionManager = ref.read(sessionManagerProvider.notifier);
-    return sessionManager.getCacheStatus();
+    return _ref.read(sessionManagerProvider.notifier).getCacheStatus();
   }
 
   /// Force expire cache (for pull-to-refresh)
-  ///
-  /// Use this when user explicitly requests fresh data.
-  Future<void> expireCache() async {
-    await ref.read(sessionManagerProvider.notifier).expireCache();
+  Future<void> expireCache() {
+    return _ref.read(sessionManagerProvider.notifier).expireCache();
   }
 }
 
@@ -158,5 +144,10 @@ class AuthService {
 ///
 /// Provides AuthService instance with all dependencies injected.
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService(ref);
+  return AuthService(
+    loginUseCase: ref.watch(loginUseCaseProvider),
+    signupUseCase: ref.watch(signupUseCaseProvider),
+    logoutUseCase: ref.watch(logoutUseCaseProvider),
+    ref: ref,
+  );
 });

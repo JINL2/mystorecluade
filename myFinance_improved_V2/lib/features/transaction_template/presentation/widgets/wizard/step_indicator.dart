@@ -7,10 +7,11 @@
 /// - Supports any number of steps with responsive design
 ///
 /// Usage: StepIndicator(currentStep: 2, totalSteps: 3)
+library;
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 
 class StepIndicator extends StatelessWidget {
   final int currentStep;

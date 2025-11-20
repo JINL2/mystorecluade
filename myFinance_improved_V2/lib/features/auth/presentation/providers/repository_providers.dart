@@ -1,23 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Data Layer - DataSources
+import '../../data/datasources/supabase_auth_datasource.dart';
+import '../../data/datasources/supabase_company_datasource.dart';
+import '../../data/datasources/supabase_store_datasource.dart';
+import '../../data/datasources/supabase_user_datasource.dart';
+// Data Layer - Repositories
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/company_repository_impl.dart';
+import '../../data/repositories/store_repository_impl.dart';
+import '../../data/repositories/user_repository_impl.dart';
 // Domain Layer
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/company_repository.dart';
 import '../../domain/repositories/store_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 
-// Data Layer - DataSources (NEW Clean Architecture!)
-import '../../data/datasources/supabase_auth_datasource.dart';
-import '../../data/datasources/supabase_user_datasource.dart';
-import '../../data/datasources/supabase_company_datasource.dart';
-import '../../data/datasources/supabase_store_datasource.dart';
-
-// Data Layer - Repositories (NEW Clean Architecture!)
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/repositories/user_repository_impl.dart';
-import '../../data/repositories/company_repository_impl.dart';
-import '../../data/repositories/store_repository_impl.dart';
+/// Repository Providers
+///
+/// Infrastructure layer that wires up dependencies.
+/// This file belongs in infrastructure because it:
+/// - Imports concrete implementations from data layer
+/// - Creates instances with Supabase dependencies
+/// - Provides dependency injection configuration
+///
+/// Clean Architecture layers:
+/// - Domain: Interfaces (repositories, entities, use cases)
+/// - Data: Implementations (datasources, repository impls)
+/// - Infrastructure: Dependency wiring (THIS FILE)
+/// - Presentation: UI and state management
 
 /// Supabase Client Provider
 ///
@@ -28,12 +40,12 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 });
 
 // ============================================================================
-// DataSource Providers (NEW Clean Architecture!)
+// DataSource Providers
 // ============================================================================
 
 /// Auth DataSource Provider
 ///
-/// 🚚 배달 기사 - Supabase Auth API와 직접 통신
+/// 🚚 Delivery driver - Direct communication with Supabase Auth API
 final authDataSourceProvider = Provider<AuthDataSource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SupabaseAuthDataSource(client);
@@ -41,7 +53,7 @@ final authDataSourceProvider = Provider<AuthDataSource>((ref) {
 
 /// User DataSource Provider
 ///
-/// 🚚 배달 기사 - Supabase Database와 직접 통신 (users, user_companies, user_stores)
+/// 🚚 Delivery driver - Direct communication with Supabase Database
 final userDataSourceProvider = Provider<UserDataSource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SupabaseUserDataSource(client);
@@ -49,7 +61,7 @@ final userDataSourceProvider = Provider<UserDataSource>((ref) {
 
 /// Company DataSource Provider
 ///
-/// 🚚 배달 기사 - Supabase와 직접 통신
+/// 🚚 Delivery driver - Direct communication with Supabase
 final companyDataSourceProvider = Provider<CompanyDataSource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SupabaseCompanyDataSource(client);
@@ -57,20 +69,19 @@ final companyDataSourceProvider = Provider<CompanyDataSource>((ref) {
 
 /// Store DataSource Provider
 ///
-/// 🚚 배달 기사 - Supabase와 직접 통신
+/// 🚚 Delivery driver - Direct communication with Supabase
 final storeDataSourceProvider = Provider<StoreDataSource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SupabaseStoreDataSource(client);
 });
 
 // ============================================================================
-// Repository Providers (Clean Architecture Implementation!)
+// Repository Providers
 // ============================================================================
 
 /// Auth Repository Provider
 ///
-/// 📜 계약 이행자 - Domain Repository Interface 구현
-/// Uses AuthDataSource for Supabase Auth communication
+/// 📜 Contract implementer - Implements Domain Repository Interface
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dataSource = ref.watch(authDataSourceProvider);
   return AuthRepositoryImpl(dataSource);
@@ -78,8 +89,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 /// User Repository Provider
 ///
-/// 📜 계약 이행자 - Domain Repository Interface 구현
-/// Uses UserDataSource for Supabase Database communication
+/// 📜 Contract implementer - Implements Domain Repository Interface
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   final dataSource = ref.watch(userDataSourceProvider);
   return UserRepositoryImpl(dataSource);
@@ -87,8 +97,7 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 
 /// Company Repository Provider
 ///
-/// 📜 계약 이행자 - Domain Repository Interface 구현
-/// Uses CompanyDataSource for Supabase communication
+/// 📜 Contract implementer - Implements Domain Repository Interface
 final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
   final dataSource = ref.watch(companyDataSourceProvider);
   return CompanyRepositoryImpl(dataSource);
@@ -96,8 +105,7 @@ final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
 
 /// Store Repository Provider
 ///
-/// 📜 계약 이행자 - Domain Repository Interface 구현
-/// Uses StoreDataSource for Supabase communication
+/// 📜 Contract implementer - Implements Domain Repository Interface
 final storeRepositoryProvider = Provider<StoreRepository>((ref) {
   final dataSource = ref.watch(storeDataSourceProvider);
   return StoreRepositoryImpl(dataSource);

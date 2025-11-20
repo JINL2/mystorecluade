@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../core/utils/number_formatter.dart';
@@ -10,9 +10,12 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../../shared/widgets/toss/toss_time_picker.dart';
 import '../../domain/entities/store_shift.dart';
+import '../../domain/value_objects/shift_params.dart';
 import '../providers/store_shift_providers.dart';
 
 /// Show Edit Shift Dialog
@@ -404,7 +407,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             children: [
               Row(
                 children: [
-                  FaIcon(
+                  Icon(
                     IconMapper.getIcon('clock'),
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
@@ -484,7 +487,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             ),
             child: Row(
               children: [
-                FaIcon(
+                Icon(
                   IconMapper.getIcon('stopwatch'),
                   color: TossColors.success,
                   size: TossSpacing.iconSM,
@@ -666,4 +669,213 @@ String _calculateDuration(TimeOfDay start, TimeOfDay end) {
     return '$hours hours';
   }
   return '$hours hours $minutes minutes';
+}
+
+/// Show Operational Settings Dialog
+void showOperationalSettingsDialog(BuildContext context, Map<String, dynamic> store) {
+  TossBottomSheet.show(
+    context: context,
+    title: 'Edit Operational Settings',
+    content: _OperationalSettingsContent(store: store),
+  );
+}
+
+/// Operational Settings Content Widget
+class _OperationalSettingsContent extends ConsumerStatefulWidget {
+  final Map<String, dynamic> store;
+
+  const _OperationalSettingsContent({required this.store});
+
+  @override
+  ConsumerState<_OperationalSettingsContent> createState() => _OperationalSettingsContentState();
+}
+
+class _OperationalSettingsContentState extends ConsumerState<_OperationalSettingsContent> {
+  late final TextEditingController _huddleTimeController;
+  late final TextEditingController _paymentTimeController;
+  late final TextEditingController _allowedDistanceController;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _huddleTimeController = TextEditingController(
+      text: (widget.store['huddle_time'] ?? 15).toString(),
+    );
+    _paymentTimeController = TextEditingController(
+      text: (widget.store['payment_time'] ?? 30).toString(),
+    );
+    _allowedDistanceController = TextEditingController(
+      text: (widget.store['allowed_distance'] ?? 100).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _huddleTimeController.dispose();
+    _paymentTimeController.dispose();
+    _allowedDistanceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Huddle Time
+          TossTextField(
+          label: 'Huddle Time',
+          hintText: '15',
+          controller: _huddleTimeController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: TossSpacing.space3),
+            child: Align(
+              alignment: Alignment.centerRight,
+              widthFactor: 1.0,
+              child: Text(
+                'minutes',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'Time allocated for team meetings',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space5),
+
+        // Payment Time
+        TossTextField(
+          label: 'Payment Time',
+          hintText: '30',
+          controller: _paymentTimeController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: TossSpacing.space3),
+            child: Align(
+              alignment: Alignment.centerRight,
+              widthFactor: 1.0,
+              child: Text(
+                'minutes',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'Time allocated for payment processing',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space5),
+
+        // Check-in Distance
+        TossTextField(
+          label: 'Check-in Distance',
+          hintText: '100',
+          controller: _allowedDistanceController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: TossSpacing.space3),
+            child: Align(
+              alignment: Alignment.centerRight,
+              widthFactor: 1.0,
+              child: Text(
+                'meters',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'Maximum distance from store for check-in',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space6),
+
+        // Save Button
+        TossPrimaryButton(
+          text: 'Save Changes',
+          onPressed: _isSubmitting ? null : _handleSave,
+          fullWidth: true,
+          leadingIcon: _isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: TossColors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : null,
+        ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSave() async {
+    setState(() => _isSubmitting = true);
+
+    try {
+      final useCase = ref.read(updateOperationalSettingsUseCaseProvider);
+      await useCase(UpdateOperationalSettingsParams(
+        storeId: widget.store['store_id'] as String,
+        huddleTime: int.tryParse(_huddleTimeController.text),
+        paymentTime: int.tryParse(_paymentTimeController.text),
+        allowedDistance: int.tryParse(_allowedDistanceController.text),
+      ),);
+
+      if (mounted) {
+        // Refresh store details
+        ref.invalidate(storeDetailsProvider);
+
+        Navigator.pop(context);
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Settings Updated',
+            message: 'Operational settings updated successfully',
+            primaryButtonText: 'OK',
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update settings: $e',
+            primaryButtonText: 'OK',
+          ),
+        );
+      }
+    }
+  }
 }

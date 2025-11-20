@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
 
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/role.dart';
 import '../providers/employee_providers.dart';
 
@@ -35,7 +37,7 @@ class RoleSelectionHelper {
 
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       if (!context.mounted) return false;
@@ -51,7 +53,7 @@ class RoleSelectionHelper {
     } catch (error) {
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Show error dialog
@@ -122,15 +124,14 @@ class RoleSelectionHelper {
 
     try {
       // Show loading dialog
-      if (context.mounted) {
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: TossLoadingView(),
-          ),
-        );
-      }
+      if (!context.mounted) return false;
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: TossLoadingView(),
+        ),
+      );
 
       // Update role in database
       final roleRepository = ref.read(roleRepositoryProvider);
@@ -142,9 +143,8 @@ class RoleSelectionHelper {
       );
 
       // Close loading dialog
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
+      if (!context.mounted) return false;
+      context.pop();
 
       // Callback to update local state
       onRoleUpdated(selectedRole.roleName);
@@ -153,28 +153,25 @@ class RoleSelectionHelper {
       await refreshEmployees(ref);
 
       // Show success dialog
-      if (context.mounted) {
-        await TossDialogs.showCashEndingSaved(
-          context: context,
-          message: 'Role updated successfully',
-        );
-      }
+      if (!context.mounted) return false;
+      await TossDialogs.showCashEndingSaved(
+        context: context,
+        message: 'Role updated successfully',
+      );
 
       return true;
     } catch (e) {
       // Close loading dialog
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
+      if (!context.mounted) return false;
+      context.pop();
 
       // Show error dialog
-      if (context.mounted) {
-        await TossDialogs.showValidationError(
-          context: context,
-          title: 'Failed to Update Role',
-          message: e.toString().replaceAll('Exception:', '').trim(),
-        );
-      }
+      if (!context.mounted) return false;
+      await TossDialogs.showValidationError(
+        context: context,
+        title: 'Failed to Update Role',
+        message: e.toString().replaceAll('Exception:', '').trim(),
+      );
       return false;
     }
   }

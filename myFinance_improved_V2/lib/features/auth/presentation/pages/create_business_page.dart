@@ -1,38 +1,27 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
-
-// Shared - Themes
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-
-// Core - Constants & Navigation
-import '../../../../core/constants/auth_constants.dart';
 
 // App - Providers
 import '../../../../app/providers/app_state_provider.dart';
-
-// Presentation - Providers
-import '../providers/company_service.dart';
-
-// Domain - Value Objects
-import '../../domain/value_objects/company_type.dart';
-import '../../domain/value_objects/currency.dart';
-
+// Core - Constants & Navigation
+import '../../../../core/constants/auth_constants.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+// Homepage - Providers (for userCompaniesProvider)
+import '../../../homepage/presentation/providers/homepage_providers.dart';
 // Domain - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
-
-// Homepage Data Source (for filtering helper)
-import '../../../homepage/data/datasources/homepage_data_source.dart';
-
-// Core - Infrastructure
-import '../../../../core/cache/auth_data_cache.dart';
+// Domain - Value Objects
+import '../../domain/value_objects/company_type.dart';
+import '../../domain/value_objects/currency.dart';
+// Presentation - Providers
+import '../providers/company_service.dart';
+import '../providers/current_user_provider.dart';
 
 /// Create Business Page - Clean Architecture Version
 ///
@@ -66,12 +55,14 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   final _businessEmailController = TextEditingController();
   final _businessPhoneController = TextEditingController();
   final _businessAddressController = TextEditingController();
+  final _customTypeController = TextEditingController();
 
   // Focus Nodes
   final _businessNameFocusNode = FocusNode();
   final _businessEmailFocusNode = FocusNode();
   final _businessPhoneFocusNode = FocusNode();
   final _businessAddressFocusNode = FocusNode();
+  final _customTypeFocusNode = FocusNode();
 
   // Animation
   late AnimationController _animationController;
@@ -80,10 +71,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   // State
   bool _isLoading = false;
+  int _currentStep = 1; // Step 1: Name, Step 2: Type, Step 3: Currency
   String? _selectedTypeId;
   String? _selectedCurrencyId;
   List<CompanyType> _companyTypes = [];
   List<Currency> _currencies = [];
+  bool _isCustomTypeSelected = false;
 
   // Validation State
   bool _isBusinessNameValid = false;
@@ -107,7 +100,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -115,7 +108,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     // Add validation listeners
     _businessNameController.addListener(_validateBusinessName);
@@ -186,10 +179,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     _businessEmailController.dispose();
     _businessPhoneController.dispose();
     _businessAddressController.dispose();
+    _customTypeController.dispose();
     _businessNameFocusNode.dispose();
     _businessEmailFocusNode.dispose();
     _businessPhoneFocusNode.dispose();
     _businessAddressFocusNode.dispose();
+    _customTypeFocusNode.dispose();
     super.dispose();
   }
 
@@ -205,7 +200,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   child: SlideTransition(
@@ -215,57 +210,39 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTitleSection(),
+                          _buildProgressIndicator(),
 
                           const SizedBox(height: TossSpacing.space8),
 
-                          _buildSectionTitle('Business Information'),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessNameField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessTypeDropdown(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessEmailField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildBusinessPhoneField(),
-
-                          const SizedBox(height: TossSpacing.space6),
-
-                          _buildSectionTitle('Business Location'),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildAddressField(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildCurrencyDropdown(),
-
-                          const SizedBox(height: TossSpacing.space8),
-
-                          _buildCreateButton(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildTermsText(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildJoinBusinessOption(),
+                          if (_currentStep == 1) ...[
+                            _buildStep1ContentWithoutButton(),
+                          ] else if (_currentStep == 2) ...[
+                            _buildStep2ContentWithoutButton(),
+                          ] else if (_currentStep == 3) ...[
+                            _buildStep3ContentWithoutButton(),
+                          ],
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
+
+            // Bottom button - always visible at screen bottom
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: _buildBottomButton(),
             ),
           ],
         ),
@@ -279,46 +256,22 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Widget _buildAuthHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.border,
-            width: 1,
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
+            icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
             onPressed: () {
-              // Safe navigation back - go to choose-role instead of pop
-              context.go('/onboarding/choose-role');
+              if (_currentStep > 1) {
+                // Go to previous step
+                setState(() {
+                  _currentStep--;
+                });
+              } else {
+                // On step 1, go back to choose-role
+                context.go('/onboarding/choose-role');
+              }
             },
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Storebase',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
           ),
         ],
       ),
@@ -388,18 +341,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 color: TossColors.error,
               ),
             ),
-            if (_isBusinessNameValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessNameController,
           focusNode: _businessNameFocusNode,
           hintText: 'Enter your business name',
@@ -429,7 +374,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
@@ -439,7 +384,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             child: DropdownButton<String>(
               value: _selectedTypeId,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
+              icon: const Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
               style: TossTextStyles.body.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -449,7 +394,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   .map((type) => DropdownMenuItem(
                         value: type.companyTypeId,
                         child: Text(type.typeName),
-                      ))
+                      ),)
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -486,7 +431,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessEmailController,
           focusNode: _businessEmailFocusNode,
           hintText: 'business@example.com',
@@ -529,7 +474,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessPhoneController,
           focusNode: _businessPhoneFocusNode,
           hintText: '+1 (555) 123-4567',
@@ -564,7 +509,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessAddressController,
           focusNode: _businessAddressFocusNode,
           hintText: '123 Main Street, City, State, ZIP',
@@ -587,7 +532,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
@@ -597,7 +542,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             child: DropdownButton<String>(
               value: _selectedCurrencyId,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
+              icon: const Icon(Icons.keyboard_arrow_down, color: TossColors.textSecondary),
               style: TossTextStyles.body.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -607,7 +552,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   .map((currency) => DropdownMenuItem(
                         value: currency.currencyId,
                         child: Text('${currency.currencyCode} - ${currency.currencyName}'),
-                      ))
+                      ),)
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -630,13 +575,13 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         _selectedTypeId != null &&
         _selectedCurrencyId != null;
 
-    return _buildPrimaryButton(
+    return TossPrimaryButton(
       text: _isLoading ? 'Creating business...' : 'Create Business',
       onPressed: _isLoading || !canCreate ? null : _handleCreateBusiness,
       isLoading: _isLoading,
-      icon: _isLoading
+      leadingIcon: _isLoading
           ? null
-          : Icon(
+          : const Icon(
               Icons.business,
               size: 18,
               color: TossColors.white,
@@ -688,6 +633,307 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   }
 
   // ==========================================
+  // Multi-Step UI Components
+  // ==========================================
+
+  Widget _buildProgressIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (index) {
+        final stepNumber = index + 1;
+        final isActive = stepNumber == _currentStep;
+        final isCompleted = stepNumber < _currentStep;
+
+        return Row(
+          children: [
+            Container(
+              width: isActive ? 32 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: isActive || isCompleted
+                    ? TossColors.primary
+                    : TossColors.gray300,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            if (index < 2) const SizedBox(width: 8),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildStep1ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What\'s your business name?',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'This will be the name of your company in Storebase',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space8),
+        _buildBusinessNameField(),
+      ],
+    );
+  }
+
+  Widget _buildStep2ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What type of company?',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'Choose the category that best describes your company',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space6),
+        ..._companyTypes.map((type) {
+          // Check if this is the "Others" type from database
+          final isOthersType = type.typeName.toLowerCase() == 'others' ||
+                               type.typeName.toLowerCase() == 'other';
+          final isSelected = _isCustomTypeSelected
+              ? (_selectedTypeId == type.companyTypeId)
+              : (_selectedTypeId == type.companyTypeId);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedTypeId = type.companyTypeId;
+                    if (isOthersType) {
+                      _isCustomTypeSelected = true;
+                      // Auto-focus the text field
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        _customTypeFocusNode.requestFocus();
+                      });
+                    } else {
+                      _isCustomTypeSelected = false;
+                      _customTypeController.clear();
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: TossColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      if (!isOthersType || !_isCustomTypeSelected)
+                        Expanded(
+                          child: Text(
+                            type.typeName,
+                            style: TossTextStyles.h3.copyWith(
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                              color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                              fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                            ),
+                          ),
+                        ),
+                      if (isOthersType && _isCustomTypeSelected) ...[
+                        Text(
+                          type.typeName,
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.primary,
+                            fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space6),
+                        Expanded(
+                          child: TextField(
+                            controller: _customTypeController,
+                            focusNode: _customTypeFocusNode,
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Type your company type',
+                              hintStyle: TossTextStyles.body.copyWith(
+                                color: TossColors.textSecondary.withOpacity(0.5),
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                            ),
+                            textInputAction: TextInputAction.done,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildStep3ContentWithoutButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Choose your currency',
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: FontWeight.w800,
+            color: TossColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          'This will be used for all financial transactions',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space6),
+        ..._currencies.map((currency) {
+          final isSelected = _selectedCurrencyId == currency.currencyId;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedCurrencyId = currency.currencyId;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: TossColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        currency.symbol,
+                        style: TossTextStyles.h2.copyWith(
+                          color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currency.currencyName,
+                              style: TossTextStyles.h3.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                color: isSelected ? TossColors.primary : TossColors.textPrimary,
+                                fontSize: TossTextStyles.h3.fontSize! * 0.7,
+                              ),
+                            ),
+                            Text(
+                              currency.currencyCode,
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.textSecondary,
+                                fontSize: TossTextStyles.caption.fontSize! * 0.7,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton() {
+    if (_currentStep == 1) {
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: 'Continue',
+          onPressed: _isBusinessNameValid ? () {
+            setState(() {
+              _currentStep = 2;
+            });
+          } : null,
+          fullWidth: true,
+        ),
+      );
+    } else if (_currentStep == 2) {
+      // Enable button if: (1) predefined type selected OR (2) custom type entered
+      final hasValidType = _selectedTypeId != null ||
+          (_isCustomTypeSelected && _customTypeController.text.trim().isNotEmpty);
+
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: 'Continue',
+          onPressed: hasValidType ? () {
+            setState(() {
+              _currentStep = 3;
+            });
+          } : null,
+          fullWidth: true,
+        ),
+      );
+    } else {
+      // Step 3
+      return SizedBox(
+        width: double.infinity,
+        child: TossPrimaryButton(
+          text: _isLoading ? 'Creating Company...' : 'Create Company',
+          onPressed: _selectedCurrencyId != null && !_isLoading
+              ? _handleCreateBusiness
+              : null,
+          isLoading: _isLoading,
+          fullWidth: true,
+        ),
+      );
+    }
+  }
+
+  // ==========================================
   // Business Logic - Clean Architecture
   // ==========================================
 
@@ -710,11 +956,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       final companyService = ref.read(companyServiceProvider);
 
       // Get current user ID
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
 
       if (userId == null) {
-        throw AuthException('User not authenticated');
+        throw const AuthException('User not authenticated');
       }
 
       final company = await companyService.createCompany(
@@ -722,19 +967,30 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ownerId: userId,
         companyTypeId: _selectedTypeId!,
         currencyId: _selectedCurrencyId!,
-        email: _businessEmailController.text.trim().isEmpty
-            ? null
-            : _businessEmailController.text.trim(),
-        phone: _businessPhoneController.text.trim().isEmpty
-            ? null
-            : _businessPhoneController.text.trim(),
-        address: _businessAddressController.text.trim().isEmpty
-            ? null
-            : _businessAddressController.text.trim(),
+        otherTypeDetail: _isCustomTypeSelected && _customTypeController.text.trim().isNotEmpty
+            ? _customTypeController.text.trim()
+            : null,
       );
 
-      // Invalidate app state to force refresh
-      ref.invalidate(appStateProvider);
+      // ✅ WORKFLOW: Update AppState immediately with new company
+      // This follows the same pattern as company_store_selector.dart:653-673
+
+      // 1. Add company to user's companies list in AppState (instant UI update)
+      ref.read(appStateProvider.notifier).addNewCompanyToUser(
+        companyId: company.id,
+        companyName: company.name,
+        companyCode: company.companyCode,
+        role: <String, dynamic>{'role_name': 'Owner', 'permissions': <dynamic>[]},
+      );
+
+      // 2. Set the new company as selected
+      ref.read(appStateProvider.notifier).selectCompany(
+        company.id,
+        companyName: company.name,
+      );
+
+      // 3. Invalidate providers to refresh data from server (background)
+      ref.invalidate(userCompaniesProvider);
 
       if (mounted) {
         // Show success message
@@ -742,7 +998,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: TossColors.white, size: 20),
+                const Icon(Icons.check_circle, color: TossColors.white, size: 20),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
@@ -778,7 +1034,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 context.push('/onboarding/create-store', extra: {
                   'companyId': company.id,
                   'companyName': company.name,
-                });
+                },);
               } else {
                 // Go to dashboard
                 await _navigateToDashboard();
@@ -795,7 +1051,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       if (mounted) {
         _showErrorSnackbar(e.message);
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       if (mounted) {
         _showErrorSnackbar('Connection issue. Please check your internet and try again.');
       }
@@ -818,77 +1074,15 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Future<void> _navigateToDashboard() async {
     try {
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+      // ✅ WORKFLOW: AppState is already updated in _handleCreateCompany()
+      // No need to fetch from server again - just navigate to dashboard
+      // The userCompaniesProvider will use the cached data from AppState
 
-      if (userId != null) {
-        // Small delay for backend to update
-        await Future.delayed(const Duration(milliseconds: 500));
+      // Small delay for smooth transition
+      await Future.delayed(const Duration(milliseconds: 300));
 
-        final cache = AuthDataCache.instance;
-
-        // Fetch user data and categories using cache
-        final results = await Future.wait([
-          cache.deduplicate(
-            'user_data_$userId',
-            () => supabase.rpc(
-              'get_user_companies_and_stores',
-              params: {'p_user_id': userId},
-            ),
-          ),
-          cache.deduplicate(
-            'categories_features',
-            () => supabase.rpc('get_categories_with_features'),
-          ),
-        ]);
-
-        final userResponse = results[0];
-        final categoriesResponse = results[1];
-
-        // Update app state
-        if (userResponse is Map<String, dynamic>) {
-          // ✅ Filter out deleted companies and stores
-          final filteredResponse = HomepageDataSource.filterDeletedCompaniesAndStores(userResponse);
-
-          ref.read(appStateProvider.notifier).updateUser(
-            user: filteredResponse,
-            isAuthenticated: true,
-          );
-
-          // ✅ Auto-select first company and store for better UX
-          final companies = filteredResponse['companies'] as List?;
-          if (companies != null && companies.isNotEmpty) {
-            final firstCompany = companies.first as Map<String, dynamic>;
-            final companyId = firstCompany['company_id'] as String;
-            final companyName = firstCompany['company_name'] as String;
-
-            ref.read(appStateProvider.notifier).selectCompany(
-              companyId,
-              companyName: companyName,
-            );
-
-            // Auto-select first store if available
-            final stores = firstCompany['stores'] as List?;
-            if (stores != null && stores.isNotEmpty) {
-              final firstStore = stores.first as Map<String, dynamic>;
-              final storeId = firstStore['store_id'] as String;
-              final storeName = firstStore['store_name'] as String;
-
-              ref.read(appStateProvider.notifier).selectStore(
-                storeId,
-                storeName: storeName,
-              );
-            }
-          }
-        }
-
-        if (categoriesResponse is List) {
-          ref.read(appStateProvider.notifier).updateCategoryFeatures(categoriesResponse);
-        }
-
-        if (mounted) {
-          context.go('/');
-        }
+      if (mounted) {
+        context.go('/');
       }
     } catch (e) {
       if (mounted) {
@@ -903,13 +1097,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: TossColors.success, size: 28),
-            const SizedBox(width: TossSpacing.space2),
-            const Text('Business Created!'),
-          ],
-        ),
+        title: const Text('Business Created!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -920,7 +1108,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             const SizedBox(height: TossSpacing.space4),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(TossSpacing.space3),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -935,14 +1123,40 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    companyCode,
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        companyCode,
+                        style: TossTextStyles.h3.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.copy,
+                          color: TossColors.primary,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: companyCode));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Company code copied!'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Copy code',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -965,7 +1179,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.primary,
                 foregroundColor: TossColors.white,
-                padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               ),
               child: const Text('Create Store'),
             ),
@@ -980,7 +1194,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: TossColors.white, size: 20),
+            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
             const SizedBox(width: TossSpacing.space2),
             Expanded(child: Text(message)),
           ],
@@ -994,115 +1208,4 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     );
   }
 
-  // ==========================================
-  // Temporary Widget Implementations
-  // ==========================================
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.textTertiary,
-        ),
-        filled: true,
-        fillColor: TossColors.gray50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton({
-    required String text,
-    required VoidCallback? onPressed,
-    bool isLoading = false,
-    Widget? icon,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.0,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed == null ? TossColors.gray300 : TossColors.primary,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space5,
-            vertical: TossSpacing.space3,
-          ),
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon,
-                    const SizedBox(width: TossSpacing.space2),
-                  ],
-                  Text(
-                    text,
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
 }

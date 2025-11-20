@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -92,7 +92,7 @@ class StoreConfigSection extends StatelessWidget {
               ),
               if (onTap != null)
                 const Icon(
-                  FontAwesomeIcons.chevronRight,
+                  LucideIcons.chevronRight,
                   color: TossColors.gray400,
                   size: TossSpacing.iconSM,
                 ),
@@ -134,7 +134,7 @@ class StoreConfigSection extends StatelessWidget {
 
           // Huddle Time
           _buildConfigOption(
-            icon: FontAwesomeIcons.peopleGroup,
+            icon: LucideIcons.users,
             title: 'Huddle Time',
             subtitle:
                 '${store['huddle_time'] ?? 15} minutes for team meetings',
@@ -144,7 +144,7 @@ class StoreConfigSection extends StatelessWidget {
 
           // Payment Time
           _buildConfigOption(
-            icon: FontAwesomeIcons.clock,
+            icon: LucideIcons.clock,
             title: 'Payment Time',
             subtitle:
                 '${store['payment_time'] ?? 30} minutes for payment processing',
@@ -154,7 +154,7 @@ class StoreConfigSection extends StatelessWidget {
 
           // Check-in Distance
           _buildConfigOption(
-            icon: FontAwesomeIcons.locationDot,
+            icon: LucideIcons.mapPin,
             title: 'Check-in Distance',
             subtitle:
                 '${store['allowed_distance'] ?? 100} meters maximum distance',
@@ -164,7 +164,7 @@ class StoreConfigSection extends StatelessWidget {
 
           // Store Location
           _buildConfigOption(
-            icon: FontAwesomeIcons.mapLocationDot,
+            icon: LucideIcons.map,
             title: 'Store Location',
             subtitle: _getLocationSubtitle(),
             onTap: onEditLocation,
@@ -173,7 +173,7 @@ class StoreConfigSection extends StatelessWidget {
 
           // Store Performance
           _buildConfigOption(
-            icon: FontAwesomeIcons.chartLine,
+            icon: LucideIcons.lineChart,
             title: 'Store Performance',
             subtitle: 'View detailed analytics',
             onTap: onViewPerformance,

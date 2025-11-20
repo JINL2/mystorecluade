@@ -117,7 +117,7 @@ class TransactionStatus extends Equatable {
   TransactionStatus transitionTo(TransactionStatus newStatus) {
     if (!canTransitionTo(newStatus)) {
       throw StateError(
-        'Invalid transition from ${toString()} to ${newStatus.toString()}'
+        'Invalid transition from ${toString()} to ${newStatus.toString()}',
       );
     }
     return newStatus;

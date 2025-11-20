@@ -29,23 +29,12 @@ class CashEndingSelectionHelpers {
     required String? selectedStoreId,
     required String companyId,
   }) async {
-    // Prepare items: Headquarter + Stores
-    final items = <TossSelectionItem>[
-      // Headquarter item
-      TossSelectionItem(
-        id: 'headquarter',
-        title: 'Headquarter',
-        subtitle: 'Company Level',
-        icon: TossIcons.business,
-      ),
-      // Store items
-      ...stores.map((store) => TossSelectionItem(
-            id: store.storeId,
-            title: store.storeName,
-            subtitle: store.storeCode,
-            icon: TossIcons.store,
-          )),
-    ];
+    // Prepare items: Stores only
+    final items = stores.map((store) => TossSelectionItem(
+          id: store.storeId,
+          title: store.storeName,
+          icon: TossIcons.store,
+        ),).toList();
 
     await TossSelectionBottomSheet.show<void>(
       context: context,
@@ -53,6 +42,7 @@ class CashEndingSelectionHelpers {
       items: items,
       selectedId: selectedStoreId,
       // Cash Ending styling
+      showSubtitle: false,
       selectedFontWeight: FontWeight.w700,
       unselectedFontWeight: FontWeight.w500,
       unselectedIconColor: TossColors.gray500,
@@ -102,7 +92,7 @@ class CashEndingSelectionHelpers {
       return TossSelectionItem(
         id: location.locationId,
         title: location.locationName,
-        subtitle: _getLocationSubtitle(location, locationType),
+        subtitle: _getLocationSubtitle(ref, location, locationType),
         icon: _getLocationIcon(locationType),
       );
     }).toList();
@@ -175,12 +165,20 @@ class CashEndingSelectionHelpers {
     }
   }
 
-  static String? _getLocationSubtitle(Location location, String locationType) {
+  static String? _getLocationSubtitle(
+      WidgetRef ref, Location location, String locationType,) {
     // Show currency for bank/vault if has fixed currency
     if ((locationType == 'bank' || locationType == 'vault') &&
         location.currencyId != null &&
         location.currencyId!.isNotEmpty) {
-      return 'Currency: ${location.currencyId}';
+      final state = ref.read(cashEndingProvider);
+      final currency = state.currencies.firstWhere(
+        (c) => c.currencyId == location.currencyId,
+        orElse: () => state.currencies.isNotEmpty
+            ? state.currencies.first
+            : throw Exception('No currencies available'),
+      );
+      return 'Currency: ${currency.currencyCode}';
     }
     return null;
   }

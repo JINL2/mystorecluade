@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../../domain/entities/user_profile.dart';
+
 import '../../../domain/entities/business_dashboard.dart';
+import '../../../domain/entities/user_profile.dart';
 
 part 'my_page_state.freezed.dart';
 
