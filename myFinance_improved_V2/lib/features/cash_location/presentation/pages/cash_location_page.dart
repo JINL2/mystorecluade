@@ -19,6 +19,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 import '../providers/cash_location_providers.dart';
+import '../widgets/cash_account_card.dart';
 import 'add_account_page.dart';
 import 'bank_real_page.dart';
 import 'total_journal_page.dart';
@@ -26,7 +27,9 @@ import 'total_real_page.dart';
 import 'vault_real_page.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
-  final dynamic feature;
+  /// Feature data - can be TopFeature, Feature, or Map<String, dynamic>
+  /// Type safety: Using Object? instead of dynamic for better type checking
+  final Object? feature;
 
   const CashLocationPage({super.key, this.feature});
 
@@ -668,121 +671,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   }
   
   Widget _buildAccountCard(CashLocation location, double totalAmount) {
-    // Calculate percentage
-    final percentage = totalAmount > 0 
-        ? ((location.totalJournalCashAmount / totalAmount) * 100).round()
-        : 0;
-    
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        // Refresh data before navigating
-        _refreshData();
-
-        await context.push(
-          '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
-          extra: {
-            'locationId': location.locationId,
-            'locationType': _currentLocationType,
-            'accountName': location.locationName,
-            'totalJournal': location.totalJournalCashAmount.round(),
-            'totalReal': location.totalRealCashAmount.round(),
-            'cashDifference': location.cashDifference.round(),
-            'currencySymbol': location.currencySymbol,
-            // Legacy fields for compatibility (can be removed later)
-            'balance': location.totalJournalCashAmount.round(),
-            'errors': location.cashDifference.abs().round(),
-          },
-        );
-        
-        // Refresh data when returning from detail page
-        _refreshData();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: TossSpacing.space4,
-        ),
-        child: Row(
-          children: [
-              // Logo icon
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Icon(
-                  _getLocationIcon(_currentLocationType),
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 22,
-                ),
-              ),
-              
-              const SizedBox(width: TossSpacing.space3),
-              
-              // Account details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      location.locationName,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: TossColors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space1),
-                    Text(
-                      '$percentage% of total balance',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Total Journal and Error with arrow
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _formatCurrency(location.totalJournalCashAmount, location.currencySymbol),
-                        style: TossTextStyles.body.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space1),
-                      Text(
-                        _formatCurrency(location.cashDifference.abs(), ''),
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.error,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: TossColors.gray400,
-                    size: 22,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
+    return CashAccountCard(
+      location: location,
+      totalAmount: totalAmount,
+      locationType: _currentLocationType,
+      onRefresh: _refreshData,
+      icon: _getLocationIcon(_currentLocationType),
+      formatCurrency: _formatCurrency,
+    );
   }
   
   IconData _getLocationIcon(String type) {

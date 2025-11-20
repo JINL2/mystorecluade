@@ -18,6 +18,7 @@ import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
 import '../../features/counter_party/presentation/pages/counter_party_page.dart';
+import '../../features/report_control/presentation/pages/report_control_page.dart';
 import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
 import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
 import '../../features/employee_setting/presentation/pages/employee_setting_page.dart';
@@ -614,6 +615,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/library',
         name: 'library',
         builder: (context, state) => const ThemeLibraryPage(),
+      ),
+
+      // Report Control Route
+      GoRoute(
+        path: '/reportControl',
+        name: 'reportControl',
+        builder: (context, state) {
+          final feature = state.extra;
+          return ReportControlPage(feature: feature);
+        },
       ),
     ],
   );
