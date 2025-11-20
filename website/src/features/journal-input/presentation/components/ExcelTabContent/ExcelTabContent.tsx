@@ -614,7 +614,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
       )}
 
       {/* Recent Transaction History */}
-      <RecentTransactionHistory companyId={companyId} />
+      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} />
     </div>
   );
 };

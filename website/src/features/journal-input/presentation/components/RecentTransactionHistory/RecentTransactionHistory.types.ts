@@ -4,4 +4,5 @@
 
 export interface RecentTransactionHistoryProps {
   companyId: string;
+  storeId: string | null;
 }

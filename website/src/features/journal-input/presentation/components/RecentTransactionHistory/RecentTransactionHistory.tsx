@@ -11,7 +11,7 @@ import { JournalEntry } from '@/features/transaction-history/domain/entities/Jou
 import type { RecentTransactionHistoryProps } from './RecentTransactionHistory.types';
 import styles from './RecentTransactionHistory.module.css';
 
-export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> = ({ companyId }) => {
+export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> = ({ companyId, storeId }) => {
   const {
     journalEntries,
     loading,
@@ -38,12 +38,12 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
     };
   }, []);
 
-  // Auto-load data on mount
+  // Auto-load data on mount and when storeId changes
   useEffect(() => {
     if (companyId) {
-      searchJournalEntries(null, dateRange.fromDate, dateRange.toDate);
+      searchJournalEntries(storeId, dateRange.fromDate, dateRange.toDate);
     }
-  }, [companyId, dateRange.fromDate, dateRange.toDate, searchJournalEntries]);
+  }, [companyId, storeId, dateRange.fromDate, dateRange.toDate, searchJournalEntries]);
 
   const renderLoadingState = () => (
     <div className={styles.loadingState}>

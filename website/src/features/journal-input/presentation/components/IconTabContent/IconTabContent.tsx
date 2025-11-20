@@ -13,6 +13,7 @@ import styles from './IconTabContent.module.css';
 export const IconTabContent: React.FC<IconTabContentProps> = ({
   journalEntry,
   companyId,
+  selectedStoreId,
   submitting,
   onAddTransaction,
   onEditTransaction,
@@ -221,7 +222,7 @@ export const IconTabContent: React.FC<IconTabContentProps> = ({
       </div>
 
       {/* Recent Transaction History */}
-      <RecentTransactionHistory companyId={companyId} />
+      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} />
     </>
   );
 };
