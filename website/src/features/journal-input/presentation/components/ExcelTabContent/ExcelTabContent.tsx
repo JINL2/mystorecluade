@@ -10,6 +10,7 @@ import type { TossSelectorOption } from '@/shared/components/selectors/TossSelec
 import type { ExcelTabContentProps } from './ExcelTabContent.types';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { CounterpartyCashLocationModal } from './CounterpartyCashLocationModal';
+import { RecentTransactionHistory } from '../RecentTransactionHistory';
 import { useExcelTab } from '../../hooks/useExcelTab';
 import styles from './ExcelTabContent.module.css';
 
@@ -611,6 +612,9 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
           onCancel={closeCashLocationModal}
         />
       )}
+
+      {/* Recent Transaction History */}
+      <RecentTransactionHistory companyId={companyId} />
     </div>
   );
 };

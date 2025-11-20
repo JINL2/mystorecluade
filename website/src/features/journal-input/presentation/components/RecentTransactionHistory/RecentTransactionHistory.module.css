@@ -1,0 +1,232 @@
+/* RecentTransactionHistory.module.css */
+/* Reusing Transaction History page styles */
+
+.container {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-top: 24px;
+}
+
+/* State Styles */
+.emptyState,
+.loadingState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: #F0F6FF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ADB5BD;
+  font-size: 40px;
+}
+
+.emptyIcon svg {
+  color: #0064FF;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Table Styles */
+.tableWrapper {
+  margin-top: 0;
+}
+
+.tableHeader {
+  margin-bottom: 24px;
+}
+
+.tableTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.tableSubtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+}
+
+.transactionTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.transactionTable thead {
+  background: #F8F9FA;
+  border-bottom: 1px solid #DEE2E6;
+}
+
+.transactionTable th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transactionTable th:nth-child(5),
+.transactionTable th:nth-child(6) {
+  text-align: right;
+}
+
+.transactionTable td {
+  padding: 20px;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 14px;
+  color: #212529;
+  vertical-align: top;
+}
+
+/* Journal Header Row */
+.journalHeader {
+  background: #F0F6FF !important;
+  font-weight: 700;
+  border-bottom: 2px solid #0064FF !important;
+}
+
+.journalHeader td {
+  font-weight: 600;
+  color: #212529;
+  background: #F0F6FF;
+  padding: 16px 20px;
+}
+
+.journalDate {
+  font-weight: 700;
+  font-size: 14px;
+  color: #212529;
+}
+
+.journalTime {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6C757D;
+  margin-top: 4px;
+}
+
+.storeBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #F0F6FF;
+  color: #0064FF;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Line Rows */
+.lineRow {
+  background: white;
+  border-left: 3px solid #F0F6FF;
+}
+
+.lineRow.alternate {
+  background: #F8F9FA;
+}
+
+.lineRow:hover {
+  background: #F1F3F5 !important;
+  border-left: 3px solid #0064FF !important;
+}
+
+.lineRow td {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.accountCell {
+  padding-left: 24px !important;
+}
+
+.accountCell strong {
+  color: #212529;
+  font-weight: 700;
+}
+
+.lineDescription {
+  color: #6C757D;
+  font-weight: 400;
+}
+
+/* Total Row */
+.totalRow {
+  background: #F8F9FA !important;
+  font-weight: 700;
+  border-top: 2px solid #DEE2E6 !important;
+  border-bottom: 2px solid #DEE2E6 !important;
+}
+
+.totalRow td {
+  font-weight: 700;
+  background: #F8F9FA;
+  padding: 16px 20px;
+}
+
+.totalLabel {
+  text-align: right;
+  padding-right: 20px !important;
+  color: #212529;
+}
+
+/* Amount Cells */
+.amountCell {
+  text-align: right;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.debitAmount {
+  color: #FF5847;
+}
+
+.creditAmount {
+  color: #00C896;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .transactionTable th,
+  .transactionTable td {
+    padding: 12px;
+    font-size: 12px;
+  }
+}
