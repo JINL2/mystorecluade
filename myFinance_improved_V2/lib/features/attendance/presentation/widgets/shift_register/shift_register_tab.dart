@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
@@ -11,8 +12,10 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_data.dart';
-import '../../providers/attendance_provider.dart';
+import '../../../domain/entities/shift_metadata.dart';
+import '../../providers/attendance_providers.dart';
 
 class ShiftRegisterTab extends ConsumerStatefulWidget {
   const ShiftRegisterTab({super.key});
@@ -21,33 +24,38 @@ class ShiftRegisterTab extends ConsumerStatefulWidget {
   ConsumerState<ShiftRegisterTab> createState() => _ShiftRegisterTabState();
 }
 
-class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
+class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
+    with AutomaticKeepAliveClientMixin {
   DateTime selectedDate = DateTime.now();
   DateTime focusedMonth = DateTime.now();
   String? selectedStoreId;
-  dynamic shiftMetadata; // Store shift metadata from RPC (can be List or Map)
+  List<ShiftMetadata>? shiftMetadata; // Store shift metadata from RPC
   bool isLoadingMetadata = false;
-  List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status from RPC
+  List<MonthlyShiftStatus>? monthlyShiftStatus; // Store monthly shift status from RPC
   bool isLoadingShiftStatus = false;
-  
+
   // ScrollController for auto-scroll functionality
   final ScrollController _scrollController = ScrollController();
   bool _isAutoScrolling = false; // Prevent conflicting scroll animations
-  
+
   // Selection state for shift cards
   String? selectedShift; // Store single selected shift ID
   String? selectionMode; // 'registered' or 'unregistered' - determined by selection
+
+  // Keep state alive when switching tabs
+  @override
+  bool get wantKeepAlive => true;
   
   // Remove mock data - will use real data from RPC
   Map<DateTime, ShiftData> registeredShifts = {
-    DateTime(2024, 11, 11): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 12): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 13): ShiftData('14:00', '22:00', 'Store B'),
-    DateTime(2024, 11, 14): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 15): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 18): ShiftData('10:00', '19:00', 'Store A'),
-    DateTime(2024, 11, 19): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 20): ShiftData('14:00', '22:00', 'Store B'),
+    DateTime(2024, 11, 11): const ShiftData('09:00', '18:00', 'Store A'),
+    DateTime(2024, 11, 12): const ShiftData('09:00', '18:00', 'Store A'),
+    DateTime(2024, 11, 13): const ShiftData('14:00', '22:00', 'Store B'),
+    DateTime(2024, 11, 14): const ShiftData('09:00', '18:00', 'Store A'),
+    DateTime(2024, 11, 15): const ShiftData('09:00', '18:00', 'Store A'),
+    DateTime(2024, 11, 18): const ShiftData('10:00', '19:00', 'Store A'),
+    DateTime(2024, 11, 19): const ShiftData('09:00', '18:00', 'Store A'),
+    DateTime(2024, 11, 20): const ShiftData('14:00', '22:00', 'Store B'),
   };
   
   @override
@@ -67,10 +75,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     }
 
     try {
-      // Use datasource instead of direct Supabase call
-      final datasource = ref.read(attendanceDatasourceProvider);
+      // Use get shift metadata use case
+      final getShiftMetadata = ref.read(getShiftMetadataProvider);
 
-      final response = await datasource.getShiftMetadata(
+      final response = await getShiftMetadata(
         storeId: storeId,
       );
 
@@ -83,6 +91,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       }
 
     } catch (e) {
+      print('❌ Error fetching shift metadata: $e');
       if (mounted) {
         setState(() {
           isLoadingMetadata = false;
@@ -104,12 +113,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       // Format date as YYYY-MM-DD for the first day of the focused month
       final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
 
-      // Use datasource instead of direct Supabase call
-      final datasource = ref.read(attendanceDatasourceProvider);
+      // Use get monthly shift status use case
+      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      final response = await datasource.getMonthlyShiftStatusManager(
+      final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
         requestDate: requestDate,
@@ -189,8 +198,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       try {
         // Calculate dynamic duration based on distance
         // Base duration: 700ms for smoothness, scales up to 1400ms for long distances
-        final baseDuration = 700;
-        final maxDuration = 1400;
+        const baseDuration = 700;
+        const maxDuration = 1400;
         final viewportHeight = _scrollController.position.viewportDimension;
         final scrollRatio = (scrollDistance / viewportHeight).clamp(0.0, 3.0);
         
@@ -274,9 +283,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     required String profileImage,
     required String requestDate,
   }) {
-    if (monthlyShiftStatus == null) {
-      monthlyShiftStatus = [];
-    }
+    monthlyShiftStatus ??= [];
     
     
     // We don't have shift_request_id since we're not calling RPC after registration
@@ -285,10 +292,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     // Find the existing shift data for this date
     Map<String, dynamic>? existingDayData;
     int existingIndex = -1;
-    
+
     for (int i = 0; i < monthlyShiftStatus!.length; i++) {
-      if (monthlyShiftStatus![i]['request_date'] == requestDate) {
-        existingDayData = monthlyShiftStatus![i];
+      if (monthlyShiftStatus![i].requestDate == requestDate) {
+        existingDayData = monthlyShiftStatus![i].toJson();
         existingIndex = i;
         break;
       }
@@ -411,13 +418,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           }
         ],
       };
-      monthlyShiftStatus!.add(newDayData);
+      monthlyShiftStatus!.add(MonthlyShiftStatus.fromJson(newDayData));
     }
-    
+
     // Trigger UI update
     setState(() {
       // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
+      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
     });
     
     
@@ -484,7 +491,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     // Trigger UI update
     setState(() {
       // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
+      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
     });
   }
   
@@ -639,20 +646,20 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     // monthlyShiftStatus contains days with nested shifts and employee arrays
     // We need to find the day data first, then look for the user in the shift's employee arrays
     final dayData = monthlyShiftStatus?.firstWhere(
-      (day) => day['request_date'] == dateStr,
-      orElse: () => <String, dynamic>{},
+      (day) => day.requestDate == dateStr,
+      orElse: () => MonthlyShiftStatus({}),
     );
-    
-    if (dayData != null && dayData.isNotEmpty) {
+
+    if (dayData != null && dayData.toJson().isNotEmpty) {
     } else {
     }
-    
+
     // Extract user's shift information from the nested structure
     final authStateAsync = ref.read(authStateProvider);
     final user = authStateAsync.value;
     Map<String, dynamic>? userShiftData;
 
-    if (dayData != null && dayData.isNotEmpty && user != null) {
+    if (dayData != null && dayData.toJson().isNotEmpty && user != null) {
       final shifts = dayData['shifts'] as List? ?? [];
       
       // Look ONLY for the SELECTED shift, not all shifts
@@ -741,11 +748,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Handle register shift
   Future<void> _handleRegisterShift() async {
     if (selectedShift == null) return;
-    
+
+    // Store parent context before showing dialog
+    final scaffoldContext = context;
+
     // Get the selected shift details
     final allStoreShifts = _getAllStoreShifts();
     Map<String, dynamic>? selectedShiftDetail;
-    
+
     // Find the selected shift details
     for (final shift in allStoreShifts) {
       final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
@@ -754,32 +764,32 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         break;
       }
     }
-    
+
     if (selectedShiftDetail == null) return;
-    
+
     // Extract shift information
-    final shiftName = selectedShiftDetail['shift_name'] ?? 
-                     selectedShiftDetail['name'] ?? 
-                     selectedShiftDetail['shift_type'] ?? 
+    final shiftName = selectedShiftDetail['shift_name'] ??
+                     selectedShiftDetail['name'] ??
+                     selectedShiftDetail['shift_type'] ??
                      'Shift';
-    final startTime = selectedShiftDetail['start_time'] ?? 
-                     selectedShiftDetail['shift_start_time'] ?? 
-                     selectedShiftDetail['default_start_time'] ?? 
+    final startTime = selectedShiftDetail['start_time'] ??
+                     selectedShiftDetail['shift_start_time'] ??
+                     selectedShiftDetail['default_start_time'] ??
                      '--:--';
-    final endTime = selectedShiftDetail['end_time'] ?? 
-                   selectedShiftDetail['shift_end_time'] ?? 
-                   selectedShiftDetail['default_end_time'] ?? 
+    final endTime = selectedShiftDetail['end_time'] ??
+                   selectedShiftDetail['shift_end_time'] ??
+                   selectedShiftDetail['default_end_time'] ??
                    '--:--';
-    
+
     // Format the date
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
     final displayDate = '${selectedDate.day} ${_getMonthName(selectedDate.month)} ${selectedDate.year}';
-    
+
     // Show confirmation dialog
     showDialog(
-      context: context,
+      context: scaffoldContext,
       barrierDismissible: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: TossColors.transparent,
           child: Container(
@@ -872,9 +882,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 
                 // Button Section
                 Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: const BorderRadius.only(
+                    borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
                     ),
@@ -883,7 +893,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                           ),
@@ -904,7 +914,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       Expanded(
                         child: TextButton(
                           onPressed: () async {
-                            Navigator.of(context).pop();
+                            Navigator.of(dialogContext).pop();
 
                             // Get user ID
                             final authStateAsync = ref.read(authStateProvider);
@@ -913,9 +923,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             
                             
                             try {
-                              // Use datasource instead of direct Supabase call
-                              final datasource = ref.read(attendanceDatasourceProvider);
-                              await datasource.insertShiftRequest(
+                              // Use register shift request use case
+                              final registerShiftRequest = ref.read(registerShiftRequestProvider);
+                              await registerShiftRequest(
                                 userId: user.id,
                                 shiftId: selectedShift!,
                                 storeId: selectedStoreId!,
@@ -948,6 +958,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                  '';
                               
                               
+                              // Update UI immediately - data already saved to DB
                               _updateLocalShiftStatusOptimistically(
                                 shiftId: selectedShift!,
                                 userId: user.id,
@@ -955,23 +966,15 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 profileImage: profileImage?.toString() ?? '',
                                 requestDate: dateStr,
                               );
-                              
+
                               _resetSelections();
-                              
-                              // Force immediate UI update with local state changes
-                              // NO RPC CALL - just use the updated local state
-                              if (mounted) {
-                                setState(() {
-                                  // The UI will now reflect the changes made by _updateLocalShiftStatusOptimistically
-                                });
-                              }
 
                               // Show success message
                               if (mounted) {
                                 showDialog(
-                                  context: context,
+                                  context: scaffoldContext,
                                   barrierDismissible: true,
-                                  builder: (BuildContext context) {
+                                  builder: (BuildContext successContext) {
                                     return Dialog(
                                       backgroundColor: TossColors.transparent,
                                       child: Container(
@@ -1026,16 +1029,16 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                               ),
                                             ),
                                             Container(
-                                              decoration: BoxDecoration(
+                                              decoration: const BoxDecoration(
                                                 color: TossColors.gray50,
-                                                borderRadius: const BorderRadius.only(
+                                                borderRadius: BorderRadius.only(
                                                   bottomLeft: Radius.circular(20),
                                                   bottomRight: Radius.circular(20),
                                                 ),
                                               ),
                                               child: TextButton(
                                                 onPressed: () {
-                                                  Navigator.of(context).pop();
+                                                  Navigator.of(successContext).pop();
                                                 },
                                                 style: TextButton.styleFrom(
                                                   padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
@@ -1060,9 +1063,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             } catch (e) {
                               if (mounted) {
                                 await showDialog<bool>(
-                                  context: context,
+                                  context: scaffoldContext,
                                   barrierDismissible: true,
-                                  builder: (context) => TossDialog.error(
+                                  builder: (errorContext) => TossDialog.error(
                                     title: 'Registration Failed',
                                     message: 'Failed to register shift: ${e.toString()}',
                                     primaryButtonText: 'OK',
@@ -1190,7 +1193,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          Navigator.of(context).pop();
+                          context.pop();
                         },
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
@@ -1220,7 +1223,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.mediumImpact();
-                          Navigator.of(context).pop();
+                          context.pop();
                           _showCancelConfirmationDialog(pendingShifts);
                         },
                         borderRadius: const BorderRadius.only(
@@ -1319,7 +1322,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
@@ -1429,7 +1432,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
@@ -1535,7 +1538,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          Navigator.of(context).pop();
+                          context.pop();
                         },
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
@@ -1565,7 +1568,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       child: InkWell(
                         onTap: () async {
                           HapticFeedback.mediumImpact();
-                          Navigator.of(context).pop();
+                          context.pop();
                           await _cancelShifts(shiftsToCancel);
                         },
                         borderRadius: const BorderRadius.only(
@@ -1628,10 +1631,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         
         if (shiftId.isNotEmpty) {
 
-          // Delete using the three-column filter approach via datasource
+          // Delete using the three-column filter approach via use case
           // This uniquely identifies the row without needing shift_request_id
-          final datasource = ref.read(attendanceDatasourceProvider);
-          await datasource.deleteShiftRequest(
+          final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
+          await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
@@ -1649,7 +1652,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       }
       
       // Close loading indicator
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Reset selections first
       _resetSelections();
@@ -1735,7 +1738,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     InkWell(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        Navigator.of(context).pop();
+                        context.pop();
                       },
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(20),
@@ -1766,7 +1769,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       }
     } catch (e) {
       // Close loading indicator if still showing
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Show error message
       if (mounted) {
@@ -1779,7 +1782,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: Text(
                     'OK',
@@ -1796,6 +1799,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final appState = ref.watch(appStateProvider);
 
     // Get selected company from user's companies based on companyChoosen
@@ -1896,7 +1900,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         ],
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.chevron_right,
                       size: 20,
                       color: TossColors.gray400,
@@ -2160,7 +2164,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
-            margin: EdgeInsets.all(TossSpacing.space1 * 0.75),
+            margin: const EdgeInsets.all(TossSpacing.space1 * 0.75),
             decoration: BoxDecoration(
               color: isSelected
                   ? TossColors.primary
@@ -2220,9 +2224,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       childAspectRatio: 1.0,
       mainAxisSpacing: 0,
       crossAxisSpacing: 0,
-      children: calendarDays,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      children: calendarDays,
     );
   }
   
@@ -2391,12 +2395,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Get shift details for a specific date (returns the day's data with all employees)
   Map<String, dynamic>? _getShiftForDate(DateTime date) {
     if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return null;
-    
+
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
-      return monthlyShiftStatus!.firstWhere(
-        (dayData) => dayData['request_date'] == dateStr,
+      final result = monthlyShiftStatus!.firstWhere(
+        (dayData) => dayData.requestDate == dateStr,
       );
+      return result.toJson();
     } catch (e) {
       return null;
     }
@@ -2580,7 +2585,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         if (shiftData['pending_employees'] != null) {
                           final pending = shiftData['pending_employees'] as List;
                           pendingEmployees = List<Map<String, dynamic>>.from(
-                            pending.map((e) => Map<String, dynamic>.from(e as Map))
+                            pending.map((e) => Map<String, dynamic>.from(e as Map)),
                           );
                         }
                         
@@ -2588,7 +2593,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         if (shiftData['approved_employees'] != null) {
                           final approved = shiftData['approved_employees'] as List;
                           approvedEmployees = List<Map<String, dynamic>>.from(
-                            approved.map((e) => Map<String, dynamic>.from(e as Map))
+                            approved.map((e) => Map<String, dynamic>.from(e as Map)),
                           );
                         }
                         break;
@@ -2694,7 +2699,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                     child: Container(
                                       width: 10,
                                       height: 10,
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: TossColors.primary,
                                       ),
@@ -2779,7 +2784,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.schedule_outlined,
                             size: 14,
                             color: TossColors.gray600,
@@ -2838,7 +2843,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                   color: TossColors.success.withValues(alpha: 0.1),
                                                   shape: BoxShape.circle,
                                                 ),
-                                                child: Center(
+                                                child: const Center(
                                                   child: Icon(
                                                     Icons.person_outline,
                                                     size: 16,
@@ -2846,7 +2851,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                   ),
                                                 ),
                                               ),
-                                              errorWidget: (context, url, error) => Center(
+                                              errorWidget: (context, url, error) => const Center(
                                                 child: Icon(
                                                   Icons.person_outline,
                                                   size: 16,
@@ -2855,7 +2860,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                               ),
                                             ),
                                           )
-                                        : Icon(
+                                        : const Icon(
                                             Icons.person_outline,
                                             size: 16,
                                             color: TossColors.success,
@@ -2884,7 +2889,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                     ),
                                   ],
                                 ),
-                              )).toList(),
+                              ),),
                             ],
                             // Pending employees
                             if (displayPendingEmployees.isNotEmpty) ...[
@@ -2917,7 +2922,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                   color: TossColors.warning.withValues(alpha: 0.1),
                                                   shape: BoxShape.circle,
                                                 ),
-                                                child: Center(
+                                                child: const Center(
                                                   child: Icon(
                                                     Icons.person_outline,
                                                     size: 16,
@@ -2925,7 +2930,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                   ),
                                                 ),
                                               ),
-                                              errorWidget: (context, url, error) => Center(
+                                              errorWidget: (context, url, error) => const Center(
                                                 child: Icon(
                                                   Icons.person_outline,
                                                   size: 16,
@@ -2934,7 +2939,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                               ),
                                             ),
                                           )
-                                        : Icon(
+                                        : const Icon(
                                             Icons.person_outline,
                                             size: 16,
                                             color: TossColors.warning,
@@ -2963,7 +2968,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                     ),
                                   ],
                                 ),
-                              )).toList(),
+                              ),),
                             ],
                           ],
                         ),
@@ -2991,7 +2996,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 ),
               ),
             );
-            }).toList(),
+            }),
           ] else ...[
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
@@ -3031,44 +3036,18 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   
   // Get ALL shifts from store metadata
   List<Map<String, dynamic>> _getAllStoreShifts() {
-    if (shiftMetadata == null) {
+    if (shiftMetadata == null || shiftMetadata!.isEmpty) {
+      print('⚠️ shiftMetadata is null or empty');
       return [];
     }
-    
-    
-    // The RPC response should be a list directly
-    if (shiftMetadata is List) {
-      // Convert each item to Map<String, dynamic> and filter for active shifts only
-      return (shiftMetadata as List).map((item) {
-        if (item is Map<String, dynamic>) {
-          return item;
-        } else if (item is Map) {
-          return Map<String, dynamic>.from(item);
-        } else {
-          return <String, dynamic>{};
-        }
-      }).where((item) => 
-        item.isNotEmpty && 
-        item['is_active'] == true  // Filter only active shifts
-      ).toList();
-    }
-    
-    // If somehow it's still a Map, check if it contains shift data
-    if (shiftMetadata is Map) {
-      final map = shiftMetadata as Map;
-      
-      // If it has shift properties, treat it as a single shift
-      if (map['shift_id'] != null || map['id'] != null || map['shift_name'] != null) {
-        return [Map<String, dynamic>.from(map)];
-      }
-      
-      // Check if it has a data property that contains shifts
-      if (map['data'] is List) {
-        return List<Map<String, dynamic>>.from(map['data'] as List);
-      }
-    }
-    
-    return [];
+
+    print('✅ shiftMetadata has ${shiftMetadata!.length} items');
+
+    // Convert ShiftMetadata entities to Maps and filter for active shifts
+    return shiftMetadata!
+        .where((shift) => shift.isActive)  // Filter only active shifts
+        .map((shift) => shift.toJson())
+        .toList();
   }
   
   void _showShiftRegistrationDialog() {
@@ -3080,9 +3059,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: TossColors.background,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
@@ -3199,14 +3178,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   static String _getMonthName(int month) {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[month - 1];
   }
   
   String _getWeekdayFull(int weekday) {
     const weekdays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ];
     return weekdays[weekday - 1];
   }

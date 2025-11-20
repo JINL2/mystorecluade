@@ -562,6 +562,312 @@ abstract class _AccountData extends AccountData {
       throw _privateConstructorUsedError;
 }
 
+QuickAccessAccount _$QuickAccessAccountFromJson(Map<String, dynamic> json) {
+  return _QuickAccessAccount.fromJson(json);
+}
+
+/// @nodoc
+mixin _$QuickAccessAccount {
+  @JsonKey(name: 'account_id')
+  String get accountId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'account_name')
+  String get accountName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'account_type')
+  String get accountType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'usage_count')
+  int get usageCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_used')
+  DateTime get lastUsed => throw _privateConstructorUsedError;
+  @JsonKey(name: 'usage_score')
+  double get usageScore => throw _privateConstructorUsedError;
+  @JsonKey(name: 'exists_in_system')
+  bool get existsInSystem => throw _privateConstructorUsedError;
+
+  /// Serializes this QuickAccessAccount to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of QuickAccessAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $QuickAccessAccountCopyWith<QuickAccessAccount> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $QuickAccessAccountCopyWith<$Res> {
+  factory $QuickAccessAccountCopyWith(
+          QuickAccessAccount value, $Res Function(QuickAccessAccount) then) =
+      _$QuickAccessAccountCopyWithImpl<$Res, QuickAccessAccount>;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'account_id') String accountId,
+      @JsonKey(name: 'account_name') String accountName,
+      @JsonKey(name: 'account_type') String accountType,
+      @JsonKey(name: 'usage_count') int usageCount,
+      @JsonKey(name: 'last_used') DateTime lastUsed,
+      @JsonKey(name: 'usage_score') double usageScore,
+      @JsonKey(name: 'exists_in_system') bool existsInSystem});
+}
+
+/// @nodoc
+class _$QuickAccessAccountCopyWithImpl<$Res, $Val extends QuickAccessAccount>
+    implements $QuickAccessAccountCopyWith<$Res> {
+  _$QuickAccessAccountCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of QuickAccessAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? accountId = null,
+    Object? accountName = null,
+    Object? accountType = null,
+    Object? usageCount = null,
+    Object? lastUsed = null,
+    Object? usageScore = null,
+    Object? existsInSystem = null,
+  }) {
+    return _then(_value.copyWith(
+      accountId: null == accountId
+          ? _value.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountName: null == accountName
+          ? _value.accountName
+          : accountName // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountType: null == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String,
+      usageCount: null == usageCount
+          ? _value.usageCount
+          : usageCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastUsed: null == lastUsed
+          ? _value.lastUsed
+          : lastUsed // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      usageScore: null == usageScore
+          ? _value.usageScore
+          : usageScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      existsInSystem: null == existsInSystem
+          ? _value.existsInSystem
+          : existsInSystem // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$QuickAccessAccountImplCopyWith<$Res>
+    implements $QuickAccessAccountCopyWith<$Res> {
+  factory _$$QuickAccessAccountImplCopyWith(_$QuickAccessAccountImpl value,
+          $Res Function(_$QuickAccessAccountImpl) then) =
+      __$$QuickAccessAccountImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'account_id') String accountId,
+      @JsonKey(name: 'account_name') String accountName,
+      @JsonKey(name: 'account_type') String accountType,
+      @JsonKey(name: 'usage_count') int usageCount,
+      @JsonKey(name: 'last_used') DateTime lastUsed,
+      @JsonKey(name: 'usage_score') double usageScore,
+      @JsonKey(name: 'exists_in_system') bool existsInSystem});
+}
+
+/// @nodoc
+class __$$QuickAccessAccountImplCopyWithImpl<$Res>
+    extends _$QuickAccessAccountCopyWithImpl<$Res, _$QuickAccessAccountImpl>
+    implements _$$QuickAccessAccountImplCopyWith<$Res> {
+  __$$QuickAccessAccountImplCopyWithImpl(_$QuickAccessAccountImpl _value,
+      $Res Function(_$QuickAccessAccountImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of QuickAccessAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? accountId = null,
+    Object? accountName = null,
+    Object? accountType = null,
+    Object? usageCount = null,
+    Object? lastUsed = null,
+    Object? usageScore = null,
+    Object? existsInSystem = null,
+  }) {
+    return _then(_$QuickAccessAccountImpl(
+      accountId: null == accountId
+          ? _value.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountName: null == accountName
+          ? _value.accountName
+          : accountName // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountType: null == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String,
+      usageCount: null == usageCount
+          ? _value.usageCount
+          : usageCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastUsed: null == lastUsed
+          ? _value.lastUsed
+          : lastUsed // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      usageScore: null == usageScore
+          ? _value.usageScore
+          : usageScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      existsInSystem: null == existsInSystem
+          ? _value.existsInSystem
+          : existsInSystem // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$QuickAccessAccountImpl extends _QuickAccessAccount {
+  const _$QuickAccessAccountImpl(
+      {@JsonKey(name: 'account_id') required this.accountId,
+      @JsonKey(name: 'account_name') required this.accountName,
+      @JsonKey(name: 'account_type') required this.accountType,
+      @JsonKey(name: 'usage_count') required this.usageCount,
+      @JsonKey(name: 'last_used') required this.lastUsed,
+      @JsonKey(name: 'usage_score') required this.usageScore,
+      @JsonKey(name: 'exists_in_system') this.existsInSystem = true})
+      : super._();
+
+  factory _$QuickAccessAccountImpl.fromJson(Map<String, dynamic> json) =>
+      _$$QuickAccessAccountImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'account_id')
+  final String accountId;
+  @override
+  @JsonKey(name: 'account_name')
+  final String accountName;
+  @override
+  @JsonKey(name: 'account_type')
+  final String accountType;
+  @override
+  @JsonKey(name: 'usage_count')
+  final int usageCount;
+  @override
+  @JsonKey(name: 'last_used')
+  final DateTime lastUsed;
+  @override
+  @JsonKey(name: 'usage_score')
+  final double usageScore;
+  @override
+  @JsonKey(name: 'exists_in_system')
+  final bool existsInSystem;
+
+  @override
+  String toString() {
+    return 'QuickAccessAccount(accountId: $accountId, accountName: $accountName, accountType: $accountType, usageCount: $usageCount, lastUsed: $lastUsed, usageScore: $usageScore, existsInSystem: $existsInSystem)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$QuickAccessAccountImpl &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.accountName, accountName) ||
+                other.accountName == accountName) &&
+            (identical(other.accountType, accountType) ||
+                other.accountType == accountType) &&
+            (identical(other.usageCount, usageCount) ||
+                other.usageCount == usageCount) &&
+            (identical(other.lastUsed, lastUsed) ||
+                other.lastUsed == lastUsed) &&
+            (identical(other.usageScore, usageScore) ||
+                other.usageScore == usageScore) &&
+            (identical(other.existsInSystem, existsInSystem) ||
+                other.existsInSystem == existsInSystem));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, accountId, accountName,
+      accountType, usageCount, lastUsed, usageScore, existsInSystem);
+
+  /// Create a copy of QuickAccessAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$QuickAccessAccountImplCopyWith<_$QuickAccessAccountImpl> get copyWith =>
+      __$$QuickAccessAccountImplCopyWithImpl<_$QuickAccessAccountImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$QuickAccessAccountImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _QuickAccessAccount extends QuickAccessAccount {
+  const factory _QuickAccessAccount(
+          {@JsonKey(name: 'account_id') required final String accountId,
+          @JsonKey(name: 'account_name') required final String accountName,
+          @JsonKey(name: 'account_type') required final String accountType,
+          @JsonKey(name: 'usage_count') required final int usageCount,
+          @JsonKey(name: 'last_used') required final DateTime lastUsed,
+          @JsonKey(name: 'usage_score') required final double usageScore,
+          @JsonKey(name: 'exists_in_system') final bool existsInSystem}) =
+      _$QuickAccessAccountImpl;
+  const _QuickAccessAccount._() : super._();
+
+  factory _QuickAccessAccount.fromJson(Map<String, dynamic> json) =
+      _$QuickAccessAccountImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'account_id')
+  String get accountId;
+  @override
+  @JsonKey(name: 'account_name')
+  String get accountName;
+  @override
+  @JsonKey(name: 'account_type')
+  String get accountType;
+  @override
+  @JsonKey(name: 'usage_count')
+  int get usageCount;
+  @override
+  @JsonKey(name: 'last_used')
+  DateTime get lastUsed;
+  @override
+  @JsonKey(name: 'usage_score')
+  double get usageScore;
+  @override
+  @JsonKey(name: 'exists_in_system')
+  bool get existsInSystem;
+
+  /// Create a copy of QuickAccessAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$QuickAccessAccountImplCopyWith<_$QuickAccessAccountImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 CashLocationData _$CashLocationDataFromJson(Map<String, dynamic> json) {
   return _CashLocationData.fromJson(json);
 }

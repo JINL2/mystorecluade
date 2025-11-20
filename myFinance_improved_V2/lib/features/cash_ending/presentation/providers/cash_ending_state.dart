@@ -48,14 +48,14 @@ class CashEndingState with _$CashEndingState {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Currency Selection State
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    /// Selected currency ID for cash tab
-    String? selectedCashCurrencyId,
+    /// Selected currency IDs for cash tab (multiple currencies can be selected)
+    @Default([]) List<String> selectedCashCurrencyIds,
 
     /// Selected currency ID for bank tab
     String? selectedBankCurrencyId,
 
-    /// Selected currency ID for vault tab
-    String? selectedVaultCurrencyId,
+    /// Selected currency IDs for vault tab (multiple currencies can be selected)
+    @Default([]) List<String> selectedVaultCurrencyIds,
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Data State - Available data lists
@@ -124,11 +124,11 @@ class CashEndingState with _$CashEndingState {
   String? get currentSelectedCurrencyId {
     switch (currentTabIndex) {
       case 0:
-        return selectedCashCurrencyId;
+        return selectedCashCurrencyIds.isNotEmpty ? selectedCashCurrencyIds.first : null;
       case 1:
         return selectedBankCurrencyId;
       case 2:
-        return selectedVaultCurrencyId;
+        return selectedVaultCurrencyIds.isNotEmpty ? selectedVaultCurrencyIds.first : null;
       default:
         return null;
     }

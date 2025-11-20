@@ -24,7 +24,7 @@ class JoinNotifier extends StateNotifier<JoinState> {
     final result = await _joinByCode(JoinByCodeParams(
       userId: userId,
       code: code,
-    ));
+    ),);
 
     result.fold(
       (failure) {

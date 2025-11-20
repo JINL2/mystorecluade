@@ -35,7 +35,7 @@ class LoginUseCase {
 
     // Step 2: Validate password
     if (command.password.isEmpty) {
-      throw ValidationException('Password is required');
+      throw const ValidationException('Password is required');
     }
 
     // Step 3: Attempt login
@@ -45,7 +45,7 @@ class LoginUseCase {
     );
 
     if (user == null) {
-      throw InvalidCredentialsException();
+      throw const InvalidCredentialsException();
     }
 
     // Step 4: Check email verification

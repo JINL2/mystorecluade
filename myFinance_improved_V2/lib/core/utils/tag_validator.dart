@@ -131,7 +131,7 @@ class TagValidator {
   /// Gets suggested tags that are valid and not already selected
   static List<String> getValidSuggestions(
     List<String> suggestions, 
-    List<String> currentTags
+    List<String> currentTags,
   ) {
     final currentNormalized = currentTags.map((tag) => tag.toLowerCase()).toSet();
     
@@ -139,7 +139,7 @@ class TagValidator {
         .where((suggestion) => 
             isValid(suggestion) && 
             !currentNormalized.contains(suggestion.toLowerCase()) &&
-            currentTags.length < MAX_TAGS)
+            currentTags.length < MAX_TAGS,)
         .take(8) // Limit suggestions to prevent UI overflow
         .toList();
   }

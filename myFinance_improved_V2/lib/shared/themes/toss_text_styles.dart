@@ -26,6 +26,14 @@ class TossTextStyles {
     height: 1.25,  // 40px line height
   );
 
+  // Headline Large - Big revenue numbers (28px/36px)
+  static TextStyle get headlineLarge => GoogleFonts.inter(
+    fontSize: 28,
+    fontWeight: FontWeight.w700,  // Bold
+    letterSpacing: -0.01,
+    height: 1.286,  // 36px line height
+  );
+
   // H1 - Page titles (28px/36px)
   static TextStyle get h1 => GoogleFonts.inter(
     fontSize: 28,
@@ -58,17 +66,41 @@ class TossTextStyles {
     height: 1.333,  // 24px line height
   );
 
-  // ==================== BODY TEXT ====================
-  
-  // Body Large - Important content (16px/24px)
-  static TextStyle get bodyLarge => GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,  // Regular
-    letterSpacing: 0,
-    height: 1.5,  // 24px line height
+  // Title Large - Section headers like "People", "Money" (17px/24px)
+  static TextStyle get titleLarge => GoogleFonts.inter(
+    fontSize: 17,
+    fontWeight: FontWeight.w700,  // Bold
+    letterSpacing: -0.01,
+    height: 1.412,  // 24px line height
   );
 
-  // Body - Default text (14px/20px)
+  // Title Medium - "Today Revenue" headers (15px/20px)
+  static TextStyle get titleMedium => GoogleFonts.inter(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,  // Bold
+    letterSpacing: 0,
+    height: 1.333,  // 20px line height
+  );
+
+  // ==================== BODY TEXT ====================
+
+  // Body Large - Body text, descriptions (14px/20px)
+  static TextStyle get bodyLarge => GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,  // Regular
+    letterSpacing: 0,
+    height: 1.429,  // 20px line height
+  );
+
+  // Body Medium - Feature names (14px/20px)
+  static TextStyle get bodyMedium => GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,  // Semibold
+    letterSpacing: 0,
+    height: 1.429,  // 20px line height
+  );
+
+  // Body - Default text (14px/20px) - Legacy, same as bodyLarge
   static TextStyle get body => GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400,  // Regular
@@ -76,16 +108,16 @@ class TossTextStyles {
     height: 1.429,  // 20px line height
   );
 
-  // Body Small - Secondary text (13px/18px)
+  // Body Small - Comparison text (13px/18px)
   static TextStyle get bodySmall => GoogleFonts.inter(
     fontSize: 13,
-    fontWeight: FontWeight.w400,  // Regular
+    fontWeight: FontWeight.w600,  // Semibold
     letterSpacing: 0,
     height: 1.385,  // 18px line height
   );
 
   // ==================== UI LABELS ====================
-  
+
   // Button - CTA text (14px/20px)
   static TextStyle get button => GoogleFonts.inter(
     fontSize: 14,
@@ -102,12 +134,28 @@ class TossTextStyles {
     height: 1.429,  // 20px line height
   );
 
+  // Label Medium - Feature descriptions (12px/16px)
+  static TextStyle get labelMedium => GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,  // Semibold
+    letterSpacing: 0.01,
+    height: 1.333,  // 16px line height
+  );
+
   // Label - UI labels (12px/16px)
   static TextStyle get label => GoogleFonts.inter(
     fontSize: 12,
     fontWeight: FontWeight.w500,  // Medium
     letterSpacing: 0.01,
     height: 1.333,  // 16px line height
+  );
+
+  // Label Small - Quick action labels (11px/16px)
+  static TextStyle get labelSmall => GoogleFonts.inter(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,  // Semibold
+    letterSpacing: 0.02,
+    height: 1.455,  // 16px line height
   );
 
   // Caption - Helper text (12px/16px)

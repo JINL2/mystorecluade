@@ -4,31 +4,15 @@ import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/stock_flow.dart';
 
 /// Data models for stock flow tracking
-/// These models extend domain entities and add JSON serialization
+/// Since domain entities use Freezed, we use their factory constructors directly
 
-class JournalFlowModel extends JournalFlow {
-  JournalFlowModel({
-    required super.flowId,
-    required super.createdAt,
-    required super.systemTime,
-    required super.balanceBefore,
-    required super.flowAmount,
-    required super.balanceAfter,
-    required super.journalId,
-    required super.journalDescription,
-    required super.journalType,
-    required super.accountId,
-    required super.accountName,
-    required super.createdBy,
-    super.counterAccount,
-  });
-
-  factory JournalFlowModel.fromJson(Map<String, dynamic> json) {
+class JournalFlowModel {
+  static JournalFlow fromJson(Map<String, dynamic> json) {
     // Convert UTC datetime strings from database to local time ISO8601 strings
     final createdAtUtc = (json['created_at'] ?? '').toString();
     final systemTimeUtc = (json['system_time'] ?? '').toString();
 
-    return JournalFlowModel(
+    return JournalFlow(
       flowId: (json['flow_id'] ?? '').toString(),
       createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
       systemTime: systemTimeUtc.isNotEmpty ? DateTimeUtils.toLocal(systemTimeUtc).toIso8601String() : '',
@@ -48,25 +32,13 @@ class JournalFlowModel extends JournalFlow {
   }
 }
 
-class ActualFlowModel extends ActualFlow {
-  ActualFlowModel({
-    required super.flowId,
-    required super.createdAt,
-    required super.systemTime,
-    required super.balanceBefore,
-    required super.flowAmount,
-    required super.balanceAfter,
-    required super.currency,
-    required super.createdBy,
-    required super.currentDenominations,
-  });
-
-  factory ActualFlowModel.fromJson(Map<String, dynamic> json) {
+class ActualFlowModel {
+  static ActualFlow fromJson(Map<String, dynamic> json) {
     // Convert UTC datetime strings from database to local time ISO8601 strings
     final createdAtUtc = (json['created_at'] ?? '').toString();
     final systemTimeUtc = (json['system_time'] ?? '').toString();
 
-    return ActualFlowModel(
+    return ActualFlow(
       flowId: (json['flow_id'] ?? '').toString(),
       createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
       systemTime: systemTimeUtc.isNotEmpty ? DateTimeUtils.toLocal(systemTimeUtc).toIso8601String() : '',
@@ -82,20 +54,9 @@ class ActualFlowModel extends ActualFlow {
   }
 }
 
-class LocationSummaryModel extends LocationSummary {
-  LocationSummaryModel({
-    required super.cashLocationId,
-    required super.locationName,
-    required super.locationType,
-    super.bankName,
-    super.bankAccount,
-    required super.currencyCode,
-    required super.currencyId,
-    super.baseCurrencySymbol,
-  });
-
-  factory LocationSummaryModel.fromJson(Map<String, dynamic> json) {
-    return LocationSummaryModel(
+class LocationSummaryModel {
+  static LocationSummary fromJson(Map<String, dynamic> json) {
+    return LocationSummary(
       cashLocationId: (json['cash_location_id'] ?? '').toString(),
       locationName: (json['location_name'] ?? '').toString(),
       locationType: (json['location_type'] ?? '').toString(),
@@ -108,18 +69,9 @@ class LocationSummaryModel extends LocationSummary {
   }
 }
 
-class CounterAccountModel extends CounterAccount {
-  CounterAccountModel({
-    required super.accountId,
-    required super.accountName,
-    required super.accountType,
-    required super.debit,
-    required super.credit,
-    required super.description,
-  });
-
-  factory CounterAccountModel.fromJson(Map<String, dynamic> json) {
-    return CounterAccountModel(
+class CounterAccountModel {
+  static CounterAccount fromJson(Map<String, dynamic> json) {
+    return CounterAccount(
       accountId: (json['account_id'] ?? '').toString(),
       accountName: (json['account_name'] ?? '').toString(),
       accountType: (json['account_type'] ?? '').toString(),
@@ -130,16 +82,9 @@ class CounterAccountModel extends CounterAccount {
   }
 }
 
-class CurrencyInfoModel extends CurrencyInfo {
-  CurrencyInfoModel({
-    required super.currencyId,
-    required super.currencyCode,
-    required super.currencyName,
-    required super.symbol,
-  });
-
-  factory CurrencyInfoModel.fromJson(Map<String, dynamic> json) {
-    return CurrencyInfoModel(
+class CurrencyInfoModel {
+  static CurrencyInfo fromJson(Map<String, dynamic> json) {
+    return CurrencyInfo(
       currencyId: (json['currency_id'] ?? '').toString(),
       currencyCode: (json['currency_code'] ?? '').toString(),
       currencyName: (json['currency_name'] ?? '').toString(),
@@ -148,34 +93,18 @@ class CurrencyInfoModel extends CurrencyInfo {
   }
 }
 
-class CreatedByModel extends CreatedBy {
-  CreatedByModel({
-    required super.userId,
-    required super.fullName,
-  });
-
-  factory CreatedByModel.fromJson(Map<String, dynamic> json) {
-    return CreatedByModel(
+class CreatedByModel {
+  static CreatedBy fromJson(Map<String, dynamic> json) {
+    return CreatedBy(
       userId: (json['user_id'] ?? '').toString(),
       fullName: (json['full_name'] ?? '').toString(),
     );
   }
 }
 
-class DenominationDetailModel extends DenominationDetail {
-  DenominationDetailModel({
-    required super.denominationId,
-    required super.denominationValue,
-    required super.denominationType,
-    required super.previousQuantity,
-    required super.currentQuantity,
-    required super.quantityChange,
-    required super.subtotal,
-    super.currencySymbol,
-  });
-
-  factory DenominationDetailModel.fromJson(Map<String, dynamic> json) {
-    return DenominationDetailModel(
+class DenominationDetailModel {
+  static DenominationDetail fromJson(Map<String, dynamic> json) {
+    return DenominationDetail(
       denominationId: (json['denomination_id'] ?? '').toString(),
       denominationValue: (json['denomination_value'] as num?)?.toDouble() ?? 0.0,
       denominationType: (json['denomination_type'] ?? '').toString(),
@@ -188,15 +117,9 @@ class DenominationDetailModel extends DenominationDetail {
   }
 }
 
-class StockFlowDataModel extends StockFlowData {
-  StockFlowDataModel({
-    super.locationSummary,
-    required super.journalFlows,
-    required super.actualFlows,
-  });
-
-  factory StockFlowDataModel.fromJson(Map<String, dynamic> json) {
-    return StockFlowDataModel(
+class StockFlowDataModel {
+  static StockFlowData fromJson(Map<String, dynamic> json) {
+    return StockFlowData(
       locationSummary: json['location_summary'] != null
           ? LocationSummaryModel.fromJson(json['location_summary'] as Map<String, dynamic>)
           : null,
@@ -210,17 +133,9 @@ class StockFlowDataModel extends StockFlowData {
   }
 }
 
-class PaginationInfoModel extends PaginationInfo {
-  PaginationInfoModel({
-    required super.offset,
-    required super.limit,
-    required super.totalJournalFlows,
-    required super.totalActualFlows,
-    required super.hasMore,
-  });
-
-  factory PaginationInfoModel.fromJson(Map<String, dynamic> json) {
-    return PaginationInfoModel(
+class PaginationInfoModel {
+  static PaginationInfo fromJson(Map<String, dynamic> json) {
+    return PaginationInfo(
       offset: (json['offset'] as num?)?.toInt() ?? 0,
       limit: (json['limit'] as num?)?.toInt() ?? 20,
       totalJournalFlows: (json['total_journal_flows'] as num?)?.toInt() ?? 0,
@@ -230,15 +145,9 @@ class PaginationInfoModel extends PaginationInfo {
   }
 }
 
-class StockFlowResponseModel extends StockFlowResponse {
-  StockFlowResponseModel({
-    required super.success,
-    super.data,
-    super.pagination,
-  });
-
-  factory StockFlowResponseModel.fromJson(Map<String, dynamic> json) {
-    return StockFlowResponseModel(
+class StockFlowResponseModel {
+  static StockFlowResponse fromJson(Map<String, dynamic> json) {
+    return StockFlowResponse(
       success: json['success'] as bool? ?? false,
       data: json['data'] != null
           ? StockFlowDataModel.fromJson(json['data'] as Map<String, dynamic>)

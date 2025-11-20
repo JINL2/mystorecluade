@@ -1,23 +1,24 @@
 // Domain Entity - Bank Real Entry Business Object
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../core/utils/datetime_utils.dart';
 
-class BankRealEntry {
-  final String createdAt;
-  final String recordDate;
-  final String locationId;
-  final String locationName;
-  final double totalAmount;
-  final List<CurrencySummary> currencySummary;
+part 'bank_real_entry.freezed.dart';
+part 'bank_real_entry.g.dart';
 
-  const BankRealEntry({
-    required this.createdAt,
-    required this.recordDate,
-    required this.locationId,
-    required this.locationName,
-    required this.totalAmount,
-    required this.currencySummary,
-  });
+@freezed
+class BankRealEntry with _$BankRealEntry {
+  const BankRealEntry._();
+
+  const factory BankRealEntry({
+    required String createdAt,
+    required String recordDate,
+    required String locationId,
+    required String locationName,
+    required double totalAmount,
+    required List<CurrencySummary> currencySummary,
+  }) = _BankRealEntry;
 
   // Business logic methods
   String getFormattedTime() {
@@ -65,70 +66,35 @@ class BankRealEntry {
     }
   }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BankRealEntry &&
-          runtimeType == other.runtimeType &&
-          createdAt == other.createdAt &&
-          locationId == other.locationId;
-
-  @override
-  int get hashCode => createdAt.hashCode ^ locationId.hashCode;
+  factory BankRealEntry.fromJson(Map<String, dynamic> json) =>
+      _$BankRealEntryFromJson(json);
 }
 
-// Re-use CurrencySummary and Denomination from cash_real_entry.dart
-// Or create separate file for shared value objects
-class CurrencySummary {
-  final String currencyId;
-  final String currencyCode;
-  final String currencyName;
-  final String symbol;
-  final double totalValue;
-  final List<Denomination> denominations;
+@freezed
+class CurrencySummary with _$CurrencySummary {
+  const factory CurrencySummary({
+    required String currencyId,
+    required String currencyCode,
+    required String currencyName,
+    required String symbol,
+    required double totalValue,
+    required List<Denomination> denominations,
+  }) = _CurrencySummary;
 
-  const CurrencySummary({
-    required this.currencyId,
-    required this.currencyCode,
-    required this.currencyName,
-    required this.symbol,
-    required this.totalValue,
-    required this.denominations,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CurrencySummary &&
-          runtimeType == other.runtimeType &&
-          currencyId == other.currencyId;
-
-  @override
-  int get hashCode => currencyId.hashCode;
+  factory CurrencySummary.fromJson(Map<String, dynamic> json) =>
+      _$CurrencySummaryFromJson(json);
 }
 
-class Denomination {
-  final String denominationId;
-  final String denominationType;
-  final double denominationValue;
-  final int quantity;
-  final double subtotal;
+@freezed
+class Denomination with _$Denomination {
+  const factory Denomination({
+    required String denominationId,
+    required String denominationType,
+    required double denominationValue,
+    required int quantity,
+    required double subtotal,
+  }) = _Denomination;
 
-  const Denomination({
-    required this.denominationId,
-    required this.denominationType,
-    required this.denominationValue,
-    required this.quantity,
-    required this.subtotal,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Denomination &&
-          runtimeType == other.runtimeType &&
-          denominationId == other.denominationId;
-
-  @override
-  int get hashCode => denominationId.hashCode;
+  factory Denomination.fromJson(Map<String, dynamic> json) =>
+      _$DenominationFromJson(json);
 }

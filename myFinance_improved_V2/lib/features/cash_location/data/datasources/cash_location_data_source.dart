@@ -1,8 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/entities/stock_flow.dart';
 import '../models/bank_real_model.dart';
-import '../models/cash_location_model.dart';
 import '../models/cash_location_detail_model.dart';
+import '../models/cash_location_model.dart';
 import '../models/cash_real_model.dart';
 import '../models/journal_entry_model.dart';
 import '../models/stock_flow_model.dart';
@@ -208,8 +209,6 @@ class CashLocationDataSource {
         },
       );
 
-      if (response == null) return [];
-
       return response
           .map((json) => JournalEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
@@ -219,7 +218,7 @@ class CashLocationDataSource {
   }
 
   /// Get location stock flow data using RPC
-  Future<StockFlowResponseModel> getLocationStockFlow({
+  Future<StockFlowResponse> getLocationStockFlow({
     required String companyId,
     required String storeId,
     required String cashLocationId,
@@ -237,10 +236,6 @@ class CashLocationDataSource {
           'p_limit': limit,
         },
       );
-
-      if (response == null) {
-        throw Exception('No data received from get_location_stock_flow');
-      }
 
       return StockFlowResponseModel.fromJson(response);
     } catch (e) {
@@ -285,6 +280,36 @@ class CashLocationDataSource {
         'success': false,
         'error': e.toString(),
       };
+    }
+  }
+
+  /// Create a new cash location
+  Future<void> createCashLocation({
+    required String companyId,
+    required String storeId,
+    required String locationName,
+    required String locationType,
+    String? bankName,
+    String? accountNumber,
+    String? currencyId,
+    String? locationInfo,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'company_id': companyId,
+        'store_id': storeId,
+        'location_name': locationName,
+        'location_type': locationType,
+      };
+
+      if (bankName != null) data['bank_name'] = bankName;
+      if (accountNumber != null) data['bank_account'] = accountNumber;
+      if (currencyId != null) data['currency_id'] = currencyId;
+      if (locationInfo != null) data['location_info'] = locationInfo;
+
+      await _supabase.from('cash_locations').insert(data);
+    } catch (e) {
+      throw Exception('Failed to create cash location: ${e.toString()}');
     }
   }
 

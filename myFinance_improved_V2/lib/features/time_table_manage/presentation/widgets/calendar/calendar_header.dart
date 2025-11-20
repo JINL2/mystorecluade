@@ -24,12 +24,12 @@ class CalendarHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monthFormat = DateFormat('yyyy년 M월', 'ko_KR');
+    final monthFormat = DateFormat('MMMM yyyy', 'en_US');
     final isCurrentMonth = _isCurrentMonth(currentMonth);
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.paddingMD),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.white,
         border: Border(
           bottom: BorderSide(
@@ -42,12 +42,12 @@ class CalendarHeader extends StatelessWidget {
         children: [
           // Previous month button
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.chevron_left,
               color: TossColors.gray700,
             ),
             onPressed: onPreviousMonth,
-            tooltip: '이전 달',
+            tooltip: 'Previous Month',
           ),
 
           // Month/Year display
@@ -65,12 +65,12 @@ class CalendarHeader extends StatelessWidget {
 
           // Next month button
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.chevron_right,
               color: TossColors.gray700,
             ),
             onPressed: onNextMonth,
-            tooltip: '다음 달',
+            tooltip: 'Next Month',
           ),
 
           // Today button (optional)
@@ -86,7 +86,7 @@ class CalendarHeader extends StatelessWidget {
                 ),
               ),
               child: Text(
-                '오늘',
+                'Today',
                 style: TossTextStyles.button.copyWith(
                   color: TossColors.primary,
                 ),
@@ -110,7 +110,7 @@ class CalendarHeader extends StatelessWidget {
 class WeekDayHeader extends StatelessWidget {
   const WeekDayHeader({super.key});
 
-  static const List<String> _weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  static const List<String> _weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,7 @@ class WeekDayHeader extends StatelessWidget {
         vertical: TossSpacing.paddingXS,
         horizontal: TossSpacing.paddingMD,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.gray50,
         border: Border(
           bottom: BorderSide(
@@ -130,8 +130,8 @@ class WeekDayHeader extends StatelessWidget {
       ),
       child: Row(
         children: _weekDays.map((day) {
-          final isSunday = day == '일';
-          final isSaturday = day == '토';
+          final isSunday = day == 'Sun';
+          final isSaturday = day == 'Sat';
 
           return Expanded(
             child: Center(

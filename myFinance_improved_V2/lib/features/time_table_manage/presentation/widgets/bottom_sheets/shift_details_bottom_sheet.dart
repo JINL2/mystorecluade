@@ -1,19 +1,18 @@
 // ignore_for_file: avoid_dynamic_calls, inference_failure_on_function_invocation, argument_type_not_assignable, invalid_assignment, non_bool_condition, non_bool_negation_expression, non_bool_operand, use_of_void_result
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../core/utils/input_formatters.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
+import '../../../domain/value_objects/tag_input.dart';
 import '../../providers/time_table_providers.dart';
 import '../shift_details/bonus_management_tab.dart';
 import '../shift_details/confirmed_times_editor.dart';
@@ -22,7 +21,7 @@ import '../shift_details/shift_details_tab_bar.dart';
 import '../shift_details/shift_info_tab.dart';
 
 class ShiftDetailsBottomSheet extends ConsumerStatefulWidget {
-  final Map<String, dynamic> card;
+  final ShiftCard card;
   final VoidCallback? onUpdate;
 
   const ShiftDetailsBottomSheet({
@@ -54,7 +53,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     'Manager Note',
     'Policy Violation',
     'Others',
-    'Reset'
+    'Reset',
   ];
   
   @override
@@ -62,20 +61,20 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     // Initialize with confirmed times - convert UTC to local time for display
-    final requestDate = widget.card['request_date'] as String?;
-    editedStartTime = ShiftTimeFormatter.formatTime(widget.card['confirm_start_time'], requestDate);
-    editedEndTime = ShiftTimeFormatter.formatTime(widget.card['confirm_end_time'], requestDate);
+    final requestDate = widget.card.requestDate;
+    editedStartTime = ShiftTimeFormatter.formatTime(widget.card.confirmedStartTime?.toIso8601String(), requestDate);
+    editedEndTime = ShiftTimeFormatter.formatTime(widget.card.confirmedEndTime?.toIso8601String(), requestDate);
     // Store original values
     originalStartTime = editedStartTime;
     originalEndTime = editedEndTime;
-    
+
     // Tag values start as null
     selectedTagType = null;
     tagContent = null;
 
     // Initialize problem solved state
-    final isProblem = widget.card['is_problem'] == true;
-    final wasSolved = widget.card['is_problem_solved'] == true;
+    final isProblem = widget.card.hasProblem;
+    final wasSolved = widget.card.isProblemSolved;
     
     if (!isProblem) {
       // If not a problem, default to solved (clicked)
@@ -189,7 +188,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     }
   }
   
-  Future<void> _showNotApproveDialog(BuildContext context, Map<String, dynamic> card) async {
+  Future<void> _showNotApproveDialog(BuildContext context, ShiftCard card) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -241,7 +240,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     );
     
     if (result == true && mounted) {
-      await _toggleApprovalStatus(card['shift_request_id']);
+      await _toggleApprovalStatus(card.shiftRequestId);
     }
   }
   
@@ -253,7 +252,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
         barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
           return const Center(
-            child: const TossLoadingView(
+            child: TossLoadingView(
             ),
           );
         },
@@ -269,7 +268,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Use repository instead of direct Supabase call
       // Toggle: if currently approved, make it pending (false), and vice versa
-      final isCurrentlyApproved = widget.card['is_approved'] == true;
+      final isCurrentlyApproved = widget.card.isApproved;
       final newState = !isCurrentlyApproved;
 
       await ref.read(timeTableRepositoryProvider).processBulkApproval(
@@ -279,7 +278,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
 
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show success message
@@ -300,7 +299,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show error message
@@ -365,55 +364,36 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Check response
-      if (response != null && response is Map) {
-        final success = response['success'] ?? false;
-        
-        if (!success) {
-          // Handle error response
-          final errorMessage = response['message'] ?? 'Failed to delete tag';
-          final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
-          
-
-
-          if (mounted) {
-            await showDialog<bool>(
-              context: context,
-              barrierDismissible: true,
-              builder: (context) => TossDialog.error(
-                title: 'Error',
-                message: errorMessage,
-                primaryButtonText: 'OK',
-              ),
-            );
-          }
-          return;
+      if (response.isSuccess) {
+        // Success - tag deleted
+        if (mounted) {
+          // Trigger parent refresh by returning true
+          Navigator.of(context).pop(true);
         }
-      }
-      
-      // Show success message
-      if (mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.success(
-            title: 'Success',
-            message: 'Tag deleted successfully',
-            primaryButtonText: 'OK',
-          ),
-        );
+      } else {
+        // Handle error response
+        final errorMessage = response.message ?? 'Failed to delete tag';
 
-        // Don't modify widget.card directly, just close with success flag
-        // The parent will refresh the data
-        Navigator.of(context).pop(true);
+        if (mounted) {
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Error',
+              message: errorMessage,
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
       }
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show error message
@@ -434,7 +414,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
   @override
   Widget build(BuildContext context) {
     final card = widget.card;
-    final hasUnsolvedProblem = card['is_problem'] == true && card['is_problem_solved'] != true;
+    final hasUnsolvedProblem = card.hasProblem && !card.isProblemSolved;
     
     return Container(
       constraints: BoxConstraints(
@@ -493,7 +473,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                   ),
                   child: Center(
                     child: Text(
-                      (card['user_name'] ?? '?')[0].toUpperCase(),
+                      (card.employee.userName.isNotEmpty ? card.employee.userName : '?')[0].toUpperCase(),
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.white,
                         fontSize: 18,
@@ -508,7 +488,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        card['user_name'] ?? 'Unknown',
+                        card.employee.userName,
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.gray900,
                           fontWeight: FontWeight.w700,
@@ -517,7 +497,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${card['shift_name'] ?? ''} • ${card['request_date'] ?? ''}',
+                        '${card.shift.shiftName ?? ''} • ${card.requestDate}',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray600,
                         ),
@@ -567,7 +547,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
   }
   
   
-  Widget _buildManageTab(Map<String, dynamic> card) {
+  Widget _buildManageTab(ShiftCard card) {
     return Column(
       children: [
         Expanded(
@@ -737,15 +717,14 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         ),
                       ),
                       const SizedBox(height: TossSpacing.space3),
-                      if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty)
+                      if (card.tags.isNotEmpty)
                         Wrap(
                           spacing: TossSpacing.space2,
                           runSpacing: TossSpacing.space2,
-                          children: (card['notice_tag'] as List).map((tag) {
-                            // Parse tag as a Map if it's not already
-                            final tagData = tag is Map ? tag : {};
-                            final content = tagData['content'] ?? 'No content';
-                            final tagId = tagData['id']?.toString() ?? '';
+                          children: card.tags.map((tag) {
+                            // Extract from Tag entity
+                            final content = tag.tagContent;
+                            final tagId = tag.tagId;
                             
                             // Only show delete option if tag has a valid ID
                             if (tagId.isEmpty) {
@@ -846,9 +825,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                   'Not Approve',
                   TossColors.warning,
                   Icons.remove_circle_outline,
-                  card['is_approved'] == false ? null : () => _showNotApproveDialog(context, card),
+                  !card.isApproved ? null : () => _showNotApproveDialog(context, card),
                   outlined: true,
-                  disabled: card['is_approved'] == false,
+                  disabled: !card.isApproved,
                 ),
                 const SizedBox(height: TossSpacing.space3),
                 // Second Row: Save button (full width)
@@ -857,31 +836,19 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                   TossColors.primary,
                   Icons.save_outlined,
                   hasChanges() ? () async {
-                    // Validate tag inputs - both must be provided or both must be empty
-                    final hasTagType = selectedTagType != null && selectedTagType!.trim().isNotEmpty;
-                    final hasTagContent = tagContent != null && tagContent!.trim().isNotEmpty;
-                    
-                    if (hasTagType != hasTagContent) {
+                    // ✅ FIXED: Use TagInput value object for validation
+                    final tagInput = TagInput(
+                      tagType: selectedTagType,
+                      content: tagContent,
+                    );
+
+                    if (!tagInput.isValid) {
                       await showDialog<bool>(
                         context: context,
                         barrierDismissible: true,
                         builder: (context) => TossDialog.error(
                           title: 'Error',
-                          message: 'Please fill both tag type and content or leave both empty',
-                          primaryButtonText: 'OK',
-                        ),
-                      );
-                      return;
-                    }
-                    
-                    // Additional validation for tag content length
-                    if (hasTagContent && tagContent!.trim().length > 500) {
-                      await showDialog<bool>(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (context) => TossDialog.error(
-                          title: 'Error',
-                          message: 'Tag content cannot exceed 500 characters',
+                          message: tagInput.validationError ?? 'Invalid tag input',
                           primaryButtonText: 'OK',
                         ),
                       );
@@ -954,8 +921,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     // Get values from app state and card
                     final appState = ref.read(appStateProvider);
                     final userId = appState.user['user_id'];
-                    final shiftRequestId = widget.card['shift_request_id'];
-                    final isLate = widget.card['is_late'] ?? false;
+                    final shiftRequestId = widget.card.shiftRequestId;
+                    final isLate = widget.card.isLate;
                     
                     // Show loading indicator
                     showDialog(
@@ -963,105 +930,71 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       barrierDismissible: true, // Allow dismissing loading dialogs
                       builder: (BuildContext context) {
                         return const Center(
-                          child: const TossLoadingView(
+                          child: TossLoadingView(
                           ),
                         );
                       },
                     );
                     
                     try {
-                      // Format times to ensure HH:mm format (24-hour)
-                      String? formatTimeToHHmm(String? timeStr) {
-                        if (timeStr == null || timeStr == '--:--' || timeStr.isEmpty) return null;
-                        
-                        // If already in HH:mm format, validate and return
-                        if (RegExp(r'^\d{2}:\d{2}$').hasMatch(timeStr)) {
-                          final parts = timeStr.split(':');
-                          final hour = int.parse(parts[0]);
-                          final minute = int.parse(parts[1]);
-                          // Validate time values
-                          if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-                            return timeStr;
-                          }
-                        }
-                        
-                        // Try to extract time from datetime string
-                        try {
-                          if (timeStr.contains('T') || timeStr.contains(' ')) {
-                            final parts = timeStr.split(RegExp(r'[T ]'));
-                            if (parts.length > 1) {
-                              final timePart = parts[1];
-                              final timeComponents = timePart.split(':');
-                              if (timeComponents.length >= 2) {
-                                final hour = int.tryParse(timeComponents[0]) ?? 0;
-                                final minute = int.tryParse(timeComponents[1]) ?? 0;
-                                if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-                                  return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-                                }
-                              }
-                            }
-                          }
-                          return null; // Return null if can't parse properly
-                        } catch (e) {
-                          return null;
-                        }
-                      }
-                      
-                      // Format times - these should already be in HH:mm format from _formatTimeOfDay
-                      final startTimeHHmm = formatTimeToHHmm(editedStartTime);
-                      final endTimeHHmm = formatTimeToHHmm(editedEndTime);
+                      // ✅ FIXED: Use ShiftTimeFormatter for time validation and conversion
+                      // Format times - use edited times if available, otherwise use existing confirm times
+                      String? startTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(editedStartTime);
+                      String? endTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(editedEndTime);
 
-                      // Validate times are not null
-                      if (startTimeHHmm == null || endTimeHHmm == null) {
-                        throw Exception('Start time and end time are required');
+                      // If times weren't edited, try to use existing confirm times from card
+                      if (startTimeHHmm == null || startTimeHHmm.isEmpty) {
+                        final existingStart = widget.card.confirmedStartTime?.toIso8601String();
+                        startTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(existingStart);
+                      }
+                      if (endTimeHHmm == null || endTimeHHmm.isEmpty) {
+                        final existingEnd = widget.card.confirmedEndTime?.toIso8601String();
+                        endTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(existingEnd);
                       }
 
-                      // Get request date for full DateTime conversion
-                      final requestDate = widget.card['request_date'] as String?;
-                      if (requestDate == null || requestDate.isEmpty) {
+                      // Validate that both times are present
+                      if (startTimeHHmm == null || startTimeHHmm.isEmpty ||
+                          endTimeHHmm == null || endTimeHHmm.isEmpty) {
+                        throw Exception('Both start and end times are required');
+                      }
+
+                      // Get request date for time conversion
+                      final requestDate = widget.card.requestDate;
+                      if (requestDate.isEmpty) {
                         throw Exception('Request date is required for time conversion');
                       }
 
-                      // Convert HH:mm to full DateTime and then to UTC for DB storage
-                      final startDateTime = DateTime.parse('$requestDate $startTimeHHmm:00');
-                      final endDateTime = DateTime.parse('$requestDate $endTimeHHmm:00');
+                      // ✅ FIXED: Use ShiftTimeFormatter to convert local time to UTC
+                      final startTimeForDb = ShiftTimeFormatter.convertLocalToUtc(
+                        startTimeHHmm,
+                        requestDate,
+                      );
+                      final endTimeForDb = ShiftTimeFormatter.convertLocalToUtc(
+                        endTimeHHmm,
+                        requestDate,
+                      );
 
-                      // Convert to UTC ISO8601 string for RPC
-                      final startTimeUtc = DateTimeUtils.toUtc(startDateTime);
-                      final endTimeUtc = DateTimeUtils.toUtc(endDateTime);
-
-                      // Prepare tag parameters - ensure null instead of empty strings
-                      final processedTagContent = (tagContent != null && tagContent!.trim().isNotEmpty)
-                          ? tagContent!.trim()
-                          : null;
-                      final processedTagType = (selectedTagType != null && selectedTagType!.trim().isNotEmpty)
-                          ? selectedTagType!.trim()
-                          : null;
+                      // ✅ FIXED: Use TagInput for tag processing
+                      final processedTagContent = tagInput.trimmedContent;
+                      final processedTagType = tagInput.trimmedType;
 
                       // Ensure shiftRequestId is valid
-                      if (shiftRequestId == null || shiftRequestId.isEmpty) {
+                      if (shiftRequestId.isEmpty) {
                         throw Exception('Invalid shift request ID');
                       }
 
                       // Use repository instead of direct Supabase call
-                      final response = await ref.read(timeTableRepositoryProvider).inputCard(
+                      final cardInputResult = await ref.read(timeTableRepositoryProvider).inputCard(
                         managerId: userId,
                         shiftRequestId: shiftRequestId,
-                        confirmStartTime: startTimeUtc,
-                        confirmEndTime: endTimeUtc,
+                        confirmStartTime: startTimeForDb,
+                        confirmEndTime: endTimeForDb,
                         newTagContent: processedTagContent,
                         newTagType: processedTagType,
                         isLate: isLate,
                         isProblemSolved: isProblemSolved,
                       );
 
-                      // Check if RPC returned an error structure
-                      if (response['success'] == false) {
-                        final errorMessage = response['message'] ?? 'Unknown error occurred';
-                        final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
-                        throw Exception('$errorCode: $errorMessage');
-                      }
-                      
                       // Close loading dialog
                       Navigator.pop(context);
 

@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Toss-style list tile with smooth animations and clean design
@@ -61,7 +57,7 @@ class _TossListTileState extends State<TossListTile>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: TossAnimations.standard,
-    ));
+    ),);
     
     _colorAnimation = ColorTween(
       begin: widget.backgroundColor ?? TossColors.transparent,
@@ -69,7 +65,7 @@ class _TossListTileState extends State<TossListTile>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: TossAnimations.standard,
-    ));
+    ),);
   }
   
   void _handleTapDown(TapDownDetails details) {
@@ -114,7 +110,7 @@ class _TossListTileState extends State<TossListTile>
                     ? TossColors.primary.withValues(alpha: 0.08)
                     : _colorAnimation.value,
                 border: widget.showDivider
-                    ? Border(
+                    ? const Border(
                         bottom: BorderSide(
                           color: TossColors.border,
                           width: 0.5,
@@ -124,7 +120,7 @@ class _TossListTileState extends State<TossListTile>
               ),
               child: Padding(
                 padding: widget.contentPadding ??
-                    EdgeInsets.symmetric(
+                    const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space4,
                       vertical: TossSpacing.space3,
                     ),
@@ -134,9 +130,9 @@ class _TossListTileState extends State<TossListTile>
                       AnimatedOpacity(
                         opacity: isDisabled ? 0.5 : 1.0,
                         duration: TossAnimations.normal,
-                        child: widget.leading!,
+                        child: widget.leading,
                       ),
-                      SizedBox(width: TossSpacing.space3),
+                      const SizedBox(width: TossSpacing.space3),
                     ],
                     Expanded(
                       child: Column(
@@ -159,7 +155,7 @@ AnimatedDefaultTextStyle(
                             child: Text(widget.title),
                           ),
                           if (widget.subtitle != null) ...[
-                            SizedBox(height: TossSpacing.space1),
+                            const SizedBox(height: TossSpacing.space1),
                             // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
 AnimatedDefaultTextStyle(
                               style: TossTextStyles.bodySmall.copyWith(
@@ -175,11 +171,11 @@ AnimatedDefaultTextStyle(
                       ),
                     ),
                     if (widget.trailing != null) ...[
-                      SizedBox(width: TossSpacing.space3),
+                      const SizedBox(width: TossSpacing.space3),
                       AnimatedOpacity(
                         opacity: isDisabled ? 0.5 : 1.0,
                         duration: TossAnimations.normal,
-                        child: widget.trailing!,
+                        child: widget.trailing,
                       ),
                     ],
                   ],

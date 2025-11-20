@@ -30,6 +30,7 @@ _$FeatureItemModelImpl _$$FeatureItemModelImplFromJson(
     _$FeatureItemModelImpl(
       featureId: json['feature_id'] as String,
       featureName: json['feature_name'] as String,
+      featureDescription: json['feature_description'] as String?,
       route: json['route'] as String?,
       icon: json['icon'] as String?,
       iconKey: json['icon_key'] as String?,
@@ -41,6 +42,7 @@ Map<String, dynamic> _$$FeatureItemModelImplToJson(
     <String, dynamic>{
       'feature_id': instance.featureId,
       'feature_name': instance.featureName,
+      'feature_description': instance.featureDescription,
       'route': instance.route,
       'icon': instance.icon,
       'icon_key': instance.iconKey,

@@ -5,23 +5,35 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/core/utils/account_type_utils.dart';
+import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
-import 'package:myfinance_improved/core/utils/account_type_utils.dart';
+
+/// Type definitions for callbacks
+typedef OnAccountSelectedCallback = void Function(AccountData account);
+typedef OnMultiAccountSelectedCallback = void Function(List<AccountData> accounts);
 
 /// Enhanced account selector with quick access to frequently used accounts
 class EnhancedAccountSelector extends ConsumerStatefulWidget {
   final String? selectedAccountId;
   final List<String>? selectedAccountIds;  // For multi-selection
+
+  // Legacy callbacks (deprecated but maintained for backward compatibility)
   final Function(String?)? onChanged;
-  final Function(List<String>?)? onMultiChanged;  // For multi-selection
+  final Function(String?, Map<String, dynamic>?)? onChangedWithData;
+  final Function(List<String>?)? onMultiChanged;
+
+  // NEW: Type-safe callbacks
+  final OnAccountSelectedCallback? onAccountSelected;
+  final OnMultiAccountSelectedCallback? onMultiAccountSelected;
+
   final String? label;
   final String? hint;
   final String? errorText;
@@ -38,7 +50,10 @@ class EnhancedAccountSelector extends ConsumerStatefulWidget {
     this.selectedAccountId,
     this.selectedAccountIds,
     this.onChanged,
+    this.onChangedWithData,
     this.onMultiChanged,
+    this.onAccountSelected,  // NEW
+    this.onMultiAccountSelected,  // NEW
     this.label,
     this.hint,
     this.errorText,
@@ -58,7 +73,7 @@ class EnhancedAccountSelector extends ConsumerStatefulWidget {
 class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelector> {
   String _searchQuery = '';
   List<AccountData> _filteredAccounts = [];
-  List<Map<String, dynamic>> _quickAccessAccounts = [];
+  List<QuickAccessAccount> _quickAccessAccounts = [];  // ✅ Type-safe
   List<String> _tempSelectedIds = [];  // For multi-selection
 
   @override
@@ -161,7 +176,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   ],
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.keyboard_arrow_down,
                 color: TossColors.gray500,
               ),
@@ -235,7 +250,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_drop_down,
               color: TossColors.textSecondary,
             ),
@@ -405,7 +420,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                         child: ElevatedButton(
                           onPressed: () {
                             widget.onMultiChanged?.call(
-                              _tempSelectedIds.isEmpty ? null : _tempSelectedIds
+                              _tempSelectedIds.isEmpty ? null : _tempSelectedIds,
                             );
                             Navigator.pop(context);
                           },
@@ -510,7 +525,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.flash_on,
                 size: TossSpacing.iconXS,
                 color: TossColors.warning,
@@ -527,12 +542,12 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
         ),
         ..._quickAccessAccounts.map((quickAccount) {
-          final accountId = quickAccount['account_id'] as String?;
-          if (accountId == null) return const SizedBox.shrink();
-
+          // ✅ Type-safe access
           try {
-            final account = allAccounts.firstWhere((a) => a.id == accountId);
-            final usageCount = quickAccount['usage_count'] as int? ?? 0;
+            final account = allAccounts.firstWhere(
+              (a) => a.id == quickAccount.accountId,
+              orElse: () => throw StateError('Account not found'),
+            );
             final isSelected = _tempSelectedIds.contains(account.id);
 
             return InkWell(
@@ -560,14 +575,14 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                           size: TossSpacing.iconSM,
                           color: isSelected ? TossColors.primary : TossColors.gray500,
                         ),
-                        if (usageCount > 5)
+                        if (quickAccount.isHighlyUsed)
                           Positioned(
                             right: -2,
                             top: -2,
                             child: Container(
                               width: 8,
                               height: 8,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: TossColors.warning,
                                 shape: BoxShape.circle,
                               ),
@@ -591,7 +606,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                                   ),
                                 ),
                               ),
-                              if (usageCount > 0) ...[
+                              if (quickAccount.usageCount > 0) ...[
                                 const SizedBox(width: TossSpacing.space2),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -603,7 +618,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                   ),
                                   child: Text(
-                                    '${usageCount}×',
+                                    '${quickAccount.usageCount}×',
                                     style: TossTextStyles.caption.copyWith(
                                       color: TossColors.warning,
                                       fontSize: 10,
@@ -644,7 +659,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           } catch (e) {
             return const SizedBox.shrink();
           }
-        }).toList(),
+        }),
       ],
     );
   }
@@ -660,7 +675,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.flash_on,
                 size: TossSpacing.iconXS,
                 color: TossColors.warning,
@@ -677,22 +692,23 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
         ),
         ..._quickAccessAccounts.map((quickAccount) {
-          // Find the full account data
-          final accountId = quickAccount['account_id'] as String?;
-          if (accountId == null) return const SizedBox.shrink();
-
+          // ✅ Type-safe access
           try {
-            final account = allAccounts.firstWhere((a) => a.id == accountId);
+            final account = allAccounts.firstWhere(
+              (a) => a.id == quickAccount.accountId,
+              orElse: () => throw StateError('Account not found'),
+            );
             return _buildAccountItem(
               account,
               true,
-              usageCount: quickAccount['usage_count'] as int? ?? 0,
+              usageCount: quickAccount.usageCount,
             );
           } catch (e) {
-            // Account not found in current list, show basic info
-            return _buildQuickAccountItem(quickAccount);
+            // Account not found in current list, fallback to QuickAccess data
+            debugPrint('⚠️ Account ${quickAccount.accountId} not in current account list');
+            return _buildQuickAccountItemFromModel(quickAccount);
           }
-        }).toList(),
+        }),
       ],
     );
   }
@@ -847,8 +863,16 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
 
     return InkWell(
       onTap: () {
+        debugPrint('🎯 Account selected: ${account.name} (${account.id})');
         _trackAccountUsage(account, isQuickAccess ? 'quick_access' : 'regular_list');
+
+        // ✅ NEW: Type-safe callback
+        widget.onAccountSelected?.call(account);
+
+        // ✅ Legacy callbacks (backward compatibility)
         widget.onChanged?.call(account.id);
+        widget.onChangedWithData?.call(account.id, account.toJson());
+
         Navigator.pop(context);
       },
       child: Container(
@@ -874,7 +898,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TossColors.warning,
                         shape: BoxShape.circle,
                       ),
@@ -912,7 +936,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           child: Text(
-                            '${usageCount}×',
+                            '$usageCount×',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.warning,
                               fontSize: 10,
@@ -944,7 +968,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
 
             // Selection indicator
             if (isSelected)
-              Icon(
+              const Icon(
                 Icons.check_circle,
                 size: TossSpacing.iconSM,
                 color: TossColors.primary,
@@ -955,19 +979,26 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
     );
   }
 
-  Widget _buildQuickAccountItem(Map<String, dynamic> quickAccount) {
-    final accountName = (quickAccount['account_name'] ?? 'Unknown Account') as String;
-    final accountId = quickAccount['account_id'] as String?;
-    final usageCount = quickAccount['usage_count'] as int? ?? 0;
-    final isSelected = accountId == widget.selectedAccountId;
+  /// ✅ NEW: Type-safe fallback for Quick Access accounts not in current list
+  Widget _buildQuickAccountItemFromModel(QuickAccessAccount quickAccount) {
+    final isSelected = quickAccount.accountId == widget.selectedAccountId;
 
     return InkWell(
       onTap: () {
-        if (accountId != null) {
-          _trackQuickAccountUsage(quickAccount);
-          widget.onChanged?.call(accountId);
-          Navigator.pop(context);
-        }
+        debugPrint('🎯 Quick access account selected: ${quickAccount.displayName}');
+        _trackQuickAccountUsage(quickAccount);
+
+        // Convert to AccountData for callbacks
+        final accountData = quickAccount.toAccountData();
+
+        // ✅ NEW: Type-safe callback
+        widget.onAccountSelected?.call(accountData);
+
+        // ✅ Legacy callbacks
+        widget.onChanged?.call(quickAccount.accountId);
+        widget.onChangedWithData?.call(quickAccount.accountId, accountData.toJson());
+
+        Navigator.pop(context);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -985,14 +1016,14 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
             const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: Text(
-                accountName,
+                quickAccount.displayName,
                 style: TossTextStyles.body.copyWith(
                   color: isSelected ? TossColors.primary : TossColors.gray900,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            if (usageCount > 0)
+            if (quickAccount.usageCount > 0)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -1000,7 +1031,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Text(
-                  '${usageCount}×',
+                  '${quickAccount.usageCount}×',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.warning,
                     fontSize: 10,
@@ -1023,7 +1054,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
     );
   }
 
-  void _trackQuickAccountUsage(Map<String, dynamic> quickAccount) async {
+  void _trackQuickAccountUsage(QuickAccessAccount quickAccount) async {
     await QuickAccessHelper.trackQuickAccountUsage(
       ref,
       quickAccount,
@@ -1047,7 +1078,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       ),
       child: Row(
         children: [
-          SizedBox(
+          const SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
@@ -1088,7 +1119,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               size: TossSpacing.iconSM,
               color: TossColors.error,
@@ -1114,7 +1145,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.refresh,
               size: TossSpacing.iconSM,
               color: TossColors.error,

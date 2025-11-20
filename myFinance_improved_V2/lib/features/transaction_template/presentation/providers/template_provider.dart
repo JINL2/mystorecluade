@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
 
-import 'states/template_state.dart';
-import 'validator_providers.dart';
 import '../../domain/entities/template_entity.dart';
-import '../../domain/usecases/create_template_usecase.dart';
-import '../../domain/usecases/delete_template_usecase.dart';
-import '../../domain/repositories/template_repository.dart';
-import '../../domain/value_objects/template_filter.dart';
 import '../../domain/enums/template_constants.dart';
 import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
-import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
+import '../../domain/repositories/template_repository.dart';
+import '../../domain/usecases/create_template_usecase.dart';
+import '../../domain/usecases/delete_template_usecase.dart';
+import '../../domain/value_objects/template_filter.dart';
+import 'states/template_state.dart';
+import 'validator_providers.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Template Notifier - 상태 관리 + 비즈니스 로직 조율
@@ -486,7 +486,7 @@ final canDeleteTemplatesProvider = Provider<bool>((ref) {
 
   // Get selected company data
   final companyId = appState.companyChoosen;
-  if (companyId == null || companyId.isEmpty) {
+  if (companyId.isEmpty) {
     return false;
   }
 

@@ -1,51 +1,30 @@
-import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../domain/entities/store.dart';
+
+part 'store_model.freezed.dart';
+part 'store_model.g.dart';
 
 /// Data Transfer Object for Store
-/// Handles JSON serialization/deserialization from Supabase
-class StoreModel extends Store {
-  const StoreModel({
-    required super.id,
-    required super.name,
-    required super.code,
-    required super.companyId,
-    super.address,
-    super.phone,
-    super.huddleTime,
-    super.paymentTime,
-    super.allowedDistance,
-  });
+/// Used for create store response
+@freezed
+class StoreModel with _$StoreModel {
+  const StoreModel._();
 
-  /// Create from JSON (from Supabase response after creation)
-  factory StoreModel.fromJson(Map<String, dynamic> json) {
-    return StoreModel(
-      id: json['store_id'] as String,
-      name: json['store_name'] as String,
-      code: json['store_code'] as String,
-      companyId: json['company_id'] as String,
-      address: json['store_address'] as String?,
-      phone: json['store_phone'] as String?,
-      huddleTime: json['huddle_time'] as int?,
-      paymentTime: json['payment_time'] as int?,
-      allowedDistance: json['allowed_distance'] as int?,
-    );
-  }
+  const factory StoreModel({
+    @JsonKey(name: 'store_id') required String id,
+    @JsonKey(name: 'store_name') required String name,
+    @JsonKey(name: 'store_code') required String code,
+    @JsonKey(name: 'company_id') required String companyId,
+    @JsonKey(name: 'store_address') String? address,
+    @JsonKey(name: 'store_phone') String? phone,
+    @JsonKey(name: 'huddle_time') int? huddleTime,
+    @JsonKey(name: 'payment_time') int? paymentTime,
+    @JsonKey(name: 'allowed_distance') int? allowedDistance,
+  }) = _StoreModel;
 
-  /// Convert to JSON (for Supabase request)
-  Map<String, dynamic> toJson() {
-    return {
-      'store_id': id,
-      'store_name': name,
-      'store_code': code,
-      'company_id': companyId,
-      if (address != null) 'store_address': address,
-      if (phone != null) 'store_phone': phone,
-      if (huddleTime != null) 'huddle_time': huddleTime,
-      if (paymentTime != null) 'payment_time': paymentTime,
-      if (allowedDistance != null) 'allowed_distance': allowedDistance,
-    };
-  }
+  factory StoreModel.fromJson(Map<String, dynamic> json) =>
+      _$StoreModelFromJson(json);
 
-  /// Convert to domain entity
   Store toEntity() {
     return Store(
       id: id,

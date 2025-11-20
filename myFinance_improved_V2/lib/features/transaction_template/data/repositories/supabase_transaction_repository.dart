@@ -9,17 +9,19 @@
 ///
 /// 🎯 FOCUSED: Template-to-transaction creation only, no CRUD
 /// Clean Architecture: DATA LAYER - Repository Implementation
+library;
 import 'package:intl/intl.dart';
+import 'package:myfinance_improved/core/services/supabase_service.dart';
+
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/transaction_line_entity.dart';
 import '../../domain/repositories/transaction_repository.dart';
-import '../../domain/value_objects/transaction_status.dart';
 import '../../domain/value_objects/transaction_amount.dart';
 import '../../domain/value_objects/transaction_context.dart';
-import '../../domain/value_objects/transaction_metadata.dart';
 import '../../domain/value_objects/transaction_counterparty.dart';
 import '../../domain/value_objects/transaction_location.dart';
-import 'package:myfinance_improved/core/services/supabase_service.dart';
+import '../../domain/value_objects/transaction_metadata.dart';
+import '../../domain/value_objects/transaction_status.dart';
 import '../dtos/transaction_dto.dart';
 
 class SupabaseTransactionRepository implements TransactionRepository {
@@ -197,7 +199,7 @@ class SupabaseTransactionRepository implements TransactionRepository {
       final locationData = <String, dynamic>{};
       
       if (transaction.location!.locationName != null) {
-        locationData['name'] = transaction.location!.locationName!;
+        locationData['name'] = transaction.location!.locationName;
       }
       
       // Note: locationType field may not exist in current domain model

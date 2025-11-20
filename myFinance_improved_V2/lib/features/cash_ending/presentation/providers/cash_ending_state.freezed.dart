@@ -47,14 +47,15 @@ mixin _$CashEndingState {
       throw _privateConstructorUsedError; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  /// Selected currency ID for cash tab
-  String? get selectedCashCurrencyId => throw _privateConstructorUsedError;
+  /// Selected currency IDs for cash tab (multiple currencies can be selected)
+  List<String> get selectedCashCurrencyIds =>
+      throw _privateConstructorUsedError;
 
   /// Selected currency ID for bank tab
   String? get selectedBankCurrencyId => throw _privateConstructorUsedError;
 
-  /// Selected currency ID for vault tab
-  String? get selectedVaultCurrencyId =>
+  /// Selected currency IDs for vault tab (multiple currencies can be selected)
+  List<String> get selectedVaultCurrencyIds =>
       throw _privateConstructorUsedError; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Data State - Available data lists
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -118,9 +119,9 @@ abstract class $CashEndingStateCopyWith<$Res> {
       String? selectedCashLocationId,
       String? selectedBankLocationId,
       String? selectedVaultLocationId,
-      String? selectedCashCurrencyId,
+      List<String> selectedCashCurrencyIds,
       String? selectedBankCurrencyId,
-      String? selectedVaultCurrencyId,
+      List<String> selectedVaultCurrencyIds,
       List<Store> stores,
       List<Location> cashLocations,
       List<Location> bankLocations,
@@ -158,9 +159,9 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
     Object? selectedCashLocationId = freezed,
     Object? selectedBankLocationId = freezed,
     Object? selectedVaultLocationId = freezed,
-    Object? selectedCashCurrencyId = freezed,
+    Object? selectedCashCurrencyIds = null,
     Object? selectedBankCurrencyId = freezed,
-    Object? selectedVaultCurrencyId = freezed,
+    Object? selectedVaultCurrencyIds = null,
     Object? stores = null,
     Object? cashLocations = null,
     Object? bankLocations = null,
@@ -207,18 +208,18 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
           ? _value.selectedVaultLocationId
           : selectedVaultLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
-      selectedCashCurrencyId: freezed == selectedCashCurrencyId
-          ? _value.selectedCashCurrencyId
-          : selectedCashCurrencyId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      selectedCashCurrencyIds: null == selectedCashCurrencyIds
+          ? _value.selectedCashCurrencyIds
+          : selectedCashCurrencyIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       selectedBankCurrencyId: freezed == selectedBankCurrencyId
           ? _value.selectedBankCurrencyId
           : selectedBankCurrencyId // ignore: cast_nullable_to_non_nullable
               as String?,
-      selectedVaultCurrencyId: freezed == selectedVaultCurrencyId
-          ? _value.selectedVaultCurrencyId
-          : selectedVaultCurrencyId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      selectedVaultCurrencyIds: null == selectedVaultCurrencyIds
+          ? _value.selectedVaultCurrencyIds
+          : selectedVaultCurrencyIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       stores: null == stores
           ? _value.stores
           : stores // ignore: cast_nullable_to_non_nullable
@@ -288,9 +289,9 @@ abstract class _$$CashEndingStateImplCopyWith<$Res>
       String? selectedCashLocationId,
       String? selectedBankLocationId,
       String? selectedVaultLocationId,
-      String? selectedCashCurrencyId,
+      List<String> selectedCashCurrencyIds,
       String? selectedBankCurrencyId,
-      String? selectedVaultCurrencyId,
+      List<String> selectedVaultCurrencyIds,
       List<Store> stores,
       List<Location> cashLocations,
       List<Location> bankLocations,
@@ -326,9 +327,9 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
     Object? selectedCashLocationId = freezed,
     Object? selectedBankLocationId = freezed,
     Object? selectedVaultLocationId = freezed,
-    Object? selectedCashCurrencyId = freezed,
+    Object? selectedCashCurrencyIds = null,
     Object? selectedBankCurrencyId = freezed,
-    Object? selectedVaultCurrencyId = freezed,
+    Object? selectedVaultCurrencyIds = null,
     Object? stores = null,
     Object? cashLocations = null,
     Object? bankLocations = null,
@@ -375,18 +376,18 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
           ? _value.selectedVaultLocationId
           : selectedVaultLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
-      selectedCashCurrencyId: freezed == selectedCashCurrencyId
-          ? _value.selectedCashCurrencyId
-          : selectedCashCurrencyId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      selectedCashCurrencyIds: null == selectedCashCurrencyIds
+          ? _value._selectedCashCurrencyIds
+          : selectedCashCurrencyIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       selectedBankCurrencyId: freezed == selectedBankCurrencyId
           ? _value.selectedBankCurrencyId
           : selectedBankCurrencyId // ignore: cast_nullable_to_non_nullable
               as String?,
-      selectedVaultCurrencyId: freezed == selectedVaultCurrencyId
-          ? _value.selectedVaultCurrencyId
-          : selectedVaultCurrencyId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      selectedVaultCurrencyIds: null == selectedVaultCurrencyIds
+          ? _value._selectedVaultCurrencyIds
+          : selectedVaultCurrencyIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       stores: null == stores
           ? _value._stores
           : stores // ignore: cast_nullable_to_non_nullable
@@ -451,9 +452,9 @@ class _$CashEndingStateImpl extends _CashEndingState {
       this.selectedCashLocationId,
       this.selectedBankLocationId,
       this.selectedVaultLocationId,
-      this.selectedCashCurrencyId,
+      final List<String> selectedCashCurrencyIds = const [],
       this.selectedBankCurrencyId,
-      this.selectedVaultCurrencyId,
+      final List<String> selectedVaultCurrencyIds = const [],
       final List<Store> stores = const [],
       final List<Location> cashLocations = const [],
       final List<Location> bankLocations = const [],
@@ -466,7 +467,9 @@ class _$CashEndingStateImpl extends _CashEndingState {
       this.isLoadingVaultLocations = false,
       this.isLoadingCurrencies = false,
       this.isLoadingRecentEndings = false})
-      : _stores = stores,
+      : _selectedCashCurrencyIds = selectedCashCurrencyIds,
+        _selectedVaultCurrencyIds = selectedVaultCurrencyIds,
+        _stores = stores,
         _cashLocations = cashLocations,
         _bankLocations = bankLocations,
         _vaultLocations = vaultLocations,
@@ -515,17 +518,38 @@ class _$CashEndingStateImpl extends _CashEndingState {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  /// Selected currency ID for cash tab
+  /// Selected currency IDs for cash tab (multiple currencies can be selected)
+  final List<String> _selectedCashCurrencyIds;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Currency Selection State
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  /// Selected currency IDs for cash tab (multiple currencies can be selected)
   @override
-  final String? selectedCashCurrencyId;
+  @JsonKey()
+  List<String> get selectedCashCurrencyIds {
+    if (_selectedCashCurrencyIds is EqualUnmodifiableListView)
+      return _selectedCashCurrencyIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_selectedCashCurrencyIds);
+  }
 
   /// Selected currency ID for bank tab
   @override
   final String? selectedBankCurrencyId;
 
-  /// Selected currency ID for vault tab
+  /// Selected currency IDs for vault tab (multiple currencies can be selected)
+  final List<String> _selectedVaultCurrencyIds;
+
+  /// Selected currency IDs for vault tab (multiple currencies can be selected)
   @override
-  final String? selectedVaultCurrencyId;
+  @JsonKey()
+  List<String> get selectedVaultCurrencyIds {
+    if (_selectedVaultCurrencyIds is EqualUnmodifiableListView)
+      return _selectedVaultCurrencyIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_selectedVaultCurrencyIds);
+  }
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Data State - Available data lists
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -639,7 +663,7 @@ class _$CashEndingStateImpl extends _CashEndingState {
 
   @override
   String toString() {
-    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, selectedBankLocationId: $selectedBankLocationId, selectedVaultLocationId: $selectedVaultLocationId, selectedCashCurrencyId: $selectedCashCurrencyId, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyId: $selectedVaultCurrencyId, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, recentCashEndings: $recentCashEndings, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies, isLoadingRecentEndings: $isLoadingRecentEndings)';
+    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, selectedBankLocationId: $selectedBankLocationId, selectedVaultLocationId: $selectedVaultLocationId, selectedCashCurrencyIds: $selectedCashCurrencyIds, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyIds: $selectedVaultCurrencyIds, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, recentCashEndings: $recentCashEndings, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies, isLoadingRecentEndings: $isLoadingRecentEndings)';
   }
 
   @override
@@ -664,13 +688,12 @@ class _$CashEndingStateImpl extends _CashEndingState {
             (identical(
                     other.selectedVaultLocationId, selectedVaultLocationId) ||
                 other.selectedVaultLocationId == selectedVaultLocationId) &&
-            (identical(other.selectedCashCurrencyId, selectedCashCurrencyId) ||
-                other.selectedCashCurrencyId == selectedCashCurrencyId) &&
+            const DeepCollectionEquality().equals(
+                other._selectedCashCurrencyIds, _selectedCashCurrencyIds) &&
             (identical(other.selectedBankCurrencyId, selectedBankCurrencyId) ||
                 other.selectedBankCurrencyId == selectedBankCurrencyId) &&
-            (identical(
-                    other.selectedVaultCurrencyId, selectedVaultCurrencyId) ||
-                other.selectedVaultCurrencyId == selectedVaultCurrencyId) &&
+            const DeepCollectionEquality().equals(
+                other._selectedVaultCurrencyIds, _selectedVaultCurrencyIds) &&
             const DeepCollectionEquality().equals(other._stores, _stores) &&
             const DeepCollectionEquality()
                 .equals(other._cashLocations, _cashLocations) &&
@@ -708,9 +731,9 @@ class _$CashEndingStateImpl extends _CashEndingState {
         selectedCashLocationId,
         selectedBankLocationId,
         selectedVaultLocationId,
-        selectedCashCurrencyId,
+        const DeepCollectionEquality().hash(_selectedCashCurrencyIds),
         selectedBankCurrencyId,
-        selectedVaultCurrencyId,
+        const DeepCollectionEquality().hash(_selectedVaultCurrencyIds),
         const DeepCollectionEquality().hash(_stores),
         const DeepCollectionEquality().hash(_cashLocations),
         const DeepCollectionEquality().hash(_bankLocations),
@@ -745,9 +768,9 @@ abstract class _CashEndingState extends CashEndingState {
       final String? selectedCashLocationId,
       final String? selectedBankLocationId,
       final String? selectedVaultLocationId,
-      final String? selectedCashCurrencyId,
+      final List<String> selectedCashCurrencyIds,
       final String? selectedBankCurrencyId,
-      final String? selectedVaultCurrencyId,
+      final List<String> selectedVaultCurrencyIds,
       final List<Store> stores,
       final List<Location> cashLocations,
       final List<Location> bankLocations,
@@ -801,18 +824,18 @@ abstract class _CashEndingState extends CashEndingState {
       get selectedVaultLocationId; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  /// Selected currency ID for cash tab
+  /// Selected currency IDs for cash tab (multiple currencies can be selected)
   @override
-  String? get selectedCashCurrencyId;
+  List<String> get selectedCashCurrencyIds;
 
   /// Selected currency ID for bank tab
   @override
   String? get selectedBankCurrencyId;
 
-  /// Selected currency ID for vault tab
+  /// Selected currency IDs for vault tab (multiple currencies can be selected)
   @override
-  String?
-      get selectedVaultCurrencyId; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  List<String>
+      get selectedVaultCurrencyIds; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Data State - Available data lists
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /// Available stores for the company

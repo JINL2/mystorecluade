@@ -87,7 +87,7 @@ class DebtControlMapper {
 
   /// Map PerspectiveSummaryDto to PerspectiveSummary entity
   static PerspectiveSummary perspectiveSummaryDtoToEntity(
-      PerspectiveSummaryDto dto) {
+      PerspectiveSummaryDto dto,) {
     return PerspectiveSummary(
       perspectiveType: dto.perspectiveType,
       entityId: dto.entityId,

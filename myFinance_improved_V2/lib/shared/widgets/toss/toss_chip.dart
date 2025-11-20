@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Toss-style chip component for filters and selections
@@ -34,7 +30,7 @@ class TossChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
             vertical: TossSpacing.space2,
           ),
@@ -61,7 +57,7 @@ class TossChip extends StatelessWidget {
                       ? TossColors.primary
                       : TossColors.gray600,
                 ),
-                SizedBox(width: TossSpacing.space1),
+                const SizedBox(width: TossSpacing.space1),
               ],
               Text(
                 label,
@@ -73,9 +69,9 @@ class TossChip extends StatelessWidget {
                 ),
               ),
               if (showCount && count != null && count! > 0) ...[
-                SizedBox(width: TossSpacing.space1),
+                const SizedBox(width: TossSpacing.space1),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space1,
                     vertical: TossSpacing.space0 + 1,
                   ),
@@ -97,7 +93,7 @@ class TossChip extends StatelessWidget {
                 ),
               ],
               if (trailing != null) ...[
-                SizedBox(width: TossSpacing.space1),
+                const SizedBox(width: TossSpacing.space1),
                 trailing!,
               ],
             ],

@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'toss_border_radius.dart';
-import 'toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Toss Page Styles - Consistent page design patterns
@@ -152,7 +147,7 @@ class TossPageStyles {
               ),
             ),
             if (showChevron)
-              Icon(
+              const Icon(
                 Icons.chevron_right,
                 color: TossColors.gray400,
                 size: TossSpacing.iconSM,

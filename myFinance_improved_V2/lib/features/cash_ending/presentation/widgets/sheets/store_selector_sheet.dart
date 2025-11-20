@@ -71,11 +71,12 @@ class StoreSelectorSheet extends ConsumerWidget {
             ),
           ),
 
-          // Title
+          // Header with close button and title
           Padding(
-            padding: const EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
             child: Row(
               children: [
+                const Spacer(),
                 Text(
                   'Select Store',
                   style: TossTextStyles.h3.copyWith(
@@ -83,9 +84,20 @@ class StoreSelectorSheet extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    Icons.close,
+                    size: 24,
+                    color: TossColors.gray900,
+                  ),
+                ),
               ],
             ),
           ),
+
+          const SizedBox(height: TossSpacing.space4),
 
           // Store list
           Container(
@@ -95,15 +107,10 @@ class StoreSelectorSheet extends ConsumerWidget {
             child: ListView.builder(
               shrinkWrap: true,
               padding: EdgeInsets.zero,
-              itemCount: stores.length + 1, // +1 for Headquarter
+              itemCount: stores.length,
               itemBuilder: (context, index) {
-                // First item is Headquarter
-                if (index == 0) {
-                  return _buildHeadquarterItem(context, ref);
-                }
-
                 // Store items
-                final store = stores[index - 1];
+                final store = stores[index];
                 final isSelected = selectedStoreId == store.storeId;
 
                 return _buildStoreItem(
@@ -119,98 +126,6 @@ class StoreSelectorSheet extends ConsumerWidget {
           // Bottom padding
           const SizedBox(height: TossSpacing.space5),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeadquarterItem(BuildContext context, WidgetRef ref) {
-    final isSelected = selectedStoreId == 'headquarter';
-
-    return InkWell(
-      onTap: () async {
-        HapticFeedback.selectionClick();
-        Navigator.pop(context);
-
-        // Update selected store
-        ref.read(cashEndingProvider.notifier).setSelectedStore('headquarter');
-
-        // Load locations for all tabs
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'cash',
-              storeId: 'headquarter',
-            );
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'bank',
-              storeId: 'headquarter',
-            );
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'vault',
-              storeId: 'headquarter',
-            );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space5,
-          vertical: TossSpacing.space4,
-        ),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: TossColors.gray100,
-              width: 0.5,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? TossColors.primarySurface
-                    : TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Icon(
-                TossIcons.business,
-                size: 20,
-                color: isSelected ? TossColors.primary : TossColors.gray500,
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Headquarter',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    'Company Level',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                TossIcons.check,
-                size: 20,
-                color: TossColors.primary,
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -261,42 +176,19 @@ class StoreSelectorSheet extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? TossColors.primarySurface
-                    : TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Icon(
-                TossIcons.store,
-                size: 20,
-                color: isSelected ? TossColors.primary : TossColors.gray500,
-              ),
+            Icon(
+              TossIcons.store,
+              size: 24,
+              color: TossColors.gray400,
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    store.storeName,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                  if (store.storeCode?.isNotEmpty ?? false)
-                    Text(
-                      store.storeCode!,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                ],
+              child: Text(
+                store.storeName,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             if (isSelected)

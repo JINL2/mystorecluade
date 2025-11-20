@@ -8,6 +8,7 @@
 ///
 /// Used by QuickStatusIndicator and EssentialSelectors for optimal UX.
 /// Clean Architecture: DOMAIN LAYER - Value Object
+library;
 import 'package:equatable/equatable.dart';
 import '../enums/template_enums.dart';
 
@@ -173,7 +174,7 @@ class TemplateAnalysisResult extends Equatable {
   /// Check if template has debt accounts (payable/receivable)
   static bool _hasDebtAccounts(List data) {
     return data.any((entry) =>
-        entry['category_tag'] == 'payable' || entry['category_tag'] == 'receivable');
+        entry['category_tag'] == 'payable' || entry['category_tag'] == 'receivable',);
   }
 
   /// Factory constructor for simple analysis based on complexity only

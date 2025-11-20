@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// White card container with consistent styling
@@ -30,19 +28,10 @@ class TossWhiteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(
-          borderRadius ?? TossBorderRadius.lg
+          borderRadius ?? TossBorderRadius.lg,
         ),
         border: showBorder
-            ? Border.all(color: TossColors.gray200, width: 1)
-            : null,
-        boxShadow: showShadow
-            ? [
-                BoxShadow(
-                  color: TossColors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
+            ? Border.all(color: TossColors.gray100, width: 1)
             : null,
       ),
       child: child,

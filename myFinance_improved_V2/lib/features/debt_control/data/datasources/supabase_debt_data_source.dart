@@ -1,5 +1,6 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/debt_control_dto.dart';
 
 /// Supabase implementation of DebtDataSource
@@ -51,7 +52,7 @@ class SupabaseDebtDataSource {
       );
 
       // Extract the appropriate perspective from v2 response
-      final v2Data = response as Map<String, dynamic>;
+      final v2Data = response;
       final perspectiveData = perspective == 'store' && storeId != null
         ? v2Data['store']
         : v2Data['company'];
@@ -299,7 +300,7 @@ class SupabaseDebtDataSource {
         transactionCount: (record['transaction_count'] as int?) ?? 0,
         linkedCompanyName: isInternal ? (record['linked_company_id'] as String?) : null,
         lastContactDate: DateTimeUtils.toLocalSafe(record['last_activity'] as String?),
-      ));
+      ),);
     }
 
     debts.sort((a, b) => b.priorityScore.compareTo(a.priorityScore));
@@ -363,7 +364,7 @@ class SupabaseDebtDataSource {
         netPosition: (s['net_position'] as num?)?.toDouble() ?? 0.0,
         counterpartyCount: (s['counterparty_count'] as int?) ?? 0,
         isHeadquarters: s['is_headquarters'] as bool? ?? false,
-      )).toList(),
+      ),).toList(),
       counterpartyCount: (summary['counterparty_count'] as int?) ?? 0,
       transactionCount: (summary['transaction_count'] as int?) ?? 0,
       collectionRate: 85.0,

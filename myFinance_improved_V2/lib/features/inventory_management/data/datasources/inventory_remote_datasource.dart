@@ -25,7 +25,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('get_inventory_metadata', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       // Handle success wrapper if present
       final Map<String, dynamic> dataToProcess;
@@ -82,7 +82,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('get_inventory_page', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       // Handle success wrapper if present
       final Map<String, dynamic> dataToProcess;
@@ -142,7 +142,7 @@ class InventoryRemoteDataSource {
         'p_product_id': productId,
         'p_company_id': companyId,
         'p_store_id': storeId,
-      }).single() as Map<String, dynamic>;
+      },).single();
 
       if (response['success'] == true) {
         return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
@@ -202,7 +202,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('inventory_create_product', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       if (response['success'] == true) {
         return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
@@ -269,7 +269,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('inventory_edit_product', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       if (response['success'] == true) {
         return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
@@ -346,7 +346,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('inventory_create_category', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       if (response['success'] == true) {
         return response['data'] as Map<String, dynamic>;
@@ -385,7 +385,7 @@ class InventoryRemoteDataSource {
 
       final response = await _client
           .rpc('inventory_create_brand', params: params)
-          .single() as Map<String, dynamic>;
+          .single();
 
       if (response['success'] == true) {
         return response['data'] as Map<String, dynamic>;
@@ -424,7 +424,7 @@ class InventoryRemoteDataSource {
         'p_store_id': storeId,
         'p_new_stock': newStock,
         'p_reason': reason ?? 'Manual adjustment',
-      }).single() as Map<String, dynamic>;
+      },).single();
 
       return response['success'] == true;
     } on PostgrestException catch (e) {

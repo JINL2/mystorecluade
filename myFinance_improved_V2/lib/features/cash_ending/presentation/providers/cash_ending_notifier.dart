@@ -1,11 +1,13 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_notifier.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/repositories/cash_ending_repository.dart';
-import '../../domain/repositories/location_repository.dart';
-import '../../domain/repositories/currency_repository.dart';
+
+import '../../core/constants.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/exceptions/cash_ending_exception.dart';
+import '../../domain/repositories/cash_ending_repository.dart';
+import '../../domain/repositories/currency_repository.dart';
+import '../../domain/repositories/location_repository.dart';
 import 'cash_ending_state.dart';
 
 /// State Notifier for Cash Ending feature
@@ -48,11 +50,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     String? storeId,
   }) async {
     // Set appropriate loading state
-    if (locationType == 'cash') {
+    if (locationType == CashEndingConstants.locationTypeCash) {
       state = state.copyWith(isLoadingCashLocations: true, errorMessage: null);
-    } else if (locationType == 'bank') {
+    } else if (locationType == CashEndingConstants.locationTypeBank) {
       state = state.copyWith(isLoadingBankLocations: true, errorMessage: null);
-    } else if (locationType == 'vault') {
+    } else if (locationType == CashEndingConstants.locationTypeVault) {
       state = state.copyWith(isLoadingVaultLocations: true, errorMessage: null);
     }
 
@@ -64,17 +66,17 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       );
 
       // Update appropriate state based on type
-      if (locationType == 'cash') {
+      if (locationType == CashEndingConstants.locationTypeCash) {
         state = state.copyWith(
           cashLocations: locations,
           isLoadingCashLocations: false,
         );
-      } else if (locationType == 'bank') {
+      } else if (locationType == CashEndingConstants.locationTypeBank) {
         state = state.copyWith(
           bankLocations: locations,
           isLoadingBankLocations: false,
         );
-      } else if (locationType == 'vault') {
+      } else if (locationType == CashEndingConstants.locationTypeVault) {
         state = state.copyWith(
           vaultLocations: locations,
           isLoadingVaultLocations: false,
@@ -84,11 +86,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       final errorMsg =
           e is CashEndingException ? e.message : 'Failed to load $locationType locations';
 
-      if (locationType == 'cash') {
+      if (locationType == CashEndingConstants.locationTypeCash) {
         state = state.copyWith(isLoadingCashLocations: false, errorMessage: errorMsg);
-      } else if (locationType == 'bank') {
+      } else if (locationType == CashEndingConstants.locationTypeBank) {
         state = state.copyWith(isLoadingBankLocations: false, errorMessage: errorMsg);
-      } else if (locationType == 'vault') {
+      } else if (locationType == CashEndingConstants.locationTypeVault) {
         state = state.copyWith(isLoadingVaultLocations: false, errorMessage: errorMsg);
       }
     }
@@ -101,9 +103,20 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     try {
       final currencies = await _currencyRepository.getCompanyCurrencies(companyId);
 
+      // Auto-select first currency if none selected
+      final selectedCashIds = state.selectedCashCurrencyIds.isEmpty && currencies.isNotEmpty
+          ? [currencies.first.currencyId]
+          : state.selectedCashCurrencyIds;
+
+      final selectedVaultIds = state.selectedVaultCurrencyIds.isEmpty && currencies.isNotEmpty
+          ? [currencies.first.currencyId]
+          : state.selectedVaultCurrencyIds;
+
       state = state.copyWith(
         currencies: currencies,
         isLoadingCurrencies: false,
+        selectedCashCurrencyIds: selectedCashIds,
+        selectedVaultCurrencyIds: selectedVaultIds,
       );
     } catch (e) {
       state = state.copyWith(
@@ -187,9 +200,9 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
     // Auto-load all location types (cash, bank, vault) like lib_old
     await Future.wait([
-      loadLocations(companyId: companyId, locationType: 'cash', storeId: storeId),
-      loadLocations(companyId: companyId, locationType: 'bank', storeId: storeId),
-      loadLocations(companyId: companyId, locationType: 'vault', storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeCash, storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeBank, storeId: storeId),
+      loadLocations(companyId: companyId, locationType: CashEndingConstants.locationTypeVault, storeId: storeId),
     ]);
   }
 
@@ -208,9 +221,32 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(selectedVaultLocationId: locationId);
   }
 
-  /// Update selected currency for cash tab
+  /// Add currency to cash tab selection
+  void addCashCurrency(String currencyId) {
+    if (!state.selectedCashCurrencyIds.contains(currencyId)) {
+      state = state.copyWith(
+        selectedCashCurrencyIds: [...state.selectedCashCurrencyIds, currencyId],
+      );
+    }
+  }
+
+  /// Remove currency from cash tab selection
+  void removeCashCurrency(String currencyId) {
+    // Keep at least one currency selected
+    if (state.selectedCashCurrencyIds.length > 1) {
+      state = state.copyWith(
+        selectedCashCurrencyIds: state.selectedCashCurrencyIds
+            .where((id) => id != currencyId)
+            .toList(),
+      );
+    }
+  }
+
+  /// Update selected currency for cash tab (legacy support - sets single currency)
   void setSelectedCashCurrency(String? currencyId) {
-    state = state.copyWith(selectedCashCurrencyId: currencyId);
+    if (currencyId != null) {
+      state = state.copyWith(selectedCashCurrencyIds: [currencyId]);
+    }
   }
 
   /// Update selected currency for bank tab
@@ -218,9 +254,32 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(selectedBankCurrencyId: currencyId);
   }
 
-  /// Update selected currency for vault tab
+  /// Add currency to vault tab selection
+  void addVaultCurrency(String currencyId) {
+    if (!state.selectedVaultCurrencyIds.contains(currencyId)) {
+      state = state.copyWith(
+        selectedVaultCurrencyIds: [...state.selectedVaultCurrencyIds, currencyId],
+      );
+    }
+  }
+
+  /// Remove currency from vault tab selection
+  void removeVaultCurrency(String currencyId) {
+    // Keep at least one currency selected
+    if (state.selectedVaultCurrencyIds.length > 1) {
+      state = state.copyWith(
+        selectedVaultCurrencyIds: state.selectedVaultCurrencyIds
+            .where((id) => id != currencyId)
+            .toList(),
+      );
+    }
+  }
+
+  /// Update selected currency for vault tab (legacy support - sets single currency)
   void setSelectedVaultCurrency(String? currencyId) {
-    state = state.copyWith(selectedVaultCurrencyId: currencyId);
+    if (currencyId != null) {
+      state = state.copyWith(selectedVaultCurrencyIds: [currencyId]);
+    }
   }
 
   /// Change current tab
@@ -231,5 +290,19 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   /// Clear error message
   void clearError() {
     state = state.copyWith(errorMessage: null, successMessage: null);
+  }
+
+  /// Reset after cash ending completion
+  /// Keeps: Store (logged-in user's store), Currency chips (last used for location)
+  /// Clears: Location selection, denomination quantities (via tab reload)
+  void resetAfterSubmit() {
+    state = state.copyWith(
+      selectedCashLocationId: null,
+      selectedBankLocationId: null,
+      selectedVaultLocationId: null,
+      errorMessage: null,
+      successMessage: null,
+    );
+    // Note: selectedStoreId and currency chips are kept
   }
 }

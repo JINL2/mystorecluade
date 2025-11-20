@@ -80,3 +80,30 @@ class DenominationInput with _$DenominationInput {
 
   factory DenominationInput.fromJson(Map<String, dynamic> json) => _$DenominationInputFromJson(json);
 }
+
+/// Template item for denomination creation
+class DenominationTemplateItem {
+  const DenominationTemplateItem({
+    required this.value,
+    required this.type,
+    required this.displayName,
+    required this.emoji,
+  });
+
+  final double value;
+  final DenominationType type;
+  final String displayName;
+  final String emoji;
+
+  /// Convert to DenominationInput
+  DenominationInput toInput(String companyId, String currencyId) {
+    return DenominationInput(
+      companyId: companyId,
+      currencyId: currencyId,
+      value: value,
+      type: type,
+      displayName: displayName,
+      emoji: emoji,
+    );
+  }
+}

@@ -23,7 +23,7 @@ class ShiftSummarySection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '이번 달 요약',
+          'This Month Summary',
           style: TossTextStyles.h3.copyWith(
             color: TossColors.gray900,
             fontWeight: FontWeight.w700,
@@ -39,27 +39,27 @@ class ShiftSummarySection extends StatelessWidget {
           childAspectRatio: 1.5,
           children: [
             ManagerStatsCard(
-              title: '전체 근무',
-              value: '${overview.totalShifts}개',
+              title: 'Total Shifts',
+              value: '${overview.totalShifts}',
               icon: Icons.calendar_today,
               color: TossColors.primary,
             ),
             ManagerStatsCard(
-              title: '대기 중인 요청',
-              value: '${overview.totalPendingRequests}건',
+              title: 'Pending Requests',
+              value: '${overview.totalPendingRequests}',
               icon: Icons.pending_actions,
               color: TossColors.warning,
             ),
             ManagerStatsCard(
-              title: '승인된 요청',
-              value: '${overview.totalApprovedRequests}건',
+              title: 'Approved Requests',
+              value: '${overview.totalApprovedRequests}',
               icon: Icons.check_circle,
               color: TossColors.success,
             ),
             ManagerStatsCard(
-              title: '승인율',
+              title: 'Approval Rate',
               value: '${overview.approvalRate.toStringAsFixed(1)}%',
-              subtitle: '전체 요청 대비',
+              subtitle: 'Of Total Requests',
               icon: Icons.trending_up,
               color: TossColors.info,
             ),

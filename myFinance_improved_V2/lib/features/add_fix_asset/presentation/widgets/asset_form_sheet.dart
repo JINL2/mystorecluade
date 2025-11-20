@@ -222,7 +222,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                 TossSpacing.space5,
                 TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: TossColors.background,
                 border: Border(
                   top: BorderSide(

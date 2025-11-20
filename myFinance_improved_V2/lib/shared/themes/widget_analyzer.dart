@@ -94,7 +94,7 @@ class WidgetAnalyzer {
         .whereType<File>()
         .where((file) => file.path.endsWith('.dart') && 
                         !file.path.contains('.g.dart') &&
-                        !file.path.contains('.freezed.dart'))
+                        !file.path.contains('.freezed.dart'),)
         .toList();
     
     for (final file in files) {
@@ -135,9 +135,9 @@ class WidgetAnalyzer {
     
     // Check for missing widget imports
     bool usesTossWidgets = widgetPatterns.values.any((pattern) => 
-        RegExp(pattern).hasMatch(content));
+        RegExp(pattern).hasMatch(content),);
     bool hasTossImport = commonWidgetImports.any((import) => 
-        content.contains(import));
+        content.contains(import),);
     
     if (usesTossWidgets && !hasTossImport && !fileName.contains('toss_')) {
       inconsistencies.add('Missing Toss widget import in $relativePath');
@@ -214,7 +214,7 @@ class WidgetAnalyzer {
     
     // Calculate metrics
     final totalWidgetUsage = widgetUsageCount.values.fold(0, (a, b) => a + b);
-    final avgUsagePerWidget = totalWidgetUsage / (widgetUsageCount.length > 0 ? widgetUsageCount.length : 1);
+    final avgUsagePerWidget = totalWidgetUsage / (widgetUsageCount.isNotEmpty ? widgetUsageCount.length : 1);
     
     print('📈 Metrics:');
     print('  • Total Toss widget usage: $totalWidgetUsage');
@@ -268,7 +268,7 @@ class WidgetAnalyzer {
     print('  • Consistency improvement: High');
     print('  • Maintenance benefit: Significant');
     
-    print('\n' + '=' * 60);
+    print('\n${'=' * 60}');
     print('Analysis Complete!');
   }
 }

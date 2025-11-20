@@ -1,30 +1,35 @@
 // lib/features/auth/domain/entities/user_entity.dart
 
-import '../value_objects/validation_result.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../validators/email_validator.dart';
+import '../value_objects/validation_result.dart';
+
+part 'user_entity.freezed.dart';
 
 /// User entity representing an authenticated user in the system.
 ///
 /// This is a core domain entity that encapsulates user data and validation logic.
 /// It is completely independent of any framework (Flutter, Supabase, etc.)
-class User {
-  final String id;
-  final String email;
-  final String? firstName;
-  final String? lastName;
-  final DateTime createdAt;
-  final DateTime? lastLoginAt;
-  final bool isEmailVerified;
+///
+/// Migrated to Freezed for:
+/// - Immutability guarantees
+/// - Automatic copyWith generation
+/// - Type-safe equality
+/// - Reduced boilerplate
+@freezed
+class User with _$User {
+  const User._();
 
-  const User({
-    required this.id,
-    required this.email,
-    this.firstName,
-    this.lastName,
-    required this.createdAt,
-    this.lastLoginAt,
-    required this.isEmailVerified,
-  });
+  const factory User({
+    required String id,
+    required String email,
+    String? firstName,
+    String? lastName,
+    required DateTime createdAt,
+    DateTime? lastLoginAt,
+    required bool isEmailVerified,
+  }) = _User;
 
   /// Validates the user entity
   ///
@@ -75,42 +80,5 @@ class User {
       return firstName!.substring(0, 1).toUpperCase();
     }
     return email.substring(0, 1).toUpperCase();
-  }
-
-  /// Create a copy with updated fields
-  User copyWith({
-    String? id,
-    String? email,
-    String? firstName,
-    String? lastName,
-    DateTime? createdAt,
-    DateTime? lastLoginAt,
-    bool? isEmailVerified,
-  }) {
-    return User(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      createdAt: createdAt ?? this.createdAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is User &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          email == other.email;
-
-  @override
-  int get hashCode => id.hashCode ^ email.hashCode;
-
-  @override
-  String toString() {
-    return 'User(id: $id, email: $email, displayName: $displayName, isEmailVerified: $isEmailVerified)';
   }
 }

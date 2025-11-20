@@ -18,13 +18,13 @@ enum ShiftStatus {
   String get displayName {
     switch (this) {
       case ShiftStatus.scheduled:
-        return '예정됨';
+        return 'Scheduled';
       case ShiftStatus.inProgress:
-        return '진행중';
+        return 'In Progress';
       case ShiftStatus.completed:
-        return '완료됨';
+        return 'Completed';
       case ShiftStatus.cancelled:
-        return '취소됨';
+        return 'Cancelled';
     }
   }
 
@@ -60,11 +60,11 @@ enum ShiftRequestStatus {
   String get displayName {
     switch (this) {
       case ShiftRequestStatus.pending:
-        return '대기중';
+        return 'Pending';
       case ShiftRequestStatus.approved:
-        return '승인됨';
+        return 'Approved';
       case ShiftRequestStatus.rejected:
-        return '거부됨';
+        return 'Rejected';
     }
   }
 

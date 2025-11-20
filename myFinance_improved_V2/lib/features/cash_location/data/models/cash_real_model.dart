@@ -1,6 +1,7 @@
 // Data Layer - Cash Real Models (DTOs) with Mappers
 
 import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/bank_real_entry.dart' as bank_domain;
 import '../../domain/entities/cash_real_entry.dart' as domain;
 
 /// Cash Real Entry Model - DTO
@@ -86,8 +87,8 @@ class CurrencySummaryModel {
     );
   }
 
-  domain.CurrencySummary toEntity() {
-    return domain.CurrencySummary(
+  bank_domain.CurrencySummary toEntity() {
+    return bank_domain.CurrencySummary(
       currencyId: currencyId,
       currencyCode: currencyCode,
       currencyName: currencyName,
@@ -124,8 +125,8 @@ class DenominationModel {
     );
   }
 
-  domain.Denomination toEntity() {
-    return domain.Denomination(
+  bank_domain.Denomination toEntity() {
+    return bank_domain.Denomination(
       denominationId: denominationId,
       denominationType: denominationType,
       denominationValue: denominationValue,

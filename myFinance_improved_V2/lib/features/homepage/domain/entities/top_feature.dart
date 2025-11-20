@@ -6,6 +6,7 @@ class TopFeature {
   const TopFeature({
     required this.featureId,
     required this.featureName,
+    this.featureDescription,
     required this.clickCount,
     required this.lastClicked,
     required this.icon,
@@ -16,6 +17,7 @@ class TopFeature {
 
   final String featureId;
   final String featureName;
+  final String? featureDescription;
   final String? categoryId;
   final int clickCount;
   final DateTime lastClicked;

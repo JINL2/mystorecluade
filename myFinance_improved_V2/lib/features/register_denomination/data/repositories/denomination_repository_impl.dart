@@ -277,7 +277,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
         type: templateItem.type,
         displayName: templateItem.displayName,
         emoji: templateItem.emoji,
-      )).toList();
+      ),).toList();
 
       return await addBulkDenominations(inputs);
     } catch (e) {
@@ -408,7 +408,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
             isActive: true,
             createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
           );
-        }).toList());
+        }).toList(),);
   }
 
   @override

@@ -1,18 +1,22 @@
 // lib/features/auth/data/repositories/base_repository.dart
 
+import 'package:flutter/foundation.dart';
+import '../../../../core/monitoring/sentry_config.dart';
+
 /// Base repository with common error handling wrapper
 ///
 /// All repositories should extend this class to get consistent
 /// exception handling patterns.
 ///
-/// Note: Since DataSource layer already handles Supabase-specific exceptions,
-/// this base class simply provides convenience wrapper methods.
-/// DataSource converts Supabase exceptions to regular Exceptions with meaningful messages.
+/// Features:
+/// - Automatic error logging to Sentry (production only)
+/// - Consistent exception handling
+/// - Repository context tracking
 abstract class BaseRepository {
   /// Execute database operation
   ///
   /// Wraps the operation call to provide consistent error handling pattern.
-  /// DataSource layer is responsible for converting Supabase exceptions.
+  /// Automatically logs errors to Sentry in production.
   ///
   /// Example:
   /// ```dart
@@ -26,9 +30,21 @@ abstract class BaseRepository {
   Future<T> execute<T>(Future<T> Function() operation) async {
     try {
       return await operation();
-    } catch (e) {
-      // Re-throw the exception from DataSource
-      // DataSource already provides meaningful error messages
+    } catch (e, stackTrace) {
+      // ✅ Log error to Sentry in production
+      if (kReleaseMode) {
+        await SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'Repository operation failed',
+          extra: {
+            'repository': runtimeType.toString(),
+            'operation': 'execute',
+          },
+        );
+      }
+
+      // Re-throw the exception
       rethrow;
     }
   }
@@ -50,8 +66,21 @@ abstract class BaseRepository {
   Future<T?> executeNullable<T>(Future<T?> Function() operation) async {
     try {
       return await operation();
-    } catch (e) {
-      // Re-throw the exception from DataSource
+    } catch (e, stackTrace) {
+      // ✅ Log error to Sentry in production
+      if (kReleaseMode) {
+        await SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'Repository nullable operation failed',
+          extra: {
+            'repository': runtimeType.toString(),
+            'operation': 'executeNullable',
+          },
+        );
+      }
+
+      // Re-throw the exception
       rethrow;
     }
   }

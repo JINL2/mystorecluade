@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/constants/icon_mapper.dart';
@@ -8,11 +8,11 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_empty_view.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/store_shift.dart';
 import '../providers/store_shift_providers.dart';
@@ -149,7 +149,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
-                    FontAwesomeIcons.store,
+                    LucideIcons.store,
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
                   ),
@@ -198,9 +198,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
 
             // Shifts List
             if (appState.storeChoosen.isEmpty)
-              TossEmptyView(
+              const TossEmptyView(
                 icon: Icon(
-                  FontAwesomeIcons.store,
+                  LucideIcons.store,
                   size: 64,
                   color: TossColors.gray400,
                 ),
@@ -212,9 +212,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                   if (shifts.isEmpty) {
                     return Column(
                       children: [
-                        TossEmptyView(
+                        const TossEmptyView(
                           icon: Icon(
-                            FontAwesomeIcons.clock,
+                            LucideIcons.clock,
                             size: 64,
                             color: TossColors.gray400,
                           ),
@@ -226,7 +226,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           onPressed: () {
                             _showAddShiftBottomSheet(context);
                           },
-                          icon: const Icon(FontAwesomeIcons.plus, size: TossSpacing.iconSM),
+                          icon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM),
                           label: const Text('Add Shift'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
@@ -256,7 +256,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                               _showAddShiftBottomSheet(context);
                             },
                             icon: const Icon(
-                              FontAwesomeIcons.plus,
+                              LucideIcons.plus,
                               color: TossColors.primary,
                               size: TossSpacing.iconSM,
                             ),
@@ -287,8 +287,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                   message: 'Loading shifts...',
                 ),
                 error: (error, stack) => TossEmptyView(
-                  icon: Icon(
-                    FontAwesomeIcons.circleExclamation,
+                  icon: const Icon(
+                    LucideIcons.alertCircle,
                     size: 64,
                     color: TossColors.error,
                   ),
@@ -323,9 +323,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
 
             // Store Details
             if (appState.storeChoosen.isEmpty)
-              TossEmptyView(
+              const TossEmptyView(
                 icon: Icon(
-                  FontAwesomeIcons.store,
+                  LucideIcons.store,
                   size: 64,
                   color: TossColors.gray400,
                 ),
@@ -335,9 +335,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
               storeDetailsAsync.when(
                 data: (store) {
                   if (store == null) {
-                    return TossEmptyView(
+                    return const TossEmptyView(
                       icon: Icon(
-                        FontAwesomeIcons.store,
+                        LucideIcons.store,
                         size: 64,
                         color: TossColors.gray400,
                       ),
@@ -350,9 +350,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                       // Store Info Card
                       StoreInfoCard(
                         store: store,
-                        onEdit: () {
-                          // TODO: Show edit store dialog
-                        },
+                        // onEdit removed - no edit functionality for store info
                       ),
                       const SizedBox(height: TossSpacing.space4),
 
@@ -360,7 +358,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                       StoreConfigSection(
                         store: store,
                         onEditSettings: () {
-                          // TODO: Show edit settings dialog
+                          _showEditOperationalSettingsSheet(context, store);
                         },
                         onEditLocation: () {
                           // TODO: Show location setting dialog
@@ -385,8 +383,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                   message: 'Loading store details...',
                 ),
                 error: (error, stack) => TossEmptyView(
-                  icon: Icon(
-                    FontAwesomeIcons.circleExclamation,
+                  icon: const Icon(
+                    LucideIcons.alertCircle,
                     size: 64,
                     color: TossColors.error,
                   ),
@@ -429,5 +427,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
         ],
       ),
     );
+  }
+
+  /// Show Edit Operational Settings Bottom Sheet
+  void _showEditOperationalSettingsSheet(BuildContext context, Map<String, dynamic> store) {
+    showOperationalSettingsDialog(context, store);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'safe_navigation.dart';
 import 'navigation_params.dart';
 
 /// AuthNavigator - Unified navigation system for auth flows
@@ -47,9 +46,8 @@ class AuthNavigator {
     // Track navigation
     _trackNavigation('/auth/signup');
     
-    // Use safePush for auth page navigation to avoid redirect loops
-    // safePush adds to the navigation stack without triggering redirects
-    context.safePush('/auth/signup');
+    // Use push for auth page navigation
+    context.push('/auth/signup');
   }
   
   /// Navigate to login page
@@ -59,9 +57,9 @@ class AuthNavigator {
     }
     
     _trackNavigation('/auth/login');
-    
+
     // Clear any existing stack and go to login
-    context.safeGo('/auth/login');
+    context.go('/auth/login');
   }
   
   /// Navigate to choose role page
@@ -71,7 +69,7 @@ class AuthNavigator {
     }
     
     _trackNavigation('/onboarding/choose-role');
-    context.safeGo('/onboarding/choose-role');
+    context.go('/onboarding/choose-role');
   }
   
   /// Navigate to create business page
@@ -81,7 +79,7 @@ class AuthNavigator {
     }
     
     _trackNavigation('/onboarding/create-business');
-    context.safePush('/onboarding/create-business');
+    context.push('/onboarding/create-business');
   }
   
   /// Navigate to create store page
@@ -100,13 +98,13 @@ class AuthNavigator {
     }
     
     _trackNavigation('/onboarding/create-store');
-    
-    // Use safeGo with extra parameters for compatibility
-    context.safeGo('/onboarding/create-store', extra: {
+
+    // Use go with extra parameters for compatibility
+    context.go('/onboarding/create-store', extra: {
       'companyId': companyId,
       'companyName': companyName,
       ...?additionalParams,
-    });
+    },);
   }
   
   /// Navigate to join business page
@@ -116,7 +114,7 @@ class AuthNavigator {
     }
     
     _trackNavigation('/onboarding/join-business');
-    context.safePush('/onboarding/join-business');
+    context.push('/onboarding/join-business');
   }
   
   /// Navigate to forgot password page
@@ -126,8 +124,8 @@ class AuthNavigator {
     }
     
     _trackNavigation('/auth/forgot-password');
-    // Use safePush to maintain navigation stack for auth pages
-    context.safePush('/auth/forgot-password');
+    // Use push to maintain navigation stack for auth pages
+    context.push('/auth/forgot-password');
   }
   
   /// Navigate to dashboard/homepage
@@ -137,17 +135,17 @@ class AuthNavigator {
     }
     
     _trackNavigation('/');
-    
+
     // Clear navigation stack and go to dashboard
     _clearStack();
-    context.safeGo('/');
+    context.go('/');
   }
   
   /// Navigate back with intelligent handling
   static void back(BuildContext context) {
     // Try to pop first if possible (for pushed routes)
     if (context.canPop()) {
-      context.safePop();
+      context.pop();
       // Clean up route stack
       if (_routeStack.isNotEmpty) {
         _routeStack.removeLast();
@@ -156,12 +154,12 @@ class AuthNavigator {
       // If can't pop, use GoRouter navigation to go to previous route
       final previousRoute = _getPreviousRoute();
       if (previousRoute != null) {
-        context.safeGo(previousRoute);
+        context.go(previousRoute);
       } else {
         // Default to login if no previous route
-        context.safeGo('/auth/login');
+        context.go('/auth/login');
       }
-      
+
       // Clean up route stack
       if (_routeStack.isNotEmpty) {
         _routeStack.removeLast();
@@ -180,9 +178,9 @@ class AuthNavigator {
     if (_routeStack.isNotEmpty) {
       _routeStack.removeLast();
     }
-    
+
     _trackNavigation(route);
-    context.safeGo(route);
+    context.go(route);
   }
   
   /// Check if coming from login page (kept for future use if needed)

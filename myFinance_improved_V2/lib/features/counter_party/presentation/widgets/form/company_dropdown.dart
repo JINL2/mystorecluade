@@ -66,10 +66,10 @@ class CompanyDropdown extends ConsumerWidget {
       },
 
       // Loading state
-      loading: () => TossDropdown<String>(
+      loading: () => const TossDropdown<String>(
         label: 'Linked Company',
         value: null,
-        items: const [],
+        items: [],
         hint: 'Loading companies...',
         isLoading: true,
         onChanged: null,

@@ -6,40 +6,27 @@
 /// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
 ///
 /// Usage: TemplateUsageBottomSheet.show(context, template)
+library;
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/themes/toss_design_system.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import '../widgets/common/store_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-// Updated imports to use new provider structure
-import '../providers/template_provider.dart';
-// 🔧 ENHANCED: Template analysis for intelligent UI
-import '../../domain/value_objects/template_analysis_result.dart';
-import '../../domain/enums/template_enums.dart';
-import '../../domain/validators/template_form_validator.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+
 // ✅ Clean Architecture: Use Case from Domain layer
 import '../../domain/usecases/create_transaction_from_template_usecase.dart';
+import '../../domain/validators/template_form_validator.dart';
+// 🔧 ENHANCED: Template analysis for intelligent UI
+import '../../domain/value_objects/template_analysis_result.dart';
 // ✅ Clean Architecture: Provider from Presentation layer
 import '../providers/use_case_providers.dart';
 
@@ -116,7 +103,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
     return TossTextFieldKeyboardModal.show(
       context: context,
       title: templateName,
-      contentPadding: EdgeInsets.symmetric(
+      contentPadding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space3,  // ✅ Reduced: 12px instead of default 16px
         vertical: TossSpacing.space3,
       ),
@@ -128,7 +115,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
             text: 'Cancel',
             fullWidth: true,
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
         ),
@@ -258,12 +245,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         // 🔧 ENHANCED: Template info card (Legacy style)
         _buildTemplateInfoCard(),
 
-        SizedBox(height: TossSpacing.space3),
+        const SizedBox(height: TossSpacing.space3),
 
         // 🔧 ENHANCED: "Just enter these:" section with blue border (Legacy style)
         _buildInputSection(),
 
-        SizedBox(height: TossSpacing.space3),
+        const SizedBox(height: TossSpacing.space3),
 
         // 🔧 ENHANCED: Template details collapsible section
         _buildTemplateDetailsSection(),
@@ -274,7 +261,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   /// Builds template info card (Legacy style with icon)
   Widget _buildTemplateInfoCard() {
     final data = widget.template['data'] as List? ?? [];
-    if (data.isEmpty) return SizedBox.shrink();
+    if (data.isEmpty) return const SizedBox.shrink();
 
     final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => <String, dynamic>{});
     final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => <String, dynamic>{});
@@ -282,13 +269,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final debitTag = debit['category_tag']?.toString() ?? '';
     final creditTag = credit['category_tag']?.toString() ?? '';
 
-    if (debitTag.isEmpty || creditTag.isEmpty) return SizedBox.shrink();
+    if (debitTag.isEmpty || creditTag.isEmpty) return const SizedBox.shrink();
 
     // Get template name from widget
     final templateName = widget.template['name']?.toString() ?? 'Template';
 
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -297,18 +284,18 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         children: [
           // 📋 Template icon (blue)
           Container(
-            padding: EdgeInsets.all(TossSpacing.space2),
+            padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.receipt_long,
               color: TossColors.primary,
               size: 20,
             ),
           ),
-          SizedBox(width: TossSpacing.space3),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +308,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                     color: TossColors.gray900,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space1),
+                const SizedBox(height: TossSpacing.space1),
                 // Transaction type (gray)
                 Text(
                   '${TemplateUsageBottomSheet._formatTagName(debitTag)} → ${TemplateUsageBottomSheet._formatTagName(creditTag)}',
@@ -350,7 +337,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         ),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -358,12 +345,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           if (showGuidance) ...[
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.edit,
                   color: TossColors.primary,
                   size: 20,
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Just enter these:',
                   style: TossTextStyles.body.copyWith(
@@ -373,7 +360,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 ),
               ],
             ),
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
           ],
 
           // Dynamic form fields
@@ -391,20 +378,20 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         // Amount field (always required)
         _buildAmountField(),
 
-        SizedBox(height: TossSpacing.space3),
+        const SizedBox(height: TossSpacing.space3),
 
         // Description field (optional)
         _buildDescriptionField(),
 
         // Cash location selector (if needed)
         if (_analysis.missingItems.contains('cash_location')) ...[
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           _buildCashLocationSelector(),
         ],
 
         // Counterparty selector (if needed)
         if (_analysis.missingItems.contains('counterparty')) ...[
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           _buildCounterpartySelector(),
         ],
       ],
@@ -427,7 +414,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           },
         ),
         if (_amountError != null) ...[
-          SizedBox(height: TossSpacing.space1),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             _amountError!,
             style: TossTextStyles.caption.copyWith(
@@ -466,7 +453,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(width: TossSpacing.space1),
+            const SizedBox(width: TossSpacing.space1),
             Text(
               '*',
               style: TossTextStyles.body.copyWith(
@@ -476,7 +463,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             ),
           ],
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         AutonomousCashLocationSelector(
           storeId: storeId,
           selectedLocationId: _selectedMyCashLocationId,
@@ -488,7 +475,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           },
         ),
         if (_cashLocationError != null) ...[
-          SizedBox(height: TossSpacing.space1),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             _cashLocationError!,
             style: TossTextStyles.caption.copyWith(
@@ -514,7 +501,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(width: TossSpacing.space1),
+            const SizedBox(width: TossSpacing.space1),
             Text(
               '*',
               style: TossTextStyles.body.copyWith(
@@ -524,9 +511,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             ),
           ],
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.all(TossSpacing.space3),
+          padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
             border: Border.all(color: TossColors.gray300),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -543,7 +530,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   /// Builds template details collapsible section
   Widget _buildTemplateDetailsSection() {
     final data = widget.template['data'] as List? ?? [];
-    if (data.isEmpty) return SizedBox.shrink();
+    if (data.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,7 +538,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         InkWell(
           onTap: () => setState(() => _showTemplateDetails = !_showTemplateDetails),
           child: Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
+            padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -562,12 +549,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 Row(
                   children: [
                     // ℹ️ Info icon (Legacy style)
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: TossColors.gray600,
                       size: 20,
                     ),
-                    SizedBox(width: TossSpacing.space2),
+                    const SizedBox(width: TossSpacing.space2),
                     Text(
                       'Template Details',
                       style: TossTextStyles.body.copyWith(
@@ -586,10 +573,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         ),
         if (_showTemplateDetails) ...[
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           // Constrain height to prevent overflow over buttons
           ConstrainedBox(
-            constraints: BoxConstraints(
+            constraints: const BoxConstraints(
               maxHeight: 200, // Limit height to ensure buttons are visible
             ),
             child: SingleChildScrollView(
@@ -608,7 +595,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final counterpartyStoreName = tags['counterparty_store_name']?.toString();
 
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         border: Border.all(color: TossColors.gray300),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -625,12 +612,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           final counterpartyCashLocationName = entry['counterparty_cash_location_name']?.toString();
 
           return Padding(
-            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
             child: Row(
               children: [
                 // DEBIT/CREDIT badge
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
                     vertical: TossSpacing.space1,
                   ),
@@ -646,7 +633,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                     ),
                   ),
                 ),
-                SizedBox(width: TossSpacing.space3),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,15 +648,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                       ),
                       // Conditional: Cash location name
                       if (cashLocationName != null) ...[
-                        SizedBox(height: TossSpacing.space1),
+                        const SizedBox(height: TossSpacing.space1),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.location_on_outlined,
                               size: 14,
                               color: TossColors.gray500,
                             ),
-                            SizedBox(width: TossSpacing.space1),
+                            const SizedBox(width: TossSpacing.space1),
                             Text(
                               cashLocationName,
                               style: TossTextStyles.caption.copyWith(
@@ -681,15 +668,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                       ],
                       // Conditional: Counterparty name
                       if (counterpartyName != null) ...[
-                        SizedBox(height: TossSpacing.space1),
+                        const SizedBox(height: TossSpacing.space1),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.person_outline,
                               size: 14,
                               color: TossColors.gray500,
                             ),
-                            SizedBox(width: TossSpacing.space1),
+                            const SizedBox(width: TossSpacing.space1),
                             Text(
                               counterpartyName,
                               style: TossTextStyles.caption.copyWith(
@@ -701,15 +688,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                       ],
                       // Conditional: Counterparty store name (only for Payable/Receivable)
                       if (counterpartyName != null && counterpartyStoreName != null) ...[
-                        SizedBox(height: TossSpacing.space1),
+                        const SizedBox(height: TossSpacing.space1),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.store_outlined,
                               size: 14,
                               color: TossColors.gray500,
                             ),
-                            SizedBox(width: TossSpacing.space1),
+                            const SizedBox(width: TossSpacing.space1),
                             Text(
                               counterpartyStoreName,
                               style: TossTextStyles.caption.copyWith(
@@ -721,15 +708,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                       ],
                       // Conditional: Counterparty cash location name
                       if (counterpartyCashLocationName != null) ...[
-                        SizedBox(height: TossSpacing.space1),
+                        const SizedBox(height: TossSpacing.space1),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.account_balance_outlined,
                               size: 14,
                               color: TossColors.gray500,
                             ),
-                            SizedBox(width: TossSpacing.space1),
+                            const SizedBox(width: TossSpacing.space1),
                             Text(
                               counterpartyCashLocationName,
                               style: TossTextStyles.caption.copyWith(
@@ -773,7 +760,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       selectedMyCashLocationId: _selectedMyCashLocationId,
       selectedCounterpartyId: _selectedCounterpartyId,
       selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
-      companyId: companyId!,
+      companyId: companyId,
       userId: userId,
       storeId: storeId,
     );
@@ -799,7 +786,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Validation Error',
             message: validationResult.firstError!,
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -829,7 +816,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Transaction Created!',
             message: 'Transaction created successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -837,7 +824,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         Navigator.of(context).pop(true); // Return true to indicate success
       }
 
-    } catch (e, stackTrace) {
+    } catch (e) {
       // 6. Error feedback
       if (mounted) {
         showDialog(
@@ -847,7 +834,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Transaction Failed',
             message: 'Failed to create transaction: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

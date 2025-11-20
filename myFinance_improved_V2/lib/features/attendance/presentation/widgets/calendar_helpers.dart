@@ -12,7 +12,7 @@ class CalendarHelpers {
   static String getMonthName(int month) {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[month - 1];
   }
@@ -157,9 +157,9 @@ class CalendarHelpers {
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: GridView.count(
         crossAxisCount: 7,
-        children: calendarDays,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        children: calendarDays,
       ),
     );
   }

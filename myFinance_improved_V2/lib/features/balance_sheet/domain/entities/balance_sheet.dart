@@ -1,7 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'financial_account.dart';
-import 'balance_verification.dart';
+
 import '../value_objects/date_range.dart';
+import 'balance_verification.dart';
+import 'financial_account.dart';
 
 part 'balance_sheet.freezed.dart';
 

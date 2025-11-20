@@ -7,11 +7,13 @@
 /// - Simple dismiss and navigation actions
 ///
 /// Usage: TemplateCreationDialogs.showSuccess(context), TemplateCreationDialogs.showError(context, error)
+library;
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TemplateCreationDialogs {
   /// Show success dialog
@@ -30,7 +32,7 @@ class TemplateCreationDialogs {
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: TossColors.successLight,
                   shape: BoxShape.circle,
                 ),
@@ -61,7 +63,7 @@ class TemplateCreationDialogs {
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                Navigator.of(context).pop();
+                context.pop();
               },
               child: Text(
                 'OK',
@@ -91,7 +93,7 @@ class TemplateCreationDialogs {
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: TossColors.errorLight,
                   shape: BoxShape.circle,
                 ),

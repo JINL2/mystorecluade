@@ -2,9 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 
 /// Total display widget
 ///
@@ -24,74 +25,28 @@ class TotalDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,###');
+    final formattedAmount = '$currencySymbol${formatter.format(totalAmount.toInt())}';
 
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            TossColors.primary,
-            TossColors.primary.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.primary.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.calculate,
-                color: TossColors.white.withOpacity(0.9),
-                size: 20,
-              ),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                label,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray700,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
           ),
-          const SizedBox(height: TossSpacing.space2),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                currencySymbol,
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space1),
-              Expanded(
-                child: Text(
-                  formatter.format(totalAmount.toInt()),
-                  style: TossTextStyles.display.copyWith(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          Text(
+            formattedAmount,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
           ),
         ],
-      ),
     );
   }
 }

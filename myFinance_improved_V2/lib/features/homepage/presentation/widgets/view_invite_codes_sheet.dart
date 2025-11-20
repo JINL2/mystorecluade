@@ -58,7 +58,7 @@ class CodesBottomSheet extends StatelessWidget {
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: TossColors.textSecondary),
+                  icon: const Icon(Icons.close, color: TossColors.textSecondary),
                 ),
               ],
             ),
@@ -105,7 +105,7 @@ class CodesBottomSheet extends StatelessWidget {
                           icon: Icons.store_outlined,
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ],
               ),
@@ -214,7 +214,7 @@ class _CodeCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.copy_outlined,
                             size: 12,
                             color: TossColors.primary,

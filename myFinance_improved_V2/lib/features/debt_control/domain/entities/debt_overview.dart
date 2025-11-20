@@ -1,7 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'kpi_metrics.dart';
+
 import 'aging_analysis.dart';
 import 'critical_alert.dart';
+import 'kpi_metrics.dart';
 import 'prioritized_debt.dart';
 
 part 'debt_overview.freezed.dart';

@@ -10,8 +10,10 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import '../../domain/entities/bank_real_entry.dart' as bank;
 import '../../domain/entities/vault_real_entry.dart' as vault;
 import '../providers/cash_location_providers.dart';
+import '../widgets/sheets/vault_detail_sheet.dart';
 
 class VaultRealPage extends ConsumerStatefulWidget {
   const VaultRealPage({super.key});
@@ -64,13 +66,13 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     final storeId = appState.storeChoosen;
     
     try {
-      final repository = ref.read(cashLocationRepositoryProvider);
-      final newEntries = await repository.getVaultReal(
+      final useCase = ref.read(getVaultRealUseCaseProvider);
+      final newEntries = await useCase(VaultRealParams(
         companyId: companyId,
         storeId: storeId,
         offset: _currentOffset + _limit,
         limit: _limit,
-      );
+      ));
       
       setState(() {
         if (newEntries.isEmpty || newEntries.length < _limit) {
@@ -98,7 +100,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         amount: entry.totalAmount,
         currencySymbol: entry.getCurrencySymbol(),
         realEntry: entry,
-      ));
+      ),);
     }
     
     return displayItems;
@@ -128,9 +130,9 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return TossScaffold(
+      return const TossScaffold(
         backgroundColor: TossColors.gray50,
-        body: const Center(
+        body: Center(
           child: Text('Please select a company and store first'),
         ),
       );
@@ -143,11 +145,11 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Vault Total Real',
         backgroundColor: TossColors.gray50,
       ),
@@ -158,7 +160,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
             // Content - Vault Real List fills remaining space
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   TossSpacing.space4,
                   TossSpacing.space4,
                   TossSpacing.space4,
@@ -206,7 +208,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                                 offset: 0,
                                 limit: _limit,
                               ),
-                            ));
+                            ),);
                           },
                           child: const Text('Retry'),
                         ),
@@ -298,12 +300,12 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
         offset: 0,
         limit: _limit,
       ),
-    ));
+    ),);
   }
   
   Widget _buildLoadMoreMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Center(
         child: Text(
           'Scroll to load more',
@@ -318,7 +320,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
   
   Widget _buildListHeader() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: TossSpacing.space5,
         right: TossSpacing.space4,
         top: TossSpacing.space4,
@@ -336,7 +338,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                 fontSize: 14,
               ),
             ),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: TossColors.gray600,
@@ -349,9 +351,9 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
   
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Center(
-        child: const TossLoadingView(),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: const Center(
+        child: TossLoadingView(),
       ),
     );
   }
@@ -363,7 +365,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
       onTap: () => _showVaultDetailBottomSheet(item),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
         ),
@@ -372,7 +374,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
             // Date section
             Container(
               width: 42,
-              padding: EdgeInsets.only(left: TossSpacing.space1),
+              padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
                       _formatDate(item.date),
@@ -385,7 +387,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                   : const SizedBox.shrink(),
             ),
             
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             
             // Real details
             Expanded(
@@ -400,7 +402,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                       color: TossColors.gray800,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Flexible(
@@ -420,7 +422,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               ),
             ),
             
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             
             // Amount (can be negative)
             Text(
@@ -496,7 +498,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return _VaultDetailBottomSheet(
+        return VaultDetailSheet(
           vaultRealItem: item,
         );
       },
@@ -533,7 +535,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -555,7 +557,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
               
               // Filter options
               ..._getFilterOptions().map((option) => 
-                _buildFilterOption(option, _selectedFilter == option)
+                _buildFilterOption(option, _selectedFilter == option),
               ),
               
               // Bottom safe area
@@ -608,278 +610,3 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
   }
 }
 
-class _VaultDetailBottomSheet extends StatelessWidget {
-  final VaultRealDisplay vaultRealItem;
-
-  const _VaultDetailBottomSheet({
-    required this.vaultRealItem,
-  });
-
-  String _formatCurrency(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
-    final symbol = currencySymbol ?? '';
-    final isNegative = amount < 0;
-    final absAmount = amount.abs();
-    return '${isNegative ? "-" : ""}$symbol${formatter.format(absAmount.round())}';
-  }
-
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat('MMM d, yyyy').format(date);
-    } catch (e) {
-      return dateStr;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final realEntry = vaultRealItem.realEntry;
-    final currencySymbol = vaultRealItem.currencySymbol;
-    final totalValue = realEntry.totalAmount;
-    final isNegative = totalValue < 0;
-    
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
-          
-          // Header
-          Padding(
-            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Vault Balance Details',
-                    style: TossTextStyles.h2.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 24),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-          
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Total Running Balance
-                  Container(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    decoration: BoxDecoration(
-                      color: isNegative 
-                          ? TossColors.error.withOpacity(0.1)
-                          : Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Running Balance',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray600,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _formatCurrency(totalValue, currencySymbol),
-                              style: TossTextStyles.h1.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: isNegative 
-                                    ? TossColors.error
-                                    : Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Icon(
-                          Icons.lock_outline,
-                          color: isNegative 
-                              ? TossColors.error
-                              : Theme.of(context).colorScheme.primary,
-                          size: 32,
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Details
-                  _buildDetailRow('Date', _formatDate(realEntry.recordDate)),
-                  _buildDetailRow('Location', realEntry.locationName),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Running Denomination Breakdown
-                  if (realEntry.currencySummary.isNotEmpty) ...[
-                    Text(
-                      'Running Denomination Balance',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space3),
-                    
-                    ...realEntry.currencySummary.expand((currency) =>
-                      currency.denominations
-                        .where((d) => d.quantity != 0) // Only show non-zero quantities
-                        .map((denomination) => _buildRunningDenominationItem(denomination, currency.symbol))
-                    ),
-                  ],
-                  
-                  // Bottom padding
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-          
-          // Bottom safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildRunningDenominationItem(vault.Denomination denomination, String symbol) {
-    final isNegative = denomination.quantity < 0;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Denomination value
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                    ),
-                    child: Text(
-                      _formatCurrency(denomination.denominationValue, symbol),
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.primary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Running quantity
-              Text(
-                'Qty: ${denomination.quantity}',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: isNegative ? TossColors.error : TossColors.black87,
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: TossSpacing.space2),
-          
-          // Running total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Spacer(),
-
-              // Running total (using subtotal since runningTotal doesn't exist)
-              Text(
-                _formatCurrency(denomination.subtotal, symbol),
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: isNegative ? TossColors.error : TossColors.black87,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}

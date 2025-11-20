@@ -244,6 +244,16 @@ class BalanceSheetPageNotifier extends StateNotifier<BalanceSheetPageState> {
     );
   }
 
+  /// Clear balance sheet data and return to input
+  void clearBalanceSheetData() {
+    state = state.copyWith(hasBalanceSheetData: false);
+  }
+
+  /// Clear income statement data and return to input
+  void clearIncomeStatementData() {
+    state = state.copyWith(hasIncomeStatementData: false);
+  }
+
   /// 상태 초기화
   void reset() {
     state = BalanceSheetPageState.initial();

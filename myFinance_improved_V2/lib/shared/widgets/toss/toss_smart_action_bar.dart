@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 /// Smart action bar that intelligently positions itself relative to keyboard
 /// Solves the "buttons hidden behind keyboard" problem
@@ -51,7 +51,7 @@ class _TossSmartActionBarState extends State<TossSmartActionBar>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
 
     _opacityAnimation = Tween<double>(
       begin: 0.0,
@@ -59,7 +59,7 @@ class _TossSmartActionBarState extends State<TossSmartActionBar>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-    ));
+    ),);
 
     // Start animation
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,7 +98,7 @@ class _TossSmartActionBarState extends State<TossSmartActionBar>
   }
 
   Widget _buildActionBar(
-      BuildContext context, double keyboardHeight, bool isKeyboardVisible) {
+      BuildContext context, double keyboardHeight, bool isKeyboardVisible,) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,

@@ -7,6 +7,7 @@
 /// - Provides reactive state updates
 ///
 /// ✅ LOCATION: lib/app/providers/app_state_notifier.dart
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,6 +101,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       companyName: companyName ?? state.companyName,
       storeName: storeName ?? state.storeName,
     );
+    // Save to cache
+    _saveLastSelection();
   }
 
   /// Update company selection

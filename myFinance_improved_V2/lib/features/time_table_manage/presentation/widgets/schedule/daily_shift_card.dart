@@ -72,7 +72,7 @@ class DailyShiftCard extends StatelessWidget {
 
               // Approved employees
               if (approvedRequests.isNotEmpty) ...[
-                _buildSectionTitle('승인된 근무자 (${approvedRequests.length}명)'),
+                _buildSectionTitle('Approved Workers (${approvedRequests.length})'),
                 const SizedBox(height: TossSpacing.marginSM),
                 _buildEmployeeList(approvedRequests, isApproved: true),
                 const SizedBox(height: TossSpacing.marginMD),
@@ -80,7 +80,7 @@ class DailyShiftCard extends StatelessWidget {
 
               // Pending requests
               if (pendingRequests.isNotEmpty) ...[
-                _buildSectionTitle('대기중인 요청 (${pendingRequests.length}명)'),
+                _buildSectionTitle('Pending Requests (${pendingRequests.length})'),
                 const SizedBox(height: TossSpacing.marginSM),
                 _buildEmployeeList(pendingRequests, isApproved: false),
               ],
@@ -95,7 +95,7 @@ class DailyShiftCard extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      '아직 신청한 근무자가 없습니다',
+                      'No workers applied yet',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -123,7 +123,7 @@ class DailyShiftCard extends StatelessWidget {
             ? TossColors.errorLight
             : TossColors.warningLight;
 
-    final text = '${shift.currentCount}/${shift.targetCount}명';
+    final text = '${shift.currentCount}/${shift.targetCount}';
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -212,7 +212,7 @@ class DailyShiftCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '승인',
+                    'Approve',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.success,
                       fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class DailyShiftCard extends StatelessWidget {
                   icon: const Icon(Icons.check_circle_outline),
                   color: TossColors.success,
                   onPressed: () => onApprovalToggle!(request),
-                  tooltip: '승인',
+                  tooltip: 'Approve',
                 ),
             ],
           ),

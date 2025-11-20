@@ -9,16 +9,11 @@ import 'domain_exception.dart';
 /// - Transaction completion failures
 class TransactionBusinessException extends DomainException {
   const TransactionBusinessException(
-    String message, {
-    String? errorCode,
-    Map<String, dynamic>? context,
-    Exception? innerException,
-  }) : super(
-          message,
-          errorCode: errorCode,
-          context: context,
-          innerException: innerException,
-        );
+    super.message, {
+    super.errorCode,
+    super.context,
+    super.innerException,
+  });
 
   /// Creates exception for transaction not found scenarios
   factory TransactionBusinessException.notFound({

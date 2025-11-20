@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/cash_ending_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Cash Ending
 ///
@@ -24,7 +25,7 @@ class CashEndingRemoteDataSource {
     try {
       // RPC returns void on success, explicitly specify void type
       await _client.rpc<void>(
-        'insert_cashier_amount_lines',
+        CashEndingConstants.rpcInsertCashierAmount,
         params: params,
       );
 

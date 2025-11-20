@@ -16,6 +16,7 @@
 /// - Permissions stored as UUID arrays in user.companies[].role.permissions
 /// - Each UUID corresponds to a specific permission capability
 /// - Permission IDs are immutable and version-controlled
+library;
 
 /// Permission Identifiers
 ///

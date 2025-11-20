@@ -1,34 +1,22 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
-
-// Shared - Themes
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-
-// Core - Constants & Navigation
-import '../../../../core/constants/auth_constants.dart';
 
 // App - Providers
 import '../../../../app/providers/app_state_provider.dart';
-
-// Presentation - Providers
-import '../providers/store_service.dart';
-
+// Core - Constants & Navigation
+import '../../../../core/constants/auth_constants.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
 // Domain - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
-
-// Homepage Data Source (for filtering helper)
-import '../../../homepage/data/datasources/homepage_data_source.dart';
-
-// Core - Infrastructure
-import '../../../../core/cache/auth_data_cache.dart';
+// Presentation - Providers
+import '../providers/current_user_provider.dart';
+import '../providers/store_service.dart';
+import '../providers/usecase_providers.dart';
 
 /// Create Store Page - Clean Architecture Version
 ///
@@ -113,7 +101,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -121,7 +109,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
+    ),);
 
     _successFadeAnimation = Tween<double>(
       begin: 0.0,
@@ -129,7 +117,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _successController,
       curve: Curves.easeIn,
-    ));
+    ),);
 
     _successScaleAnimation = Tween<double>(
       begin: 0.8,
@@ -137,7 +125,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     ).animate(CurvedAnimation(
       parent: _successController,
       curve: Curves.easeOutBack,
-    ));
+    ),);
 
     // Add validation listeners
     _storeNameController.addListener(_validateStoreName);
@@ -187,7 +175,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space5),
+                padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Form(
                   key: _formKey,
                   child: SlideTransition(
@@ -226,10 +214,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                           const SizedBox(height: TossSpacing.space8),
 
                           _buildCreateButton(),
-
-                          const SizedBox(height: TossSpacing.space4),
-
-                          _buildSkipOption(),
                         ],
                       ),
                     ),
@@ -249,54 +233,43 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
   Widget _buildAuthHeader() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.border,
-            width: 1,
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      color: TossColors.white,
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
+            onPressed: () => context.pop(),
           ),
           const SizedBox(width: TossSpacing.space2),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.store,
-              color: TossColors.white,
-              size: 20,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/app icon.png',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: TossSpacing.space2),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Storebase',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+          Expanded(
+            child: Text(
+              widget.companyName,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textPrimary,
+                fontWeight: FontWeight.w800,
               ),
-              Text(
-                widget.companyName,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textSecondary,
-                ),
+            ),
+          ),
+          TextButton(
+            onPressed: _isLoading ? null : _navigateToDashboard,
+            child: Text(
+              'Skip',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -366,18 +339,10 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                 color: TossColors.error,
               ),
             ),
-            if (_isStoreNameValid) ...[
-              const SizedBox(width: TossSpacing.space2),
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: TossColors.success,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _storeNameController,
           focusNode: _storeNameFocusNode,
           hintText: AuthConstants.placeholderStoreName,
@@ -417,7 +382,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _storeAddressController,
           focusNode: _storeAddressFocusNode,
           hintText: AuthConstants.placeholderStoreAddress,
@@ -451,7 +416,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _storePhoneController,
           focusNode: _storePhoneFocusNode,
           hintText: AuthConstants.placeholderStorePhone,
@@ -536,21 +501,21 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             ),
             filled: true,
             fillColor: TossColors.gray50,
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space2,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.border),
+              borderSide: const BorderSide(color: TossColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide(color: TossColors.primary, width: 2),
+              borderSide: const BorderSide(color: TossColors.primary, width: 2),
             ),
           ),
         ),
@@ -565,32 +530,11 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   Widget _buildCreateButton() {
     final canCreate = _isStoreNameValid;
 
-    return _buildPrimaryButton(
+    return TossPrimaryButton(
       text: _isLoading ? 'Creating store...' : 'Create Store',
       onPressed: _isLoading || !canCreate ? null : _handleCreateStore,
       isLoading: _isLoading,
-      icon: _isLoading
-          ? null
-          : Icon(
-              Icons.add_business,
-              size: 18,
-              color: TossColors.white,
-            ),
-    );
-  }
-
-  Widget _buildSkipOption() {
-    return Center(
-      child: TextButton(
-        onPressed: _isLoading ? null : _navigateToDashboard,
-        child: Text(
-          'Skip for now',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.textSecondary,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ),
+      fullWidth: true,
     );
   }
 
@@ -659,7 +603,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
           _isLoading = false;
         });
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       if (mounted) {
         _showErrorSnackbar('Connection issue. Please check your internet and try again.');
         setState(() {
@@ -685,77 +629,60 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
   Future<void> _navigateToDashboard() async {
     try {
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
 
-      if (userId != null) {
-        // Small delay for backend to update
-        await Future.delayed(const Duration(milliseconds: 500));
+      if (userId == null) {
+        throw const AuthException('User not authenticated');
+      }
 
-        final cache = AuthDataCache.instance;
+      // Create default store with company name when skipping
+      final storeService = ref.read(storeServiceProvider);
+      await storeService.createStore(
+        name: widget.companyName,
+        companyId: widget.companyId,
+      );
 
-        // Fetch user data and categories using cache
-        final results = await Future.wait([
-          cache.deduplicate(
-            'user_data_$userId',
-            () => supabase.rpc(
-              'get_user_companies_and_stores',
-              params: {'p_user_id': userId},
-            ),
-          ),
-          cache.deduplicate(
-            'categories_features',
-            () => supabase.rpc('get_categories_with_features'),
-          ),
-        ]);
+      // Small delay for backend to update
+      await Future.delayed(const Duration(milliseconds: 500));
 
-        final userResponse = results[0];
-        final categoriesResponse = results[1];
+      // ✅ Use GetUserDataUseCase instead of direct RPC call
+      final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
+      final filteredResponse = await getUserDataUseCase.execute(userId);
 
-        // Update app state
-        if (userResponse is Map<String, dynamic>) {
-          // ✅ Filter out deleted companies and stores
-          final filteredResponse = HomepageDataSource.filterDeletedCompaniesAndStores(userResponse);
+      // Update app state
+      ref.read(appStateProvider.notifier).updateUser(
+        user: filteredResponse,
+        isAuthenticated: true,
+      );
 
-          ref.read(appStateProvider.notifier).updateUser(
-            user: filteredResponse,
-            isAuthenticated: true,
+      // ✅ Auto-select first company and store for better UX
+      final companies = filteredResponse['companies'] as List?;
+      if (companies != null && companies.isNotEmpty) {
+        final firstCompany = companies.first as Map<String, dynamic>;
+        final companyId = firstCompany['company_id'] as String;
+        final companyName = firstCompany['company_name'] as String;
+
+        ref.read(appStateProvider.notifier).selectCompany(
+          companyId,
+          companyName: companyName,
+        );
+
+        // Auto-select first store if available
+        final stores = firstCompany['stores'] as List?;
+        if (stores != null && stores.isNotEmpty) {
+          final firstStore = stores.first as Map<String, dynamic>;
+          final storeId = firstStore['store_id'] as String;
+          final storeName = firstStore['store_name'] as String;
+
+          ref.read(appStateProvider.notifier).selectStore(
+            storeId,
+            storeName: storeName,
           );
-
-          // ✅ Auto-select first company and store for better UX
-          final companies = filteredResponse['companies'] as List?;
-          if (companies != null && companies.isNotEmpty) {
-            final firstCompany = companies.first as Map<String, dynamic>;
-            final companyId = firstCompany['company_id'] as String;
-            final companyName = firstCompany['company_name'] as String;
-
-            ref.read(appStateProvider.notifier).selectCompany(
-              companyId,
-              companyName: companyName,
-            );
-
-            // Auto-select first store if available
-            final stores = firstCompany['stores'] as List?;
-            if (stores != null && stores.isNotEmpty) {
-              final firstStore = stores.first as Map<String, dynamic>;
-              final storeId = firstStore['store_id'] as String;
-              final storeName = firstStore['store_name'] as String;
-
-              ref.read(appStateProvider.notifier).selectStore(
-                storeId,
-                storeName: storeName,
-              );
-            }
-          }
         }
+      }
 
-        if (categoriesResponse is List) {
-          ref.read(appStateProvider.notifier).updateCategoryFeatures(categoriesResponse);
-        }
-
-        if (mounted) {
-          context.go('/');
-        }
+      if (mounted) {
+        context.go('/');
       }
     } catch (e) {
       if (mounted) {
@@ -779,7 +706,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             scale: _successScaleAnimation,
             child: Center(
               child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space6),
+                padding: const EdgeInsets.all(TossSpacing.space6),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -790,7 +717,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                         color: TossColors.success.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.check_circle,
                         size: 48,
                         color: TossColors.success,
@@ -816,7 +743,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                     if (_storeCode != null) ...[
                       const SizedBox(height: TossSpacing.space8),
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.white,
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -859,10 +786,10 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                       ),
                     ],
                     const SizedBox(height: TossSpacing.space8),
-                    _buildPrimaryButton(
+                    TossPrimaryButton(
                       text: 'Go to Dashboard',
                       onPressed: _navigateToDashboard,
-                      icon: Icon(
+                      leadingIcon: const Icon(
                         Icons.arrow_forward,
                         size: 18,
                         color: TossColors.white,
@@ -887,7 +814,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: TossColors.white, size: 20),
+            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
             const SizedBox(width: TossSpacing.space2),
             Expanded(child: Text(message)),
           ],
@@ -901,115 +828,4 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     );
   }
 
-  // ==========================================
-  // Temporary Widget Implementations
-  // ==========================================
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.textTertiary,
-        ),
-        filled: true,
-        fillColor: TossColors.gray50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton({
-    required String text,
-    required VoidCallback? onPressed,
-    bool isLoading = false,
-    Widget? icon,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.0,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed == null ? TossColors.gray300 : TossColors.primary,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space5,
-            vertical: TossSpacing.space3,
-          ),
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon,
-                    const SizedBox(width: TossSpacing.space2),
-                  ],
-                  Text(
-                    text,
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
 }

@@ -59,7 +59,7 @@ class RealItemWidget extends StatelessWidget {
                   ? Text(
                       flow.getFormattedDate(),
                       style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
+                        color: TossColors.gray500,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                         height: 1.2,
@@ -78,10 +78,7 @@ class RealItemWidget extends StatelessWidget {
                   Text(
                     'Cash Count',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
                       color: TossColors.black87,
-                      height: 1.2,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space2),
@@ -145,7 +142,7 @@ class RealItemWidget extends StatelessWidget {
                 Text(
                   _formatBalance(flow.balanceAfter, currencySymbol),
                   style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
+                    color: TossColors.gray500,
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
                     height: 1.2,

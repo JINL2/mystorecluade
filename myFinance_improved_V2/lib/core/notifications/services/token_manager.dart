@@ -1,13 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../repositories/notification_repository.dart';
 import 'fcm_service.dart';
 
@@ -345,9 +347,9 @@ class TokenManager {
         userId: userId,
         token: token,
         platform: platform,
-        deviceId: deviceInfo['device_id']!,
-        deviceModel: deviceInfo['device_model']!,
-        appVersion: deviceInfo['app_version']!,
+        deviceId: deviceInfo['device_id'],
+        deviceModel: deviceInfo['device_model'],
+        appVersion: deviceInfo['app_version'],
       );
       
       if (result != null) {
@@ -679,7 +681,7 @@ class _TokenMonitor {
       name: event,
       timestamp: DateTime.now(),
       data: data,
-    ));
+    ),);
     
     // Keep only recent events
     if (_events.length > _maxEvents) {
@@ -692,7 +694,7 @@ class _TokenMonitor {
       'token_update_success',
       'auth_signed_in',
       'auth_signed_out',
-      'immediate_registration'
+      'immediate_registration',
     ];
     
     if (kDebugMode && significantEvents.contains(event)) {

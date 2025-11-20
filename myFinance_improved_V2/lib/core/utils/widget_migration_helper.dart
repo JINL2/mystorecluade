@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../config/widget_migration_config.dart';
+
 import '../../shared/themes/index.dart';
 import '../../shared/widgets/common/toss_app_bar_1.dart';
+import '../config/widget_migration_config.dart';
 
 /// Helper class for safe widget migration
 ///
@@ -107,7 +108,7 @@ class WidgetMigrationHelper {
       style: ElevatedButton.styleFrom(
         backgroundColor: TossColors.primary,
         foregroundColor: TossColors.white,
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space5,
           vertical: TossSpacing.space3,
         ),
@@ -116,7 +117,7 @@ class WidgetMigrationHelper {
         ),
       ),
       child: isLoading
-        ? CircularProgressIndicator(
+        ? const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
             strokeWidth: 2,
           )
@@ -125,7 +126,7 @@ class WidgetMigrationHelper {
             children: [
               if (icon != null) ...[
                 Icon(icon),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
               ],
               Text(text),
             ],
@@ -149,7 +150,7 @@ class WidgetMigrationHelper {
         children: [
           if (icon != null) ...[
             Icon(icon),
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
           ],
           Text(text),
         ],

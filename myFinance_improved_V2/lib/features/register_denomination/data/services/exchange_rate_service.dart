@@ -13,7 +13,7 @@ class ExchangeRateService {
   ExchangeRateService({Dio? dio}) : _dio = dio ?? Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
-  ));
+  ),);
 
   /// Fetches exchange rates from base currency to target currency
   /// 

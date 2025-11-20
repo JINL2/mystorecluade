@@ -7,12 +7,13 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../domain/entities/shift_card.dart';
 
 /// Manage Shift Card
 ///
 /// Displays shift request details for the Manage tab with problem indicators
 class ManageShiftCard extends StatelessWidget {
-  final Map<String, dynamic> card;
+  final ShiftCard card;
   final VoidCallback onTap;
 
   const ManageShiftCard({
@@ -23,22 +24,33 @@ class ManageShiftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userName = card['user_name'] as String? ?? 'Unknown';
-    final profileImage = card['profile_image'] as String?;
-    final shiftName = card['shift_name'] as String? ?? 'Unknown Shift';
-    final rawShiftTime = card['shift_time'] as String? ?? '--:--';
-    final requestDate = card['request_date'] as String?;
-    // Convert shift time from UTC to local time
-    final shiftTime = _formatShiftTime(rawShiftTime, requestDate);
-    final isApproved = (card['is_approved'] as bool?) ?? false;
-    final isProblem = (card['is_problem'] as bool?) ?? false;
-    final isProblemSolved = (card['is_problem_solved'] as bool?) ?? false;
-    final isLate = (card['is_late'] as bool?) ?? false;
-    final lateMinute = ((card['late_minute'] as num?) ?? 0).toInt();
-    final isOverTime = (card['is_over_time'] as bool?) ?? false;
-    final overTimeMinute = ((card['over_time_minute'] as num?) ?? 0).toInt();
-    final paidHour = (card['paid_hour'] as num?) ?? 0;
-    final isReported = (card['is_reported'] as bool?) ?? false;
+    // Extract data from ShiftCard entity
+    final userName = card.employee.userName;
+    final profileImage = card.employee.profileImage;
+    final shiftName = card.shift.shiftName ?? 'Unknown Shift';
+
+    // Format shift time as "HH:mm-HH:mm"
+    final startTime = DateTimeUtils.formatTimeOnly(card.shift.planStartTime);
+    final endTime = DateTimeUtils.formatTimeOnly(card.shift.planEndTime);
+    final shiftTime = '$startTime-$endTime';
+
+    final requestDate = card.requestDate;
+    final isApproved = card.isApproved;
+    final isProblem = card.hasProblem;
+    final isProblemSolved = card.isProblemSolved;
+    final isLate = card.isLate;
+    final lateMinute = card.lateMinute;
+    final isOverTime = card.isOverTime;
+    final overTimeMinute = card.overTimeMinute;
+    final paidHour = card.paidHour;
+    final isReported = card.isReported;
+
+    // Confirmed times
+    final confirmStartTimeStr = card.confirmedStartTime?.toIso8601String();
+    final confirmEndTimeStr = card.confirmedEndTime?.toIso8601String();
+
+    // Show confirmed time if at least one is present
+    final hasConfirmedTime = card.hasConfirmedTimes;
 
     // Check if problem is unsolved
     final hasUnsolvedProblem = isProblem && !isProblemSolved;
@@ -148,24 +160,61 @@ class ManageShiftCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Time and paid hours row
+                  // Show confirmed time if available, otherwise show plan time
                   Row(
                     children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 16,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(width: TossSpacing.space1),
-                      Text(
-                        shiftTime,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray700,
+                      if (hasConfirmedTime) ...[
+                        // Confirmed time with arrow icons
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: TossColors.gray500,
                         ),
-                      ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          confirmStartTimeStr != null
+                              ? _formatConfirmedTime(confirmStartTimeStr)
+                              : '--:--',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: TossColors.gray500,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          confirmEndTimeStr != null
+                              ? _formatConfirmedTime(confirmEndTimeStr)
+                              : '--:--',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ] else ...[
+                        // Plan time with clock icon (when no confirmed time yet)
+                        const Icon(
+                          Icons.schedule,
+                          size: 16,
+                          color: TossColors.gray500,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          shiftTime,
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
+                      // Show paid hours if available
                       if (paidHour > 0) ...[
-                        Icon(
+                        const Icon(
                           Icons.access_time,
                           size: 16,
                           color: TossColors.gray500,
@@ -356,51 +405,20 @@ class ManageShiftCard extends StatelessWidget {
     }
   }
 
-  /// Convert shift time from UTC to local time
-  /// Input: "14:56-17:56" or "14:56 ~ 17:56" (UTC), requestDate: "2025-10-27"
-  /// Output: "21:56-00:56" (Local time, Vietnam = UTC+7)
-  String _formatShiftTime(String shiftTime, String? requestDate) {
-    if (shiftTime == '--:--' || requestDate == null) {
-      return shiftTime;
+
+  /// Format confirmed time from ISO8601 string to HH:mm format
+  /// Input: "2025-11-07T11:40:00.000Z" or "2025-11-07T11:40:00.000"
+  /// Output: "11:40" (already in local time from Entity)
+  String _formatConfirmedTime(String isoString) {
+    if (isoString.isEmpty) {
+      return '--:--';
     }
 
     try {
-      // Parse shift time format: "14:56-17:56" or "14:56 ~ 17:56"
-      final separator = shiftTime.contains('~') ? '~' : '-';
-      final parts = shiftTime.split(separator).map((e) => e.trim()).toList();
-
-      if (parts.length != 2) {
-        return shiftTime;
-      }
-
-      final startTime = parts[0].trim();
-      final endTime = parts[1].trim();
-
-      // Convert each time from UTC to local
-      final localStartTime = _formatTime(startTime, requestDate);
-      final localEndTime = _formatTime(endTime, requestDate);
-
-      return '$localStartTime$separator$localEndTime';
+      final dateTime = DateTime.parse(isoString);
+      return DateTimeUtils.formatTimeOnly(dateTime);
     } catch (e) {
-      return shiftTime;
-    }
-  }
-
-  /// Convert time string from UTC to local time
-  /// Input: "14:56" (UTC), requestDate: "2025-10-27"
-  /// Output: "21:56" (Local time, Vietnam = UTC+7)
-  String _formatTime(String time, String requestDate) {
-    if (time.isEmpty || time == '--:--') {
-      return time;
-    }
-
-    try {
-      // Combine date + time and treat as UTC
-      final utcTimestamp = '${requestDate}T$time:00Z';
-      final dateTime = DateTimeUtils.toLocal(utcTimestamp);
-      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return time;
+      return '--:--';
     }
   }
 }

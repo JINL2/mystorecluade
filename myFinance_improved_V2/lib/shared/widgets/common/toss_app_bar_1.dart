@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
@@ -113,14 +108,14 @@ class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
       if (primaryActionText != null && onPrimaryAction != null) {
         finalActions.add(
           Padding(
-            padding: EdgeInsets.only(right: TossSpacing.space3),
+            padding: const EdgeInsets.only(right: TossSpacing.space3),
             child: Material(
               color: TossColors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 onTap: onPrimaryAction,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space3,
                     vertical: TossSpacing.space2,
                   ),
@@ -133,7 +128,7 @@ class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
                           size: TossSpacing.iconMD,
                           color: TossColors.primary,
                         ),
-                        SizedBox(width: TossSpacing.space1),
+                        const SizedBox(width: TossSpacing.space1),
                       ],
                       Text(
                         primaryActionText!,
@@ -167,17 +162,22 @@ class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       backgroundColor: backgroundColor ?? TossColors.background,
       elevation: elevation,
-      leading: leading,
+      leading: leading ?? (automaticallyImplyLeading && Navigator.canPop(context)
+        ? IconButton(
+            icon: const Icon(Icons.arrow_back, size: 24),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        : null),
       actions: finalActions.isNotEmpty ? finalActions : null,
       bottom: bottom,
-      iconTheme: iconTheme ?? IconThemeData(
+      iconTheme: iconTheme ?? const IconThemeData(
         color: TossColors.textPrimary,
       ),
       actionsIconTheme: actionsIconTheme,
       shadowColor: shadowColor,
       surfaceTintColor: surfaceTintColor,
       foregroundColor: foregroundColor,
-      automaticallyImplyLeading: automaticallyImplyLeading,
+      automaticallyImplyLeading: false,
       flexibleSpace: flexibleSpace,
       scrolledUnderElevation: scrolledUnderElevation,
     );
