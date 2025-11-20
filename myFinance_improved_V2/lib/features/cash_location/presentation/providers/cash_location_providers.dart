@@ -1,15 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+// Presentation Layer Providers
+// This file contains only UI-related providers and re-exports necessary types
+// All business logic is delegated to Domain UseCases
+// Following Clean Architecture: Presentation depends only on Domain
 
-import '../../data/repositories/repository_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Import DI providers (centralized dependency injection)
+import '../../di/cash_location_providers.dart';
+
+// Import domain entities for internal use
 import '../../domain/entities/bank_real_entry.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/cash_real_entry.dart';
-import '../../domain/entities/currency_type.dart';
-import '../../domain/entities/journal_entry.dart';
-import '../../domain/entities/stock_flow.dart';
 import '../../domain/entities/vault_real_entry.dart';
-import '../../domain/repositories/cash_location_repository.dart';
+
+// Import domain value objects for internal use
 import '../../domain/value_objects/bank_real_params.dart';
 import '../../domain/value_objects/cash_journal_params.dart';
 import '../../domain/value_objects/cash_location_query_params.dart';
@@ -17,262 +22,79 @@ import '../../domain/value_objects/cash_real_params.dart';
 import '../../domain/value_objects/stock_flow_params.dart';
 import '../../domain/value_objects/vault_real_params.dart';
 
-// Export parameter classes for use in pages
-export '../../domain/value_objects/bank_real_params.dart';
-export '../../domain/value_objects/cash_location_query_params.dart';
-export '../../domain/value_objects/cash_real_params.dart';
-export '../../domain/value_objects/cash_journal_params.dart';
-export '../../domain/value_objects/vault_real_params.dart';
-export '../../domain/value_objects/stock_flow_params.dart';
+// Import other domain entities used in providers
+import '../../domain/entities/journal_entry.dart';
+import '../../domain/entities/currency_type.dart';
+import '../../domain/entities/stock_flow.dart';
 
-// Export domain entities for use in pages (hide duplicates)
+// Export domain entities for use in presentation
 export '../../domain/entities/bank_real_entry.dart';
 export '../../domain/entities/cash_location.dart';
 export '../../domain/entities/cash_real_entry.dart' hide CurrencySummary, Denomination;
+export '../../domain/entities/currency_type.dart';
 export '../../domain/entities/journal_entry.dart';
 export '../../domain/entities/stock_flow.dart';
 export '../../domain/entities/vault_real_entry.dart' hide CurrencySummary, Denomination;
 
-// Repository Provider is now imported from data layer (repository_providers.dart)
-// This ensures presentation layer only depends on domain interfaces, not data implementations
-// Re-export the repository provider for use in pages
-export '../../data/repositories/repository_providers.dart' show cashLocationRepositoryProvider;
+// Export domain value objects (params)
+export '../../domain/value_objects/bank_real_params.dart';
+export '../../domain/value_objects/cash_journal_params.dart';
+export '../../domain/value_objects/cash_location_query_params.dart';
+export '../../domain/value_objects/cash_real_params.dart';
+export '../../domain/value_objects/stock_flow_params.dart';
+export '../../domain/value_objects/vault_real_params.dart';
 
-// Export use case providers
-export '../../domain/providers/use_case_providers.dart';
+// Export use case providers for presentation layer
+export '../../di/cash_location_providers.dart';
+
+// Export use case params for presentation layer
 export '../../domain/usecases/create_error_adjustment_use_case.dart' show CreateErrorAdjustmentParams;
 export '../../domain/usecases/create_foreign_currency_translation_use_case.dart' show CreateForeignCurrencyTranslationParams;
 export '../../domain/usecases/update_cash_location_use_case.dart' show UpdateCashLocationParams;
 export '../../domain/usecases/update_main_account_status_use_case.dart' show UpdateMainAccountStatusParams;
 
-// Cash Location Providers
+// ============================================================================
+// PRESENTATION LAYER PROVIDERS (UI State)
+// ============================================================================
+
+/// Cash Location Providers - delegates to UseCases
 final allCashLocationsProvider = FutureProvider.family<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getAllCashLocations(
-    companyId: params.companyId,
-    storeId: params.storeId,
-  );
+  final useCase = ref.read(getAllCashLocationsUseCaseProvider);
+  return useCase(params);
 });
 
-// Cash Real Provider
+/// Cash Real Provider - delegates to UseCase
 final cashRealProvider = FutureProvider.family<List<CashRealEntry>, CashRealParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getCashReal(
-    companyId: params.companyId,
-    storeId: params.storeId,
-    locationType: params.locationType,
-    offset: params.offset,
-    limit: params.limit,
-  );
+  final useCase = ref.read(getCashRealUseCaseProvider);
+  return useCase(params);
 });
 
-// Bank Real Provider
+/// Bank Real Provider - delegates to UseCase
 final bankRealProvider = FutureProvider.family<List<BankRealEntry>, BankRealParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getBankReal(
-    companyId: params.companyId,
-    storeId: params.storeId,
-    offset: params.offset,
-    limit: params.limit,
-  );
+  final useCase = ref.read(getBankRealUseCaseProvider);
+  return useCase(params);
 });
 
-// Vault Real Provider
+/// Vault Real Provider - delegates to UseCase
 final vaultRealProvider = FutureProvider.family<List<VaultRealEntry>, VaultRealParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getVaultReal(
-    companyId: params.companyId,
-    storeId: params.storeId,
-    offset: params.offset,
-    limit: params.limit,
-  );
+  final useCase = ref.read(getVaultRealUseCaseProvider);
+  return useCase(params);
 });
 
-// Cash Journal Service Provider (for backward compatibility)
-final cashJournalServiceProvider = Provider<CashJournalService>((ref) {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return CashJournalService(repository);
-});
-
-// Cash Journal Provider
+/// Cash Journal Provider - delegates to UseCase
 final cashJournalProvider = FutureProvider.family<List<JournalEntry>, CashJournalParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getCashJournal(
-    companyId: params.companyId,
-    storeId: params.storeId,
-    locationType: params.locationType,
-    offset: params.offset,
-    limit: params.limit,
-  );
+  final useCase = ref.read(getCashJournalUseCaseProvider);
+  return useCase(params);
 });
 
-// Cash Journal Service (wrapper for repository)
-class CashJournalService {
-  final CashLocationRepository _repository;
-
-  CashJournalService(this._repository);
-
-  Future<List<JournalEntry>> getCashJournal({
-    required String companyId,
-    required String storeId,
-    required String locationType,
-    int offset = 0,
-    int limit = 20,
-  }) async {
-    return _repository.getCashJournal(
-      companyId: companyId,
-      storeId: storeId,
-      locationType: locationType,
-      offset: offset,
-      limit: limit,
-    );
-  }
-
-  /// Create foreign currency translation journal entry
-  Future<Map<String, dynamic>> createForeignCurrencyTranslation({
-    required double differenceAmount,
-    required String companyId,
-    required String userId,
-    required String locationName,
-    required String cashLocationId,
-    String? storeId,
-  }) async {
-    // Constants for account IDs
-    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-    const foreignCurrencyAccountId = '80b311db-f548-46e3-9854-67c5ff6766e8';
-
-    // Get current date
-    final now = DateTime.now().toLocal();
-    final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
-
-    // Calculate absolute amount
-    final absAmount = differenceAmount.abs();
-    final isPositiveDifference = differenceAmount > 0;
-
-    // Create journal lines
-    final lines = [
-      {
-        'account_id': cashAccountId,
-        'description': 'Foreign Currency Translation',
-        'debit': isPositiveDifference ? absAmount : 0,
-        'credit': isPositiveDifference ? 0 : absAmount,
-        'cash': {
-          'cash_location_id': cashLocationId,
-        },
-      },
-      {
-        'account_id': foreignCurrencyAccountId,
-        'description': 'Foreign Currency Translation',
-        'debit': isPositiveDifference ? 0 : absAmount,
-        'credit': isPositiveDifference ? absAmount : 0,
-      },
-    ];
-
-    return _repository.insertJournalWithEverything(
-      baseAmount: absAmount,
-      companyId: companyId,
-      createdBy: userId,
-      description: 'Foreign Currency Translation - $locationName',
-      entryDate: entryDate,
-      lines: lines,
-      counterpartyId: null,
-      ifCashLocationId: null,
-      storeId: storeId,
-    );
-  }
-
-  /// Create error adjustment journal entry
-  Future<Map<String, dynamic>> createErrorJournal({
-    required double differenceAmount,
-    required String companyId,
-    required String userId,
-    required String locationName,
-    required String cashLocationId,
-    String? storeId,
-  }) async {
-    // Constants for account IDs
-    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-    const errorAccountId = 'a45fac5d-010c-4b1b-92e9-ddcf8f3222bf';
-
-    // Get current date
-    final now = DateTime.now().toLocal();
-    final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
-
-    // Calculate absolute amount
-    final absAmount = differenceAmount.abs();
-    final isPositiveDifference = differenceAmount > 0;
-
-    // Create journal lines
-    final lines = [
-      {
-        'account_id': cashAccountId,
-        'description': 'Make error',
-        'debit': isPositiveDifference ? absAmount : 0,
-        'credit': isPositiveDifference ? 0 : absAmount,
-        'cash': {
-          'cash_location_id': cashLocationId,
-        },
-      },
-      {
-        'account_id': errorAccountId,
-        'description': 'Make error',
-        'debit': isPositiveDifference ? 0 : absAmount,
-        'credit': isPositiveDifference ? absAmount : 0,
-      },
-    ];
-
-    return _repository.insertJournalWithEverything(
-      baseAmount: absAmount,
-      companyId: companyId,
-      createdBy: userId,
-      description: 'Make Error - $locationName',
-      entryDate: entryDate,
-      lines: lines,
-      counterpartyId: null,
-      ifCashLocationId: null,
-      storeId: storeId,
-    );
-  }
-}
-
-
-// Stock Flow Service Provider (for backward compatibility with old code)
-final stockFlowServiceProvider = Provider<StockFlowService>((ref) {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return StockFlowService(repository);
-});
-
-// Stock Flow Provider
+/// Stock Flow Provider - delegates to UseCase
 final stockFlowProvider = FutureProvider.family<StockFlowResponse, StockFlowParams>((ref, params) async {
-  final repository = ref.read(cashLocationRepositoryProvider);
-  return repository.getLocationStockFlow(
-    companyId: params.companyId,
-    storeId: params.storeId,
-    cashLocationId: params.cashLocationId,
-    offset: params.offset,
-    limit: params.limit,
-  );
+  final useCase = ref.read(getStockFlowUseCaseProvider);
+  return useCase(params);
 });
 
-// Stock Flow Service (wrapper for repository)
-class StockFlowService {
-  final CashLocationRepository _repository;
-
-  StockFlowService(this._repository);
-
-  Future<StockFlowResponse> getLocationStockFlow(StockFlowParams params) async {
-    return _repository.getLocationStockFlow(
-      companyId: params.companyId,
-      storeId: params.storeId,
-      cashLocationId: params.cashLocationId,
-      offset: params.offset,
-      limit: params.limit,
-    );
-  }
-}
-
-// Currency Types Provider (placeholder - returns empty list for now)
-// This will need proper implementation when currency RPC is available
+/// Currency Types Provider (placeholder - returns empty list for now)
+/// This will need proper implementation when currency RPC is available
 final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
   // TODO: Implement actual currency fetching from repository
   // For now, return empty list to maintain compatibility
@@ -280,7 +102,7 @@ final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
 });
 
 // ============================================================================
-// Display Models (Presentation Layer Concerns)
+// PRESENTATION DISPLAY MODELS (UI Concerns Only)
 // ============================================================================
 
 /// Display model for Bank Real UI
@@ -343,7 +165,7 @@ class VaultRealDisplay {
 }
 
 // ============================================================================
-// Performance Optimization - Cached Calculations
+// PERFORMANCE OPTIMIZATION - Cached Calculations (UI Concern)
 // ============================================================================
 
 /// Cached total balances to avoid fold() in build methods
@@ -377,4 +199,3 @@ final cashLocationTotalsProvider = Provider.family<CashLocationTotals, List<Cash
     );
   },
 );
-

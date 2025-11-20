@@ -107,15 +107,10 @@ class StoreSelectorSheet extends ConsumerWidget {
             child: ListView.builder(
               shrinkWrap: true,
               padding: EdgeInsets.zero,
-              itemCount: stores.length + 1, // +1 for Headquarter
+              itemCount: stores.length,
               itemBuilder: (context, index) {
-                // First item is Headquarter
-                if (index == 0) {
-                  return _buildHeadquarterItem(context, ref);
-                }
-
                 // Store items
-                final store = stores[index - 1];
+                final store = stores[index];
                 final isSelected = selectedStoreId == store.storeId;
 
                 return _buildStoreItem(
@@ -131,76 +126,6 @@ class StoreSelectorSheet extends ConsumerWidget {
           // Bottom padding
           const SizedBox(height: TossSpacing.space5),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeadquarterItem(BuildContext context, WidgetRef ref) {
-    final isSelected = selectedStoreId == 'headquarter';
-
-    return InkWell(
-      onTap: () async {
-        HapticFeedback.selectionClick();
-        Navigator.pop(context);
-
-        // Update selected store
-        ref.read(cashEndingProvider.notifier).setSelectedStore('headquarter');
-
-        // Load locations for all tabs
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'cash',
-              storeId: 'headquarter',
-            );
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'bank',
-              storeId: 'headquarter',
-            );
-        await ref.read(cashEndingProvider.notifier).loadLocations(
-              companyId: companyId,
-              locationType: 'vault',
-              storeId: 'headquarter',
-            );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space5,
-          vertical: TossSpacing.space4,
-        ),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: TossColors.gray100,
-              width: 0.5,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              TossIcons.business,
-              size: 24,
-              color: TossColors.gray400,
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                'Headquarter',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                TossIcons.check,
-                size: 20,
-                color: TossColors.primary,
-              ),
-          ],
-        ),
       ),
     );
   }

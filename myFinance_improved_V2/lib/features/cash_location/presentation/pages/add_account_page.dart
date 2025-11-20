@@ -12,7 +12,6 @@ import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 import '../../domain/entities/currency_type.dart';
-import '../../domain/providers/use_case_providers.dart';
 import '../../domain/usecases/create_cash_location_use_case.dart';
 import '../providers/cash_location_providers.dart';
 

@@ -60,21 +60,13 @@ class StoreSelector extends StatelessWidget {
       );
     }
 
-    // Build dropdown items with Headquarter as first option
-    final List<TossDropdownItem<String>> dropdownItems = [
-      const TossDropdownItem<String>(
-        value: 'headquarter',
-        label: 'Headquarter',
-        subtitle: 'Main office location',
-        icon: TossIcons.business,
-      ),
-      ...stores.map((store) => TossDropdownItem<String>(
+    // Build dropdown items from stores
+    final List<TossDropdownItem<String>> dropdownItems = stores.map((store) => TossDropdownItem<String>(
         value: store.storeId,
         label: store.storeName,
         subtitle: store.storeCode,
         icon: TossIcons.store,
-      )),
-    ];
+      )).toList();
 
     return TossDropdown<String>(
       label: label,

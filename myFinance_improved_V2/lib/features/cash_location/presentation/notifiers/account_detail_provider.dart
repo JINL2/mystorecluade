@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/providers/use_case_providers.dart';
+import '../../di/cash_location_providers.dart';
 import 'account_detail_notifier.dart';
 import 'account_detail_state.dart';
 
