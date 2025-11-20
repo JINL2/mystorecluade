@@ -428,28 +428,19 @@ class TossConfirmationModal extends StatelessWidget {
     return TossModal.show<bool>(
       context: context,
       title: title,
-      height: 300,
+      showHandleBar: true,
       child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space5),
-        child: Column(
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 48,
-                color: confirmColor ?? TossColors.primary,
-              ),
-              const SizedBox(height: TossSpacing.space4),
-            ],
-            Text(
-              message,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray700,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space5,
+          vertical: TossSpacing.space2,
+        ),
+        child: Text(
+          message,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray700,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.left,
         ),
       ),
       actions: [
@@ -462,25 +453,41 @@ class TossConfirmationModal extends StatelessWidget {
                   onCancel?.call();
                   Navigator.of(context).pop(false);
                 },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
                 child: Text(
                   cancelText,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w500,
+                  style: TossTextStyles.button.copyWith(
+                    color: TossColors.gray700,
                   ),
                 ),
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: TossPrimaryButton(
-                text: confirmText,
+              child: ElevatedButton(
                 onPressed: () {
                   FocusScope.of(context).unfocus();
                   onConfirm?.call();
                   Navigator.of(context).pop(true);
                 },
-                fullWidth: true,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: confirmColor ?? TossColors.primary,
+                  foregroundColor: TossColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
+                child: Text(
+                  confirmText,
+                  style: TossTextStyles.button,
+                ),
               ),
             ),
           ],

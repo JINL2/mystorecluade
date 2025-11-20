@@ -5,7 +5,6 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/debounced_button.dart';
 import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
-import 'package:myfinance_improved/shared/widgets/common/enhanced_quantity_selector.dart';
 import 'package:myfinance_improved/shared/widgets/common/safe_popup_menu.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_date_picker.dart';
@@ -15,6 +14,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/common/total_display_box.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart' as toss_button;
@@ -22,12 +22,14 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card_safe.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_chip.dart';
+import 'package:myfinance_improved/shared/widgets/toss/category_chip.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_icon_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_quantity_input.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_refresh_indicator.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
@@ -55,6 +57,19 @@ class _ThemeLibraryPageState extends State<ThemeLibraryPage> with SingleTickerPr
   final TextEditingController _textFieldController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
+  // Category chips state
+  List<CategoryChipItem> _categoryChips = [
+    const CategoryChipItem(id: '1', label: 'Food & Drinks', icon: Icons.restaurant),
+    const CategoryChipItem(id: '2', label: 'Transportation', icon: Icons.directions_car),
+    const CategoryChipItem(id: '3', label: 'Shopping', icon: Icons.shopping_bag),
+    const CategoryChipItem(id: '4', label: 'Entertainment', icon: Icons.movie),
+  ];
+
+  // Quantity input state
+  int _quantity1 = 5;
+  int _quantity2 = 10;
+  int _quantity3 = 0;
+
   @override
   void initState() {
     super.initState();
@@ -78,7 +93,62 @@ class _ThemeLibraryPageState extends State<ThemeLibraryPage> with SingleTickerPr
       ),
       body: ListView(
         padding: const EdgeInsets.all(TossSpacing.paddingMD),
+        physics: const ClampingScrollPhysics(),
         children: [
+          const _SectionHeader(title: 'Toss Widgets'),
+          _TossWidgetsSection(
+            tabController: _tabController,
+            selectedChip: _selectedChip,
+            selectedDropdown: _selectedDropdown,
+            selectedTime: _selectedTime,
+            textFieldController: _textFieldController,
+            searchController: _searchController,
+            onChipChanged: (value) {
+              setState(() {
+                _selectedChip = value;
+              });
+            },
+            onDropdownChanged: (value) {
+              setState(() {
+                _selectedDropdown = value;
+              });
+            },
+            onTimeChanged: (value) {
+              setState(() {
+                _selectedTime = value;
+              });
+            },
+            categoryChips: _categoryChips,
+            onCategoryChipRemove: (chip) {
+              setState(() {
+                _categoryChips = _categoryChips.where((c) => c.id != chip.id).toList();
+              });
+            },
+            quantity1: _quantity1,
+            quantity2: _quantity2,
+            quantity3: _quantity3,
+            onQuantity1Changed: (value) {
+              setState(() {
+                _quantity1 = value;
+              });
+            },
+            onQuantity2Changed: (value) {
+              setState(() {
+                _quantity2 = value;
+              });
+            },
+            onQuantity3Changed: (value) {
+              setState(() {
+                _quantity3 = value;
+              });
+            },
+          ),
+          const SizedBox(height: TossSpacing.space8),
+
+          const _SectionHeader(title: 'Common Widgets'),
+          const _ComponentsSection(),
+          const SizedBox(height: TossSpacing.space8),
+
           const _SectionHeader(title: 'Colors'),
           const _ColorsSection(),
           const SizedBox(height: TossSpacing.space8),
@@ -105,36 +175,6 @@ class _ThemeLibraryPageState extends State<ThemeLibraryPage> with SingleTickerPr
 
           const _SectionHeader(title: 'Input Fields'),
           const _InputFieldsSection(),
-          const SizedBox(height: TossSpacing.space8),
-
-          const _SectionHeader(title: 'Toss Widgets'),
-          _TossWidgetsSection(
-            tabController: _tabController,
-            selectedChip: _selectedChip,
-            selectedDropdown: _selectedDropdown,
-            selectedTime: _selectedTime,
-            textFieldController: _textFieldController,
-            searchController: _searchController,
-            onChipChanged: (value) {
-              setState(() {
-                _selectedChip = value;
-              });
-            },
-            onDropdownChanged: (value) {
-              setState(() {
-                _selectedDropdown = value;
-              });
-            },
-            onTimeChanged: (value) {
-              setState(() {
-                _selectedTime = value;
-              });
-            },
-          ),
-          const SizedBox(height: TossSpacing.space8),
-
-          const _SectionHeader(title: 'Common Widgets'),
-          const _ComponentsSection(),
           const SizedBox(height: TossSpacing.space8),
         ],
       ),
@@ -521,24 +561,80 @@ class _ButtonsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('Elevated Button'),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text('Elevated Button'),
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Center(
+                child: Text(
+                  'ElevatedButton',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: TossSpacing.space2),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Text('Outlined Button'),
+          const SizedBox(height: TossSpacing.space3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OutlinedButton(
+                onPressed: () {},
+                child: const Text('Outlined Button'),
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Center(
+                child: Text(
+                  'OutlinedButton',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: TossSpacing.space2),
-          TextButton(
-            onPressed: () {},
-            child: const Text('Text Button'),
+          const SizedBox(height: TossSpacing.space3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextButton(
+                onPressed: () {},
+                child: const Text('Text Button'),
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Center(
+                child: Text(
+                  'TextButton',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: TossSpacing.space2),
-          ElevatedButton(
-            onPressed: null,
-            child: const Text('Disabled Button'),
+          const SizedBox(height: TossSpacing.space3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton(
+                onPressed: null,
+                child: const Text('Disabled Button'),
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Center(
+                child: Text(
+                  'ElevatedButton (disabled)',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -834,20 +930,98 @@ class _ComponentsSectionState extends State<_ComponentsSection> {
           ),
         ),
 
-        // Components that require special context (dialogs, sheets, etc)
+        // TotalDisplayBox
         _ComponentShowcase(
-          name: 'EnhancedQuantitySelector',
-          description: 'Quantity input with increment/decrement buttons, haptic feedback, and long-press support',
-          filename: 'enhanced_quantity_selector.dart',
-          child: EnhancedQuantitySelector(
-            quantity: _quantity,
-            onQuantityChanged: (value) {
-              setState(() {
-                _quantity = value;
-              });
-            },
+          name: 'TotalDisplayBox',
+          description: 'Reusable label-value display for totals and amounts with multiple variants',
+          filename: 'total_display_box.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Basic Amount Display',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TotalDisplayBox.amount(
+                label: 'Total Real',
+                amount: 600000.00,
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'amount',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Text Display',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TotalDisplayBox.text(
+                label: 'Status',
+                value: 'Completed',
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'text',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Highlighted Display',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TotalDisplayBox.highlighted(
+                label: 'Grand Total',
+                amount: 1250000.00,
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'highlighted',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Card Display',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TotalDisplayBox.card(
+                label: 'Total Amount',
+                amount: 850000.00,
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'card',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+            ],
           ),
         ),
+
+        // Components that require special context (dialogs, sheets, etc)
         _ComponentShowcase(
           name: 'KeyboardToolbar',
           description: 'Toolbar above keyboard with Previous/Next/Done buttons for form navigation',
@@ -1104,6 +1278,14 @@ class _TossWidgetsSection extends StatelessWidget {
     required this.onChipChanged,
     required this.onDropdownChanged,
     required this.onTimeChanged,
+    required this.categoryChips,
+    required this.onCategoryChipRemove,
+    required this.quantity1,
+    required this.quantity2,
+    required this.quantity3,
+    required this.onQuantity1Changed,
+    required this.onQuantity2Changed,
+    required this.onQuantity3Changed,
   });
 
   final TabController tabController;
@@ -1115,6 +1297,14 @@ class _TossWidgetsSection extends StatelessWidget {
   final ValueChanged<String?> onChipChanged;
   final ValueChanged<String?> onDropdownChanged;
   final ValueChanged<TimeOfDay> onTimeChanged;
+  final List<CategoryChipItem> categoryChips;
+  final Function(CategoryChipItem) onCategoryChipRemove;
+  final int quantity1;
+  final int quantity2;
+  final int quantity3;
+  final ValueChanged<int> onQuantity1Changed;
+  final ValueChanged<int> onQuantity2Changed;
+  final ValueChanged<int> onQuantity3Changed;
 
   @override
   Widget build(BuildContext context) {
@@ -1147,31 +1337,140 @@ class _TossWidgetsSection extends StatelessWidget {
           description: 'Unified button with primary/secondary variants and full customization',
           filename: 'toss_button_1.dart',
           child: Wrap(
-            spacing: TossSpacing.space2,
-            runSpacing: TossSpacing.space2,
+            spacing: TossSpacing.space3,
+            runSpacing: TossSpacing.space3,
             children: [
-              TossButton1.primary(
-                text: 'Primary',
-                onPressed: () {},
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.primary(
+                    text: 'Primary',
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'primary',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
-              TossButton1.secondary(
-                text: 'Secondary',
-                onPressed: () {},
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.secondary(
+                    text: 'Secondary',
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'secondary',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
-              TossButton1.primary(
-                text: 'With Icon',
-                leadingIcon: const Icon(Icons.add, size: 16),
-                onPressed: () {},
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.outlined(
+                    text: 'Outlined',
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'outlined',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
-              TossButton1.primary(
-                text: 'Loading',
-                isLoading: true,
-                onPressed: () {},
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.outlinedGray(
+                    text: 'Outlined Gray',
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'outlinedGray',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
-              TossButton1.primary(
-                text: 'Disabled',
-                isEnabled: false,
-                onPressed: () {},
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.textButton(
+                    text: 'Add currency',
+                    leadingIcon: const Icon(Icons.add, size: 16),
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'textButton',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.primary(
+                    text: 'With Icon',
+                    leadingIcon: const Icon(Icons.add, size: 16),
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'with icon',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.primary(
+                    text: 'Loading',
+                    isLoading: true,
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'loading',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TossButton1.primary(
+                    text: 'Disabled',
+                    isEnabled: false,
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'disabled',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1237,6 +1536,67 @@ class _TossWidgetsSection extends StatelessWidget {
                 ],
                 selectedValue: selectedChip,
                 onChanged: onChipChanged,
+              ),
+            ],
+          ),
+        ),
+
+        // CategoryChip
+        _ComponentShowcase(
+          name: 'CategoryChip',
+          description: 'Removable category/tag chips with close button',
+          filename: 'category_chip.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Single Chips',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Wrap(
+                spacing: TossSpacing.space2,
+                runSpacing: TossSpacing.space2,
+                children: [
+                  CategoryChip(
+                    label: 'Basic Chip',
+                    onRemove: () {},
+                  ),
+                  CategoryChip(
+                    label: 'With Icon',
+                    icon: Icons.star,
+                    onRemove: () {},
+                  ),
+                  const CategoryChip(
+                    label: 'No Close',
+                  ),
+                  CategoryChip(
+                    label: 'Custom Color',
+                    backgroundColor: TossColors.primarySurface,
+                    textColor: TossColors.primary,
+                    borderColor: TossColors.primary,
+                    onRemove: () {},
+                  ),
+                ],
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Chip Group (Removable)',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              CategoryChipGroup(
+                items: categoryChips,
+                onChipRemove: onCategoryChipRemove,
+                onChipTap: (chip) {
+                  // Optional: Handle chip tap
+                },
               ),
             ],
           ),
@@ -1335,6 +1695,65 @@ class _TossWidgetsSection extends StatelessWidget {
                 hintText: 'Enter password',
                 obscureText: true,
                 suffixIcon: const Icon(Icons.visibility_off),
+              ),
+            ],
+          ),
+        ),
+
+        // TossQuantityInput
+        _ComponentShowcase(
+          name: 'TossQuantityInput',
+          description: 'Quantity input with increment/decrement buttons, haptic feedback, and validation',
+          filename: 'toss_quantity_input.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Basic',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TossQuantityInput(
+                value: quantity1,
+                onChanged: onQuantity1Changed,
+                minValue: 0,
+                maxValue: 100,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'With Custom Colors',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TossQuantityInput(
+                value: quantity2,
+                onChanged: onQuantity2Changed,
+                minValue: 1,
+                maxValue: 50,
+                buttonColor: TossColors.primary,
+                buttonBackgroundColor: TossColors.primarySurface,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Disabled Manual Input',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              TossQuantityInput(
+                value: quantity3,
+                onChanged: onQuantity3Changed,
+                minValue: 0,
+                maxValue: 10,
+                allowManualInput: false,
               ),
             ],
           ),
@@ -1463,83 +1882,103 @@ class _TossWidgetsSection extends StatelessWidget {
           name: 'TossModal, TossFormModal & TossConfirmationModal',
           description: 'Bottom sheet modals with animations and keyboard handling',
           filename: 'toss_modal.dart',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Wrap(
+            spacing: TossSpacing.space2,
+            runSpacing: TossSpacing.space3,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  TossModal.show(
-                    context: context,
-                    title: 'Basic Modal',
-                    subtitle: 'This is a subtitle',
-                    child: const Padding(
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      child: Text('This is the modal content. You can put any widget here.'),
-                    ),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  );
-                },
-                icon: const Icon(Icons.info_outline, size: 18),
-                label: const Text('Show Basic Modal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.primary,
-                  foregroundColor: TossColors.white,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              ElevatedButton.icon(
-                onPressed: () {
-                  TossFormModal.show(
-                    context: context,
-                    title: 'Form Modal',
-                    subtitle: 'Fill in the details',
-                    child: const Column(
-                      children: [
-                        TossTextField(
-                          label: 'Name',
-                          hintText: 'Enter name',
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      TossModal.show(
+                        context: context,
+                        title: 'Basic Modal',
+                        subtitle: 'This is a subtitle',
+                        child: const Padding(
+                          padding: EdgeInsets.all(TossSpacing.space4),
+                          child: Text('This is the modal content. You can put any widget here.'),
                         ),
-                        SizedBox(height: TossSpacing.space3),
-                        TossTextField(
-                          label: 'Email',
-                          hintText: 'Enter email',
-                        ),
-                      ],
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      );
+                    },
+                    child: const Text('Show Basic Modal'),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'TossModal',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
                     ),
-                    saveButtonText: 'Submit',
-                    onSave: () => Navigator.pop(context),
-                  );
-                },
-                icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Show Form Modal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.success,
-                  foregroundColor: TossColors.white,
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: TossSpacing.space2),
-              ElevatedButton.icon(
-                onPressed: () {
-                  TossConfirmationModal.show(
-                    context: context,
-                    title: 'Delete Item?',
-                    message: 'Are you sure you want to delete this item? This action cannot be undone.',
-                    icon: Icons.warning_rounded,
-                    confirmText: 'Delete',
-                    confirmColor: TossColors.error,
-                  );
-                },
-                icon: const Icon(Icons.delete, size: 18),
-                label: const Text('Show Confirmation'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.error,
-                  foregroundColor: TossColors.white,
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      TossFormModal.show(
+                        context: context,
+                        title: 'Form Modal',
+                        subtitle: 'Fill in the details',
+                        child: const Column(
+                          children: [
+                            TossTextField(
+                              label: 'Name',
+                              hintText: 'Enter name',
+                            ),
+                            SizedBox(height: TossSpacing.space3),
+                            TossTextField(
+                              label: 'Email',
+                              hintText: 'Enter email',
+                            ),
+                          ],
+                        ),
+                        saveButtonText: 'Submit',
+                        onSave: () => Navigator.pop(context),
+                      );
+                    },
+                    child: const Text('Show Form Modal'),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'TossFormModal',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      TossConfirmationModal.show(
+                        context: context,
+                        title: 'Delete Item?',
+                        message: 'Are you sure you want to delete this item? This action cannot be undone.',
+                        icon: Icons.warning_rounded,
+                        confirmText: 'Delete',
+                        confirmColor: TossColors.error,
+                      );
+                    },
+                    child: const Text('Show Confirmation'),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    'TossConfirmationModal',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

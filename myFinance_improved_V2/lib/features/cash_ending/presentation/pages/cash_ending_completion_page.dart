@@ -402,27 +402,15 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
           // Auto-Balance to Match text button
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton.icon(
+            child: TossButton1.textButton(
+              text: 'Auto-Balance to Match',
               onPressed: () {
                 _showAutoBalanceConfirmation();
               },
-              icon: const Icon(
-                Icons.sync,
-                size: 18,
-                color: TossColors.primary,
-              ),
-              label: Text(
-                'Auto-Balance to Match',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+              leadingIcon: const Icon(Icons.sync, size: 18),
+              textColor: TossColors.primary,
+              fontWeight: FontWeight.w600,
+              padding: EdgeInsets.zero,
             ),
           ),
 

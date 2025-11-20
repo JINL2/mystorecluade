@@ -7,22 +7,15 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../domain/entities/stock_flow.dart';
 import '../../providers/bank_tab_provider.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../real_section_widget.dart';
 import '../section_label.dart';
-import '../sheets/cash_ending_selection_helpers.dart';
-import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
-import '../total_display.dart';
 /// Bank Tab - Single amount input (no denominations)
 ///
 /// Structure from legacy:
@@ -93,34 +86,6 @@ class _BankTabState extends ConsumerState<BankTab> {
     );
   }
 
-  /// Load more flows for pagination
-  void _loadMoreFlows() {
-    final pageState = ref.read(cashEndingProvider);
-
-    if (pageState.selectedBankLocationId == null ||
-        pageState.selectedStoreId == null) {
-      return;
-    }
-
-    ref.read(bankTabProvider.notifier).loadStockFlows(
-      companyId: widget.companyId,
-      storeId: pageState.selectedStoreId!,
-      locationId: pageState.selectedBankLocationId!,
-      loadMore: true,
-    );
-  }
-  void _showFlowDetails(ActualFlow flow) {
-    final pageState = ref.read(cashEndingProvider);
-    final tabState = ref.read(bankTabProvider);
-    FlowDetailBottomSheet.show(
-      context: context,
-      flow: flow,
-      locationSummary: tabState.locationSummary,
-      baseCurrencySymbol: pageState.currencies.isNotEmpty
-          ? pageState.currencies.first.symbol
-          : '\$',
-    );
-  }
   @override
   Widget build(BuildContext context) {
     final pageState = ref.watch(cashEndingProvider);
@@ -178,6 +143,12 @@ class _BankTabState extends ConsumerState<BankTab> {
             onChanged: (locationId) {
               if (locationId != null) {
                 ref.read(cashEndingProvider.notifier).setSelectedBankLocation(locationId);
+
+                // Set the currency for the selected bank location
+                final selectedLocation = state.bankLocations.firstWhere(
+                  (loc) => loc.locationId == locationId,
+                );
+                ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(selectedLocation.currencyId);
               }
             },
           ),
@@ -290,7 +261,7 @@ class _BankTabState extends ConsumerState<BankTab> {
         final tabState = ref.watch(bankTabProvider);
         final isEnabled = hasCurrency && !tabState.isSaving;
         return TossButton1.primary(
-          text: 'Save Bank Balance',
+          text: 'Submit Ending',
           isLoading: tabState.isSaving,
           isEnabled: isEnabled,
           fullWidth: true,

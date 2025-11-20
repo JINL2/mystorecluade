@@ -10,25 +10,17 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/denomination.dart';
-import '../../../domain/entities/stock_flow.dart';
 import '../../../domain/entities/currency.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/vault_tab_provider.dart';
 import '../collapsible_currency_section.dart';
 import '../currency_pill_selector.dart';
-import '../denomination_grid_header.dart';
-import '../denomination_input.dart';
-import '../real_section_widget.dart';
 import '../section_label.dart';
-import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
-import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
-import '../total_display.dart';
 import '../../pages/cash_ending_completion_page.dart';
 
 /// Vault Tab - Denomination-based counting with Debit/Credit (In/Out)
@@ -159,35 +151,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     }
   }
 
-  /// Load more flows for pagination
-  void _loadMoreFlows() {
-    final pageState = ref.read(cashEndingProvider);
-
-    if (pageState.selectedVaultLocationId == null ||
-        pageState.selectedStoreId == null) {
-      return;
-    }
-
-    ref.read(vaultTabProvider.notifier).loadStockFlows(
-      companyId: widget.companyId,
-      storeId: pageState.selectedStoreId!,
-      locationId: pageState.selectedVaultLocationId!,
-      loadMore: true,
-    );
-  }
-
-  void _showFlowDetails(ActualFlow flow) {
-    final pageState = ref.read(cashEndingProvider);
-    final tabState = ref.read(vaultTabProvider);
-    FlowDetailBottomSheet.show(
-      context: context,
-      flow: flow,
-      locationSummary: tabState.locationSummary,
-      baseCurrencySymbol: pageState.currencies.isNotEmpty
-          ? pageState.currencies.first.symbol
-          : '\$',
-    );
-  }
 
   TextEditingController _getController(String currencyId, String denominationId) {
     _controllers.putIfAbsent(currencyId, () => {});
@@ -466,21 +429,50 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         const SizedBox(height: TossSpacing.space6),
 
         // Submit Button
-        Builder(
-          builder: (context) {
-            final tabState = ref.watch(vaultTabProvider);
-            final firstCurrencyId = selectedCurrencyIds.first;
+        Padding(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Builder(
+            builder: (context) {
+              final tabState = ref.watch(vaultTabProvider);
+              final firstCurrencyId = selectedCurrencyIds.first;
 
-            // Show recount summary if "Recount" is selected
-            if (_transactionType == 'recount') {
+              // Show recount summary if "Recount" is selected
+              if (_transactionType == 'recount') {
+                return TossButton1.primary(
+                  text: 'Show Recount Summary',
+                  isLoading: false,
+                  isEnabled: true,
+                  fullWidth: true,
+                  onPressed: () {
+                    _showRecountSummary(context, state, selectedCurrencyIds);
+                  },
+                  textStyle: TossTextStyles.titleLarge.copyWith(
+                    color: TossColors.white,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space4,
+                    vertical: TossSpacing.space3,
+                  ),
+                  borderRadius: 12,
+                );
+              }
+
+              // Normal save button for In/Out
               return TossButton1.primary(
-                text: 'Show Recount Summary',
-                isLoading: false,
-                isEnabled: true,
+                text: 'Submit Ending',
+                isLoading: tabState.isSaving,
+                isEnabled: !tabState.isSaving,
                 fullWidth: true,
-                onPressed: () {
-                  _showRecountSummary(context, state, selectedCurrencyIds);
-                },
+                onPressed: !tabState.isSaving
+                    ? () async {
+                        await widget.onSave(
+                          context,
+                          state,
+                          firstCurrencyId,
+                          _transactionType,
+                        );
+                      }
+                    : null,
                 textStyle: TossTextStyles.titleLarge.copyWith(
                   color: TossColors.white,
                 ),
@@ -490,34 +482,8 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                 ),
                 borderRadius: 12,
               );
-            }
-
-            // Normal save button for In/Out
-            return TossButton1.primary(
-              text: 'Save Vault Transaction',
-              isLoading: tabState.isSaving,
-              isEnabled: !tabState.isSaving,
-              fullWidth: true,
-              onPressed: !tabState.isSaving
-                  ? () async {
-                      await widget.onSave(
-                        context,
-                        state,
-                        firstCurrencyId,
-                        _transactionType,
-                      );
-                    }
-                  : null,
-              textStyle: TossTextStyles.titleLarge.copyWith(
-                color: TossColors.white,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
-              ),
-              borderRadius: 12,
-            );
-          },
+            },
+          ),
         ),
           ],
         ), // End of Column
@@ -547,82 +513,89 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     return Row(
       children: [
         Expanded(
-          child: _buildToggleButton(
-            label: 'In',
-            icon: LucideIcons.arrowDownCircle,
-            value: 'debit',
-            isSelected: _transactionType == 'debit',
-            activeColor: TossColors.primary,
-          ),
+          child: _transactionType == 'debit'
+              ? TossButton1.outlined(
+                  text: 'In',
+                  leadingIcon: const Icon(LucideIcons.arrowDownCircle, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'debit';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                )
+              : TossButton1.outlinedGray(
+                  text: 'In',
+                  leadingIcon: const Icon(LucideIcons.arrowDownCircle, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'debit';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                ),
         ),
         const SizedBox(width: TossSpacing.space2),
         Expanded(
-          child: _buildToggleButton(
-            label: 'Out',
-            icon: LucideIcons.arrowUpCircle,
-            value: 'credit',
-            isSelected: _transactionType == 'credit',
-            activeColor: TossColors.primary,
-          ),
+          child: _transactionType == 'credit'
+              ? TossButton1.outlined(
+                  text: 'Out',
+                  leadingIcon: const Icon(LucideIcons.arrowUpCircle, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'credit';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                )
+              : TossButton1.outlinedGray(
+                  text: 'Out',
+                  leadingIcon: const Icon(LucideIcons.arrowUpCircle, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'credit';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                ),
         ),
         const SizedBox(width: TossSpacing.space2),
         Expanded(
-          child: _buildToggleButton(
-            label: 'Recount',
-            icon: LucideIcons.refreshCw,
-            value: 'recount',
-            isSelected: _transactionType == 'recount',
-            activeColor: TossColors.primary,
-          ),
+          child: _transactionType == 'recount'
+              ? TossButton1.outlined(
+                  text: 'Recount',
+                  leadingIcon: const Icon(LucideIcons.refreshCw, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'recount';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                )
+              : TossButton1.outlinedGray(
+                  text: 'Recount',
+                  leadingIcon: const Icon(LucideIcons.refreshCw, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _transactionType = 'recount';
+                    });
+                  },
+                  fullWidth: true,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  borderRadius: TossBorderRadius.lg,
+                ),
         ),
       ],
-    );
-  }
-
-  Widget _buildToggleButton({
-    required String label,
-    required IconData icon,
-    required String value,
-    required bool isSelected,
-    required Color activeColor,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _transactionType = value;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.white : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? activeColor : TossColors.gray200,
-            width: 1.5,
-          ),
-        ),
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isSelected ? activeColor : TossColors.gray600,
-              ),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                label,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? activeColor : TossColors.gray600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
