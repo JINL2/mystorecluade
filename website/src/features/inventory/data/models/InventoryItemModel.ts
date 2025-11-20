@@ -29,6 +29,7 @@ export interface InventoryItemDTO {
     cost?: number;
     selling?: number;
   };
+  image_urls?: string[];  // 제품 이미지 URL 배열
   created_at?: string;
   updated_at?: string;
 }
@@ -73,7 +74,8 @@ export class InventoryItemModel {
       json.barcode || '',
       json.product_type || 'commodity',
       costPrice,
-      createdAt ?? undefined  // Local Date 객체 또는 undefined
+      createdAt ?? undefined,  // Local Date 객체 또는 undefined
+      json.image_urls || []  // 제품 이미지 URL 배열
     );
   }
 

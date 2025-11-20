@@ -60,8 +60,10 @@ export class InventoryDataSource {
 
     // Handle direct success wrapper format: { success: true, data: { products: [], pagination: {}, currency: {} } }
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
+      const products = data.data?.products || [];
+
       return {
-        products: data.data?.products || [],
+        products: products,
         currency: data.data?.currency,
         pagination: data.data?.pagination,
       };
@@ -92,6 +94,7 @@ export class InventoryDataSource {
       p_cost_price: productData.costPrice,
       p_selling_price: productData.sellingPrice,
       p_new_quantity: productData.currentStock,
+      p_image_urls: productData.imageUrls || null, // Image URLs array (JSONB)
     };
 
     const { data, error } = await supabase.rpc('inventory_edit_product', params);

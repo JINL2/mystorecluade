@@ -91,8 +91,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.pageContainer}>
-          <div className={styles.salaryContainer}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <LoadingAnimation size="large" fullscreen />
           </div>
         </div>
@@ -104,8 +104,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.pageContainer}>
-          <div className={styles.salaryContainer}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <LoadingAnimation size="large" fullscreen />
           </div>
         </div>
@@ -121,8 +121,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   return (
     <>
       <Navbar activeItem="employee" />
-      <div className={styles.pageContainer}>
-        <div className={styles.salaryContainer}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           {/* Header Section */}
           <div className={styles.salaryHeader}>
             <div className={styles.salaryTitleSection}>
@@ -405,11 +405,9 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               ))}
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Error Message Modal */}
-      {notification && (
+          {/* Error Message Modal */}
+          {notification && (
         <ErrorMessage
           variant={notification.variant}
           title={notification.title}
@@ -418,20 +416,22 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
           onClose={() => setNotification(null)}
           autoCloseDuration={notification.variant === 'success' ? 2000 : 0}
         />
-      )}
+          )}
 
-      {/* Data Loading Error Modal */}
-      {error && (
-        <ErrorMessage
-          variant="error"
-          title="Failed to Load Salary Data"
-          message={error}
-          isOpen={true}
-          onClose={() => {}}
-          confirmText="Try Again"
-          onConfirm={refresh}
-        />
-      )}
+          {/* Data Loading Error Modal */}
+          {error && (
+            <ErrorMessage
+              variant="error"
+              title="Failed to Load Salary Data"
+              message={error}
+              isOpen={true}
+              onClose={() => {}}
+              confirmText="Try Again"
+              onConfirm={refresh}
+            />
+          )}
+        </div>
+      </div>
     </>
   );
 };

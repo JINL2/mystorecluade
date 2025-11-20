@@ -202,6 +202,100 @@
   line-height: 1.4;
 }
 
+/* Image Upload */
+.imageUploadSection {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-2, 8px);
+}
+
+.imageUploadContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+}
+
+.imagePreviewWrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-md, 8px);
+  border: 2px dashed var(--border-secondary, #E9ECEF);
+  background: var(--bg-secondary, #F8F9FA);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.15s ease);
+  flex-shrink: 0;
+}
+
+.imagePreviewWrapper:hover {
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--bg-hover, #F0F6FF);
+}
+
+.imagePreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-4, 16px);
+  text-align: center;
+}
+
+.uploadIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-tertiary, #ADB5BD);
+}
+
+.uploadText {
+  font-size: var(--font-small, 13px);
+  color: var(--text-secondary, #6C757D);
+  font-weight: 500;
+}
+
+.uploadHint {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-tertiary, #ADB5BD);
+}
+
+.removeImageButton {
+  position: absolute;
+  top: var(--space-2, 8px);
+  right: var(--space-2, 8px);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full, 50%);
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast, 0.15s ease);
+  z-index: 1;
+}
+
+.removeImageButton:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
 /* Modal Footer */
 .modalFooter {
   padding: var(--space-6, 24px);
@@ -235,5 +329,15 @@
 
   .modalFooter button {
     width: 100%;
+  }
+
+  /* Image Upload Mobile */
+  .imageUploadContainer {
+    gap: var(--space-2, 8px);
+  }
+
+  .imagePreviewWrapper {
+    width: 100px;
+    height: 100px;
   }
 }

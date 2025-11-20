@@ -100,10 +100,16 @@ class ExcelExportManager {
       { header: `Selling Price (${currencyCode})`, key: 'selling_price', width: 15 },
       { header: 'Current Stock', key: 'current_stock', width: 15 },
       { header: 'Status', key: 'status', width: 12 },
+      { header: 'image1', key: 'image1', width: 50 },
+      { header: 'image2', key: 'image2', width: 50 },
+      { header: 'image3', key: 'image3', width: 50 },
     ];
 
     // Add product data
     products.forEach((product) => {
+      // Extract image URLs (up to 3 images)
+      const imageUrls = product.imageUrls || [];
+
       worksheet.addRow({
         sku: product.productCode || product.sku || '',
         barcode: product.barcode || '',
@@ -115,6 +121,9 @@ class ExcelExportManager {
         selling_price: product.unitPrice || 0,
         current_stock: product.currentStock || 0,
         status: product.currentStock === 0 ? 'OUT OF STOCK' : product.currentStock <= 5 ? 'LOW STOCK' : 'IN STOCK',
+        image1: imageUrls[0] || '',
+        image2: imageUrls[1] || '',
+        image3: imageUrls[2] || '',
       });
     });
 
@@ -138,8 +147,8 @@ class ExcelExportManager {
     };
     headerRow.height = 25;
 
-    // Add borders to header cells
-    headerRow.eachCell({ includeEmpty: false }, (cell: any) => {
+    // Add borders to header cells (include empty cells for image columns)
+    headerRow.eachCell({ includeEmpty: true }, (cell: any) => {
       cell.border = {
         top: { style: 'thin', color: { argb: 'FF000000' } },
         left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -148,10 +157,10 @@ class ExcelExportManager {
       };
     });
 
-    // Add light borders to data cells
+    // Add light borders to data cells (include empty cells for image columns)
     worksheet.eachRow((row: any, rowNumber: number) => {
       if (rowNumber > 1) {
-        row.eachCell({ includeEmpty: false }, (cell: any) => {
+        row.eachCell({ includeEmpty: true }, (cell: any) => {
           cell.border = {
             top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
             left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
@@ -306,7 +315,7 @@ class ExcelExportManager {
     worksheet.eachRow((row: any, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip header row
 
-      // Get cell values by column number (matching backup structure)
+      // Get cell values by column number
       const productData = {
         product_id: null, // Not read from Excel, set to null
         sku: row.getCell(1).value || null, // Column A - SKU
@@ -318,10 +327,8 @@ class ExcelExportManager {
         cost_price: parseFloat(row.getCell(7).value) || 0, // Column G - Cost Price
         selling_price: parseFloat(row.getCell(8).value) || 0, // Column H - Selling Price
         current_stock: parseFloat(row.getCell(9).value) || 0, // Column I - Current Stock
-        min_stock: parseFloat(row.getCell(10).value) || 0, // Column J - Min Stock
-        max_stock: parseFloat(row.getCell(11).value) || 0, // Column K - Max Stock
-        reorder_point: parseFloat(row.getCell(12).value) || 0, // Column L - Reorder Point
-        status: row.getCell(13).value || 'Active', // Column M - Status
+        status: row.getCell(10).value || 'Active', // Column J - Status
+        image_urls: null as any, // Will be populated below from columns K, L, M
       };
 
       // Data validation and cleaning
@@ -345,9 +352,26 @@ class ExcelExportManager {
         productData.cost_price = isNaN(productData.cost_price) ? 0 : productData.cost_price;
         productData.selling_price = isNaN(productData.selling_price) ? 0 : productData.selling_price;
         productData.current_stock = isNaN(productData.current_stock) ? 0 : productData.current_stock;
-        productData.min_stock = isNaN(productData.min_stock) ? 0 : productData.min_stock;
-        productData.max_stock = isNaN(productData.max_stock) ? 0 : productData.max_stock;
-        productData.reorder_point = isNaN(productData.reorder_point) ? 0 : productData.reorder_point;
+
+        // Process image URLs from columns K, L, M (image1, image2, image3)
+        const imageUrls: string[] = [];
+        const image1 = row.getCell(11).value; // Column K - image1
+        const image2 = row.getCell(12).value; // Column L - image2
+        const image3 = row.getCell(13).value; // Column M - image3
+
+        // Add non-empty image URLs to array
+        if (image1 && String(image1).trim() !== '') {
+          imageUrls.push(String(image1).trim());
+        }
+        if (image2 && String(image2).trim() !== '') {
+          imageUrls.push(String(image2).trim());
+        }
+        if (image3 && String(image3).trim() !== '') {
+          imageUrls.push(String(image3).trim());
+        }
+
+        // Set image_urls array (will be sent as JSONB to RPC)
+        productData.image_urls = imageUrls.length > 0 ? imageUrls : null;
 
         products.push(productData);
       }

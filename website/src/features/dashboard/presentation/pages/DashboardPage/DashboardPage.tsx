@@ -46,8 +46,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
     return (
       <>
         <Navbar activeItem="dashboard" />
-        <div className={styles.container}>
-          <div className={styles.dashboardMain}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <LoadingAnimation size="large" fullscreen={true} />
           </div>
         </div>
@@ -59,8 +59,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
     return (
       <>
         <Navbar activeItem="dashboard" />
-        <div className={styles.container}>
-          <div className={styles.dashboardMain}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <LoadingAnimation size="large" fullscreen={true} />
           </div>
         </div>
@@ -72,12 +72,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
     return (
       <>
         <Navbar activeItem="dashboard" />
-        <div className={styles.container}>
-          <div className={styles.dashboardMain}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <div className={styles.header}>
-              <div className={styles.headerContent}>
-                <h1 className={styles.title}>Dashboard</h1>
-              </div>
+              <h1 className={styles.title}>Dashboard</h1>
             </div>
             <div className={styles.emptyState}>
               <p>{DashboardMessages.emptyStates.noDashboardData}</p>
@@ -107,14 +105,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
   return (
     <>
       <Navbar activeItem="dashboard" />
-      <div className={styles.container}>
-        {/* Dashboard Main Content */}
-        <div className={styles.dashboardMain}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           {/* Page Header */}
           <div className={styles.header}>
-            <div className={styles.headerContent}>
-              <h1 className={styles.title}>Dashboard</h1>
-            </div>
+            <h1 className={styles.title}>Dashboard</h1>
           </div>
 
           {/* Overview Cards Grid */}
@@ -236,26 +231,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
       </div>
     </div>
 
-    {/* ErrorMessage Dialog - Data Loading Errors */}
-    <ErrorMessage
-      variant={errorDialog.variant}
-      title={errorDialog.title}
-      message={errorDialog.message}
-      isOpen={errorDialog.isOpen}
-      onClose={clearError}
-      confirmText={DashboardMessages.actions.retry}
-      onConfirm={refresh}
-    />
+      {/* ErrorMessage Dialog - Data Loading Errors */}
+      <ErrorMessage
+        variant={errorDialog.variant}
+        title={errorDialog.title}
+        message={errorDialog.message}
+        isOpen={errorDialog.isOpen}
+        onClose={clearError}
+        confirmText={DashboardMessages.actions.retry}
+        onConfirm={refresh}
+      />
 
-    {/* ErrorMessage Dialog - Permission Error */}
-    <ErrorMessage
-      variant="warning"
-      title="Access Denied"
-      message="You don't have permission to access the Transaction History page. Please contact your administrator."
-      isOpen={showPermissionError}
-      onClose={() => setShowPermissionError(false)}
-      confirmText="OK"
-    />
+      {/* ErrorMessage Dialog - Permission Error */}
+      <ErrorMessage
+        variant="warning"
+        title="Access Denied"
+        message="You don't have permission to access the Transaction History page. Please contact your administrator."
+        isOpen={showPermissionError}
+        onClose={() => setShowPermissionError(false)}
+        confirmText="OK"
+      />
     </>
   );
 };

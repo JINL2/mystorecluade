@@ -1,8 +1,6 @@
 /**
  * TrackingPage Types
- * Type definitions for TrackingPage component
+ * Coming Soon - No types needed yet
  */
 
-export interface TrackingPageProps {
-  // Component props can be added here if needed
-}
+export {};

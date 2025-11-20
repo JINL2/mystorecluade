@@ -132,11 +132,13 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Employee Schedule</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Employee Schedule</h1>
+            </div>
+            <LoadingAnimation fullscreen />
           </div>
-          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -146,16 +148,18 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <div className={styles.breadcrumb}>
-              <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
-                ← Back to Dashboard
-              </TossButton>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <div className={styles.breadcrumb}>
+                <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
+                  ← Back to Dashboard
+                </TossButton>
+              </div>
+              <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
             </div>
-            <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
+            <LoadingAnimation fullscreen />
           </div>
-          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -166,7 +170,8 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
           <div className={styles.header}>
             <div className={styles.breadcrumb}>
               <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
@@ -176,6 +181,7 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
             <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
           </div>
           <LoadingAnimation fullscreen />
+          </div>
         </div>
         <ErrorMessage
           variant="error"
@@ -195,7 +201,8 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
   return (
     <>
       <Navbar activeItem="employee" />
-      <div className={styles.container}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
         {/* Page Header with Back Button */}
         <div className={styles.header}>
           <div>
@@ -374,29 +381,30 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Add Employee Modal */}
-      <AddEmployeeModal
-        isOpen={isAddEmployeeModalOpen}
-        onClose={closeAddEmployeeModal}
-        selectedDate={selectedDate}
-        shifts={shifts}
-        employees={employees}
-        onAddEmployee={handleAddEmployee}
-        loading={addingEmployee}
-      />
-
-      {/* Notification Dialog */}
-      {notification && (
-        <ErrorMessage
-          variant={notification.variant}
-          title={notification.title}
-          message={notification.message}
-          isOpen={true}
-          onClose={clearNotification}
+        {/* Add Employee Modal */}
+        <AddEmployeeModal
+          isOpen={isAddEmployeeModalOpen}
+          onClose={closeAddEmployeeModal}
+          selectedDate={selectedDate}
+          shifts={shifts}
+          employees={employees}
+          onAddEmployee={handleAddEmployee}
+          loading={addingEmployee}
         />
-      )}
+
+        {/* Notification Dialog */}
+        {notification && (
+          <ErrorMessage
+            variant={notification.variant}
+            title={notification.title}
+            message={notification.message}
+            isOpen={true}
+            onClose={clearNotification}
+          />
+        )}
+        </div>
+      </div>
     </>
   );
 };

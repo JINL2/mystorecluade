@@ -14,13 +14,16 @@ export interface ProductDetailsModalProps {
     productCode: string;
     barcode: string;
     category?: string;
+    categoryId?: string; // Add categoryId
     brand?: string;
+    brandId?: string; // Add brandId
     productType: string;
     sku: string;
     currentStock: number;
     unit?: string;
     unitPrice: number;
     costPrice?: number;
+    imageUrls?: string[]; // Add imageUrls
   };
   metadata?: InventoryMetadata | null;
   onSave?: (updatedData: any) => void;

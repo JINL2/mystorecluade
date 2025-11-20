@@ -24,7 +24,8 @@ export class InventoryItem {
     public readonly barcode: string = '',
     public readonly productType: string = 'commodity',
     public readonly costPrice: number = 0,
-    public readonly createdAt?: Date  // Date 객체로 변경 (Local 시간)
+    public readonly createdAt?: Date,  // Date 객체로 변경 (Local 시간)
+    public readonly imageUrls: string[] = []  // 제품 이미지 URL 배열
   ) {}
 
   /**

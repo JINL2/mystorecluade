@@ -6,11 +6,14 @@
 import React from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { formatCurrency, formatCategoryTag } from '@/core/utils/formatters';
+import { RecentTransactionHistory } from '../RecentTransactionHistory';
 import type { IconTabContentProps } from './IconTabContent.types';
 import styles from './IconTabContent.module.css';
 
 export const IconTabContent: React.FC<IconTabContentProps> = ({
   journalEntry,
+  companyId,
+  selectedStoreId,
   submitting,
   onAddTransaction,
   onEditTransaction,
@@ -217,6 +220,9 @@ export const IconTabContent: React.FC<IconTabContentProps> = ({
           </TossButton>
         </div>
       </div>
+
+      {/* Recent Transaction History */}
+      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} />
     </>
   );
 };

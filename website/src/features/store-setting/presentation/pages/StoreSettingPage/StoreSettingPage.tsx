@@ -78,8 +78,10 @@ export const StoreSettingPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.pageContent}>
-          <LoadingAnimation size="large" fullscreen />
+        <div className={styles.pageLayout}>
+          <div className={styles.pageContent}>
+            <LoadingAnimation size="large" fullscreen />
+          </div>
         </div>
       </>
     );
@@ -89,8 +91,10 @@ export const StoreSettingPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.pageContent}>
-          <p>Select a company to manage stores</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.pageContent}>
+            <p>Select a company to manage stores</p>
+          </div>
         </div>
       </>
     );
@@ -99,12 +103,13 @@ export const StoreSettingPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="setting" />
-      <main className={styles.pageContent}>
-        <div className={styles.pageHeader}>
-          <div className={styles.pageHeaderContent}>
-            <h1 className={styles.pageTitle}>Store Setting</h1>
-            <p className={styles.pageSubtitle}>Manage your store configuration and settings</p>
-          </div>
+      <div className={styles.pageLayout}>
+        <main className={styles.pageContent}>
+          <div className={styles.pageHeader}>
+            <div className={styles.pageHeaderContent}>
+              <h1 className={styles.pageTitle}>Store Setting</h1>
+              <p className={styles.pageSubtitle}>Manage your store configuration and settings</p>
+            </div>
           <button className={styles.addStoreBtn} onClick={() => setShowAddModal(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
@@ -178,7 +183,8 @@ export const StoreSettingPage: React.FC = () => {
             </div>
           )}
         </div>
-      </main>
+        </main>
+      </div>
 
       {/* Add Store Modal */}
       {showAddModal && (

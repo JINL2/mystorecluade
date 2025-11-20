@@ -1,15 +1,51 @@
 /**
  * InventoryPage Component Styles
- * Exact match to backup design
+ * With left sidebar filter panel
  */
 
-.container {
+/* Page Layout - Flexbox with sidebar */
+.pageLayout {
+  display: flex;
   min-height: 100vh;
-  padding: 32px;
   background: var(--color-gray-50);
-  max-width: 1400px;
+  padding: 0 24px; /* Reduced padding for better space usage */
+  max-width: 100%; /* Remove max-width constraint for full flexibility */
   margin: 0 auto;
+}
+
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px; /* Gap between sidebar and main content */
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+  overflow-x: hidden;
+}
+
+/* Container */
+.container {
+  padding: 24px 0; /* Remove horizontal padding, only vertical */
   width: 100%;
+  max-width: 100%;
 }
 
 .header {
@@ -203,47 +239,14 @@
 .contentCard {
   background: var(--color-white);
   border-radius: 12px; /* LG - DESIGN_SYSTEM.md Card radius */
-  padding: 0;
+  padding: 0 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md Card shadow */
   margin-bottom: 24px;
   overflow: hidden;
 }
 
 /* Inventory Header Styles */
-.inventoryHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px;
-  border-bottom: 1px solid var(--color-gray-200);
-  gap: 16px;
-}
-
-.inventoryTitleSection {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-}
-
-.inventoryTitle {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-gray-900);
-  margin: 0;
-}
-
-.inventoryActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.actionButtons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* Inventory header styles moved to InventoryHeader component */
 
 /* Button Styles */
 .tossBtn {
@@ -251,7 +254,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 10px 8px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -316,517 +319,9 @@
   color: var(--color-gray-400);
 }
 
-/* Search Bar Styles */
-.inventorySearchWrapper {
-  position: relative;
-  min-width: 280px;
-}
+/* Search bar styles moved to InventoryHeader component */
 
-.inventorySearch {
-  width: 100%;
-  padding: 10px 16px 10px 44px;
-  border: 1px solid #0064FF; /* Toss Blue */
-  border-radius: 8px; /* MD - DESIGN_SYSTEM.md Input radius */
-  font-size: 14px;
-  background: var(--color-white);
-  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
-  transition: all 0.2s ease;
-}
-
-.inventorySearch:focus {
-  outline: none;
-  border-color: #0064FF; /* Toss Blue */
-  background: var(--color-white);
-  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
-}
-
-.inventorySearch::placeholder {
-  color: var(--color-gray-500);
-}
-
-.searchIcon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: var(--color-gray-500);
-  pointer-events: none;
-}
-
-.searchClear {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: none;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.searchClear:hover {
-  color: var(--color-gray-900);
-  background: var(--color-gray-100);
-}
-
-/* Table Styles */
-.inventoryTableWrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.inventoryTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  table-layout: fixed;
-}
-
-.inventoryTable th {
-  background: var(--toss-gray-50);
-  color: #6C757D; /* Gray 600 - DESIGN_SYSTEM.md */
-  font-weight: 600; /* Semibold */
-  font-size: 12px; /* Label - DESIGN_SYSTEM.md */
-  text-align: left;
-  padding: 16px 12px;
-  border-bottom: 1px solid var(--toss-gray-200);
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  letter-spacing: 0.5px; /* DESIGN_SYSTEM.md table header standard */
-  text-transform: uppercase;
-}
-
-.inventoryTable th.quantityCell,
-.inventoryTable th.priceCell,
-.inventoryTable th.costCell {
-  text-align: center;
-}
-
-.inventoryTable td {
-  padding: 16px 12px;
-  border-bottom: 1px solid var(--color-gray-100);
-  vertical-align: middle;
-}
-
-.inventoryTable tbody tr:hover {
-  background: var(--color-gray-50);
-}
-
-.inventoryTable tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* Column Width Styles */
-.checkboxCell {
-  width: 48px;
-  padding-left: 12px !important;
-  padding-right: 8px !important;
-}
-
-.inventoryTable th:nth-child(2) { /* Product Name */
-  width: 26%;
-}
-
-.inventoryTable th:nth-child(3) { /* Product Code */
-  width: 13%;
-}
-
-.inventoryTable th:nth-child(4) { /* Brand */
-  width: 11%;
-}
-
-.inventoryTable th:nth-child(5) { /* Quantity */
-  width: 9%;
-}
-
-.inventoryTable th:nth-child(6) { /* Price */
-  width: 11%;
-}
-
-.inventoryTable th:nth-child(7) { /* Cost */
-  width: 11%;
-}
-
-.inventoryTable th:nth-child(8) { /* Move */
-  width: 11%;
-}
-
-.inventoryTable th:nth-child(9) { /* Actions */
-  width: 8%;
-}
-
-.productCheckbox,
-.selectAllCheckbox {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--color-gray-300);
-  border-radius: 4px;
-  background: var(--color-white);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-.productCheckbox:hover,
-.selectAllCheckbox:hover {
-  border-color: var(--color-blue-600);
-  background: rgba(0, 100, 255, 0.05);
-}
-
-.productCheckbox:checked,
-.selectAllCheckbox:checked {
-  background: var(--color-blue-600);
-  border-color: var(--color-blue-600);
-  color: var(--color-white);
-}
-
-.productCheckbox:checked::after,
-.selectAllCheckbox:checked::after {
-  content: "";
-  position: absolute;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: translate(-50%, -60%) rotate(45deg);
-  top: 50%;
-  left: 50%;
-}
-
-.productCheckbox {
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-}
-
-.productRow:hover .productCheckbox {
-  opacity: 1;
-}
-
-/* Product Name and Code */
-.productNameCell {
-  font-weight: 500;
-  color: var(--color-gray-900);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.productName {
-  font-weight: 500;
-  color: var(--color-gray-900);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-
-.productCodeCell {
-  font-weight: 400;
-  color: var(--color-gray-700);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.productCode {
-  font-weight: 400;
-  color: var(--color-gray-600);
-  text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-
-.barcodeCell {
-  color: var(--color-gray-600);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.barcode {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-
-/* Quantity Styles */
-.quantityCell {
-  text-align: center;
-}
-
-.quantityValue {
-  font-weight: 600;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
-}
-
-.quantityOut {
-  color: var(--color-red-600);
-}
-
-.quantityLow {
-  color: var(--color-orange-600);
-}
-
-/* Price and Cost Styles */
-.priceCell,
-.costCell {
-  text-align: center;
-}
-
-.priceValue {
-  font-weight: 600;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
-  color: #0064FF; /* Toss Blue - Primary */
-}
-
-.costValue {
-  font-weight: 400;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* DESIGN_SYSTEM.md - Financial numbers */
-  color: #212529; /* Gray 900 - Primary text */
-}
-
-/* Status Badge Styles */
-.statusCell {
-  text-align: left;
-}
-
-.statusBadge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.statusInStock {
-  background: #E3FFF4; /* Toss Success Light */
-  color: #00A67E; /* Toss Success Dark */
-  border: 1px solid #00C896; /* Toss Success */
-}
-
-.statusLowStock {
-  background: #FFF4E6; /* Toss Warning Light */
-  color: #E68600; /* Toss Warning Dark */
-  border: 1px solid #FF9500; /* Toss Warning */
-}
-
-.statusOutOfStock {
-  background: #FFEFED; /* Toss Error Light */
-  color: #E63E2C; /* Toss Error Dark */
-  border: 1px solid #FF5847; /* Toss Error */
-}
-
-/* Actions Cell */
-/* Move Cell Styles */
-.moveCell {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.actionsCell {
-  text-align: left;
-}
-
-.editProductBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid var(--color-blue-600);
-  background: var(--color-white);
-  color: var(--color-blue-600);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.editProductBtn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.editProductBtn:hover {
-  background: var(--color-blue-50);
-  border-color: var(--color-blue-700);
-  color: var(--color-blue-700);
-}
-
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 64px 32px;
-  color: var(--color-gray-600);
-}
-
-.emptyIcon {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 24px;
-  display: block;
-}
-
-.emptyTitle {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-gray-900);
-  margin: 0 0 12px 0;
-}
-
-.emptyText {
-  font-size: 16px;
-  color: var(--color-gray-600);
-  margin: 0;
-}
-
-/* Loading State */
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: var(--color-gray-600);
-}
-
-.spinner {
-  font-size: 18px;
-  color: var(--color-gray-600);
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Error Container */
-.errorContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  text-align: center;
-  padding: 48px;
-}
-
-.errorIcon {
-  font-size: 64px;
-  margin-bottom: 24px;
-}
-
-.errorTitle {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-gray-900);
-  margin: 0 0 12px 0;
-}
-
-.errorMessage {
-  font-size: 16px;
-  color: var(--color-gray-600);
-  margin: 0 0 24px 0;
-  max-width: 500px;
-}
-
-/* Pagination Styles */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  border-top: 1px solid var(--color-gray-200);
-}
-
-.paginationInfo {
-  font-size: 14px;
-  color: var(--color-gray-600);
-}
-
-.paginationControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.paginationButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid var(--color-gray-300);
-  background: var(--color-white);
-  color: var(--color-gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.paginationButton:hover:not(:disabled) {
-  background: var(--color-gray-50);
-  border-color: var(--color-gray-400);
-}
-
-.paginationButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.paginationButton.active {
-  background: var(--color-blue-600);
-  color: var(--color-white);
-  border-color: var(--color-blue-600);
-  font-weight: 700;
-}
-
-.paginationButton.active:hover {
-  background: var(--color-blue-700);
-  border-color: var(--color-blue-700);
-}
-
-.paginationEllipsis {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  color: var(--color-gray-500);
-  font-size: 14px;
-  font-weight: 500;
-  user-select: none;
-}
+/* Table Styles - All table styles moved to InventoryTableSection component */
 
 /* Import Loading Overlay */
 .importOverlay {
@@ -849,7 +344,7 @@
   align-items: center;
   justify-content: center;
   gap: 24px;
-  padding: 48px 64px;
+  padding: 48px 32px;
   background: var(--color-white);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -880,44 +375,33 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .sidebarWrapper {
+    display: none;
+  }
+
+  /* .mobileFilterWrapper moved to InventoryHeader component */
+
+  .mainContent {
+    width: 100%;
+  }
+
   .container {
-    padding: 16px;
+    padding: 16px 0;
   }
 
   .title {
     font-size: 24px;
   }
 
-  .inventoryHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .inventoryTitleSection {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  .inventorySearchWrapper {
-    width: 100%;
-  }
-
-  .actionButtons {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .inventoryTableWrapper {
-    overflow-x: auto;
-  }
-
-  .inventoryTable {
-    min-width: 800px;
-  }
+  /* Mobile header styles moved to InventoryHeader component */
+  /* Mobile table styles moved to InventoryTableSection component */
 
   .importContent {
-    padding: 32px 40px;
+    padding: 32px 20px;
     margin: 16px;
   }
 
@@ -929,3 +413,5 @@
     font-size: 13px;
   }
 }
+
+/* Product Row Expansion Styles - All moved to InventoryTableSection component */

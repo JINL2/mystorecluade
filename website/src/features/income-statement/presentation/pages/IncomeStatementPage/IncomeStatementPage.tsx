@@ -383,8 +383,8 @@ export const IncomeStatementPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="finance" />
-      <div className={styles.pageContainer}>
-        <div className={styles.pageContent}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Income Statement</h1>
             <p className={styles.pageSubtitle}>View revenue and expenses</p>

@@ -148,12 +148,14 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     return (
       <>
         <Navbar activeItem="finance" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Cash Ending</h1>
-            <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Cash Ending</h1>
+              <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+            </div>
+            <LoadingAnimation fullscreen size="large" />
           </div>
-          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -163,12 +165,14 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     return (
       <>
         <Navbar activeItem="finance" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Cash Ending</h1>
-            <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Cash Ending</h1>
+              <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+            </div>
+            <LoadingAnimation fullscreen size="large" />
           </div>
-          <LoadingAnimation fullscreen size="large" />
         </div>
       </>
     );
@@ -178,26 +182,28 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
     return (
       <>
         <Navbar activeItem="finance" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Cash Ending</h1>
-            <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
-          </div>
-          <div className={styles.errorContainer}>
-            <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
-              {/* Background Circle */}
-              <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
-              {/* Error Symbol */}
-              <circle cx="60" cy="60" r="30" fill="#FF5847"/>
-              <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
-              <circle cx="60" cy="73" r="2.5" fill="white"/>
-              {/* Document Icon */}
-              <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
-              <line x1="48" y1="35" x2="72" y2="35" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="48" y1="42" x2="65" y2="42" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <h2 className={styles.errorTitle}>Failed to Load Cash Endings</h2>
-            <p className={styles.errorMessage}>{error}</p>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Cash Ending</h1>
+              <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+            </div>
+            <div className={styles.errorContainer}>
+              <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#FFEFED"/>
+                {/* Error Symbol */}
+                <circle cx="60" cy="60" r="30" fill="#FF5847"/>
+                <path d="M60 45 L60 65" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+                <circle cx="60" cy="73" r="2.5" fill="white"/>
+                {/* Document Icon */}
+                <rect x="40" y="25" width="40" height="50" rx="4" fill="white" stroke="#FF5847" strokeWidth="2"/>
+                <line x1="48" y1="35" x2="72" y2="35" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="48" y1="42" x2="65" y2="42" stroke="#FFE5E5" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <h2 className={styles.errorTitle}>Failed to Load Cash Endings</h2>
+              <p className={styles.errorMessage}>{error}</p>
+            </div>
           </div>
         </div>
       </>
@@ -230,26 +236,27 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
   return (
     <>
       <Navbar activeItem="finance" />
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Cash Ending</h1>
-          <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
-        </div>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Cash Ending</h1>
+            <p className={styles.subtitle}>Manage daily cash ending processes and records</p>
+          </div>
 
-        {/* Store Selector */}
-        <div style={{ marginBottom: '24px' }}>
-          <StoreSelector
-            stores={currentCompany?.stores || []}
-            selectedStoreId={storeId}
-            onStoreSelect={handleStoreSelect}
-            companyId={companyId}
-            width="280px"
-            showAllStoresOption={true}
-            allStoresLabel="All Stores"
-          />
-        </div>
+          {/* Store Selector */}
+          <div style={{ marginBottom: '24px' }}>
+            <StoreSelector
+              stores={currentCompany?.stores || []}
+              selectedStoreId={storeId}
+              onStoreSelect={handleStoreSelect}
+              companyId={companyId}
+              width="280px"
+              showAllStoresOption={true}
+              allStoresLabel="All Stores"
+            />
+          </div>
 
-        {cashEndings.length === 0 ? (
+          {cashEndings.length === 0 ? (
           <div className={styles.emptyState}>
             <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
               {/* Background Circle */}
@@ -420,10 +427,10 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
               </div>
             </div>
           </div>
-        )}
+          )}
 
-        {/* Confirmation Modal */}
-        <ConfirmModal
+          {/* Confirmation Modal */}
+          <ConfirmModal
           isOpen={modalState.isOpen}
           onClose={closeModal}
           onConfirm={handleModalConfirm}
@@ -450,16 +457,17 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
               </span>
             </div>
           </div>
-        </ConfirmModal>
+          </ConfirmModal>
 
-        {/* Error/Success Message */}
-        <ErrorMessage
-          variant={messageState.variant}
-          title={messageState.title}
-          message={messageState.message}
-          isOpen={messageState.isOpen}
-          onClose={closeMessage}
-        />
+          {/* Error/Success Message */}
+          <ErrorMessage
+            variant={messageState.variant}
+            title={messageState.title}
+            message={messageState.message}
+            isOpen={messageState.isOpen}
+            onClose={closeMessage}
+          />
+        </div>
       </div>
     </>
   );

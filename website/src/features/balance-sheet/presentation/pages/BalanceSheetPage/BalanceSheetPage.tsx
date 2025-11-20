@@ -78,24 +78,24 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
   return (
     <>
       <Navbar activeItem="finance" />
-      <div className={styles.pageContainer}>
-        <main className={styles.pageContent}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           {/* Page Header */}
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Balance Sheet</h1>
             <p className={styles.pageSubtitle}>View your company's financial position</p>
           </div>
 
-        {/* Filter Component */}
-        <BalanceSheetFilter
-          stores={currentCompany?.stores || []}
-          companyId={companyId}
-          onSearch={handleSearch}
-          onClear={handleClear}
-        />
+          {/* Filter Component */}
+          <BalanceSheetFilter
+            stores={currentCompany?.stores || []}
+            companyId={companyId}
+            onSearch={handleSearch}
+            onClear={handleClear}
+          />
 
-        {/* Content Card */}
-        <div className={styles.contentCard}>
+          {/* Content Card */}
+          <div className={styles.contentCard}>
           {loading && (
             <div className={styles.loadingState}>
               <div className={styles.spinner}>Loading balance sheet...</div>
@@ -283,8 +283,8 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
               )}
             </>
           )}
+          </div>
         </div>
-        </main>
       </div>
     </>
   );

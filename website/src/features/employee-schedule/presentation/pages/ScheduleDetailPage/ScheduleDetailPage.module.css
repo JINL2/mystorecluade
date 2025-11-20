@@ -2,11 +2,18 @@
  * ScheduleDetailPage Component Styles
  */
 
-.container {
-  flex: 1;
-  padding: var(--space-6, 24px);
-  max-width: 1400px;
+/* Page Layout - Following DESIGN_SYSTEM.md Standard */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
   margin: 0 auto;
+}
+
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
   width: 100%;
   position: relative;
 }
@@ -463,9 +470,26 @@
   }
 }
 
+/* Responsive Design - Following DESIGN_SYSTEM.md Standard */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Mobile - reduce padding */
 @media (max-width: 768px) {
-  .container {
-    padding: var(--space-4, 16px);
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
   }
 
   .title {
@@ -486,10 +510,6 @@
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: var(--space-3, 12px);
-  }
-
   .scheduleGrid {
     grid-template-columns: 1fr;
   }

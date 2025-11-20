@@ -38,11 +38,13 @@ export const ScheduleDashboardPage: React.FC<ScheduleDashboardPageProps> = () =>
     return (
       <>
         <Navbar activeItem="employee" />
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Dashboard</h1>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Dashboard</h1>
+            </div>
+            <LoadingAnimation fullscreen />
           </div>
-          <LoadingAnimation fullscreen />
         </div>
       </>
     );
@@ -51,7 +53,8 @@ export const ScheduleDashboardPage: React.FC<ScheduleDashboardPageProps> = () =>
   return (
     <>
       <Navbar activeItem="employee" />
-      <div className={styles.container}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
         {/* Dashboard View */}
         <div className={styles.header}>
           <h1 className={styles.title}>Dashboard</h1>
@@ -145,6 +148,7 @@ export const ScheduleDashboardPage: React.FC<ScheduleDashboardPageProps> = () =>
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </>

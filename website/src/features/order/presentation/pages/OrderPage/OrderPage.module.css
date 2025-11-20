@@ -1,22 +1,21 @@
 /**
  * OrderPage Styles
- * Matching backup layout with tabs, padding, and max-width
+ * Following 2025 Design System: Responsive padding with max-width: 100%
  */
 
-/* Page Container */
-.pageContainer {
+/* Page Layout - Outer wrapper with responsive padding */
+.pageLayout {
   min-height: 100vh;
   background: white;
-  display: flex;
-  flex-direction: column;
+  padding: 0 24px; /* Horizontal padding only */
+  max-width: 100%; /* Full width by default */
+  margin: 0 auto;
 }
 
-/* Page Content - with padding and max-width like backup */
-.pageContent {
-  flex: 1;
-  padding: var(--space-6);
-  max-width: 1400px;
-  margin: 0 auto;
+/* Page Container - Inner content wrapper */
+.pageContainer {
+  padding: var(--space-6) 0; /* Vertical padding only */
+  max-width: 100%; /* Match Navbar alignment */
   width: 100%;
 }
 
@@ -370,7 +369,24 @@
   transform: translateY(0);
 }
 
-/* Responsive Design */
+/* Responsive Design - Following Design System Standard */
+
+/* Wide screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Ultra-wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Tablet and below - adjust table styles */
 @media (max-width: 1200px) {
   .ordersTable {
     font-size: 13px;
@@ -387,9 +403,14 @@
   }
 }
 
+/* Mobile - reduce padding */
 @media (max-width: 768px) {
-  .pageContent {
-    padding: var(--space-4);
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .pageContainer {
+    padding: var(--space-4) 0;
   }
 
   .pageTitle {

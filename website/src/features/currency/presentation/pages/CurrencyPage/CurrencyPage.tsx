@@ -80,10 +80,10 @@ export const CurrencyPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.pageContainer}>
-          <main className={styles.pageContent}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <LoadingAnimation size="large" fullscreen />
-          </main>
+          </div>
         </div>
       </>
     );
@@ -96,13 +96,13 @@ export const CurrencyPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="setting" />
-        <div className={styles.pageContainer}>
-          <main className={styles.pageContent}>
+        <div className={styles.pageLayout}>
+          <div className={styles.container}>
             <div className={styles.emptyContainer}>
               <h2 className={styles.emptyTitle}>No Company Selected</h2>
               <p className={styles.emptyText}>Please select a company to manage currencies</p>
             </div>
-          </main>
+          </div>
         </div>
       </>
     );
@@ -121,8 +121,8 @@ export const CurrencyPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="setting" />
-      <div className={styles.pageContainer}>
-        <main className={styles.pageContent}>
+      <div className={styles.pageLayout}>
+        <div className={styles.container}>
           {/* Page Header */}
           <div className={styles.pageHeader}>
             <div className={styles.pageHeaderContent}>
@@ -196,11 +196,9 @@ export const CurrencyPage: React.FC = () => {
               ))}
             </div>
           </div>
-        </main>
-      </div>
 
-      {/* Add Currency Modal */}
-      <AddCurrencyModal
+          {/* Add Currency Modal */}
+          <AddCurrencyModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         existingCurrencies={currencies}
@@ -261,6 +259,8 @@ export const CurrencyPage: React.FC = () => {
           </div>
         )}
       </ConfirmModal>
+        </div>
+      </div>
     </>
   );
 };

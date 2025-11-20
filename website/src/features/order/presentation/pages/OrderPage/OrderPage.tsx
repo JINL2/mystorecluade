@@ -53,12 +53,12 @@ export const OrderPage: React.FC = () => {
     return (
       <>
         <Navbar activeItem="product" />
-        <div className={styles.pageContainer}>
-          <main className={styles.pageContent}>
+        <div className={styles.pageLayout}>
+          <div className={styles.pageContainer}>
             <div className={styles.emptyState}>
               <p>Please select a company to view orders</p>
             </div>
-          </main>
+          </div>
         </div>
       </>
     );
@@ -67,8 +67,8 @@ export const OrderPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="product" />
-      <div className={styles.pageContainer}>
-        <main className={styles.pageContent}>
+      <div className={styles.pageLayout}>
+        <div className={styles.pageContainer}>
           {/* Page Header */}
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Purchase Orders</h1>
@@ -310,7 +310,7 @@ export const OrderPage: React.FC = () => {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* ErrorMessage Component */}
