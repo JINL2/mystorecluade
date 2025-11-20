@@ -15,7 +15,7 @@ import '../../providers/cash_ending_provider.dart';
 /// Currency selector bottom sheet
 ///
 /// Displays a list of currencies to select from
-class CurrencySelectorSheet extends ConsumerWidget {
+class CurrencySelectorSheet extends ConsumerStatefulWidget {
   final List<Currency> currencies;
   final String? selectedCurrencyId;
   final String tabType; // 'cash', 'bank', 'vault'
@@ -48,10 +48,32 @@ class CurrencySelectorSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CurrencySelectorSheet> createState() => _CurrencySelectorSheetState();
+}
+
+class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Filter currencies based on search query
+    final filteredCurrencies = widget.currencies.where((currency) {
+      if (_searchQuery.isEmpty) return true;
+      final query = _searchQuery.toLowerCase();
+      return currency.currencyCode.toLowerCase().contains(query) ||
+          currency.currencyName.toLowerCase().contains(query);
+    }).toList();
+
     // Separate selected and unselected currencies
-    final selectedCurrencies = currencies.where((c) => c.currencyId == selectedCurrencyId).toList();
-    final unselectedCurrencies = currencies.where((c) => c.currencyId != selectedCurrencyId).toList();
+    final selectedCurrencies = filteredCurrencies.where((c) => c.currencyId == widget.selectedCurrencyId).toList();
+    final unselectedCurrencies = filteredCurrencies.where((c) => c.currencyId != widget.selectedCurrencyId).toList();
 
     return Container(
       decoration: const BoxDecoration(
@@ -103,15 +125,15 @@ class CurrencySelectorSheet extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
+                vertical: TossSpacing.space1,
               ),
               decoration: BoxDecoration(
                 color: TossColors.white,
                 border: Border.all(
-                  color: TossColors.gray100,
+                  color: TossColors.gray200,
                   width: 1,
                 ),
-                borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
               child: Row(
                 children: [
@@ -121,12 +143,48 @@ class CurrencySelectorSheet extends ConsumerWidget {
                     color: TossColors.gray400,
                   ),
                   const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    'Search currency',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray400,
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search currency',
+                        hintStyle: TossTextStyles.body.copyWith(
+                          color: TossColors.gray400,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: TossSpacing.space3,
+                        ),
+                      ),
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                      ),
                     ),
                   ),
+                  if (_searchQuery.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _searchController.clear();
+                          _searchQuery = '';
+                        });
+                      },
+                      child: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: TossColors.gray400,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -139,7 +197,7 @@ class CurrencySelectorSheet extends ConsumerWidget {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.6,
             ),
-            child: currencies.isEmpty
+            child: filteredCurrencies.isEmpty
                 ? _buildEmptyState()
                 : ListView(
                     shrinkWrap: true,
@@ -164,7 +222,6 @@ class CurrencySelectorSheet extends ConsumerWidget {
                           final currency = entry.value;
                           return _buildCurrencyItem(
                             context,
-                            ref,
                             currency: currency,
                             isSelected: true,
                             isLast: false,
@@ -192,7 +249,6 @@ class CurrencySelectorSheet extends ConsumerWidget {
                         final currency = entry.value;
                         return _buildCurrencyItem(
                           context,
-                          ref,
                           currency: currency,
                           isSelected: false,
                           isLast: index == unselectedCurrencies.length - 1,
@@ -234,29 +290,18 @@ class CurrencySelectorSheet extends ConsumerWidget {
   }
 
   Widget _buildCurrencyItem(
-    BuildContext context,
-    WidgetRef ref, {
+    BuildContext context, {
     required Currency currency,
     required bool isSelected,
     required bool isLast,
   }) {
-    // Fix VND symbol if needed
-    var symbol = currency.symbol;
-    if (currency.currencyCode == 'VND' &&
-        (symbol == 'd' || symbol == 'đ' || symbol.isEmpty)) {
-      symbol = '₫';
-    }
-
-    // Check if currency has denominations
-    final hasDenominations = currency.denominations.isNotEmpty;
-
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
         Navigator.pop(context);
 
         // Update selected currency based on tab type
-        switch (tabType) {
+        switch (widget.tabType) {
           case 'cash':
             // For cash tab: add currency (supports multiple)
             ref

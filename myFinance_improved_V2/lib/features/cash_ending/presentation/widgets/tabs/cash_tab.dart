@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
@@ -20,7 +21,6 @@ import '../currency_pill_selector.dart';
 import '../denomination_grid_header.dart';
 import '../denomination_input.dart';
 import '../grand_total_section.dart';
-import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../section_label.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
@@ -61,23 +61,17 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   String? _previousLocationId;
 
+  // Track which currency is currently expanded (accordion behavior)
+  String? _expandedCurrencyId;
+
   @override
   void initState() {
     super.initState();
 
-    // Add listener for location changes
-    ref.listenManual(
-      cashEndingProvider.select((state) => state.selectedCashLocationId),
-      (previous, next) {
-        if (next != null && next.isNotEmpty && next != previous) {
-          _previousLocationId = next;
-          _loadStockFlowsFromProvider(next);
-        }
-      },
-    );
-
     // Load initial data after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       final pageState = ref.read(cashEndingProvider);
       _previousLocationId = pageState.selectedCashLocationId;
 
@@ -118,6 +112,8 @@ class _CashTabState extends ConsumerState<CashTab> {
   @override
   void didUpdateWidget(CashTab oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!mounted) return;
+
     // Reload flows if location changed
     final pageState = ref.read(cashEndingProvider);
 
@@ -126,6 +122,14 @@ class _CashTabState extends ConsumerState<CashTab> {
       if (pageState.selectedCashLocationId != null &&
           pageState.selectedCashLocationId!.isNotEmpty) {
         _loadStockFlowsFromProvider(pageState.selectedCashLocationId!);
+
+        // Auto-expand first currency when location is selected
+        final selectedIds = pageState.selectedCashCurrencyIds.isEmpty
+            ? [pageState.currencies.first.currencyId]
+            : pageState.selectedCashCurrencyIds;
+        if (selectedIds.isNotEmpty) {
+          _expandedCurrencyId = selectedIds.first;
+        }
       }
     }
   }
@@ -274,31 +278,32 @@ class _CashTabState extends ConsumerState<CashTab> {
         StoreSelector(
           stores: state.stores,
           selectedStoreId: state.selectedStoreId,
-          onTap: () {
-            CashEndingSelectionHelpers.showStoreSelector(
-              context: context,
-              ref: ref,
-              stores: state.stores,
-              selectedStoreId: state.selectedStoreId,
-              companyId: widget.companyId,
-            );
+          onChanged: (storeId) async {
+            if (storeId != null) {
+              await ref.read(cashEndingProvider.notifier).selectStore(
+                storeId,
+                widget.companyId,
+              );
+            }
           },
         ),
 
         const SizedBox(height: TossSpacing.space4),
-        LocationSelector(
-          locationType: 'cash',
+        TossDropdown<String>(
+          label: 'Cash Location',
+          hint: 'Select Cash Location',
+          value: state.selectedCashLocationId,
           isLoading: false,
-          locations: state.cashLocations,
-          selectedLocationId: state.selectedCashLocationId,
-          onTap: () {
-            CashEndingSelectionHelpers.showLocationSelector(
-              context: context,
-              ref: ref,
-              locationType: 'cash',
-              locations: state.cashLocations,
-              selectedLocationId: state.selectedCashLocationId,
-            );
+          items: state.cashLocations.map((location) =>
+            TossDropdownItem<String>(
+              value: location.locationId,
+              label: location.locationName,
+            )
+          ).toList(),
+          onChanged: (locationId) {
+            if (locationId != null) {
+              ref.read(cashEndingProvider.notifier).setSelectedCashLocation(locationId);
+            }
           },
         ),
       ],
@@ -400,11 +405,18 @@ class _CashTabState extends ConsumerState<CashTab> {
 
               // Initialize toolbar controller for this currency
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+
                 if (_toolbarController == null ||
                     _toolbarController!.focusNodes.length != currency.denominations.length) {
                   _initializeToolbarController(currency.denominations, currency.currencyId);
                 }
               });
+
+              // Get selected currency IDs
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+                ? [state.currencies.first.currencyId]
+                : state.selectedCashCurrencyIds;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: TossSpacing.space4),
@@ -414,6 +426,17 @@ class _CashTabState extends ConsumerState<CashTab> {
                   focusNodes: _focusNodes[currency.currencyId]!,
                   totalAmount: _calculateTotal(currency.currencyId, currency.denominations),
                   onChanged: () => setState(() {}),
+                  isExpanded: _expandedCurrencyId == currency.currencyId,
+                  onToggle: () {
+                    setState(() {
+                      // Toggle: if this currency is expanded, collapse it; otherwise expand it
+                      if (_expandedCurrencyId == currency.currencyId) {
+                        _expandedCurrencyId = null;
+                      } else {
+                        _expandedCurrencyId = currency.currencyId;
+                      }
+                    });
+                  },
                 ),
               );
             }),
@@ -424,7 +447,7 @@ class _CashTabState extends ConsumerState<CashTab> {
             GrandTotalSection(
               totalAmount: grandTotal,
               currencySymbol: state.currencies.first.symbol,
-              label: 'Grand total (in ${state.currencies.first.currencyCode})',
+              label: 'Grand total ${state.currencies.first.currencyCode}',
             ),
 
             const SizedBox(height: TossSpacing.space2),

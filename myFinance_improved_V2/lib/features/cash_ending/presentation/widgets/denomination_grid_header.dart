@@ -31,11 +31,7 @@ class DenominationGridHeader extends StatelessWidget {
             flex: 4,
             child: Text(
               'Denomination',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
+              style: TossTextStyles.caption,
             ),
           ),
           // Qty column
@@ -44,11 +40,7 @@ class DenominationGridHeader extends StatelessWidget {
             child: Text(
               'Qty',
               textAlign: TextAlign.center,
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
+              style: TossTextStyles.caption,
             ),
           ),
           // Amount column
@@ -57,11 +49,7 @@ class DenominationGridHeader extends StatelessWidget {
             child: Text(
               'Amount ($currencyCode)',
               textAlign: TextAlign.right,
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
+              style: TossTextStyles.caption,
             ),
           ),
         ],

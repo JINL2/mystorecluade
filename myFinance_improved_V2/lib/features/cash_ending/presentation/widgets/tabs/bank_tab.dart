@@ -12,11 +12,11 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/bank_tab_provider.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../section_label.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
@@ -46,18 +46,10 @@ class _BankTabState extends ConsumerState<BankTab> {
   @override
   void initState() {
     super.initState();
-    // Listen for location changes
-    ref.listenManual(
-      cashEndingProvider.select((state) => state.selectedBankLocationId),
-      (previous, next) {
-        if (next != null && next.isNotEmpty && next != previous) {
-          _previousLocationId = next;
-          _loadStockFlowsFromProvider(next);
-        }
-      },
-    );
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       final pageState = ref.read(cashEndingProvider);
       _previousLocationId = pageState.selectedBankLocationId;
       if (pageState.selectedBankLocationId != null &&
@@ -74,6 +66,8 @@ class _BankTabState extends ConsumerState<BankTab> {
   @override
   void didUpdateWidget(BankTab oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!mounted) return;
+
     final pageState = ref.read(cashEndingProvider);
     if (pageState.selectedBankLocationId != _previousLocationId) {
       _previousLocationId = pageState.selectedBankLocationId;
@@ -157,33 +151,34 @@ class _BankTabState extends ConsumerState<BankTab> {
         StoreSelector(
           stores: state.stores,
           selectedStoreId: state.selectedStoreId,
-          onTap: () {
-            CashEndingSelectionHelpers.showStoreSelector(
-              context: context,
-              ref: ref,
-              stores: state.stores,
-              selectedStoreId: state.selectedStoreId,
-              companyId: widget.companyId,
-            );
+          onChanged: (storeId) async {
+            if (storeId != null) {
+              await ref.read(cashEndingProvider.notifier).selectStore(
+                storeId,
+                widget.companyId,
+              );
+            }
           },
         ),
 
         // Bank Location Selector (show if store selected)
         if (state.selectedStoreId != null) ...[
           const SizedBox(height: TossSpacing.space4),
-          LocationSelector(
-            locationType: 'bank',
+          TossDropdown<String>(
+            label: 'Bank Account',
+            hint: 'Select Bank Account',
+            value: state.selectedBankLocationId,
             isLoading: false,
-            locations: state.bankLocations,
-            selectedLocationId: state.selectedBankLocationId,
-            onTap: () {
-              CashEndingSelectionHelpers.showLocationSelector(
-                context: context,
-                ref: ref,
-                locationType: 'bank',
-                locations: state.bankLocations,
-                selectedLocationId: state.selectedBankLocationId,
-              );
+            items: state.bankLocations.map((location) =>
+              TossDropdownItem<String>(
+                value: location.locationId,
+                label: location.locationName,
+              )
+            ).toList(),
+            onChanged: (locationId) {
+              if (locationId != null) {
+                ref.read(cashEndingProvider.notifier).setSelectedBankLocation(locationId);
+              }
             },
           ),
         ],
@@ -202,22 +197,17 @@ class _BankTabState extends ConsumerState<BankTab> {
     final currencyCode = selectedCurrency?.currencyCode ?? '';
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionLabel(text: 'Current bank balance ($currencyCode)'),
         const SizedBox(height: TossSpacing.space2),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Bank balance input field
-            _buildBankAmountInput(),
+        // Bank balance input field
+        _buildBankAmountInput(),
 
-            const SizedBox(height: TossSpacing.space6),
+        const SizedBox(height: TossSpacing.space6),
 
-            // Save button
-            _buildBankSaveButton(state),
-          ],
-        ),
+        // Save button
+        _buildBankSaveButton(state),
       ],
     );
   }
@@ -254,7 +244,7 @@ class _BankTabState extends ConsumerState<BankTab> {
             ],
             textAlign: TextAlign.center,
             style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray900,
+              color: TossColors.primary,
               fontWeight: FontWeight.w700,
               fontSize: 20,
             ),
@@ -314,8 +304,7 @@ class _BankTabState extends ConsumerState<BankTab> {
               color: TossColors.white,
             ),
             padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
+              vertical: TossSpacing.space4,
             ),
             borderRadius: 12,
         );

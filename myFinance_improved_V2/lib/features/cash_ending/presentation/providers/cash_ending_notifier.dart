@@ -291,4 +291,18 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   void clearError() {
     state = state.copyWith(errorMessage: null, successMessage: null);
   }
+
+  /// Reset after cash ending completion
+  /// Keeps: Store (logged-in user's store), Currency chips (last used for location)
+  /// Clears: Location selection, denomination quantities (via tab reload)
+  void resetAfterSubmit() {
+    state = state.copyWith(
+      selectedCashLocationId: null,
+      selectedBankLocationId: null,
+      selectedVaultLocationId: null,
+      errorMessage: null,
+      successMessage: null,
+    );
+    // Note: selectedStoreId and currency chips are kept
+  }
 }

@@ -96,7 +96,7 @@ class _TossSearchFieldState extends State<TossSearchField> {
   @override
   Widget build(BuildContext context) {
     final bool isFocused = _focusNode.hasFocus;
-    final Color backgroundColor = isFocused ? TossColors.surface : TossColors.gray50;
+    final Color backgroundColor = TossColors.white;
     
     return Material(
       color: backgroundColor,
@@ -134,15 +134,15 @@ class _TossSearchFieldState extends State<TossSearchField> {
           fillColor: backgroundColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
-              color: TossColors.primary.withOpacity(0.4),
+            borderSide: const BorderSide(
+              color: TossColors.gray100,
               width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
-              color: TossColors.primary.withOpacity(0.4),
+            borderSide: const BorderSide(
+              color: TossColors.gray100,
               width: 1.5,
             ),
           ),

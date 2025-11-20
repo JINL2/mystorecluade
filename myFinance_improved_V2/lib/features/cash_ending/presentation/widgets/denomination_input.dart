@@ -39,21 +39,22 @@ class DenominationInput extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space2,
+      padding: const EdgeInsets.fromLTRB(
+        0, // left - removed 8px padding
+        TossSpacing.space2, // top
+        0, // right - removed 8px padding to prevent overflow
+        TossSpacing.space2, // bottom
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Left section: Denomination display
           Expanded(
-            flex: 4,
             child: Text(
               '$currencySymbol$formattedAmount',
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: TossColors.gray700,
+                color: TossColors.gray900,
                 fontSize: 14,
               ),
               overflow: TextOverflow.ellipsis,
@@ -62,17 +63,15 @@ class DenominationInput extends StatelessWidget {
           ),
 
           // Center section: Quantity input with +/- buttons
-          Expanded(
-            flex: 5,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
                 // Decrement button
                 GestureDetector(
                   onTap: () => _decrementQuantity(),
                   child: Container(
-                    width: 24,
-                    height: 28,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(6),
@@ -93,8 +92,8 @@ class DenominationInput extends StatelessWidget {
 
                 // Quantity input
                 SizedBox(
-                  width: 50,
-                  height: 28,
+                  width: 90,
+                  height: 32,
                   child: TextField(
                     controller: controller,
                     focusNode: focusNode,
@@ -163,8 +162,8 @@ class DenominationInput extends StatelessWidget {
                 GestureDetector(
                   onTap: () => _incrementQuantity(),
                   child: Container(
-                    width: 24,
-                    height: 28,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(6),
@@ -182,11 +181,9 @@ class DenominationInput extends StatelessWidget {
                 ),
               ],
             ),
-          ),
 
           // Right section: Amount display
           Expanded(
-            flex: 4,
             child: Builder(
               builder: (context) {
                 final subtotalText = _calculateSubtotal(
@@ -195,11 +192,14 @@ class DenominationInput extends StatelessWidget {
                   currencySymbol,
                 );
 
+                // Check if subtotal is zero
+                final isZero = subtotalText == '0' || subtotalText.isEmpty;
+
                 return Text(
                   subtotalText,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
+                    color: isZero ? TossColors.gray600 : TossColors.gray900,
                     fontSize: 14,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -220,8 +220,7 @@ class DenominationInput extends StatelessWidget {
   String _calculateSubtotal(String denomValue, String quantity, String currencySymbol) {
     // Edge case handling: null or empty inputs
     if (denomValue.isEmpty || quantity.isEmpty) {
-      final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-      return '${safeSymbol}0';
+      return '0';
     }
 
     // Parse values with error handling
@@ -235,23 +234,33 @@ class DenominationInput extends StatelessWidget {
       // Check for overflow (though unlikely with our constraints)
       if (subtotal < 0) {
         // Overflow occurred, use safe fallback
-        final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-        return '${safeSymbol}999,999,999,999'; // Safe maximum display
+        return '999,999,999'; // Limit to 9 digits
       }
     } catch (e) {
       // Fallback for any calculation errors
-      final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-      return '${safeSymbol}0';
+      return '0';
     }
 
-    // Format with proper currency symbol
-    final safeSymbol = _getSafeCurrencySymbol(currencySymbol);
-
+    // Format without currency symbol
     try {
-      return '$safeSymbol${NumberFormat('#,###').format(subtotal)}';
+      final formatted = NumberFormat('#,###').format(subtotal);
+
+      // If number is too long (more than 9 digits), truncate while maintaining comma alignment
+      // Remove commas to count actual digits
+      final digitsOnly = formatted.replaceAll(',', '');
+
+      if (digitsOnly.length > 9) {
+        // To maintain comma alignment with totals, we need to keep the same structure
+        // Example: 4,994,000,000 should show as 4,994,00... (not 499,400,000...)
+        // We show first 7 characters (including commas) to prevent overflow
+        final truncated = formatted.length > 7 ? formatted.substring(0, 8) : formatted;
+        return '$truncated...';
+      }
+
+      return formatted;
     } catch (e) {
       // Fallback for number formatting errors
-      return '$safeSymbol${subtotal.toString()}';
+      return subtotal.toString();
     }
   }
 

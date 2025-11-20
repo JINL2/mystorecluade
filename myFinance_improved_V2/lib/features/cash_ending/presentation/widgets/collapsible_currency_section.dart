@@ -39,18 +39,7 @@ class CollapsibleCurrencySection extends StatefulWidget {
 }
 
 class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection> {
-  late bool _isExpanded;
-
-  @override
-  void initState() {
-    super.initState();
-    _isExpanded = widget.isExpanded;
-  }
-
   void _toggle() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
     widget.onToggle?.call();
   }
 
@@ -87,52 +76,72 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                       fontSize: 15,
                     ),
                   ),
-                  Icon(
-                    _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: TossColors.gray700,
-                    size: 20,
+                  AnimatedRotation(
+                    turns: widget.isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 150),
+                    curve: Curves.easeInOut,
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: TossColors.gray700,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // Expanded content
-          if (_isExpanded) ...[
-            Padding(
-              padding: const EdgeInsets.only(
-                left: TossSpacing.space4,
-                right: TossSpacing.space4,
-                top: TossSpacing.space4,
-              ),
-              child: Column(
-                children: [
-                  // Grid header
-                  DenominationGridHeader(currencyCode: widget.currency.currencyCode),
+          // Divider
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Container(
+              height: 1,
+              color: TossColors.gray200,
+            ),
+          ),
 
-                  const SizedBox(height: TossSpacing.space2),
+          // Expanded content with smooth bottom-to-top animation
+          ClipRect(
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeInOut,
+              heightFactor: widget.isExpanded ? 1.0 : 0.0,
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: TossSpacing.space4,
+                  right: TossSpacing.space4,
+                  top: TossSpacing.space4,
+                ),
+                child: Column(
+                  children: [
+                    // Grid header
+                    DenominationGridHeader(currencyCode: widget.currency.currencyCode),
 
-                  // Denomination inputs
-                  ...widget.currency.denominations.map((denom) {
-                    final controller = widget.controllers[denom.denominationId];
-                    final focusNode = widget.focusNodes[denom.denominationId];
+                    const SizedBox(height: 4),
 
-                    if (controller == null || focusNode == null) {
-                      return const SizedBox.shrink();
-                    }
+                    // Denomination inputs
+                    ...widget.currency.denominations.map((denom) {
+                      final controller = widget.controllers[denom.denominationId];
+                      final focusNode = widget.focusNodes[denom.denominationId];
 
-                    return DenominationInput(
-                      denomination: denom,
-                      controller: controller,
-                      focusNode: focusNode,
-                      currencySymbol: widget.currency.symbol,
-                      onChanged: widget.onChanged,
-                    );
-                  }),
-                ],
+                      if (controller == null || focusNode == null) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return DenominationInput(
+                        denomination: denom,
+                        controller: controller,
+                        focusNode: focusNode,
+                        currencySymbol: widget.currency.symbol,
+                        onChanged: widget.onChanged,
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
-          ],
+          ),
 
           // Subtotal (always visible)
           Padding(
@@ -145,7 +154,7 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
             child: TotalDisplay(
               totalAmount: widget.totalAmount,
               currencySymbol: widget.currency.symbol,
-              label: 'Subtotal (${widget.currency.currencyCode})',
+              label: 'Subtotal ${widget.currency.currencyCode}',
             ),
           ),
         ],

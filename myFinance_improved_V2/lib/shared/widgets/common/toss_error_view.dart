@@ -28,6 +28,7 @@ class TossErrorView extends StatelessWidget {
         padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Error Icon
             Container(

@@ -27,23 +27,23 @@ class AppTheme {
       onPrimary: TossColors.white,
       primaryContainer: TossColors.primarySurface,
       onPrimaryContainer: TossColors.primary,
-      
+
       secondary: TossColors.gray800,
       onSecondary: TossColors.white,
-      
+
       error: TossColors.error,
       onError: TossColors.white,
-      
-      surface: TossColors.surface,
+
+      surface: TossColors.white,
       onSurface: TossColors.textPrimary,
-      
-      surfaceContainer: TossColors.gray50,
-      surfaceContainerHighest: TossColors.gray100,
+
+      surfaceContainer: TossColors.white,
+      surfaceContainerHighest: TossColors.white,
       onSurfaceVariant: TossColors.textSecondary,
-      
+
       outline: TossColors.border,
       outlineVariant: TossColors.gray200,
-      
+
       shadow: TossColors.shadow,
       scrim: TossColors.overlay,
     ),

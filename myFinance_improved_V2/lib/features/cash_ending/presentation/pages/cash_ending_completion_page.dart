@@ -1,6 +1,7 @@
 // lib/features/cash_ending/presentation/pages/cash_ending_completion_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
@@ -8,11 +9,12 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../domain/entities/currency.dart';
+import '../providers/cash_ending_provider.dart';
 
 /// Cash Ending Completion Page
 ///
 /// Shows detailed summary after successful cash ending submission
-class CashEndingCompletionPage extends StatefulWidget {
+class CashEndingCompletionPage extends ConsumerStatefulWidget {
   final String tabType; // 'cash', 'bank', 'vault'
   final double grandTotal;
   final List<Currency> currencies; // Support multiple currencies
@@ -33,16 +35,25 @@ class CashEndingCompletionPage extends StatefulWidget {
   });
 
   @override
-  State<CashEndingCompletionPage> createState() => _CashEndingCompletionPageState();
+  ConsumerState<CashEndingCompletionPage> createState() => _CashEndingCompletionPageState();
 }
 
-class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
+class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionPage> {
   String? _expandedCurrencyId;
 
   void _toggleExpansion(String currencyId) {
     setState(() {
       _expandedCurrencyId = _expandedCurrencyId == currencyId ? null : currencyId;
     });
+  }
+
+  void _handleClose() {
+    // Only reset error messages, keep store and location selections
+    // so user can quickly do another cash ending for the same location
+    ref.read(cashEndingProvider.notifier).resetAfterSubmit();
+
+    // Close the page
+    Navigator.of(context).pop();
   }
 
   @override
@@ -89,18 +100,21 @@ class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
 
                     const SizedBox(height: TossSpacing.space6),
 
-                    // Currency breakdown sections (only for cash tab)
-                    if (widget.tabType == 'cash')
+                    // Currency breakdown sections (for cash and vault tabs)
+                    if (widget.tabType == 'cash' || widget.tabType == 'vault')
                       ...widget.currencies.map((currency) => Padding(
                         padding: const EdgeInsets.only(bottom: TossSpacing.space4),
                         child: _buildCurrencyBreakdown(currency),
                       )),
 
-                    if (widget.tabType == 'cash')
+                    if (widget.tabType == 'cash' || widget.tabType == 'vault')
                       const SizedBox(height: TossSpacing.space6),
 
                     // Summary section
-                    _buildSummary(),
+                    if (widget.transactionType == 'recount')
+                      _buildRecountSummary()
+                    else
+                      _buildSummary(),
                   ],
                 ),
               ),
@@ -120,12 +134,190 @@ class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
                   vertical: TossSpacing.space4,
                 ),
                 borderRadius: 12,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => _handleClose(),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showAutoBalanceConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: TossSpacing.space2),
+                // Title
+                Text(
+                  'Confirm Auto-Balance',
+                  style: TossTextStyles.titleLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space5),
+
+                // Description
+                Text(
+                  'Review the details below before applying Auto-Balance',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: TossSpacing.space6),
+
+                // Details container
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: TossColors.gray200,
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildConfirmationRow('Location', '${widget.storeName} · ${widget.locationName}'),
+                      const SizedBox(height: TossSpacing.space3),
+                      _buildConfirmationRow('Total Real', _formatAmount(0)),
+                      const SizedBox(height: TossSpacing.space3),
+                      _buildConfirmationRow('Total Journal', _formatAmount(widget.grandTotal)),
+                      const SizedBox(height: TossSpacing.space4),
+
+                      // Difference (highlighted)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Difference',
+                            style: TossTextStyles.bodyMedium.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            _formatAmount(0),
+                            style: TossTextStyles.bodyMedium.copyWith(
+                              color: TossColors.success,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space5),
+
+                // Explanation text
+                Text(
+                  'This action will add a Journal entry to match the Real amount.',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: TossSpacing.space6),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: TossButton1.secondary(
+                        text: 'Cancel',
+                        fullWidth: true,
+                        textStyle: TossTextStyles.body.copyWith(
+                          color: TossColors.gray600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: TossSpacing.space3,
+                        ),
+                        borderRadius: 12,
+                        onPressed: () => Navigator.of(context).pop(),
+                        leadingIcon: const Icon(
+                          Icons.arrow_back,
+                          size: 18,
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+
+                    // Confirm button
+                    Expanded(
+                      child: TossButton1.primary(
+                        text: 'Confirm & Apply',
+                        fullWidth: true,
+                        textStyle: TossTextStyles.body.copyWith(
+                          color: TossColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: TossSpacing.space3,
+                        ),
+                        borderRadius: 12,
+                        onPressed: () {
+                          // Backend will implement this later
+                          Navigator.of(context).pop();
+                        },
+                        leadingIcon: const Icon(
+                          Icons.check,
+                          size: 18,
+                          color: TossColors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConfirmationRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        const SizedBox(width: TossSpacing.space2),
+        Flexible(
+          child: Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.right,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
@@ -165,6 +357,21 @@ class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
     );
   }
 
+  Widget _buildRecountSummary() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: TossColors.gray200,
+          width: 1.0,
+        ),
+      ),
+      child: _buildSummaryRow('Total Real', _formatAmount(widget.grandTotal)),
+    );
+  }
+
   Widget _buildSummary() {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -197,7 +404,7 @@ class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: () {
-                // Backend will implement this later
+                _showAutoBalanceConfirmation();
               },
               icon: const Icon(
                 Icons.sync,
@@ -269,10 +476,17 @@ class _CashEndingCompletionPageState extends State<CashEndingCompletionPage> {
   String _getTypeLabel() {
     switch (widget.tabType) {
       case 'cash':
+        // Check if this is a vault recount
+        if (widget.transactionType == 'recount') {
+          return 'Vault Recount';
+        }
         return 'Cash';
       case 'bank':
         return 'Bank';
       case 'vault':
+        if (widget.transactionType == 'recount') {
+          return 'Vault Recount';
+        }
         return widget.transactionType == 'debit' ? 'Vault In' : 'Vault Out';
       default:
         return widget.tabType;
@@ -305,7 +519,8 @@ class _ExpandableCurrencyBreakdown extends StatelessWidget {
       final denominations = denominationQuantities![currency.currencyId]!;
       currencyDenominations.addAll(denominations);
       denominations.forEach((denomination, quantity) {
-        subtotal += double.parse(denomination) * quantity;
+        final denominationValue = double.tryParse(denomination) ?? 0.0;
+        subtotal += denominationValue * quantity;
       });
     }
 

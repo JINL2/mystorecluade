@@ -162,7 +162,12 @@ class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       backgroundColor: backgroundColor ?? TossColors.background,
       elevation: elevation,
-      leading: leading,
+      leading: leading ?? (automaticallyImplyLeading && Navigator.canPop(context)
+        ? IconButton(
+            icon: const Icon(Icons.arrow_back, size: 24),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        : null),
       actions: finalActions.isNotEmpty ? finalActions : null,
       bottom: bottom,
       iconTheme: iconTheme ?? const IconThemeData(
@@ -172,7 +177,7 @@ class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
       shadowColor: shadowColor,
       surfaceTintColor: surfaceTintColor,
       foregroundColor: foregroundColor,
-      automaticallyImplyLeading: automaticallyImplyLeading,
+      automaticallyImplyLeading: false,
       flexibleSpace: flexibleSpace,
       scrolledUnderElevation: scrolledUnderElevation,
     );

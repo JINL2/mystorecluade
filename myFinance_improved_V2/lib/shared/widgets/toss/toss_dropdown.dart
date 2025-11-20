@@ -223,6 +223,11 @@ class _BottomSheetContent<T> extends StatelessWidget {
         children: [
           _buildHandleBar(),
           _buildHeader(context),
+          const SizedBox(height: TossSpacing.space3),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
+          ),
           const SizedBox(height: TossSpacing.space2),
           _buildOptionsList(context),
         ],
@@ -266,54 +271,20 @@ class _BottomSheetContent<T> extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildHeaderText(),
-          const Spacer(),
-          _buildCloseButton(context),
+          Text(
+            label,
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderText() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.h3.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${items.length} ${items.length == 1 ? 'option' : 'options'} available',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCloseButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space2),
-        decoration: BoxDecoration(
-          color: TossColors.gray100,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: const Icon(
-          Icons.close,
-          size: TossSpacing.iconSM,
-          color: TossColors.textSecondary,
-        ),
-      ),
-    );
-  }
 
   Widget _buildOptionsList(BuildContext context) {
     return Flexible(
@@ -351,15 +322,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
   BoxDecoration _buildOptionDecoration(bool isSelected) {
     return BoxDecoration(
       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      color: isSelected 
-        ? TossColors.primary.withValues(alpha: 0.05)
-        : TossColors.transparent,
-      border: isSelected 
-        ? Border.all(
-            color: TossColors.primary.withValues(alpha: 0.2),
-            width: 1,
-          )
-        : null,
+      color: TossColors.transparent,
     );
   }
 
@@ -376,6 +339,15 @@ class _BottomSheetContent<T> extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Icon (if provided)
+          if (item.icon != null) ...[
+            Icon(
+              item.icon,
+              size: TossSpacing.iconMD,
+              color: TossColors.gray400,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+          ],
           Expanded(
             child: _buildOptionText(item, isSelected),
           ),
@@ -392,8 +364,8 @@ class _BottomSheetContent<T> extends StatelessWidget {
         Text(
           item.label,
           style: TossTextStyles.body.copyWith(
-            color: isSelected ? TossColors.primary : TossColors.textPrimary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w500,
             fontSize: UIConstants.textSizeLarge,
           ),
         ),
@@ -402,9 +374,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
           Text(
             item.subtitle!,
             style: TossTextStyles.caption.copyWith(
-              color: isSelected
-                ? TossColors.primary.withValues(alpha: 0.8)
-                : TossColors.gray600,
+              color: TossColors.gray600,
               fontSize: UIConstants.textSizeCompact,
             ),
           ),
@@ -414,31 +384,25 @@ class _BottomSheetContent<T> extends StatelessWidget {
   }
 
   Widget _buildCheckIcon() {
-    return Container(
-      width: TossDropdown._iconSize,
-      height: TossDropdown._iconSize,
-      decoration: BoxDecoration(
-        color: TossColors.primary,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: const Icon(
-        Icons.check_rounded,
-        color: TossColors.textInverse,
-        size: TossDropdown._checkIconSize,
-      ),
+    return const Icon(
+      Icons.check,
+      color: TossColors.primary,
+      size: TossDropdown._iconSize,
     );
   }
 }
 
-/// Dropdown item with label and optional subtitle
+/// Dropdown item with label, optional subtitle, and optional icon
 class TossDropdownItem<T> {
   final T value;
   final String label;
   final String? subtitle;
-  
+  final IconData? icon;
+
   const TossDropdownItem({
     required this.value,
     required this.label,
     this.subtitle,
+    this.icon,
   });
 }

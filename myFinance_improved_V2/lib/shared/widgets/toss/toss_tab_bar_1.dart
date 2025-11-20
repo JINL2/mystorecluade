@@ -142,7 +142,7 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
   
   @override
   Widget build(BuildContext context) {
-    final selectedColor = widget.selectedColor ?? TossColors.black87;
+    final selectedColor = widget.selectedColor ?? TossColors.primary;
     final unselectedColor = widget.unselectedColor ?? TossColors.gray500;
     
     final selectedStyle = widget.selectedLabelStyle ?? 

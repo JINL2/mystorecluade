@@ -80,6 +80,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
@@ -355,8 +357,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
         ),
       );
-      cashTabState?.clearQuantities?.call();
-      // Stock flows are automatically reloaded by the notifier
+      // Reset is handled in completion page's close button
     } else {
       final tabState = ref.read(cashTabProvider);
       await TossDialogs.showCashEndingError(
@@ -468,7 +469,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
 
     final dynamic vaultTabState = _vaultTabKey.currentState;
-    final quantities = (vaultTabState?.denominationQuantities as Map<String, Map<String, int>>?)?[currencyId] ?? {};
+    final allQuantities = (vaultTabState?.denominationQuantities as Map<String, Map<String, int>>?) ?? {};
 
     // Get user ID and company ID
     final appState = ref.read(appStateProvider);
@@ -483,17 +484,36 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    // Get currency denominations from state
-    final currency = state.currencies.firstWhere(
-      (c) => c.currencyId == currencyId,
-      orElse: () => state.currencies.first,
-    );
+    // Process ALL selected currencies (same as cash tab)
+    final currencyIdsToProcess = state.selectedVaultCurrencyIds.isNotEmpty
+        ? state.selectedVaultCurrencyIds
+        : [currencyId];
 
-    // Create denominations with quantities (Clean Architecture)
-    final denominationsWithQuantity = currency.denominations.map((denom) {
-      final quantity = quantities[denom.denominationId] ?? 0;
-      return denom.copyWith(quantity: quantity);
+    final currenciesWithData = currencyIdsToProcess.map((currId) {
+      final currency = state.currencies.firstWhere(
+        (c) => c.currencyId == currId,
+        orElse: () => state.currencies.first,
+      );
+
+      final quantities = allQuantities[currId] ?? {};
+
+      final denominationsWithQuantity = currency.denominations.map((denom) {
+        final quantity = quantities[denom.denominationId] ?? 0;
+        return denom.copyWith(quantity: quantity);
+      }).toList();
+
+      return Currency(
+        currencyId: currency.currencyId,
+        currencyCode: currency.currencyCode,
+        currencyName: currency.currencyName,
+        symbol: currency.symbol,
+        denominations: denominationsWithQuantity,
+      );
     }).toList();
+
+    // Use first currency for the transaction
+    final currency = currenciesWithData.first;
+    final denominationsWithQuantity = currency.denominations;
 
     // Create VaultTransaction entity (Clean Architecture)
     final now = DateTime.now();
@@ -518,14 +538,27 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
-      // Get currency for completion page
-      final currency = state.currencies.firstWhere((c) => c.currencyId == currencyId);
+      // Calculate grand total and build denomination quantities map for ALL currencies
+      double grandTotal = 0.0;
+      final Map<String, Map<String, int>> denominationQuantitiesMap = {};
 
-      // Calculate grand total
-      final grandTotal = denominationsWithQuantity.fold<double>(
-        0,
-        (sum, denom) => sum + (denom.value * denom.quantity),
-      );
+      for (final currencyData in currenciesWithData) {
+        // Calculate total for this currency
+        final currencyTotal = currencyData.denominations.fold<double>(
+          0,
+          (sum, denom) => sum + (denom.value * denom.quantity),
+        );
+        grandTotal += currencyTotal;
+
+        // Build denomination quantities map for this currency
+        final currencyQuantities = <String, int>{};
+        for (final denom in currencyData.denominations) {
+          if (denom.quantity > 0) {
+            currencyQuantities[denom.value.toString()] = denom.quantity;
+          }
+        }
+        denominationQuantitiesMap[currencyData.currencyId] = currencyQuantities;
+      }
 
       // Navigate to completion page
       await Navigator.of(context).push(
@@ -533,10 +566,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           builder: (context) => CashEndingCompletionPage(
             tabType: 'vault',
             grandTotal: grandTotal,
-            currencies: [currency],
+            currencies: currenciesWithData,
             storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
             locationName: state.vaultLocations.firstWhere((l) => l.locationId == state.selectedVaultLocationId).locationName,
-            denominationQuantities: {currencyId: quantities},
+            denominationQuantities: denominationQuantitiesMap,
             transactionType: transactionType,
           ),
         ),
