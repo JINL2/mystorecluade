@@ -18,6 +18,8 @@ import { useInventoryHandlers } from '../../hooks/useInventoryHandlers';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { ProductDetailsModal } from '../../components/ProductDetailsModal';
+import { MoveProductModal } from '../../components/MoveProductModal';
+import { BulkMoveProductModal } from '../../components/BulkMoveProductModal';
 import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
@@ -25,12 +27,14 @@ import { FilterSidebar } from '../../components/FilterSidebar/FilterSidebar';
 import { InventoryHeader } from '../../components/InventoryHeader';
 import { InventoryTableSection } from '../../components/InventoryTableSection';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import type { InventoryPageProps } from './InventoryPage.types';
 import styles from './InventoryPage.module.css';
 
 export const InventoryPage: React.FC<InventoryPageProps> = () => {
-  const { currentCompany } = useAppState();
+  const { currentCompany, currentUser } = useAppState();
   const companyId = currentCompany?.company_id || '';
+  const userId = currentUser?.user_id || '';
 
   const {
     inventory,
@@ -67,6 +71,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     loadInventory,
     updateProduct,
     importExcel,
+    moveProduct,
     refresh,
   } = useInventory();
 
@@ -74,6 +79,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
 
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isBulkMoveModalOpen, setIsBulkMoveModalOpen] = useState(false);
+  const [selectedProductForMove, setSelectedProductForMove] = useState<{
+    productId: string;
+    productName: string;
+    currentStock: number;
+  } | null>(null);
 
   const {
     isExporting,
@@ -280,6 +292,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 brands={uniqueBrands}
                 categories={uniqueCategories}
                 onDelete={handleDeleteProducts}
+                onMoveSelected={() => {
+                  setIsBulkMoveModalOpen(true);
+                }}
                 onExport={handleExportExcel}
                 onImport={handleImportClick}
                 onAddProduct={handleAddProduct}
@@ -309,6 +324,17 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 onCheckboxChange={handleCheckboxChange}
                 onRowClick={(productId) => setExpandedProductId(expandedProductId === productId ? null : productId)}
                 onEditProduct={handleEditProduct}
+                onMoveProduct={(productId) => {
+                  const product = inventory.find((p) => p.productId === productId);
+                  if (product) {
+                    setSelectedProductForMove({
+                      productId: product.productId,
+                      productName: product.productName,
+                      currentStock: product.currentStock,
+                    });
+                    setIsMoveModalOpen(true);
+                  }
+                }}
                 onPageChange={setCurrentPage}
                 formatCurrency={formatCurrency}
                 getStatusInfo={getStatusInfo}
@@ -326,12 +352,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         companyId={companyId}
         productData={selectedProductData}
         metadata={metadata}
-        onSave={async (updatedData) => {
+        onSave={async (updatedData, originalData) => {
           const result = await updateProduct(
             selectedProductData?.productId || '',
             companyId,
             selectedStoreId || '',
-            updatedData
+            updatedData,
+            originalData
           );
 
           if (result.success) {
@@ -351,6 +378,133 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         metadata={metadata}
         onProductAdded={() => loadInventory(companyId, selectedStoreId)}
         onMetadataRefresh={refreshMetadata}
+      />
+
+      <MoveProductModal
+        isOpen={isMoveModalOpen}
+        onClose={() => {
+          setIsMoveModalOpen(false);
+          setSelectedProductForMove(null);
+        }}
+        productId={selectedProductForMove?.productId || ''}
+        productName={selectedProductForMove?.productName || ''}
+        currentStock={selectedProductForMove?.currentStock || 0}
+        sourceStoreId={selectedStoreId || ''}
+        companyId={companyId}
+        onMove={async (targetStoreId, quantity, notes) => {
+          console.log('Move Debug:', {
+            selectedProductForMove,
+            selectedStoreId,
+            companyId,
+            userId,
+            targetStoreId,
+            quantity,
+            notes
+          });
+
+          if (!selectedProductForMove?.productId || !selectedStoreId || !companyId || !userId) {
+            console.error('Missing values:', {
+              hasProductId: !!selectedProductForMove?.productId,
+              hasSelectedStoreId: !!selectedStoreId,
+              hasCompanyId: !!companyId,
+              hasUserId: !!userId
+            });
+            showNotification('error', 'Missing required information');
+            return;
+          }
+
+          const result = await moveProduct(
+            companyId,
+            selectedStoreId,
+            targetStoreId,
+            selectedProductForMove.productId,
+            quantity,
+            notes,
+            DateTimeUtils.nowUtc(),
+            userId
+          );
+
+          if (result.success) {
+            showNotification('success', 'Product moved successfully!');
+            setIsMoveModalOpen(false);
+            setSelectedProductForMove(null);
+          } else {
+            showNotification('error', result.error || 'Failed to move product');
+          }
+        }}
+      />
+
+      <BulkMoveProductModal
+        isOpen={isBulkMoveModalOpen}
+        onClose={() => {
+          setIsBulkMoveModalOpen(false);
+        }}
+        products={Array.from(selectedProducts).map(productId => {
+          const product = inventory.find(p => p.productId === productId);
+          return {
+            productId,
+            productName: product?.productName || '',
+            productCode: product?.productCode || '',
+            currentStock: product?.currentStock || 0
+          };
+        })}
+        sourceStoreId={selectedStoreId || ''}
+        companyId={companyId}
+        onMove={async (targetStoreId, items, notes) => {
+          console.log('Bulk Move Debug:', {
+            selectedStoreId,
+            companyId,
+            userId,
+            targetStoreId,
+            items,
+            notes
+          });
+
+          if (!selectedStoreId || !companyId || !userId) {
+            console.error('Missing values:', {
+              hasSelectedStoreId: !!selectedStoreId,
+              hasCompanyId: !!companyId,
+              hasUserId: !!userId
+            });
+            showNotification('error', 'Missing required information');
+            return;
+          }
+
+          // Move each product
+          let successCount = 0;
+          let errorCount = 0;
+
+          for (const item of items) {
+            const result = await moveProduct(
+              companyId,
+              selectedStoreId,
+              targetStoreId,
+              item.productId,
+              item.quantity,
+              notes,
+              DateTimeUtils.nowUtc(),
+              userId
+            );
+
+            if (result.success) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          }
+
+          if (errorCount === 0) {
+            showNotification('success', `Successfully moved ${successCount} product${successCount > 1 ? 's' : ''}!`);
+            setIsBulkMoveModalOpen(false);
+            clearSelection();
+          } else if (successCount > 0) {
+            showNotification('warning', `Moved ${successCount} product${successCount > 1 ? 's' : ''}, ${errorCount} failed`);
+            setIsBulkMoveModalOpen(false);
+            clearSelection();
+          } else {
+            showNotification('error', 'Failed to move products');
+          }
+        }}
       />
 
       <ErrorMessage

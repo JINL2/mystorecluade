@@ -1,0 +1,237 @@
+/**
+ * MoveProductModal Styles
+ */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  width: 90%;
+  max-width: 600px;
+  min-height: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.modalHeader {
+  padding: 28px 28px 20px 28px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #868e96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #f1f3f5;
+  color: #495057;
+}
+
+/* Body */
+.modalBody {
+  padding: 32px 28px;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+}
+
+.productInfo {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.infoRow:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.infoLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: #868e96;
+}
+
+.infoValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 10px;
+}
+
+.quantityInput {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #212529;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.quantityInput:focus {
+  border-color: #0064FF;
+  background-color: #f8f9fa;
+}
+
+.quantityInput::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.errorText {
+  display: block;
+  font-size: 13px;
+  color: #dc3545;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.afterStockText {
+  display: block;
+  font-size: 14px;
+  color: #495057;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.afterStockText.negativeStock {
+  color: #dc3545;
+}
+
+.notesInput {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #212529;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.notesInput:focus {
+  border-color: #0064FF;
+  background-color: #f8f9fa;
+}
+
+.notesInput::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* Footer */
+.modalFooter {
+  padding: 20px 28px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modalHeader {
+    padding: 20px 20px 12px 20px;
+  }
+
+  .modalTitle {
+    font-size: 18px;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+
+  .modalFooter {
+    padding: 12px 20px;
+  }
+}

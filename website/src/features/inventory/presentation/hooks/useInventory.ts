@@ -81,8 +81,10 @@ export const useInventory = () => {
 
   // Asynchronous Actions
   const loadInventory = useInventoryStore((state) => state.loadInventory);
+  const validateProductEdit = useInventoryStore((state) => state.validateProductEdit);
   const updateProduct = useInventoryStore((state) => state.updateProduct);
   const importExcel = useInventoryStore((state) => state.importExcel);
+  const moveProduct = useInventoryStore((state) => state.moveProduct);
   const refresh = useInventoryStore((state) => state.refresh);
 
   // ============================================
@@ -132,8 +134,10 @@ export const useInventory = () => {
     setError,
     clearError,
     loadInventory,
+    validateProductEdit,
     updateProduct,
     importExcel,
+    moveProduct,
     refresh,
   };
 };

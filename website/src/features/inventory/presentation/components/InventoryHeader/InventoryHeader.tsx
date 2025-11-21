@@ -28,6 +28,7 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
   brands,
   categories,
   onDelete,
+  onMoveSelected,
   onExport,
   onImport,
   onAddProduct,
@@ -87,6 +88,21 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
       {/* Action Buttons Section */}
       <div className={styles.inventoryActions}>
         <div className={styles.actionButtons}>
+          <TossButton
+            variant="secondary"
+            size="md"
+            onClick={onMoveSelected}
+            disabled={selectedCount === 0}
+            icon={
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6,13H14L10.5,16.5L11.92,17.92L17.84,12L11.92,6.08L10.5,7.5L14,11H6V13M20,6V18H11V20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4H11V6H20Z"/>
+              </svg>
+            }
+            iconPosition="left"
+          >
+            {selectedCount > 0 ? `Move ${selectedCount} Product${selectedCount > 1 ? 's' : ''}` : 'Move Product'}
+          </TossButton>
+
           <TossButton
             variant="error"
             size="md"

@@ -67,6 +67,11 @@ export interface InventoryHeaderProps {
   onDelete: () => void;
 
   /**
+   * Callback when move selected button is clicked
+   */
+  onMoveSelected: () => void;
+
+  /**
    * Callback when export button is clicked
    */
   onExport: () => void;

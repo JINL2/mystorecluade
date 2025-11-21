@@ -77,25 +77,61 @@ export class InventoryDataSource {
     productId: string,
     companyId: string,
     storeId: string,
-    productData: any
+    productData: any,
+    originalData?: any
   ): Promise<{ success: boolean; error?: string }> {
     const supabase = supabaseService.getClient();
 
-    const params = {
+    // Build params - only include fields that changed or are always required
+    const params: any = {
       p_product_id: productId,
       p_company_id: companyId,
       p_store_id: storeId,
-      p_sku: productData.sku,
-      p_product_name: productData.productName,
-      p_category_id: productData.category || null,
-      p_brand_id: productData.brand || null,
-      p_unit: productData.unit || 'piece',
-      p_product_type: productData.productType || 'commodity',
-      p_cost_price: productData.costPrice,
-      p_selling_price: productData.sellingPrice,
-      p_new_quantity: productData.currentStock,
-      p_image_urls: productData.imageUrls || null, // Image URLs array (JSONB)
     };
+
+    // Only include product name if it changed
+    if (!originalData || productData.productName !== originalData.productName) {
+      params.p_product_name = productData.productName;
+    }
+
+    // Only include SKU if it changed
+    if (!originalData || productData.sku !== originalData.sku) {
+      params.p_sku = productData.sku;
+    }
+
+    // Include other fields if they changed or are new
+    if (!originalData || productData.category !== originalData.categoryId) {
+      params.p_category_id = productData.category || null;
+    }
+
+    if (!originalData || productData.brand !== originalData.brandId) {
+      params.p_brand_id = productData.brand || null;
+    }
+
+    if (!originalData || productData.unit !== originalData.unit) {
+      params.p_unit = productData.unit || 'piece';
+    }
+
+    if (!originalData || productData.productType !== originalData.productType) {
+      params.p_product_type = productData.productType || 'commodity';
+    }
+
+    if (!originalData || productData.costPrice !== originalData.costPrice) {
+      params.p_cost_price = productData.costPrice;
+    }
+
+    if (!originalData || productData.sellingPrice !== originalData.unitPrice) {
+      params.p_selling_price = productData.sellingPrice;
+    }
+
+    if (!originalData || productData.currentStock !== originalData.currentStock) {
+      params.p_new_quantity = productData.currentStock;
+    }
+
+    // Always include image URLs if provided (array comparison is complex)
+    if (productData.imageUrls !== undefined) {
+      params.p_image_urls = productData.imageUrls || null;
+    }
 
     const { data, error } = await supabase.rpc('inventory_edit_product', params);
 
@@ -177,6 +213,103 @@ export class InventoryDataSource {
     return {
       success: false,
       error: 'Invalid response format from inventory_import_excel',
+    };
+  }
+
+  async validateProductEdit(
+    productId: string,
+    companyId: string,
+    originalProductName?: string,
+    newProductName?: string,
+    originalSku?: string,
+    newSku?: string
+  ): Promise<{ success: boolean; error?: { code: string; message: string; details?: string } }> {
+    const supabase = supabaseService.getClient();
+
+    // Build validation params - only include fields that changed
+    const validationParams: any = {
+      p_product_id: productId,
+      p_company_id: companyId,
+    };
+
+    // Only validate product name if it changed
+    if (newProductName && newProductName.trim() !== originalProductName) {
+      validationParams.p_product_name = newProductName.trim();
+    }
+
+    // Only validate SKU if it changed
+    if (newSku && newSku.trim() !== originalSku) {
+      validationParams.p_sku = newSku.trim();
+    }
+
+    const { data, error } = await supabase.rpc('inventory_check_edit', validationParams);
+
+    if (error) {
+      return {
+        success: false,
+        error: {
+          code: 'RPC_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    // Handle success wrapper response
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as { success: boolean; error?: { code: string; message: string; details?: string } };
+    }
+
+    return {
+      success: false,
+      error: {
+        code: 'INVALID_RESPONSE',
+        message: 'Invalid response format from inventory_check_edit',
+      },
+    };
+  }
+
+  async moveProduct(
+    companyId: string,
+    fromStoreId: string,
+    toStoreId: string,
+    productId: string,
+    quantity: number,
+    notes: string,
+    time: string,
+    updatedBy: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('inventory_move_product', {
+      p_company_id: companyId,
+      p_from_store_id: fromStoreId,
+      p_to_store_id: toStoreId,
+      p_items: [
+        {
+          product_id: productId,
+          quantity: quantity,
+        },
+      ],
+      p_notes: notes || null,
+      p_time: time,
+      p_updated_by: updatedBy,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    // Handle success wrapper response
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as { success: boolean; data?: any; error?: string };
+    }
+
+    return {
+      success: false,
+      error: 'Invalid response format from inventory_move_product',
     };
   }
 }

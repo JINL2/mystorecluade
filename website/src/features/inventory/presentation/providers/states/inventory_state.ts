@@ -90,7 +90,25 @@ export interface InventoryState {
   // ASYNCHRONOUS ACTIONS
   // ============================================
   loadInventory: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<void>;
-  updateProduct: (productId: string, companyId: string, storeId: string, data: UpdateProductData) => Promise<UpdateProductResult>;
+  validateProductEdit: (
+    productId: string,
+    companyId: string,
+    originalProductName?: string,
+    newProductName?: string,
+    originalSku?: string,
+    newSku?: string
+  ) => Promise<{ success: boolean; error?: { code: string; message: string; details?: string } }>;
+  updateProduct: (productId: string, companyId: string, storeId: string, data: UpdateProductData, originalData?: any) => Promise<UpdateProductResult>;
   importExcel: (companyId: string, storeId: string, userId: string, products: any[]) => Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }>;
+  moveProduct: (
+    companyId: string,
+    fromStoreId: string,
+    toStoreId: string,
+    productId: string,
+    quantity: number,
+    notes: string,
+    time: string,
+    updatedBy: string
+  ) => Promise<{ success: boolean; data?: any; error?: string }>;
   refresh: () => Promise<void>;
 }

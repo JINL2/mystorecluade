@@ -1,52 +1,29 @@
+/// Company Presentation Layer Providers
+///
+/// This file contains presentation-specific providers for company feature.
+/// It only imports from Domain layer (Use Cases and Entities).
+///
+/// Following Clean Architecture:
+/// - NO imports from Data layer
+/// - Only Domain layer imports allowed
+library;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved/features/homepage/data/datasources/company_remote_datasource.dart';
-import 'package:myfinance_improved/features/homepage/data/repositories/company_repository_impl.dart';
-import 'package:myfinance_improved/features/homepage/domain/repositories/company_repository.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/create_company.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/get_company_types.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/get_currencies.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/company_type.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/company_notifier.dart';
 
-/// Supabase client provider
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
+import '../../domain/entities/company_type.dart';
+import '../../domain/entities/currency.dart';
+import '../../domain/providers/usecase_providers.dart';
+import 'company_notifier.dart';
+import 'states/company_state.dart';
 
-/// Company Remote Data Source provider
-final companyRemoteDataSourceProvider = Provider<CompanyRemoteDataSource>((ref) {
-  final supabaseClient = ref.watch(supabaseClientProvider);
-  return CompanyRemoteDataSourceImpl(supabaseClient);
-});
-
-/// Company Repository provider
-final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
-  final remoteDataSource = ref.watch(companyRemoteDataSourceProvider);
-  return CompanyRepositoryImpl(remoteDataSource);
-});
-
-/// Create Company Use Case provider
-final createCompanyUseCaseProvider = Provider<CreateCompany>((ref) {
-  final repository = ref.watch(companyRepositoryProvider);
-  return CreateCompany(repository);
-});
-
-/// Get Company Types Use Case provider
-final getCompanyTypesUseCaseProvider = Provider<GetCompanyTypes>((ref) {
-  final repository = ref.watch(companyRepositoryProvider);
-  return GetCompanyTypes(repository);
-});
-
-/// Get Currencies Use Case provider
-final getCurrenciesUseCaseProvider = Provider<GetCurrencies>((ref) {
-  final repository = ref.watch(companyRepositoryProvider);
-  return GetCurrencies(repository);
-});
+// ============================================================================
+// Presentation Layer Providers (UI State Management)
+// ============================================================================
 
 /// Company Types FutureProvider for dropdown
+///
+/// Fetches company types for UI dropdown selection.
+/// Uses GetCompanyTypes use case from domain layer.
 final companyTypesProvider = FutureProvider<List<CompanyType>>((ref) async {
   final getCompanyTypes = ref.watch(getCompanyTypesUseCaseProvider);
   final result = await getCompanyTypes();
@@ -58,6 +35,9 @@ final companyTypesProvider = FutureProvider<List<CompanyType>>((ref) async {
 });
 
 /// Currencies FutureProvider for dropdown
+///
+/// Fetches currencies for UI dropdown selection.
+/// Uses GetCurrencies use case from domain layer.
 final currenciesProvider = FutureProvider<List<Currency>>((ref) async {
   final getCurrencies = ref.watch(getCurrenciesUseCaseProvider);
   final result = await getCurrencies();
@@ -69,6 +49,9 @@ final currenciesProvider = FutureProvider<List<Currency>>((ref) async {
 });
 
 /// Company StateNotifier Provider
+///
+/// Manages company creation state for UI.
+/// Uses CreateCompany use case from domain layer.
 final companyNotifierProvider =
     StateNotifierProvider<CompanyNotifier, CompanyState>((ref) {
   final createCompany = ref.watch(createCompanyUseCaseProvider);

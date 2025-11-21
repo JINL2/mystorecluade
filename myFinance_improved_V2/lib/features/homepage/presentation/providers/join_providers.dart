@@ -1,52 +1,27 @@
+/// Join Presentation Layer Providers
+///
+/// This file contains presentation-specific providers for join feature.
+/// It only imports from Domain layer (Use Cases).
+///
+/// Following Clean Architecture:
+/// - NO imports from Data layer
+/// - Only Domain layer imports allowed
+library;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:myfinance_improved/features/homepage/data/datasources/join_remote_datasource.dart';
-import 'package:myfinance_improved/features/homepage/data/repositories/join_repository_impl.dart';
-import 'package:myfinance_improved/features/homepage/domain/repositories/join_repository.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/join_by_code.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/join_notifier.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/join_state.dart';
+
+import '../../domain/providers/usecase_providers.dart';
+import 'join_notifier.dart';
+import 'states/join_state.dart';
 
 // ============================================================================
-// Infrastructure Layer
+// Presentation Layer Providers (UI State Management)
 // ============================================================================
 
-/// Provides Supabase client
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-// ============================================================================
-// Data Layer
-// ============================================================================
-
-/// Provides remote data source for join operations
-final joinRemoteDataSourceProvider = Provider<JoinRemoteDataSource>((ref) {
-  final supabaseClient = ref.watch(supabaseClientProvider);
-  return JoinRemoteDataSourceImpl(supabaseClient);
-});
-
-/// Provides join repository implementation
-final joinRepositoryProvider = Provider<JoinRepository>((ref) {
-  final remoteDataSource = ref.watch(joinRemoteDataSourceProvider);
-  return JoinRepositoryImpl(remoteDataSource);
-});
-
-// ============================================================================
-// Domain Layer (Use Cases)
-// ============================================================================
-
-/// Provides JoinByCode use case
-final joinByCodeUseCaseProvider = Provider<JoinByCode>((ref) {
-  final repository = ref.watch(joinRepositoryProvider);
-  return JoinByCode(repository);
-});
-
-// ============================================================================
-// Presentation Layer (State Management)
-// ============================================================================
-
-/// Provides join state notifier
+/// Join StateNotifier Provider
+///
+/// Manages join operations state for UI.
+/// Uses JoinByCode use case from domain layer.
 ///
 /// Usage:
 /// ```dart

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/domain/entities/feature.dart';
+import '../../data/models/user_companies_model.dart';
 import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
@@ -27,25 +28,27 @@ final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
 /// Depends on app state for company/store selection AND selected tab.
 /// - Company tab: Returns revenue for the entire company
 /// - Store tab: Returns revenue for the selected store only
+///
+/// ✅ Optimized: Uses read for one-time checks, watch only for reactive state
 final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
   (ref, period) async {
-    // Check authentication first
-    final authState = ref.watch(authStateProvider);
-    final isAuthenticated = authState.when(
+    // ✅ Use read for authentication check (one-time, not reactive)
+    final authState = ref.read(authStateProvider);
+    final isAuthenticated = authState.maybeWhen(
       data: (user) => user != null,
-      loading: () => false,
-      error: (_, __) => false,
+      orElse: () => false,
     );
 
     if (!isAuthenticated) {
       throw Exception('User not authenticated');
     }
 
+    // ✅ Watch only what needs to trigger rebuilds
     final appState = ref.watch(appStateProvider);
-    final repository = ref.watch(homepageRepositoryProvider);
-
-    // Watch selected tab to determine which revenue to fetch
     final selectedTab = ref.watch(selectedRevenueTabProvider);
+
+    // ✅ Use read for repository (static dependency)
+    final repository = ref.read(homepageRepositoryProvider);
 
     // Get selected company/store from app state
     final companyId = appState.companyChoosen;
@@ -77,8 +80,11 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
 ///
 /// Caches data in AppState to avoid frequent API calls.
 /// Returns cached data immediately if available, fetches fresh data on invalidation.
+///
+/// ✅ Optimized: Uses read for static dependencies
 final categoriesWithFeaturesProvider =
     FutureProvider<List<CategoryWithFeatures>>((ref) async {
+  // ✅ Watch appState to react to cache changes
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
 
@@ -88,8 +94,8 @@ final categoriesWithFeaturesProvider =
     return _convertDynamicToCategories(appState.categoryFeatures);
   }
 
-  // ✅ No cache, fetch fresh data from repository
-  final repository = ref.watch(homepageRepositoryProvider);
+  // ✅ No cache, fetch fresh data from repository (use read, not watch)
+  final repository = ref.read(homepageRepositoryProvider);
   final categories = await repository.getCategoriesWithFeatures();
 
   // ✅ Save to AppState for future caching
@@ -145,40 +151,45 @@ List<dynamic> _convertCategoriesToDynamic(List<CategoryWithFeatures> categories)
 /// Provider for fetching user's frequently used features
 ///
 /// Depends on app state for user and company selection.
+///
+/// ✅ Optimized: Reduced dependency chain and removed redundant await
 final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async {
-  // Wait for authentication state first
-  final authState = ref.watch(authStateProvider);
-  final isAuthenticated = authState.when(
+  // ✅ Use read for authentication check (one-time)
+  final authState = ref.read(authStateProvider);
+  final isAuthenticated = authState.maybeWhen(
     data: (user) => user != null,
-    loading: () => false,
-    error: (_, __) => false,
+    orElse: () => false,
   );
 
   if (!isAuthenticated) {
     return [];
   }
 
-  // Wait for user companies to load first to ensure userId and companyId are populated
-  final userCompanies = await ref.watch(userCompaniesProvider.future);
-
-  if (userCompanies == null) {
-    return [];
-  }
-
+  // ✅ Watch appState (reactive to company/store changes)
   final appState = ref.watch(appStateProvider);
-  final repository = ref.watch(homepageRepositoryProvider);
-
-  // Get user ID and selected company from app state
   final userId = appState.userId;
   final companyId = appState.companyChoosen;
 
+  // If AppState is not initialized yet, wait for userCompanies to load
   if (userId.isEmpty || companyId.isEmpty) {
-    return [];
+    final userCompanies = await ref.watch(userCompaniesProvider.future);
+    if (userCompanies == null) {
+      return [];
+    }
+
+    // Re-check appState after userCompanies loaded
+    final updatedAppState = ref.read(appStateProvider);
+    if (updatedAppState.userId.isEmpty || updatedAppState.companyChoosen.isEmpty) {
+      return [];
+    }
   }
 
+  // ✅ Use read for repository (static dependency)
+  final repository = ref.read(homepageRepositoryProvider);
+
   final features = await repository.getQuickAccessFeatures(
-    userId: userId,
-    companyId: companyId,
+    userId: appState.userId,
+    companyId: appState.companyChoosen,
   );
   return features;
 });
@@ -187,8 +198,9 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
 
 /// Provider for fetching user companies and stores
 ///
+/// Returns type-safe UserCompaniesModel instead of dynamic Map
 /// Caches data in AppState and auto-selects company/store
-final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+final userCompaniesProvider = FutureProvider<UserCompaniesModel?>((ref) async {
   final authState = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   final appState = ref.read(appStateProvider);
@@ -205,40 +217,73 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
   }
 
   // Fetch user companies data (either from cache or repository)
-  Map<String, dynamic> userData;
-  List<dynamic> companiesData;
+  UserCompaniesModel userCompaniesModel;
 
   if (appState.user.isNotEmpty && appState.user['user_id'] == user.id) {
-    userData = appState.user;
-    companiesData = (userData['companies'] as List<dynamic>?) ?? [];
+    // ✅ Reconstruct UserCompaniesModel from cached AppState
+    userCompaniesModel = UserCompaniesModel(
+      userId: appState.user['user_id'] as String,
+      userFirstName: appState.user['user_first_name'] as String?,
+      userLastName: appState.user['user_last_name'] as String?,
+      profileImage: appState.user['profile_image'] as String?,
+      companies: (appState.user['companies'] as List<dynamic>? ?? [])
+          .map((companyData) {
+            final company = companyData as Map<String, dynamic>;
+            return CompanyModel(
+              companyId: company['company_id'] as String,
+              companyName: company['company_name'] as String,
+              companyCode: company['company_code'] as String?,
+              role: company['role'] != null
+                  ? RoleModel(
+                      roleName: (company['role'] as Map<String, dynamic>)['role_name'] as String,
+                      permissions: ((company['role'] as Map<String, dynamic>)['permissions'] as List<dynamic>)
+                          .map((p) => p as String)
+                          .toList(),
+                    )
+                  : null,
+              stores: (company['stores'] as List<dynamic>? ?? [])
+                  .map((storeData) {
+                    final store = storeData as Map<String, dynamic>;
+                    return StoreModel(
+                      storeId: store['store_id'] as String,
+                      storeName: store['store_name'] as String,
+                      storeCode: store['store_code'] as String?,
+                    );
+                  }).toList(),
+            );
+          }).toList(),
+    );
   } else {
-    // Fetch fresh user companies data from repository
+    // ✅ Fetch fresh user companies data from repository (already returns UserWithCompanies entity)
     final repository = ref.watch(homepageRepositoryProvider);
-    final userCompanies = await repository.getUserCompanies(user.id);
+    final userCompaniesEntity = await repository.getUserCompanies(user.id);
 
-    // Convert to Map for AppState
-    userData = {
-      'user_id': userCompanies.userId,
-      'user_first_name': userCompanies.userFirstName,
-      'user_last_name': userCompanies.userLastName,
-      'profile_image': userCompanies.profileImage,
-      'companies': userCompanies.companies.map((company) => {
-        'company_id': company.id,
+    // ✅ Convert domain entity to model
+    userCompaniesModel = UserCompaniesModel.fromDomain(userCompaniesEntity);
+
+    // ✅ Convert to Map for AppState (keep for backward compatibility)
+    final userData = {
+      'user_id': userCompaniesModel.userId,
+      'user_first_name': userCompaniesModel.userFirstName,
+      'user_last_name': userCompaniesModel.userLastName,
+      'profile_image': userCompaniesModel.profileImage,
+      'companies': userCompaniesModel.companies.map((company) => {
+        'company_id': company.companyId,
         'company_name': company.companyName,
         'company_code': company.companyCode,
         'stores': company.stores.map((store) => {
-          'store_id': store.id,
+          'store_id': store.storeId,
           'store_name': store.storeName,
           'store_code': store.storeCode,
-        },).toList(),
-        'role': {
-          'role_name': company.role.roleName,
-          'permissions': company.role.permissions,
-        },
-      },).toList(),
+        }).toList(),
+        'role': company.role != null
+            ? {
+                'role_name': company.role!.roleName,
+                'permissions': company.role!.permissions,
+              }
+            : null,
+      }).toList(),
     };
-
-    companiesData = userData['companies'] as List<dynamic>;
 
     // Save to AppState
     appStateNotifier.updateUser(
@@ -248,78 +293,57 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
   }
 
   // Auto-select company and store
-  if (companiesData.isNotEmpty && appState.companyChoosen.isEmpty) {
+  if (userCompaniesModel.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
     // Try to load last selected company/store from cache
     final lastSelection = await appStateNotifier.loadLastSelection();
     final lastCompanyId = lastSelection['companyId'];
     final lastStoreId = lastSelection['storeId'];
 
-    String? selectedCompanyId;
-    String? selectedCompanyName;
-    List<dynamic>? selectedCompanyStores;
+    CompanyModel? selectedCompany;
 
     // Check if last selected company still exists
     if (lastCompanyId != null && lastCompanyId.isNotEmpty) {
       try {
-        final cachedCompany = companiesData.firstWhere(
-          (company) => (company as Map<String, dynamic>)['company_id'] == lastCompanyId,
+        selectedCompany = userCompaniesModel.companies.firstWhere(
+          (company) => company.companyId == lastCompanyId,
         );
-
-        final companyMap = cachedCompany as Map<String, dynamic>;
-        selectedCompanyId = companyMap['company_id'] as String;
-        selectedCompanyName = companyMap['company_name'] as String;
-        selectedCompanyStores = (companyMap['stores'] as List<dynamic>?) ?? [];
       } catch (e) {
         // Cached company not found, will use first company
       }
     }
 
     // If no cached company found, use first company
-    if (selectedCompanyId == null) {
-      final firstCompany = companiesData.first as Map<String, dynamic>;
-      selectedCompanyId = firstCompany['company_id'] as String;
-      selectedCompanyName = firstCompany['company_name'] as String;
-      selectedCompanyStores = (firstCompany['stores'] as List<dynamic>?) ?? [];
-    }
+    selectedCompany ??= userCompaniesModel.companies.first;
 
     // Auto-select store
-    String? selectedStoreId;
-    String? selectedStoreName;
+    StoreModel? selectedStore;
 
-    if (selectedCompanyStores!.isNotEmpty) {
+    if (selectedCompany.stores.isNotEmpty) {
       // Check if last selected store still exists in this company
       if (lastStoreId != null && lastStoreId.isNotEmpty) {
         try {
-          final cachedStore = selectedCompanyStores.firstWhere(
-            (store) => (store as Map<String, dynamic>)['store_id'] == lastStoreId,
+          selectedStore = selectedCompany.stores.firstWhere(
+            (store) => store.storeId == lastStoreId,
           );
-
-          final storeMap = cachedStore as Map<String, dynamic>;
-          selectedStoreId = storeMap['store_id'] as String;
-          selectedStoreName = storeMap['store_name'] as String;
         } catch (e) {
           // Cached store not found, will use first store
         }
       }
 
       // If no cached store found, use first store
-      if (selectedStoreId == null) {
-        final firstStore = selectedCompanyStores.first as Map<String, dynamic>;
-        selectedStoreId = firstStore['store_id'] as String;
-        selectedStoreName = firstStore['store_name'] as String;
-      }
+      selectedStore ??= selectedCompany.stores.first;
     }
 
     // Update both company and store in single call to avoid duplicate save
     appStateNotifier.updateBusinessContext(
-      companyId: selectedCompanyId,
-      storeId: selectedStoreId ?? '',
-      companyName: selectedCompanyName,
-      storeName: selectedStoreName,
+      companyId: selectedCompany.companyId,
+      storeId: selectedStore?.storeId ?? '',
+      companyName: selectedCompany.companyName,
+      storeName: selectedStore?.storeName,
     );
   }
 
-  return userData;
+  return userCompaniesModel;
 });
 
 // === UI State Providers ===

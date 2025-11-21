@@ -9,6 +9,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../core/homepage_logger.dart';
+import '../../domain/entities/company.dart';
 import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/company_state.dart';
@@ -128,97 +129,107 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
     );
   }
 
+  /// Handle company state changes
+  /// ✅ Separated from build() to improve readability and prevent issues
+  void _handleCompanyStateChange(CompanyState? previous, CompanyState next) {
+    if (!mounted) return;
+
+    homepageLogger.d('State changed: ${next.runtimeType}');
+
+    next.when(
+      initial: () {
+        // Do nothing
+      },
+      loading: () => _showLoadingSnackBar(context),
+      error: (message, errorCode) => _showErrorSnackBar(context, message),
+      created: (company) => _handleCompanyCreated(context, company),
+    );
+  }
+
+  void _showLoadingSnackBar(BuildContext context) {
+    homepageLogger.d('Showing loading SnackBar');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Creating company...'),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 30),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    homepageLogger.e('Showing error SnackBar: $message');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Retry',
+            textColor: Colors.white,
+            onPressed: _createCompany,
+          ),
+        ),
+      );
+  }
+
+  void _handleCompanyCreated(BuildContext context, Company company) {
+    homepageLogger.i('Company created successfully: ${company.name}');
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('Company "${company.name}" created successfully!'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+          action: company.code.isNotEmpty
+              ? SnackBarAction(
+                  label: 'Share Code',
+                  textColor: Colors.white,
+                  onPressed: () => _copyToClipboard(company.code),
+                )
+              : null,
+        ),
+      );
+
+    // Close bottom sheet and return company
+    Navigator.of(context).pop(company);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Listen to company state changes
-    ref.listen<CompanyState>(companyNotifierProvider, (previous, next) {
-      homepageLogger.d('State changed: ${next.runtimeType}');
-
-      next.when(
-        initial: () {
-          // Do nothing
-        },
-        loading: () {
-          homepageLogger.d('Showing loading SnackBar');
-          // Show loading snackbar
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text('Creating company...'),
-                ],
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              duration: const Duration(seconds: 30),
-            ),
-          );
-        },
-        error: (message, errorCode) {
-          homepageLogger.e('Showing error SnackBar: $message');
-          // Hide loading, show error
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(message)),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: Colors.white,
-                onPressed: _createCompany,
-              ),
-            ),
-          );
-        },
-        created: (company) {
-          homepageLogger.i('Company created successfully: ${company.name}');
-          // Hide loading
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-          // Close bottom sheet and return company
-          Navigator.of(context).pop(company);
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text('Company "${company.name}" created successfully!'),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
-              action: company.code.isNotEmpty
-                  ? SnackBarAction(
-                      label: 'Share Code',
-                      textColor: Colors.white,
-                      onPressed: () => _copyToClipboard(company.code),
-                    )
-                  : null,
-            ),
-          );
-        },
-      );
-    });
+    // ✅ Listen to company state changes (Riverpod automatically prevents duplicate listeners)
+    ref.listen<CompanyState>(companyNotifierProvider, _handleCompanyStateChange);
 
     final state = ref.watch(companyNotifierProvider);
 

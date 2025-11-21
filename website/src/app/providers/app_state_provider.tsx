@@ -92,6 +92,22 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
       // Store full response in localStorage like backup does
       if (data) {
         localStorage.setItem('user', JSON.stringify(data));
+
+        // Set current user from RPC response
+        if (data.user_id && data.email) {
+          setCurrentUser({
+            user_id: data.user_id,
+            email: data.email,
+            name: data.name || data.email
+          });
+        } else {
+          // Fallback: use session user data
+          setCurrentUser({
+            user_id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email || ''
+          });
+        }
       }
 
       // Check if data has companies array
@@ -182,6 +198,23 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
         if (storedCompanyId && storedUser) {
           try {
             const userData = JSON.parse(storedUser);
+
+            // Set current user from stored data
+            if (userData.user_id && userData.email) {
+              setCurrentUser({
+                user_id: userData.user_id,
+                email: userData.email,
+                name: userData.name || userData.email
+              });
+            } else if (session) {
+              // Fallback: use session user data
+              setCurrentUser({
+                user_id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.name || session.user.email || ''
+              });
+            }
+
             // Find the company that matches the stored company_id
             if (userData.companies && userData.companies.length > 0) {
               // Set all companies

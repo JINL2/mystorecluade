@@ -55,10 +55,11 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
     productId: string,
     companyId: string,
     storeId: string,
-    data: UpdateProductData
+    data: UpdateProductData,
+    originalData?: any
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      return await this.dataSource.updateProduct(productId, companyId, storeId, data);
+      return await this.dataSource.updateProduct(productId, companyId, storeId, data, originalData);
     } catch (error) {
       return {
         success: false,
@@ -113,6 +114,63 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to import Excel data',
+      };
+    }
+  }
+
+  async validateProductEdit(
+    productId: string,
+    companyId: string,
+    originalProductName?: string,
+    newProductName?: string,
+    originalSku?: string,
+    newSku?: string
+  ): Promise<{ success: boolean; error?: { code: string; message: string; details?: string } }> {
+    try {
+      return await this.dataSource.validateProductEdit(
+        productId,
+        companyId,
+        originalProductName,
+        newProductName,
+        originalSku,
+        newSku
+      );
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to validate product edit',
+        },
+      };
+    }
+  }
+
+  async moveProduct(
+    companyId: string,
+    fromStoreId: string,
+    toStoreId: string,
+    productId: string,
+    quantity: number,
+    notes: string,
+    time: string,
+    updatedBy: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      return await this.dataSource.moveProduct(
+        companyId,
+        fromStoreId,
+        toStoreId,
+        productId,
+        quantity,
+        notes,
+        time,
+        updatedBy
+      );
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to move product',
       };
     }
   }

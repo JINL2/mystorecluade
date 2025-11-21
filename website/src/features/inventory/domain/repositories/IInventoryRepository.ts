@@ -74,7 +74,8 @@ export interface IInventoryRepository {
     productId: string,
     companyId: string,
     storeId: string,
-    data: UpdateProductData
+    data: UpdateProductData,
+    originalData?: any
   ): Promise<{ success: boolean; error?: string }>;
 
   /**
@@ -94,4 +95,31 @@ export interface IInventoryRepository {
     userId: string,
     products: any[]
   ): Promise<ImportExcelResult>;
+
+  /**
+   * Validate product edit before updating
+   * Only validates fields that have changed
+   */
+  validateProductEdit(
+    productId: string,
+    companyId: string,
+    originalProductName?: string,
+    newProductName?: string,
+    originalSku?: string,
+    newSku?: string
+  ): Promise<{ success: boolean; error?: { code: string; message: string; details?: string } }>;
+
+  /**
+   * Move product between stores
+   */
+  moveProduct(
+    companyId: string,
+    fromStoreId: string,
+    toStoreId: string,
+    productId: string,
+    quantity: number,
+    notes: string,
+    time: string,
+    updatedBy: string
+  ): Promise<{ success: boolean; data?: any; error?: string }>;
 }

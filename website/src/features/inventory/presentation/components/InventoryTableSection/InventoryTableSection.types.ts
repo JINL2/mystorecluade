@@ -87,6 +87,11 @@ export interface InventoryTableSectionProps {
   onEditProduct: (productId: string) => void;
 
   /**
+   * Callback when move product button is clicked
+   */
+  onMoveProduct: (productId: string) => void;
+
+  /**
    * Callback when page changes
    */
   onPageChange: (page: number) => void;

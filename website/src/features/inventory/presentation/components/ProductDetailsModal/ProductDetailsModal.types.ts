@@ -26,6 +26,6 @@ export interface ProductDetailsModalProps {
     imageUrls?: string[]; // Add imageUrls
   };
   metadata?: InventoryMetadata | null;
-  onSave?: (updatedData: any) => void;
+  onSave?: (updatedData: any, originalData?: any) => void;
   onMetadataRefresh?: () => void;
 }

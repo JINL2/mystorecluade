@@ -260,19 +260,49 @@ class _HomepageState extends ConsumerState<Homepage> {
     final appState = ref.watch(appStateProvider);
     final profileImage = appState.user['profile_image'] as String? ?? '';
 
-    if (profileImage.isNotEmpty) {
-      return Image.network(
-        profileImage,
-        width: 47,
-        height: 47,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildAvatarFallback();
-        },
-      );
+    if (profileImage.isEmpty) {
+      return _buildAvatarFallback();
     }
 
-    return _buildAvatarFallback();
+    return Image.network(
+      profileImage,
+      width: 47,
+      height: 47,
+      fit: BoxFit.cover,
+      // ✅ Memory optimization - decode only what's needed for display
+      cacheWidth: (47 * 3).round(), // 3x for high-DPI screens
+      cacheHeight: (47 * 3).round(),
+      // ✅ Loading placeholder to prevent UI flicker
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+
+        return Container(
+          width: 47,
+          height: 47,
+          decoration: BoxDecoration(
+            color: TossColors.primarySurface,
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          ),
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: TossColors.primary,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return _buildAvatarFallback();
+      },
+    );
   }
 
   Widget _buildAvatarFallback() {

@@ -223,10 +223,35 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   },
 
   /**
+   * Validate product edit
+   * Validates product changes before update (only changed fields)
+   */
+  validateProductEdit: async (productId, companyId, originalProductName, newProductName, originalSku, newSku) => {
+    try {
+      return await repository.validateProductEdit(
+        productId,
+        companyId,
+        originalProductName,
+        newProductName,
+        originalSku,
+        newSku
+      );
+    } catch (err) {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: err instanceof Error ? err.message : 'Validation failed',
+        },
+      };
+    }
+  },
+
+  /**
    * Update product
    * Updates product data with validation
    */
-  updateProduct: async (productId, companyId, storeId, data) => {
+  updateProduct: async (productId, companyId, storeId, data, originalData) => {
     const state = get();
 
     if (!companyId || !storeId) {
@@ -253,9 +278,9 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       };
     }
 
-    // 2. Call repository to update product
+    // 2. Call repository to update product (pass originalData for change detection)
     try {
-      const result = await repository.updateProduct(productId, companyId, storeId, data);
+      const result = await repository.updateProduct(productId, companyId, storeId, data, originalData);
 
       if (result.success) {
         // Refresh inventory after successful update
@@ -278,6 +303,46 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   importExcel: async (companyId, storeId, userId, products) => {
     try {
       const result = await repository.importExcel(companyId, storeId, userId, products);
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
+      };
+    }
+  },
+
+  /**
+   * Move product between stores
+   * Calls RPC to move product and refreshes inventory
+   */
+  moveProduct: async (
+    companyId,
+    fromStoreId,
+    toStoreId,
+    productId,
+    quantity,
+    notes,
+    time,
+    updatedBy
+  ) => {
+    try {
+      const result = await repository.moveProduct(
+        companyId,
+        fromStoreId,
+        toStoreId,
+        productId,
+        quantity,
+        notes,
+        time,
+        updatedBy
+      );
+
+      if (result.success) {
+        // Refresh inventory after successful move
+        await get().loadInventory(companyId, fromStoreId, get().searchQuery);
+      }
+
       return result;
     } catch (err) {
       return {
