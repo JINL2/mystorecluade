@@ -10,6 +10,8 @@ export class Invoice {
     public readonly invoiceId: string,
     public readonly invoiceNumber: string,
     public readonly invoiceDate: string,
+    public readonly storeId: string,
+    public readonly cashLocationId: string | null,
     public readonly customerName: string,
     public readonly customerPhone: string | null,
     public readonly itemCount: number,
@@ -52,7 +54,7 @@ export class Invoice {
 
   /**
    * Get formatted date
-   * Converts UTC date from DB to local timezone for display
+   * Note: invoiceDate is already converted to local timezone in InvoiceModel
    */
   get formattedDate(): string {
     if (!this.invoiceDate) {
@@ -60,8 +62,8 @@ export class Invoice {
     }
 
     try {
-      // Convert UTC date from DB to local timezone
-      const localDate = DateTimeUtils.toLocal(this.invoiceDate);
+      // invoiceDate is already in local timezone, just parse and format
+      const localDate = new Date(this.invoiceDate);
 
       // Format using Korean locale: "2025. 10. 25."
       return localDate.toLocaleDateString('ko-KR', {

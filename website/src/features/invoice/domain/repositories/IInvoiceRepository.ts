@@ -75,6 +75,24 @@ export interface RefundResult {
   error?: string;
 }
 
+export interface BulkRefundResult {
+  success: boolean;
+  data?: {
+    total_processed: number;
+    total_succeeded: number;
+    total_failed: number;
+    total_amount_refunded: number;
+    results: Array<{
+      invoice_id: string;
+      invoice_number: string;
+      success: boolean;
+      amount_refunded?: number;
+      error_message?: string;
+    }>;
+  };
+  error?: string;
+}
+
 export interface IInvoiceRepository {
   /**
    * Get invoices with pagination and filters
@@ -98,4 +116,9 @@ export interface IInvoiceRepository {
    * Refund an invoice
    */
   refundInvoice(invoiceId: string, refundReason?: string, createdBy?: string): Promise<RefundResult>;
+
+  /**
+   * Refund multiple invoices
+   */
+  refundInvoices(invoiceIds: string[], notes: string, createdBy: string): Promise<BulkRefundResult>;
 }

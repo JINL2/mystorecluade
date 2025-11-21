@@ -39,6 +39,7 @@ export const useInvoice = (companyId: string) => {
   const loadInvoices = useInvoiceStore((state) => state.loadInvoices);
   const fetchInvoiceDetail = useInvoiceStore((state) => state.fetchInvoiceDetail);
   const refundInvoice = useInvoiceStore((state) => state.refundInvoice);
+  const refundInvoices = useInvoiceStore((state) => state.refundInvoices);
   const refresh = useInvoiceStore((state) => state.refresh);
   const clearDetail = useInvoiceStore((state) => state.clearDetail);
 
@@ -97,6 +98,7 @@ export const useInvoice = (companyId: string) => {
     changePage,
     fetchInvoiceDetail,
     refundInvoice,
+    refundInvoices,
     refresh: handleRefresh,
     clearDetail,
   };

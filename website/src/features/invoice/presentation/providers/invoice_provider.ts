@@ -195,6 +195,38 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
     }
   },
 
+  refundInvoices: async (invoiceIds, notes, createdBy) => {
+    console.log('🟡 InvoiceProvider.refundInvoices - starting...', { invoiceIds, notes });
+
+    set({ refunding: true });
+
+    try {
+      const result = await repository.refundInvoices(invoiceIds, notes, createdBy);
+
+      if (!result.success || !result.data) {
+        console.error('❌ InvoiceProvider.refundInvoices - failed:', result.error);
+        return {
+          success: false,
+          error: result.error || 'Failed to refund invoices',
+        };
+      }
+
+      console.log('🟢 InvoiceProvider.refundInvoices - success', result.data);
+      return {
+        success: true,
+        data: result.data,
+      };
+    } catch (err) {
+      console.error('❌ InvoiceProvider.refundInvoices - error:', err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
+      };
+    } finally {
+      set({ refunding: false });
+    }
+  },
+
   refresh: async (companyId) => {
     console.log('🟡 InvoiceProvider.refresh - reloading invoices...');
     await get().loadInvoices(companyId);

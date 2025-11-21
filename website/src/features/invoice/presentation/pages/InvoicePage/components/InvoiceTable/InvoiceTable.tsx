@@ -39,16 +39,15 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             <th>DATE</th>
             <th>CUSTOMER</th>
             <th>ITEMS</th>
-            <th>PAYMENT</th>
+            <th className={styles.paymentCell}>PAYMENT</th>
             <th>TOTAL</th>
-            <th>STATUS</th>
-            <th>ACTIONS</th>
+            <th className={styles.statusCell}>STATUS</th>
           </tr>
         </thead>
         <tbody>
           {invoices.length === 0 ? (
             <tr>
-              <td colSpan={9} className={styles.emptyStateCell}>
+              <td colSpan={8} className={styles.emptyStateCell}>
                 <div className={styles.emptyState}>
                   <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                     {/* Background Circle */}
@@ -115,19 +114,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                         {invoice.statusDisplay.toUpperCase()}
                       </span>
                     </td>
-                    <td className={styles.actionsCell} onClick={(e) => e.stopPropagation()}>
-                      <button className={styles.actionBtn} title="Delete">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                        </svg>
-                      </button>
-                    </td>
                   </tr>
 
                   {/* Expanded Detail Row */}
                   {isExpanded && (
                     <tr className={styles.detailRow}>
-                      <td colSpan={9}>
+                      <td colSpan={8}>
                         <div className={styles.detailContent}>
                           <InvoiceDetailPanel
                             invoice={invoice}

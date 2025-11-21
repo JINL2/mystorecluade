@@ -8,6 +8,7 @@ import {
   InvoiceResult,
   InvoiceDetailResult,
   RefundResult,
+  BulkRefundResult,
 } from '../../domain/repositories/IInvoiceRepository';
 import { InvoiceDataSource } from '../datasources/InvoiceDataSource';
 import { InvoiceModel } from '../models/InvoiceModel';
@@ -108,6 +109,23 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to refund invoice',
+      };
+    }
+  }
+
+  async refundInvoices(invoiceIds: string[], notes: string, createdBy: string): Promise<BulkRefundResult> {
+    try {
+      const response = await this.dataSource.refundInvoices(invoiceIds, notes, createdBy);
+
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      console.error('❌ Repository error refunding invoices:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to refund invoices',
       };
     }
   }

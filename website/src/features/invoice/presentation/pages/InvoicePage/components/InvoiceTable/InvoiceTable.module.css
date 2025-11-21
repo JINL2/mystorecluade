@@ -15,7 +15,7 @@
 }
 
 .invoiceTable thead tr {
-  background: var(--color-gray-50);
+  background: var(--toss-gray-50);
   border-bottom: 2px solid var(--color-gray-200);
 }
 
@@ -24,7 +24,7 @@
   text-align: left;
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-gray-600);
+  color: #6C757D;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -103,7 +103,7 @@
 }
 
 .paymentCell {
-  text-align: center;
+  text-align: center !important;
 }
 
 .paymentBadge {
@@ -155,7 +155,7 @@
 }
 
 .statusCell {
-  text-align: center;
+  text-align: center !important;
 }
 
 .statusBadge {

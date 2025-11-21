@@ -17,6 +17,12 @@ export const ACCOUNT_IDS = {
   CASH: 'd4a7a16e-45a1-47fe-992b-ff807c8673f0',
 
   /**
+   * Sales Revenue Account
+   * Used for recording sales revenue and refunds
+   */
+  SALES_REVENUE: 'e45e7d41-7fda-43a1-ac55-9779f3e59697',
+
+  /**
    * Make Error Account
    * Used to record cash discrepancies and errors
    */
@@ -43,6 +49,12 @@ export const ACCOUNT_METADATA = {
     code: '1010',
     category: 'Asset',
     description: 'Cash account for all cash transactions',
+  },
+  [ACCOUNT_IDS.SALES_REVENUE]: {
+    name: 'Sales Revenue',
+    code: '4010',
+    category: 'Revenue',
+    description: 'Account for sales revenue and refunds',
   },
   [ACCOUNT_IDS.MAKE_ERROR]: {
     name: 'Make Error',

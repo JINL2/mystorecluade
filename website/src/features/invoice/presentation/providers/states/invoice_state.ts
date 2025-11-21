@@ -9,7 +9,8 @@ import type {
   DateFilterType,
   DateRange,
   InvoiceDetail,
-  RefundResult
+  RefundResult,
+  BulkRefundResult
 } from './types';
 
 /**
@@ -59,6 +60,7 @@ export interface InvoiceState {
   loadInvoices: (companyId: string) => Promise<void>;
   fetchInvoiceDetail: (invoiceId: string) => Promise<void>;
   refundInvoice: (invoiceId: string, refundReason?: string, createdBy?: string) => Promise<RefundResult>;
+  refundInvoices: (invoiceIds: string[], notes: string, createdBy: string) => Promise<BulkRefundResult>;
   refresh: (companyId: string) => Promise<void>;
 
   // ========== Reset Actions ==========

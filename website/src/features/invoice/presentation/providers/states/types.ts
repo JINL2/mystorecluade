@@ -53,3 +53,24 @@ export interface RefundResult {
   message?: string;
   error?: string;
 }
+
+/**
+ * Bulk refund result type
+ */
+export interface BulkRefundResult {
+  success: boolean;
+  data?: {
+    total_processed: number;
+    total_succeeded: number;
+    total_failed: number;
+    total_amount_refunded: number;
+    results: Array<{
+      invoice_id: string;
+      invoice_number: string;
+      success: boolean;
+      amount_refunded?: number;
+      error_message?: string;
+    }>;
+  };
+  error?: string;
+}

@@ -5,6 +5,7 @@
  */
 
 import { Invoice } from '../../domain/entities/Invoice';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class InvoiceModel {
   /**
@@ -19,12 +20,18 @@ export class InvoiceModel {
     const symbol = currencySymbol || json.amounts?.currency_symbol || json.store?.currency_symbol || '';
     const paymentMethod = json.payment?.method || 'cash';
     const paymentStatus = json.payment?.status || 'pending';
-    const invoiceDate = json.invoice_date || json.sale_date;
+    // Convert UTC date from DB to local timezone for storage in entity
+    const utcDate = json.invoice_date || json.sale_date;
+    const invoiceDate = utcDate ? DateTimeUtils.toLocal(utcDate).toISOString() : '';
+    const storeId = json.store?.store_id || json.store_id || '';
+    const cashLocationId = json.cash_location?.cash_location_id || null;
 
     return new Invoice(
       json.invoice_id,
       json.invoice_number,
       invoiceDate,
+      storeId,
+      cashLocationId,
       customerName,
       customerPhone,
       itemCount,
@@ -52,6 +59,8 @@ export class InvoiceModel {
       invoice_id: invoice.invoiceId,
       invoice_number: invoice.invoiceNumber,
       invoice_date: invoice.invoiceDate,
+      store_id: invoice.storeId,
+      cash_location_id: invoice.cashLocationId,
       customer_name: invoice.customerName,
       customer_phone: invoice.customerPhone,
       item_count: invoice.itemCount,
