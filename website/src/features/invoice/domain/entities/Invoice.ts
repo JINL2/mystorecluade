@@ -104,9 +104,17 @@ export class Invoice {
   }
 
   /**
-   * Get payment badge class for styling
+   * Get payment badge class for styling based on payment method
    */
   get paymentBadgeClass(): string {
-    return this.paymentStatus === 'paid' ? 'payment-paid' : 'payment-pending';
+    const method = this.paymentMethod.toLowerCase();
+    if (method === 'bank' || method === 'transfer') {
+      return 'payment-bank';
+    } else if (method === 'card') {
+      return 'payment-card';
+    } else if (method === 'cash') {
+      return 'payment-cash';
+    }
+    return 'payment-default';
   }
 }

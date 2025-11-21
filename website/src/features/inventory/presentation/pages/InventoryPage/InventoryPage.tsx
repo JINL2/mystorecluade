@@ -23,7 +23,8 @@ import { BulkMoveProductModal } from '../../components/BulkMoveProductModal';
 import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
-import { FilterSidebar } from '../../components/FilterSidebar/FilterSidebar';
+import { LeftFilter } from '@/shared/components/common/LeftFilter';
+import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { InventoryHeader } from '../../components/InventoryHeader';
 import { InventoryTableSection } from '../../components/InventoryTableSection';
 import { useAppState } from '@/app/providers/app_state_provider';
@@ -161,6 +162,51 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       quantityLow: styles.quantityLow,
     },
   });
+
+  // LeftFilter sections configuration
+  const filterSections: FilterSection[] = [
+    {
+      id: 'sort',
+      title: 'Sort by',
+      type: 'sort',
+      defaultExpanded: true,
+      selectedValues: filterType,
+      options: [
+        { value: 'newest', label: 'Newest' },
+        { value: 'oldest', label: 'Oldest' },
+        { value: 'price_high', label: 'Price: High to Low' },
+        { value: 'price_low', label: 'Price: Low to High' },
+        { value: 'cost_high', label: 'Cost: High to Low' },
+        { value: 'cost_low', label: 'Cost: Low to High' },
+      ],
+      onSelect: (value) => setFilterType(value as any),
+    },
+    {
+      id: 'category',
+      title: 'Category',
+      type: 'multiselect',
+      defaultExpanded: false,
+      showCount: true,
+      selectedValues: selectedCategoryFilter,
+      options: uniqueCategories.map((cat) => ({ value: cat, label: cat })),
+      emptyMessage: 'No categories available',
+      onToggle: toggleCategoryFilter,
+      onClear: clearCategoryFilter,
+    },
+    {
+      id: 'brand',
+      title: 'Brand',
+      type: 'multiselect',
+      defaultExpanded: false,
+      showCount: true,
+      selectedValues: selectedBrandFilter,
+      options: uniqueBrands.map((brand) => ({ value: brand, label: brand })),
+      emptyMessage: 'No brands available',
+      onToggle: toggleBrandFilter,
+      onClear: clearBrandFilter,
+    },
+  ];
+
   if (!currentCompany) {
     return (
       <>
@@ -184,18 +230,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         <div className={styles.pageLayout}>
           {/* Left Sidebar - Desktop only */}
           <div className={styles.sidebarWrapper}>
-            <FilterSidebar
-              filterType={filterType}
-              selectedBrandFilter={selectedBrandFilter}
-              selectedCategoryFilter={selectedCategoryFilter}
-              brands={[]}
-              categories={[]}
-              onFilterChange={setFilterType}
-              onBrandFilterToggle={toggleBrandFilter}
-              onCategoryFilterToggle={toggleCategoryFilter}
-              onClearBrandFilter={clearBrandFilter}
-              onClearCategoryFilter={clearCategoryFilter}
-            />
+            <LeftFilter sections={filterSections} width={240} topOffset={64} />
           </div>
 
           {/* Main Content Area */}
@@ -247,18 +282,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       <Navbar activeItem="product" />
       <div className={styles.pageLayout}>
         <div className={styles.sidebarWrapper}>
-          <FilterSidebar
-            filterType={filterType}
-            selectedBrandFilter={selectedBrandFilter}
-            selectedCategoryFilter={selectedCategoryFilter}
-            brands={uniqueBrands}
-            categories={uniqueCategories}
-            onFilterChange={setFilterType}
-            onBrandFilterToggle={toggleBrandFilter}
-            onCategoryFilterToggle={toggleCategoryFilter}
-            onClearBrandFilter={clearBrandFilter}
-            onClearCategoryFilter={clearCategoryFilter}
-          />
+          <LeftFilter sections={filterSections} width={240} topOffset={64} />
         </div>
 
         <div className={styles.mainContent}>

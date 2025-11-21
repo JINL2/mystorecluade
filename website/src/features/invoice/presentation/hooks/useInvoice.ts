@@ -19,6 +19,7 @@ export const useInvoice = (companyId: string) => {
   const error = useInvoiceStore((state) => state.error);
   const pagination = useInvoiceStore((state) => state.pagination);
   const currentPage = useInvoiceStore((state) => state.currentPage);
+  const itemsPerPage = useInvoiceStore((state) => state.itemsPerPage);
   const searchQuery = useInvoiceStore((state) => state.searchQuery);
   const dateRange = useInvoiceStore((state) => state.dateRange);
   const selectedStoreId = useInvoiceStore((state) => state.selectedStoreId);
@@ -42,6 +43,7 @@ export const useInvoice = (companyId: string) => {
   const clearDetail = useInvoiceStore((state) => state.clearDetail);
 
   // ========== Auto-load Invoices on Mount or Filter Changes ==========
+  // Note: searchQuery removed from dependencies - search is now client-side
   useEffect(() => {
     if (companyId && companyId !== '') {
       console.log('🟡 useInvoice - useEffect triggered, loading invoices...');
@@ -49,7 +51,7 @@ export const useInvoice = (companyId: string) => {
     } else {
       console.log('🟡 useInvoice - No companyId, skipping load');
     }
-  }, [companyId, selectedStoreId, currentPage, searchQuery, dateRange, loadInvoices]);
+  }, [companyId, selectedStoreId, currentPage, dateRange, loadInvoices]);
 
   // ========== Wrapped Actions with Enhanced Logic ==========
   const handleStoreChange = (storeId: string | null) => {
@@ -76,6 +78,7 @@ export const useInvoice = (companyId: string) => {
     error,
     pagination,
     currentPage,
+    itemsPerPage,
     searchQuery,
     dateRange,
     selectedStoreId,

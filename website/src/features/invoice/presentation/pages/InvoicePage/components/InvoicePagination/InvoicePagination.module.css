@@ -1,0 +1,81 @@
+/**
+ * InvoicePagination Component Styles
+ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  border-top: 1px solid var(--color-gray-200);
+  background: var(--color-white);
+  border-radius: 0 0 12px 12px;
+}
+
+.paginationInfo {
+  font-size: 14px;
+  color: var(--color-gray-600);
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paginationArrow:hover:not(:disabled) {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.paginationArrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.paginationNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paginationNumber:hover:not(.active) {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.paginationNumber.active {
+  background: var(--color-blue-600);
+  color: var(--color-white);
+  border-color: var(--color-blue-600);
+  font-weight: 700;
+}
+
+.paginationNumber.active:hover {
+  background: var(--color-blue-700);
+  border-color: var(--color-blue-700);
+}

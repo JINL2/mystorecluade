@@ -34,7 +34,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   detailLoading: false,
   refunding: false,
   error: null,
-  selectedStoreId: localStorage.getItem('storeChoosen') || null,
+  selectedStoreId: null, // Start with null (All Stores) - don't use localStorage
   currentPage: 1,
   itemsPerPage: 20,
   searchQuery: '',
@@ -50,12 +50,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   setInvoiceDetail: (detail) => set({ invoiceDetail: detail }),
 
   setSelectedStoreId: (storeId) => {
-    set({ selectedStoreId: storeId });
-    if (storeId) {
-      localStorage.setItem('storeChoosen', storeId);
-    } else {
-      localStorage.removeItem('storeChoosen');
-    }
+    set({ selectedStoreId: storeId, currentPage: 1 }); // Reset to first page when store changes
   },
 
   setActiveFilter: (filter) => set({ activeFilter: filter }),
