@@ -215,11 +215,14 @@ export class InvoiceDataSource {
       // Build journal lines following the guide
       // Line 1: DEBIT Sales Revenue (reverse the sale)
       // Line 2: CREDIT Cash (payment going out)
+      // Use unified description format: "Invoice# Refund"
+      const lineDescription = `${params.invoiceNumber} Refund`;
+
       const cashLine: any = {
         account_id: ACCOUNT_IDS.CASH,
         debit: '0',
         credit: params.refundAmount.toString(),
-        description: 'Cash refund to customer',
+        description: lineDescription,
       };
 
       // Add cash object if cash_location_id is available
@@ -234,7 +237,7 @@ export class InvoiceDataSource {
           account_id: ACCOUNT_IDS.SALES_REVENUE,
           debit: params.refundAmount.toString(),
           credit: '0',
-          description: 'Sales refund',
+          description: lineDescription,
           // NO cash object - this is revenue account
         },
         cashLine,

@@ -24,6 +24,7 @@ import { EmployeeSettingPage } from '@/features/employee-setting/presentation/pa
 import { IncomeStatementPage } from '@/features/income-statement/presentation/pages/IncomeStatementPage';
 import { InventoryPage } from '@/features/inventory/presentation/pages/InventoryPage';
 import { InvoicePage } from '@/features/invoice/presentation/pages/InvoicePage';
+import { SaleProductPage } from '@/features/sale-product/presentation/pages/SaleProductPage';
 import { JournalInputPage } from '@/features/journal-input/presentation/pages/JournalInputPage';
 import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/MarketingPlanPage';
 import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
@@ -77,6 +78,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="b5affc71-32e5-481b-932a-77a743253ddc">
             <InvoicePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product/create-invoice"
+        element={
+          <ProtectedRoute requiredFeatureId="5f622ea0-ede7-4b24-a203-92d5c9f31a6b">
+            <SaleProductPage />
           </ProtectedRoute>
         }
       />

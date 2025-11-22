@@ -16,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
   const [userEmail, setUserEmail] = useState<string>(user?.email || 'Loading...');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [currentPageAction, setCurrentPageAction] = useState<string | null>(null);
+  const [isSellPageActive, setIsSellPageActive] = useState(false);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const navItems: NavItem[] = [
@@ -35,6 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
           items: [
             { label: 'Inventory', href: '/product/inventory', action: 'Inventory' },
             { label: 'Invoice', href: '/product/invoice', action: 'Invoice' },
+            { label: 'Sale Product', href: '/product/create-invoice', action: 'Sale Product' },
             { label: 'Order', href: '/product/order', action: 'Order' },
             { label: 'Product Receive', href: '/product/product-receive', action: 'Product Receive' },
             { label: 'Tracking', href: '/product/tracking', action: 'Tracking' },
@@ -120,6 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
       const pathMappings: { [key: string]: string } = {
         'product/inventory': 'Inventory',
         'product/invoice': 'Invoice',
+        'product/create-invoice': 'Sale Product',
         'product/order': 'Order',
         'product/product-receive': 'Product Receive',
         'product/tracking': 'Tracking',
@@ -142,9 +145,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
       for (const [pathPattern, action] of Object.entries(pathMappings)) {
         if (currentPath.includes(pathPattern)) {
           setCurrentPageAction(action);
+          // Check if it's the sell page
+          if (pathPattern === 'product/create-invoice') {
+            setIsSellPageActive(true);
+          }
           return action;
         }
       }
+      setIsSellPageActive(false);
       return null;
     };
 
@@ -367,6 +375,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
 
         {/* User Section */}
         <div className={styles.navbarUser}>
+          {/* Sell Button */}
+          <button
+            className={`${styles.navbarBtnSell} ${isSellPageActive ? styles.navbarBtnSellActive : ''}`}
+            onClick={() => (window.location.href = '/product/create-invoice')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17,18C15.89,18 15,18.89 15,20A2,2 0 0,0 17,22A2,2 0 0,0 19,20C19,18.89 18.1,18 17,18M1,2V4H3L6.6,11.59L5.24,14.04C5.09,14.32 5,14.65 5,15A2,2 0 0,0 7,17H19V15H7.42A0.25,0.25 0 0,1 7.17,14.75C7.17,14.7 7.18,14.66 7.2,14.63L8.1,13H15.55C16.3,13 16.96,12.58 17.3,11.97L20.88,5.5C20.95,5.34 21,5.17 21,5A1,1 0 0,0 20,4H5.21L4.27,2M7,18C5.89,18 5,18.89 5,20A2,2 0 0,0 7,22A2,2 0 0,0 9,20C9,18.89 8.1,18 7,18Z" />
+            </svg>
+            Sell
+          </button>
+
           {/* Company Selector */}
           {companies && companies.length > 0 && (
             <CompanySelector

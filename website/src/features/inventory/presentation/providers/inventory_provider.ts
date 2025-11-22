@@ -29,7 +29,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   // ============================================
   inventory: [],
   currency: {
-    symbol: '₩',
+    symbol: '₫',
     code: 'VND',
   },
 
@@ -160,20 +160,37 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   // ============================================
 
   /**
-   * Load inventory data (ALL products for client-side filtering)
-   * Fetches ALL inventory items at once
+   * Load base currency from database
+   * Fetches company's base currency configuration
+   */
+  loadBaseCurrency: async (companyId) => {
+    try {
+      const currency = await repository.getBaseCurrency(companyId);
+      set({ currency });
+    } catch (err) {
+      console.error('Failed to load base currency:', err);
+      // Keep fallback currency (VND) if loading fails
+    }
+  },
+
+  /**
+   * Load inventory data with server-side pagination
+   * Fetches products for the current page
    */
   loadInventory: async (companyId, storeId, searchQuery) => {
     set({ loading: true, error: null });
 
     try {
-      // Load ALL products at once for client-side filtering
-      // Use a very large limit to get all products (10000 should be enough)
+      const state = get();
+      const currentPage = state.currentPage;
+      const itemsPerPage = state.itemsPerPage;
+
+      // Load products for current page with server-side pagination
       const result = await repository.getInventory(
         companyId,
         storeId,
-        1, // Always page 1
-        10000, // Large limit to get all products
+        currentPage,
+        itemsPerPage,
         searchQuery || undefined
       );
 
@@ -196,23 +213,15 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         });
       }
 
-      // Sort products by created_at DESC (newest first) on client-side
-      // This ensures the order remains consistent even after editing products
-      // createdAt is now a Date object (Local time) from InventoryItemModel
-      const sortedInventory = (result.data || []).sort((a, b) => {
-        // Handle missing dates - put items without dates at the end
-        if (!a.createdAt && !b.createdAt) return 0;
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
+      // Products are already sorted by server (created_at DESC)
+      // Use server-side pagination total count
+      const totalItems = result.pagination?.total_count || result.pagination?.total || 0;
 
-        // Both dates exist - compare timestamps
-        return b.createdAt.getTime() - a.createdAt.getTime(); // DESC order (newest first)
+      set({
+        inventory: result.data || [],
+        totalItems,
+        loading: false
       });
-
-      // Total items = all loaded products (we load all at once now)
-      const totalItems = sortedInventory.length;
-
-      set({ inventory: sortedInventory, totalItems, loading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'An unexpected error occurred',

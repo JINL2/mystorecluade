@@ -264,6 +264,36 @@
   margin: 0;
 }
 
+/* Sell Button - Secondary Style (DESIGN_SYSTEM.md) */
+.navbarBtnSell {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  background: #ffffff;
+  color: #212529;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.navbarBtnSell:hover {
+  background: #f1f3f5;
+  border-color: #0064FF;
+  color: #0064FF;
+}
+
+.navbarBtnSellActive {
+  background: #F0F6FF;
+  border-color: #0064FF;
+  color: #0064FF;
+}
+
 /* Sign Out Button */
 .navbarBtnSignout {
   padding: 8px 16px;

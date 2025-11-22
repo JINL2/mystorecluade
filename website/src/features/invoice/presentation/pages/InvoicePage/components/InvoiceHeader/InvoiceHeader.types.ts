@@ -8,5 +8,4 @@ export interface InvoiceHeaderProps {
   selectedInvoicesCount: number;
   hasSelectedCancelledInvoice: boolean;
   onRefund: () => void;
-  onNewInvoice: () => void;
 }

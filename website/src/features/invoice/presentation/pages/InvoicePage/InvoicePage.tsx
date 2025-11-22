@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useInvoice } from '../../hooks/useInvoice';
+import { useRefundInvoice } from '../../hooks/useRefundInvoice';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
@@ -20,7 +21,6 @@ import { InvoiceTable } from './components/InvoiceTable';
 import { InvoicePagination } from './components/InvoicePagination';
 import { RefundModal } from './components/RefundModal';
 import type { InvoicePageProps } from './InvoicePage.types';
-import { InvoiceDataSource } from '../../../data/datasources/InvoiceDataSource';
 import styles from './InvoicePage.module.css';
 
 export const InvoicePage: React.FC<InvoicePageProps> = () => {
@@ -60,9 +60,11 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     changePage,
     fetchInvoiceDetail,
     refundInvoice,
-    refundInvoices,
     refresh,
   } = useInvoice(companyId);
+
+  // Get refund hook for handling refund operations
+  const { refundInvoicesWithJournal } = useRefundInvoice();
 
   // Clear selections when store changes
   useEffect(() => {
@@ -165,70 +167,37 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
 
     try {
       const invoiceIdsArray = Array.from(selectedInvoices);
-      const result = await refundInvoices(invoiceIdsArray, notes, currentUser.user_id);
+
+      // Use refund hook to handle refund + journal entry creation
+      const result = await refundInvoicesWithJournal({
+        invoiceIds: invoiceIdsArray,
+        notes,
+        companyId,
+        userId: currentUser.user_id,
+        invoices,
+      });
 
       setIsRefundModalOpen(false);
 
-      if (result.success && result.data) {
-        const { total_succeeded, total_failed, total_amount_refunded, results } = result.data;
-
-        // Create journal entries for each successfully refunded invoice
-        const dataSource = new InvoiceDataSource();
-        let journalSuccessCount = 0;
-        let journalFailCount = 0;
-
-        for (const refundResult of results) {
-          if (refundResult.success && refundResult.amount_refunded) {
-            // Get the invoice to access its storeId
-            const invoice = invoices.find(inv => inv.invoiceId === refundResult.invoice_id);
-
-            if (invoice) {
-              const journalResult = await dataSource.insertRefundJournalEntry({
-                companyId: companyId,
-                storeId: invoice.storeId,
-                createdBy: currentUser.user_id,
-                invoiceNumber: refundResult.invoice_number,
-                refundAmount: refundResult.amount_refunded,
-                cashLocationId: invoice.cashLocationId,
-              });
-
-              if (journalResult.success) {
-                journalSuccessCount++;
-                console.log(`✅ Journal entry created for invoice ${refundResult.invoice_number}`);
-              } else {
-                journalFailCount++;
-                console.error(`❌ Failed to create journal entry for invoice ${refundResult.invoice_number}:`, journalResult.error);
-              }
-            }
-          }
-        }
-
-        // Show single success message after all operations
-        if (total_failed === 0 && journalFailCount === 0) {
-          showSuccess({
-            message: `Successfully refunded ${total_succeeded} invoice${total_succeeded > 1 ? 's' : ''} and created ${journalSuccessCount} journal ${journalSuccessCount > 1 ? 'entries' : 'entry'}. Total amount: ${invoices[0]?.formatCurrency(total_amount_refunded) || total_amount_refunded}`,
-            autoCloseDuration: 3000
-          });
-        } else if (total_failed === 0 && journalFailCount > 0) {
-          showError({
-            title: 'Partial Success',
-            message: `Successfully refunded ${total_succeeded} invoice${total_succeeded > 1 ? 's' : ''}, but ${journalFailCount} journal ${journalFailCount > 1 ? 'entries' : 'entry'} failed to create.`
-          });
-        } else {
-          showError({
-            title: 'Partial Refund',
-            message: `Successfully refunded ${total_succeeded} invoice${total_succeeded > 1 ? 's' : ''}, but ${total_failed} failed. ${journalSuccessCount > 0 ? `Created ${journalSuccessCount} journal ${journalSuccessCount > 1 ? 'entries' : 'entry'}.` : ''}`
-          });
-        }
-
-        setSelectedInvoices(new Set());
-        refresh();
+      // Show appropriate message based on result
+      if (result.success) {
+        showSuccess({
+          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''} and created ${result.journalSuccessCount} journal ${result.journalSuccessCount > 1 ? 'entries' : 'entry'}. Total amount: ${invoices[0]?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
+          autoCloseDuration: 3000
+        });
+      } else if (result.totalFailed === 0 && result.journalFailCount > 0) {
+        showError({
+          title: 'Partial Success',
+          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}, but ${result.journalFailCount} journal ${result.journalFailCount > 1 ? 'entries' : 'entry'} failed to create.`
+        });
       } else {
         showError({
-          title: 'Refund Failed',
-          message: result.error || 'Failed to refund invoices. Please try again.'
+          title: 'Partial Refund',
+          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}, but ${result.totalFailed} failed. ${result.journalSuccessCount > 0 ? `Created ${result.journalSuccessCount} journal ${result.journalSuccessCount > 1 ? 'entries' : 'entry'}.` : ''}`
         });
       }
+
+      setSelectedInvoices(new Set());
     } catch (error) {
       setIsRefundModalOpen(false);
       showError({
@@ -379,7 +348,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
               selectedInvoicesCount={selectedInvoices.size}
               hasSelectedCancelledInvoice={hasSelectedCancelledInvoice}
               onRefund={handleOpenRefundModal}
-              onNewInvoice={() => {}}
             />
 
             {/* Invoice Table */}

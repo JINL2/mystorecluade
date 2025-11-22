@@ -56,19 +56,6 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         >
           Refund
         </TossButton>
-        <TossButton
-          variant="primary"
-          size="md"
-          onClick={onNewInvoice}
-          icon={
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-            </svg>
-          }
-          iconPosition="left"
-        >
-          New Invoice
-        </TossButton>
       </div>
     </div>
   );

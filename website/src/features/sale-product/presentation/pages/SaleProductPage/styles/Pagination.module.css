@@ -1,0 +1,128 @@
+/**
+ * Pagination Component Styles
+ * Pagination and action buttons
+ */
+
+/* Bottom Actions Container */
+.bottomActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-top: 1px solid #E9ECEF;
+}
+
+.paginationWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-top: 1px solid #E9ECEF;
+}
+
+.paginationInfo {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.paginationBtn {
+  padding: 8px 16px;
+  border: 1px solid #E9ECEF;
+  background: white;
+  color: #495057;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paginationBtn:hover:not(:disabled) {
+  background: #F8F9FA;
+  border-color: #0064FF;
+  color: #0064FF;
+}
+
+.paginationBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  min-width: 50px;
+  text-align: center;
+}
+
+.completeBtn {
+  padding: 12px 32px;
+  background: #0064FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.2);
+  white-space: nowrap;
+}
+
+.completeBtn:hover:not(:disabled) {
+  background: #0050CC;
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.completeBtn:disabled {
+  background: #E9ECEF;
+  color: #ADB5BD;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Product Footer (Pagination + Complete Button) */
+.productFooter {
+  background: white;
+  border-top: 1px solid #E9ECEF;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.productPagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pagination {
+    border-left: none;
+    padding: 0;
+  }
+
+  .completeBtn {
+    width: 100%;
+  }
+}

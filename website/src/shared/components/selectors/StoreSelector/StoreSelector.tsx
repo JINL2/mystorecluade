@@ -69,6 +69,9 @@ export const StoreSelector = ({
     if (!selectedStoreId) {
       return allStoresLabel;
     }
+    if (!stores || stores.length === 0) {
+      return allStoresLabel;
+    }
     const selectedStore = stores.find((s) => s.store_id === selectedStoreId);
     return selectedStore?.store_name || allStoresLabel;
   };

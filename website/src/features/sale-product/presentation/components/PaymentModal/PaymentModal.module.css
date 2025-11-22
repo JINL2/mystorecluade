@@ -1,0 +1,440 @@
+/**
+ * PaymentModal Styles
+ * Modal component for completing sale invoice
+ */
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal Content */
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #191f28;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9e9e9e;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: #f5f5f5;
+}
+
+/* Modal Body */
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 24px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #616161;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Products List */
+.productsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.productItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.productInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #191f28;
+}
+
+.productSku {
+  font-size: 12px;
+  color: #757575;
+}
+
+.productDetails {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quantity {
+  font-size: 13px;
+  color: #616161;
+}
+
+.price {
+  font-size: 14px;
+  font-weight: 600;
+  color: #191f28;
+}
+
+/* Total Row */
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.label {
+  font-size: 14px;
+  color: #616161;
+}
+
+.value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #191f28;
+}
+
+.totalLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #191f28;
+}
+
+.totalValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3182f6;
+}
+
+/* Discount Section */
+.discountSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discountTypeBtn {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #616161;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.discountTypeBtn:hover {
+  border-color: #3182f6;
+}
+
+.discountTypeBtn.active {
+  background-color: #3182f6;
+  border-color: #3182f6;
+  color: white;
+  font-weight: 500;
+}
+
+.discountInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #191f28;
+  transition: border-color 0.2s;
+}
+
+/* Remove spinner arrows from number input */
+.discountInput::-webkit-outer-spin-button,
+.discountInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.discountInput[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.discountInput:focus {
+  outline: none;
+  border-color: #3182f6;
+}
+
+.percentSymbol {
+  font-size: 16px;
+  font-weight: 600;
+  color: #616161;
+}
+
+.discountAmount {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #f44336;
+  font-weight: 500;
+}
+
+/* Cash Location Badges */
+.locationBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.typeBadge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.companyWideBadge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  letter-spacing: 0.3px;
+}
+
+.currencyBadge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #fff3e0;
+  color: #e65100;
+  letter-spacing: 0.3px;
+}
+
+/* Currency Conversion */
+.currencyButtons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.currencyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.currencyItem:hover {
+  border-color: #3182f6;
+  background-color: #f8fafc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.currencyBtn {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: none;
+}
+
+.currencyBtn:hover {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.currencyCode {
+  font-size: 14px;
+  font-weight: 600;
+  color: #616161;
+}
+
+.convertedAmount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #191f28;
+}
+
+.exchangeRate {
+  font-size: 12px;
+  color: #9e9e9e;
+  padding-left: 0;
+}
+
+/* Error Message */
+.errorMessage {
+  padding: 12px 16px;
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.errorMessage span {
+  font-size: 14px;
+  color: #c62828;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.cancelBtn {
+  padding: 10px 24px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #616161;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmBtn {
+  padding: 10px 24px;
+  border: none;
+  background-color: #3182f6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  background-color: #1b64da;
+}
+
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalContent {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+
+  .modalFooter {
+    padding: 12px 20px;
+  }
+
+  .discountSection {
+    flex-wrap: wrap;
+  }
+
+  .discountInput {
+    width: 100%;
+  }
+
+  .currencyButtons {
+    grid-template-columns: 1fr;
+  }
+}

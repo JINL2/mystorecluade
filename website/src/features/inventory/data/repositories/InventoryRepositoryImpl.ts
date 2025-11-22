@@ -174,4 +174,20 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       };
     }
   }
+
+  async getBaseCurrency(companyId: string): Promise<{
+    symbol: string;
+    code: string;
+  }> {
+    try {
+      return await this.dataSource.getBaseCurrency(companyId);
+    } catch (error) {
+      // Fallback to VND if error occurs
+      console.error('Failed to fetch base currency:', error);
+      return {
+        symbol: '₫',
+        code: 'VND',
+      };
+    }
+  }
 }

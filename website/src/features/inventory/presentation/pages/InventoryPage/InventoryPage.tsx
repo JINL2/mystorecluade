@@ -43,6 +43,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     currencyCode,
     currentPage,
     itemsPerPage,
+    totalItems,
     selectedStoreId,
     selectedProducts,
     filterType,
@@ -69,6 +70,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     closeAddProductModal,
     showNotification,
     hideNotification,
+    loadBaseCurrency,
     loadInventory,
     updateProduct,
     importExcel,
@@ -106,9 +108,17 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     showNotification,
   });
 
+  // Debounced search with 300ms delay
   useEffect(() => {
-    setCurrentPage(1);
-  }, [localSearchQuery, setCurrentPage]);
+    const timer = setTimeout(() => {
+      if (companyId && selectedStoreId) {
+        setCurrentPage(1); // Reset to page 1 on search
+        loadInventory(companyId, selectedStoreId, localSearchQuery);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localSearchQuery]);
 
   useEffect(() => {
     if (currentCompany?.stores && currentCompany.stores.length > 0 && !selectedStoreId) {
@@ -117,10 +127,25 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   }, [currentCompany, selectedStoreId, setSelectedStoreId]);
 
   useEffect(() => {
+    if (companyId) {
+      loadBaseCurrency(companyId);
+    }
+  }, [companyId, loadBaseCurrency]);
+
+  // Initial load when company or store changes
+  useEffect(() => {
     if (companyId && selectedStoreId) {
+      setCurrentPage(1);
       loadInventory(companyId, selectedStoreId, '');
     }
   }, [companyId, selectedStoreId, loadInventory]);
+
+  // Reload inventory when page changes (server-side pagination)
+  useEffect(() => {
+    if (companyId && selectedStoreId && currentPage > 1) {
+      loadInventory(companyId, selectedStoreId, localSearchQuery);
+    }
+  }, [currentPage]);
 
   const { uniqueBrands, uniqueCategories, filteredAndSortedInventory } = useInventoryFilters({
     inventory,
@@ -130,11 +155,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     selectedCategoryFilter,
   });
 
-  const { paginatedInventory, totalFilteredItems, totalPages } = useInventoryPagination({
-    filteredInventory: filteredAndSortedInventory,
-    currentPage,
-    itemsPerPage,
-  });
+  // Use server-side pagination - inventory from store is already paginated
+  const paginatedInventory = inventory;
+  const totalFilteredItems = totalItems;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const {
     formatCurrency,

@@ -122,4 +122,12 @@ export interface IInventoryRepository {
     time: string,
     updatedBy: string
   ): Promise<{ success: boolean; data?: any; error?: string }>;
+
+  /**
+   * Get base currency for the company
+   */
+  getBaseCurrency(companyId: string): Promise<{
+    symbol: string;
+    code: string;
+  }>;
 }

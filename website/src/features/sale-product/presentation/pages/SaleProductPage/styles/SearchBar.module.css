@@ -1,0 +1,57 @@
+/**
+ * SearchBar Component Styles
+ * Search and filter area
+ */
+
+/* Search Container */
+.searchContainer {
+  padding: 16px;
+  background: white;
+  border-bottom: 1px solid #E9ECEF;
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.searchBox {
+  flex: 1;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ADB5BD;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 14px 12px 44px;
+  border: 1px solid #DEE2E6;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #212529;
+  background: #F8F9FA;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  background: white;
+  border-color: #0064FF;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+}
+
+.searchInput::placeholder {
+  color: #ADB5BD;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .searchContainer {
+    flex-direction: column;
+  }
+}

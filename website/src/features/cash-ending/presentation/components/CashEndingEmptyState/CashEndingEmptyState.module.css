@@ -1,0 +1,34 @@
+/**
+ * CashEndingEmptyState Component Styles
+ * Empty state display styling
+ */
+
+.emptyState {
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--color-white);
+  border-radius: 12px;
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 12px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  color: #6C757D;
+  margin: 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}

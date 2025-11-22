@@ -89,6 +89,7 @@ export interface InventoryState {
   // ============================================
   // ASYNCHRONOUS ACTIONS
   // ============================================
+  loadBaseCurrency: (companyId: string) => Promise<void>;
   loadInventory: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<void>;
   validateProductEdit: (
     productId: string,

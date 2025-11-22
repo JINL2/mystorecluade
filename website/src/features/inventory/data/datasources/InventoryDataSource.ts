@@ -312,4 +312,33 @@ export class InventoryDataSource {
       error: 'Invalid response format from inventory_move_product',
     };
   }
+
+  async getBaseCurrency(companyId: string): Promise<{
+    symbol: string;
+    code: string;
+  }> {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('get_base_currency', {
+      p_company_id: companyId,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Extract base_currency from response
+    if (data && data.base_currency) {
+      return {
+        symbol: data.base_currency.symbol || '₫',
+        code: data.base_currency.currency_code || 'VND',
+      };
+    }
+
+    // Fallback to VND if no base currency found
+    return {
+      symbol: '₫',
+      code: 'VND',
+    };
+  }
 }

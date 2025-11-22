@@ -80,6 +80,7 @@ export const useInventory = () => {
   const clearError = useInventoryStore((state) => state.clearError);
 
   // Asynchronous Actions
+  const loadBaseCurrency = useInventoryStore((state) => state.loadBaseCurrency);
   const loadInventory = useInventoryStore((state) => state.loadInventory);
   const validateProductEdit = useInventoryStore((state) => state.validateProductEdit);
   const updateProduct = useInventoryStore((state) => state.updateProduct);
@@ -133,6 +134,7 @@ export const useInventory = () => {
     setLoading,
     setError,
     clearError,
+    loadBaseCurrency,
     loadInventory,
     validateProductEdit,
     updateProduct,
