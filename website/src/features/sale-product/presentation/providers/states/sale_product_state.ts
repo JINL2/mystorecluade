@@ -67,7 +67,7 @@ export interface SaleProductState {
   // ============================================
 
   loadModalData: (companyId: string, storeId: string) => Promise<void>;
-  submitInvoice: (companyId: string, storeId: string) => Promise<{
+  submitInvoice: (companyId: string, storeId: string, userId: string) => Promise<{
     success: boolean;
     invoiceId?: string;
     error?: string;

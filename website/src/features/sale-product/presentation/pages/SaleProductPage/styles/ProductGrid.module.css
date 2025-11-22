@@ -126,6 +126,12 @@
   font-weight: 500;
 }
 
+.productStockNegative {
+  font-size: 10px;
+  color: #FF5847;
+  font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 1400px) {
   .productGrid {

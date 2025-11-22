@@ -292,7 +292,13 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                             {currencySymbol}
                             {product.selling_price.toLocaleString()}
                           </div>
-                          <div className={styles.productStock}>
+                          <div
+                            className={
+                              product.quantity_available < 0
+                                ? styles.productStockNegative
+                                : styles.productStock
+                            }
+                          >
                             Stock: {product.quantity_available}
                           </div>
                         </div>

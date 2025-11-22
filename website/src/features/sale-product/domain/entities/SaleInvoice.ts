@@ -4,6 +4,7 @@
  */
 
 import { CartItem } from './CartItem';
+import { CashLocation } from './CashLocation';
 
 export type DiscountType = 'amount' | 'percent';
 
@@ -12,9 +13,10 @@ export class SaleInvoice {
     public readonly items: CartItem[],
     public readonly discountType: DiscountType,
     public readonly discountValue: number,
-    public readonly cashLocationId: string,
+    public readonly cashLocation: CashLocation,
     public readonly companyId: string,
-    public readonly storeId: string
+    public readonly storeId: string,
+    public readonly userId: string
   ) {}
 
   get subtotal(): number {
@@ -45,24 +47,26 @@ export class SaleInvoice {
   }
 
   hasCashLocation(): boolean {
-    return this.cashLocationId.trim().length > 0;
+    return this.cashLocation.id.trim().length > 0;
   }
 
   static create(data: {
     items: CartItem[];
     discountType: DiscountType;
     discountValue: number;
-    cashLocationId: string;
+    cashLocation: CashLocation;
     companyId: string;
     storeId: string;
+    userId: string;
   }): SaleInvoice {
     return new SaleInvoice(
       data.items,
       data.discountType,
       data.discountValue,
-      data.cashLocationId,
+      data.cashLocation,
       data.companyId,
-      data.storeId
+      data.storeId,
+      data.userId
     );
   }
 }

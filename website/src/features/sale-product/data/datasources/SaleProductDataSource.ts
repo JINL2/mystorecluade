@@ -144,4 +144,162 @@ export class SaleProductDataSource {
 
     return data || [];
   }
+
+  /**
+   * Submit sale invoice
+   * Calls inventory_create_invoice RPC function
+   */
+  async submitInvoice(params: {
+    companyId: string;
+    storeId: string;
+    userId: string;
+    saleDate: string;
+    items: Array<{
+      product_id: string;
+      quantity: number;
+      unit_price?: number;
+    }>;
+    paymentMethod: string;
+    cashLocationId?: string | null;
+    discountAmount?: number;
+    taxRate?: number;
+    notes?: string;
+  }): Promise<{
+    success: boolean;
+    invoiceNumber?: string;
+    totalAmount?: number;
+    warnings?: string[];
+    message?: string;
+    error?: string;
+  }> {
+    console.log('🔌 [DataSource] submitInvoice called', params);
+
+    const supabase = supabaseService.getClient();
+
+    const rpcParams: Record<string, any> = {
+      p_company_id: params.companyId,
+      p_store_id: params.storeId,
+      p_created_by: params.userId,
+      p_sale_date: params.saleDate,
+      p_items: params.items,
+      p_payment_method: params.paymentMethod,
+    };
+
+    // Add optional parameters if provided
+    if (params.cashLocationId) {
+      rpcParams.p_cash_location_id = params.cashLocationId;
+    }
+    if (params.discountAmount !== undefined && params.discountAmount > 0) {
+      rpcParams.p_discount_amount = params.discountAmount;
+    }
+    if (params.taxRate !== undefined && params.taxRate > 0) {
+      rpcParams.p_tax_rate = params.taxRate;
+    }
+    if (params.notes) {
+      rpcParams.p_notes = params.notes;
+    }
+
+    console.log('🔌 [DataSource] Calling RPC inventory_create_invoice', rpcParams);
+
+    const { data, error } = await supabase.rpc('inventory_create_invoice', rpcParams);
+
+    if (error) {
+      console.error('❌ [DataSource] Supabase RPC error', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    console.log('✅ [DataSource] Supabase RPC success', data);
+
+    return data || { success: false, error: 'No response from server' };
+  }
+
+  /**
+   * Submit journal entry for sales transaction
+   * Calls insert_journal_with_everything RPC function
+   */
+  async submitJournalEntry(params: {
+    companyId: string;
+    storeId: string;
+    userId: string;
+    entryDate: string;
+    description: string;
+    totalAmount: number;
+    cashLocationId: string;
+  }): Promise<{
+    success: boolean;
+    journalId?: string;
+    error?: string;
+  }> {
+    console.log('🔌 [DataSource] submitJournalEntry called', params);
+
+    const supabase = supabaseService.getClient();
+
+    // Fixed account IDs for sales transactions
+    const CASH_ACCOUNT_ID = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
+    const SALES_REVENUE_ACCOUNT_ID = 'e45e7d41-7fda-43a1-ac55-9779f3e59697';
+
+    const rpcParams = {
+      p_base_amount: params.totalAmount,
+      p_company_id: params.companyId,
+      p_created_by: params.userId,
+      p_description: params.description,
+      p_entry_date: params.entryDate,
+      p_lines: [
+        // Debit: Cash Account
+        {
+          account_id: CASH_ACCOUNT_ID,
+          description: params.description,
+          debit: params.totalAmount.toString(),
+          credit: '0',
+          cash: {
+            cash_location_id: params.cashLocationId,
+          },
+        },
+        // Credit: Sales Revenue Account
+        {
+          account_id: SALES_REVENUE_ACCOUNT_ID,
+          description: params.description,
+          debit: '0',
+          credit: params.totalAmount.toString(),
+        },
+      ],
+      p_store_id: params.storeId,
+      p_counterparty_id: null,
+      p_if_cash_location_id: null,
+    };
+
+    console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything', rpcParams);
+
+    const { data, error } = await supabase.rpc('insert_journal_with_everything', rpcParams);
+
+    if (error) {
+      console.error('❌ [DataSource] Journal entry RPC error', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    console.log('✅ [DataSource] Journal entry RPC success', data);
+
+    return {
+      success: true,
+      journalId: data?.journal_id,
+    };
+  }
 }

@@ -222,46 +222,107 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
     }
   },
 
-  submitInvoice: async (companyId: string, storeId: string) => {
+  submitInvoice: async (companyId: string, storeId: string, userId: string) => {
     const state = get();
+
+    console.log('📋 [submitInvoice] Starting invoice submission', {
+      companyId,
+      storeId,
+      userId,
+      selectedCashLocationId: state.selectedCashLocationId,
+      cartItemsCount: state.cartItems.length,
+      cashLocationsCount: state.cashLocations.length,
+    });
+
+    // Find selected cash location
+    const selectedLocation = state.cashLocations.find(
+      (loc) => loc.id === state.selectedCashLocationId
+    );
+
+    if (!selectedLocation) {
+      console.error('❌ [submitInvoice] Cash location not found', {
+        selectedId: state.selectedCashLocationId,
+        availableLocations: state.cashLocations.map(l => ({ id: l.id, name: l.name })),
+      });
+      set({ error: 'Cash location not found' });
+      return { success: false, error: 'Cash location not found' };
+    }
+
+    console.log('✅ [submitInvoice] Cash location found', {
+      id: selectedLocation.id,
+      name: selectedLocation.name,
+      type: selectedLocation.type,
+    });
 
     // Create invoice entity
     const invoice = SaleInvoice.create({
       items: state.cartItems,
       discountType: state.discountType,
       discountValue: state.discountValue,
-      cashLocationId: state.selectedCashLocationId,
+      cashLocation: selectedLocation,
       companyId,
       storeId,
+      userId,
+    });
+
+    console.log('📦 [submitInvoice] Invoice entity created', {
+      itemsCount: invoice.items.length,
+      subtotal: invoice.subtotal,
+      discountAmount: invoice.discountAmount,
+      total: invoice.total,
+      paymentMethod: invoice.cashLocation.type,
+      cashLocationId: invoice.cashLocation.id,
     });
 
     // Validate invoice
     const errors = SaleInvoiceValidator.validateInvoice(invoice);
     if (errors.length > 0) {
       const errorMessage = errors.map((e) => e.message).join(', ');
+      console.error('❌ [submitInvoice] Validation failed', { errors });
       set({ error: errorMessage });
       return { success: false, error: errorMessage };
     }
+
+    console.log('✅ [submitInvoice] Validation passed');
 
     // Submit invoice
     set({ submitting: true, error: null });
 
     try {
+      console.log('🚀 [submitInvoice] Calling repository.submitSaleInvoice');
       const result = await repository.submitSaleInvoice(invoice);
 
       if (result.success) {
-        // Reset state after successful submission
-        get().reset();
+        console.log('✅ [submitInvoice] Invoice submitted successfully', {
+          invoiceId: result.invoiceId,
+        });
+        // Clear cart and reset discount, but keep modal open for success message
+        set({
+          cartItems: [],
+          subtotal: 0,
+          discountType: 'amount',
+          discountValue: 0,
+          discountAmount: 0,
+          total: 0,
+          selectedCashLocationId: '',
+          error: null,
+          submitting: false,
+        });
       } else {
-        set({ error: result.error || 'Failed to submit invoice' });
+        console.error('❌ [submitInvoice] Invoice submission failed', {
+          error: result.error,
+        });
+        set({ error: result.error || 'Failed to submit invoice', submitting: false });
       }
 
-      set({ submitting: false });
       return result;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to submit invoice';
-      console.error('Failed to submit invoice:', error);
+      console.error('❌ [submitInvoice] Exception during submission', {
+        error,
+        errorMessage,
+      });
       set({ error: errorMessage, submitting: false });
       return { success: false, error: errorMessage };
     }

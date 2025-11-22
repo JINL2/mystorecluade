@@ -3,10 +3,12 @@
  * Modal for completing sale invoice with payment details
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSaleInvoice } from '../../hooks/useSaleInvoice';
+import { useAppState } from '../../../../../app/providers/app_state_provider';
 import { TossSelector } from '../../../../../shared/components/selectors/TossSelector/TossSelector';
 import { LoadingAnimation } from '../../../../../shared/components/common/LoadingAnimation/LoadingAnimation';
+import { ErrorMessage } from '../../../../../shared/components/common/ErrorMessage/ErrorMessage';
 import { PaymentModalProps } from './PaymentModal.types';
 import styles from './PaymentModal.module.css';
 
@@ -15,6 +17,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   storeId,
   currencySymbol,
 }) => {
+  const { currentUser } = useAppState();
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successInvoiceId, setSuccessInvoiceId] = useState<string>('');
+
   // Get state and actions from Zustand store
   const {
     cartItems,
@@ -74,15 +80,25 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Handle invoice submission
   const handleSubmit = async () => {
-    const result = await submitInvoice(companyId, storeId);
+    if (!currentUser) {
+      console.error('User not found in app state');
+      return;
+    }
+
+    const result = await submitInvoice(companyId, storeId, currentUser.user_id);
 
     if (result.success) {
-      // Success - modal will close automatically via reset()
-      alert(`Invoice created successfully! Invoice ID: ${result.invoiceId}`);
-    } else {
-      // Error will be displayed via error state
-      alert(`Failed to create invoice: ${result.error}`);
+      // Show success message
+      setSuccessInvoiceId(result.invoiceId || '');
+      setShowSuccessMessage(true);
     }
+    // Error will be displayed via error state in the modal
+  };
+
+  // Handle success message close - also closes the payment modal
+  const handleSuccessClose = () => {
+    setShowSuccessMessage(false);
+    closePaymentModal();
   };
 
   // Helper functions for cash location badges
@@ -113,14 +129,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={closePaymentModal}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h2>Complete Sale</h2>
-          <button className={styles.closeBtn} onClick={closePaymentModal}>
-            ✕
-          </button>
-        </div>
+    <>
+      <div className={styles.modalOverlay} onClick={closePaymentModal}>
+        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h2>Receipt</h2>
+            <button className={styles.closeBtn} onClick={closePaymentModal}>
+              ✕
+            </button>
+          </div>
 
         <div className={styles.modalBody}>
           {/* Selected Products */}
@@ -289,6 +306,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
       </div>
     </div>
+
+      {/* Success Message */}
+      <ErrorMessage
+        variant="success"
+        title="Success"
+        message={`Invoice created successfully! Invoice ID: ${successInvoiceId}`}
+        isOpen={showSuccessMessage}
+        onClose={handleSuccessClose}
+        confirmText="OK"
+      />
+    </>
   );
 };
 
