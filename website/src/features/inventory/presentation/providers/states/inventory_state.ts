@@ -91,6 +91,7 @@ export interface InventoryState {
   // ============================================
   loadBaseCurrency: (companyId: string) => Promise<void>;
   loadInventory: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<void>;
+  getAllInventoryForExport: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<InventoryItem[]>;
   validateProductEdit: (
     productId: string,
     companyId: string,

@@ -157,26 +157,26 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     try {
       const validationResult = await validateProductEdit(productId, companyId);
 
-      if (!validationResult.can_edit) {
+      if (!validationResult.success) {
         setNotification({
           isOpen: true,
           variant: 'error',
-          message: validationResult.message || 'Cannot edit this product',
+          message: validationResult.error?.message || 'Cannot edit this product',
         });
         setIsSubmitting(false);
         return;
       }
 
       const updatedData: any = {
-        product_name: formData.productName,
-        category_id: formData.category,
-        brand_id: formData.brand,
-        product_type: formData.productType,
+        productName: formData.productName,
+        category: formData.category,
+        brand: formData.brand,
+        productType: formData.productType,
         barcode: formData.barcode,
         sku: formData.sku,
         unit: formData.unit,
-        cost_price: parseFloat(formData.costPrice.toString()) || 0,
-        unit_price: parseFloat(formData.sellingPrice.toString()) || 0,
+        costPrice: parseFloat(formData.costPrice.toString()) || 0,
+        sellingPrice: parseFloat(formData.sellingPrice.toString()) || 0,
       };
 
       const imageUrls: string[] = [];
@@ -198,24 +198,33 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
           }
         } else if (preview.startsWith('http')) {
           imageUrls.push(preview);
+        } else if (preview.startsWith('{')) {
+          // Handle JSON string format: {"url":"...","order":1,"caption":"..."}
+          try {
+            const parsed = JSON.parse(preview);
+            if (parsed.url) {
+              imageUrls.push(parsed.url);
+            }
+          } catch (e) {
+            // Silently handle JSON parse errors
+          }
         }
       }
 
-      if (imageUrls.length > 0) {
-        updatedData.image_urls = imageUrls;
-      }
+      // Always set imageUrls (null if empty to indicate deletion)
+      updatedData.imageUrls = imageUrls.length > 0 ? imageUrls : null;
 
       const originalData: any = {
-        product_name: productData.productName,
-        category_id: productData.categoryId,
-        brand_id: productData.brandId,
-        product_type: productData.productType,
+        productName: productData.productName,
+        categoryId: productData.categoryId,
+        brandId: productData.brandId,
+        productType: productData.productType,
         barcode: productData.barcode,
         sku: productData.sku || productData.productCode,
         unit: productData.unit,
-        cost_price: productData.costPrice,
-        unit_price: productData.unitPrice,
-        image_urls: productData.imageUrls || [],
+        costPrice: productData.costPrice,
+        unitPrice: productData.unitPrice,
+        imageUrls: productData.imageUrls || [],
       };
 
       await onSave(updatedData, originalData);

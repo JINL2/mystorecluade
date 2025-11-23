@@ -341,4 +341,53 @@ export class InventoryDataSource {
       code: 'VND',
     };
   }
+
+  /**
+   * Get all inventory for Excel export
+   * Uses same RPC as getInventory but with high limit to fetch all products
+   */
+  async getAllInventoryForExport(
+    companyId: string,
+    storeId: string | null,
+    search?: string
+  ): Promise<InventoryResponse> {
+    const supabase = supabaseService.getClient();
+
+    // If no company ID, return empty result
+    if (!companyId) {
+      return { products: [] };
+    }
+
+    const rpcParams: any = {
+      p_company_id: companyId,
+      p_store_id: storeId,
+      p_page: 1,
+      p_limit: 10000, // High limit to get all products
+    };
+
+    // Add search parameter if search term exists
+    if (search && search.trim() !== '') {
+      rpcParams.p_search = search.trim();
+    }
+
+    const { data, error } = await supabase.rpc('get_inventory_page', rpcParams);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Handle direct success wrapper format
+    if (data && typeof data === 'object' && 'success' in data && data.success === true) {
+      const products = data.data?.products || [];
+
+      return {
+        products: products,
+        currency: data.data?.currency,
+        pagination: data.data?.pagination,
+      };
+    }
+
+    // Fallback
+    throw new Error('Invalid response format from get_inventory_page');
+  }
 }

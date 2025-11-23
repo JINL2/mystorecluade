@@ -190,4 +190,31 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       };
     }
   }
+
+  async getAllInventoryForExport(
+    companyId: string,
+    storeId: string | null,
+    search?: string
+  ): Promise<InventoryResult> {
+    try {
+      const response = await this.dataSource.getAllInventoryForExport(companyId, storeId, search);
+      const data = response.products;
+
+      // Use InventoryItemModel to convert raw data to domain entities
+      const currencySymbol = response.currency?.symbol || '₩';
+      const items = InventoryItemModel.fromJsonArray(data, currencySymbol);
+
+      return {
+        success: true,
+        data: items,
+        currency: response.currency,
+        pagination: response.pagination,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch all inventory for export',
+      };
+    }
+  }
 }

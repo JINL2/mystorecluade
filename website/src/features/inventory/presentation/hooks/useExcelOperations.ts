@@ -18,7 +18,9 @@ interface ExcelOperationsProps {
   selectedStoreId: string | null;
   storeName: string;
   currencyCode: string;
+  searchQuery: string;
   loadInventory: (companyId: string, storeId: string, searchQuery: string) => Promise<void>;
+  getAllInventoryForExport: (companyId: string, storeId: string | null, searchQuery?: string) => Promise<InventoryItem[]>;
   importExcel: (
     companyId: string,
     storeId: string,
@@ -34,7 +36,9 @@ export const useExcelOperations = ({
   selectedStoreId,
   storeName,
   currencyCode,
+  searchQuery,
   loadInventory,
+  getAllInventoryForExport,
   importExcel,
   showNotification,
 }: ExcelOperationsProps) => {
@@ -44,6 +48,7 @@ export const useExcelOperations = ({
 
   /**
    * Handle export Excel
+   * Fetches all products (without pagination) before exporting
    */
   const handleExportExcel = async () => {
     // Prevent multiple simultaneous exports
@@ -54,15 +59,22 @@ export const useExcelOperations = ({
     setIsExporting(true);
 
     try {
-      // Export inventory to Excel using the manager
+      // Fetch all inventory data for export (with current filters applied)
+      const allProducts = await getAllInventoryForExport(
+        companyId,
+        selectedStoreId,
+        searchQuery
+      );
+
+      // Export all inventory to Excel using the manager
       await excelExportManager.exportInventoryToExcel(
-        inventory,
+        allProducts,
         storeName,
         currencyCode
       );
 
       // Show success notification
-      showNotification('success', `Successfully exported ${inventory.length} products to Excel!`);
+      showNotification('success', `Successfully exported ${allProducts.length} products to Excel!`);
     } catch (error) {
       // Don't show error notification if user cancelled
       const errorMessage = error instanceof Error ? error.message : '';

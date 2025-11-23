@@ -232,6 +232,29 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   },
 
   /**
+   * Get all inventory for Excel export
+   * Fetches all products without pagination
+   */
+  getAllInventoryForExport: async (companyId, storeId, searchQuery) => {
+    try {
+      const result = await repository.getAllInventoryForExport(
+        companyId,
+        storeId,
+        searchQuery || undefined
+      );
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Failed to load all inventory for export');
+      }
+
+      return result.data;
+    } catch (err) {
+      console.error('Failed to load all inventory for export:', err);
+      throw err;
+    }
+  },
+
+  /**
    * Validate product edit
    * Validates product changes before update (only changed fields)
    */

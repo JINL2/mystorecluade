@@ -82,6 +82,7 @@ export const useInventory = () => {
   // Asynchronous Actions
   const loadBaseCurrency = useInventoryStore((state) => state.loadBaseCurrency);
   const loadInventory = useInventoryStore((state) => state.loadInventory);
+  const getAllInventoryForExport = useInventoryStore((state) => state.getAllInventoryForExport);
   const validateProductEdit = useInventoryStore((state) => state.validateProductEdit);
   const updateProduct = useInventoryStore((state) => state.updateProduct);
   const importExcel = useInventoryStore((state) => state.importExcel);
@@ -136,6 +137,7 @@ export const useInventory = () => {
     clearError,
     loadBaseCurrency,
     loadInventory,
+    getAllInventoryForExport,
     validateProductEdit,
     updateProduct,
     importExcel,

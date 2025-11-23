@@ -130,4 +130,13 @@ export interface IInventoryRepository {
     symbol: string;
     code: string;
   }>;
+
+  /**
+   * Get all inventory items for Excel export (no pagination)
+   */
+  getAllInventoryForExport(
+    companyId: string,
+    storeId: string | null,
+    search?: string
+  ): Promise<InventoryResult>;
 }
