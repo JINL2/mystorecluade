@@ -1,43 +1,49 @@
-/* ==================== BASE STYLES - UPDATED 2025-01-07 ==================== */
-/* Following Toss Design System standards with responsive padding system */
+/* ==================== BASE STYLES - UPDATED WITH LEFTFILTER ==================== */
+/* Following Inventory page layout with LeftFilter sidebar */
 
-/* ⭐ STEP 1: Page Layout - Responsive Horizontal Padding */
+/* Page Layout with Sidebar */
 .pageLayout {
+  display: flex;
   min-height: 100vh;
-  background: var(--toss-white);
-  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
+  background: var(--color-gray-50);
+  padding: 0 24px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
-/* ⭐ STEP 2: Responsive padding media queries */
-/* Wider screens - increase padding */
+/* Wider screens - add more padding */
 @media (min-width: 1600px) {
   .pageLayout {
-    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+    padding: 0 48px;
   }
 }
 
-/* Extra wide screens - maximum padding with width constraint */
+/* Extra wide screens - maximum padding */
 @media (min-width: 2000px) {
   .pageLayout {
-    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
-    max-width: 1920px; /* ⭐ Cap width at 1920px */
+    padding: 0 96px;
+    max-width: 1920px;
   }
 }
 
-/* Mobile - reduce padding */
-@media (max-width: 768px) {
-  .pageLayout {
-    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
-  }
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
 }
 
-/* ⭐ STEP 3: Inner container (content max-width) */
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Inner container */
 .container {
-  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to match Navbar alignment */
+  padding: 24px 0;
   width: 100%;
+  max-width: 100%;
 }
 
 /* ==================== HEADER SECTION ==================== */
@@ -397,23 +403,18 @@
   opacity: 0.6;
 }
 
-/* ==================== FILTER BAR ==================== */
-.filterBar {
+/* ==================== SEARCH BAR ==================== */
+.searchBar {
   background: var(--toss-white);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-6);
   box-shadow: var(--shadow-xs);
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 .searchBox {
-  flex: 1;
-  min-width: 200px;
   position: relative;
+  width: 100%;
 }
 
 .searchInput {
@@ -439,28 +440,6 @@
   color: var(--toss-gray-500);
   width: 20px;
   height: 20px;
-}
-
-.filterChip {
-  padding: var(--space-2) var(--space-3);
-  background: var(--toss-gray-100);
-  border: 1px solid transparent;
-  border-radius: var(--radius-full);
-  font-size: var(--font-small);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.filterChip:hover {
-  background: var(--toss-gray-200);
-}
-
-.filterChip.active {
-  background: var(--toss-primary-surface);
-  color: var(--toss-primary);
-  border-color: var(--toss-primary);
 }
 
 /* ==================== EMPLOYEE LIST ==================== */

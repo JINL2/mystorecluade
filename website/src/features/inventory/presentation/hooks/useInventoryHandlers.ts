@@ -25,6 +25,7 @@ interface UseInventoryHandlersProps {
     statusInStock: string;
     quantityOut: string;
     quantityLow: string;
+    quantityNegative: string;
   };
 }
 
@@ -127,7 +128,9 @@ export const useInventoryHandlers = ({
   // Get quantity class
   const getQuantityClass = useCallback(
     (quantity: number) => {
-      if (quantity === 0) {
+      if (quantity < 0) {
+        return statusStyles.quantityNegative;
+      } else if (quantity === 0) {
         return statusStyles.quantityOut;
       } else if (quantity <= 5) {
         return statusStyles.quantityLow;

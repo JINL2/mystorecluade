@@ -10,7 +10,7 @@ import { useScheduleStore } from '../providers/schedule_provider';
  * Custom hook that wraps the Zustand schedule store
  * Provides selective access to state and actions
  */
-export const useSchedule = (companyId: string, storeId: string) => {
+export const useSchedule = (companyId: string, initialStoreId?: string) => {
   // Select only needed state (optimized for re-renders)
   const shifts = useScheduleStore((state) => state.shifts);
   const assignments = useScheduleStore((state) => state.assignments);
@@ -42,18 +42,18 @@ export const useSchedule = (companyId: string, storeId: string) => {
   const showNotification = useScheduleStore((state) => state.showNotification);
   const clearNotification = useScheduleStore((state) => state.clearNotification);
 
-  // Load data when companyId, storeId, or currentWeek changes
+  // Load data when companyId, selectedStoreId, or currentWeek changes
   useEffect(() => {
-    if (companyId && storeId) {
-      loadScheduleData(companyId, storeId);
-      loadEmployees(companyId, storeId);
+    if (companyId && selectedStoreId) {
+      loadScheduleData(companyId, selectedStoreId);
+      loadEmployees(companyId, selectedStoreId);
     }
-  }, [companyId, storeId, currentWeek, loadScheduleData, loadEmployees]);
+  }, [companyId, selectedStoreId, currentWeek, loadScheduleData, loadEmployees]);
 
   // Refresh function that reloads with current params
   const refresh = () => {
-    if (companyId && storeId) {
-      loadScheduleData(companyId, storeId);
+    if (companyId && selectedStoreId) {
+      loadScheduleData(companyId, selectedStoreId);
     }
   };
 

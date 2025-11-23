@@ -88,8 +88,13 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
               <tbody>
                 {items.map((item) => {
                   const status = getStatusInfo(item);
-                  const quantityClass = getQuantityClass(item.currentStock);
                   const isExpanded = expandedProductId === item.productId;
+
+                  // Determine quantity class - only negative numbers are red
+                  let quantityClass = '';
+                  if (item.currentStock < 0) {
+                    quantityClass = styles.quantityNegative;
+                  }
 
                   return (
                     <React.Fragment key={item.productId}>

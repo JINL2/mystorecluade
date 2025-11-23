@@ -33,7 +33,7 @@ import type { InventoryPageProps } from './InventoryPage.types';
 import styles from './InventoryPage.module.css';
 
 export const InventoryPage: React.FC<InventoryPageProps> = () => {
-  const { currentCompany, currentUser } = useAppState();
+  const { currentCompany, currentUser, currentStore, setCurrentStore } = useAppState();
   const companyId = currentCompany?.company_id || '';
   const userId = currentUser?.user_id || '';
 
@@ -44,7 +44,6 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     currentPage,
     itemsPerPage,
     totalItems,
-    selectedStoreId,
     selectedProducts,
     filterType,
     selectedBrandFilter,
@@ -55,7 +54,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     loading,
     error,
     notification,
-    setSelectedStoreId,
+    selectedStoreId,
+    setSelectedStoreId: setInventoryStoreId,
     setCurrentPage,
     toggleProductSelection,
     clearSelection,
@@ -77,6 +77,29 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     moveProduct,
     refresh,
   } = useInventory();
+
+  // Get all stores from current company
+  const stores = currentCompany?.stores || [];
+
+  // Sync App State's currentStore to Inventory provider on mount and when currentStore changes
+  useEffect(() => {
+    const appStateStoreId = currentStore?.store_id || null;
+    if (appStateStoreId !== selectedStoreId) {
+      setInventoryStoreId(appStateStoreId);
+    }
+  }, [currentStore, selectedStoreId, setInventoryStoreId]);
+
+  // Handler to select store - sync with App State
+  const handleStoreSelect = (storeId: string | null) => {
+    // Find the store object
+    const selectedStore = stores.find((s) => s.store_id === storeId) || null;
+
+    // Update App State (this will also update localStorage)
+    setCurrentStore(selectedStore);
+
+    // Update Inventory provider state
+    setInventoryStoreId(storeId);
+  };
 
   const { metadata, error: metadataError, refresh: refreshMetadata } = useInventoryMetadata(companyId, selectedStoreId || undefined);
 
@@ -120,11 +143,15 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     return () => clearTimeout(timer);
   }, [localSearchQuery]);
 
+  // Only set default store on initial mount if no store is selected in App State
+  // This handles the edge case where user navigates directly to Inventory page
   useEffect(() => {
-    if (currentCompany?.stores && currentCompany.stores.length > 0 && !selectedStoreId) {
-      setSelectedStoreId(currentCompany.stores[0].store_id);
+    if (currentCompany?.stores && currentCompany.stores.length > 0 && !currentStore && !selectedStoreId) {
+      // Only set default if both App State and Inventory provider have no store selected
+      handleStoreSelect(currentCompany.stores[0].store_id);
     }
-  }, [currentCompany, selectedStoreId, setSelectedStoreId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   useEffect(() => {
     if (companyId) {
@@ -184,6 +211,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       statusInStock: styles.statusInStock,
       quantityOut: styles.quantityOut,
       quantityLow: styles.quantityLow,
+      quantityNegative: styles.quantityNegative,
     },
   });
 
@@ -320,7 +348,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
               <StoreSelector
                 stores={currentCompany?.stores || []}
                 selectedStoreId={selectedStoreId}
-                onStoreSelect={setSelectedStoreId}
+                onStoreSelect={handleStoreSelect}
                 companyId={currentCompany?.company_id}
                 showAllStoresOption={false}
               />

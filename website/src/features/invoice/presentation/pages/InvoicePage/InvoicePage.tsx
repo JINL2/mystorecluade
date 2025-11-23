@@ -24,7 +24,7 @@ import type { InvoicePageProps } from './InvoicePage.types';
 import styles from './InvoicePage.module.css';
 
 export const InvoicePage: React.FC<InvoicePageProps> = () => {
-  const { currentCompany, currentUser } = useAppState();
+  const { currentCompany, currentUser, currentStore, setCurrentStore } = useAppState();
   const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
 
   // Get company ID from app state
@@ -55,7 +55,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     invoiceDetail,
     detailLoading,
     refunding,
-    setSelectedStoreId,
+    setSelectedStoreId: setInvoiceStoreId,
     changeDateRange,
     changePage,
     fetchInvoiceDetail,
@@ -65,6 +65,21 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
 
   // Get refund hook for handling refund operations
   const { refundInvoicesWithJournal } = useRefundInvoice();
+
+  // Sync App State's currentStore to Invoice provider on mount and when currentStore changes
+  useEffect(() => {
+    const appStateStoreId = currentStore?.store_id || null;
+    if (appStateStoreId !== selectedStoreId) {
+      setInvoiceStoreId(appStateStoreId);
+    }
+  }, [currentStore, selectedStoreId, setInvoiceStoreId]);
+
+  // Handle store selection - syncs App State and invoice provider
+  const handleStoreSelect = (storeId: string | null) => {
+    const selectedStore = stores.find((s) => s.store_id === storeId) || null;
+    setCurrentStore(selectedStore); // Updates App State + localStorage
+    setInvoiceStoreId(storeId); // Updates Invoice provider
+  };
 
   // Clear selections when store changes
   useEffect(() => {
@@ -335,7 +350,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
               <StoreSelector
                 stores={stores}
                 selectedStoreId={selectedStoreId}
-                onStoreSelect={setSelectedStoreId}
+                onStoreSelect={handleStoreSelect}
                 companyId={companyId}
                 width="280px"
               />

@@ -42,6 +42,7 @@ export class SalaryModel {
       total_salary: salaryInfo?.total_payment || 0,
       currency_symbol: currencyInfo.currency_symbol,
       currency_code: currencyInfo.currency_code,
+      salary_type: rawData.salary_type,
       payment_date: rawData.payment_date
         ? DateTimeUtils.toLocal(rawData.payment_date)  // Convert UTC → Local
         : null,

@@ -16,6 +16,7 @@ export class SalaryRecord {
     public readonly totalSalary: number,
     public readonly currencySymbol: string,
     public readonly currencyCode: string,
+    public readonly salaryType: 'monthly' | 'hourly',
     public readonly paymentDate: Date | null = null,
     public readonly status: 'pending' | 'paid' | 'processing' = 'pending'
   ) {}
@@ -88,6 +89,7 @@ export class SalaryRecord {
     total_salary: number;
     currency_symbol: string;
     currency_code: string;
+    salary_type: 'monthly' | 'hourly';
     payment_date?: Date | null;
     status?: 'pending' | 'paid' | 'processing';
   }): SalaryRecord {
@@ -103,6 +105,7 @@ export class SalaryRecord {
       data.total_salary || 0,
       data.currency_symbol,
       data.currency_code,
+      data.salary_type,
       data.payment_date || null,
       data.status || 'pending'
     );

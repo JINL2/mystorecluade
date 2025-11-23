@@ -1,21 +1,36 @@
 /**
  * SchedulePage Component Styles
+ * With left sidebar filter panel (LeftFilter + StoreSelector)
  */
 
-/* Page Layout - Following DESIGN_SYSTEM.md Standard */
+/* Page Layout - Flexbox with sidebar */
 .pageLayout {
+  display: flex;
   min-height: 100vh;
   background: var(--color-gray-50);
-  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
+  padding: 0 24px; /* Reduced padding for better space usage */
+  max-width: 100%; /* Remove max-width constraint for full flexibility */
   margin: 0 auto;
 }
 
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px; /* Gap between sidebar and main content */
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+  overflow-x: hidden;
+}
+
+/* Container */
 .container {
-  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
+  padding: 24px 0; /* Remove horizontal padding, only vertical */
   width: 100%;
-  position: relative;
+  max-width: 100%;
 }
 
 /* Page Header */
@@ -521,6 +536,118 @@
   padding: var(--space-4, 16px);
   color: var(--text-tertiary, #9ca3af);
   font-size: 14px;
+}
+
+/* Employee Section */
+.employeeSection {
+  background: var(--toss-white, #ffffff);
+  padding: var(--space-5, 20px);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--toss-border-light, #e5e7eb);
+  margin-top: var(--space-6, 24px);
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  margin: 0 0 var(--space-4, 16px) 0;
+}
+
+.noEmployees {
+  text-align: center;
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 14px;
+  padding: var(--space-4, 16px);
+}
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.employeeCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px);
+  background: var(--toss-surface-secondary, #f8f9fa);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--toss-border-light, #e5e7eb);
+  transition: all 0.2s ease;
+}
+
+.employeeCard:hover {
+  border-color: var(--toss-primary, #3182f6);
+  box-shadow: 0 2px 8px rgba(49, 130, 246, 0.1);
+}
+
+.employeeAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full, 50%);
+  background: var(--toss-primary, #3182f6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.employeeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.employeeName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.employeeRole {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Add Employee Button */
+.addEmployeeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  width: 100%;
+  padding: var(--space-3, 12px);
+  margin-top: var(--space-2, 8px);
+  background: var(--toss-white, #ffffff);
+  border: 2px dashed var(--toss-border-light, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeButton:hover {
+  border-color: var(--toss-primary, #3182f6);
+  color: var(--toss-primary, #3182f6);
+  background: var(--toss-primary-surface, #e7f0ff);
+}
+
+.addIcon {
+  width: 16px;
+  height: 16px;
 }
 
 /* Responsive Design - Following DESIGN_SYSTEM.md Standard */

@@ -1,11 +1,13 @@
 /**
  * SalaryPage Component
- * Employee salary management with expandable card layout (Backup design)
+ * Employee salary management with expandable card layout and LeftFilter integration
  */
 
 import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
+import { LeftFilter } from '@/shared/components/common/LeftFilter';
+import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useSalary } from '../../hooks/useSalary';
@@ -14,12 +16,14 @@ import type { SalaryPageProps } from './SalaryPage.types';
 import styles from './SalaryPage.module.css';
 
 export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
-  const { currentCompany } = useAppState();
+  const { currentCompany, currentStore, setCurrentStore } = useAppState();
   const companyId = currentCompany?.company_id || '';
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'monthly' | 'hourly' | 'problems' | 'overtime'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  // Use app state's currentStore for selected store
+  const selectedStoreId = currentStore?.store_id || null;
 
   const {
     records,
@@ -52,6 +56,18 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     setExpandedCards(newExpanded);
   };
 
+  // Handler to select store - sync with App State
+  const handleStoreSelect = (storeId: string | null) => {
+    // Find the store object
+    const selectedStore = stores.find((s) => s.store_id === storeId) || null;
+
+    // Update App State (this will also update localStorage)
+    setCurrentStore(selectedStore);
+  };
+
+  // Get stores for filter
+  const stores = currentCompany?.stores || [];
+
   // Filter records
   const filteredRecords = records.filter((record) => {
     // Search filter
@@ -59,14 +75,18 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
       return false;
     }
     // Store filter - null means "All Stores"
-    if (selectedStore && record.storeName !== selectedStore) {
+    // Check if the employee's stores include the selected store
+    if (selectedStoreId && currentStore?.store_name) {
+      // storeName is a comma-separated list of store names
+      if (!record.storeName.includes(currentStore.store_name)) {
+        return false;
+      }
+    }
+    // Type filter (monthly/hourly - use salaryType field)
+    if (filterType === 'monthly' && record.salaryType !== 'monthly') {
       return false;
     }
-    // Type filter (monthly/hourly - we'll use role as proxy)
-    if (filterType === 'monthly' && !record.roleName.toLowerCase().includes('monthly')) {
-      return false;
-    }
-    if (filterType === 'hourly' && !record.roleName.toLowerCase().includes('hourly')) {
+    if (filterType === 'hourly' && record.salaryType !== 'hourly') {
       return false;
     }
     if (filterType === 'problems' && record.status !== 'pending') {
@@ -115,14 +135,62 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
 
   // Error handling moved to ErrorMessage component below
 
-  // Get unique stores for filter
-  const stores = currentCompany?.stores || [];
+  // Build LeftFilter sections
+  const filterSections: FilterSection[] = [
+    {
+      id: 'store-selector',
+      title: 'Store',
+      type: 'custom',
+      customContent: (
+        <StoreSelector
+          stores={stores}
+          selectedStoreId={selectedStoreId}
+          onStoreSelect={handleStoreSelect}
+          companyId={companyId}
+          width="100%"
+          showAllStoresOption={true}
+        />
+      ),
+      defaultExpanded: true,
+    },
+    {
+      id: 'search',
+      title: 'Search',
+      type: 'input',
+      defaultExpanded: true,
+      selectedValues: searchQuery,
+      placeholder: 'Search by employee name...',
+      onInputChange: setSearchQuery,
+    },
+    {
+      id: 'employee-type',
+      title: 'Employee Type',
+      type: 'radio',
+      defaultExpanded: true,
+      selectedValues: filterType,
+      options: [
+        { value: 'all', label: 'All Employees' },
+        { value: 'monthly', label: 'Monthly' },
+        { value: 'hourly', label: 'Hourly' },
+        { value: 'problems', label: 'Has Problems' },
+        { value: 'overtime', label: 'Overtime' },
+      ],
+      onSelect: (value) => setFilterType(value as any),
+    },
+  ];
 
   return (
     <>
       <Navbar activeItem="employee" />
       <div className={styles.pageLayout}>
-        <div className={styles.container}>
+        {/* Left Sidebar Filter */}
+        <div className={styles.sidebarWrapper}>
+          <LeftFilter sections={filterSections} width={240} topOffset={64} />
+        </div>
+
+        {/* Main Content */}
+        <div className={styles.mainContent}>
+          <div className={styles.container}>
           {/* Header Section */}
           <div className={styles.salaryHeader}>
             <div className={styles.salaryTitleSection}>
@@ -175,14 +243,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
             </div>
           </div>
 
-          {/* Store Filter */}
-          <StoreSelector
-            stores={stores}
-            selectedStoreId={selectedStore}
-            onStoreSelect={setSelectedStore}
-            companyId={companyId}
-          />
-
           {/* Summary Cards */}
           {summary && (
             <div className={styles.summarySection}>
@@ -221,8 +281,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
             </div>
           )}
 
-          {/* Filter Bar */}
-          <div className={styles.filterBar}>
+          {/* Search Bar */}
+          <div className={styles.searchBar}>
             <div className={styles.searchBox}>
               <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
@@ -235,37 +295,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-
-            <button
-              className={`${styles.filterChip} ${filterType === 'all' ? styles.active : ''}`}
-              onClick={() => setFilterType('all')}
-            >
-              All Employees
-            </button>
-            <button
-              className={`${styles.filterChip} ${filterType === 'monthly' ? styles.active : ''}`}
-              onClick={() => setFilterType('monthly')}
-            >
-              Monthly
-            </button>
-            <button
-              className={`${styles.filterChip} ${filterType === 'hourly' ? styles.active : ''}`}
-              onClick={() => setFilterType('hourly')}
-            >
-              Hourly
-            </button>
-            <button
-              className={`${styles.filterChip} ${filterType === 'problems' ? styles.active : ''}`}
-              onClick={() => setFilterType('problems')}
-            >
-              Has Problems
-            </button>
-            <button
-              className={`${styles.filterChip} ${filterType === 'overtime' ? styles.active : ''}`}
-              onClick={() => setFilterType('overtime')}
-            >
-              Overtime
-            </button>
           </div>
 
           {/* Employee List */}
@@ -307,7 +336,9 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                         <div className={styles.employeeAvatar}>{getInitials(record.fullName)}</div>
                         <div className={styles.employeeInfo}>
                           <div className={styles.employeeName}>{record.fullName}</div>
-                          <span className={`${styles.employeeType} ${styles.monthly}`}>Monthly</span>
+                          <span className={`${styles.employeeType} ${styles[record.salaryType]}`}>
+                            {record.salaryType === 'monthly' ? 'Monthly' : 'Hourly'}
+                          </span>
                         </div>
                       </div>
 
@@ -430,6 +461,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               onConfirm={refresh}
             />
           )}
+          </div>
         </div>
       </div>
     </>

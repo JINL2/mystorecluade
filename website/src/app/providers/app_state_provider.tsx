@@ -131,11 +131,21 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
         // Store company selection
         localStorage.setItem('companyChoosen', selectedCompany.company_id);
 
-        // Set first store as default if available
+        // Set store: prioritize stored selection, fallback to first store
         if (selectedCompany.stores && selectedCompany.stores.length > 0) {
-          const firstStore = selectedCompany.stores[0];
-          setCurrentStore(firstStore);
-          localStorage.setItem('storeChoosen', firstStore.store_id);
+          const storedStoreId = localStorage.getItem('storeChoosen');
+          let selectedStore = selectedCompany.stores[0]; // Default to first store
+
+          // Try to find the stored store in current company's stores
+          if (storedStoreId) {
+            const foundStore = selectedCompany.stores.find((s) => s.store_id === storedStoreId);
+            if (foundStore) {
+              selectedStore = foundStore;
+            }
+          }
+
+          setCurrentStore(selectedStore);
+          localStorage.setItem('storeChoosen', selectedStore.store_id);
         }
       } else {
         setCompanies([]);
@@ -261,6 +271,16 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
     initializeUserData();
   }, []);
 
+  // Wrapper for setCurrentStore to update localStorage
+  const handleSetCurrentStore = (store: Store | null) => {
+    setCurrentStore(store);
+    if (store) {
+      localStorage.setItem('storeChoosen', store.store_id);
+    } else {
+      localStorage.removeItem('storeChoosen');
+    }
+  };
+
   const value: AppState = {
     currentCompany,
     currentStore,
@@ -269,7 +289,7 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
     categoryFeatures,
     permissions: currentCompany?.role?.permissions || [],
     setCurrentCompany,
-    setCurrentStore,
+    setCurrentStore: handleSetCurrentStore,
     setCurrentUser,
     loadUserData,
     loadCategoryFeatures,

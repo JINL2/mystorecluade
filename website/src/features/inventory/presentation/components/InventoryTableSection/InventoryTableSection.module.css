@@ -232,11 +232,16 @@
 }
 
 .quantityOut {
-  color: var(--color-red-600);
+  color: #dc2626 !important;
 }
 
 .quantityLow {
-  color: var(--color-orange-600);
+  color: #ea580c !important;
+}
+
+.quantityNegative {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
 }
 
 /* Price and Cost Styles */

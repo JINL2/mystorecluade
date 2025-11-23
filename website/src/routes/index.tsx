@@ -18,8 +18,7 @@ import { CashEndingPage } from '@/features/cash-ending/presentation/pages/CashEn
 import { CounterpartyPage } from '@/features/counterparty/presentation/pages/CounterpartyPage';
 import { CurrencyPage } from '@/features/currency/presentation/pages/CurrencyPage';
 import { SalaryPage } from '@/features/employee-salary/presentation/pages/SalaryPage';
-import { ScheduleDashboardPage } from '@/features/employee-schedule/presentation/pages/ScheduleDashboardPage';
-import { ScheduleDetailPage } from '@/features/employee-schedule/presentation/pages/ScheduleDetailPage';
+import { SchedulePage } from '@/features/employee-schedule/presentation/pages/SchedulePage';
 import { EmployeeSettingPage } from '@/features/employee-setting/presentation/pages/EmployeeSettingPage';
 import { IncomeStatementPage } from '@/features/income-statement/presentation/pages/IncomeStatementPage';
 import { InventoryPage } from '@/features/inventory/presentation/pages/InventoryPage';
@@ -178,15 +177,7 @@ export const AppRoutes: React.FC = () => {
         path="/employee/schedule"
         element={
           <ProtectedRoute requiredFeatureId="eaf85f06-b708-4c29-b35f-d39d234d1b60">
-            <ScheduleDashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/employee/schedule/:storeId"
-        element={
-          <ProtectedRoute requiredFeatureId="eaf85f06-b708-4c29-b35f-d39d234d1b60">
-            <ScheduleDetailPage />
+            <SchedulePage />
           </ProtectedRoute>
         }
       />
