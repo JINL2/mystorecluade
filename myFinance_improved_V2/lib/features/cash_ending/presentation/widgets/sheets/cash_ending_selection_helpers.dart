@@ -83,6 +83,8 @@ class CashEndingSelectionHelpers {
     required List<Location> locations,
     required String? selectedLocationId,
   }) async {
+    // Don't show bottom sheet if no locations available
+    // User will see the placeholder text in the dropdown button
     if (locations.isEmpty) {
       return;
     }

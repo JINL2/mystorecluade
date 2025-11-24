@@ -40,16 +40,9 @@ class StockFlowRepositoryImpl extends BaseRepository
             [];
         final pagination = response.pagination?.toEntity();
 
-        // Sort actualFlows by createdAt date in descending order (latest first)
-        actualFlows.sort((a, b) {
-          try {
-            final dateA = DateTime.parse(a.createdAt);
-            final dateB = DateTime.parse(b.createdAt);
-            return dateB.compareTo(dateA); // Descending order
-          } catch (e) {
-            return 0;
-          }
-        });
+        // NOTE: Sorting logic removed from Data layer
+        // Sorting is a business concern and should be handled in Domain UseCase
+        // See: GetStockFlowsUseCase for sorting implementation
 
         return StockFlowResult(
           success: response.success,

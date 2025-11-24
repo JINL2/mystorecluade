@@ -11,18 +11,12 @@ import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../domain/entities/stock_flow.dart';
 import '../../providers/bank_tab_provider.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../real_section_widget.dart';
 import '../section_label.dart';
-import '../sheets/cash_ending_selection_helpers.dart';
-import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
-import '../total_display.dart';
 /// Bank Tab - Single amount input (no denominations)
 ///
 /// Structure from legacy:
@@ -43,12 +37,18 @@ class BankTab extends ConsumerStatefulWidget {
 class _BankTabState extends ConsumerState<BankTab> {
   final TextEditingController _bankAmountController = TextEditingController();
   String? _previousLocationId;
+
+  // Track previous resetInputsCounter to detect changes
+  int _previousResetCounter = 0;
   @override
   void initState() {
     super.initState();
-    // Load initial data
+    // Reset bank tab state to clear any previous isSaving/error state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      // Reset to ensure clean state
+      ref.read(bankTabProvider.notifier).reset();
 
       final pageState = ref.read(cashEndingProvider);
       _previousLocationId = pageState.selectedBankLocationId;
@@ -62,6 +62,15 @@ class _BankTabState extends ConsumerState<BankTab> {
   void dispose() {
     _bankAmountController.dispose();
     super.dispose();
+  }
+
+  /// Clear bank amount input field
+  void _clearAllInputs() {
+    debugPrint('🧹 [BankTab] Clearing all input fields');
+    _bankAmountController.clear();
+    setState(() {
+      // Force rebuild to update UI
+    });
   }
   @override
   void didUpdateWidget(BankTab oldWidget) {
@@ -93,38 +102,18 @@ class _BankTabState extends ConsumerState<BankTab> {
     );
   }
 
-  /// Load more flows for pagination
-  void _loadMoreFlows() {
-    final pageState = ref.read(cashEndingProvider);
-
-    if (pageState.selectedBankLocationId == null ||
-        pageState.selectedStoreId == null) {
-      return;
-    }
-
-    ref.read(bankTabProvider.notifier).loadStockFlows(
-      companyId: widget.companyId,
-      storeId: pageState.selectedStoreId!,
-      locationId: pageState.selectedBankLocationId!,
-      loadMore: true,
-    );
-  }
-  void _showFlowDetails(ActualFlow flow) {
-    final pageState = ref.read(cashEndingProvider);
-    final tabState = ref.read(bankTabProvider);
-    FlowDetailBottomSheet.show(
-      context: context,
-      flow: flow,
-      locationSummary: tabState.locationSummary,
-      baseCurrencySymbol: pageState.currencies.isNotEmpty
-          ? pageState.currencies.first.symbol
-          : '\$',
-    );
-  }
   @override
   Widget build(BuildContext context) {
     final pageState = ref.watch(cashEndingProvider);
     final tabState = ref.watch(bankTabProvider);
+
+    // ✅ Clear all inputs when resetInputsCounter changes
+    if (pageState.resetInputsCounter != _previousResetCounter) {
+      _previousResetCounter = pageState.resetInputsCounter;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _clearAllInputs();
+      });
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -164,23 +153,66 @@ class _BankTabState extends ConsumerState<BankTab> {
         // Bank Location Selector (show if store selected)
         if (state.selectedStoreId != null) ...[
           const SizedBox(height: TossSpacing.space4),
-          TossDropdown<String>(
-            label: 'Bank Account',
-            hint: 'Select Bank Account',
-            value: state.selectedBankLocationId,
-            isLoading: false,
-            items: state.bankLocations.map((location) =>
-              TossDropdownItem<String>(
-                value: location.locationId,
-                label: location.locationName,
-              )
-            ).toList(),
-            onChanged: (locationId) {
-              if (locationId != null) {
-                ref.read(cashEndingProvider.notifier).setSelectedBankLocation(locationId);
-              }
-            },
-          ),
+          if (state.bankLocations.isEmpty)
+            // Show disabled state when no bank accounts available
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: TossColors.gray300, width: 1),
+              ),
+              child: Row(
+                children: [
+                  Icon(TossIcons.bank, size: 20, color: TossColors.gray400),
+                  const SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bank Account',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'No bank accounts available',
+                          style: TossTextStyles.bodyMedium.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            TossDropdown<String>(
+              label: 'Bank Account',
+              hint: 'Select Bank Account',
+              value: state.selectedBankLocationId,
+              isLoading: false,
+              items: state.bankLocations.map((location) =>
+                TossDropdownItem<String>(
+                  value: location.locationId,
+                  label: location.locationName,
+                )
+              ).toList(),
+              onChanged: (locationId) {
+                if (locationId != null) {
+                  ref.read(cashEndingProvider.notifier).setSelectedBankLocation(locationId);
+
+                  // Set the currency for the selected bank location
+                  final selectedLocation = state.bankLocations.firstWhere(
+                    (loc) => loc.locationId == locationId,
+                  );
+                  ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(selectedLocation.currencyId);
+                }
+              },
+            ),
         ],
       ],
     );
@@ -290,7 +322,7 @@ class _BankTabState extends ConsumerState<BankTab> {
         final tabState = ref.watch(bankTabProvider);
         final isEnabled = hasCurrency && !tabState.isSaving;
         return TossButton1.primary(
-          text: 'Save Bank Balance',
+          text: 'Submit Ending',
           isLoading: tabState.isSaving,
           isEnabled: isEnabled,
           fullWidth: true,

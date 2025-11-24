@@ -17,12 +17,17 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$Currency {
   String get currencyId => throw _privateConstructorUsedError;
+  String? get companyCurrencyId => throw _privateConstructorUsedError;
   String get currencyCode =>
       throw _privateConstructorUsedError; // e.g., 'KRW', 'USD', 'JPY'
   String get currencyName =>
       throw _privateConstructorUsedError; // e.g., 'Korean Won'
   String get symbol =>
       throw _privateConstructorUsedError; // e.g., '₩', '$', '¥'
+  String? get flagEmoji =>
+      throw _privateConstructorUsedError; // Grand Total calculation fields
+  bool get isBaseCurrency => throw _privateConstructorUsedError;
+  double get exchangeRateToBase => throw _privateConstructorUsedError;
   List<Denomination> get denominations => throw _privateConstructorUsedError;
 
   /// Create a copy of Currency
@@ -39,9 +44,13 @@ abstract class $CurrencyCopyWith<$Res> {
   @useResult
   $Res call(
       {String currencyId,
+      String? companyCurrencyId,
       String currencyCode,
       String currencyName,
       String symbol,
+      String? flagEmoji,
+      bool isBaseCurrency,
+      double exchangeRateToBase,
       List<Denomination> denominations});
 }
 
@@ -61,9 +70,13 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
   @override
   $Res call({
     Object? currencyId = null,
+    Object? companyCurrencyId = freezed,
     Object? currencyCode = null,
     Object? currencyName = null,
     Object? symbol = null,
+    Object? flagEmoji = freezed,
+    Object? isBaseCurrency = null,
+    Object? exchangeRateToBase = null,
     Object? denominations = null,
   }) {
     return _then(_value.copyWith(
@@ -71,6 +84,10 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       currencyCode: null == currencyCode
           ? _value.currencyCode
           : currencyCode // ignore: cast_nullable_to_non_nullable
@@ -83,6 +100,18 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
               as String,
+      flagEmoji: freezed == flagEmoji
+          ? _value.flagEmoji
+          : flagEmoji // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
+      exchangeRateToBase: null == exchangeRateToBase
+          ? _value.exchangeRateToBase
+          : exchangeRateToBase // ignore: cast_nullable_to_non_nullable
+              as double,
       denominations: null == denominations
           ? _value.denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -101,9 +130,13 @@ abstract class _$$CurrencyImplCopyWith<$Res>
   @useResult
   $Res call(
       {String currencyId,
+      String? companyCurrencyId,
       String currencyCode,
       String currencyName,
       String symbol,
+      String? flagEmoji,
+      bool isBaseCurrency,
+      double exchangeRateToBase,
       List<Denomination> denominations});
 }
 
@@ -121,9 +154,13 @@ class __$$CurrencyImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? currencyId = null,
+    Object? companyCurrencyId = freezed,
     Object? currencyCode = null,
     Object? currencyName = null,
     Object? symbol = null,
+    Object? flagEmoji = freezed,
+    Object? isBaseCurrency = null,
+    Object? exchangeRateToBase = null,
     Object? denominations = null,
   }) {
     return _then(_$CurrencyImpl(
@@ -131,6 +168,10 @@ class __$$CurrencyImplCopyWithImpl<$Res>
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       currencyCode: null == currencyCode
           ? _value.currencyCode
           : currencyCode // ignore: cast_nullable_to_non_nullable
@@ -143,6 +184,18 @@ class __$$CurrencyImplCopyWithImpl<$Res>
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
               as String,
+      flagEmoji: freezed == flagEmoji
+          ? _value.flagEmoji
+          : flagEmoji // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
+      exchangeRateToBase: null == exchangeRateToBase
+          ? _value.exchangeRateToBase
+          : exchangeRateToBase // ignore: cast_nullable_to_non_nullable
+              as double,
       denominations: null == denominations
           ? _value._denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -156,15 +209,21 @@ class __$$CurrencyImplCopyWithImpl<$Res>
 class _$CurrencyImpl extends _Currency {
   const _$CurrencyImpl(
       {required this.currencyId,
+      this.companyCurrencyId,
       required this.currencyCode,
       required this.currencyName,
       required this.symbol,
+      this.flagEmoji,
+      this.isBaseCurrency = false,
+      this.exchangeRateToBase = 1.0,
       final List<Denomination> denominations = const []})
       : _denominations = denominations,
         super._();
 
   @override
   final String currencyId;
+  @override
+  final String? companyCurrencyId;
   @override
   final String currencyCode;
 // e.g., 'KRW', 'USD', 'JPY'
@@ -174,8 +233,16 @@ class _$CurrencyImpl extends _Currency {
   @override
   final String symbol;
 // e.g., '₩', '$', '¥'
+  @override
+  final String? flagEmoji;
+// Grand Total calculation fields
+  @override
+  @JsonKey()
+  final bool isBaseCurrency;
+  @override
+  @JsonKey()
+  final double exchangeRateToBase;
   final List<Denomination> _denominations;
-// e.g., '₩', '$', '¥'
   @override
   @JsonKey()
   List<Denomination> get denominations {
@@ -186,7 +253,7 @@ class _$CurrencyImpl extends _Currency {
 
   @override
   String toString() {
-    return 'Currency(currencyId: $currencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, denominations: $denominations)';
+    return 'Currency(currencyId: $currencyId, companyCurrencyId: $companyCurrencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji, isBaseCurrency: $isBaseCurrency, exchangeRateToBase: $exchangeRateToBase, denominations: $denominations)';
   }
 
   @override
@@ -196,11 +263,19 @@ class _$CurrencyImpl extends _Currency {
             other is _$CurrencyImpl &&
             (identical(other.currencyId, currencyId) ||
                 other.currencyId == currencyId) &&
+            (identical(other.companyCurrencyId, companyCurrencyId) ||
+                other.companyCurrencyId == companyCurrencyId) &&
             (identical(other.currencyCode, currencyCode) ||
                 other.currencyCode == currencyCode) &&
             (identical(other.currencyName, currencyName) ||
                 other.currencyName == currencyName) &&
             (identical(other.symbol, symbol) || other.symbol == symbol) &&
+            (identical(other.flagEmoji, flagEmoji) ||
+                other.flagEmoji == flagEmoji) &&
+            (identical(other.isBaseCurrency, isBaseCurrency) ||
+                other.isBaseCurrency == isBaseCurrency) &&
+            (identical(other.exchangeRateToBase, exchangeRateToBase) ||
+                other.exchangeRateToBase == exchangeRateToBase) &&
             const DeepCollectionEquality()
                 .equals(other._denominations, _denominations));
   }
@@ -209,9 +284,13 @@ class _$CurrencyImpl extends _Currency {
   int get hashCode => Object.hash(
       runtimeType,
       currencyId,
+      companyCurrencyId,
       currencyCode,
       currencyName,
       symbol,
+      flagEmoji,
+      isBaseCurrency,
+      exchangeRateToBase,
       const DeepCollectionEquality().hash(_denominations));
 
   /// Create a copy of Currency
@@ -226,20 +305,32 @@ class _$CurrencyImpl extends _Currency {
 abstract class _Currency extends Currency {
   const factory _Currency(
       {required final String currencyId,
+      final String? companyCurrencyId,
       required final String currencyCode,
       required final String currencyName,
       required final String symbol,
+      final String? flagEmoji,
+      final bool isBaseCurrency,
+      final double exchangeRateToBase,
       final List<Denomination> denominations}) = _$CurrencyImpl;
   const _Currency._() : super._();
 
   @override
   String get currencyId;
   @override
+  String? get companyCurrencyId;
+  @override
   String get currencyCode; // e.g., 'KRW', 'USD', 'JPY'
   @override
   String get currencyName; // e.g., 'Korean Won'
   @override
   String get symbol; // e.g., '₩', '$', '¥'
+  @override
+  String? get flagEmoji; // Grand Total calculation fields
+  @override
+  bool get isBaseCurrency;
+  @override
+  double get exchangeRateToBase;
   @override
   List<Denomination> get denominations;
 

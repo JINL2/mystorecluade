@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
@@ -23,7 +24,6 @@ import '../denomination_input.dart';
 import '../grand_total_section.dart';
 import '../real_section_widget.dart';
 import '../section_label.dart';
-import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
 import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
@@ -61,16 +61,28 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   String? _previousLocationId;
 
+  // Track previous resetInputsCounter to detect changes
+  int _previousResetCounter = 0;
+
   // Track which currency is currently expanded (accordion behavior)
   String? _expandedCurrencyId;
+
+  // Track which currencies have been initialized (avoid re-initialization in build)
+  final Set<String> _initializedCurrencies = {};
+
+  // Track which currency's toolbar has been initialized
+  String? _toolbarInitializedForCurrency;
 
   @override
   void initState() {
     super.initState();
 
-    // Load initial data after build
+    // Reset cash tab state to clear any previous isSaving/error state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      // Reset to ensure clean state
+      ref.read(cashTabProvider.notifier).reset();
 
       final pageState = ref.read(cashEndingProvider);
       _previousLocationId = pageState.selectedCashLocationId;
@@ -109,6 +121,19 @@ class _CashTabState extends ConsumerState<CashTab> {
     super.dispose();
   }
 
+  /// Clear all denomination input fields
+  void _clearAllInputs() {
+    debugPrint('🧹 [CashTab] Clearing all input fields');
+    for (final currencyControllers in _controllers.values) {
+      for (final controller in currencyControllers.values) {
+        controller.clear();
+      }
+    }
+    setState(() {
+      // Force rebuild to update UI
+    });
+  }
+
   @override
   void didUpdateWidget(CashTab oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -124,7 +149,7 @@ class _CashTabState extends ConsumerState<CashTab> {
         _loadStockFlowsFromProvider(pageState.selectedCashLocationId!);
 
         // Auto-expand first currency when location is selected
-        final selectedIds = pageState.selectedCashCurrencyIds.isEmpty
+        final selectedIds = pageState.selectedCashCurrencyIds.isEmpty && pageState.currencies.isNotEmpty
             ? [pageState.currencies.first.currencyId]
             : pageState.selectedCashCurrencyIds;
         if (selectedIds.isNotEmpty) {
@@ -152,12 +177,36 @@ class _CashTabState extends ConsumerState<CashTab> {
     return _focusNodes[currencyId]![denominationId]!;
   }
 
+  /// Initialize controllers and focus nodes for a currency
+  /// Called once per currency to avoid repeated initialization in build()
+  void _ensureCurrencyInitialized(Currency currency) {
+    if (_initializedCurrencies.contains(currency.currencyId)) {
+      return; // Already initialized
+    }
+
+    _controllers.putIfAbsent(currency.currencyId, () => {});
+    _focusNodes.putIfAbsent(currency.currencyId, () => {});
+
+    for (final denom in currency.denominations) {
+      _controllers[currency.currencyId]!.putIfAbsent(
+        denom.denominationId,
+        () => TextEditingController(),
+      );
+      _focusNodes[currency.currencyId]!.putIfAbsent(
+        denom.denominationId,
+        () => FocusNode(),
+      );
+    }
+
+    _initializedCurrencies.add(currency.currencyId);
+  }
+
   void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
-    // Dispose existing controller if any
+    // Safely dispose existing controller (we don't own the focus nodes)
     if (_toolbarController != null) {
-      // Clear focus nodes before disposing to prevent double-dispose
       _toolbarController!.focusNodes.clear();
       _toolbarController!.dispose();
+      _toolbarController = null;
     }
 
     // Create new controller with denomination count
@@ -168,29 +217,17 @@ class _CashTabState extends ConsumerState<CashTab> {
     // Map our focus nodes to toolbar controller
     for (int i = 0; i < denominations.length; i++) {
       final denom = denominations[i];
-      final focusNode = _getFocusNode(currencyId, denom.denominationId);
+      final ourFocusNode = _getFocusNode(currencyId, denom.denominationId);
+      final defaultFocusNode = _toolbarController!.focusNodes[i];
 
-      // Dispose the default focus node created by KeyboardToolbarController
-      _toolbarController!.focusNodes[i].dispose();
+      // Only dispose if it's NOT our focus node (avoid double-dispose)
+      if (defaultFocusNode != ourFocusNode) {
+        defaultFocusNode.dispose();
+      }
 
       // Replace with our focus node (we own this, toolbar just references it)
-      _toolbarController!.focusNodes[i] = focusNode;
+      _toolbarController!.focusNodes[i] = ourFocusNode;
     }
-  }
-
-  double _calculateTotal(String currencyId, List<Denomination> denominations) {
-    double total = 0.0;
-    final currencyControllers = _controllers[currencyId] ?? {};
-
-    for (final denom in denominations) {
-      final controller = currencyControllers[denom.denominationId];
-      if (controller != null) {
-        final quantity = int.tryParse(controller.text.trim()) ?? 0;
-        total += denom.value * quantity;
-      }
-    }
-
-    return total;
   }
 
   /// Load stock flows via provider
@@ -244,6 +281,14 @@ class _CashTabState extends ConsumerState<CashTab> {
     final pageState = ref.watch(cashEndingProvider);
     final tabState = ref.watch(cashTabProvider);
 
+    // ✅ Clear all inputs when resetInputsCounter changes
+    if (pageState.resetInputsCounter != _previousResetCounter) {
+      _previousResetCounter = pageState.resetInputsCounter;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _clearAllInputs();
+      });
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
@@ -289,23 +334,60 @@ class _CashTabState extends ConsumerState<CashTab> {
         ),
 
         const SizedBox(height: TossSpacing.space4),
-        TossDropdown<String>(
-          label: 'Cash Location',
-          hint: 'Select Cash Location',
-          value: state.selectedCashLocationId,
-          isLoading: false,
-          items: state.cashLocations.map((location) =>
-            TossDropdownItem<String>(
-              value: location.locationId,
-              label: location.locationName,
-            )
-          ).toList(),
-          onChanged: (locationId) {
-            if (locationId != null) {
-              ref.read(cashEndingProvider.notifier).setSelectedCashLocation(locationId);
-            }
-          },
-        ),
+        if (state.cashLocations.isEmpty)
+          // Show disabled state when no cash locations available
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: TossColors.gray300, width: 1),
+            ),
+            child: Row(
+              children: [
+                Icon(TossIcons.wallet, size: 20, color: TossColors.gray400),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cash Location',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'No cash locations available',
+                        style: TossTextStyles.bodyMedium.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          TossDropdown<String>(
+            label: 'Cash Location',
+            hint: 'Select Cash Location',
+            value: state.selectedCashLocationId,
+            isLoading: false,
+            items: state.cashLocations.map((location) =>
+              TossDropdownItem<String>(
+                value: location.locationId,
+                label: location.locationName,
+              )
+            ).toList(),
+            onChanged: (locationId) {
+              if (locationId != null) {
+                ref.read(cashEndingProvider.notifier).setSelectedCashLocation(locationId);
+              }
+            },
+          ),
       ],
     );
   }
@@ -339,10 +421,10 @@ class _CashTabState extends ConsumerState<CashTab> {
       );
     }
 
-    // Calculate grand total across all currencies (in base currency)
+    // ✅ Calculate grand total using Domain Entity method
     double grandTotal = 0.0;
     for (final currency in state.currencies) {
-      grandTotal += _calculateTotal(currency.currencyId, currency.denominations);
+      grandTotal += currency.totalAmount;
     }
 
     return Stack(
@@ -353,7 +435,7 @@ class _CashTabState extends ConsumerState<CashTab> {
             // Currency Pills
             CurrencyPillSelector(
               availableCurrencies: state.currencies,
-              selectedCurrencyIds: state.selectedCashCurrencyIds.isEmpty
+              selectedCurrencyIds: state.selectedCashCurrencyIds.isEmpty && state.currencies.isNotEmpty
                 ? [state.currencies.first.currencyId]
                 : state.selectedCashCurrencyIds,
               onAddCurrency: () {
@@ -383,38 +465,16 @@ class _CashTabState extends ConsumerState<CashTab> {
 
             // Currency accordion sections - show all selected currencies
             ...state.currencies.where((currency) {
-              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty && state.currencies.isNotEmpty
                 ? [state.currencies.first.currencyId]
                 : state.selectedCashCurrencyIds;
               return selectedIds.contains(currency.currencyId);
             }).map((currency) {
-              // Initialize controllers and focus nodes for this currency
-              _controllers.putIfAbsent(currency.currencyId, () => {});
-              _focusNodes.putIfAbsent(currency.currencyId, () => {});
-
-              for (final denom in currency.denominations) {
-                _controllers[currency.currencyId]!.putIfAbsent(
-                  denom.denominationId,
-                  () => TextEditingController(),
-                );
-                _focusNodes[currency.currencyId]!.putIfAbsent(
-                  denom.denominationId,
-                  () => FocusNode(),
-                );
-              }
-
-              // Initialize toolbar controller for this currency
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-
-                if (_toolbarController == null ||
-                    _toolbarController!.focusNodes.length != currency.denominations.length) {
-                  _initializeToolbarController(currency.denominations, currency.currencyId);
-                }
-              });
+              // Initialize controllers and focus nodes ONCE per currency
+              _ensureCurrencyInitialized(currency);
 
               // Get selected currency IDs
-              final selectedIds = state.selectedCashCurrencyIds.isEmpty
+              final selectedIds = state.selectedCashCurrencyIds.isEmpty && state.currencies.isNotEmpty
                 ? [state.currencies.first.currencyId]
                 : state.selectedCashCurrencyIds;
 
@@ -424,10 +484,16 @@ class _CashTabState extends ConsumerState<CashTab> {
                   currency: currency,
                   controllers: _controllers[currency.currencyId]!,
                   focusNodes: _focusNodes[currency.currencyId]!,
-                  totalAmount: _calculateTotal(currency.currencyId, currency.denominations),
+                  totalAmount: _calculateCurrencySubtotal(
+                    currency.currencyId,
+                    currency.denominations,
+                  ),
                   onChanged: () => setState(() {}),
                   isExpanded: _expandedCurrencyId == currency.currencyId,
+                  baseCurrencySymbol: state.baseCurrencySymbol,
                   onToggle: () {
+                    final willBeExpanded = _expandedCurrencyId != currency.currencyId;
+
                     setState(() {
                       // Toggle: if this currency is expanded, collapse it; otherwise expand it
                       if (_expandedCurrencyId == currency.currencyId) {
@@ -436,6 +502,15 @@ class _CashTabState extends ConsumerState<CashTab> {
                         _expandedCurrencyId = currency.currencyId;
                       }
                     });
+
+                    // Initialize toolbar only when expanding AND not already initialized for this currency
+                    if (willBeExpanded && _toolbarInitializedForCurrency != currency.currencyId) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        _initializeToolbarController(currency.denominations, currency.currencyId);
+                        _toolbarInitializedForCurrency = currency.currencyId;
+                      });
+                    }
                   },
                 ),
               );
@@ -443,11 +518,23 @@ class _CashTabState extends ConsumerState<CashTab> {
 
             const SizedBox(height: TossSpacing.space5),
 
-            // Grand Total
-            GrandTotalSection(
-              totalAmount: grandTotal,
-              currencySymbol: state.currencies.first.symbol,
-              label: 'Grand total ${state.currencies.first.currencyCode}',
+            // Grand Total (converted to base currency)
+            // Use ListenableBuilder to update when any controller changes
+            ListenableBuilder(
+              listenable: Listenable.merge(
+                _controllers.values
+                    .expand((map) => map.values)
+                    .toList(),
+              ),
+              builder: (context, _) {
+                final grandTotal = _calculateGrandTotal(state);
+                return GrandTotalSection(
+                  totalAmount: grandTotal,
+                  currencySymbol: state.baseCurrencySymbol,
+                  label: 'Grand total ${state.baseCurrency?.currencyCode ?? ""}',
+                  isBaseCurrency: true,
+                );
+              },
             ),
 
             const SizedBox(height: TossSpacing.space2),
@@ -468,9 +555,35 @@ class _CashTabState extends ConsumerState<CashTab> {
   }
 
   Widget _buildSubmitButton(CashEndingState state, CashTabState tabState) {
-    final selectedCurrencyId = state.selectedCashCurrencyIds.isNotEmpty
-      ? state.selectedCashCurrencyIds.first
-      : state.currencies.first.currencyId;
+    // Get selected currency ID safely
+    String? selectedCurrencyId;
+    if (state.selectedCashCurrencyIds.isNotEmpty) {
+      selectedCurrencyId = state.selectedCashCurrencyIds.first;
+    } else if (state.currencies.isNotEmpty) {
+      selectedCurrencyId = state.currencies.first.currencyId;
+    }
+
+    // If no currency available, disable submit button
+    if (selectedCurrencyId == null) {
+      return TossButton1.primary(
+        text: 'Submit Ending',
+        isLoading: false,
+        isEnabled: false,
+        fullWidth: true,
+        onPressed: null,
+        textStyle: TossTextStyles.titleLarge.copyWith(
+          color: TossColors.white,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space4,
+        ),
+        borderRadius: 12,
+      );
+    }
+
+    // At this point selectedCurrencyId is guaranteed to be non-null
+    final currencyId = selectedCurrencyId; // Make it non-nullable for the closure
 
     return TossButton1.primary(
       text: 'Submit Ending',
@@ -479,11 +592,8 @@ class _CashTabState extends ConsumerState<CashTab> {
       fullWidth: true,
       onPressed: !tabState.isSaving
           ? () async {
-              try {
-                await widget.onSave(context, state, selectedCurrencyId);
-              } catch (e) {
-                // Error handled by parent
-              }
+              // Let onSave handle errors and display to user
+              await widget.onSave(context, state, currencyId);
             }
           : null,
       textStyle: TossTextStyles.titleLarge.copyWith(
@@ -521,5 +631,49 @@ class _CashTabState extends ConsumerState<CashTab> {
         }
       }
     });
+  }
+
+  /// Calculate Grand Total in base currency from controller values
+  /// This reads the actual user input instead of relying on Currency entity
+  double _calculateGrandTotal(CashEndingState state) {
+    double grandTotal = 0.0;
+
+    for (final currency in state.currencies) {
+      final currencyControllers = _controllers[currency.currencyId];
+      if (currencyControllers == null) continue;
+
+      // Calculate subtotal for this currency
+      double currencySubtotal = 0.0;
+      for (final denomination in currency.denominations) {
+        final controller = currencyControllers[denomination.denominationId];
+        if (controller == null) continue;
+
+        final quantity = int.tryParse(controller.text.trim()) ?? 0;
+        currencySubtotal += denomination.value * quantity;
+      }
+
+      // Convert to base currency using exchange rate
+      final amountInBaseCurrency = currencySubtotal * currency.exchangeRateToBase;
+      grandTotal += amountInBaseCurrency;
+    }
+
+    return grandTotal;
+  }
+
+  /// Calculate subtotal for a specific currency from controller values
+  double _calculateCurrencySubtotal(String currencyId, List<Denomination> denominations) {
+    final currencyControllers = _controllers[currencyId];
+    if (currencyControllers == null) return 0.0;
+
+    double subtotal = 0.0;
+    for (final denomination in denominations) {
+      final controller = currencyControllers[denomination.denominationId];
+      if (controller == null) continue;
+
+      final quantity = int.tryParse(controller.text.trim()) ?? 0;
+      subtotal += denomination.value * quantity;
+    }
+
+    return subtotal;
   }
 }

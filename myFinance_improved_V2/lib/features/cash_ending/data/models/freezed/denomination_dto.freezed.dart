@@ -23,7 +23,8 @@ mixin _$DenominationDto {
   @JsonKey(name: 'denomination_id')
   String get denominationId => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_id')
-  String get currencyId => throw _privateConstructorUsedError;
+  String? get currencyId =>
+      throw _privateConstructorUsedError; // Optional: not in RPC JSONB
   @JsonKey(name: 'value')
   double get value => throw _privateConstructorUsedError;
   @JsonKey(name: 'quantity')
@@ -49,7 +50,7 @@ abstract class $DenominationDtoCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'denomination_id') String denominationId,
-      @JsonKey(name: 'currency_id') String currencyId,
+      @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'value') double value,
       @JsonKey(name: 'quantity') int quantity,
       @JsonKey(name: 'type') String? type});
@@ -71,7 +72,7 @@ class _$DenominationDtoCopyWithImpl<$Res, $Val extends DenominationDto>
   @override
   $Res call({
     Object? denominationId = null,
-    Object? currencyId = null,
+    Object? currencyId = freezed,
     Object? value = null,
     Object? quantity = null,
     Object? type = freezed,
@@ -81,10 +82,10 @@ class _$DenominationDtoCopyWithImpl<$Res, $Val extends DenominationDto>
           ? _value.denominationId
           : denominationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
+      currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
@@ -111,7 +112,7 @@ abstract class _$$DenominationDtoImplCopyWith<$Res>
   @useResult
   $Res call(
       {@JsonKey(name: 'denomination_id') String denominationId,
-      @JsonKey(name: 'currency_id') String currencyId,
+      @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'value') double value,
       @JsonKey(name: 'quantity') int quantity,
       @JsonKey(name: 'type') String? type});
@@ -131,7 +132,7 @@ class __$$DenominationDtoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? denominationId = null,
-    Object? currencyId = null,
+    Object? currencyId = freezed,
     Object? value = null,
     Object? quantity = null,
     Object? type = freezed,
@@ -141,10 +142,10 @@ class __$$DenominationDtoImplCopyWithImpl<$Res>
           ? _value.denominationId
           : denominationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
+      currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       value: null == value
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
@@ -166,7 +167,7 @@ class __$$DenominationDtoImplCopyWithImpl<$Res>
 class _$DenominationDtoImpl extends _DenominationDto {
   const _$DenominationDtoImpl(
       {@JsonKey(name: 'denomination_id') required this.denominationId,
-      @JsonKey(name: 'currency_id') required this.currencyId,
+      @JsonKey(name: 'currency_id') this.currencyId,
       @JsonKey(name: 'value') required this.value,
       @JsonKey(name: 'quantity') this.quantity = 0,
       @JsonKey(name: 'type') this.type})
@@ -180,7 +181,8 @@ class _$DenominationDtoImpl extends _DenominationDto {
   final String denominationId;
   @override
   @JsonKey(name: 'currency_id')
-  final String currencyId;
+  final String? currencyId;
+// Optional: not in RPC JSONB
   @override
   @JsonKey(name: 'value')
   final double value;
@@ -236,7 +238,7 @@ class _$DenominationDtoImpl extends _DenominationDto {
 abstract class _DenominationDto extends DenominationDto {
   const factory _DenominationDto(
       {@JsonKey(name: 'denomination_id') required final String denominationId,
-      @JsonKey(name: 'currency_id') required final String currencyId,
+      @JsonKey(name: 'currency_id') final String? currencyId,
       @JsonKey(name: 'value') required final double value,
       @JsonKey(name: 'quantity') final int quantity,
       @JsonKey(name: 'type') final String? type}) = _$DenominationDtoImpl;
@@ -250,7 +252,7 @@ abstract class _DenominationDto extends DenominationDto {
   String get denominationId;
   @override
   @JsonKey(name: 'currency_id')
-  String get currencyId;
+  String? get currencyId; // Optional: not in RPC JSONB
   @override
   @JsonKey(name: 'value')
   double get value;

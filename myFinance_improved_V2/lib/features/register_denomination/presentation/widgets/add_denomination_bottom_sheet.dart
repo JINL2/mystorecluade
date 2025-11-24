@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -247,7 +249,10 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: TossLoadingView(),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                              ),
                             )
                           : Text(
                               'Add Denomination',
@@ -280,7 +285,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
       );
       return;
     }
-    
+
     // Create formatted value for display
     String displayValue;
     if (widget.currency.code == 'KRW') {
@@ -290,45 +295,53 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
     } else {
       displayValue = '${widget.currency.symbol}${amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2)}';
     }
-    
-    // Close bottom sheet immediately for better UX
-    if (mounted) {
-      context.pop();
 
-      // Show immediate success message (optimistic)
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
-        builder: (context) => TossDialog.success(
-          title: 'Success',
-          message: '$displayValue ${selectedType.name} added successfully!',
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'No company selected',
           primaryButtonText: 'OK',
         ),
       );
+      return;
     }
-    
+
+    final denominationInput = DenominationInput(
+      companyId: companyId,
+      currencyId: widget.currency.id,
+      value: amount,
+      type: selectedType,
+    );
+
     try {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
-      
-      if (companyId.isEmpty) {
-        throw Exception('No company selected');
-      }
-      
-      final denominationInput = DenominationInput(
-        companyId: companyId,
-        currencyId: widget.currency.id,
-        value: amount,
-        type: selectedType,
-      );
-      
-      // Add denomination (this already has optimistic updates)
       await ref.read(denominationOperationsProvider.notifier)
           .addDenomination(denominationInput);
-      
-      // Refresh the company currencies to update the count
+
+      // Refresh providers to update UI
       ref.invalidate(companyCurrenciesProvider);
-      
+      ref.invalidate(companyCurrenciesStreamProvider);
+      ref.invalidate(searchFilteredCurrenciesProvider);
+      ref.invalidate(denominationListProvider(widget.currency.id));
+      ref.invalidate(effectiveDenominationListProvider(widget.currency.id));
+
+      if (mounted) {
+        context.pop();
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: '$displayValue ${selectedType.name} added successfully!',
+            primaryButtonText: 'OK',
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         await showDialog<bool>(
@@ -336,7 +349,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
           barrierDismissible: true,
           builder: (context) => TossDialog.error(
             title: 'Error',
-            message: 'Failed to add denomination: $e. Change reverted.',
+            message: 'Failed to add denomination: $e',
             primaryButtonText: 'OK',
           ),
         );

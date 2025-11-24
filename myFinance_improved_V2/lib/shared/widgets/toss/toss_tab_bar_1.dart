@@ -143,16 +143,11 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final selectedColor = widget.selectedColor ?? TossColors.primary;
-    final unselectedColor = widget.unselectedColor ?? TossColors.gray500;
-    
-    final selectedStyle = widget.selectedLabelStyle ?? 
-      TossTextStyles.bodyLarge.copyWith(
-        fontWeight: FontWeight.w600,
-      );
-      
-    final unselectedStyle = widget.unselectedLabelStyle ?? 
+    final textColor = widget.unselectedColor ?? TossColors.gray500;
+
+    final textStyle = widget.unselectedLabelStyle ??
       TossTextStyles.bodyLarge;
-    
+
     return Container(
       padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Theme(
@@ -172,10 +167,10 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
             insets: EdgeInsets.zero,
           ),
           indicatorColor: selectedColor,
-          labelColor: selectedColor,
-          unselectedLabelColor: unselectedColor,
-          labelStyle: selectedStyle,
-          unselectedLabelStyle: unselectedStyle,
+          labelColor: textColor,
+          unselectedLabelColor: textColor,
+          labelStyle: textStyle,
+          unselectedLabelStyle: textStyle,
           dividerColor: TossColors.transparent,
           overlayColor: WidgetStateProperty.all(TossColors.transparent),
           tabs: widget.tabs.map((tab) => Tab(text: tab)).toList(),

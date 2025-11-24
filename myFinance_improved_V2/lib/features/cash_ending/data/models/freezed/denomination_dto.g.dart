@@ -10,7 +10,7 @@ _$DenominationDtoImpl _$$DenominationDtoImplFromJson(
         Map<String, dynamic> json) =>
     _$DenominationDtoImpl(
       denominationId: json['denomination_id'] as String,
-      currencyId: json['currency_id'] as String,
+      currencyId: json['currency_id'] as String?,
       value: (json['value'] as num).toDouble(),
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       type: json['type'] as String?,

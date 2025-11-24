@@ -9,7 +9,12 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../domain/entities/currency.dart';
+import '../../domain/entities/balance_summary.dart';
+import '../../domain/usecases/create_error_adjustment_usecase.dart';
+import '../../domain/usecases/create_foreign_currency_translation_usecase.dart';
+import '../../di/injection.dart';
 import '../providers/cash_ending_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Cash Ending Completion Page
 ///
@@ -22,6 +27,13 @@ class CashEndingCompletionPage extends ConsumerStatefulWidget {
   final String locationName;
   final Map<String, Map<String, int>>? denominationQuantities; // For cash/vault
   final String? transactionType; // For vault: 'debit' or 'credit'
+  final BalanceSummary? balanceSummary; // Balance summary from RPC
+
+  // Auto-balance required parameters
+  final String companyId;
+  final String userId;
+  final String cashLocationId;
+  final String? storeId;
 
   const CashEndingCompletionPage({
     super.key,
@@ -32,6 +44,11 @@ class CashEndingCompletionPage extends ConsumerStatefulWidget {
     required this.locationName,
     this.denominationQuantities,
     this.transactionType,
+    this.balanceSummary,
+    required this.companyId,
+    required this.userId,
+    required this.cashLocationId,
+    this.storeId,
   });
 
   @override
@@ -40,6 +57,18 @@ class CashEndingCompletionPage extends ConsumerStatefulWidget {
 
 class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionPage> {
   String? _expandedCurrencyId;
+  BalanceSummary? _currentBalanceSummary; // Local state for updated balance summary
+  BalanceSummary? _previousBalanceSummary; // Store original balance before auto-balance
+  bool _isRefreshing = false; // Loading state for refresh
+  String? _appliedAdjustmentType; // Track which adjustment was applied
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with widget's balance summary
+    _currentBalanceSummary = widget.balanceSummary;
+    _previousBalanceSummary = widget.balanceSummary; // Keep original for comparison
+  }
 
   void _toggleExpansion(String currencyId) {
     setState(() {
@@ -48,12 +77,242 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
   }
 
   void _handleClose() {
-    // Only reset error messages, keep store and location selections
-    // so user can quickly do another cash ending for the same location
+    // Reset error messages and clear location selections
     ref.read(cashEndingProvider.notifier).resetAfterSubmit();
+
+    // ✅ Clear all input fields in all tabs (Cash, Bank, Vault)
+    ref.read(cashEndingProvider.notifier).resetAllInputs();
 
     // Close the page
     Navigator.of(context).pop();
+  }
+
+  /// Refresh balance summary from server after auto-balance
+  /// This ensures we show the updated balance with the new journal entry
+  Future<void> _refreshBalanceSummary() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      // ✅ Get fresh data from server (journal entry is already committed at this point)
+      final repository = ref.read(cashEndingRepositoryProvider);
+      final updatedSummary = await repository.getBalanceSummary(
+        locationId: widget.cashLocationId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _currentBalanceSummary = updatedSummary;
+        _isRefreshing = false;
+      });
+
+      debugPrint('✅ [AutoBalance] Balance summary refreshed:');
+      debugPrint('   - Total Journal: ${updatedSummary.formattedTotalJournal}');
+      debugPrint('   - Total Real: ${updatedSummary.formattedTotalReal}');
+      debugPrint('   - Difference: ${updatedSummary.formattedDifference}');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isRefreshing = false;
+      });
+
+      _showMessage('Failed to refresh balance: $e', isError: true);
+      debugPrint('❌ [AutoBalance] Failed to refresh balance: $e');
+    }
+  }
+
+  /// Apply auto-balance using the selected adjustment type
+  Future<void> _applyAutoBalance(AutoBalanceType type) async {
+    final difference = _currentBalanceSummary?.difference ?? 0.0;
+
+    // If already balanced, do nothing
+    if (difference.abs() < 0.01) {
+      _showMessage('Already balanced', isError: false);
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      if (type == AutoBalanceType.error) {
+        // Apply error adjustment
+        final useCase = ref.read(errorAdjustmentUseCaseProvider);
+        await useCase(CreateErrorAdjustmentParams(
+          differenceAmount: difference,
+          companyId: widget.companyId,
+          userId: widget.userId,
+          locationName: widget.locationName,
+          cashLocationId: widget.cashLocationId,
+          storeId: widget.storeId,
+        ));
+      } else {
+        // Apply foreign currency translation
+        final useCase = ref.read(foreignCurrencyTranslationUseCaseProvider);
+        await useCase(CreateForeignCurrencyTranslationParams(
+          differenceAmount: difference,
+          companyId: widget.companyId,
+          userId: widget.userId,
+          locationName: widget.locationName,
+          cashLocationId: widget.cashLocationId,
+          storeId: widget.storeId,
+        ));
+      }
+
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      // Show success message
+      _showMessage('Auto-balance applied successfully!', isError: false);
+
+      // Close confirmation dialog
+      Navigator.of(context).pop();
+
+      // ✅ Store adjustment type for displaying what was applied
+      setState(() {
+        _appliedAdjustmentType = type == AutoBalanceType.error
+            ? 'Error Adjustment'
+            : 'Foreign Currency Translation';
+      });
+
+      // ✅ Refresh balance summary from server to show updated values
+      await _refreshBalanceSummary();
+
+      // User can now see the updated balance (Difference should be 0 or near 0)
+      // and click Close button when ready
+    } catch (e) {
+      // Close loading indicator
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      _showMessage('Failed to apply auto-balance: $e', isError: true);
+    }
+  }
+
+  /// Show success or error message
+  void _showMessage(String message, {required bool isError}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? TossColors.error : TossColors.success,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Show dialog to select auto-balance type
+  void _showAutoBalanceTypeSelection() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Select Adjustment Type',
+                  style: TossTextStyles.titleLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space5),
+                Text(
+                  'Choose the type of adjustment to apply',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: TossSpacing.space6),
+
+                // Error Adjustment Button
+                TossButton1.primary(
+                  text: 'Error Adjustment',
+                  fullWidth: true,
+                  textStyle: TossTextStyles.body.copyWith(
+                    color: TossColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: TossSpacing.space3,
+                  ),
+                  borderRadius: 12,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showAutoBalanceConfirmation(AutoBalanceType.error);
+                  },
+                  leadingIcon: const Icon(
+                    Icons.error_outline,
+                    size: 18,
+                    color: TossColors.white,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+
+                // Foreign Currency Translation Button
+                TossButton1.secondary(
+                  text: 'Foreign Currency Translation',
+                  fullWidth: true,
+                  textStyle: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: TossSpacing.space3,
+                  ),
+                  borderRadius: 12,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showAutoBalanceConfirmation(AutoBalanceType.foreignCurrency);
+                  },
+                  leadingIcon: const Icon(
+                    Icons.currency_exchange,
+                    size: 18,
+                    color: TossColors.gray600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+
+                // Cancel button
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -143,7 +402,31 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
     );
   }
 
-  void _showAutoBalanceConfirmation() {
+  void _showAutoBalanceConfirmation(AutoBalanceType type) {
+    // ✅ Get actual values from current balance summary
+    final totalJournal = _currentBalanceSummary?.totalJournal ?? 0.0;
+    final totalReal = _currentBalanceSummary?.totalReal ?? widget.grandTotal;
+    final difference = _currentBalanceSummary?.difference ?? (totalReal - totalJournal);
+    final isShortage = difference < 0;
+    final isSurplus = difference > 0;
+
+    // Determine difference color based on actual balance status
+    final differenceColor = isShortage
+        ? TossColors.error
+        : isSurplus
+            ? TossColors.warning
+            : TossColors.success;
+
+    // Get adjustment type name
+    final adjustmentTypeName = type == AutoBalanceType.error
+        ? 'Error Adjustment'
+        : 'Foreign Currency Translation';
+
+    // ✅ Use current balance summary formatted values (with correct currency symbol)
+    final formattedTotalReal = _currentBalanceSummary?.formattedTotalReal ?? _formatAmount(totalReal);
+    final formattedTotalJournal = _currentBalanceSummary?.formattedTotalJournal ?? _formatAmount(totalJournal);
+    final formattedDifference = _currentBalanceSummary?.formattedDifference ?? _formatAmount(difference);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -193,14 +476,15 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                     children: [
                       _buildConfirmationRow('Location', '${widget.storeName} · ${widget.locationName}'),
                       const SizedBox(height: TossSpacing.space3),
-                      _buildConfirmationRow('Total Real', _formatAmount(0)),
+                      _buildConfirmationRow('Total Real', formattedTotalReal),
                       const SizedBox(height: TossSpacing.space3),
-                      _buildConfirmationRow('Total Journal', _formatAmount(widget.grandTotal)),
+                      _buildConfirmationRow('Total Journal', formattedTotalJournal),
                       const SizedBox(height: TossSpacing.space4),
 
-                      // Difference (highlighted)
+                      // Difference (highlighted with actual color)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             'Difference',
@@ -209,12 +493,29 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Text(
-                            _formatAmount(0),
-                            style: TossTextStyles.bodyMedium.copyWith(
-                              color: TossColors.success,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                formattedDifference,
+                                style: TossTextStyles.bodyMedium.copyWith(
+                                  color: differenceColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              // ✅ Show percentage below difference in dialog
+                              if (_currentBalanceSummary != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  _currentBalanceSummary!.formattedPercentage,
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: _getPercentageColor(_currentBalanceSummary),
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
@@ -272,9 +573,9 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                           vertical: TossSpacing.space3,
                         ),
                         borderRadius: 12,
-                        onPressed: () {
-                          // Backend will implement this later
-                          Navigator.of(context).pop();
+                        onPressed: () async {
+                          // Apply auto-balance
+                          await _applyAutoBalance(type);
                         },
                         leadingIcon: const Icon(
                           Icons.check,
@@ -358,21 +659,23 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
   }
 
   Widget _buildRecountSummary() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1.0,
-        ),
-      ),
-      child: _buildSummaryRow('Total Real', _formatAmount(widget.grandTotal)),
-    );
-  }
+    // ✅ Show full balance summary for RECOUNT (same as regular summary)
+    // Use current balance summary data if available, otherwise use defaults
+    final totalJournal = _currentBalanceSummary?.totalJournal ?? 0.0;
+    final totalReal = _currentBalanceSummary?.totalReal ?? widget.grandTotal;
+    final difference = _currentBalanceSummary?.difference ?? (totalReal - totalJournal);
+    final isBalanced = _currentBalanceSummary?.isBalanced ?? (difference.abs() < 0.01);
 
-  Widget _buildSummary() {
+    // Determine difference color
+    Color differenceColor = TossColors.gray900;
+    if (!isBalanced) {
+      if (difference < 0) {
+        differenceColor = TossColors.loss; // Shortage (red)
+      } else {
+        differenceColor = TossColors.warning; // Surplus (orange)
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
@@ -386,55 +689,157 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildSummaryRow('Total Journal', _formatAmount(widget.grandTotal)),
+          _buildSummaryRow(
+            'Total Journal',
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedTotalJournal
+              : _formatAmount(totalJournal)
+          ),
           const SizedBox(height: TossSpacing.space3),
-          _buildSummaryRow('Total Real', _formatAmount(0)),
+          _buildSummaryRow(
+            'Total Real',
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedTotalReal
+              : _formatAmount(totalReal)
+          ),
           const SizedBox(height: TossSpacing.space3),
           _buildSummaryRow(
             'Difference',
-            _formatAmount(0),
-            valueColor: TossColors.gray900,
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedDifference
+              : _formatAmount(difference),
+            valueColor: differenceColor,
             isLarge: true,
+            subtitle: _currentBalanceSummary?.formattedPercentage,
+            subtitleColor: _getPercentageColor(_currentBalanceSummary),
           ),
 
-          const SizedBox(height: TossSpacing.space4),
+          // Only show Auto-Balance if there's a difference
+          if (!isBalanced) ...[
+            const SizedBox(height: TossSpacing.space4),
 
-          // Auto-Balance to Match text button
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () {
-                _showAutoBalanceConfirmation();
-              },
-              icon: const Icon(
-                Icons.sync,
-                size: 18,
-                color: TossColors.primary,
-              ),
-              label: Text(
-                'Auto-Balance to Match',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
+            // Auto-Balance to Match text button
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TossButton1.textButton(
+                text: 'Auto-Balance to Match',
+                onPressed: () {
+                  _showAutoBalanceTypeSelection();
+                },
+                leadingIcon: const Icon(Icons.sync, size: 18),
+                textColor: TossColors.primary,
+                fontWeight: FontWeight.w600,
                 padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-          ),
 
-          const SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
 
-          // Helper text
-          Text(
-            'Make sure today\'s Journal entries are complete before using Auto-Balance - missing entries often cause differences.',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
+            // Helper text
+            Text(
+              'Make sure today\'s Journal entries are complete before using Auto-Balance - missing entries often cause differences.',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummary() {
+    // Use balance summary data if available, otherwise use defaults
+    final totalJournal = _currentBalanceSummary?.totalJournal ?? 0.0;
+    final totalReal = _currentBalanceSummary?.totalReal ?? widget.grandTotal;
+    final difference = _currentBalanceSummary?.difference ?? (totalReal - totalJournal);
+    final isBalanced = _currentBalanceSummary?.isBalanced ?? (difference.abs() < 0.01);
+
+    // Determine difference color
+    Color differenceColor = TossColors.gray900;
+    if (!isBalanced) {
+      if (difference < 0) {
+        differenceColor = TossColors.loss; // Shortage (red)
+      } else {
+        differenceColor = TossColors.warning; // Surplus (orange)
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: TossColors.gray200,
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ✅ Show adjustment details if auto-balance was applied
+          if (_appliedAdjustmentType != null && _previousBalanceSummary != null) ...[
+            _buildAdjustmentInfo(),
+            const SizedBox(height: TossSpacing.space4),
+            const Divider(color: TossColors.gray200, height: 1),
+            const SizedBox(height: TossSpacing.space4),
+          ],
+
+          _buildSummaryRow(
+            'Total Journal',
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedTotalJournal
+              : _formatAmount(totalJournal)
           ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildSummaryRow(
+            'Total Real',
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedTotalReal
+              : _formatAmount(totalReal)
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildSummaryRow(
+            'Difference',
+            _currentBalanceSummary != null
+              ? _currentBalanceSummary!.formattedDifference
+              : _formatAmount(difference),
+            valueColor: differenceColor,
+            isLarge: true,
+            subtitle: _currentBalanceSummary?.formattedPercentage,
+            subtitleColor: _getPercentageColor(_currentBalanceSummary),
+          ),
+
+          // Only show Auto-Balance if there's a difference
+          if (!isBalanced) ...[
+            const SizedBox(height: TossSpacing.space4),
+
+            // Auto-Balance to Match text button
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TossButton1.textButton(
+                text: 'Auto-Balance to Match',
+                onPressed: () {
+                  _showAutoBalanceTypeSelection();
+                },
+                leadingIcon: const Icon(Icons.sync, size: 18),
+                textColor: TossColors.primary,
+                fontWeight: FontWeight.w600,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+
+            const SizedBox(height: TossSpacing.space2),
+
+            // Helper text
+            Text(
+              'Make sure today\'s Journal entries are complete before using Auto-Balance - missing entries often cause differences.',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -445,9 +850,12 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
     String value, {
     Color? valueColor,
     bool isLarge = false,
+    String? subtitle, // ✅ Add subtitle for percentage
+    Color? subtitleColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
           label,
@@ -455,12 +863,29 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
             color: TossColors.gray600,
           ),
         ),
-        Text(
-          value,
-          style: (isLarge ? TossTextStyles.bodyMedium : TossTextStyles.body).copyWith(
-            color: valueColor ?? TossColors.gray900,
-            fontWeight: isLarge ? FontWeight.w600 : FontWeight.w400,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              value,
+              style: (isLarge ? TossTextStyles.bodyMedium : TossTextStyles.body).copyWith(
+                color: valueColor ?? TossColors.gray900,
+                fontWeight: isLarge ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+            // ✅ Show subtitle (percentage) if provided
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TossTextStyles.caption.copyWith(
+                  color: subtitleColor ?? TossColors.gray500,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
@@ -471,6 +896,140 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
       symbol: widget.currencies.isNotEmpty ? widget.currencies.first.symbol : '',
       decimalDigits: 2,
     ).format(amount);
+  }
+
+  /// Get color for percentage based on level
+  Color _getPercentageColor(BalanceSummary? summary) {
+    if (summary == null) return TossColors.gray500;
+
+    switch (summary.percentageLevel) {
+      case PercentageLevel.safe:
+        return TossColors.success;
+      case PercentageLevel.warning:
+        return TossColors.warning;
+      case PercentageLevel.critical:
+        return TossColors.error;
+    }
+  }
+
+  /// Build adjustment info section showing what changed
+  Widget _buildAdjustmentInfo() {
+    if (_previousBalanceSummary == null || _appliedAdjustmentType == null) {
+      return const SizedBox.shrink();
+    }
+
+    final oldTotalJournal = _previousBalanceSummary!.totalJournal;
+    final adjustmentAmount = _previousBalanceSummary!.difference;
+    final totalReal = _previousBalanceSummary!.totalReal;
+
+    // ✅ Determine color based on adjustment type and direction
+    // Error Adjustment + negative = money lost (RED)
+    // Error Adjustment + positive = money found (GREEN)
+    // After auto-balance, difference is 0, but we show the adjustment that was made
+    final bool isNegativeAdjustment = adjustmentAmount < 0;
+    final bool isErrorAdjustment = _appliedAdjustmentType == 'Error Adjustment';
+
+    final Color boxColor;
+    final IconData boxIcon;
+
+    if (isErrorAdjustment && isNegativeAdjustment) {
+      // Money lost - use warning/error color
+      boxColor = TossColors.error;
+      boxIcon = Icons.warning;
+    } else if (isErrorAdjustment && !isNegativeAdjustment) {
+      // Money found - use success color
+      boxColor = TossColors.success;
+      boxIcon = Icons.check_circle;
+    } else {
+      // Foreign currency translation - use info/primary color
+      boxColor = TossColors.primary;
+      boxIcon = Icons.currency_exchange;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: boxColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: boxColor.withOpacity(0.2),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title with icon
+          Row(
+            children: [
+              Icon(
+                boxIcon,
+                size: 18,
+                color: boxColor,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'Auto-Balance Applied',
+                style: TossTextStyles.bodySmall.copyWith(
+                  color: boxColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+
+          // Old Total Journal
+          _buildAdjustmentRow(
+            'Old Total Journal',
+            _previousBalanceSummary!.formattedTotalJournal,
+            TossColors.gray600,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+
+          // Adjustment Type & Amount
+          _buildAdjustmentRow(
+            _appliedAdjustmentType!,
+            adjustmentAmount >= 0
+                ? '+${_formatAmount(adjustmentAmount.abs())}'
+                : '-${_formatAmount(adjustmentAmount.abs())}',
+            boxColor, // Use same color as box
+            isBold: true,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+
+          // Total Real (target)
+          _buildAdjustmentRow(
+            'Total Real',
+            _previousBalanceSummary!.formattedTotalReal,
+            TossColors.primary,
+            isBold: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdjustmentRow(String label, String value, Color color, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.bodySmall.copyWith(
+            color: color,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+        Text(
+          value,
+          style: TossTextStyles.bodySmall.copyWith(
+            color: color,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
   }
 
   String _getTypeLabel() {
@@ -644,4 +1203,13 @@ class _ExpandableCurrencyBreakdown extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Type of auto-balance adjustment
+enum AutoBalanceType {
+  /// Error adjustment - for counting errors or discrepancies
+  error,
+
+  /// Foreign currency translation - for exchange rate differences
+  foreignCurrency,
 }

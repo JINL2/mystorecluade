@@ -17,7 +17,9 @@ import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/bank_balance.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/currency.dart';
+import '../../domain/entities/denomination.dart';
 import '../../domain/entities/vault_transaction.dart';
+import '../../domain/entities/vault_recount.dart';
 import '../providers/cash_ending_provider.dart';
 import '../providers/cash_ending_state.dart';
 import '../providers/cash_tab_provider.dart';
@@ -149,6 +151,35 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     super.dispose();
   }
 
+  /// Type-safe getter for cash tab denomination quantities
+  /// Avoids unsafe dynamic casting
+  Map<String, Map<String, int>> _getCashTabQuantities() {
+    final state = _cashTabKey.currentState;
+    if (state != null && state.mounted) {
+      // Access the public getter - state is always _CashTabState here
+      return (state as dynamic).denominationQuantities as Map<String, Map<String, int>>? ?? {};
+    }
+    return {};
+  }
+
+  /// Type-safe getter for bank tab amount
+  String _getBankTabAmount() {
+    final state = _bankTabKey.currentState;
+    if (state != null && state.mounted) {
+      return (state as dynamic).bankAmount as String? ?? '0';
+    }
+    return '0';
+  }
+
+  /// Type-safe getter for vault tab denomination quantities
+  Map<String, Map<String, int>> _getVaultTabQuantities() {
+    final state = _vaultTabKey.currentState;
+    if (state != null && state.mounted) {
+      return (state as dynamic).denominationQuantities as Map<String, Map<String, int>>? ?? {};
+    }
+    return {};
+  }
+
   @override
   Widget build(BuildContext context) {
     final companyId = ref.read(appStateProvider).companyChoosen;
@@ -271,9 +302,17 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    // Get quantities from widget (accessing via currentState)
-    final dynamic cashTabState = _cashTabKey.currentState;
-    final allQuantities = (cashTabState?.denominationQuantities as Map<String, Map<String, int>>?) ?? {};
+    // Get quantities from widget using type-safe getter
+    final allQuantities = _getCashTabQuantities();
+
+    // Validate currencies list is not empty
+    if (state.currencies.isEmpty) {
+      await TossDialogs.showCashEndingError(
+        context: context,
+        error: 'No currencies available. Please reload the page.',
+      );
+      return;
+    }
 
     // Process ALL selected currencies (fallback to currencyId parameter if selectedCashCurrencyIds is empty)
     final currencyIdsToProcess = state.selectedCashCurrencyIds.isNotEmpty
@@ -299,6 +338,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currencyName: currency.currencyName,
         symbol: currency.symbol,
         denominations: denominationsWithQuantity,
+        exchangeRateToBase: currency.exchangeRateToBase,
+        isBaseCurrency: currency.isBaseCurrency,
       );
     }).toList();
 
@@ -322,7 +363,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
 
     if (success) {
-      // Calculate grand total across all currencies
+      // Calculate grand total across all currencies (converted to base currency)
       double grandTotal = 0.0;
       final Map<String, Map<String, int>> denominationQuantitiesMap = {};
 
@@ -332,7 +373,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           0,
           (sum, denom) => sum + (denom.value * denom.quantity),
         );
-        grandTotal += currencyTotal;
+        // Convert to base currency using exchange rate
+        grandTotal += currencyTotal * currencyData.exchangeRateToBase;
 
         // Build denomination quantities map for this currency
         final currencyQuantities = <String, int>{};
@@ -344,6 +386,18 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         denominationQuantitiesMap[currencyData.currencyId] = currencyQuantities;
       }
 
+      // ✅ Fetch balance summary for this location
+      await ref.read(cashTabProvider.notifier).submitCashEnding(
+        locationId: state.selectedCashLocationId!,
+      );
+
+      // Check mounted after async operation
+      if (!mounted) return;
+
+      // Get balance summary from state
+      final cashTabState = ref.read(cashTabProvider);
+      final balanceSummary = cashTabState.balanceSummary;
+
       // Navigate to completion page
       await Navigator.of(context).push(
         MaterialPageRoute(
@@ -354,11 +408,22 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
             locationName: state.cashLocations.firstWhere((l) => l.locationId == state.selectedCashLocationId).locationName,
             denominationQuantities: denominationQuantitiesMap,
+            balanceSummary: balanceSummary,  // ✅ Add balance summary
+            companyId: companyId,
+            userId: userId,
+            cashLocationId: state.selectedCashLocationId!,
+            storeId: state.selectedStoreId,
           ),
         ),
       );
+
+      // Check mounted after async navigation
+      if (!mounted) return;
       // Reset is handled in completion page's close button
     } else {
+      // Check mounted before showing dialog
+      if (!mounted) return;
+
       final tabState = ref.read(cashTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,
@@ -395,24 +460,42 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    final dynamic bankTabState = _bankTabKey.currentState;
-    final amount = bankTabState?.bankAmount as String? ?? '0';
+    // Get amount from widget using type-safe getter
+    final amount = _getBankTabAmount();
 
     // Parse amount (remove commas if any) as integer
     final amountText = amount.replaceAll(',', '');
     final totalAmount = int.tryParse(amountText) ?? 0;
 
-    // Create BankBalance entity (Clean Architecture)
+    // Create BankBalance entity (Clean Architecture - Multi-Currency)
     final now = DateTime.now();
+
+    // Get currency info from state
+    final currency = state.currencies.firstWhere(
+      (c) => c.currencyId == currencyId,
+      orElse: () => throw Exception('Currency not found'),
+    );
+
     final bankBalance = BankBalance(
       companyId: companyId,
       storeId: state.selectedStoreId,
       locationId: state.selectedBankLocationId!,
-      currencyId: currencyId,
-      totalAmount: totalAmount,
       userId: userId,
       recordDate: now,
       createdAt: now,
+      currencies: [
+        currency.copyWith(
+          denominations: [
+            // Bank uses single "virtual" denomination with total amount
+            Denomination(
+              denominationId: 'bank-total-$currencyId',
+              currencyId: currencyId,
+              value: 1,
+              quantity: totalAmount,
+            ),
+          ],
+        ),
+      ],
     );
 
     // Save via BankTabProvider
@@ -427,6 +510,18 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Get currency for completion page
       final currency = state.currencies.firstWhere((c) => c.currencyId == currencyId);
 
+      // ✅ Fetch balance summary for this location
+      await ref.read(bankTabProvider.notifier).submitBankEnding(
+        locationId: state.selectedBankLocationId!,
+      );
+
+      // Check mounted after async operation
+      if (!mounted) return;
+
+      // Get balance summary from state
+      final bankTabState = ref.read(bankTabProvider);
+      final balanceSummary = bankTabState.balanceSummary;
+
       // Navigate to completion page
       await Navigator.of(context).push(
         MaterialPageRoute(
@@ -436,13 +531,28 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             currencies: [currency],
             storeName: state.stores.firstWhere((s) => s.storeId == state.selectedStoreId).storeName,
             locationName: state.bankLocations.firstWhere((l) => l.locationId == state.selectedBankLocationId).locationName,
+            balanceSummary: balanceSummary,  // ✅ Add balance summary
+            companyId: companyId,
+            userId: userId,
+            cashLocationId: state.selectedBankLocationId!,
+            storeId: state.selectedStoreId,
           ),
         ),
       );
 
-      bankTabState?.clearAmount?.call();
+      // Check mounted after async navigation
+      if (!mounted) return;
+
+      // Clear amount via state if available
+      final currentBankTabState = _bankTabKey.currentState;
+      if (currentBankTabState != null && currentBankTabState.mounted) {
+        (currentBankTabState as dynamic).clearAmount?.call();
+      }
       // Stock flows are automatically reloaded by the notifier
     } else {
+      // Check mounted before showing dialog
+      if (!mounted) return;
+
       final tabState = ref.read(bankTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,
@@ -459,6 +569,17 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     String currencyId,
     String transactionType,
   ) async {
+    debugPrint('\n');
+    debugPrint('╔═══════════════════════════════════════════════════════╗');
+    debugPrint('║  🎯 [CashEndingPage] _saveVaultTransaction 호출    ║');
+    debugPrint('╠═══════════════════════════════════════════════════════╣');
+    debugPrint('║  📋 transactionType: $transactionType');
+    debugPrint('║  💰 currencyId: $currencyId');
+    debugPrint('║  🏢 companyId: ${ref.read(appStateProvider).companyChoosen}');
+    debugPrint('║  👤 userId: ${ref.read(appStateProvider).user['user_id']}');
+    debugPrint('╚═══════════════════════════════════════════════════════╝');
+    debugPrint('\n');
+
     // Validation
     if (state.selectedVaultLocationId == null) {
       await TossDialogs.showCashEndingError(
@@ -468,8 +589,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    final dynamic vaultTabState = _vaultTabKey.currentState;
-    final allQuantities = (vaultTabState?.denominationQuantities as Map<String, Map<String, int>>?) ?? {};
+    // Get quantities from widget using type-safe getter
+    final allQuantities = _getVaultTabQuantities();
 
     // Get user ID and company ID
     final appState = ref.read(appStateProvider);
@@ -480,6 +601,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Missing user or company information',
+      );
+      return;
+    }
+
+    // Validate currencies list is not empty
+    if (state.currencies.isEmpty) {
+      await TossDialogs.showCashEndingError(
+        context: context,
+        error: 'No currencies available. Please reload the page.',
       );
       return;
     }
@@ -508,29 +638,112 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currencyName: currency.currencyName,
         symbol: currency.symbol,
         denominations: denominationsWithQuantity,
+        exchangeRateToBase: currency.exchangeRateToBase,
+        isBaseCurrency: currency.isBaseCurrency,
       );
     }).toList();
 
-    // Use first currency for the transaction
-    final currency = currenciesWithData.first;
-    final denominationsWithQuantity = currency.denominations;
-
-    // Create VaultTransaction entity (Clean Architecture)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // Recount vs Normal Transaction 분기 (Clean Architecture)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     final now = DateTime.now();
-    final vaultTransaction = VaultTransaction(
-      companyId: companyId,
-      storeId: state.selectedStoreId,
-      locationId: state.selectedVaultLocationId!,
-      currencyId: currencyId,
-      userId: userId,
-      recordDate: now,
-      createdAt: now,
-      isCredit: transactionType == 'credit',
-      denominations: denominationsWithQuantity,
-    );
+    bool success;
+    Map<String, dynamic>? recountResult;
 
-    // Save via VaultTabProvider
-    final success = await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
+    if (transactionType == 'recount') {
+      debugPrint('🟢 [CashEndingPage] ✨ RECOUNT 분기 진입! (Stock → Flow 변환)');
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // RECOUNT: Stock → Flow 변환
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Use first currency for recount (recount is per currency)
+      final currency = currenciesWithData.first;
+      final vaultRecount = VaultRecount(
+        companyId: companyId,
+        storeId: state.selectedStoreId,
+        locationId: state.selectedVaultLocationId!,
+        currencyId: currency.currencyId,
+        userId: userId,
+        recordDate: now,
+        createdAt: now,
+        denominations: currency.denominations, // Stock 수량
+      );
+
+      debugPrint('📦 [CashEndingPage] VaultRecount entity 생성:');
+      debugPrint('   - locationId: ${vaultRecount.locationId}');
+      debugPrint('   - currencyId: ${vaultRecount.currencyId}');
+      debugPrint('   - denominations: ${vaultRecount.denominations.length}개');
+      debugPrint('   - totalAmount: ${vaultRecount.totalAmount}');
+
+      try {
+        debugPrint('🚀 [CashEndingPage] VaultTabNotifier.recountVault() 호출...');
+        // Call recount RPC via VaultTabNotifier
+        recountResult = await ref.read(vaultTabProvider.notifier).recountVault(vaultRecount);
+        success = recountResult['success'] == true;
+
+        debugPrint('✅ [CashEndingPage] Recount 성공!');
+        debugPrint('   - adjustment_count: ${recountResult['adjustment_count']}');
+        debugPrint('   - total_variance: ${recountResult['total_variance']}');
+        debugPrint('   - adjustments: ${recountResult['adjustments']}');
+      } catch (e) {
+        debugPrint('❌ [CashEndingPage] Recount 실패: $e');
+        success = false;
+        if (mounted) {
+          await TossDialogs.showCashEndingError(
+            context: context,
+            error: 'Recount failed: ${e.toString()}',
+          );
+        }
+        return;
+      }
+    } else {
+      debugPrint('🔵🟠 [CashEndingPage] ✨ NORMAL 분기 진입! (In/Out Transaction)');
+      debugPrint('   - isCredit: ${transactionType == 'credit'}');
+      debugPrint('   - currencies: ${currenciesWithData.length}개');
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // NORMAL: In/Out Transaction (다중 통화 지원)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+      // ✅ Filter out currencies with no quantities
+      final currenciesWithQuantities = currenciesWithData
+          .where((currency) => currency.denominations.any((d) => d.quantity > 0))
+          .toList();
+
+      if (currenciesWithQuantities.isEmpty) {
+        debugPrint('⚠️ [CashEndingPage] No currencies with quantities!');
+        success = false;
+        if (mounted) {
+          await TossDialogs.showCashEndingError(
+            context: context,
+            error: 'Please enter quantities for at least one currency',
+          );
+        }
+        return;
+      }
+
+      // ✅ Create single VaultTransaction with ALL currencies
+      final vaultTransaction = VaultTransaction(
+        companyId: companyId,
+        storeId: state.selectedStoreId,
+        locationId: state.selectedVaultLocationId!,
+        userId: userId,
+        recordDate: now,
+        createdAt: now,
+        isCredit: transactionType == 'credit',
+        currencies: currenciesWithQuantities, // ✅ ALL currencies at once
+      );
+
+      debugPrint('📦 [CashEndingPage] VaultTransaction entity 생성 (Multi-Currency):');
+      debugPrint('   - currencies: ${vaultTransaction.currencies.length}개');
+      for (final currency in currenciesWithQuantities) {
+        debugPrint('   - ${currency.currencyCode}: ${currency.denominations.where((d) => d.quantity > 0).length}개 denominations');
+        debugPrint('     totalAmount: ${currency.totalAmount}');
+      }
+
+      // ✅ Save ALL currencies in one RPC call
+      success = await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
+
+      debugPrint('✅ [CashEndingPage] 모든 통화 저장 ${success ? '성공' : '실패'}!');
+    }
 
     if (!mounted) return;
 
@@ -538,7 +751,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Trigger haptic feedback for success
       HapticFeedback.mediumImpact();
 
-      // Calculate grand total and build denomination quantities map for ALL currencies
+      // Calculate grand total and build denomination quantities map for ALL currencies (converted to base currency)
       double grandTotal = 0.0;
       final Map<String, Map<String, int>> denominationQuantitiesMap = {};
 
@@ -548,7 +761,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           0,
           (sum, denom) => sum + (denom.value * denom.quantity),
         );
-        grandTotal += currencyTotal;
+        // Convert to base currency using exchange rate
+        grandTotal += currencyTotal * currencyData.exchangeRateToBase;
 
         // Build denomination quantities map for this currency
         final currencyQuantities = <String, int>{};
@@ -559,6 +773,18 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         }
         denominationQuantitiesMap[currencyData.currencyId] = currencyQuantities;
       }
+
+      // ✅ Fetch balance summary for this location
+      await ref.read(vaultTabProvider.notifier).submitVaultEnding(
+        locationId: state.selectedVaultLocationId!,
+      );
+
+      // Check mounted after async operation
+      if (!mounted) return;
+
+      // Get balance summary from state
+      final vaultTabState = ref.read(vaultTabProvider);
+      final balanceSummary = vaultTabState.balanceSummary;
 
       // Navigate to completion page
       await Navigator.of(context).push(
@@ -571,13 +797,28 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             locationName: state.vaultLocations.firstWhere((l) => l.locationId == state.selectedVaultLocationId).locationName,
             denominationQuantities: denominationQuantitiesMap,
             transactionType: transactionType,
+            balanceSummary: balanceSummary,  // ✅ Add balance summary
+            companyId: companyId,
+            userId: userId,
+            cashLocationId: state.selectedVaultLocationId!,
+            storeId: state.selectedStoreId,
           ),
         ),
       );
 
-      vaultTabState?.clearQuantities?.call();
+      // Check mounted after async navigation
+      if (!mounted) return;
+
+      // Clear quantities via state if available
+      final currentVaultTabState = _vaultTabKey.currentState;
+      if (currentVaultTabState != null && currentVaultTabState.mounted) {
+        (currentVaultTabState as dynamic).clearQuantities?.call();
+      }
       // Stock flows are automatically reloaded by the notifier
     } else {
+      // Check mounted before showing dialog
+      if (!mounted) return;
+
       final tabState = ref.read(vaultTabProvider);
       await TossDialogs.showCashEndingError(
         context: context,

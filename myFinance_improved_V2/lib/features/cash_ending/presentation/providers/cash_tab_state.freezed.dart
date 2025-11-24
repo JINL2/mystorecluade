@@ -24,7 +24,10 @@ mixin _$CashTabState {
   bool get isSaving => throw _privateConstructorUsedError; // Pagination
   int get flowsOffset => throw _privateConstructorUsedError;
   bool get hasMoreFlows => throw _privateConstructorUsedError; // Error handling
-  String? get errorMessage => throw _privateConstructorUsedError;
+  String? get errorMessage =>
+      throw _privateConstructorUsedError; // Balance Summary (for completion dialog)
+  BalanceSummary? get balanceSummary => throw _privateConstructorUsedError;
+  bool get showBalanceDialog => throw _privateConstructorUsedError;
 
   /// Create a copy of CashTabState
   /// with the given fields replaced by the non-null parameter values.
@@ -46,7 +49,11 @@ abstract class $CashTabStateCopyWith<$Res> {
       bool isSaving,
       int flowsOffset,
       bool hasMoreFlows,
-      String? errorMessage});
+      String? errorMessage,
+      BalanceSummary? balanceSummary,
+      bool showBalanceDialog});
+
+  $BalanceSummaryCopyWith<$Res>? get balanceSummary;
 }
 
 /// @nodoc
@@ -71,6 +78,8 @@ class _$CashTabStateCopyWithImpl<$Res, $Val extends CashTabState>
     Object? flowsOffset = null,
     Object? hasMoreFlows = null,
     Object? errorMessage = freezed,
+    Object? balanceSummary = freezed,
+    Object? showBalanceDialog = null,
   }) {
     return _then(_value.copyWith(
       stockFlows: null == stockFlows
@@ -101,7 +110,29 @@ class _$CashTabStateCopyWithImpl<$Res, $Val extends CashTabState>
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
+      balanceSummary: freezed == balanceSummary
+          ? _value.balanceSummary
+          : balanceSummary // ignore: cast_nullable_to_non_nullable
+              as BalanceSummary?,
+      showBalanceDialog: null == showBalanceDialog
+          ? _value.showBalanceDialog
+          : showBalanceDialog // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
+  }
+
+  /// Create a copy of CashTabState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BalanceSummaryCopyWith<$Res>? get balanceSummary {
+    if (_value.balanceSummary == null) {
+      return null;
+    }
+
+    return $BalanceSummaryCopyWith<$Res>(_value.balanceSummary!, (value) {
+      return _then(_value.copyWith(balanceSummary: value) as $Val);
+    });
   }
 }
 
@@ -120,7 +151,12 @@ abstract class _$$CashTabStateImplCopyWith<$Res>
       bool isSaving,
       int flowsOffset,
       bool hasMoreFlows,
-      String? errorMessage});
+      String? errorMessage,
+      BalanceSummary? balanceSummary,
+      bool showBalanceDialog});
+
+  @override
+  $BalanceSummaryCopyWith<$Res>? get balanceSummary;
 }
 
 /// @nodoc
@@ -143,6 +179,8 @@ class __$$CashTabStateImplCopyWithImpl<$Res>
     Object? flowsOffset = null,
     Object? hasMoreFlows = null,
     Object? errorMessage = freezed,
+    Object? balanceSummary = freezed,
+    Object? showBalanceDialog = null,
   }) {
     return _then(_$CashTabStateImpl(
       stockFlows: null == stockFlows
@@ -173,6 +211,14 @@ class __$$CashTabStateImplCopyWithImpl<$Res>
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
+      balanceSummary: freezed == balanceSummary
+          ? _value.balanceSummary
+          : balanceSummary // ignore: cast_nullable_to_non_nullable
+              as BalanceSummary?,
+      showBalanceDialog: null == showBalanceDialog
+          ? _value.showBalanceDialog
+          : showBalanceDialog // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -187,7 +233,9 @@ class _$CashTabStateImpl implements _CashTabState {
       this.isSaving = false,
       this.flowsOffset = 0,
       this.hasMoreFlows = false,
-      this.errorMessage})
+      this.errorMessage,
+      this.balanceSummary,
+      this.showBalanceDialog = false})
       : _stockFlows = stockFlows;
 
 // Stock flow data
@@ -220,10 +268,16 @@ class _$CashTabStateImpl implements _CashTabState {
 // Error handling
   @override
   final String? errorMessage;
+// Balance Summary (for completion dialog)
+  @override
+  final BalanceSummary? balanceSummary;
+  @override
+  @JsonKey()
+  final bool showBalanceDialog;
 
   @override
   String toString() {
-    return 'CashTabState(stockFlows: $stockFlows, locationSummary: $locationSummary, isLoadingFlows: $isLoadingFlows, isSaving: $isSaving, flowsOffset: $flowsOffset, hasMoreFlows: $hasMoreFlows, errorMessage: $errorMessage)';
+    return 'CashTabState(stockFlows: $stockFlows, locationSummary: $locationSummary, isLoadingFlows: $isLoadingFlows, isSaving: $isSaving, flowsOffset: $flowsOffset, hasMoreFlows: $hasMoreFlows, errorMessage: $errorMessage, balanceSummary: $balanceSummary, showBalanceDialog: $showBalanceDialog)';
   }
 
   @override
@@ -244,7 +298,11 @@ class _$CashTabStateImpl implements _CashTabState {
             (identical(other.hasMoreFlows, hasMoreFlows) ||
                 other.hasMoreFlows == hasMoreFlows) &&
             (identical(other.errorMessage, errorMessage) ||
-                other.errorMessage == errorMessage));
+                other.errorMessage == errorMessage) &&
+            (identical(other.balanceSummary, balanceSummary) ||
+                other.balanceSummary == balanceSummary) &&
+            (identical(other.showBalanceDialog, showBalanceDialog) ||
+                other.showBalanceDialog == showBalanceDialog));
   }
 
   @override
@@ -256,7 +314,9 @@ class _$CashTabStateImpl implements _CashTabState {
       isSaving,
       flowsOffset,
       hasMoreFlows,
-      errorMessage);
+      errorMessage,
+      balanceSummary,
+      showBalanceDialog);
 
   /// Create a copy of CashTabState
   /// with the given fields replaced by the non-null parameter values.
@@ -275,7 +335,9 @@ abstract class _CashTabState implements CashTabState {
       final bool isSaving,
       final int flowsOffset,
       final bool hasMoreFlows,
-      final String? errorMessage}) = _$CashTabStateImpl;
+      final String? errorMessage,
+      final BalanceSummary? balanceSummary,
+      final bool showBalanceDialog}) = _$CashTabStateImpl;
 
 // Stock flow data
   @override
@@ -291,7 +353,11 @@ abstract class _CashTabState implements CashTabState {
   @override
   bool get hasMoreFlows; // Error handling
   @override
-  String? get errorMessage;
+  String? get errorMessage; // Balance Summary (for completion dialog)
+  @override
+  BalanceSummary? get balanceSummary;
+  @override
+  bool get showBalanceDialog;
 
   /// Create a copy of CashTabState
   /// with the given fields replaced by the non-null parameter values.

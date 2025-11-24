@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../../domain/entities/currency.dart';
 import '../../providers/cash_ending_provider.dart';
 
@@ -71,195 +71,167 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
           currency.currencyName.toLowerCase().contains(query);
     }).toList();
 
-    // Separate selected and unselected currencies
-    final selectedCurrencies = filteredCurrencies.where((c) => c.currencyId == widget.selectedCurrencyId).toList();
-    final unselectedCurrencies = filteredCurrencies.where((c) => c.currencyId != widget.selectedCurrencyId).toList();
-
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        minHeight: 200,
+      ),
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: TossSpacing.space4),
-
-          // Header with close button and title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-            child: Row(
-              children: [
-                // Close button
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.close,
-                    size: 24,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const Spacer(),
-                // Title
-                Text(
-                  'Choose currency',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                const SizedBox(width: 24), // Balance for close button
-              ],
+          // Handle bar
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.only(
+              top: TossSpacing.space3,
+              bottom: TossSpacing.space4,
             ),
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            child: Text(
+              'Choose currency',
+              style: TossTextStyles.h3.copyWith(
+                color: TossColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: TossSpacing.space3),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
           ),
 
           const SizedBox(height: TossSpacing.space4),
 
           // Search bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space1,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.white,
-                border: Border.all(
-                  color: TossColors.gray200,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search,
-                    size: 20,
-                    color: TossColors.gray400,
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search currency',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        focusedErrorBorder: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: TossSpacing.space3,
-                        ),
-                      ),
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                  ),
-                  if (_searchQuery.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _searchController.clear();
-                          _searchQuery = '';
-                        });
-                      },
-                      child: const Icon(
-                        Icons.close,
-                        size: 20,
-                        color: TossColors.gray400,
-                      ),
-                    ),
-                ],
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            child: TossSearchField(
+              hintText: 'Search currency',
+              controller: _searchController,
+              prefixIcon: Icons.search,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              onClear: () {
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
             ),
           ),
 
-          const SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space2),
 
-          // Currency list
-          Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
-            ),
+          // Currency list using TossDropdown item style
+          Flexible(
             child: filteredCurrencies.isEmpty
                 ? _buildEmptyState()
-                : ListView(
+                : ListView.builder(
                     shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    children: [
-                      // Suggested section (selected currencies)
-                      if (selectedCurrencies.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space5,
-                            vertical: TossSpacing.space2,
-                          ),
-                          child: Text(
-                            'Suggested',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray500,
-                              fontWeight: FontWeight.w600,
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+                    ),
+                    itemCount: filteredCurrencies.length,
+                    itemBuilder: (context, index) {
+                      final currency = filteredCurrencies[index];
+                      final isSelected = currency.currencyId == widget.selectedCurrencyId;
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          color: TossColors.transparent,
+                        ),
+                        child: Material(
+                          color: TossColors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              Navigator.pop(context);
+
+                              // Update selected currency based on tab type
+                              switch (widget.tabType) {
+                                case 'cash':
+                                  ref.read(cashEndingProvider.notifier).addCashCurrency(currency.currencyId);
+                                  break;
+                                case 'bank':
+                                  ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(currency.currencyId);
+                                  break;
+                                case 'vault':
+                                  ref.read(cashEndingProvider.notifier).addVaultCurrency(currency.currencyId);
+                                  break;
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space3,
+                                vertical: TossSpacing.space3,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          currency.currencyCode,
+                                          style: TossTextStyles.body.copyWith(
+                                            color: TossColors.textPrimary,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          currency.currencyName,
+                                          style: TossTextStyles.caption.copyWith(
+                                            color: TossColors.gray600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    const Icon(
+                                      Icons.check,
+                                      color: TossColors.primary,
+                                      size: 24,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        ...selectedCurrencies.asMap().entries.map((entry) {
-                          final currency = entry.value;
-                          return _buildCurrencyItem(
-                            context,
-                            currency: currency,
-                            isSelected: true,
-                            isLast: false,
-                          );
-                        }),
-                        const SizedBox(height: TossSpacing.space3),
-                      ],
-
-                      // All currencies section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space5,
-                          vertical: TossSpacing.space2,
-                        ),
-                        child: Text(
-                          'All currencies',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      ...unselectedCurrencies.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final currency = entry.value;
-                        return _buildCurrencyItem(
-                          context,
-                          currency: currency,
-                          isSelected: false,
-                          isLast: index == unselectedCurrencies.length - 1,
-                        );
-                      }),
-                    ],
+                      );
+                    },
                   ),
           ),
-
-          // Bottom padding (32px)
-          const SizedBox(height: 32),
         ],
       ),
     );
@@ -272,101 +244,19 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            TossIcons.currency,
+            Icons.currency_exchange,
             size: 64,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space4),
           Text(
-            'No currencies available',
+            'No currencies found',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray600,
             ),
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCurrencyItem(
-    BuildContext context, {
-    required Currency currency,
-    required bool isSelected,
-    required bool isLast,
-  }) {
-    return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        Navigator.pop(context);
-
-        // Update selected currency based on tab type
-        switch (widget.tabType) {
-          case 'cash':
-            // For cash tab: add currency (supports multiple)
-            ref
-                .read(cashEndingProvider.notifier)
-                .addCashCurrency(currency.currencyId);
-            break;
-          case 'bank':
-            ref
-                .read(cashEndingProvider.notifier)
-                .setSelectedBankCurrency(currency.currencyId);
-            break;
-          case 'vault':
-            // For vault tab: add currency (supports multiple)
-            ref
-                .read(cashEndingProvider.notifier)
-                .addVaultCurrency(currency.currencyId);
-            break;
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space5,
-          vertical: TossSpacing.space4,
-        ),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: TossColors.gray100,
-              width: isLast ? 0 : 0.5,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Currency info
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    currency.currencyCode,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    currency.currencyName,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Check icon
-            if (isSelected)
-              const Icon(
-                TossIcons.check,
-                size: 20,
-                color: TossColors.primary,
-              ),
-          ],
-        ),
       ),
     );
   }

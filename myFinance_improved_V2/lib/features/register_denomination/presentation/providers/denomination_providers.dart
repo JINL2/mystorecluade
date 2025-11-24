@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
@@ -56,38 +58,19 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> addDenomination(DenominationInput input) async {
     state = const AsyncValue.loading();
-    
+
     try {
-      // Create a temporary denomination object for optimistic update
-      final optimisticDenomination = Denomination(
-        id: 'temp-${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
-        companyId: input.companyId,
-        currencyId: input.currencyId,
-        value: input.value,
-        type: input.type,
-        displayName: input.displayName ?? _getDefaultDisplayName(input.value, input.type),
-        emoji: input.emoji ?? _getDefaultEmoji(input.type),
-        isActive: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      
-      // OPTIMISTIC UI UPDATE - Add to local state immediately
-      _ref.read(localDenominationListProvider.notifier)
-          .optimisticallyAdd(input.currencyId, optimisticDenomination);
-      
-      // Perform database operation in background
       await _repository.addDenomination(input);
-      
-      // Refresh the remote providers after successful database operation
+
+      // Refresh providers after successful database operation
       _ref.invalidate(denominationListProvider(input.currencyId));
       _ref.invalidate(denominationStatsProvider(input.currencyId));
-      
+      _ref.read(localDenominationListProvider.notifier).reset(input.currencyId);
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
-      // If database operation fails, revert the optimistic update
-      _ref.read(localDenominationListProvider.notifier).reset(input.currencyId);
       state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 

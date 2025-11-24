@@ -28,8 +28,6 @@ mixin _$VaultTransactionDto {
   String? get storeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'location_id')
   String get locationId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'currency_id')
-  String get currencyId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
   String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'record_date')
@@ -38,7 +36,7 @@ mixin _$VaultTransactionDto {
   DateTime get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'credit')
   bool get isCredit => throw _privateConstructorUsedError;
-  List<DenominationDto> get denominations => throw _privateConstructorUsedError;
+  List<CurrencyDto> get currencies => throw _privateConstructorUsedError;
 
   /// Serializes this VaultTransactionDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -61,12 +59,11 @@ abstract class $VaultTransactionDtoCopyWith<$Res> {
       @JsonKey(name: 'company_id') String companyId,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'location_id') String locationId,
-      @JsonKey(name: 'currency_id') String currencyId,
       @JsonKey(name: 'created_by') String userId,
       @JsonKey(name: 'record_date') DateTime recordDate,
       @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(name: 'credit') bool isCredit,
-      List<DenominationDto> denominations});
+      List<CurrencyDto> currencies});
 }
 
 /// @nodoc
@@ -88,12 +85,11 @@ class _$VaultTransactionDtoCopyWithImpl<$Res, $Val extends VaultTransactionDto>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? locationId = null,
-    Object? currencyId = null,
     Object? userId = null,
     Object? recordDate = null,
     Object? createdAt = null,
     Object? isCredit = null,
-    Object? denominations = null,
+    Object? currencies = null,
   }) {
     return _then(_value.copyWith(
       transactionId: freezed == transactionId
@@ -112,10 +108,6 @@ class _$VaultTransactionDtoCopyWithImpl<$Res, $Val extends VaultTransactionDto>
           ? _value.locationId
           : locationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
-          ? _value.currencyId
-          : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -132,10 +124,10 @@ class _$VaultTransactionDtoCopyWithImpl<$Res, $Val extends VaultTransactionDto>
           ? _value.isCredit
           : isCredit // ignore: cast_nullable_to_non_nullable
               as bool,
-      denominations: null == denominations
-          ? _value.denominations
-          : denominations // ignore: cast_nullable_to_non_nullable
-              as List<DenominationDto>,
+      currencies: null == currencies
+          ? _value.currencies
+          : currencies // ignore: cast_nullable_to_non_nullable
+              as List<CurrencyDto>,
     ) as $Val);
   }
 }
@@ -153,12 +145,11 @@ abstract class _$$VaultTransactionDtoImplCopyWith<$Res>
       @JsonKey(name: 'company_id') String companyId,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'location_id') String locationId,
-      @JsonKey(name: 'currency_id') String currencyId,
       @JsonKey(name: 'created_by') String userId,
       @JsonKey(name: 'record_date') DateTime recordDate,
       @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(name: 'credit') bool isCredit,
-      List<DenominationDto> denominations});
+      List<CurrencyDto> currencies});
 }
 
 /// @nodoc
@@ -178,12 +169,11 @@ class __$$VaultTransactionDtoImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? locationId = null,
-    Object? currencyId = null,
     Object? userId = null,
     Object? recordDate = null,
     Object? createdAt = null,
     Object? isCredit = null,
-    Object? denominations = null,
+    Object? currencies = null,
   }) {
     return _then(_$VaultTransactionDtoImpl(
       transactionId: freezed == transactionId
@@ -202,10 +192,6 @@ class __$$VaultTransactionDtoImplCopyWithImpl<$Res>
           ? _value.locationId
           : locationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
-          ? _value.currencyId
-          : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -222,10 +208,10 @@ class __$$VaultTransactionDtoImplCopyWithImpl<$Res>
           ? _value.isCredit
           : isCredit // ignore: cast_nullable_to_non_nullable
               as bool,
-      denominations: null == denominations
-          ? _value._denominations
-          : denominations // ignore: cast_nullable_to_non_nullable
-              as List<DenominationDto>,
+      currencies: null == currencies
+          ? _value._currencies
+          : currencies // ignore: cast_nullable_to_non_nullable
+              as List<CurrencyDto>,
     ));
   }
 }
@@ -238,13 +224,12 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
       @JsonKey(name: 'company_id') required this.companyId,
       @JsonKey(name: 'store_id') this.storeId,
       @JsonKey(name: 'location_id') required this.locationId,
-      @JsonKey(name: 'currency_id') required this.currencyId,
       @JsonKey(name: 'created_by') required this.userId,
       @JsonKey(name: 'record_date') required this.recordDate,
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'credit') required this.isCredit,
-      final List<DenominationDto> denominations = const []})
-      : _denominations = denominations,
+      final List<CurrencyDto> currencies = const []})
+      : _currencies = currencies,
         super._();
 
   factory _$VaultTransactionDtoImpl.fromJson(Map<String, dynamic> json) =>
@@ -263,9 +248,6 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
   @JsonKey(name: 'location_id')
   final String locationId;
   @override
-  @JsonKey(name: 'currency_id')
-  final String currencyId;
-  @override
   @JsonKey(name: 'created_by')
   final String userId;
   @override
@@ -277,18 +259,18 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
   @override
   @JsonKey(name: 'credit')
   final bool isCredit;
-  final List<DenominationDto> _denominations;
+  final List<CurrencyDto> _currencies;
   @override
   @JsonKey()
-  List<DenominationDto> get denominations {
-    if (_denominations is EqualUnmodifiableListView) return _denominations;
+  List<CurrencyDto> get currencies {
+    if (_currencies is EqualUnmodifiableListView) return _currencies;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_denominations);
+    return EqualUnmodifiableListView(_currencies);
   }
 
   @override
   String toString() {
-    return 'VaultTransactionDto(transactionId: $transactionId, companyId: $companyId, storeId: $storeId, locationId: $locationId, currencyId: $currencyId, userId: $userId, recordDate: $recordDate, createdAt: $createdAt, isCredit: $isCredit, denominations: $denominations)';
+    return 'VaultTransactionDto(transactionId: $transactionId, companyId: $companyId, storeId: $storeId, locationId: $locationId, userId: $userId, recordDate: $recordDate, createdAt: $createdAt, isCredit: $isCredit, currencies: $currencies)';
   }
 
   @override
@@ -303,8 +285,6 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.locationId, locationId) ||
                 other.locationId == locationId) &&
-            (identical(other.currencyId, currencyId) ||
-                other.currencyId == currencyId) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.recordDate, recordDate) ||
                 other.recordDate == recordDate) &&
@@ -313,7 +293,7 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
             (identical(other.isCredit, isCredit) ||
                 other.isCredit == isCredit) &&
             const DeepCollectionEquality()
-                .equals(other._denominations, _denominations));
+                .equals(other._currencies, _currencies));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -324,12 +304,11 @@ class _$VaultTransactionDtoImpl extends _VaultTransactionDto {
       companyId,
       storeId,
       locationId,
-      currencyId,
       userId,
       recordDate,
       createdAt,
       isCredit,
-      const DeepCollectionEquality().hash(_denominations));
+      const DeepCollectionEquality().hash(_currencies));
 
   /// Create a copy of VaultTransactionDto
   /// with the given fields replaced by the non-null parameter values.
@@ -354,12 +333,11 @@ abstract class _VaultTransactionDto extends VaultTransactionDto {
       @JsonKey(name: 'company_id') required final String companyId,
       @JsonKey(name: 'store_id') final String? storeId,
       @JsonKey(name: 'location_id') required final String locationId,
-      @JsonKey(name: 'currency_id') required final String currencyId,
       @JsonKey(name: 'created_by') required final String userId,
       @JsonKey(name: 'record_date') required final DateTime recordDate,
       @JsonKey(name: 'created_at') required final DateTime createdAt,
       @JsonKey(name: 'credit') required final bool isCredit,
-      final List<DenominationDto> denominations}) = _$VaultTransactionDtoImpl;
+      final List<CurrencyDto> currencies}) = _$VaultTransactionDtoImpl;
   const _VaultTransactionDto._() : super._();
 
   factory _VaultTransactionDto.fromJson(Map<String, dynamic> json) =
@@ -378,9 +356,6 @@ abstract class _VaultTransactionDto extends VaultTransactionDto {
   @JsonKey(name: 'location_id')
   String get locationId;
   @override
-  @JsonKey(name: 'currency_id')
-  String get currencyId;
-  @override
   @JsonKey(name: 'created_by')
   String get userId;
   @override
@@ -393,7 +368,7 @@ abstract class _VaultTransactionDto extends VaultTransactionDto {
   @JsonKey(name: 'credit')
   bool get isCredit;
   @override
-  List<DenominationDto> get denominations;
+  List<CurrencyDto> get currencies;
 
   /// Create a copy of VaultTransactionDto
   /// with the given fields replaced by the non-null parameter values.

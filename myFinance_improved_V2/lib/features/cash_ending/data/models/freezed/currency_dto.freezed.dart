@@ -22,6 +22,8 @@ CurrencyDto _$CurrencyDtoFromJson(Map<String, dynamic> json) {
 mixin _$CurrencyDto {
   @JsonKey(name: 'currency_id')
   String get currencyId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'company_currency_id')
+  String? get companyCurrencyId => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_code')
   String get currencyCode => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_name')
@@ -29,7 +31,17 @@ mixin _$CurrencyDto {
   @JsonKey(name: 'symbol')
   String get symbol => throw _privateConstructorUsedError;
   @JsonKey(name: 'flag_emoji')
-  String? get flagEmoji => throw _privateConstructorUsedError;
+  String? get flagEmoji =>
+      throw _privateConstructorUsedError; // Grand Total calculation fields
+  @JsonKey(name: 'is_base_currency')
+  bool get isBaseCurrency => throw _privateConstructorUsedError;
+  @JsonKey(name: 'exchange_rate_to_base')
+  double get exchangeRateToBase =>
+      throw _privateConstructorUsedError; // RPC returns JSONB array - custom deserializer
+  @JsonKey(
+      name: 'denominations',
+      fromJson: _denominationsFromJson,
+      toJson: _denominationsToJson)
   List<DenominationDto> get denominations => throw _privateConstructorUsedError;
 
   /// Serializes this CurrencyDto to a JSON map.
@@ -50,10 +62,17 @@ abstract class $CurrencyDtoCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'currency_id') String currencyId,
+      @JsonKey(name: 'company_currency_id') String? companyCurrencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'currency_name') String currencyName,
       @JsonKey(name: 'symbol') String symbol,
       @JsonKey(name: 'flag_emoji') String? flagEmoji,
+      @JsonKey(name: 'is_base_currency') bool isBaseCurrency,
+      @JsonKey(name: 'exchange_rate_to_base') double exchangeRateToBase,
+      @JsonKey(
+          name: 'denominations',
+          fromJson: _denominationsFromJson,
+          toJson: _denominationsToJson)
       List<DenominationDto> denominations});
 }
 
@@ -73,10 +92,13 @@ class _$CurrencyDtoCopyWithImpl<$Res, $Val extends CurrencyDto>
   @override
   $Res call({
     Object? currencyId = null,
+    Object? companyCurrencyId = freezed,
     Object? currencyCode = null,
     Object? currencyName = null,
     Object? symbol = null,
     Object? flagEmoji = freezed,
+    Object? isBaseCurrency = null,
+    Object? exchangeRateToBase = null,
     Object? denominations = null,
   }) {
     return _then(_value.copyWith(
@@ -84,6 +106,10 @@ class _$CurrencyDtoCopyWithImpl<$Res, $Val extends CurrencyDto>
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       currencyCode: null == currencyCode
           ? _value.currencyCode
           : currencyCode // ignore: cast_nullable_to_non_nullable
@@ -100,6 +126,14 @@ class _$CurrencyDtoCopyWithImpl<$Res, $Val extends CurrencyDto>
           ? _value.flagEmoji
           : flagEmoji // ignore: cast_nullable_to_non_nullable
               as String?,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
+      exchangeRateToBase: null == exchangeRateToBase
+          ? _value.exchangeRateToBase
+          : exchangeRateToBase // ignore: cast_nullable_to_non_nullable
+              as double,
       denominations: null == denominations
           ? _value.denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -118,10 +152,17 @@ abstract class _$$CurrencyDtoImplCopyWith<$Res>
   @useResult
   $Res call(
       {@JsonKey(name: 'currency_id') String currencyId,
+      @JsonKey(name: 'company_currency_id') String? companyCurrencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'currency_name') String currencyName,
       @JsonKey(name: 'symbol') String symbol,
       @JsonKey(name: 'flag_emoji') String? flagEmoji,
+      @JsonKey(name: 'is_base_currency') bool isBaseCurrency,
+      @JsonKey(name: 'exchange_rate_to_base') double exchangeRateToBase,
+      @JsonKey(
+          name: 'denominations',
+          fromJson: _denominationsFromJson,
+          toJson: _denominationsToJson)
       List<DenominationDto> denominations});
 }
 
@@ -139,10 +180,13 @@ class __$$CurrencyDtoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? currencyId = null,
+    Object? companyCurrencyId = freezed,
     Object? currencyCode = null,
     Object? currencyName = null,
     Object? symbol = null,
     Object? flagEmoji = freezed,
+    Object? isBaseCurrency = null,
+    Object? exchangeRateToBase = null,
     Object? denominations = null,
   }) {
     return _then(_$CurrencyDtoImpl(
@@ -150,6 +194,10 @@ class __$$CurrencyDtoImplCopyWithImpl<$Res>
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       currencyCode: null == currencyCode
           ? _value.currencyCode
           : currencyCode // ignore: cast_nullable_to_non_nullable
@@ -166,6 +214,14 @@ class __$$CurrencyDtoImplCopyWithImpl<$Res>
           ? _value.flagEmoji
           : flagEmoji // ignore: cast_nullable_to_non_nullable
               as String?,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
+      exchangeRateToBase: null == exchangeRateToBase
+          ? _value.exchangeRateToBase
+          : exchangeRateToBase // ignore: cast_nullable_to_non_nullable
+              as double,
       denominations: null == denominations
           ? _value._denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -179,10 +235,17 @@ class __$$CurrencyDtoImplCopyWithImpl<$Res>
 class _$CurrencyDtoImpl extends _CurrencyDto {
   const _$CurrencyDtoImpl(
       {@JsonKey(name: 'currency_id') required this.currencyId,
+      @JsonKey(name: 'company_currency_id') this.companyCurrencyId,
       @JsonKey(name: 'currency_code') required this.currencyCode,
       @JsonKey(name: 'currency_name') required this.currencyName,
       @JsonKey(name: 'symbol') required this.symbol,
       @JsonKey(name: 'flag_emoji') this.flagEmoji,
+      @JsonKey(name: 'is_base_currency') this.isBaseCurrency = false,
+      @JsonKey(name: 'exchange_rate_to_base') this.exchangeRateToBase = 1.0,
+      @JsonKey(
+          name: 'denominations',
+          fromJson: _denominationsFromJson,
+          toJson: _denominationsToJson)
       final List<DenominationDto> denominations = const []})
       : _denominations = denominations,
         super._();
@@ -193,6 +256,9 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
   @override
   @JsonKey(name: 'currency_id')
   final String currencyId;
+  @override
+  @JsonKey(name: 'company_currency_id')
+  final String? companyCurrencyId;
   @override
   @JsonKey(name: 'currency_code')
   final String currencyCode;
@@ -205,9 +271,21 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
   @override
   @JsonKey(name: 'flag_emoji')
   final String? flagEmoji;
-  final List<DenominationDto> _denominations;
+// Grand Total calculation fields
   @override
-  @JsonKey()
+  @JsonKey(name: 'is_base_currency')
+  final bool isBaseCurrency;
+  @override
+  @JsonKey(name: 'exchange_rate_to_base')
+  final double exchangeRateToBase;
+// RPC returns JSONB array - custom deserializer
+  final List<DenominationDto> _denominations;
+// RPC returns JSONB array - custom deserializer
+  @override
+  @JsonKey(
+      name: 'denominations',
+      fromJson: _denominationsFromJson,
+      toJson: _denominationsToJson)
   List<DenominationDto> get denominations {
     if (_denominations is EqualUnmodifiableListView) return _denominations;
     // ignore: implicit_dynamic_type
@@ -216,7 +294,7 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
 
   @override
   String toString() {
-    return 'CurrencyDto(currencyId: $currencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji, denominations: $denominations)';
+    return 'CurrencyDto(currencyId: $currencyId, companyCurrencyId: $companyCurrencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji, isBaseCurrency: $isBaseCurrency, exchangeRateToBase: $exchangeRateToBase, denominations: $denominations)';
   }
 
   @override
@@ -226,6 +304,8 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
             other is _$CurrencyDtoImpl &&
             (identical(other.currencyId, currencyId) ||
                 other.currencyId == currencyId) &&
+            (identical(other.companyCurrencyId, companyCurrencyId) ||
+                other.companyCurrencyId == companyCurrencyId) &&
             (identical(other.currencyCode, currencyCode) ||
                 other.currencyCode == currencyCode) &&
             (identical(other.currencyName, currencyName) ||
@@ -233,6 +313,10 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
             (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.flagEmoji, flagEmoji) ||
                 other.flagEmoji == flagEmoji) &&
+            (identical(other.isBaseCurrency, isBaseCurrency) ||
+                other.isBaseCurrency == isBaseCurrency) &&
+            (identical(other.exchangeRateToBase, exchangeRateToBase) ||
+                other.exchangeRateToBase == exchangeRateToBase) &&
             const DeepCollectionEquality()
                 .equals(other._denominations, _denominations));
   }
@@ -242,10 +326,13 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
   int get hashCode => Object.hash(
       runtimeType,
       currencyId,
+      companyCurrencyId,
       currencyCode,
       currencyName,
       symbol,
       flagEmoji,
+      isBaseCurrency,
+      exchangeRateToBase,
       const DeepCollectionEquality().hash(_denominations));
 
   /// Create a copy of CurrencyDto
@@ -267,10 +354,17 @@ class _$CurrencyDtoImpl extends _CurrencyDto {
 abstract class _CurrencyDto extends CurrencyDto {
   const factory _CurrencyDto(
       {@JsonKey(name: 'currency_id') required final String currencyId,
+      @JsonKey(name: 'company_currency_id') final String? companyCurrencyId,
       @JsonKey(name: 'currency_code') required final String currencyCode,
       @JsonKey(name: 'currency_name') required final String currencyName,
       @JsonKey(name: 'symbol') required final String symbol,
       @JsonKey(name: 'flag_emoji') final String? flagEmoji,
+      @JsonKey(name: 'is_base_currency') final bool isBaseCurrency,
+      @JsonKey(name: 'exchange_rate_to_base') final double exchangeRateToBase,
+      @JsonKey(
+          name: 'denominations',
+          fromJson: _denominationsFromJson,
+          toJson: _denominationsToJson)
       final List<DenominationDto> denominations}) = _$CurrencyDtoImpl;
   const _CurrencyDto._() : super._();
 
@@ -280,6 +374,9 @@ abstract class _CurrencyDto extends CurrencyDto {
   @override
   @JsonKey(name: 'currency_id')
   String get currencyId;
+  @override
+  @JsonKey(name: 'company_currency_id')
+  String? get companyCurrencyId;
   @override
   @JsonKey(name: 'currency_code')
   String get currencyCode;
@@ -291,8 +388,19 @@ abstract class _CurrencyDto extends CurrencyDto {
   String get symbol;
   @override
   @JsonKey(name: 'flag_emoji')
-  String? get flagEmoji;
+  String? get flagEmoji; // Grand Total calculation fields
   @override
+  @JsonKey(name: 'is_base_currency')
+  bool get isBaseCurrency;
+  @override
+  @JsonKey(name: 'exchange_rate_to_base')
+  double
+      get exchangeRateToBase; // RPC returns JSONB array - custom deserializer
+  @override
+  @JsonKey(
+      name: 'denominations',
+      fromJson: _denominationsFromJson,
+      toJson: _denominationsToJson)
   List<DenominationDto> get denominations;
 
   /// Create a copy of CurrencyDto

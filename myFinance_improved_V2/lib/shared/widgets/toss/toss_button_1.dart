@@ -7,6 +7,9 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 enum TossButton1Variant {
   primary,
   secondary,
+  outlined,
+  outlinedGray,
+  textButton,
 }
 
 /// Extended Toss-style button with full customization support
@@ -162,6 +165,122 @@ class TossButton1 extends StatefulWidget {
     );
   }
 
+  /// Factory constructor for outlined button with optional customization
+  factory TossButton1.outlined({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool isLoading = false,
+    bool isEnabled = true,
+    Widget? leadingIcon,
+    bool fullWidth = false,
+    Color? borderColor,
+    Color? textColor,
+    EdgeInsets? padding,
+    double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
+    int? debounceDurationMs,
+    bool enablePressAnimation = true,
+  }) {
+    return TossButton1(
+      key: key,
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      fullWidth: fullWidth,
+      variant: TossButton1Variant.outlined,
+      borderColor: borderColor,
+      textColor: textColor,
+      padding: padding,
+      borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
+      debounceDurationMs: debounceDurationMs,
+      enablePressAnimation: enablePressAnimation,
+    );
+  }
+
+  /// Factory constructor for outlined gray button (unselected state)
+  factory TossButton1.outlinedGray({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool isLoading = false,
+    bool isEnabled = true,
+    Widget? leadingIcon,
+    bool fullWidth = false,
+    Color? borderColor,
+    Color? textColor,
+    EdgeInsets? padding,
+    double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
+    int? debounceDurationMs,
+    bool enablePressAnimation = true,
+  }) {
+    return TossButton1(
+      key: key,
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      fullWidth: fullWidth,
+      variant: TossButton1Variant.outlinedGray,
+      borderColor: borderColor,
+      textColor: textColor,
+      padding: padding,
+      borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
+      debounceDurationMs: debounceDurationMs,
+      enablePressAnimation: enablePressAnimation,
+    );
+  }
+
+  /// Factory constructor for text button (no background, no border)
+  factory TossButton1.textButton({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool isLoading = false,
+    bool isEnabled = true,
+    Widget? leadingIcon,
+    bool fullWidth = false,
+    Color? textColor,
+    EdgeInsets? padding,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
+    int? debounceDurationMs,
+    bool enablePressAnimation = true,
+  }) {
+    return TossButton1(
+      key: key,
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      fullWidth: fullWidth,
+      variant: TossButton1Variant.textButton,
+      textColor: textColor,
+      padding: padding,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
+      debounceDurationMs: debounceDurationMs,
+      enablePressAnimation: enablePressAnimation,
+    );
+  }
+
   @override
   State<TossButton1> createState() => _TossButton1State();
 }
@@ -214,6 +333,10 @@ class _TossButton1State extends State<TossButton1>
         return TossColors.primary;
       case TossButton1Variant.secondary:
         return TossColors.gray100;
+      case TossButton1Variant.outlined:
+      case TossButton1Variant.outlinedGray:
+      case TossButton1Variant.textButton:
+        return TossColors.transparent;
     }
   }
 
@@ -231,6 +354,11 @@ class _TossButton1State extends State<TossButton1>
         return TossColors.white;
       case TossButton1Variant.secondary:
         return TossColors.gray900;
+      case TossButton1Variant.outlined:
+      case TossButton1Variant.textButton:
+        return TossColors.primary;
+      case TossButton1Variant.outlinedGray:
+        return TossColors.gray600;
     }
   }
 
@@ -238,8 +366,17 @@ class _TossButton1State extends State<TossButton1>
     if (widget.borderColor != null) {
       return widget.borderColor!;
     }
-    // No borders needed for primary and secondary variants by default
-    return TossColors.transparent;
+
+    switch (widget.variant) {
+      case TossButton1Variant.outlined:
+        return TossColors.primary;
+      case TossButton1Variant.outlinedGray:
+        return TossColors.gray300;
+      case TossButton1Variant.primary:
+      case TossButton1Variant.secondary:
+      case TossButton1Variant.textButton:
+        return TossColors.transparent;
+    }
   }
 
   void _handleTapDown(TapDownDetails details) {

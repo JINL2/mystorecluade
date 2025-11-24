@@ -57,14 +57,17 @@ class TossModal extends StatefulWidget {
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54, // Standard barrier color to prevent double barriers
+      barrierColor: TossColors
+          .black54, // Standard barrier color to prevent double barriers
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
       enableDrag: enableDrag, // Allow swipe-to-dismiss by default
       // CRITICAL: Prevent keyboard from pushing modal up
-      constraints: height != null ? BoxConstraints.tightFor(height: height) : BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
+      constraints: height != null
+          ? BoxConstraints.tightFor(height: height)
+          : BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
       builder: (context) => Material(
         color: TossColors.transparent,
         child: Scaffold(
@@ -93,7 +96,8 @@ class TossModal extends StatefulWidget {
   State<TossModal> createState() => _TossModalState();
 }
 
-class _TossModalState extends State<TossModal> with SingleTickerProviderStateMixin {
+class _TossModalState extends State<TossModal>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
@@ -109,18 +113,22 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
     _scaleAnimation = Tween<double>(
       begin: 0.95,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: TossAnimations.enter,
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: TossAnimations.enter,
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: TossAnimations.enter,
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: TossAnimations.enter,
+      ),
+    );
 
     _animationController.forward();
   }
@@ -133,10 +141,9 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
-    // Get keyboard height for content padding
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    
+    final modalHeight =
+        widget.height ?? MediaQuery.of(context).size.height * 0.8;
+
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -167,7 +174,8 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                       height: 4,
                       decoration: BoxDecoration(
                         color: TossColors.gray300, // Restore grey handle bar
-                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                        borderRadius:
+                            BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
 
@@ -178,12 +186,13 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: widget.padding ?? const EdgeInsets.fromLTRB(
-                        TossSpacing.space4,
-                        TossSpacing.space3,
-                        TossSpacing.space4,
-                        TossSpacing.space4,
-                      ),
+                      padding: widget.padding ??
+                          const EdgeInsets.fromLTRB(
+                            TossSpacing.space4,
+                            TossSpacing.space3,
+                            TossSpacing.space4,
+                            TossSpacing.space4,
+                          ),
                       child: widget.child,
                     ),
                   ),
@@ -315,10 +324,11 @@ class TossFormModal extends StatefulWidget {
           children: [
             Expanded(
               child: TextButton(
-                onPressed: onCancel ?? (() {
-                  FocusScope.of(context).unfocus();
-                  Navigator.of(context).pop();
-                }),
+                onPressed: onCancel ??
+                    (() {
+                      FocusScope.of(context).unfocus();
+                      Navigator.of(context).pop();
+                    }),
                 child: Text(
                   cancelButtonText,
                   style: TossTextStyles.body.copyWith(
@@ -359,10 +369,11 @@ class _TossFormModalState extends State<TossFormModal> {
           children: [
             Expanded(
               child: TextButton(
-                onPressed: widget.onCancel ?? (() {
-                  FocusScope.of(context).unfocus();
-                  Navigator.of(context).pop();
-                }),
+                onPressed: widget.onCancel ??
+                    (() {
+                      FocusScope.of(context).unfocus();
+                      Navigator.of(context).pop();
+                    }),
                 child: Text(
                   widget.cancelButtonText,
                   style: TossTextStyles.body.copyWith(
@@ -377,7 +388,9 @@ class _TossFormModalState extends State<TossFormModal> {
               flex: 2,
               child: TossPrimaryButton(
                 text: widget.saveButtonText,
-                onPressed: widget.saveEnabled && !widget.isLoading ? widget.onSave : null,
+                onPressed: widget.saveEnabled && !widget.isLoading
+                    ? widget.onSave
+                    : null,
                 isLoading: widget.isLoading,
                 fullWidth: true,
               ),
@@ -428,28 +441,19 @@ class TossConfirmationModal extends StatelessWidget {
     return TossModal.show<bool>(
       context: context,
       title: title,
-      height: 300,
+      showHandleBar: true,
       child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space5),
-        child: Column(
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 48,
-                color: confirmColor ?? TossColors.primary,
-              ),
-              const SizedBox(height: TossSpacing.space4),
-            ],
-            Text(
-              message,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray700,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space5,
+          vertical: TossSpacing.space2,
+        ),
+        child: Text(
+          message,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray700,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.left,
         ),
       ),
       actions: [
@@ -462,25 +466,41 @@ class TossConfirmationModal extends StatelessWidget {
                   onCancel?.call();
                   Navigator.of(context).pop(false);
                 },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
                 child: Text(
                   cancelText,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w500,
+                  style: TossTextStyles.button.copyWith(
+                    color: TossColors.gray700,
                   ),
                 ),
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: TossPrimaryButton(
-                text: confirmText,
+              child: ElevatedButton(
                 onPressed: () {
                   FocusScope.of(context).unfocus();
                   onConfirm?.call();
                   Navigator.of(context).pop(true);
                 },
-                fullWidth: true,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: confirmColor ?? TossColors.primary,
+                  foregroundColor: TossColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
+                child: Text(
+                  confirmText,
+                  style: TossTextStyles.button,
+                ),
               ),
             ),
           ],

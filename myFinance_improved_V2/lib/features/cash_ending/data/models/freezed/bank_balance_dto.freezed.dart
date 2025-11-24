@@ -28,16 +28,13 @@ mixin _$BankBalanceDto {
   String? get storeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'location_id')
   String get locationId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'currency_id')
-  String get currencyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'total_amount')
-  int get totalAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
   String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'record_date')
   DateTime get recordDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
+  List<CurrencyDto> get currencies => throw _privateConstructorUsedError;
 
   /// Serializes this BankBalanceDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -60,11 +57,10 @@ abstract class $BankBalanceDtoCopyWith<$Res> {
       @JsonKey(name: 'company_id') String companyId,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'location_id') String locationId,
-      @JsonKey(name: 'currency_id') String currencyId,
-      @JsonKey(name: 'total_amount') int totalAmount,
       @JsonKey(name: 'created_by') String userId,
       @JsonKey(name: 'record_date') DateTime recordDate,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      List<CurrencyDto> currencies});
 }
 
 /// @nodoc
@@ -86,11 +82,10 @@ class _$BankBalanceDtoCopyWithImpl<$Res, $Val extends BankBalanceDto>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? locationId = null,
-    Object? currencyId = null,
-    Object? totalAmount = null,
     Object? userId = null,
     Object? recordDate = null,
     Object? createdAt = null,
+    Object? currencies = null,
   }) {
     return _then(_value.copyWith(
       balanceId: freezed == balanceId
@@ -109,14 +104,6 @@ class _$BankBalanceDtoCopyWithImpl<$Res, $Val extends BankBalanceDto>
           ? _value.locationId
           : locationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
-          ? _value.currencyId
-          : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
-      totalAmount: null == totalAmount
-          ? _value.totalAmount
-          : totalAmount // ignore: cast_nullable_to_non_nullable
-              as int,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -129,6 +116,10 @@ class _$BankBalanceDtoCopyWithImpl<$Res, $Val extends BankBalanceDto>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      currencies: null == currencies
+          ? _value.currencies
+          : currencies // ignore: cast_nullable_to_non_nullable
+              as List<CurrencyDto>,
     ) as $Val);
   }
 }
@@ -146,11 +137,10 @@ abstract class _$$BankBalanceDtoImplCopyWith<$Res>
       @JsonKey(name: 'company_id') String companyId,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'location_id') String locationId,
-      @JsonKey(name: 'currency_id') String currencyId,
-      @JsonKey(name: 'total_amount') int totalAmount,
       @JsonKey(name: 'created_by') String userId,
       @JsonKey(name: 'record_date') DateTime recordDate,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      List<CurrencyDto> currencies});
 }
 
 /// @nodoc
@@ -170,11 +160,10 @@ class __$$BankBalanceDtoImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? locationId = null,
-    Object? currencyId = null,
-    Object? totalAmount = null,
     Object? userId = null,
     Object? recordDate = null,
     Object? createdAt = null,
+    Object? currencies = null,
   }) {
     return _then(_$BankBalanceDtoImpl(
       balanceId: freezed == balanceId
@@ -193,14 +182,6 @@ class __$$BankBalanceDtoImplCopyWithImpl<$Res>
           ? _value.locationId
           : locationId // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyId: null == currencyId
-          ? _value.currencyId
-          : currencyId // ignore: cast_nullable_to_non_nullable
-              as String,
-      totalAmount: null == totalAmount
-          ? _value.totalAmount
-          : totalAmount // ignore: cast_nullable_to_non_nullable
-              as int,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -213,6 +194,10 @@ class __$$BankBalanceDtoImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      currencies: null == currencies
+          ? _value._currencies
+          : currencies // ignore: cast_nullable_to_non_nullable
+              as List<CurrencyDto>,
     ));
   }
 }
@@ -225,12 +210,12 @@ class _$BankBalanceDtoImpl extends _BankBalanceDto {
       @JsonKey(name: 'company_id') required this.companyId,
       @JsonKey(name: 'store_id') this.storeId,
       @JsonKey(name: 'location_id') required this.locationId,
-      @JsonKey(name: 'currency_id') required this.currencyId,
-      @JsonKey(name: 'total_amount') required this.totalAmount,
       @JsonKey(name: 'created_by') required this.userId,
       @JsonKey(name: 'record_date') required this.recordDate,
-      @JsonKey(name: 'created_at') required this.createdAt})
-      : super._();
+      @JsonKey(name: 'created_at') required this.createdAt,
+      final List<CurrencyDto> currencies = const []})
+      : _currencies = currencies,
+        super._();
 
   factory _$BankBalanceDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$BankBalanceDtoImplFromJson(json);
@@ -248,12 +233,6 @@ class _$BankBalanceDtoImpl extends _BankBalanceDto {
   @JsonKey(name: 'location_id')
   final String locationId;
   @override
-  @JsonKey(name: 'currency_id')
-  final String currencyId;
-  @override
-  @JsonKey(name: 'total_amount')
-  final int totalAmount;
-  @override
   @JsonKey(name: 'created_by')
   final String userId;
   @override
@@ -262,10 +241,18 @@ class _$BankBalanceDtoImpl extends _BankBalanceDto {
   @override
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  final List<CurrencyDto> _currencies;
+  @override
+  @JsonKey()
+  List<CurrencyDto> get currencies {
+    if (_currencies is EqualUnmodifiableListView) return _currencies;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_currencies);
+  }
 
   @override
   String toString() {
-    return 'BankBalanceDto(balanceId: $balanceId, companyId: $companyId, storeId: $storeId, locationId: $locationId, currencyId: $currencyId, totalAmount: $totalAmount, userId: $userId, recordDate: $recordDate, createdAt: $createdAt)';
+    return 'BankBalanceDto(balanceId: $balanceId, companyId: $companyId, storeId: $storeId, locationId: $locationId, userId: $userId, recordDate: $recordDate, createdAt: $createdAt, currencies: $currencies)';
   }
 
   @override
@@ -280,21 +267,27 @@ class _$BankBalanceDtoImpl extends _BankBalanceDto {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.locationId, locationId) ||
                 other.locationId == locationId) &&
-            (identical(other.currencyId, currencyId) ||
-                other.currencyId == currencyId) &&
-            (identical(other.totalAmount, totalAmount) ||
-                other.totalAmount == totalAmount) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.recordDate, recordDate) ||
                 other.recordDate == recordDate) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            const DeepCollectionEquality()
+                .equals(other._currencies, _currencies));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, balanceId, companyId, storeId,
-      locationId, currencyId, totalAmount, userId, recordDate, createdAt);
+  int get hashCode => Object.hash(
+      runtimeType,
+      balanceId,
+      companyId,
+      storeId,
+      locationId,
+      userId,
+      recordDate,
+      createdAt,
+      const DeepCollectionEquality().hash(_currencies));
 
   /// Create a copy of BankBalanceDto
   /// with the given fields replaced by the non-null parameter values.
@@ -315,16 +308,14 @@ class _$BankBalanceDtoImpl extends _BankBalanceDto {
 
 abstract class _BankBalanceDto extends BankBalanceDto {
   const factory _BankBalanceDto(
-          {@JsonKey(name: 'bank_amount_id') final String? balanceId,
-          @JsonKey(name: 'company_id') required final String companyId,
-          @JsonKey(name: 'store_id') final String? storeId,
-          @JsonKey(name: 'location_id') required final String locationId,
-          @JsonKey(name: 'currency_id') required final String currencyId,
-          @JsonKey(name: 'total_amount') required final int totalAmount,
-          @JsonKey(name: 'created_by') required final String userId,
-          @JsonKey(name: 'record_date') required final DateTime recordDate,
-          @JsonKey(name: 'created_at') required final DateTime createdAt}) =
-      _$BankBalanceDtoImpl;
+      {@JsonKey(name: 'bank_amount_id') final String? balanceId,
+      @JsonKey(name: 'company_id') required final String companyId,
+      @JsonKey(name: 'store_id') final String? storeId,
+      @JsonKey(name: 'location_id') required final String locationId,
+      @JsonKey(name: 'created_by') required final String userId,
+      @JsonKey(name: 'record_date') required final DateTime recordDate,
+      @JsonKey(name: 'created_at') required final DateTime createdAt,
+      final List<CurrencyDto> currencies}) = _$BankBalanceDtoImpl;
   const _BankBalanceDto._() : super._();
 
   factory _BankBalanceDto.fromJson(Map<String, dynamic> json) =
@@ -343,12 +334,6 @@ abstract class _BankBalanceDto extends BankBalanceDto {
   @JsonKey(name: 'location_id')
   String get locationId;
   @override
-  @JsonKey(name: 'currency_id')
-  String get currencyId;
-  @override
-  @JsonKey(name: 'total_amount')
-  int get totalAmount;
-  @override
   @JsonKey(name: 'created_by')
   String get userId;
   @override
@@ -357,6 +342,8 @@ abstract class _BankBalanceDto extends BankBalanceDto {
   @override
   @JsonKey(name: 'created_at')
   DateTime get createdAt;
+  @override
+  List<CurrencyDto> get currencies;
 
   /// Create a copy of BankBalanceDto
   /// with the given fields replaced by the non-null parameter values.

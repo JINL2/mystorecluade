@@ -1,6 +1,7 @@
 // lib/features/cash_ending/domain/repositories/bank_repository.dart
 
 import '../entities/bank_balance.dart';
+import '../entities/balance_summary.dart';
 
 /// Repository interface for Bank operations (Domain Layer)
 ///
@@ -20,5 +21,16 @@ abstract class BankRepository {
   Future<List<BankBalance>> getBankBalanceHistory({
     required String locationId,
     int limit = 10,
+  });
+
+  /// Get balance summary (Journal vs Real) for bank location
+  ///
+  /// Returns balance comparison showing:
+  /// - Total Journal (book balance)
+  /// - Total Real (actual bank amount)
+  /// - Difference
+  /// Throws exception on failure
+  Future<BalanceSummary> getBalanceSummary({
+    required String locationId,
   });
 }

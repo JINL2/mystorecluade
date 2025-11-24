@@ -1804,7 +1804,14 @@ mixin _$DenominationDetail {
   int get currentQuantity => throw _privateConstructorUsedError;
   int get quantityChange => throw _privateConstructorUsedError;
   double get subtotal => throw _privateConstructorUsedError;
-  String? get currencySymbol => throw _privateConstructorUsedError;
+  String? get currencySymbol =>
+      throw _privateConstructorUsedError; // Bank multi-currency fields
+  String? get currencyId => throw _privateConstructorUsedError;
+  String? get currencyCode => throw _privateConstructorUsedError;
+  String? get currencyName => throw _privateConstructorUsedError;
+  double? get amount => throw _privateConstructorUsedError;
+  double? get exchangeRate => throw _privateConstructorUsedError;
+  double? get amountInBaseCurrency => throw _privateConstructorUsedError;
 
   /// Serializes this DenominationDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1830,7 +1837,13 @@ abstract class $DenominationDetailCopyWith<$Res> {
       int currentQuantity,
       int quantityChange,
       double subtotal,
-      String? currencySymbol});
+      String? currencySymbol,
+      String? currencyId,
+      String? currencyCode,
+      String? currencyName,
+      double? amount,
+      double? exchangeRate,
+      double? amountInBaseCurrency});
 }
 
 /// @nodoc
@@ -1856,6 +1869,12 @@ class _$DenominationDetailCopyWithImpl<$Res, $Val extends DenominationDetail>
     Object? quantityChange = null,
     Object? subtotal = null,
     Object? currencySymbol = freezed,
+    Object? currencyId = freezed,
+    Object? currencyCode = freezed,
+    Object? currencyName = freezed,
+    Object? amount = freezed,
+    Object? exchangeRate = freezed,
+    Object? amountInBaseCurrency = freezed,
   }) {
     return _then(_value.copyWith(
       denominationId: null == denominationId
@@ -1890,6 +1909,30 @@ class _$DenominationDetailCopyWithImpl<$Res, $Val extends DenominationDetail>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String?,
+      currencyId: freezed == currencyId
+          ? _value.currencyId
+          : currencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyName: freezed == currencyName
+          ? _value.currencyName
+          : currencyName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amount: freezed == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      exchangeRate: freezed == exchangeRate
+          ? _value.exchangeRate
+          : exchangeRate // ignore: cast_nullable_to_non_nullable
+              as double?,
+      amountInBaseCurrency: freezed == amountInBaseCurrency
+          ? _value.amountInBaseCurrency
+          : amountInBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as double?,
     ) as $Val);
   }
 }
@@ -1910,7 +1953,13 @@ abstract class _$$DenominationDetailImplCopyWith<$Res>
       int currentQuantity,
       int quantityChange,
       double subtotal,
-      String? currencySymbol});
+      String? currencySymbol,
+      String? currencyId,
+      String? currencyCode,
+      String? currencyName,
+      double? amount,
+      double? exchangeRate,
+      double? amountInBaseCurrency});
 }
 
 /// @nodoc
@@ -1934,6 +1983,12 @@ class __$$DenominationDetailImplCopyWithImpl<$Res>
     Object? quantityChange = null,
     Object? subtotal = null,
     Object? currencySymbol = freezed,
+    Object? currencyId = freezed,
+    Object? currencyCode = freezed,
+    Object? currencyName = freezed,
+    Object? amount = freezed,
+    Object? exchangeRate = freezed,
+    Object? amountInBaseCurrency = freezed,
   }) {
     return _then(_$DenominationDetailImpl(
       denominationId: null == denominationId
@@ -1968,6 +2023,30 @@ class __$$DenominationDetailImplCopyWithImpl<$Res>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String?,
+      currencyId: freezed == currencyId
+          ? _value.currencyId
+          : currencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyName: freezed == currencyName
+          ? _value.currencyName
+          : currencyName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amount: freezed == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      exchangeRate: freezed == exchangeRate
+          ? _value.exchangeRate
+          : exchangeRate // ignore: cast_nullable_to_non_nullable
+              as double?,
+      amountInBaseCurrency: freezed == amountInBaseCurrency
+          ? _value.amountInBaseCurrency
+          : amountInBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as double?,
     ));
   }
 }
@@ -1983,7 +2062,13 @@ class _$DenominationDetailImpl implements _DenominationDetail {
       required this.currentQuantity,
       required this.quantityChange,
       required this.subtotal,
-      this.currencySymbol});
+      this.currencySymbol,
+      this.currencyId,
+      this.currencyCode,
+      this.currencyName,
+      this.amount,
+      this.exchangeRate,
+      this.amountInBaseCurrency});
 
   factory _$DenominationDetailImpl.fromJson(Map<String, dynamic> json) =>
       _$$DenominationDetailImplFromJson(json);
@@ -2004,10 +2089,23 @@ class _$DenominationDetailImpl implements _DenominationDetail {
   final double subtotal;
   @override
   final String? currencySymbol;
+// Bank multi-currency fields
+  @override
+  final String? currencyId;
+  @override
+  final String? currencyCode;
+  @override
+  final String? currencyName;
+  @override
+  final double? amount;
+  @override
+  final double? exchangeRate;
+  @override
+  final double? amountInBaseCurrency;
 
   @override
   String toString() {
-    return 'DenominationDetail(denominationId: $denominationId, denominationValue: $denominationValue, denominationType: $denominationType, previousQuantity: $previousQuantity, currentQuantity: $currentQuantity, quantityChange: $quantityChange, subtotal: $subtotal, currencySymbol: $currencySymbol)';
+    return 'DenominationDetail(denominationId: $denominationId, denominationValue: $denominationValue, denominationType: $denominationType, previousQuantity: $previousQuantity, currentQuantity: $currentQuantity, quantityChange: $quantityChange, subtotal: $subtotal, currencySymbol: $currencySymbol, currencyId: $currencyId, currencyCode: $currencyCode, currencyName: $currencyName, amount: $amount, exchangeRate: $exchangeRate, amountInBaseCurrency: $amountInBaseCurrency)';
   }
 
   @override
@@ -2030,7 +2128,18 @@ class _$DenominationDetailImpl implements _DenominationDetail {
             (identical(other.subtotal, subtotal) ||
                 other.subtotal == subtotal) &&
             (identical(other.currencySymbol, currencySymbol) ||
-                other.currencySymbol == currencySymbol));
+                other.currencySymbol == currencySymbol) &&
+            (identical(other.currencyId, currencyId) ||
+                other.currencyId == currencyId) &&
+            (identical(other.currencyCode, currencyCode) ||
+                other.currencyCode == currencyCode) &&
+            (identical(other.currencyName, currencyName) ||
+                other.currencyName == currencyName) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.exchangeRate, exchangeRate) ||
+                other.exchangeRate == exchangeRate) &&
+            (identical(other.amountInBaseCurrency, amountInBaseCurrency) ||
+                other.amountInBaseCurrency == amountInBaseCurrency));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2044,7 +2153,13 @@ class _$DenominationDetailImpl implements _DenominationDetail {
       currentQuantity,
       quantityChange,
       subtotal,
-      currencySymbol);
+      currencySymbol,
+      currencyId,
+      currencyCode,
+      currencyName,
+      amount,
+      exchangeRate,
+      amountInBaseCurrency);
 
   /// Create a copy of DenominationDetail
   /// with the given fields replaced by the non-null parameter values.
@@ -2072,7 +2187,13 @@ abstract class _DenominationDetail implements DenominationDetail {
       required final int currentQuantity,
       required final int quantityChange,
       required final double subtotal,
-      final String? currencySymbol}) = _$DenominationDetailImpl;
+      final String? currencySymbol,
+      final String? currencyId,
+      final String? currencyCode,
+      final String? currencyName,
+      final double? amount,
+      final double? exchangeRate,
+      final double? amountInBaseCurrency}) = _$DenominationDetailImpl;
 
   factory _DenominationDetail.fromJson(Map<String, dynamic> json) =
       _$DenominationDetailImpl.fromJson;
@@ -2092,7 +2213,19 @@ abstract class _DenominationDetail implements DenominationDetail {
   @override
   double get subtotal;
   @override
-  String? get currencySymbol;
+  String? get currencySymbol; // Bank multi-currency fields
+  @override
+  String? get currencyId;
+  @override
+  String? get currencyCode;
+  @override
+  String? get currencyName;
+  @override
+  double? get amount;
+  @override
+  double? get exchangeRate;
+  @override
+  double? get amountInBaseCurrency;
 
   /// Create a copy of DenominationDetail
   /// with the given fields replaced by the non-null parameter values.

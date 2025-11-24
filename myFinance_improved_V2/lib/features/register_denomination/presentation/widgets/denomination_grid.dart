@@ -38,18 +38,8 @@ class DenominationGrid extends ConsumerWidget {
   }
 
   void _onDenominationTap(BuildContext context, WidgetRef ref, Denomination denomination) {
-    // Add haptic feedback for better UX
     HapticFeedback.lightImpact();
-    
-    // Debug print to verify tap is working and check denomination details
-    debugPrint('Denomination tapped: ${denomination.formattedValue}');
-    debugPrint('Denomination ID: ${denomination.id}');
-    debugPrint('Currency ID: ${denomination.currencyId}');
-    debugPrint('Company ID: ${denomination.companyId}');
-    debugPrint('Value: ${denomination.value}');
-    debugPrint('Type: ${denomination.type}');
-    
-    // Show edit options with proper constraints
+
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
@@ -166,34 +156,19 @@ class DenominationGrid extends ConsumerWidget {
   }
 
   Future<void> _removeDenominationWithRefresh(BuildContext context, WidgetRef ref, Denomination denomination) async {
-    // Haptic feedback
     HapticFeedback.lightImpact();
-    
-    print('Starting deletion for denomination:');
-    print('  ID: ${denomination.id}');
-    print('  Value: ${denomination.formattedValue}');
-    print('  Currency ID: ${denomination.currencyId}');
-    print('  Company ID: ${denomination.companyId}');
-    print('  Type: ${denomination.type}');
-    
+
     try {
-      // Remove the denomination from database
-      print('Calling repository removeDenomination...');
       await ref.read(denominationOperationsProvider.notifier)
           .removeDenomination(denomination.id, denomination.currencyId);
-      
-      
-      // Refresh the remote providers to get updated data from database
+
+      // Refresh providers to get updated data
       ref.invalidate(denominationListProvider(denomination.currencyId));
       ref.invalidate(companyCurrenciesProvider);
       ref.invalidate(companyCurrenciesStreamProvider);
       ref.invalidate(searchFilteredCurrenciesProvider);
-      
-      // Clear any local state for this currency to ensure we use fresh remote data
-      print('Clearing local state to ensure fresh data is used...');
       ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
-      
-      // Show success message after successful deletion
+
       if (context.mounted) {
         await showDialog<bool>(
           context: context,
@@ -205,15 +180,9 @@ class DenominationGrid extends ConsumerWidget {
           ),
         );
       }
-      
-      // Success haptic feedback
+
       HapticFeedback.selectionClick();
-      
-      
     } catch (e) {
-      print('❌ Failed to delete denomination: $e');
-      
-      // Show error message
       if (context.mounted) {
         await showDialog<bool>(
           context: context,
@@ -225,8 +194,7 @@ class DenominationGrid extends ConsumerWidget {
           ),
         );
       }
-      
-      // Error haptic feedback
+
       HapticFeedback.heavyImpact();
     }
   }

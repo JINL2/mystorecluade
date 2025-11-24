@@ -5,6 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/monitoring/sentry_config.dart';
+import 'features/journal_input/data/repositories/repository_providers.dart'
+    as journal_data;
+import 'features/journal_input/domain/providers/repository_providers.dart'
+    as journal_domain;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,8 +49,13 @@ Future<void> main() async {
     }
 
     runApp(
-      const ProviderScope(
-        child: MyFinanceApp(),
+      ProviderScope(
+        overrides: [
+          // Override domain layer provider with data layer implementation
+          journal_domain.journalEntryRepositoryProvider
+              .overrideWithProvider(journal_data.journalEntryRepositoryProvider),
+        ],
+        child: const MyFinanceApp(),
       ),
     );
   });

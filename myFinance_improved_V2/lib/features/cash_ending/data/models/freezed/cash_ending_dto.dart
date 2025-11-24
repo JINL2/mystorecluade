@@ -29,19 +29,18 @@ class CashEndingDto with _$CashEndingDto {
   factory CashEndingDto.fromJson(Map<String, dynamic> json) =>
       _$CashEndingDtoFromJson(json);
 
-  /// Convert to RPC parameters for Supabase (insert_cashier_amount_lines)
+  /// Convert to RPC parameters for Supabase (insert_amount_multi_currency)
   ///
-  /// This matches the format expected by the stored procedure
+  /// ✅ Universal Multi-Currency RPC format with Entry-based workflow
   Map<String, dynamic> toRpcParams() {
     // Build currencies array for RPC
-    // Note: Include currencies even if all denominations are 0 (cash can be 0)
     final currenciesJson = currencies.map((currency) {
-      // Include all denominations with their quantities (including 0)
+      // Include all denominations with their quantities
       final denominationsJson = currency.denominations
           .map((d) => {
                 'denomination_id': d.denominationId,
-                'quantity': d.quantity,
-              },)
+                'quantity': d.quantity,  // ✅ Cash uses Stock method
+              })
           .toList();
 
       return {
@@ -53,13 +52,14 @@ class CashEndingDto with _$CashEndingDto {
     final effectiveUserId = userId ?? createdBy ?? '';
 
     return {
+      'p_entry_type': 'cash',  // ✅ NEW: Entry type
       'p_company_id': companyId,
       'p_location_id': locationId,
-      'p_record_date': DateTimeUtils.toDateOnly(recordDate), // Date only
+      'p_record_date': DateTimeUtils.toDateOnly(recordDate),
       'p_created_by': effectiveUserId,
-      'p_currencies': currenciesJson,
-      'p_created_at': DateTimeUtils.toRpcFormat(createdAt), // Convert to UTC
       'p_store_id': (storeId == null || storeId == 'headquarter') ? null : storeId,
+      'p_description': 'Cash ending',
+      'p_currencies': currenciesJson,
     };
   }
 

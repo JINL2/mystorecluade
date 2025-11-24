@@ -227,7 +227,7 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<Map<String, dynamic>>(
-        'get_location_stock_flow',
+        'get_location_stock_flow_v2',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,

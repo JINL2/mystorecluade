@@ -7,7 +7,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../domain/entities/store.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/store_state.dart';
 
@@ -78,101 +77,92 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
     );
   }
 
-  /// Handle store state changes
-  /// ✅ Separated from build() to improve readability and prevent issues
-  void _handleStoreStateChange(StoreState? previous, StoreState next) {
-    if (!mounted) return;
-
-    next.when(
-      initial: () {
-        // Do nothing
-      },
-      loading: () => _showLoadingSnackBar(context),
-      error: (message, errorCode) => _showErrorSnackBar(context, message),
-      created: (store) => _handleStoreCreated(context, store),
-    );
-  }
-
-  void _showLoadingSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-            SizedBox(width: 12),
-            Text('Creating store...'),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        duration: const Duration(seconds: 30),
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: _createStore,
-          ),
-        ),
-      );
-  }
-
-  void _handleStoreCreated(BuildContext context, Store store) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text('Store "${store.name}" created successfully!'),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-          action: store.code.isNotEmpty
-              ? SnackBarAction(
-                  label: 'Share Code',
-                  textColor: Colors.white,
-                  onPressed: () => _copyToClipboard(store.code),
-                )
-              : null,
-        ),
-      );
-
-    // Close bottom sheet and return store
-    Navigator.of(context).pop(store);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // ✅ Listen to store state changes (Riverpod automatically prevents duplicate listeners)
-    ref.listen<StoreState>(storeNotifierProvider, _handleStoreStateChange);
+    // Listen to store state changes
+    ref.listen<StoreState>(storeNotifierProvider, (previous, next) {
+      next.when(
+        initial: () {
+          // Do nothing
+        },
+        loading: () {
+          // Show loading snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Creating store...'),
+                ],
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 30),
+            ),
+          );
+        },
+        error: (message, errorCode) {
+          // Hide loading, show error
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(message)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: _createStore,
+              ),
+            ),
+          );
+        },
+        created: (store) {
+          // Hide loading
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          // Close bottom sheet and return store
+          Navigator.of(context).pop(store);
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text('Store "${store.name}" created successfully!'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+              action: store.code.isNotEmpty
+                  ? SnackBarAction(
+                      label: 'Share Code',
+                      textColor: Colors.white,
+                      onPressed: () => _copyToClipboard(store.code),
+                    )
+                  : null,
+            ),
+          );
+        },
+      );
+    });
 
     final state = ref.watch(storeNotifierProvider);
 

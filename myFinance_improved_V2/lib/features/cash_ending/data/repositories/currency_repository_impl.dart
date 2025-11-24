@@ -22,6 +22,34 @@ class CurrencyRepositoryImpl extends BaseRepository
   }) : _remoteDataSource = remoteDataSource ?? CurrencyRemoteDataSource();
 
   @override
+  Future<List<Currency>> getCompanyCurrenciesWithExchangeRates({
+    required String companyId,
+    DateTime? rateDate,
+  }) async {
+    return executeWithErrorHandling(
+      () async {
+        if (companyId.isEmpty) {
+          return [];
+        }
+
+        // RPC call (1 network request for all data)
+        final data = await _remoteDataSource.getCompanyCurrenciesWithExchangeRates(
+          companyId: companyId,
+          rateDate: rateDate,
+        );
+
+        // JSON → DTO → Entity conversion
+        // Use fromRpcJson to inject currency_id into denominations
+        return data
+            .map((json) => CurrencyDto.fromRpcJson(json).toEntity())
+            .toList();
+      },
+      operationName: 'getCompanyCurrenciesWithExchangeRates',
+    );
+  }
+
+  @override
+  @Deprecated('Use getCompanyCurrenciesWithExchangeRates instead')
   Future<List<Currency>> getCompanyCurrencies(String companyId) async {
     return executeWithErrorHandling(
       () async {

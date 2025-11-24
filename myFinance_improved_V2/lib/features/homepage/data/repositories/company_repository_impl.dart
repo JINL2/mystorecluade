@@ -21,8 +21,35 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
     required String companyTypeId,
     required String baseCurrencyId,
   }) async {
-    // ✅ Pure data operation - no business logic
-    // Business validation is handled in Domain layer (Use Case)
+    // Validation checks (returns early on failure)
+    final isDuplicate =
+        await remoteDataSource.checkDuplicateCompanyName(companyName);
+    if (isDuplicate) {
+      return const Left(ValidationFailure(
+        message: 'You already have a business with this name',
+        code: 'DUPLICATE_NAME',
+      ),);
+    }
+
+    final companyTypeExists =
+        await remoteDataSource.verifyCompanyTypeExists(companyTypeId);
+    if (!companyTypeExists) {
+      return const Left(ValidationFailure(
+        message: 'Please select a valid business type',
+        code: 'INVALID_COMPANY_TYPE',
+      ),);
+    }
+
+    final currencyExists =
+        await remoteDataSource.verifyCurrencyExists(baseCurrencyId);
+    if (!currencyExists) {
+      return const Left(ValidationFailure(
+        message: 'Please select a valid currency',
+        code: 'INVALID_CURRENCY',
+      ),);
+    }
+
+    // Execute with automatic error handling
     return executeWithErrorHandling(
       operation: () async {
         final companyModel = await remoteDataSource.createCompany(
@@ -34,39 +61,6 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
       },
       errorContext: 'createCompany',
       fallbackErrorMessage: 'Failed to create company. Please try again.',
-    );
-  }
-
-  @override
-  Future<Either<Failure, bool>> checkDuplicateCompanyName(String companyName) async {
-    return executeWithErrorHandling(
-      operation: () async {
-        return await remoteDataSource.checkDuplicateCompanyName(companyName);
-      },
-      errorContext: 'checkDuplicateCompanyName',
-      fallbackErrorMessage: 'Failed to check company name',
-    );
-  }
-
-  @override
-  Future<Either<Failure, bool>> verifyCompanyTypeExists(String companyTypeId) async {
-    return executeWithErrorHandling(
-      operation: () async {
-        return await remoteDataSource.verifyCompanyTypeExists(companyTypeId);
-      },
-      errorContext: 'verifyCompanyTypeExists',
-      fallbackErrorMessage: 'Failed to verify company type',
-    );
-  }
-
-  @override
-  Future<Either<Failure, bool>> verifyCurrencyExists(String currencyId) async {
-    return executeWithErrorHandling(
-      operation: () async {
-        return await remoteDataSource.verifyCurrencyExists(currencyId);
-      },
-      errorContext: 'verifyCurrencyExists',
-      fallbackErrorMessage: 'Failed to verify currency',
     );
   }
 

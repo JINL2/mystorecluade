@@ -660,7 +660,10 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                           const SizedBox(
                             width: 12,
                             height: 12,
-                            child: TossLoadingView(),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+                            ),
                           ),
                           const SizedBox(width: TossSpacing.space2),
                           Text(

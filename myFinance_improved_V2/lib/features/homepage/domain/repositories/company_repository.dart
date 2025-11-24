@@ -38,25 +38,4 @@ abstract class CompanyRepository {
   /// Returns [Right<List<Currency>>] on success
   /// Returns [Left<Failure>] on error
   Future<Either<Failure, List<Currency>>> getCurrencies();
-
-  /// Check if a company name already exists for the current user
-  /// Used for duplicate validation in business logic
-  ///
-  /// Returns [Right<bool>] - true if duplicate exists, false otherwise
-  /// Returns [Left<Failure>] on error
-  Future<Either<Failure, bool>> checkDuplicateCompanyName(String companyName);
-
-  /// Verify that a company type ID exists in the database
-  /// Used for referential integrity validation in business logic
-  ///
-  /// Returns [Right<bool>] - true if exists, false otherwise
-  /// Returns [Left<Failure>] on error
-  Future<Either<Failure, bool>> verifyCompanyTypeExists(String companyTypeId);
-
-  /// Verify that a currency ID exists in the database
-  /// Used for referential integrity validation in business logic
-  ///
-  /// Returns [Right<bool>] - true if exists, false otherwise
-  /// Returns [Left<Failure>] on error
-  Future<Either<Failure, bool>> verifyCurrencyExists(String currencyId);
 }

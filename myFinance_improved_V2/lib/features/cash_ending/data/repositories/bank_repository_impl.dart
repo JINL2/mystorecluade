@@ -1,9 +1,12 @@
 // lib/features/cash_ending/data/repositories/bank_repository_impl.dart
 
 import '../../domain/entities/bank_balance.dart';
+import '../../domain/entities/balance_summary.dart';
 import '../../domain/repositories/bank_repository.dart';
 import '../datasources/bank_remote_datasource.dart';
+import '../datasources/cash_ending_remote_datasource.dart';
 import '../models/freezed/bank_balance_dto.dart';
+import '../models/freezed/balance_summary_dto.dart';
 import 'base_repository.dart';
 
 /// Repository Implementation for Bank operations (Data Layer)
@@ -13,10 +16,13 @@ import 'base_repository.dart';
 /// Handles data transformation and error mapping using BaseRepository.
 class BankRepositoryImpl extends BaseRepository implements BankRepository {
   final BankRemoteDataSource _remoteDataSource;
+  final CashEndingRemoteDataSource _cashEndingDataSource;
 
   BankRepositoryImpl({
     BankRemoteDataSource? remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource ?? BankRemoteDataSource();
+    CashEndingRemoteDataSource? cashEndingDataSource,
+  })  : _remoteDataSource = remoteDataSource ?? BankRemoteDataSource(),
+        _cashEndingDataSource = cashEndingDataSource ?? CashEndingRemoteDataSource();
 
   @override
   Future<void> saveBankBalance(BankBalance balance) async {
@@ -54,6 +60,25 @@ class BankRepositoryImpl extends BaseRepository implements BankRepository {
             .toList();
       },
       operationName: 'getBankBalanceHistory',
+    );
+  }
+
+  @override
+  Future<BalanceSummary> getBalanceSummary({
+    required String locationId,
+  }) async {
+    return executeWithErrorHandling(
+      () async {
+        // Call cash ending datasource (reuse existing RPC)
+        final data = await _cashEndingDataSource.getBalanceSummary(
+          locationId: locationId,
+        );
+
+        // Convert JSON to DTO then to entity
+        final dto = BalanceSummaryDto.fromJson(data);
+        return dto.toEntity();
+      },
+      operationName: 'getBalanceSummary',
     );
   }
 }

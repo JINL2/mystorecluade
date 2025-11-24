@@ -1,9 +1,11 @@
 // lib/features/cash_ending/data/repositories/cash_ending_repository_impl.dart
 
 import '../../domain/entities/cash_ending.dart';
+import '../../domain/entities/balance_summary.dart';
 import '../../domain/repositories/cash_ending_repository.dart';
 import '../datasources/cash_ending_remote_datasource.dart';
 import '../models/freezed/cash_ending_dto.dart';
+import '../models/freezed/balance_summary_dto.dart';
 import 'base_repository.dart';
 
 /// Repository Implementation for Cash Ending (Data Layer)
@@ -58,6 +60,49 @@ class CashEndingRepositoryImpl extends BaseRepository
             .toList();
       },
       operationName: 'getCashEndingHistory',
+    );
+  }
+
+  @override
+  Future<BalanceSummary> getBalanceSummary({
+    required String locationId,
+  }) async {
+    return executeWithErrorHandling(
+      () async {
+        // Call remote datasource
+        final data = await _remoteDataSource.getBalanceSummary(
+          locationId: locationId,
+        );
+
+        // Convert JSON to DTO then to entity
+        final dto = BalanceSummaryDto.fromJson(data);
+        return dto.toEntity();
+      },
+      operationName: 'getBalanceSummary',
+    );
+  }
+
+  @override
+  Future<List<BalanceSummary>> getMultipleBalanceSummary({
+    required List<String> locationIds,
+  }) async {
+    return executeWithErrorHandling(
+      () async {
+        // Call remote datasource
+        final data = await _remoteDataSource.getMultipleBalanceSummary(
+          locationIds: locationIds,
+        );
+
+        // Extract locations array from response
+        final locationsJson = data['locations'] as List<dynamic>? ?? [];
+
+        // Convert each location to BalanceSummary entity
+        return locationsJson
+            .map((json) => BalanceSummaryDto.fromJson(json as Map<String, dynamic>))
+            .map((dto) => dto.toEntity())
+            .toList();
+      },
+      operationName: 'getMultipleBalanceSummary',
     );
   }
 }

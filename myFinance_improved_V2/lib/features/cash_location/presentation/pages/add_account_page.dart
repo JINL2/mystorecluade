@@ -11,10 +11,9 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
-import '../../domain/entities/currency_type.dart';
-import '../../domain/providers/use_case_providers.dart';
 import '../../domain/usecases/create_cash_location_use_case.dart';
 import '../providers/cash_location_providers.dart';
+import '../widgets/currency_selector_sheet.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -331,98 +330,81 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   Widget _buildCurrencyDropdown() {
     final currencyTypesAsync = ref.watch(currencyTypesProvider);
     bool showError = _shouldShowError('currency');
-    
+
     return currencyTypesAsync.when(
       data: (currencies) {
-        return Container(
-          decoration: BoxDecoration(
-            color: showError ? TossColors.errorLight : TossColors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            border: Border.all(
-              color: showError ? TossColors.error : TossColors.gray300,
-              width: 1.0,
-            ),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: _selectedCurrencyId,
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedCurrencyId = newValue;
-                if (newValue != null) {
-                  _selectedCurrency = currencies.firstWhere(
-                    (currency) => currency.currencyId == newValue,
-                  );
-                  _filledFields.add('currency');
-                } else {
-                  _selectedCurrency = null;
-                  _filledFields.remove('currency');
-                }
-              });
-            },
-            decoration: InputDecoration(
-              hintText: 'Select currency',
-              hintStyle: TossTextStyles.body.copyWith(
-                fontSize: 16,
-                color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
+        // Find selected currency for display
+        final selectedCurrency = _selectedCurrencyId != null
+            ? currencies.firstWhere(
+                (c) => c.currencyId == _selectedCurrencyId,
+                orElse: () => currencies.first,
+              )
+            : null;
+
+        return InkWell(
+          onTap: () => _showCurrencySelector(currencies),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: showError ? TossColors.errorLight : TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(
+                color: showError ? TossColors.error : TossColors.gray300,
+                width: 1.0,
               ),
             ),
-            icon: const Icon(
-              Icons.keyboard_arrow_down,
-              color: TossColors.gray400,
-              size: 24,
-            ),
-            isExpanded: true,
-            style: TossTextStyles.body.copyWith(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: TossColors.black87,
-            ),
-            items: currencies.map<DropdownMenuItem<String>>((CurrencyType currency) {
-              return DropdownMenuItem<String>(
-                value: currency.currencyId,
-                child: Row(
-                  children: [
-                    // Currency symbol
-                    SizedBox(
-                      width: 32,
-                      child: Text(
-                        currency.symbol,
-                        style: TossTextStyles.body.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
+            child: Row(
+              children: [
+                Expanded(
+                  child: selectedCurrency != null
+                      ? Row(
+                          children: [
+                            // Flag emoji
+                            Text(
+                              selectedCurrency.flagEmoji,
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                            const SizedBox(width: TossSpacing.space3),
+                            // Currency name
+                            Expanded(
+                              child: Text(
+                                selectedCurrency.currencyName,
+                                style: TossTextStyles.body.copyWith(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: TossSpacing.space2),
+                            // Currency code
+                            Text(
+                              selectedCurrency.currencyCode,
+                              style: TossTextStyles.caption.copyWith(
+                                fontSize: 14,
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          'Select currency',
+                          style: TossTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space2),
-                    // Currency name
-                    Expanded(
-                      child: Text(
-                        currency.currencyName,
-                        style: TossTextStyles.body.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    // Currency code
-                    Text(
-                      currency.currencyCode,
-                      style: TossTextStyles.caption.copyWith(
-                        fontSize: 14,
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
                 ),
-              );
-            }).toList(),
+                const SizedBox(width: TossSpacing.space2),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  color: showError ? TossColors.error : TossColors.gray400,
+                  size: 24,
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -453,6 +435,22 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         ),
       ),
     );
+  }
+
+  void _showCurrencySelector(List<CurrencyType> currencies) async {
+    final selectedCurrency = await CurrencySelectorSheet.show(
+      context: context,
+      currencies: currencies,
+      selectedCurrencyId: _selectedCurrencyId,
+    );
+
+    if (selectedCurrency != null) {
+      setState(() {
+        _selectedCurrencyId = selectedCurrency.currencyId;
+        _selectedCurrency = selectedCurrency;
+        _filledFields.add('currency');
+      });
+    }
   }
   
   Widget _buildBottomButton() {

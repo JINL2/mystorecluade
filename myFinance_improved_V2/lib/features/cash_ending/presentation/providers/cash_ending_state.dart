@@ -30,6 +30,9 @@ class CashEndingState with _$CashEndingState {
     /// Success message to display
     String? successMessage,
 
+    /// Reset all input fields flag (increments on each reset request)
+    @Default(0) int resetInputsCounter,
+
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Location Selection State
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -74,6 +77,9 @@ class CashEndingState with _$CashEndingState {
 
     /// Available currencies for the company
     @Default([]) List<Currency> currencies,
+
+    /// Base currency for Grand Total calculation
+    Currency? baseCurrency,
 
     /// Recent cash ending history for selected location
     @Default([]) List<CashEnding> recentCashEndings,
@@ -143,4 +149,21 @@ class CashEndingState with _$CashEndingState {
       isLoadingCurrencies ||
       isLoadingRecentEndings ||
       isSaving;
+
+  /// Calculate Grand Total across all currencies
+  ///
+  /// Used in: Grand Total Section at bottom of each tab
+  ///
+  /// Logic: Sum all currencies converted to base currency
+  double get grandTotalInBaseCurrency {
+    return currencies.fold(
+      0.0,
+      (sum, currency) => sum + currency.totalAmountInBaseCurrency,
+    );
+  }
+
+  /// Get base currency symbol for Grand Total display
+  String get baseCurrencySymbol {
+    return baseCurrency?.symbol ?? '₫'; // Default to VND
+  }
 }

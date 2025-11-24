@@ -12,6 +12,13 @@ class JournalFlowModel {
     final createdAtUtc = (json['created_at'] ?? '').toString();
     final systemTimeUtc = (json['system_time'] ?? '').toString();
 
+    // V2 RPC returns created_by as UUID string + created_by_name
+    // Build CreatedBy from flat fields
+    final createdBy = CreatedBy(
+      userId: (json['created_by'] ?? '').toString(),
+      fullName: (json['created_by_name'] ?? '').toString(),
+    );
+
     return JournalFlow(
       flowId: (json['flow_id'] ?? '').toString(),
       createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
@@ -24,7 +31,7 @@ class JournalFlowModel {
       journalType: (json['journal_type'] ?? '').toString(),
       accountId: (json['account_id'] ?? '').toString(),
       accountName: (json['account_name'] ?? '').toString(),
-      createdBy: CreatedByModel.fromJson((json['created_by'] ?? <String, dynamic>{}) as Map<String, dynamic>),
+      createdBy: createdBy,
       counterAccount: json['counter_account'] != null && json['counter_account'] is Map<String, dynamic>
           ? CounterAccountModel.fromJson(json['counter_account'] as Map<String, dynamic>)
           : null,
@@ -38,6 +45,27 @@ class ActualFlowModel {
     final createdAtUtc = (json['created_at'] ?? '').toString();
     final systemTimeUtc = (json['system_time'] ?? '').toString();
 
+    // V2 RPC returns flat structure with currency_id, currency_code, etc.
+    // Build CurrencyInfo from flat fields
+    final currencyInfo = CurrencyInfo(
+      currencyId: (json['currency_id'] ?? '').toString(),
+      currencyCode: (json['currency_code'] ?? '').toString(),
+      currencyName: (json['currency_name'] ?? '').toString(),
+      symbol: (json['currency_symbol'] ?? '').toString(),
+    );
+
+    // V2 RPC returns created_by as UUID string + created_by_name
+    // Build CreatedBy from flat fields
+    final createdBy = CreatedBy(
+      userId: (json['created_by'] ?? '').toString(),
+      fullName: (json['created_by_name'] ?? '').toString(),
+    );
+
+    // V2 uses 'denomination_details', V1 uses 'current_denominations'
+    final denominationsKey = json.containsKey('denomination_details')
+        ? 'denomination_details'
+        : 'current_denominations';
+
     return ActualFlow(
       flowId: (json['flow_id'] ?? '').toString(),
       createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
@@ -45,9 +73,9 @@ class ActualFlowModel {
       balanceBefore: (json['balance_before'] as num?)?.toDouble() ?? 0.0,
       flowAmount: (json['flow_amount'] as num?)?.toDouble() ?? 0.0,
       balanceAfter: (json['balance_after'] as num?)?.toDouble() ?? 0.0,
-      currency: CurrencyInfoModel.fromJson((json['currency'] ?? <String, dynamic>{}) as Map<String, dynamic>),
-      createdBy: CreatedByModel.fromJson((json['created_by'] ?? <String, dynamic>{}) as Map<String, dynamic>),
-      currentDenominations: (json['current_denominations'] as List<dynamic>?)
+      currency: currencyInfo,
+      createdBy: createdBy,
+      currentDenominations: (json[denominationsKey] as List<dynamic>?)
           ?.map((e) => DenominationDetailModel.fromJson(e as Map<String, dynamic>))
           .toList() ?? [],
     );
@@ -113,6 +141,13 @@ class DenominationDetailModel {
       quantityChange: (json['quantity_change'] as num?)?.toInt() ?? 0,
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       currencySymbol: json['currency_symbol']?.toString(),
+      // Bank multi-currency fields
+      currencyId: json['currency_id']?.toString(),
+      currencyCode: json['currency_code']?.toString(),
+      currencyName: json['currency_name']?.toString(),
+      amount: (json['amount'] as num?)?.toDouble(),
+      exchangeRate: (json['exchange_rate'] as num?)?.toDouble(),
+      amountInBaseCurrency: (json['amount_in_base_currency'] as num?)?.toDouble(),
     );
   }
 }
@@ -147,14 +182,42 @@ class PaginationInfoModel {
 
 class StockFlowResponseModel {
   static StockFlowResponse fromJson(Map<String, dynamic> json) {
-    return StockFlowResponse(
-      success: json['success'] as bool? ?? false,
-      data: json['data'] != null
-          ? StockFlowDataModel.fromJson(json['data'] as Map<String, dynamic>)
-          : null,
-      pagination: json['pagination'] != null
-          ? PaginationInfoModel.fromJson(json['pagination'] as Map<String, dynamic>)
-          : null,
-    );
+    // V2 RPC returns flat structure: {location, journal_flows, actual_flows, pagination}
+    // V1 returns nested: {success, data: {location_summary, ...}, pagination}
+
+    // Check if V2 structure (has 'location' field)
+    final isV2 = json.containsKey('location');
+
+    if (isV2) {
+      // V2 Structure
+      return StockFlowResponse(
+        success: true, // V2 always successful (errors throw exceptions)
+        data: StockFlowData(
+          locationSummary: json['location'] != null
+              ? LocationSummaryModel.fromJson(json['location'] as Map<String, dynamic>)
+              : null,
+          journalFlows: (json['journal_flows'] as List<dynamic>?)
+              ?.map((e) => JournalFlowModel.fromJson(e as Map<String, dynamic>))
+              .toList() ?? [],
+          actualFlows: (json['actual_flows'] as List<dynamic>?)
+              ?.map((e) => ActualFlowModel.fromJson(e as Map<String, dynamic>))
+              .toList() ?? [],
+        ),
+        pagination: json['pagination'] != null
+            ? PaginationInfoModel.fromJson(json['pagination'] as Map<String, dynamic>)
+            : null,
+      );
+    } else {
+      // V1 Structure (legacy)
+      return StockFlowResponse(
+        success: json['success'] as bool? ?? false,
+        data: json['data'] != null
+            ? StockFlowDataModel.fromJson(json['data'] as Map<String, dynamic>)
+            : null,
+        pagination: json['pagination'] != null
+            ? PaginationInfoModel.fromJson(json['pagination'] as Map<String, dynamic>)
+            : null,
+      );
+    }
   }
 }

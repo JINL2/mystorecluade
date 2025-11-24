@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/category_chip.dart';
+import '../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../domain/entities/currency.dart';
 
 /// Currency pill selector with remove buttons
@@ -39,30 +41,14 @@ class CurrencyPillSelector extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            GestureDetector(
-              onTap: onAddCurrency,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add,
-                      size: 16,
-                      color: TossColors.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Add currency',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            TossButton1.textButton(
+              text: 'Add currency',
+              onPressed: onAddCurrency,
+              leadingIcon: const Icon(Icons.add, size: 16),
+              textColor: TossColors.primary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.only(right: 4),
             ),
           ],
         ),
@@ -76,9 +62,8 @@ class CurrencyPillSelector extends StatelessWidget {
               orElse: () => availableCurrencies.first,
             );
 
-            return _CurrencyPill(
-              currencyCode: currency.currencyCode,
-              currencyName: currency.currencyName,
+            return CategoryChip(
+              label: '${currency.currencyCode} ${currency.currencyName}',
               onRemove: selectedCurrencyIds.length > 1 && onRemoveCurrency != null
                   ? () => onRemoveCurrency!(currencyId)
                   : null,
@@ -90,52 +75,3 @@ class CurrencyPillSelector extends StatelessWidget {
   }
 }
 
-class _CurrencyPill extends StatelessWidget {
-  final String currencyCode;
-  final String currencyName;
-  final VoidCallback? onRemove;
-
-  const _CurrencyPill({
-    required this.currencyCode,
-    required this.currencyName,
-    this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space2,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$currencyCode $currencyName',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray700,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-          ),
-          if (onRemove != null) ...[
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: onRemove,
-              child: Icon(
-                Icons.close,
-                size: 14,
-                color: TossColors.gray600,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}

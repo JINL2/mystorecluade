@@ -13,11 +13,63 @@ class CurrencyRemoteDataSource {
   CurrencyRemoteDataSource({SupabaseClient? client})
       : _client = client ?? Supabase.instance.client;
 
-  /// Get company currencies
+  /// Get company currencies with exchange rates (RPC)
+  ///
+  /// Business Logic:
+  /// - Fetch all currencies for a company via RPC
+  /// - Includes base currency identification
+  /// - Includes exchange rates to base currency
+  /// - Includes denominations as JSONB
+  ///
+  /// [companyId] - Company ID
+  /// [rateDate] - Optional date for historical exchange rates
+  ///
+  /// Returns list of currency data with exchange rates
+  /// Throws exception on error
+  Future<List<Map<String, dynamic>>> getCompanyCurrenciesWithExchangeRates({
+    required String companyId,
+    DateTime? rateDate,
+  }) async {
+    print('🔵 [DATA] CurrencyRemoteDataSource.getCompanyCurrenciesWithExchangeRates');
+    print('  📌 companyId: $companyId');
+    print('  📌 rateDate: ${rateDate ?? DateTime.now()}');
+
+    try {
+      final response = await _client.rpc<List<dynamic>>(
+        'get_company_currencies_with_exchange_rates',
+        params: {
+          'p_company_id': companyId,
+          'p_rate_date': rateDate?.toIso8601String().split('T')[0] ??
+              DateTime.now().toIso8601String().split('T')[0],
+        },
+      );
+
+      final result = List<Map<String, dynamic>>.from(response);
+      print('  ✅ RPC returned ${result.length} currencies');
+      if (result.isNotEmpty) {
+        print('  📄 First currency: ${result.first['currency_code']}');
+        print('  🔍 First currency data: ${result.first}');
+
+        if (result.length > 1) {
+          print('  📄 Second currency: ${result[1]['currency_code']}');
+          print('  🔍 Second currency data: ${result[1]}');
+          print('  💵 USD denominations count: ${(result[1]['denominations'] as List?)?.length ?? 0}');
+        }
+      }
+      return result;
+    } catch (e, stackTrace) {
+      print('  ❌ ERROR in getCompanyCurrenciesWithExchangeRates: $e');
+      print('  Stack: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Get company currencies (LEGACY)
   ///
   /// Returns list of currency_id and company_currency_id pairs
   /// Ordered by created_at to ensure consistent default currency (first added)
   /// Throws exception on error
+  @Deprecated('Use getCompanyCurrenciesWithExchangeRates instead')
   Future<List<Map<String, dynamic>>> getCompanyCurrencies(
     String companyId,
   ) async {
@@ -31,12 +83,13 @@ class CurrencyRemoteDataSource {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  /// Get currency types (master data)
+  /// Get currency types (master data) (LEGACY)
   ///
   /// [currencyIds] - Optional filter for specific currency IDs
   ///
   /// Returns list of currency type records
   /// Throws exception on error
+  @Deprecated('Use getCompanyCurrenciesWithExchangeRates instead')
   Future<List<Map<String, dynamic>>> getCurrencyTypes({
     List<String>? currencyIds,
   }) async {
@@ -72,10 +125,11 @@ class CurrencyRemoteDataSource {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  /// Get all denominations for company
+  /// Get all denominations for company (LEGACY)
   ///
   /// Returns list of denomination records grouped by currency
   /// Throws exception on error
+  @Deprecated('Use getCompanyCurrenciesWithExchangeRates instead')
   Future<List<Map<String, dynamic>>> getAllDenominations(
     String companyId,
   ) async {

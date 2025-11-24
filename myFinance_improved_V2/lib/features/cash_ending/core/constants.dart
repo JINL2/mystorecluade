@@ -12,17 +12,41 @@ class CashEndingConstants {
   // RPC Function Names
   // ============================================================================
 
-  /// RPC function for inserting cashier amount lines (cash ending)
+  /// ✅ Universal Multi-Currency RPC (Cash, Vault, Bank)
+  /// Supports multi-currency in one call with Entry-based workflow
+  static const String rpcInsertAmountMultiCurrency = 'insert_amount_multi_currency';
+
+  /// @Deprecated Legacy RPCs (kept for reference)
+  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
   static const String rpcInsertCashierAmount = 'insert_cashier_amount_lines';
 
-  /// RPC function for inserting bank balance
+  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
   static const String rpcInsertBankAmount = 'bank_amount_insert_v2';
 
-  /// RPC function for inserting vault transaction
-  static const String rpcInsertVaultAmount = 'vault_amount_insert';
+  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
+  static const String rpcInsertVaultAmount = 'vault_amount_insert_v3';
+
+  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
+  static const String rpcVaultAmountRecount = 'vault_amount_recount';
 
   /// RPC function for getting location stock flow
   static const String rpcGetLocationStockFlow = 'get_location_stock_flow';
+
+  /// RPC function for getting cash location balance summary (Journal vs Real)
+  /// ⚠️ OLD: Uses flow data from v_cash_location view
+  static const String rpcGetBalanceSummary = 'get_cash_location_balance_summary';
+
+  /// RPC function for getting cash location balance summary V2 (STOCK-BASED)
+  /// ✅ NEW: Uses stock data from cash_amount_entries.balance_after
+  static const String rpcGetBalanceSummaryV2 = 'get_cash_location_balance_summary_v2';
+
+  /// RPC function for getting multiple locations balance summary
+  static const String rpcGetMultipleBalanceSummary =
+      'get_multiple_locations_balance_summary';
+
+  /// RPC function for getting company-wide balance summary
+  static const String rpcGetCompanyBalanceSummary =
+      'get_company_balance_summary';
 
   // ============================================================================
   // Pagination Configuration
@@ -64,6 +88,46 @@ class CashEndingConstants {
 // ============================================================================
 // Enums
 // ============================================================================
+
+/// Vault transaction type enumeration
+///
+/// Defines the type of vault transaction for RPC parameter formatting
+enum VaultTransactionType {
+  /// IN: Deposit (debit)
+  vaultIn('in'),
+
+  /// OUT: Withdrawal (credit)
+  vaultOut('out'),
+
+  /// RECOUNT: Stock adjustment (quantity)
+  recount('recount');
+
+  /// Constructor with string value
+  const VaultTransactionType(this.value);
+
+  /// String value for API calls
+  final String value;
+
+  /// Convert string to VaultTransactionType enum
+  static VaultTransactionType fromString(String value) {
+    return VaultTransactionType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => VaultTransactionType.recount,
+    );
+  }
+
+  /// Get display name for UI
+  String get displayName {
+    switch (this) {
+      case VaultTransactionType.vaultIn:
+        return 'In';
+      case VaultTransactionType.vaultOut:
+        return 'Out';
+      case VaultTransactionType.recount:
+        return 'Recount';
+    }
+  }
+}
 
 /// Location type enumeration
 ///

@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_quantity_input.dart';
 import '../../domain/entities/denomination.dart';
 
 /// Denomination input widget - exact legacy UI/UX from denomination_widgets.dart
@@ -63,137 +64,32 @@ class DenominationInput extends StatelessWidget {
           ),
 
           // Center section: Quantity input with +/- buttons
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-                // Decrement button
-                GestureDetector(
-                  onTap: () => _decrementQuantity(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: TossColors.gray200,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: const Icon(
-                      TossIcons.remove,
-                      size: 14,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 4),
-
-                // Quantity input
-                SizedBox(
-                  width: 90,
-                  height: 32,
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(5),
-                    ],
-                    textAlign: TextAlign.center,
-                    scrollPadding: const EdgeInsets.only(bottom: 130),
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                      fontSize: 14,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: '0',
-                      hintStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.gray400,
-                        fontSize: 14,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 4,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(
-                          color: TossColors.gray200,
-                          width: 1.0,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(
-                          color: TossColors.gray200,
-                          width: 1.0,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(
-                          color: TossColors.primary.withOpacity(0.5),
-                          width: 1.0,
-                        ),
-                      ),
-                      fillColor: TossColors.white,
-                      filled: true,
-                    ),
-                    onChanged: (value) {
-                      final intValue = int.tryParse(value);
-                      if (intValue != null && intValue > 99999) {
-                        controller.text = '99999';
-                        controller.selection = TextSelection.fromPosition(
-                          const TextPosition(offset: 5),
-                        );
-                      }
-                      onChanged();
-                    },
-                  ),
-                ),
-
-                const SizedBox(width: 4),
-
-                // Increment button
-                GestureDetector(
-                  onTap: () => _incrementQuantity(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: TossColors.gray200,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: const Icon(
-                      TossIcons.add,
-                      size: 14,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          TossQuantityInput(
+            value: int.tryParse(controller.text) ?? 0,
+            onChanged: (newValue) {
+              controller.text = newValue == 0 ? '' : newValue.toString();
+              onChanged();
+            },
+            minValue: 0,
+            maxValue: 99999,
+            inputWidth: 90,
+            buttonSize: 32,
+            borderRadius: 6,
+          ),
 
           // Right section: Amount display
           Expanded(
-            child: Builder(
-              builder: (context) {
-                final subtotalText = _calculateSubtotal(
-                  denomination.value.toInt().toString(),
-                  controller.text,
-                  currencySymbol,
-                );
+            child: ListenableBuilder(
+              listenable: controller,
+              builder: (context, _) {
+                // Calculate subtotal from controller value (not denomination.quantity)
+                // because denomination entity doesn't update with user input
+                final quantity = int.tryParse(controller.text.trim()) ?? 0;
+                final subtotal = denomination.value * quantity;
+                final subtotalText = NumberFormat('#,###').format(subtotal.toInt());
 
                 // Check if subtotal is zero
-                final isZero = subtotalText == '0' || subtotalText.isEmpty;
+                final isZero = subtotal == 0;
 
                 return Text(
                   subtotalText,
@@ -214,220 +110,7 @@ class DenominationInput extends StatelessWidget {
     );
   }
 
-  // Helper functions (from legacy denomination_widgets.dart)
-
-  /// Enhanced subtotal calculation with comprehensive error handling
-  String _calculateSubtotal(String denomValue, String quantity, String currencySymbol) {
-    // Edge case handling: null or empty inputs
-    if (denomValue.isEmpty || quantity.isEmpty) {
-      return '0';
-    }
-
-    // Parse values with error handling
-    final denom = int.tryParse(denomValue.trim()) ?? 0;
-    final qty = int.tryParse(quantity.trim()) ?? 0;
-
-    // Prevent integer overflow for very large calculations
-    late final int subtotal;
-    try {
-      subtotal = denom * qty;
-      // Check for overflow (though unlikely with our constraints)
-      if (subtotal < 0) {
-        // Overflow occurred, use safe fallback
-        return '999,999,999'; // Limit to 9 digits
-      }
-    } catch (e) {
-      // Fallback for any calculation errors
-      return '0';
-    }
-
-    // Format without currency symbol
-    try {
-      final formatted = NumberFormat('#,###').format(subtotal);
-
-      // If number is too long (more than 9 digits), truncate while maintaining comma alignment
-      // Remove commas to count actual digits
-      final digitsOnly = formatted.replaceAll(',', '');
-
-      if (digitsOnly.length > 9) {
-        // To maintain comma alignment with totals, we need to keep the same structure
-        // Example: 4,994,000,000 should show as 4,994,00... (not 499,400,000...)
-        // We show first 7 characters (including commas) to prevent overflow
-        final truncated = formatted.length > 7 ? formatted.substring(0, 8) : formatted;
-        return '$truncated...';
-      }
-
-      return formatted;
-    } catch (e) {
-      // Fallback for number formatting errors
-      return subtotal.toString();
-    }
-  }
-
-  /// Safe currency symbol handling with fallbacks
-  String _getSafeCurrencySymbol(String currencySymbol) {
-    // Handle null, empty, or invalid currency symbols
-    if (currencySymbol.isEmpty) {
-      return '¤'; // Generic currency symbol (Unicode U+00A4)
-    }
-
-    // Validate common currency symbols and provide fallbacks
-    final trimmedSymbol = currencySymbol.trim();
-    if (trimmedSymbol.isEmpty) {
-      return '¤';
-    }
-
-    // Check for corrupted VND symbol and fix it
-    if (trimmedSymbol == 'd' ||
-        trimmedSymbol == 'đ' ||
-        trimmedSymbol.toLowerCase().contains('vnd')) {
-      return '₫'; // Proper Vietnamese dong symbol
-    }
-
-    // Return validated symbol
-    return trimmedSymbol;
-  }
-
-  /// Unified, sustainable font sizing system with comprehensive edge case handling
-  double _getResponsiveFontSize(String text, String containerType) {
-    // Edge case handling: null, empty, or invalid input
-    if (text.isEmpty) {
-      return _getDefaultFontSize(containerType);
-    }
-
-    // Normalize text for consistent measurement
-    final cleanText = text.trim();
-    if (cleanText.isEmpty) {
-      return _getDefaultFontSize(containerType);
-    }
-
-    // Calculate effective length with currency symbol weight compensation
-    final effectiveLength = _calculateEffectiveLength(cleanText);
-
-    // Route to appropriate sizing strategy
-    switch (containerType) {
-      case 'denomination':
-      case 'total':
-        return _getUnifiedMonetaryFontSize(effectiveLength, containerType);
-      case 'quantity':
-        return _getQuantityFontSize(effectiveLength);
-      default:
-        return _getDefaultFontSize(containerType);
-    }
-  }
-
-  /// Unified font sizing for both denomination and total amounts
-  /// Ensures perfect consistency and accessibility compliance
-  double _getUnifiedMonetaryFontSize(int effectiveLength, String containerType) {
-    // Accessibility minimum: 12px for mobile readability (WCAG compliant)
-    const double minAccessibleSize = 12.0;
-
-    // Unified breakpoints for both denomination and total
-    double baseSize;
-    if (effectiveLength <= 8) {
-      baseSize = 16.0; // ₫50,000 - Optimal readability
-    } else if (effectiveLength <= 10) {
-      baseSize = 14.0; // ₫9,400,000 - Large and clear
-    } else if (effectiveLength <= 12) {
-      baseSize = 13.0; // ₫277,500,000 - Good readability
-    } else if (effectiveLength <= 14) {
-      baseSize = 12.0; // Very long amounts - Still accessible
-    } else if (effectiveLength <= 16) {
-      baseSize = 11.0; // Extremely long - Compact but readable
-    } else if (effectiveLength <= 18) {
-      baseSize = 10.0; // Ultra-long - Minimum comfortable
-    } else if (effectiveLength <= 20) {
-      baseSize = 9.0; // Massive amounts - Small but usable
-    } else {
-      baseSize = 8.0; // Ultra-massive - Absolute minimum
-    }
-
-    // Ensure accessibility compliance
-    final accessibleSize =
-        baseSize < minAccessibleSize ? minAccessibleSize : baseSize;
-
-    // Container-specific fine-tuning
-    return _applyContainerCompensation(accessibleSize, containerType);
-  }
-
-  /// Calculate effective length with currency symbol weight compensation
-  int _calculateEffectiveLength(String text) {
-    final baseLength = text.length;
-
-    // Currency symbols have different visual weights
-    if (text.startsWith('₫')) {
-      // Vietnamese dong symbol is visually wider
-      return baseLength + 1;
-    } else if (text.startsWith('\$') || text.startsWith('€')) {
-      // Dollar and Euro are standard width
-      return baseLength;
-    } else if (text.startsWith('¥') || text.startsWith('£')) {
-      // Yen and Pound are slightly wider
-      return (baseLength + 0.5).round();
-    }
-
-    return baseLength;
-  }
-
-  /// Apply fine-tuning based on container characteristics
-  double _applyContainerCompensation(double baseSize, String containerType) {
-    switch (containerType) {
-      case 'denomination':
-        // Denomination section: Slightly more generous due to fixed values
-        return baseSize * 1.0;
-      case 'total':
-        // Total section: Slightly tighter due to dynamic calculations
-        return baseSize * 0.95;
-      default:
-        return baseSize;
-    }
-  }
-
-  /// Quantity input font sizing optimized for 46px width container
-  double _getQuantityFontSize(int effectiveLength) {
-    // Optimized for 46px width container with tight spacing
-    if (effectiveLength <= 2) return 15.0; // 1-99: Large
-    if (effectiveLength <= 3) return 15.0; // 100-999: Still large
-    if (effectiveLength <= 4) return 11.5; // 1000-9999: Medium
-    if (effectiveLength <= 5) return 9.5; // 10000-99999: Compact
-    return 8.0; // Edge cases: Small but readable
-  }
-
-  /// Default font sizes for unknown container types
-  double _getDefaultFontSize(String containerType) {
-    switch (containerType) {
-      case 'denomination':
-      case 'total':
-        return 14.0; // Safe default for monetary displays
-      case 'quantity':
-        return 12.0; // Safe default for numeric input
-      default:
-        return 12.0; // Universal fallback
-    }
-  }
-
-  /// Optimized quantity font sizing using unified system
-  double _getOptimalQuantityFontSize(String text) {
-    // Delegate to unified system for consistency
-    return _getResponsiveFontSize(text, 'quantity');
-  }
-
-  // Quantity increment/decrement functions
-  void _incrementQuantity() {
-    final currentValue = int.tryParse(controller.text.trim()) ?? 0;
-    final newValue = currentValue + 1;
-    controller.text = newValue.toString();
-    onChanged();
-    HapticFeedback.selectionClick();
-  }
-
-  void _decrementQuantity() {
-    final currentValue = int.tryParse(controller.text.trim()) ?? 0;
-    if (currentValue > 0) {
-      final newValue = currentValue - 1;
-      controller.text = newValue == 0 ? '' : newValue.toString();
-      onChanged();
-      HapticFeedback.selectionClick();
-    }
-  }
+  // NOTE: Calculation logic removed from widget
+  // Business logic (totalAmount) is now handled by Domain Entity (Denomination.totalAmount)
+  // This follows Clean Architecture - UI widgets should only handle presentation
 }

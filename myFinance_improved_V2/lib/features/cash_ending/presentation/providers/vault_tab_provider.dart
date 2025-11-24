@@ -2,17 +2,19 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'repository_providers.dart';
+import '../../di/injection.dart';
 import 'vault_tab_notifier.dart';
 import 'vault_tab_state.dart';
 
 /// Provider for Vault Tab
+///
+/// ✅ Injects GetStockFlowsUseCase (Clean Architecture compliant)
 final vaultTabProvider = StateNotifierProvider<VaultTabNotifier, VaultTabState>((ref) {
-  final stockFlowRepo = ref.watch(stockFlowRepositoryProvider);
+  final getStockFlowsUseCase = ref.watch(getStockFlowsUseCaseProvider);
   final vaultRepo = ref.watch(vaultRepositoryProvider);
 
   return VaultTabNotifier(
-    stockFlowRepository: stockFlowRepo,
+    getStockFlowsUseCase: getStockFlowsUseCase,
     vaultRepository: vaultRepo,
   );
 });

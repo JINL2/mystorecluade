@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants.dart';
 import '../../domain/entities/stock_flow.dart';
-import '../../domain/repositories/stock_flow_repository.dart';
+import '../../domain/usecases/get_stock_flows_usecase.dart';
 import 'base_tab_state.dart';
 
 /// Base notifier for all tab notifiers (Cash, Bank, Vault)
@@ -15,16 +15,35 @@ import 'base_tab_state.dart';
 /// - State management patterns
 ///
 /// Each tab only needs to implement tab-specific save logic (10-20 lines)
+///
+/// ✅ Uses GetStockFlowsUseCase (Clean Architecture compliant)
 abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> {
-  final StockFlowRepository stockFlowRepository;
+  final GetStockFlowsUseCase _getStockFlowsUseCase;
 
   BaseTabNotifier({
-    required this.stockFlowRepository,
+    required GetStockFlowsUseCase getStockFlowsUseCase,
     required T initialState,
-  }) : super(initialState);
+  })  : _getStockFlowsUseCase = getStockFlowsUseCase,
+        super(initialState);
+
+  /// Update loading state - must be implemented by each subclass
+  /// This ensures type safety without dynamic casting
+  T updateLoadingState({required bool isLoading, String? error});
+
+  /// Update flows state - must be implemented by each subclass
+  T updateFlowsState({
+    required List<ActualFlow> flows,
+    LocationSummary? summary,
+    required bool hasMore,
+    required int offset,
+  });
+
+  /// Update error state - must be implemented by each subclass
+  T updateErrorState(String error);
 
   /// Load stock flows for the selected location
   ///
+  /// ✅ Uses GetStockFlowsUseCase with pagination support
   /// Common implementation used by all tabs
   /// Handles pagination, loading states, and error management
   Future<void> loadStockFlows({
@@ -35,47 +54,36 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
   }) async {
     if (state.isLoadingFlows) return;
 
-    state = (state as dynamic).copyWith(
-      isLoadingFlows: true,
-      errorMessage: null,
-    ) as T;
+    state = updateLoadingState(isLoading: true, error: null);
 
     try {
       final offset = loadMore ? state.flowsOffset : 0;
 
-      final result = await stockFlowRepository.getLocationStockFlow(
-        companyId: companyId,
-        storeId: storeId,
-        cashLocationId: locationId,
-        offset: offset,
-        limit: CashEndingConstants.defaultPageSize,
+      // ✅ Use UseCase instead of direct Repository access
+      final result = await _getStockFlowsUseCase.execute(
+        GetStockFlowsParams(
+          companyId: companyId,
+          storeId: storeId,
+          locationId: locationId,
+          offset: offset,
+          limit: CashEndingConstants.defaultPageSize,
+          existingFlows: loadMore ? state.stockFlows : [],
+        ),
       );
 
       if (result.success) {
-        // Optimize list copying: use List.of() + addAll() instead of spread operator
-        // This is more efficient for large lists (O(n) single allocation vs O(n) multiple allocations)
-        final newFlows = loadMore
-            ? (List<ActualFlow>.of(state.stockFlows)..addAll(result.actualFlows))
-            : result.actualFlows;
-
-        state = (state as dynamic).copyWith(
-          stockFlows: newFlows,
-          locationSummary: loadMore ? state.locationSummary : result.locationSummary,
-          hasMoreFlows: result.pagination?.hasMore ?? false,
-          flowsOffset: newFlows.length,
-          isLoadingFlows: false,
-        ) as T;
+        // UseCase handles pagination merge logic
+        state = updateFlowsState(
+          flows: result.actualFlows,
+          summary: loadMore ? state.locationSummary : result.locationSummary,
+          hasMore: result.pagination?.hasMore ?? false,
+          offset: result.actualFlows.length,
+        );
       } else {
-        state = (state as dynamic).copyWith(
-          isLoadingFlows: false,
-          errorMessage: 'Failed to load stock flows',
-        ) as T;
+        state = updateErrorState('Failed to load stock flows');
       }
     } catch (e) {
-      state = (state as dynamic).copyWith(
-        isLoadingFlows: false,
-        errorMessage: e.toString(),
-      ) as T;
+      state = updateErrorState(e.toString());
     }
   }
 
@@ -83,7 +91,7 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
   ///
   /// Common implementation for all tabs
   void clearError() {
-    state = (state as dynamic).copyWith(errorMessage: null) as T;
+    state = updateLoadingState(isLoading: state.isLoadingFlows, error: null);
   }
 
   /// Save operation - to be implemented by each tab

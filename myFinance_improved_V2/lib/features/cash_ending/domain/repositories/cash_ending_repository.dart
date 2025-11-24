@@ -1,6 +1,7 @@
 // lib/features/cash_ending/domain/repositories/cash_ending_repository.dart
 
 import '../entities/cash_ending.dart';
+import '../entities/balance_summary.dart';
 
 /// Repository interface for Cash Ending operations (Domain Layer)
 ///
@@ -20,5 +21,25 @@ abstract class CashEndingRepository {
   Future<List<CashEnding>> getCashEndingHistory({
     required String locationId,
     int limit = 10,
+  });
+
+  /// Get balance summary (Journal vs Real) for a location
+  ///
+  /// Returns balance comparison data showing:
+  /// - Total Journal (book balance)
+  /// - Total Real (actual cash count)
+  /// - Difference
+  /// Throws CashEndingException on failure
+  Future<BalanceSummary> getBalanceSummary({
+    required String locationId,
+  });
+
+  /// Get balance summary for multiple locations
+  ///
+  /// Useful for dashboard or overview screens
+  /// Returns list of balance summaries
+  /// Throws CashEndingException on failure
+  Future<List<BalanceSummary>> getMultipleBalanceSummary({
+    required List<String> locationIds,
   });
 }

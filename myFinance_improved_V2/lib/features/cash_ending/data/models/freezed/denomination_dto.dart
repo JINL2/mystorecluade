@@ -14,7 +14,7 @@ class DenominationDto with _$DenominationDto {
 
   const factory DenominationDto({
     @JsonKey(name: 'denomination_id') required String denominationId,
-    @JsonKey(name: 'currency_id') required String currencyId,
+    @JsonKey(name: 'currency_id') String? currencyId, // Optional: not in RPC JSONB
     @JsonKey(name: 'value') required double value,
     @JsonKey(name: 'quantity') @Default(0) int quantity,
     @JsonKey(name: 'type') String? type,
@@ -27,7 +27,7 @@ class DenominationDto with _$DenominationDto {
   Denomination toEntity() {
     return Denomination(
       denominationId: denominationId,
-      currencyId: currencyId,
+      currencyId: currencyId ?? '', // Fallback for RPC JSONB (injected by CurrencyDto)
       value: value,
       quantity: quantity,
     );

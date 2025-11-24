@@ -494,7 +494,10 @@ class CurrencyOverviewCard extends ConsumerWidget {
                         SizedBox(
                           width: 16,
                           height: 16,
-                          child: TossLoadingView(),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+                          ),
                         ),
                         SizedBox(width: TossSpacing.space2),
                         Text('Removing...'),

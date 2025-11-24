@@ -1,13 +1,14 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:intl/intl.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../../domain/entities/bank_balance.dart';
+import 'currency_dto.dart';
 
 part 'bank_balance_dto.freezed.dart';
 part 'bank_balance_dto.g.dart';
 
-/// Bank Balance DTO
+/// Bank Balance DTO (Multi-Currency)
 ///
-/// Maps to DB table: bank_amount
+/// Maps to universal RPC: insert_amount_multi_currency
 /// Handles JSON serialization/deserialization and RPC parameter formatting
 @freezed
 class BankBalanceDto with _$BankBalanceDto {
@@ -18,33 +19,44 @@ class BankBalanceDto with _$BankBalanceDto {
     @JsonKey(name: 'company_id') required String companyId,
     @JsonKey(name: 'store_id') String? storeId,
     @JsonKey(name: 'location_id') required String locationId,
-    @JsonKey(name: 'currency_id') required String currencyId,
-    @JsonKey(name: 'total_amount') required int totalAmount,
     @JsonKey(name: 'created_by') required String userId,
     @JsonKey(name: 'record_date') required DateTime recordDate,
     @JsonKey(name: 'created_at') required DateTime createdAt,
+    @Default([]) List<CurrencyDto> currencies,
   }) = _BankBalanceDto;
 
   factory BankBalanceDto.fromJson(Map<String, dynamic> json) =>
       _$BankBalanceDtoFromJson(json);
 
-  /// Convert to RPC parameters for Supabase (bank_amount_insert_v2)
+  /// Convert to RPC parameters for universal multi-currency RPC
   ///
-  /// This matches the exact format expected by the stored procedure
+  /// ✅ Uses insert_amount_multi_currency with Entry-based workflow
+  /// Bank uses total_amount (no denominations)
   Map<String, dynamic> toRpcParams() {
-    // Format dates as required by RPC
-    final recordDateStr = DateFormat('yyyy-MM-dd').format(recordDate);
-    final createdAtStr = '${DateFormat('yyyy-MM-dd HH:mm:ss').format(createdAt)}.${createdAt.microsecond.toString().padLeft(6, '0')}';
+    // Build currencies array for RPC
+    // Bank: Each currency has total_amount only (no denominations)
+    final currenciesJson = currencies.map((currency) {
+      // Calculate total amount from denominations (Bank uses single virtual denomination)
+      final totalAmount = currency.denominations.fold<double>(
+        0.0,
+        (sum, denom) => sum + (denom.quantity * denom.value),
+      );
+
+      return {
+        'currency_id': currency.currencyId,
+        'total_amount': totalAmount,
+      };
+    }).toList();
 
     return {
+      'p_entry_type': 'bank',
       'p_company_id': companyId,
-      'p_store_id': (storeId == null || storeId == 'headquarter') ? null : storeId,
-      'p_record_date': recordDateStr,
       'p_location_id': locationId,
-      'p_currency_id': currencyId,
-      'p_total_amount': totalAmount,
+      'p_record_date': DateTimeUtils.toDateOnly(recordDate),
       'p_created_by': userId,
-      'p_created_at': createdAtStr,
+      'p_store_id': (storeId == null || storeId == 'headquarter') ? null : storeId,
+      'p_description': 'Bank balance',
+      'p_currencies': currenciesJson,
     };
   }
 
@@ -55,11 +67,10 @@ class BankBalanceDto with _$BankBalanceDto {
       companyId: companyId,
       storeId: storeId,
       locationId: locationId,
-      currencyId: currencyId,
-      totalAmount: totalAmount,
       userId: userId,
       recordDate: recordDate,
       createdAt: createdAt,
+      currencies: currencies.map((c) => c.toEntity()).toList(),
     );
   }
 
@@ -70,11 +81,12 @@ class BankBalanceDto with _$BankBalanceDto {
       companyId: entity.companyId,
       storeId: entity.storeId,
       locationId: entity.locationId,
-      currencyId: entity.currencyId,
-      totalAmount: entity.totalAmount,
       userId: entity.userId,
       recordDate: entity.recordDate,
       createdAt: entity.createdAt,
+      currencies: entity.currencies
+          .map((c) => CurrencyDto.fromEntity(c))
+          .toList(),
     );
   }
 }

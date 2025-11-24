@@ -14,22 +14,27 @@ class CashEndingRemoteDataSource {
   CashEndingRemoteDataSource({SupabaseClient? client})
       : _client = client ?? Supabase.instance.client;
 
-  /// Save cash ending using RPC call
+  /// Save cash ending using universal multi-currency RPC
   ///
+  /// ✅ Uses insert_amount_multi_currency (Entry-based workflow)
   /// [params] contains all parameters for the RPC function
-  /// Returns the response from database
+  /// Returns the entry data from database (entry_id, balance_before, balance_after)
   /// Throws exception on error
   Future<Map<String, dynamic>?> saveCashEnding(
     Map<String, dynamic> params,
   ) async {
     try {
-      // RPC returns void on success, explicitly specify void type
-      await _client.rpc<void>(
-        CashEndingConstants.rpcInsertCashierAmount,
+      // ✅ NEW: Universal RPC returns entry data
+      final response = await _client.rpc(
+        CashEndingConstants.rpcInsertAmountMultiCurrency,
         params: params,
       );
 
-      // RPC returns void on success, return null to indicate success
+      // RPC returns table with entry_id, balance_before, balance_after
+      if (response is List && response.isNotEmpty) {
+        return response.first as Map<String, dynamic>;
+      }
+
       return null;
     } catch (e) {
       rethrow;
@@ -52,5 +57,109 @@ class CashEndingRemoteDataSource {
         .limit(limit);
 
     return List<Map<String, dynamic>>.from(response);
+  }
+
+  /// Get balance summary (Journal vs Real) for a cash location
+  ///
+  /// Calls get_cash_location_balance_summary_v2 RPC (STOCK-BASED)
+  /// ✅ Uses stock data from cash_amount_entries.balance_after
+  /// Returns balance comparison data
+  /// Throws exception on error
+  Future<Map<String, dynamic>> getBalanceSummary({
+    required String locationId,
+  }) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        CashEndingConstants.rpcGetBalanceSummaryV2,  // ✅ CHANGED: Using V2
+        params: {'p_location_id': locationId},
+      );
+
+      if (response is Map<String, dynamic>) {
+        // Check if RPC returned error
+        if (response['success'] == false) {
+          throw Exception(
+            response['error'] ?? 'Failed to get balance summary',
+          );
+        }
+        return response;
+      } else {
+        throw Exception('Unexpected response type from balance summary RPC');
+      }
+    } catch (e) {
+      throw Exception(
+        'Failed to get balance summary for location $locationId: $e',
+      );
+    }
+  }
+
+  /// Get balance summary for multiple locations
+  ///
+  /// Useful for dashboard or overview screens
+  /// Returns list of balance summaries
+  /// Throws exception on error
+  Future<Map<String, dynamic>> getMultipleBalanceSummary({
+    required List<String> locationIds,
+  }) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        CashEndingConstants.rpcGetMultipleBalanceSummary,
+        params: {'p_location_ids': locationIds},
+      );
+
+      if (response is Map<String, dynamic>) {
+        if (response['success'] == false) {
+          throw Exception(
+            response['error'] ?? 'Failed to get multiple balance summaries',
+          );
+        }
+        return response;
+      } else {
+        throw Exception(
+          'Unexpected response type from multiple balance summary RPC',
+        );
+      }
+    } catch (e) {
+      throw Exception(
+        'Failed to get multiple balance summaries: $e',
+      );
+    }
+  }
+
+  /// Get company-wide balance summary
+  ///
+  /// Aggregates balance summary for all locations in a company
+  /// [locationType] can be 'cash', 'vault', 'bank', or null for all
+  /// Returns aggregated balance data
+  /// Throws exception on error
+  Future<Map<String, dynamic>> getCompanyBalanceSummary({
+    required String companyId,
+    String? locationType,
+  }) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        CashEndingConstants.rpcGetCompanyBalanceSummary,
+        params: {
+          'p_company_id': companyId,
+          'p_location_type': locationType,
+        },
+      );
+
+      if (response is Map<String, dynamic>) {
+        if (response['success'] == false) {
+          throw Exception(
+            response['error'] ?? 'Failed to get company balance summary',
+          );
+        }
+        return response;
+      } else {
+        throw Exception(
+          'Unexpected response type from company balance summary RPC',
+        );
+      }
+    } catch (e) {
+      throw Exception(
+        'Failed to get company balance summary for $companyId: $e',
+      );
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/stock_flow.dart';
+import '../../domain/entities/balance_summary.dart';
 import 'base_tab_state.dart';
 
 part 'cash_tab_state.freezed.dart';
@@ -24,5 +25,9 @@ class CashTabState with _$CashTabState implements BaseTabState {
 
     // Error handling
     String? errorMessage,
+
+    // Balance Summary (for completion dialog)
+    BalanceSummary? balanceSummary,
+    @Default(false) bool showBalanceDialog,
   }) = _CashTabState;
 }

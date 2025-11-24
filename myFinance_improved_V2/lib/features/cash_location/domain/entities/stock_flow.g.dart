@@ -157,6 +157,12 @@ _$DenominationDetailImpl _$$DenominationDetailImplFromJson(
       quantityChange: (json['quantityChange'] as num).toInt(),
       subtotal: (json['subtotal'] as num).toDouble(),
       currencySymbol: json['currencySymbol'] as String?,
+      currencyId: json['currencyId'] as String?,
+      currencyCode: json['currencyCode'] as String?,
+      currencyName: json['currencyName'] as String?,
+      amount: (json['amount'] as num?)?.toDouble(),
+      exchangeRate: (json['exchangeRate'] as num?)?.toDouble(),
+      amountInBaseCurrency: (json['amountInBaseCurrency'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$$DenominationDetailImplToJson(
@@ -170,6 +176,12 @@ Map<String, dynamic> _$$DenominationDetailImplToJson(
       'quantityChange': instance.quantityChange,
       'subtotal': instance.subtotal,
       'currencySymbol': instance.currencySymbol,
+      'currencyId': instance.currencyId,
+      'currencyCode': instance.currencyCode,
+      'currencyName': instance.currencyName,
+      'amount': instance.amount,
+      'exchangeRate': instance.exchangeRate,
+      'amountInBaseCurrency': instance.amountInBaseCurrency,
     };
 
 _$StockFlowDataImpl _$$StockFlowDataImplFromJson(Map<String, dynamic> json) =>

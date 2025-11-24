@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_shadows.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../domain/entities/stock_flow.dart';
 import 'real_item_widget.dart';
 
 /// Widget for displaying the Real section with stock flow data
-class RealSectionWidget extends StatefulWidget {
+class RealSectionWidget extends StatelessWidget {
   final List<ActualFlow> actualFlows;
   final LocationSummary? locationSummary;
   final bool isLoading;
@@ -31,13 +31,6 @@ class RealSectionWidget extends StatefulWidget {
     required this.onLoadMore,
     required this.onItemTap,
   });
-
-  @override
-  State<RealSectionWidget> createState() => _RealSectionWidgetState();
-}
-
-class _RealSectionWidgetState extends State<RealSectionWidget> {
-  // Removed unnecessary filter - tabs already handle Cash/Bank/Vault separation
 
   @override
   Widget build(BuildContext context) {
@@ -84,9 +77,9 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
               ),
               // Content Area (removed filter - tabs handle separation)
               Expanded(
-                child: widget.isLoading && widget.actualFlows.isEmpty
+                child: isLoading && actualFlows.isEmpty
                     ? const Center(child: TossLoadingView())
-                    : widget.actualFlows.isEmpty
+                    : actualFlows.isEmpty
                         ? Container(
                             padding: const EdgeInsets.all(TossSpacing.space5),
                             child: Center(
@@ -110,40 +103,36 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
   Widget _buildFlowList() {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-      itemCount: widget.actualFlows.length + (widget.hasMore ? 1 : 0),
+      itemCount: actualFlows.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         // Load More button at the end
-        if (index >= widget.actualFlows.length) {
-          return InkWell(
-            onTap: widget.onLoadMore,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: TossSpacing.space4,
-              ),
-              child: Center(
-                child: Text(
-                  'Load More',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+        if (index >= actualFlows.length) {
+          return Padding(
+            key: const ValueKey('load_more_button'),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+            child: Center(
+              child: TossButton1.textButton(
+                text: 'Load More',
+                onPressed: onLoadMore,
+                textColor: TossColors.primary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           );
         }
 
-        final flow = widget.actualFlows[index];
+        final flow = actualFlows[index];
         final showDate = index == 0 ||
             flow.getFormattedDate() !=
-                widget.actualFlows[index - 1].getFormattedDate();
+                actualFlows[index - 1].getFormattedDate();
 
         return RealItemWidget(
+          key: ValueKey(flow.flowId),
           flow: flow,
           showDate: showDate,
-          locationSummary: widget.locationSummary,
-          baseCurrencySymbol: widget.baseCurrencySymbol,
-          onTap: () => widget.onItemTap(flow),
+          locationSummary: locationSummary,
+          baseCurrencySymbol: baseCurrencySymbol,
+          onTap: () => onItemTap(flow),
         );
       },
     );

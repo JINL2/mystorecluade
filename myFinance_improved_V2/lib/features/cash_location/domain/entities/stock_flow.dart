@@ -176,6 +176,13 @@ class DenominationDetail with _$DenominationDetail {
     required int quantityChange,
     required double subtotal,
     String? currencySymbol,
+    // Bank multi-currency fields
+    String? currencyId,
+    String? currencyCode,
+    String? currencyName,
+    double? amount,
+    double? exchangeRate,
+    double? amountInBaseCurrency,
   }) = _DenominationDetail;
 
   factory DenominationDetail.fromJson(Map<String, dynamic> json) =>

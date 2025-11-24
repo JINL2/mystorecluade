@@ -113,8 +113,6 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<Currency> addCompanyCurrency(String companyId, String currencyId) async {
     try {
-      print('Adding currency: $currencyId to company: $companyId');
-
       // Check if currency type exists
       final currencyType = await _client
           .from('currency_types')
@@ -126,107 +124,73 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         throw Exception('Currency type not found: $currencyId');
       }
 
-
-      // Check if this currency was previously soft deleted
-      // This handles the case where user deleted a currency and wants to add it back
-      
-      // First check if ANY entry exists for this company/currency combination
+      // Check if ANY entry exists for this company/currency combination
       final anyExisting = await _client
           .from('company_currency')
           .select('company_currency_id, is_deleted')
           .eq('company_id', companyId)
           .eq('currency_id', currencyId)
           .maybeSingle();
-      
-      print('Any existing entry found: ${anyExisting != null ? 'YES' : 'NO'}');
-      if (anyExisting != null) {
-        print('Existing entry details: $anyExisting');
-      }
-      
+
       // Check specifically for soft-deleted entries
-      final existingDeleted = anyExisting != null && 
-                              (anyExisting['is_deleted'] == true || 
+      final existingDeleted = anyExisting != null &&
+                              (anyExisting['is_deleted'] == true ||
                                anyExisting['is_deleted'] == 'true' ||
                                anyExisting['is_deleted'] == 1)
                               ? anyExisting : null;
-      
-      print('Soft-deleted entry found: ${existingDeleted != null ? 'YES' : 'NO'}');
-      
+
       // Check if currency is already active
-      if (anyExisting != null && 
-          (anyExisting['is_deleted'] == false || 
+      if (anyExisting != null &&
+          (anyExisting['is_deleted'] == false ||
            anyExisting['is_deleted'] == 'false' ||
            anyExisting['is_deleted'] == 0 ||
            anyExisting['is_deleted'] == null)) {
-        print('Currency is already active in company!');
         throw Exception('Currency is already added to your company');
       }
-      
+
       String companyCurrencyId;
-      
+
       if (existingDeleted != null) {
         // Reactivate the existing soft-deleted entry
         companyCurrencyId = existingDeleted['company_currency_id'] as String;
-        print('Reactivating soft-deleted entry with ID: $companyCurrencyId');
-        
-        // Update only is_deleted field to reactivate
-        // Include company_id for RLS policy compliance
+
         final updateResult = await _client
             .from('company_currency')
-            .update({
-              'is_deleted': false,
-            })
+            .update({'is_deleted': false})
             .eq('company_currency_id', companyCurrencyId)
-            .eq('company_id', companyId)  // Add for RLS
-            .eq('currency_id', currencyId)  // Add for extra safety
+            .eq('company_id', companyId)
+            .eq('currency_id', currencyId)
             .select();
-        
-        print('Update result: $updateResult');
-        
+
         // Verify the update was successful
         if (updateResult.isEmpty) {
-          print('WARNING: Update returned empty result. Checking if update succeeded...');
-          
-          // Verify by checking the current state
           final verifyResult = await _client
               .from('company_currency')
               .select('is_deleted')
               .eq('company_currency_id', companyCurrencyId)
               .maybeSingle();
-          
+
           if (verifyResult == null || verifyResult['is_deleted'] == true) {
-            print('ERROR: Failed to reactivate soft-deleted currency!');
             throw Exception('Failed to reactivate currency. Check database permissions.');
           }
         }
-        
-        print('Successfully reactivated soft-deleted currency');
       } else {
-        // No existing entry found, create new one
-        print('No existing entry found, creating new company_currency entry...');
-        
-        // Generate new company_currency_id
+        // Create new entry
         companyCurrencyId = const Uuid().v4();
-        print('Creating new entry with ID: $companyCurrencyId');
 
-        // Add to company_currency table
         final insertResult = await _client.from('company_currency').insert({
           'company_currency_id': companyCurrencyId,
           'company_id': companyId,
           'currency_id': currencyId,
-          'is_deleted': false,  // Initialize as not deleted
+          'is_deleted': false,
           'created_at': DateTimeUtils.nowUtc(),
         }).select();
 
         if (insertResult.isEmpty) {
           throw Exception('Failed to insert company_currency');
         }
-
-        print('Successfully created new company_currency entry');
       }
 
-      
-      // Return the full currency with empty denominations initially
       return Currency(
         id: currencyId,
         code: currencyType['currency_code'] as String,
@@ -234,13 +198,11 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         fullName: currencyType['currency_name'] as String,
         symbol: currencyType['symbol'] as String,
         flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
-        companyCurrencyId: companyCurrencyId, // Include company_currency_id
+        companyCurrencyId: companyCurrencyId,
         denominations: [],
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      print('=== ADD COMPANY CURRENCY ERROR ===');
-      print('Error: $e');
       throw Exception('Failed to add currency to company: $e');
     }
   }
@@ -286,8 +248,6 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
       if (result.isEmpty) {
         throw Exception('Failed to soft delete currency - no rows affected');
       }
-
-      print('Successfully soft deleted company currency: $currencyId for company: $companyId');
     } catch (e) {
       throw Exception('Failed to remove currency: $e');
     }

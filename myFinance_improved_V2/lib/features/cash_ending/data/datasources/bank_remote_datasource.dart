@@ -14,24 +14,35 @@ class BankRemoteDataSource {
   BankRemoteDataSource({SupabaseClient? client})
       : _client = client ?? Supabase.instance.client;
 
-  /// Save bank balance using RPC call
+  /// Save bank balance using universal multi-currency RPC
   ///
-  /// Calls bank_amount_insert_v2 stored procedure
+  /// ✅ Uses insert_amount_multi_currency (Entry-based workflow)
+  /// Supports multi-currency bank balances
   /// [params] contains all parameters for the RPC function
+  /// Returns the entry data from database (entry_id, balance_before, balance_after)
   /// Throws exception on error
-  Future<void> saveBankBalance(Map<String, dynamic> params) async {
+  Future<Map<String, dynamic>?> saveBankBalance(
+    Map<String, dynamic> params,
+  ) async {
     try {
-      await _client.rpc<void>(
-        CashEndingConstants.rpcInsertBankAmount,
+      // ✅ NEW: Universal RPC returns entry data
+      final response = await _client.rpc(
+        CashEndingConstants.rpcInsertAmountMultiCurrency,
         params: params,
       );
+
+      // RPC returns table with entry_id, balance_before, balance_after
+      if (response is List && response.isNotEmpty) {
+        return response.first as Map<String, dynamic>;
+      }
+
+      return null;
     } catch (e) {
       // Re-throw with additional context
       final locationId = params['p_location_id'] ?? 'unknown';
-      final amount = params['p_amount'] ?? 'unknown';
       throw Exception(
         'Failed to save bank balance via RPC '
-        '(Location: $locationId, Amount: $amount): $e',
+        '(Location: $locationId): $e',
       );
     }
   }

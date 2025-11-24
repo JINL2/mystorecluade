@@ -485,7 +485,10 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: TossLoadingView(),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                        ),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
