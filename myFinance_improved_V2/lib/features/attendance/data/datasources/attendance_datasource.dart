@@ -49,17 +49,19 @@ class AttendanceDatasource {
   }
 
   /// Fetch user shift overview for the month
+  ///
+  /// Uses user_shift_overview_v2 RPC with TIMESTAMPTZ parameter
   Future<Map<String, dynamic>> getUserShiftOverview({
-    required String requestDate,
+    required String requestTime, // Changed from requestDate to requestTime (TIMESTAMPTZ)
     required String userId,
     required String companyId,
     required String storeId,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_overview',
+        'user_shift_overview_v2', // Changed from user_shift_overview to v2
         params: {
-          'p_request_date': requestDate,
+          'p_request_time': requestTime, // Changed from p_request_date to p_request_time
           'p_user_id': userId,
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -69,7 +71,7 @@ class AttendanceDatasource {
       if (response == null) {
         // Return empty data structure
         return {
-          'request_month': requestDate.substring(0, 7), // yyyy-MM from yyyy-MM-dd
+          'request_month': requestTime.substring(0, 7), // yyyy-MM from yyyy-MM-dd HH:mm:ss
           'actual_work_days': 0,
           'actual_work_hours': 0.0,
           'estimated_salary': '0',
@@ -78,6 +80,7 @@ class AttendanceDatasource {
           'salary_type': 'hourly',
           'late_deduction_total': 0,
           'overtime_total': 0,
+          'salary_stores': <Map<String, dynamic>>[],
         };
       }
 
@@ -85,7 +88,7 @@ class AttendanceDatasource {
       if (response is List) {
         if (response.isEmpty) {
           return {
-            'request_month': requestDate.substring(0, 7),
+            'request_month': requestTime.substring(0, 7),
             'actual_work_days': 0,
             'actual_work_hours': 0.0,
             'estimated_salary': '0',
@@ -94,6 +97,7 @@ class AttendanceDatasource {
             'salary_type': 'hourly',
             'late_deduction_total': 0,
             'overtime_total': 0,
+            'salary_stores': <Map<String, dynamic>>[],
           };
         }
         final firstItem = response.first as Map<String, dynamic>;
@@ -133,21 +137,23 @@ class AttendanceDatasource {
   }
 
   /// Update shift request (check-in or check-out) via QR scan
+  ///
+  /// Uses update_shift_requests_v5 RPC with TIMESTAMPTZ parameter only
+  /// - p_request_date parameter removed (date extracted from p_time in RPC)
+  /// - p_time must be UTC timestamp in ISO 8601 format
   Future<Map<String, dynamic>?> updateShiftRequest({
     required String userId,
     required String storeId,
-    required String requestDate,
     required String timestamp,
     required AttendanceLocation location,
   }) async {
     try {
       // Call the RPC function
       final response = await _supabase.rpc<dynamic>(
-        'update_shift_requests_v4',
+        'update_shift_requests_v5',
         params: {
           'p_user_id': userId,
           'p_store_id': storeId,
-          'p_request_date': requestDate,
           'p_time': timestamp,
           'p_lat': location.latitude,
           'p_lng': location.longitude,
@@ -225,17 +231,21 @@ class AttendanceDatasource {
   }
 
   /// Fetch user shift cards for the month
+  ///
+  /// Uses user_shift_cards_v2 RPC with TIMESTAMPTZ parameter
+  /// - p_request_date parameter removed (date extracted from p_request_time in RPC)
+  /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
   Future<List<Map<String, dynamic>>> getUserShiftCards({
-    required String requestDate,
+    required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_cards',
+        'user_shift_cards_v2',
         params: {
-          'p_request_date': requestDate,
+          'p_request_time': requestTime,
           'p_user_id': userId,
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -249,7 +259,25 @@ class AttendanceDatasource {
       // Convert UTC times to local time and return as list
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
-        return results.map((item) => _convertToLocalTime(item)).toList();
+        return results.map((item) {
+          final converted = _convertToLocalTime(item);
+
+          // Convert request_time (UTC) to request_date (local date only)
+          if (converted.containsKey('request_time')) {
+            try {
+              final utcString = converted['request_time']?.toString() ?? '';
+              if (utcString.isNotEmpty) {
+                final localDateTime = DateTimeUtils.toLocal(utcString);
+                converted['request_date'] = DateTimeUtils.toDateOnly(localDateTime);
+              }
+            } catch (e) {
+              // If conversion fails, use request_time as-is
+              converted['request_date'] = converted['request_time'];
+            }
+          }
+
+          return converted;
+        }).toList();
       }
 
       return [];

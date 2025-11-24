@@ -12,14 +12,14 @@ import '../entities/shift_request.dart';
 abstract class AttendanceRepository {
   /// Get user shift overview for a specific month
   ///
-  /// [requestDate] - Date in format 'yyyy-MM-dd'
+  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
   /// [userId] - User ID
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   ///
   /// Returns [ShiftOverview] with monthly statistics
   Future<ShiftOverview> getUserShiftOverview({
-    required String requestDate,
+    required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
@@ -42,17 +42,17 @@ abstract class AttendanceRepository {
 
   /// Update shift request (check-in or check-out)
   ///
+  /// Matches RPC: update_shift_requests_v5
+  ///
   /// [userId] - User ID
   /// [storeId] - Store ID
-  /// [requestDate] - Request date in format 'yyyy-MM-dd'
-  /// [timestamp] - Current timestamp in ISO 8601 format
+  /// [timestamp] - Current timestamp in UTC ISO 8601 format
   /// [location] - GPS location
   ///
-  /// Returns updated shift data as Map
+  /// Returns updated shift data as Map with status and time
   Future<Map<String, dynamic>> updateShiftRequest({
     required String userId,
     required String storeId,
-    required String requestDate,
     required String timestamp,
     required AttendanceLocation location,
   });
@@ -77,14 +77,16 @@ abstract class AttendanceRepository {
 
   /// Get user shift cards for a month
   ///
-  /// [requestDate] - Date in format 'yyyy-MM-dd'
+  /// Matches RPC: user_shift_cards_v2
+  ///
+  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
   /// [userId] - User ID
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   ///
-  /// Returns list of ShiftCard from user_shift_cards RPC
+  /// Returns list of ShiftCard from user_shift_cards_v2 RPC
   Future<List<ShiftCard>> getUserShiftCards({
-    required String requestDate,
+    required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,

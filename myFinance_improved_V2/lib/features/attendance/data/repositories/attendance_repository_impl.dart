@@ -19,13 +19,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   @override
   Future<ShiftOverview> getUserShiftOverview({
-    required String requestDate,
+    required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
   }) async {
     final json = await _datasource.getUserShiftOverview(
-      requestDate: requestDate,
+      requestTime: requestTime,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
@@ -57,14 +57,12 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<Map<String, dynamic>> updateShiftRequest({
     required String userId,
     required String storeId,
-    required String requestDate,
     required String timestamp,
     required AttendanceLocation location,
   }) async {
     final result = await _datasource.updateShiftRequest(
       userId: userId,
       storeId: storeId,
-      requestDate: requestDate,
       timestamp: timestamp,
       location: location,
     );
@@ -96,13 +94,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   @override
   Future<List<ShiftCard>> getUserShiftCards({
-    required String requestDate,
+    required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
   }) async {
     final jsonList = await _datasource.getUserShiftCards(
-      requestDate: requestDate,
+      requestTime: requestTime,
       userId: userId,
       companyId: companyId,
       storeId: storeId,

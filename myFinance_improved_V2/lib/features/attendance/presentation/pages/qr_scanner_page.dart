@@ -188,19 +188,17 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Invalid store ID format');
                 }
                 
-                // Get current date and time
+                // Get current time and convert to UTC for RPC
+                // v5 RPC extracts date from p_time internally, no need for separate p_request_date
                 final now = DateTime.now();
-                final requestDate = DateTimeUtils.toDateOnly(now);
-                // Convert to UTC for database storage
                 final currentTime = DateTimeUtils.toUtc(now);
-                
+
                 // Submit attendance using check in use case
                 final checkInShift = ref.read(checkInShiftProvider);
 
                 final result = await checkInShift(
                   userId: userId,
                   storeId: storeId,
-                  requestDate: requestDate,
                   timestamp: currentTime,
                   location: AttendanceLocation(
                     latitude: position.latitude,
@@ -239,32 +237,27 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   String message = 'Check-in Successful';
 
                   // Check various possible response formats from the RPC
-                  // The RPC might return different formats depending on the action
-                  final action = result['action']?.toString().toLowerCase() ?? '';
-                  final type = result['type']?.toString().toLowerCase() ?? '';
+                  // The RPC v5 returns {status: 'check_in'|'check_out'|'attend', time: 'timestamp'}
                   final status = result['status']?.toString().toLowerCase() ?? '';
-                  final checkinTime = result['actual_start_time'];
-                  final checkoutTime = result['actual_end_time'];
+                  final returnedTime = result['time'];
 
-                  // Determine action based on available fields
-                  if (action.contains('out') || type.contains('out') || status.contains('out')) {
+                  // Determine action based on status field
+                  if (status.contains('out') || status == 'check_out') {
                     message = 'Check-out Successful';
-                  } else if (action.contains('in') || type.contains('in') || status.contains('in')) {
+                  } else if (status.contains('in') || status == 'check_in') {
                     message = 'Check-in Successful';
-                  } else if (checkoutTime != null) {
-                    // If checkout time exists in result, it was a checkout
-                    message = 'Check-out Successful';
+                  } else if (status == 'attend') {
+                    message = 'Attendance Recorded';
                   } else {
                     // Default to check-in (most common case)
                     message = 'Check-in Successful';
                   }
-                  
+
                   // Prepare data to pass back to attendance page
                   final checkInOutData = <String, dynamic>{
                     ...result,  // Include all result data from RPC
                     'message': message,
-                    'request_date': requestDate,
-                    'timestamp': currentTime,
+                    'timestamp': returnedTime ?? currentTime,
                     'action': message.contains('out') ? 'check_out' : 'check_in',
                   };
                   

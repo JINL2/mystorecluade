@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../data/providers/attendance_data_providers.dart';
+import '../../data/datasources/attendance_datasource.dart';
+import '../../data/repositories/attendance_repository_impl.dart';
+import '../../domain/repositories/attendance_repository.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_current_shift.dart';
@@ -12,16 +15,37 @@ import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
+import '../../domain/value_objects/month_bounds.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// Re-export Repository Provider (for complex operations)
+// Repository Provider (Presentation Layer Dependency Injection)
 // ========================================
 
-/// Re-export repository provider from data layer
-/// Use this ONLY for complex operations that combine multiple use cases
-/// Prefer individual use case providers for simple operations
-export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
+/// Supabase client provider
+final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
+
+/// Attendance datasource provider
+final _attendanceDatasourceProvider = Provider<AttendanceDatasource>((ref) {
+  final client = ref.watch(_supabaseClientProvider);
+  return AttendanceDatasource(client);
+});
+
+/// Attendance repository provider
+///
+/// CLEAN ARCHITECTURE FIX:
+/// Previously imported from Data layer (violation).
+/// Now defined in Presentation layer with proper DI.
+///
+/// Presentation depends on:
+/// - Domain: AttendanceRepository (interface)
+/// - Data: AttendanceRepositoryImpl, AttendanceDatasource (implementation)
+final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
+  final datasource = ref.watch(_attendanceDatasourceProvider);
+  return AttendanceRepositoryImpl(datasource: datasource);
+});
 
 // ========================================
 // Use Case Providers
@@ -138,15 +162,14 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
         return;
       }
 
-      // IMPORTANT: RPC functions require the LAST day of the month as p_request_date
+      // IMPORTANT: RPC functions require UTC timestamp with last moment of month
+      // Use MonthBounds Value Object for month boundary calculation
       final now = DateTime.now();
-      // Calculate the last day of the current month
-      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-      final requestDate =
-          '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
+      final monthBounds = MonthBounds.fromDate(now);
+      final requestTime = monthBounds.lastMomentUtcFormatted; // "yyyy-MM-dd HH:mm:ss" in UTC
 
       final overview = await getShiftOverview(
-        requestDate: requestDate,
+        requestTime: requestTime,
         userId: userId,
         companyId: companyId,
         storeId: storeId,

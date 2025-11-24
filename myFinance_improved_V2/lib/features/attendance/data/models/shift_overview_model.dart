@@ -14,10 +14,22 @@ class ShiftOverviewModel extends ShiftOverview {
     required super.salaryType,
     required super.lateDeductionTotal,
     required super.overtimeTotal,
+    required super.salaryStores,
   });
 
   /// Create from JSON
   factory ShiftOverviewModel.fromJson(Map<String, dynamic> json) {
+    // Parse salary_stores array
+    final salaryStoresJson = json['salary_stores'] as List<dynamic>? ?? [];
+    final salaryStores = salaryStoresJson.map((storeJson) {
+      final store = storeJson as Map<String, dynamic>;
+      return StoreSalary(
+        storeId: store['store_id'] as String? ?? '',
+        storeName: store['store_name'] as String? ?? '',
+        estimatedSalary: store['estimated_salary']?.toString() ?? '0',
+      );
+    }).toList();
+
     return ShiftOverviewModel(
       requestMonth: json['request_month'] as String? ?? '',
       actualWorkDays: json['actual_work_days'] as int? ?? 0,
@@ -28,6 +40,7 @@ class ShiftOverviewModel extends ShiftOverview {
       salaryType: json['salary_type'] as String? ?? 'hourly',
       lateDeductionTotal: json['late_deduction_total'] as int? ?? 0,
       overtimeTotal: json['overtime_total'] as int? ?? 0,
+      salaryStores: salaryStores,
     );
   }
 
@@ -43,6 +56,7 @@ class ShiftOverviewModel extends ShiftOverview {
       'salary_type': salaryType,
       'late_deduction_total': lateDeductionTotal,
       'overtime_total': overtimeTotal,
+      'salary_stores': salaryStores.map((store) => store.toMap()).toList(),
     };
   }
 
@@ -58,6 +72,7 @@ class ShiftOverviewModel extends ShiftOverview {
       salaryType: salaryType,
       lateDeductionTotal: lateDeductionTotal,
       overtimeTotal: overtimeTotal,
+      salaryStores: salaryStores,
     );
   }
 
@@ -73,6 +88,7 @@ class ShiftOverviewModel extends ShiftOverview {
       salaryType: 'hourly',
       lateDeductionTotal: 0,
       overtimeTotal: 0,
+      salaryStores: const [],
     );
   }
 }

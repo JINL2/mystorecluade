@@ -1,3 +1,26 @@
+/// Store Salary Entity
+///
+/// Represents salary information for a specific store.
+class StoreSalary {
+  final String storeId;
+  final String storeName;
+  final String estimatedSalary;
+
+  const StoreSalary({
+    required this.storeId,
+    required this.storeName,
+    required this.estimatedSalary,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'store_id': storeId,
+      'store_name': storeName,
+      'estimated_salary': estimatedSalary,
+    };
+  }
+}
+
 /// Shift Overview Entity
 ///
 /// Represents monthly shift statistics for a user.
@@ -11,6 +34,7 @@ class ShiftOverview {
   final String salaryType;
   final int lateDeductionTotal;
   final int overtimeTotal;
+  final List<StoreSalary> salaryStores;
 
   const ShiftOverview({
     required this.requestMonth,
@@ -22,6 +46,7 @@ class ShiftOverview {
     required this.salaryType,
     required this.lateDeductionTotal,
     required this.overtimeTotal,
+    required this.salaryStores,
   });
 
   /// Empty overview with zero values
@@ -36,6 +61,7 @@ class ShiftOverview {
       salaryType: 'hourly',
       lateDeductionTotal: 0,
       overtimeTotal: 0,
+      salaryStores: const [],
     );
   }
 
@@ -63,6 +89,7 @@ class ShiftOverview {
       'salary_type': salaryType,
       'late_deduction_total': lateDeductionTotal,
       'overtime_total': overtimeTotal,
+      'salary_stores': salaryStores.map((store) => store.toMap()).toList(),
     };
   }
 
