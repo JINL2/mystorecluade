@@ -50,21 +50,23 @@ class AttendanceDatasource {
 
   /// Fetch user shift overview for the month
   ///
-  /// Uses user_shift_overview_v2 RPC with TIMESTAMPTZ parameter
+  /// Uses user_shift_overview_v3 RPC with TIMESTAMPTZ and timezone parameters
   Future<Map<String, dynamic>> getUserShiftOverview({
-    required String requestTime, // Changed from requestDate to requestTime (TIMESTAMPTZ)
+    required String requestTime, // TIMESTAMPTZ format (UTC)
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone, // User's local timezone (e.g., "Asia/Seoul")
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_overview_v2', // Changed from user_shift_overview to v2
+        'user_shift_overview_v3', // Changed from v2 to v3
         params: {
-          'p_request_time': requestTime, // Changed from p_request_date to p_request_time
+          'p_request_time': requestTime,
           'p_user_id': userId,
           'p_company_id': companyId,
           'p_store_id': storeId,
+          'p_timezone': timezone, // New: user's local timezone
         },
       );
 
@@ -232,23 +234,25 @@ class AttendanceDatasource {
 
   /// Fetch user shift cards for the month
   ///
-  /// Uses user_shift_cards_v2 RPC with TIMESTAMPTZ parameter
-  /// - p_request_date parameter removed (date extracted from p_request_time in RPC)
+  /// Uses user_shift_cards_v3 RPC with TIMESTAMPTZ and timezone parameters
   /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<List<Map<String, dynamic>>> getUserShiftCards({
     required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_cards_v2',
+        'user_shift_cards_v3',
         params: {
           'p_request_time': requestTime,
           'p_user_id': userId,
           'p_company_id': companyId,
           'p_store_id': storeId,
+          'p_timezone': timezone,
         },
       );
 
@@ -332,14 +336,19 @@ class AttendanceDatasource {
   }
 
   /// Get shift metadata for a store
+  ///
+  /// Uses get_shift_metadata_v2 RPC with timezone parameter
+  /// - Returns shift times converted to user's local timezone
   Future<List<Map<String, dynamic>>> getShiftMetadata({
     required String storeId,
+    required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_shift_metadata',
+        'get_shift_metadata_v2',
         params: {
           'p_store_id': storeId,
+          'p_timezone': timezone,
         },
       );
 
@@ -361,17 +370,23 @@ class AttendanceDatasource {
   }
 
   /// Get monthly shift status for manager view
+  ///
+  /// Uses get_monthly_shift_status_manager_v2 RPC with TIMESTAMPTZ and timezone parameters
+  /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
-    required String requestDate,
+    required String requestTime,
+    required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager',
+        'get_monthly_shift_status_manager_v2',
         params: {
           'p_store_id': storeId,
-          'p_request_date': requestDate,
+          'p_request_time': requestTime,
+          'p_timezone': timezone,
         },
       );
 

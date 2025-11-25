@@ -1,6 +1,6 @@
-import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/entities/monthly_shift_status.dart';
+import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/entities/shift_overview.dart';
 import '../../domain/entities/shift_request.dart';
@@ -23,12 +23,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     final json = await _datasource.getUserShiftOverview(
       requestTime: requestTime,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
+      timezone: timezone,
     );
 
     return ShiftOverviewModel.fromJson(json).toEntity();
@@ -98,12 +100,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     final jsonList = await _datasource.getUserShiftCards(
       requestTime: requestTime,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
+      timezone: timezone,
     );
 
     return jsonList.map((json) => ShiftCard.fromJson(json)).toList();
@@ -134,8 +138,12 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   @override
   Future<List<ShiftMetadata>> getShiftMetadata({
     required String storeId,
+    required String timezone,
   }) async {
-    final jsonList = await _datasource.getShiftMetadata(storeId: storeId);
+    final jsonList = await _datasource.getShiftMetadata(
+      storeId: storeId,
+      timezone: timezone,
+    );
     return jsonList.map((json) => ShiftMetadata.fromJson(json)).toList();
   }
 
@@ -143,12 +151,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
-    required String requestDate,
+    required String requestTime,
+    required String timezone,
   }) async {
     final jsonList = await _datasource.getMonthlyShiftStatusManager(
       storeId: storeId,
       companyId: companyId,
-      requestDate: requestDate,
+      requestTime: requestTime,
+      timezone: timezone,
     );
     return jsonList.map((json) => MonthlyShiftStatus.fromJson(json)).toList();
   }

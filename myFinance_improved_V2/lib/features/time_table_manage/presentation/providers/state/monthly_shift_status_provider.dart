@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
 import '../states/time_table_state.dart';
@@ -50,15 +51,19 @@ class MonthlyShiftStatusNotifier
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Format as first day of month
-      final requestDate =
-          '${month.year}-${month.month.toString().padLeft(2, '0')}-01';
+      // Format as first day of month with time (UTC timestamp)
+      final requestTime =
+          '${month.year}-${month.month.toString().padLeft(2, '0')}-01 00:00:00';
+
+      // Get user's local timezone
+      final timezone = DateTimeUtils.getLocalTimezone();
 
       final data = await _getMonthlyShiftStatusUseCase(
         GetMonthlyShiftStatusParams(
-          requestDate: requestDate,
+          requestTime: requestTime,
           companyId: _companyId,
           storeId: _storeId,
+          timezone: timezone,
         ),
       );
 

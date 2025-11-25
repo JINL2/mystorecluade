@@ -593,33 +593,34 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
   }
 }
 
-/// Helper: Parse time string to TimeOfDay and convert from UTC to local
+/// Helper: Parse time string to TimeOfDay from timetz format
 ///
-/// **중요:** DB에 저장된 UTC 시간을 로컬 시간으로 변환합니다.
-/// 예: DB의 UTC 06:15 → 한국(UTC+9)에서 15:15로 표시
+/// **중요:** DB에 저장된 timetz 값을 파싱합니다.
+/// 예: "14:00:00+09:00" → TimeOfDay(14, 0)
+/// PostgreSQL은 timetz를 클라이언트 타임존으로 자동 변환하여 반환합니다.
 TimeOfDay? _parseTimeString(String timeString) {
   try {
+    // Remove timezone offset if present (e.g., "14:00:00+09:00" → "14:00:00")
+    String cleanedTime = timeString;
+    if (timeString.contains('+') || timeString.contains('-')) {
+      // Find the position of timezone offset
+      final plusIndex = timeString.indexOf('+');
+      final minusIndex = timeString.lastIndexOf('-');
+      final offsetIndex = plusIndex != -1 ? plusIndex : minusIndex;
+
+      if (offsetIndex > 0) {
+        cleanedTime = timeString.substring(0, offsetIndex);
+      }
+    }
+
     // Parse "HH:mm" or "HH:mm:ss" format
-    final parts = timeString.split(':');
+    final parts = cleanedTime.split(':');
     if (parts.length >= 2) {
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
 
-      // Create a UTC DateTime object with today's date and the parsed time
-      final now = DateTime.now();
-      final utcDateTime = DateTime.utc(
-        now.year,
-        now.month,
-        now.day,
-        hour,
-        minute,
-      );
-
-      // Convert to local time
-      final localDateTime = utcDateTime.toLocal();
-
-      // Return as TimeOfDay in local timezone
-      return TimeOfDay(hour: localDateTime.hour, minute: localDateTime.minute);
+      // Return as TimeOfDay (already in local timezone from DB)
+      return TimeOfDay(hour: hour, minute: minute);
     }
   } catch (e) {
     // Return null if parsing fails
@@ -627,28 +628,25 @@ TimeOfDay? _parseTimeString(String timeString) {
   return null;
 }
 
-/// Helper: Format TimeOfDay to "HH:mm" string and convert to UTC
+/// Helper: Format TimeOfDay to "HH:mm+ZZ:ZZ" string with timezone offset
 ///
-/// **중요:** 사용자가 선택한 로컬 시간을 UTC로 변환하여 DB에 저장합니다.
-/// 예: 한국(UTC+9)에서 15:15 선택 → UTC 06:15로 변환
+/// **중요:** 사용자가 선택한 로컬 시간을 타임존 정보와 함께 DB에 저장합니다.
+/// 예: 한국(UTC+9)에서 14:00 선택 → "14:00+09:00"로 저장
 String _formatTimeOfDay(TimeOfDay time) {
-  // Create a DateTime object with today's date and the selected time (in local timezone)
+  // Get local timezone offset
   final now = DateTime.now();
-  final localDateTime = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    time.hour,
-    time.minute,
-  );
+  final offset = now.timeZoneOffset;
 
-  // Convert to UTC
-  final utcDateTime = localDateTime.toUtc();
+  // Format timezone offset as +HH:mm or -HH:mm
+  final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
+  final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+  final offsetSign = offset.isNegative ? '-' : '+';
 
-  // Return UTC time in HH:mm format
-  final hour = utcDateTime.hour.toString().padLeft(2, '0');
-  final minute = utcDateTime.minute.toString().padLeft(2, '0');
-  return '$hour:$minute';
+  // Format time with timezone: HH:mm+ZZ:ZZ
+  final hour = time.hour.toString().padLeft(2, '0');
+  final minute = time.minute.toString().padLeft(2, '0');
+
+  return '$hour:$minute$offsetSign$offsetHours:$offsetMinutes';
 }
 
 /// Helper: Calculate duration between start and end times

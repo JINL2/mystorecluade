@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
+import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../domain/entities/shift_card.dart';
 import '../../../../domain/entities/shift_overview.dart';
 import '../../../../domain/usecases/determine_shift_status.dart';
@@ -98,21 +99,24 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
       // Use MonthBounds Value Object for month boundary calculation
       final monthBounds = MonthBounds.fromDate(targetDate);
       final requestTime = monthBounds.lastMomentUtcFormatted; // "yyyy-MM-dd HH:mm:ss" in UTC
+      final timezone = DateTimeUtils.getLocalTimezone(); // User's local timezone
 
       // Call both APIs in parallel using Use Cases
-      // Both user_shift_overview_v2 and user_shift_cards_v2 now use TIMESTAMPTZ
+      // Both user_shift_overview_v3 and user_shift_cards_v3 now use TIMESTAMPTZ + timezone
       final results = await Future.wait<dynamic>([
         getShiftOverview(
-          requestTime: requestTime, // user_shift_overview_v2 uses TIMESTAMPTZ
+          requestTime: requestTime, // user_shift_overview_v3 uses TIMESTAMPTZ + timezone
           userId: userId,
           companyId: companyId,
           storeId: storeId,
+          timezone: timezone,
         ),
         getUserShiftCards(
-          requestTime: requestTime, // user_shift_cards_v2 uses TIMESTAMPTZ
+          requestTime: requestTime, // user_shift_cards_v3 uses TIMESTAMPTZ + timezone
           userId: userId,
           companyId: companyId,
           storeId: storeId,
+          timezone: timezone,
         ),
         getCurrentShift(
           userId: userId,

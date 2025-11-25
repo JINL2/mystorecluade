@@ -16,6 +16,7 @@ abstract class AttendanceRepository {
   /// [userId] - User ID
   /// [companyId] - Company ID
   /// [storeId] - Store ID
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns [ShiftOverview] with monthly statistics
   Future<ShiftOverview> getUserShiftOverview({
@@ -23,6 +24,7 @@ abstract class AttendanceRepository {
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone,
   });
 
   /// Get shift requests for a date range
@@ -77,19 +79,21 @@ abstract class AttendanceRepository {
 
   /// Get user shift cards for a month
   ///
-  /// Matches RPC: user_shift_cards_v2
+  /// Matches RPC: user_shift_cards_v3
   ///
   /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
   /// [userId] - User ID
   /// [companyId] - Company ID
   /// [storeId] - Store ID
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of ShiftCard from user_shift_cards_v2 RPC
+  /// Returns list of ShiftCard from user_shift_cards_v3 RPC
   Future<List<ShiftCard>> getUserShiftCards({
     required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
+    required String timezone,
   });
 
   /// Get current active shift for user
@@ -116,24 +120,32 @@ abstract class AttendanceRepository {
 
   /// Get shift metadata for a store
   ///
-  /// [storeId] - Store ID
+  /// Matches RPC: get_shift_metadata_v2
   ///
-  /// Returns list of shift metadata
+  /// [storeId] - Store ID
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  ///
+  /// Returns list of shift metadata with times in user's local timezone
   Future<List<ShiftMetadata>> getShiftMetadata({
     required String storeId,
+    required String timezone,
   });
 
   /// Get monthly shift status for manager view
   ///
+  /// Matches RPC: get_monthly_shift_status_manager_v2
+  ///
   /// [storeId] - Store ID
   /// [companyId] - Company ID
-  /// [requestDate] - Request date in format 'yyyy-MM-dd'
+  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of shift status data
+  /// Returns list of shift status data for 3 months
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
-    required String requestDate,
+    required String requestTime,
+    required String timezone,
   });
 
   /// Insert a new shift request

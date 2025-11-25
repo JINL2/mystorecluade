@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../data/datasources/attendance_datasource.dart';
 import '../../data/repositories/attendance_repository_impl.dart';
 import '../../domain/repositories/attendance_repository.dart';
@@ -167,12 +168,14 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
       final now = DateTime.now();
       final monthBounds = MonthBounds.fromDate(now);
       final requestTime = monthBounds.lastMomentUtcFormatted; // "yyyy-MM-dd HH:mm:ss" in UTC
+      final timezone = DateTimeUtils.getLocalTimezone(); // User's local timezone
 
       final overview = await getShiftOverview(
         requestTime: requestTime,
         userId: userId,
         companyId: companyId,
         storeId: storeId,
+        timezone: timezone,
       );
 
       state = ShiftOverviewState(

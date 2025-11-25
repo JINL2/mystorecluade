@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -77,9 +78,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     try {
       // Use get shift metadata use case
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
+      final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await getShiftMetadata(
         storeId: storeId,
+        timezone: timezone,
       );
 
       if (mounted) {
@@ -110,8 +113,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     });
     
     try {
-      // Format date as YYYY-MM-DD for the first day of the focused month
-      final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
+      // Format as UTC timestamp for the first day of the focused month
+      final requestTime = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01 00:00:00';
+
+      // Get user's local timezone
+      final timezone = DateTimeUtils.getLocalTimezone();
 
       // Use get monthly shift status use case
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
@@ -121,7 +127,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
-        requestDate: requestDate,
+        requestTime: requestTime,
+        timezone: timezone,
       );
 
       setState(() {

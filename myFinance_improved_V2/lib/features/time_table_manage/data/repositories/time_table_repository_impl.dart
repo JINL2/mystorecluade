@@ -91,14 +91,16 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
 
   @override
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatus({
-    required String requestDate,
+    required String requestTime,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.getMonthlyShiftStatus(
-        requestDate: requestDate,
+        requestTime: requestTime,
         storeId: storeId,
+        timezone: timezone,
       );
 
       // ✅ FREEZED: Simple DTO conversion (100+ lines → 10 lines!)

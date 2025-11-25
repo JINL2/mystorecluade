@@ -38,15 +38,19 @@ abstract class TimeTableRepository {
 
   /// Get monthly shift status for manager view
   ///
-  /// [requestDate] - Date in format 'yyyy-MM-dd'
+  /// Matches RPC: get_monthly_shift_status_manager_v2
+  ///
+  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
   /// [companyId] - Company ID
   /// [storeId] - Store ID
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of [MonthlyShiftStatus] (may include next month)
+  /// Returns list of [MonthlyShiftStatus] for 3 months
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatus({
-    required String requestDate,
+    required String requestTime,
     required String companyId,
     required String storeId,
+    required String timezone,
   });
 
   /// Get manager overview data for a month
