@@ -6,6 +6,7 @@ import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../domain/entities/shift_card.dart';
 import '../../../../domain/entities/shift_overview.dart';
 import '../../../../domain/usecases/determine_shift_status.dart';
+import '../../../../domain/usecases/update_shift_card_after_scan.dart';
 import '../../../../domain/value_objects/month_bounds.dart';
 import '../../../providers/attendance_providers.dart';
 
@@ -187,12 +188,17 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
   }
 
   /// Update local state after QR scan (check-in/out)
+  ///
+  /// Uses UpdateShiftCardAfterScan UseCase for business logic
   void updateLocalStateAfterQRScan(Map<String, dynamic> scanResult) {
-    final requestDate = scanResult['request_date'] ?? '';
-    final action = scanResult['action'] ?? '';
+    final String requestDate = (scanResult['request_date'] ?? '') as String;
+    final String action = (scanResult['action'] ?? '') as String;
     // Note: timestamp from QR scan is already in UTC from the server
     // If missing, convert current time to UTC
-    final timestamp = scanResult['timestamp'] ?? DateTime.now().toUtc().toIso8601String();
+    final String timestamp = (scanResult['timestamp'] ?? DateTime.now().toUtc().toIso8601String()) as String;
+
+    // Get UseCase from provider
+    final updateShiftCardUseCase = ref.read(updateShiftCardAfterScanProvider);
 
     // Find the existing shift card for today's date
     final existingCardIndex = allShiftCardsData.indexWhere((card) {
@@ -200,41 +206,31 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
     });
 
     if (existingCardIndex != -1) {
-      // Update existing card
-      final existingCard = allShiftCardsData[existingCardIndex];
+      // Update existing card using UseCase business logic
+      final existingCardMap = allShiftCardsData[existingCardIndex];
 
-      if (action == 'check_in') {
-        // Update check-in time
-        existingCard['actual_start_time'] = timestamp;
-        existingCard['confirm_start_time'] = timestamp;
+      // Convert Map to ShiftCard entity
+      final existingCardEntity = ShiftCard.fromJson(existingCardMap);
 
-        // Clear check-out time if exists (for re-check-in scenarios)
-        existingCard['actual_end_time'] = null;
-        existingCard['confirm_end_time'] = null;
-      } else if (action == 'check_out') {
-        // Update check-out time
-        existingCard['actual_end_time'] = timestamp;
-        existingCard['confirm_end_time'] = timestamp;
-      }
+      // Apply business logic through UseCase
+      final updatedCardEntity = updateShiftCardUseCase(
+        card: existingCardEntity,
+        action: action,
+        timestamp: timestamp,
+      );
 
-      // Update the card in the list
-      allShiftCardsData[existingCardIndex] = existingCard;
+      // Convert back to Map for backward compatibility
+      allShiftCardsData[existingCardIndex] = updatedCardEntity.toMap();
     } else {
       // Create new card if it doesn't exist (shouldn't happen normally)
-      final newCard = {
-        'request_date': requestDate,
-        'shift_request_id': scanResult['shift_request_id'] ?? '',
-        'shift_name': scanResult['shift_name'] ?? 'Shift',
-        'shift_start_time': scanResult['shift_start_time'] ?? '09:00:00',
-        'shift_end_time': scanResult['shift_end_time'] ?? '18:00:00',
-        'is_approved': true,
-        'actual_start_time': action == 'check_in' ? timestamp : null,
-        'confirm_start_time': action == 'check_in' ? timestamp : null,
-        'actual_end_time': action == 'check_out' ? timestamp : null,
-        'confirm_end_time': action == 'check_out' ? timestamp : null,
-      };
+      // Use UseCase to create with proper business rules
+      final newCardEntity = updateShiftCardUseCase.createFromScanResult(
+        scanResult: scanResult,
+        action: action,
+        timestamp: timestamp,
+      );
 
-      allShiftCardsData.add(newCard);
+      allShiftCardsData.add(newCardEntity.toMap());
     }
   }
 

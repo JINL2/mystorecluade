@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../data/providers/attendance_data_providers.dart';
+import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
@@ -12,25 +12,35 @@ import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
+import '../../domain/usecases/update_shift_card_after_scan.dart';
 import '../../domain/value_objects/month_bounds.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// CLEAN ARCHITECTURE COMPLIANCE
+// CLEAN ARCHITECTURE COMPLIANCE ✅
 // ========================================
 //
-// Presentation layer structure:
-// - Imports repository provider from Data layer (attendance_data_providers.dart)
-// - Data layer handles infrastructure concerns (Supabase, Datasource, Repository Implementation)
-// - Presentation layer depends only on Domain UseCases and Data Providers
+// Presentation layer structure (IMPROVED):
+// - Imports repository provider from DOMAIN layer (attendance_repository_provider.dart)
+// - Data layer provides concrete implementation through override in main.dart
+// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
 //
 // Dependency Flow:
-// Presentation → Data Providers (attendanceRepositoryProvider) → Domain Interfaces
+// Presentation → Domain Providers → Domain Interfaces
+//                     ↑
+//              Data Implementation (injected via ProviderScope.overrides)
 //
-// This ensures Clean Architecture principles:
-// - Presentation does NOT import Data implementation classes directly
-// - Presentation only knows about Domain interfaces through UseCases
-// - Data layer provides concrete implementations through providers
+// Clean Architecture Benefits:
+// ✅ Presentation does NOT import Data layer at all
+// ✅ Presentation only knows about Domain interfaces
+// ✅ Data layer can be swapped without affecting Presentation
+// ✅ Easy to mock repositories for testing
+//
+// Implementation:
+// 1. Domain defines: attendanceRepositoryProvider (throws UnimplementedError)
+// 2. Data provides: attendanceRepositoryProviderImpl (concrete implementation)
+// 3. main.dart overrides: attendanceRepositoryProvider with attendanceRepositoryProviderImpl
+// 4. Presentation uses: attendanceRepositoryProvider (gets Data's implementation)
 //
 
 // ========================================
@@ -83,6 +93,11 @@ final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
 final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftCards(repository);
+});
+
+/// Update shift card after scan use case provider
+final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref) {
+  return UpdateShiftCardAfterScan();
 });
 
 // ========================================

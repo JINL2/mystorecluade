@@ -12,37 +12,38 @@ class AttendanceDatasource {
 
   AttendanceDatasource(this._supabase);
 
-  /// Process data from database - keeps UTC strings as-is
+  /// Process nested data structures from database
   ///
-  /// **중요:** UTC 문자열을 그대로 유지합니다!
-  /// 변환은 Model 레이어에서 수행됩니다:
-  /// - ShiftRequestModel.fromJson()에서 DateTimeUtils.toLocal() 사용
-  /// - attendance_content.dart의 _formatTime()에서 DateTimeUtils.toLocal() 사용
+  /// **Purpose**: Handle nested JSON structures (e.g., store_shifts)
+  /// **Important**: Does NOT perform timezone conversion!
   ///
-  /// 이렇게 하면:
-  /// 1. 데이터 일관성 유지 (항상 UTC 문자열로 저장)
-  /// 2. 중복 변환 방지
-  /// 3. 타임존 정보 손실 방지
+  /// Timezone conversion strategy:
+  /// - Database stores: TIMESTAMPTZ in UTC
+  /// - Datasource returns: UTC strings unchanged
+  /// - Model layer converts: UTC → Local time (via DateTimeUtils.toLocal())
+  /// - UI displays: Local time
   ///
-  /// Datetime 필드:
-  /// - actual_start_time, actual_end_time (실제 QR 스캔 시간)
-  /// - confirm_start_time, confirm_end_time (관리자 확정 시간)
-  /// - created_at, updated_at (레코드 생성/수정 시각)
-  /// - report_time (문제 신고 시각)
+  /// Benefits:
+  /// 1. Data consistency: Always UTC in datasource
+  /// 2. Single conversion point: Only in Model layer
+  /// 3. No timezone info loss: UTC preserved until needed
   ///
-  /// Time-only 필드 (변환 불필요):
-  /// - scheduled_start_time, scheduled_end_time (HH:mm:ss)
-  /// - shift_start_time, shift_end_time (HH:mm:ss)
-  Map<String, dynamic> _convertToLocalTime(Map<String, dynamic> data) {
+  /// Datetime fields (UTC strings from DB):
+  /// - actual_start_time, actual_end_time (QR scan timestamps)
+  /// - confirm_start_time, confirm_end_time (admin confirmation times)
+  /// - created_at, updated_at (record metadata)
+  /// - report_time (issue report timestamp)
+  ///
+  /// Time-only fields (no conversion needed):
+  /// - scheduled_start_time, scheduled_end_time (HH:mm:ss format)
+  /// - shift_start_time, shift_end_time (HH:mm:ss format)
+  Map<String, dynamic> _processNestedData(Map<String, dynamic> data) {
     final result = Map<String, dynamic>.from(data);
 
-    // Keep UTC strings as-is
-    // Conversion will be done in Model layer (ShiftRequestModel.fromJson)
-    // This prevents double conversion and maintains data consistency
-
-    // If there's nested store_shifts data, process it too
+    // Recursively process nested structures
+    // Note: No timezone conversion happens here - data stays as UTC strings
     if (result['store_shifts'] is Map<String, dynamic>) {
-      result['store_shifts'] = _convertToLocalTime(result['store_shifts'] as Map<String, dynamic>);
+      result['store_shifts'] = _processNestedData(result['store_shifts'] as Map<String, dynamic>);
     }
 
     return result;
@@ -103,11 +104,11 @@ class AttendanceDatasource {
           };
         }
         final firstItem = response.first as Map<String, dynamic>;
-        return _convertToLocalTime(firstItem);
+        return _processNestedData(firstItem);
       }
 
       final result = response as Map<String, dynamic>;
-      return _convertToLocalTime(result);
+      return _processNestedData(result);
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }
@@ -213,7 +214,7 @@ class AttendanceDatasource {
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
         return results.map((item) {
-          final converted = _convertToLocalTime(item);
+          final converted = _processNestedData(item);
 
           // Convert request_time (UTC) to request_date (local date only)
           if (converted.containsKey('request_time')) {
@@ -293,12 +294,12 @@ class AttendanceDatasource {
 
       if (response is List) {
         return response
-            .map((item) => _convertToLocalTime(item as Map<String, dynamic>))
+            .map((item) => _processNestedData(item as Map<String, dynamic>))
             .toList();
       }
 
       // If it's a single map, wrap it in a list
-      return [_convertToLocalTime(response as Map<String, dynamic>)];
+      return [_processNestedData(response as Map<String, dynamic>)];
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }
@@ -331,7 +332,7 @@ class AttendanceDatasource {
 
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
-        return results.map((item) => _convertToLocalTime(item)).toList();
+        return results.map((item) => _processNestedData(item)).toList();
       }
 
       return [];
@@ -391,7 +392,7 @@ class AttendanceDatasource {
         // Extract the actual data if present
         if (result.containsKey('data') && result['data'] != null) {
           final data = result['data'] as Map<String, dynamic>;
-          return _convertToLocalTime(data);
+          return _processNestedData(data);
         }
 
         // If no data field but successful, return null
@@ -399,7 +400,7 @@ class AttendanceDatasource {
       }
 
       // If response doesn't have success field, treat it as direct data
-      return _convertToLocalTime(result);
+      return _processNestedData(result);
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }
