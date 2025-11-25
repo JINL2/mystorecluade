@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../app/providers/app_state_provider.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
 import '../usecase/time_table_usecase_providers.dart';
@@ -36,5 +37,11 @@ final shiftMetadataProvider =
   }
 
   final useCase = ref.watch(getShiftMetadataUseCaseProvider);
-  return await useCase(GetShiftMetadataParams(storeId: storeId));
+  final appState = ref.watch(appStateProvider);
+  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
+
+  return await useCase(GetShiftMetadataParams(
+    storeId: storeId,
+    timezone: timezone,
+  ));
 });

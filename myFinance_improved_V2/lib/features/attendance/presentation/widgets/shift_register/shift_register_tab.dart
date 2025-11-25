@@ -1661,10 +1661,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
           // Delete using the three-column filter approach via use case
           // This uniquely identifies the row without needing shift_request_id
           final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
+          final appState = ref.read(appStateProvider);
+          final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
+
           await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
+            timezone: timezone,
           );
 
 

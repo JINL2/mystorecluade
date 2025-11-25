@@ -3,17 +3,14 @@
 /// This file contains all UseCase providers (Domain layer logic).
 /// Each provider creates a UseCase instance with injected Repository.
 ///
-/// Total: 15 UseCase Providers
+/// Total: 12 UseCase Providers
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../di/dependency_injection.dart';
 import '../../../domain/usecases/add_bonus.dart';
-import '../../../domain/usecases/create_shift.dart';
-import '../../../domain/usecases/delete_shift.dart';
 import '../../../domain/usecases/delete_shift_tag.dart';
-import '../../../domain/usecases/get_available_employees.dart';
 import '../../../domain/usecases/get_manager_overview.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
@@ -60,22 +57,6 @@ final getManagerShiftCardsUseCaseProvider =
 });
 
 // ============================================================================
-// Shift CRUD UseCases
-// ============================================================================
-
-/// Create Shift UseCase Provider
-final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return CreateShift(repository);
-});
-
-/// Delete Shift UseCase Provider
-final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return DeleteShift(repository);
-});
-
-// ============================================================================
 // Approval UseCases
 // ============================================================================
 
@@ -107,13 +88,6 @@ final getScheduleDataUseCaseProvider = Provider<GetScheduleData>((ref) {
 final insertScheduleUseCaseProvider = Provider<InsertSchedule>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return InsertSchedule(repository);
-});
-
-/// Get Available Employees UseCase Provider
-final getAvailableEmployeesUseCaseProvider =
-    Provider<GetAvailableEmployees>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return GetAvailableEmployees(repository);
 });
 
 // ============================================================================

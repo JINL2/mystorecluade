@@ -23,11 +23,13 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
   final GetManagerOverview _getManagerOverviewUseCase;
   final String _companyId;
   final String _storeId;
+  final String _timezone;
 
   ManagerOverviewNotifier(
     this._getManagerOverviewUseCase,
     this._companyId,
     this._storeId,
+    this._timezone,
   ) : super(const ManagerOverviewState());
 
   /// Load manager overview for a specific month
@@ -61,6 +63,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
           endDate: endDate,
           companyId: _companyId,
           storeId: _storeId,
+          timezone: _timezone,
         ),
       );
 
@@ -106,6 +109,7 @@ final managerOverviewProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerOverviewUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
+  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
 
-  return ManagerOverviewNotifier(useCase, companyId, storeId);
+  return ManagerOverviewNotifier(useCase, companyId, storeId, timezone);
 });

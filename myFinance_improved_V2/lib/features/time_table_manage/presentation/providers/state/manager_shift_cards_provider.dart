@@ -23,11 +23,13 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
   final GetManagerShiftCards _getManagerShiftCardsUseCase;
   final String _companyId;
   final String _storeId;
+  final String _timezone;
 
   ManagerShiftCardsNotifier(
     this._getManagerShiftCardsUseCase,
     this._companyId,
     this._storeId,
+    this._timezone,
   ) : super(const ManagerShiftCardsState());
 
   /// Load manager shift cards for a specific month
@@ -63,6 +65,7 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
           endDate: endDate,
           companyId: _companyId,
           storeId: _storeId,
+          timezone: _timezone,
         ),
       );
 
@@ -112,6 +115,7 @@ final managerCardsProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
+  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
 
-  return ManagerShiftCardsNotifier(useCase, companyId, storeId);
+  return ManagerShiftCardsNotifier(useCase, companyId, storeId, timezone);
 });
