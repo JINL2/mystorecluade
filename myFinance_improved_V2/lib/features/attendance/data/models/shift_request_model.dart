@@ -1,117 +1,133 @@
-import '../../domain/entities/shift_request.dart';
 import '../../domain/entities/attendance_location.dart';
-import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/shift_request.dart';
 
 /// Shift Request Model (DTO + Mapper)
 ///
 /// Handles JSON serialization/deserialization for ShiftRequest entity.
-class ShiftRequestModel extends ShiftRequest {
-  const ShiftRequestModel({
-    required super.shiftRequestId,
-    required super.userId,
-    required super.storeId,
-    required super.requestDate,
-    super.scheduledStartTime,
-    super.scheduledEndTime,
-    super.actualStartTime,
-    super.actualEndTime,
-    super.checkinLocation,
-    super.checkoutLocation,
-    required super.status,
-    super.storeShift,
-  });
+/// This separates data concerns from domain logic.
+class ShiftRequestModel {
+  final ShiftRequest _entity;
 
-  /// Create from JSON
-  ///
-  /// **중요:** DB에서 가져온 UTC 시간을 로컬 시간으로 자동 변환합니다.
-  factory ShiftRequestModel.fromJson(Map<String, dynamic> json) {
-    return ShiftRequestModel(
-      shiftRequestId: json['shift_request_id'] as String,
-      userId: json['user_id'] as String,
-      storeId: json['store_id'] as String,
-      requestDate: json['request_date'] as String,
-      // Convert UTC to local time using DateTimeUtils
-      scheduledStartTime: json['scheduled_start_time'] != null
-          ? DateTimeUtils.toLocal(json['scheduled_start_time'] as String)
-          : null,
-      scheduledEndTime: json['scheduled_end_time'] != null
-          ? DateTimeUtils.toLocal(json['scheduled_end_time'] as String)
-          : null,
-      actualStartTime: json['actual_start_time'] != null
-          ? DateTimeUtils.toLocal(json['actual_start_time'] as String)
-          : null,
-      actualEndTime: json['actual_end_time'] != null
-          ? DateTimeUtils.toLocal(json['actual_end_time'] as String)
-          : null,
-      checkinLocation: _parseLocation(json['checkin_location']),
-      checkoutLocation: _parseLocation(json['checkout_location']),
-      status: json['status'] as String? ?? 'pending',
-      storeShift: json['store_shifts'] as Map<String, dynamic>?,
-    );
+  ShiftRequestModel(this._entity);
+
+  /// Create from Entity
+  factory ShiftRequestModel.fromEntity(ShiftRequest entity) {
+    return ShiftRequestModel(entity);
   }
 
-  /// Parse PostGIS POINT to AttendanceLocation
-  static AttendanceLocation? _parseLocation(dynamic locationData) {
-    if (locationData == null) return null;
+  /// Convert to Entity
+  ShiftRequest toEntity() => _entity;
 
-    // Handle PostGIS POINT format: "POINT(lng lat)"
-    if (locationData is String) {
-      final regex = RegExp(r'POINT\((-?\d+\.?\d*)\s+(-?\d+\.?\d*)\)');
-      final match = regex.firstMatch(locationData);
-      if (match != null) {
-        final lng = double.parse(match.group(1)!);
-        final lat = double.parse(match.group(2)!);
-        return AttendanceLocation(latitude: lat, longitude: lng);
-      }
-    }
-
-    return null;
+  /// Create from JSON
+  factory ShiftRequestModel.fromJson(Map<String, dynamic> json) {
+    return ShiftRequestModel(
+      ShiftRequest(
+        shiftRequestId: (json['shift_request_id'] as String?) ?? '',
+        userId: (json['user_id'] as String?) ?? '',
+        shiftId: (json['shift_id'] as String?) ?? '',
+        storeId: (json['store_id'] as String?) ?? '',
+        requestDate: (json['request_date'] as String?) ?? '',
+        isApproved: json['is_approved'] as bool?,
+        approvedBy: json['approved_by'] as String?,
+        startTime: _parseDateTime(json['start_time']),
+        endTime: _parseDateTime(json['end_time']),
+        actualStartTime: _parseDateTime(json['actual_start_time']),
+        actualEndTime: _parseDateTime(json['actual_end_time']),
+        confirmStartTime: _parseDateTime(json['confirm_start_time']),
+        confirmEndTime: _parseDateTime(json['confirm_end_time']),
+        isLate: json['is_late'] as bool?,
+        isExtratime: json['is_extratime'] as bool?,
+        checkinLocation: _parseLocation(json['checkin_location']),
+        checkinDistanceFromStore:
+            (json['checkin_distance_from_store'] as num?)?.toDouble(),
+        isValidCheckinLocation: json['is_valid_checkin_location'] as bool?,
+        checkoutLocation: _parseLocation(json['checkout_location']),
+        checkoutDistanceFromStore:
+            (json['checkout_distance_from_store'] as num?)?.toDouble(),
+        isValidCheckoutLocation: json['is_valid_checkout_location'] as bool?,
+        overtimeAmount: (json['overtime_amount'] as num?)?.toDouble(),
+        lateDeducutAmount: (json['late_deducut_amount'] as num?)?.toDouble(),
+        bonusAmount: (json['bonus_amount'] as num?)?.toDouble(),
+        isReported: json['is_reported'] as bool?,
+        reportTime: _parseDateTime(json['report_time']),
+        problemType: json['problem_type'] as String?,
+        isProblem: json['is_problem'] as bool?,
+        isProblemSolved: json['is_problem_solved'] as bool? ?? false,
+        reportReason: json['report_reason'] as String?,
+        noticeTag: json['notice_tag'] as Map<String, dynamic>?,
+        createdAt: _parseDateTime(json['created_at']),
+        updatedAt: _parseDateTime(json['updated_at']),
+      ),
+    );
   }
 
   /// Convert to JSON
-  ///
-  /// **중요:** 로컬 시간을 UTC로 변환하여 DB에 저장합니다.
   Map<String, dynamic> toJson() {
     return {
-      'shift_request_id': shiftRequestId,
-      'user_id': userId,
-      'store_id': storeId,
-      'request_date': requestDate,
-      // Convert local time to UTC using DateTimeUtils
-      'scheduled_start_time': scheduledStartTime != null
-          ? DateTimeUtils.toUtc(scheduledStartTime!)
-          : null,
-      'scheduled_end_time': scheduledEndTime != null
-          ? DateTimeUtils.toUtc(scheduledEndTime!)
-          : null,
-      'actual_start_time': actualStartTime != null
-          ? DateTimeUtils.toUtc(actualStartTime!)
-          : null,
-      'actual_end_time': actualEndTime != null
-          ? DateTimeUtils.toUtc(actualEndTime!)
-          : null,
-      'checkin_location': checkinLocation?.toPostGISPoint(),
-      'checkout_location': checkoutLocation?.toPostGISPoint(),
-      'status': status,
-      'store_shifts': storeShift,
+      'shift_request_id': _entity.shiftRequestId,
+      'user_id': _entity.userId,
+      'shift_id': _entity.shiftId,
+      'store_id': _entity.storeId,
+      'request_date': _entity.requestDate,
+      'is_approved': _entity.isApproved,
+      'approved_by': _entity.approvedBy,
+      'start_time': _entity.startTime?.toIso8601String(),
+      'end_time': _entity.endTime?.toIso8601String(),
+      'actual_start_time': _entity.actualStartTime?.toIso8601String(),
+      'actual_end_time': _entity.actualEndTime?.toIso8601String(),
+      'confirm_start_time': _entity.confirmStartTime?.toIso8601String(),
+      'confirm_end_time': _entity.confirmEndTime?.toIso8601String(),
+      'is_late': _entity.isLate,
+      'is_extratime': _entity.isExtratime,
+      'checkin_location': _entity.checkinLocation?.toPostGIS(),
+      'checkin_distance_from_store': _entity.checkinDistanceFromStore,
+      'is_valid_checkin_location': _entity.isValidCheckinLocation,
+      'checkout_location': _entity.checkoutLocation?.toPostGIS(),
+      'checkout_distance_from_store': _entity.checkoutDistanceFromStore,
+      'is_valid_checkout_location': _entity.isValidCheckoutLocation,
+      'overtime_amount': _entity.overtimeAmount,
+      'late_deducut_amount': _entity.lateDeducutAmount,
+      'bonus_amount': _entity.bonusAmount,
+      'is_reported': _entity.isReported,
+      'report_time': _entity.reportTime?.toIso8601String(),
+      'problem_type': _entity.problemType,
+      'is_problem': _entity.isProblem,
+      'is_problem_solved': _entity.isProblemSolved,
+      'report_reason': _entity.reportReason,
+      'notice_tag': _entity.noticeTag,
+      'created_at': _entity.createdAt?.toIso8601String(),
+      'updated_at': _entity.updatedAt?.toIso8601String(),
     };
   }
 
-  /// Convert to entity
-  ShiftRequest toEntity() {
-    return ShiftRequest(
-      shiftRequestId: shiftRequestId,
-      userId: userId,
-      storeId: storeId,
-      requestDate: requestDate,
-      scheduledStartTime: scheduledStartTime,
-      scheduledEndTime: scheduledEndTime,
-      actualStartTime: actualStartTime,
-      actualEndTime: actualEndTime,
-      checkinLocation: checkinLocation,
-      checkoutLocation: checkoutLocation,
-      status: status,
-      storeShift: storeShift,
-    );
+  // ========================================
+  // Private Helper Methods
+  // ========================================
+
+  /// Parse DateTime from JSON string
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Parse AttendanceLocation from PostGIS string
+  static AttendanceLocation? _parseLocation(dynamic value) {
+    if (value == null) return null;
+    if (value is String) {
+      try {
+        return AttendanceLocation.fromPostGIS(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
+import '../../../../data/models/shift_overview_model.dart';
 import '../../../../domain/entities/shift_card.dart';
 import '../../../../domain/entities/shift_overview.dart';
 import '../../../../domain/usecases/determine_shift_status.dart';
@@ -120,13 +121,13 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         ),
       ]);
 
-      // Convert ShiftOverview entity to Map for backward compatibility
+      // Convert ShiftOverview entity to JSON using Model for backward compatibility
       final overviewEntity = results[0] as ShiftOverview;
-      final overviewResponse = overviewEntity.toMap();
+      final overviewResponse = ShiftOverviewModel.fromEntity(overviewEntity).toJson();
       // Keep ShiftCard entities for Use Case
       final cardsEntityList = results[1] as List<ShiftCard>;
-      // Convert to Map for backward compatibility with existing UI
-      final cardsResponse = cardsEntityList.map((card) => card.toMap()).toList();
+      // Convert to JSON for backward compatibility with existing UI
+      final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
 
       // Cache the overview data
       monthlyOverviewCache[monthKey] = overviewResponse;
@@ -219,8 +220,8 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         timestamp: timestamp,
       );
 
-      // Convert back to Map for backward compatibility
-      allShiftCardsData[existingCardIndex] = updatedCardEntity.toMap();
+      // Convert back to JSON for backward compatibility
+      allShiftCardsData[existingCardIndex] = updatedCardEntity.toJson();
     } else {
       // Create new card if it doesn't exist (shouldn't happen normally)
       // Use UseCase to create with proper business rules
@@ -230,7 +231,7 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         timestamp: timestamp,
       );
 
-      allShiftCardsData.add(newCardEntity.toMap());
+      allShiftCardsData.add(newCardEntity.toJson());
     }
   }
 

@@ -6,7 +6,9 @@ import '../../domain/entities/shift_overview.dart';
 import '../../domain/entities/shift_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_datasource.dart';
+import '../models/monthly_shift_status_model.dart';
 import '../models/shift_overview_model.dart';
+import '../models/shift_request_model.dart';
 
 /// Attendance Repository Implementation
 ///
@@ -110,7 +112,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       requestTime: requestTime,
       timezone: timezone,
     );
-    return jsonList.map((json) => MonthlyShiftStatus.fromJson(json)).toList();
+    return jsonList
+        .map((json) => MonthlyShiftStatusModel.fromJson(json).toEntity())
+        .toList();
   }
 
   @override
@@ -128,7 +132,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       requestTime: requestTime,
       timezone: timezone,
     );
-    return json != null ? ShiftRequest.fromJson(json) : null;
+    return json != null ? ShiftRequestModel.fromJson(json).toEntity() : null;
   }
 
   @override

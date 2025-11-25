@@ -99,38 +99,4 @@ class ShiftCard with _$ShiftCard {
       return 0.0;
     }
   }
-
-  /// Convert entity to Map for backward compatibility with existing UI code
-  /// This method will be gradually removed as UI transitions to using entities
-  Map<String, dynamic> toMap() {
-    return {
-      'request_date': requestDate,
-      'shift_request_id': shiftRequestId,
-      'shift_time': shiftTime,
-      'store_name': storeName,
-      'scheduled_hours': scheduledHours,
-      'is_approved': isApproved,
-      'actual_start_time': actualStartTime,
-      'actual_end_time': actualEndTime,
-      'confirm_start_time': confirmStartTime,
-      'confirm_end_time': confirmEndTime,
-      'paid_hours': paidHours,
-      'is_late': isLate,
-      'late_minutes': lateMinutes,
-      'late_deducut_amount': lateDeducutAmount,
-      'is_extratime': isExtratime,
-      'overtime_minutes': overtimeMinutes,
-      'base_pay': basePay,
-      'bonus_amount': bonusAmount,
-      'total_pay_with_bonus': totalPayWithBonus,
-      'salary_type': salaryType,
-      'salary_amount': salaryAmount,
-      'is_valid_checkin_location': isValidCheckinLocation,
-      'checkin_distance_from_store': checkinDistanceFromStore,
-      'checkout_distance_from_store': checkoutDistanceFromStore,
-      'is_reported': isReported,
-      'is_problem': isProblem,
-      'is_problem_solved': isProblemSolved,
-    };
-  }
 }

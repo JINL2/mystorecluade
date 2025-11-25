@@ -354,6 +354,14 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
+      // Debug log: Print parameters before RPC call
+      print('🔵 [insertShiftRequest] Calling RPC with params:');
+      print('  - userId: $userId');
+      print('  - shiftId: $shiftId');
+      print('  - storeId: $storeId');
+      print('  - requestTime: $requestTime');
+      print('  - timezone: $timezone');
+
       final response = await _supabase.rpc<dynamic>(
         'insert_shift_request_v3',
         params: {
@@ -364,6 +372,9 @@ class AttendanceDatasource {
           'p_timezone': timezone,
         },
       );
+
+      // Debug log: Print raw response
+      print('🟢 [insertShiftRequest] Raw RPC response: $response');
 
       if (response == null) {
         return null;
@@ -408,10 +419,8 @@ class AttendanceDatasource {
 
   /// Delete shift request
   ///
-  /// Filters by request_time (TIMESTAMPTZ) converted to local date
-  /// - Converts request_time to user's timezone
-  /// - Extracts date portion (yyyy-MM-dd)
-  /// - Matches against requestDate parameter
+  /// Uses delete_shift_request RPC function
+  /// Converts request_time to local date using timezone for filtering
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
@@ -419,18 +428,69 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Use RPC to handle timezone conversion and date filtering
-      // PostgreSQL: DATE(request_time AT TIME ZONE timezone) = requestDate
-      await _supabase.rpc<void>(
-        'delete_shift_request_by_date',
+      // Debug log: Print parameters before RPC call
+      print('🔵 [deleteShiftRequest] Calling RPC with params:');
+      print('  - userId: $userId');
+      print('  - shiftId: $shiftId');
+      print('  - requestDate: $requestDate');
+      print('  - timezone: $timezone');
+
+      // Call RPC function
+      // Note: RPC expects request_time (TIMESTAMPTZ format with timezone offset)
+      // Convert requestDate string to DateTime, then to ISO 8601 with offset
+      // Example: "2025-11-26" → DateTime(2025, 11, 26) → "2025-11-26T00:00:00+00:00"
+      final dateParts = requestDate.split('-');
+      final requestDateTime = DateTime(
+        int.parse(dateParts[0]), // year
+        int.parse(dateParts[1]), // month
+        int.parse(dateParts[2]), // day
+      );
+      final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+
+      print('🔵 [deleteShiftRequest] Converted requestTime: $requestTime');
+
+      final response = await _supabase.rpc<dynamic>(
+        'delete_shift_request',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
-          'p_request_date': requestDate,
+          'p_request_time': requestTime,
           'p_timezone': timezone,
         },
       );
+
+      // Debug log: Print raw response
+      print('🟢 [deleteShiftRequest] Raw RPC response: $response');
+
+      if (response == null) {
+        throw const AttendanceServerException('RPC call failed - no response');
+      }
+
+      // Parse response
+      Map<String, dynamic> result;
+      if (response is List) {
+        if (response.isEmpty) {
+          throw const AttendanceServerException('RPC returned empty response');
+        }
+        result = response.first as Map<String, dynamic>;
+      } else {
+        result = response as Map<String, dynamic>;
+      }
+
+      // Check if deletion was successful
+      final success = result['success'] as bool?;
+      if (success == false) {
+        final message = result['message'] as String? ?? 'Unknown error';
+        final errorCode = result['error_code'] as String? ?? 'UNKNOWN';
+        print('🔴 [deleteShiftRequest] RPC error: $errorCode - $message');
+        throw AttendanceServerException('$errorCode: $message');
+      }
+
+      // Debug log: Success
+      print('🟢 [deleteShiftRequest] DELETE successful');
     } catch (e) {
+      // Debug log: Error
+      print('🔴 [deleteShiftRequest] DELETE failed: $e');
       throw AttendanceServerException(e.toString());
     }
   }

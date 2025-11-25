@@ -51,9 +51,11 @@ class MonthlyShiftStatusNotifier
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Format as first day of month with time (UTC timestamp)
-      final requestTime =
-          '${month.year}-${month.month.toString().padLeft(2, '0')}-01 00:00:00';
+      // Create DateTime for first day of month
+      final firstDayOfMonth = DateTime(month.year, month.month, 1);
+
+      // Format as ISO 8601 with timezone offset (user's local time)
+      final requestTime = DateTimeUtils.toLocalWithOffset(firstDayOfMonth);
 
       // Get user's local timezone
       final timezone = DateTimeUtils.getLocalTimezone();

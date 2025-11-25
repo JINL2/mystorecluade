@@ -1,53 +1,39 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'shift_overview.freezed.dart';
+
 /// Store Salary Entity
 ///
 /// Represents salary information for a specific store.
-class StoreSalary {
-  final String storeId;
-  final String storeName;
-  final String estimatedSalary;
-
-  const StoreSalary({
-    required this.storeId,
-    required this.storeName,
-    required this.estimatedSalary,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'store_id': storeId,
-      'store_name': storeName,
-      'estimated_salary': estimatedSalary,
-    };
-  }
+@freezed
+class StoreSalary with _$StoreSalary {
+  const factory StoreSalary({
+    required String storeId,
+    required String storeName,
+    required String estimatedSalary,
+  }) = _StoreSalary;
 }
 
-/// Shift Overview Entity
+/// Shift Overview Entity - Pure business object
 ///
 /// Represents monthly shift statistics for a user.
-class ShiftOverview {
-  final String requestMonth;
-  final int actualWorkDays;
-  final double actualWorkHours;
-  final String estimatedSalary;
-  final String currencySymbol;
-  final double salaryAmount;
-  final String salaryType;
-  final int lateDeductionTotal;
-  final int overtimeTotal;
-  final List<StoreSalary> salaryStores;
+/// Does NOT contain JSON serialization - that's handled by ShiftOverviewModel in Data layer.
+@freezed
+class ShiftOverview with _$ShiftOverview {
+  const ShiftOverview._();
 
-  const ShiftOverview({
-    required this.requestMonth,
-    required this.actualWorkDays,
-    required this.actualWorkHours,
-    required this.estimatedSalary,
-    required this.currencySymbol,
-    required this.salaryAmount,
-    required this.salaryType,
-    required this.lateDeductionTotal,
-    required this.overtimeTotal,
-    required this.salaryStores,
-  });
+  const factory ShiftOverview({
+    required String requestMonth,
+    required int actualWorkDays,
+    required double actualWorkHours,
+    required String estimatedSalary,
+    required String currencySymbol,
+    required double salaryAmount,
+    required String salaryType,
+    required int lateDeductionTotal,
+    required int overtimeTotal,
+    required List<StoreSalary> salaryStores,
+  }) = _ShiftOverview;
 
   /// Empty overview with zero values
   static ShiftOverview empty(String month) {
@@ -65,6 +51,10 @@ class ShiftOverview {
     );
   }
 
+  // ========================================
+  // Business Logic Methods
+  // ========================================
+
   /// Check if overview has any work data
   bool get hasWorkData => actualWorkDays > 0 || actualWorkHours > 0;
 
@@ -77,22 +67,12 @@ class ShiftOverview {
     return actualWorkHours / actualWorkDays;
   }
 
-  /// Convert to Map for backward compatibility with old code
-  Map<String, dynamic> toMap() {
-    return {
-      'request_month': requestMonth,
-      'actual_work_days': actualWorkDays,
-      'actual_work_hours': actualWorkHours,
-      'estimated_salary': estimatedSalary,
-      'currency_symbol': currencySymbol,
-      'salary_amount': salaryAmount,
-      'salary_type': salaryType,
-      'late_deduction_total': lateDeductionTotal,
-      'overtime_total': overtimeTotal,
-      'salary_stores': salaryStores.map((store) => store.toMap()).toList(),
-    };
-  }
+  /// Check if user is full-time (>= 30 hours/week average)
+  bool get isFullTime => averageHoursPerDay * 7 >= 30;
 
-  @override
-  String toString() => 'ShiftOverview(month: $requestMonth, days: $actualWorkDays, hours: $actualWorkHours)';
+  /// Check if has overtime
+  bool get hasOvertime => overtimeTotal > 0;
+
+  /// Check if has late deductions
+  bool get hasLateDeductions => lateDeductionTotal > 0;
 }
