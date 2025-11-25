@@ -57,16 +57,30 @@ class MonthBounds {
     return '${firstMomentUtc.year}-${firstMomentUtc.month.toString().padLeft(2, '0')}-${firstMomentUtc.day.toString().padLeft(2, '0')}';
   }
 
-  /// Get last moment of month as UTC timestamp for RPC calls (TIMESTAMPTZ)
-  /// Returns: "yyyy-MM-dd HH:mm:ss" in UTC (without 'T' or 'Z')
+  /// Get last moment of month as local timestamp with timezone offset for RPC calls
+  /// Returns: ISO 8601 format with timezone offset (e.g., "2025-01-31T23:59:59+09:00")
   ///
-  /// Example: Local 2025-01-31 23:59:59 (Vietnam +7) → "2025-02-01 16:59:59" (UTC)
+  /// Example:
+  /// - Korea (UTC+9): 2025-01-31 23:59:59 → "2025-01-31T23:59:59+09:00"
+  /// - Vietnam (UTC+7): 2024-11-30 23:59:59 → "2024-11-30T23:59:59+07:00"
   String get lastMomentUtcFormatted {
     final lastMomentLocal = DateTime(lastDay.year, lastDay.month, lastDay.day, 23, 59, 59);
-    final lastMomentUtc = lastMomentLocal.toUtc();
 
-    return '${lastMomentUtc.year}-${lastMomentUtc.month.toString().padLeft(2, '0')}-${lastMomentUtc.day.toString().padLeft(2, '0')} '
-           '${lastMomentUtc.hour.toString().padLeft(2, '0')}:${lastMomentUtc.minute.toString().padLeft(2, '0')}:${lastMomentUtc.second.toString().padLeft(2, '0')}';
+    // Get timezone offset
+    final offset = lastMomentLocal.timeZoneOffset;
+    final hours = offset.inHours;
+    final minutes = offset.inMinutes.remainder(60);
+
+    // Format offset as +HH:mm or -HH:mm
+    final sign = hours >= 0 ? '+' : '-';
+    final absHours = hours.abs().toString().padLeft(2, '0');
+    final absMinutes = minutes.abs().toString().padLeft(2, '0');
+    final offsetString = '$sign$absHours:$absMinutes';
+
+    // Format as ISO 8601 with timezone offset
+    return '${lastMomentLocal.year}-${lastMomentLocal.month.toString().padLeft(2, '0')}-${lastMomentLocal.day.toString().padLeft(2, '0')}T'
+           '${lastMomentLocal.hour.toString().padLeft(2, '0')}:${lastMomentLocal.minute.toString().padLeft(2, '0')}:${lastMomentLocal.second.toString().padLeft(2, '0')}'
+           '$offsetString';
   }
 
   /// Check if a date string belongs to this month

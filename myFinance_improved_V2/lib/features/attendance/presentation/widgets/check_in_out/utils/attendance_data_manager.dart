@@ -81,7 +81,6 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
       // Get Use Cases
       final getShiftOverview = ref.read(getShiftOverviewProvider);
       final getUserShiftCards = ref.read(getUserShiftCardsProvider);
-      final getCurrentShift = ref.read(getCurrentShiftProvider);
 
       final userId = user?.id;
       final companyId = appState.companyChoosen;
@@ -117,10 +116,6 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
           companyId: companyId,
           storeId: storeId,
           timezone: timezone,
-        ),
-        getCurrentShift(
-          userId: userId,
-          storeId: storeId,
         ),
       ]);
 

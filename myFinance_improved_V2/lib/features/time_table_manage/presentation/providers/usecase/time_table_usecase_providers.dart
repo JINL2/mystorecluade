@@ -3,7 +3,7 @@
 /// This file contains all UseCase providers (Domain layer logic).
 /// Each provider creates a UseCase instance with injected Repository.
 ///
-/// Total: 17 UseCase Providers
+/// Total: 15 UseCase Providers
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,13 +19,11 @@ import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
 import '../../../domain/usecases/get_schedule_data.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
-import '../../../domain/usecases/get_tags_by_card_id.dart';
 import '../../../domain/usecases/input_card.dart';
 import '../../../domain/usecases/insert_schedule.dart';
 import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
 import '../../../domain/usecases/update_bonus_amount.dart';
-import '../../../domain/usecases/update_shift.dart';
 
 // ============================================================================
 // Metadata & Status UseCases
@@ -69,12 +67,6 @@ final getManagerShiftCardsUseCaseProvider =
 final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return CreateShift(repository);
-});
-
-/// Update Shift UseCase Provider
-final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return UpdateShift(repository);
 });
 
 /// Delete Shift UseCase Provider
@@ -132,12 +124,6 @@ final getAvailableEmployeesUseCaseProvider =
 final inputCardUseCaseProvider = Provider<InputCard>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return InputCard(repository);
-});
-
-/// Get Tags By Card ID UseCase Provider
-final getTagsByCardIdUseCaseProvider = Provider<GetTagsByCardId>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return GetTagsByCardId(repository);
 });
 
 /// Delete Shift Tag UseCase Provider

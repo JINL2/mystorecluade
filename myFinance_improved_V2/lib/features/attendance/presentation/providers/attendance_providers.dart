@@ -1,15 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../data/datasources/attendance_datasource.dart';
-import '../../data/repositories/attendance_repository_impl.dart';
-import '../../domain/repositories/attendance_repository.dart';
+import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
-import '../../domain/usecases/get_current_shift.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
@@ -20,33 +16,22 @@ import '../../domain/value_objects/month_bounds.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// Repository Provider (Presentation Layer Dependency Injection)
+// CLEAN ARCHITECTURE COMPLIANCE
 // ========================================
-
-/// Supabase client provider
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Attendance datasource provider
-final _attendanceDatasourceProvider = Provider<AttendanceDatasource>((ref) {
-  final client = ref.watch(_supabaseClientProvider);
-  return AttendanceDatasource(client);
-});
-
-/// Attendance repository provider
-///
-/// CLEAN ARCHITECTURE FIX:
-/// Previously imported from Data layer (violation).
-/// Now defined in Presentation layer with proper DI.
-///
-/// Presentation depends on:
-/// - Domain: AttendanceRepository (interface)
-/// - Data: AttendanceRepositoryImpl, AttendanceDatasource (implementation)
-final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final datasource = ref.watch(_attendanceDatasourceProvider);
-  return AttendanceRepositoryImpl(datasource: datasource);
-});
+//
+// Presentation layer structure:
+// - Imports repository provider from Data layer (attendance_data_providers.dart)
+// - Data layer handles infrastructure concerns (Supabase, Datasource, Repository Implementation)
+// - Presentation layer depends only on Domain UseCases and Data Providers
+//
+// Dependency Flow:
+// Presentation → Data Providers (attendanceRepositoryProvider) → Domain Interfaces
+//
+// This ensures Clean Architecture principles:
+// - Presentation does NOT import Data implementation classes directly
+// - Presentation only knows about Domain interfaces through UseCases
+// - Data layer provides concrete implementations through providers
+//
 
 // ========================================
 // Use Case Providers
@@ -98,12 +83,6 @@ final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
 final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftCards(repository);
-});
-
-/// Get current shift use case provider
-final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetCurrentShift(repository);
 });
 
 // ========================================
@@ -195,39 +174,3 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
   }
 }
 
-/// Provider for current shift status
-final currentShiftProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
-  final getCurrentShift = ref.read(getCurrentShiftProvider);
-  final authStateAsync = ref.read(authStateProvider);
-  final appState = ref.read(appStateProvider);
-
-  final user = authStateAsync.value;
-  final userId = user?.id;
-  final storeId = appState.storeChoosen;
-
-  if (userId == null || storeId.isEmpty) {
-    return null;
-  }
-
-  return await getCurrentShift(
-    userId: userId,
-    storeId: storeId,
-  );
-});
-
-/// Provider for checking if user is currently working
-final isWorkingProvider = Provider<bool>((ref) {
-  final currentShift = ref.watch(currentShiftProvider);
-
-  return currentShift.when(
-    data: (shift) {
-      if (shift == null) return false;
-      // Check if user has checked in but not checked out
-      return shift['actual_start_time'] != null &&
-          shift['actual_end_time'] == null;
-    },
-    loading: () => false,
-    error: (_, __) => false,
-  );
-});

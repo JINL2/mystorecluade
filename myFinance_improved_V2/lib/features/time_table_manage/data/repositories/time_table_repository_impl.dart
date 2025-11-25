@@ -6,14 +6,9 @@ import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/operation_result.dart';
 import '../../domain/entities/schedule_data.dart';
-import '../../domain/entities/shift.dart';
-import '../../domain/entities/shift_approval_result.dart';
 import '../../domain/entities/shift_metadata.dart';
-import '../../domain/entities/shift_request.dart';
-import '../../domain/entities/tag.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
 import '../../domain/repositories/time_table_repository.dart';
-import '../../domain/value_objects/create_shift_params.dart';
 import '../datasources/time_table_datasource.dart';
 // Freezed DTOs
 import '../models/freezed/available_employees_data_dto.dart';
@@ -32,16 +27,8 @@ import '../models/freezed/operation_result_dto.dart';
 import '../models/freezed/operation_result_dto_mapper.dart';
 import '../models/freezed/schedule_data_dto.dart';
 import '../models/freezed/schedule_data_dto_mapper.dart';
-import '../models/freezed/shift_approval_result_dto.dart';
-import '../models/freezed/shift_approval_result_dto_mapper.dart';
-import '../models/freezed/shift_card_dto.dart';
-import '../models/freezed/shift_card_dto_mapper.dart';
-import '../models/freezed/shift_dto.dart';
-import '../models/freezed/shift_dto_mapper.dart';
 import '../models/freezed/shift_metadata_dto.dart';
 import '../models/freezed/shift_metadata_dto_mapper.dart';
-import '../models/freezed/shift_request_dto.dart';
-import '../models/freezed/shift_request_dto_mapper.dart';
 
 /// Time Table Repository Implementation
 ///
@@ -54,9 +41,13 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   @override
   Future<ShiftMetadata> getShiftMetadata({
     required String storeId,
+    required String timezone,
   }) async {
     try {
-      final data = await _datasource.getShiftMetadata(storeId: storeId);
+      final data = await _datasource.getShiftMetadata(
+        storeId: storeId,
+        timezone: timezone,
+      );
 
       // RPC returns TABLE format (List of rows), convert to List<ShiftMetadataDto>
       final List<ShiftMetadataDto> dtos = (data as List)
@@ -77,9 +68,13 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   @override
   Future<dynamic> getShiftMetadataRaw({
     required String storeId,
+    required String timezone,
   }) async {
     try {
-      return await _datasource.getShiftMetadata(storeId: storeId);
+      return await _datasource.getShiftMetadata(
+        storeId: storeId,
+        timezone: timezone,
+      );
     } catch (e) {
       if (e is ShiftMetadataException) rethrow;
       throw ShiftMetadataException(
@@ -157,6 +152,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required String endDate,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.getManagerOverview(
@@ -164,6 +160,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         endDate: endDate,
         companyId: companyId,
         storeId: storeId,
+        timezone: timezone,
       );
 
       // ✅ FREEZED: Direct DTO conversion
@@ -184,6 +181,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required String endDate,
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.getManagerShiftCards(
@@ -191,6 +189,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         endDate: endDate,
         companyId: companyId,
         storeId: storeId,
+        timezone: timezone,
       );
 
       final dto = ManagerShiftCardsDto.fromJson(data);
@@ -210,48 +209,19 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<ShiftApprovalResult> toggleShiftApproval({
-    required String shiftRequestId,
-    required bool newApprovalState,
+  Future<void> toggleShiftApproval({
+    required List<String> shiftRequestIds,
+    required String userId,
   }) async {
     try {
-      final data = await _datasource.toggleShiftApproval(
-        shiftRequestId: shiftRequestId,
-        newApprovalState: newApprovalState,
+      await _datasource.toggleShiftApproval(
+        shiftRequestIds: shiftRequestIds,
+        userId: userId,
       );
-
-      final dto = ShiftApprovalResultDto.fromJson(data);
-      return dto.toEntity();
     } catch (e) {
       if (e is ShiftApprovalException) rethrow;
       throw ShiftApprovalException(
         'Failed to toggle shift approval: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<Shift> createShift({
-    required CreateShiftParams params,
-  }) async {
-    try {
-      // Validate parameters
-      if (!params.isValid) {
-        throw InvalidShiftParametersException(
-          'Invalid shift parameters: ${params.validationErrors.join(", ")}',
-        );
-      }
-
-      final data = await _datasource.createShift(params: params.toJson());
-      final dto = ShiftDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is ShiftCreationException || e is InvalidShiftParametersException) {
-        rethrow;
-      }
-      throw ShiftCreationException(
-        'Failed to create shift: $e',
         originalError: e,
       );
     }
@@ -296,11 +266,13 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   Future<AvailableEmployeesData> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.getAvailableEmployees(
         storeId: storeId,
         shiftDate: shiftDate,
+        timezone: timezone,
       );
 
       final dto = AvailableEmployeesDataDto.fromJson(data);
@@ -317,9 +289,13 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   @override
   Future<ScheduleData> getScheduleData({
     required String storeId,
+    required String timezone,
   }) async {
     try {
-      final data = await _datasource.getScheduleData(storeId: storeId);
+      final data = await _datasource.getScheduleData(
+        storeId: storeId,
+        timezone: timezone,
+      );
       final dto = ScheduleDataDto.fromJson(data);
       return dto.toEntity(storeId: storeId);
     } catch (e) {
@@ -355,46 +331,22 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<ShiftRequest> updateShift({
-    required String shiftRequestId,
-    String? startTime,
-    String? endTime,
-    bool? isProblemSolved,
-  }) async {
-    try {
-      final data = await _datasource.updateShift(
-        shiftRequestId: shiftRequestId,
-        startTime: startTime,
-        endTime: endTime,
-        isProblemSolved: isProblemSolved,
-      );
-
-      final dto = ShiftRequestDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to update shift: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestDate,
+    required String requestTime,
     required String approvedBy,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.insertSchedule(
         userId: userId,
         shiftId: shiftId,
         storeId: storeId,
-        requestDate: requestDate,
+        requestTime: requestTime,
         approvedBy: approvedBy,
+        timezone: timezone,
       );
 
       // ✅ FREEZED: Direct DTO conversion
@@ -419,6 +371,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     String? newTagType,
     required bool isLate,
     required bool isProblemSolved,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.inputCard(
@@ -430,6 +383,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         newTagType: newTagType,
         isLate: isLate,
         isProblemSolved: isProblemSolved,
+        timezone: timezone,
       );
 
       final dto = CardInputResultDto.fromJson(data);
@@ -438,22 +392,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to input card: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<List<Tag>> getTagsByCardId({
-    required String cardId,
-  }) async {
-    try {
-      final data = await _datasource.getTagsByCardId(cardId: cardId);
-      return data.map((json) => TagDto.fromJson(json).toEntity()).toList();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to fetch tags: $e',
         originalError: e,
       );
     }

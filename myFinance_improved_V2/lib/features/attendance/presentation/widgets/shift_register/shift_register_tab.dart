@@ -113,8 +113,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     });
     
     try {
-      // Format as UTC timestamp for the first day of the focused month
-      final requestTime = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01 00:00:00';
+      // Format as local timestamp with timezone offset for the first day of the focused month
+      // Format: "2024-11-01T00:00:00+07:00"
+      final firstDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1, 0, 0, 0);
+      final requestTime = DateTimeUtils.toLocalWithOffset(firstDayOfMonth);
 
       // Get user's local timezone
       final timezone = DateTimeUtils.getLocalTimezone();
@@ -932,11 +934,29 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                             try {
                               // Use register shift request use case
                               final registerShiftRequest = ref.read(registerShiftRequestProvider);
+
+                              // Create DateTime for the selected date with current time
+                              // Format: "2024-11-15T10:30:25+07:00"
+                              final now = DateTime.now();
+                              final requestDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                now.hour,
+                                now.minute,
+                                now.second,
+                              );
+                              final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+
+                              // Get user's local timezone
+                              final timezone = DateTimeUtils.getLocalTimezone();
+
                               await registerShiftRequest(
                                 userId: user.id,
                                 shiftId: selectedShift!,
                                 storeId: selectedStoreId!,
-                                requestDate: dateStr,
+                                requestTime: requestTime,
+                                timezone: timezone,
                               );
                               
                               

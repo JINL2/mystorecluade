@@ -188,13 +188,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Invalid store ID format');
                 }
                 
-                // Get current time and convert to UTC for RPC
-                // v5 RPC extracts date from p_time internally, no need for separate p_request_date
+                // Get current time with timezone offset for RPC
+                // Format: "2024-11-15T10:30:25+07:00"
                 final now = DateTime.now();
-                final currentTime = DateTimeUtils.toUtc(now);
+                final currentTime = DateTimeUtils.toLocalWithOffset(now);
 
                 // Submit attendance using check in use case
                 final checkInShift = ref.read(checkInShiftProvider);
+
+                // Get user's local timezone
+                final timezone = DateTimeUtils.getLocalTimezone();
 
                 final result = await checkInShift(
                   userId: userId,
@@ -204,6 +207,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     latitude: position.latitude,
                     longitude: position.longitude,
                   ),
+                  timezone: timezone,
                 );
 
                 // Check if the RPC call was successful

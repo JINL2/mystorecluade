@@ -216,6 +216,50 @@ class DateTimeUtils {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  /// Converts DateTime to ISO 8601 string with local timezone offset
+  ///
+  /// This format includes the timezone offset to preserve exact moment in time
+  /// while maintaining the local time representation.
+  ///
+  /// Format: "yyyy-MM-ddTHH:mm:ss+HH:mm" (e.g., "2024-11-15T10:30:25+07:00")
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = DateTime.now(); // 2025-01-15 14:30:25 (KST +9)
+  /// DateTimeUtils.toLocalWithOffset(now); // "2025-01-15T14:30:25+09:00"
+  ///
+  /// // Vietnam time
+  /// final vietnamTime = DateTime.now(); // 2024-11-15 10:30:25 (ICT +7)
+  /// DateTimeUtils.toLocalWithOffset(vietnamTime); // "2024-11-15T10:30:25+07:00"
+  ///
+  /// // For RPC calls
+  /// await supabase.rpc('user_shift_overview_v3', {
+  ///   'p_request_time': DateTimeUtils.toLocalWithOffset(DateTime.now())
+  /// });
+  /// ```
+  static String toLocalWithOffset(DateTime dateTime) {
+    // Get timezone offset
+    final offset = dateTime.timeZoneOffset;
+    final hours = offset.inHours;
+    final minutes = offset.inMinutes.remainder(60);
+
+    // Format offset as +HH:mm or -HH:mm
+    final sign = hours >= 0 ? '+' : '-';
+    final absHours = hours.abs().toString().padLeft(2, '0');
+    final absMinutes = minutes.abs().toString().padLeft(2, '0');
+    final offsetString = '$sign$absHours:$absMinutes';
+
+    // Format datetime as ISO 8601 with offset
+    final year = dateTime.year.toString();
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+
+    return '$year-$month-${day}T$hour:$minute:$second$offsetString';
+  }
+
   /// Gets the user's local timezone in IANA format (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// This timezone string is used for RPC functions that need to handle timezone-aware calculations.
