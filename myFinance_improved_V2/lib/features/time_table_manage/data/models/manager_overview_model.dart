@@ -8,6 +8,7 @@ class ManagerOverviewModel {
   final int totalShifts;
   final int totalApprovedRequests;
   final int totalPendingRequests;
+  final int totalProblems;
   final int totalEmployees;
   final double totalEstimatedCost;
   final Map<String, dynamic> additionalStats;
@@ -17,6 +18,7 @@ class ManagerOverviewModel {
     required this.totalShifts,
     required this.totalApprovedRequests,
     required this.totalPendingRequests,
+    required this.totalProblems,
     required this.totalEmployees,
     required this.totalEstimatedCost,
     this.additionalStats = const {},
@@ -29,6 +31,7 @@ class ManagerOverviewModel {
       totalShifts: json['total_shifts'] as int? ?? 0,
       totalApprovedRequests: json['total_approved_requests'] as int? ?? 0,
       totalPendingRequests: json['total_pending_requests'] as int? ?? 0,
+      totalProblems: json['total_problems'] as int? ?? 0,
       totalEmployees: json['total_employees'] as int? ?? 0,
       totalEstimatedCost:
           (json['total_estimated_cost'] as num?)?.toDouble() ?? 0.0,
@@ -43,6 +46,7 @@ class ManagerOverviewModel {
       'total_shifts': totalShifts,
       'total_approved_requests': totalApprovedRequests,
       'total_pending_requests': totalPendingRequests,
+      'total_problems': totalProblems,
       'total_employees': totalEmployees,
       'total_estimated_cost': totalEstimatedCost,
       'additional_stats': additionalStats,
@@ -56,6 +60,7 @@ class ManagerOverviewModel {
       totalShifts: totalShifts,
       totalApprovedRequests: totalApprovedRequests,
       totalPendingRequests: totalPendingRequests,
+      totalProblems: totalProblems,
       totalEmployees: totalEmployees,
       totalEstimatedCost: totalEstimatedCost,
       additionalStats: additionalStats,
@@ -69,6 +74,7 @@ class ManagerOverviewModel {
       totalShifts: entity.totalShifts,
       totalApprovedRequests: entity.totalApprovedRequests,
       totalPendingRequests: entity.totalPendingRequests,
+      totalProblems: entity.totalProblems,
       totalEmployees: entity.totalEmployees,
       totalEstimatedCost: entity.totalEstimatedCost,
       additionalStats: entity.additionalStats,

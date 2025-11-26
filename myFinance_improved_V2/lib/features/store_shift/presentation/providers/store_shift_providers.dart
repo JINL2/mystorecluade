@@ -15,20 +15,30 @@ import 'states/shift_page_state.dart';
 import 'states/store_settings_state.dart';
 
 /// ========================================
-/// Presentation Layer Providers
+/// CLEAN ARCHITECTURE COMPLIANCE ✅
 /// ========================================
 ///
-/// This file contains ALL providers for store_shift feature.
-/// Presentation layer uses Domain layer providers only.
+/// Presentation layer structure (IMPROVED):
+/// - Imports repository provider from DOMAIN layer (repository_provider.dart)
+/// - Data layer provides concrete implementation through override in main.dart
+/// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
 ///
-/// ✅ Clean Architecture Compliance:
-/// - Presentation imports Domain layer ONLY
-/// - Repository implementation is provided via ProviderScope override at app initialization
-/// - Domain knows NOTHING about Presentation or Data
-/// - Data knows ONLY about Domain
+/// Dependency Flow:
+/// Presentation → Domain Providers → Domain Interfaces
+///                     ↑
+///              Data Implementation (injected via ProviderScope.overrides)
 ///
-/// ⚠️ IMPORTANT: storeShiftRepositoryProvider must be overridden in main.dart
-/// See: lib/features/store_shift/data/repositories/repository_providers.dart
+/// Clean Architecture Benefits:
+/// ✅ Presentation does NOT import Data layer at all
+/// ✅ Presentation only knows about Domain interfaces
+/// ✅ Data layer can be swapped without affecting Presentation
+/// ✅ Easy to mock repositories for testing
+///
+/// Implementation:
+/// 1. Domain defines: storeShiftRepositoryProvider (throws UnimplementedError)
+/// 2. Data provides: storeShiftRepositoryImplProvider (concrete implementation)
+/// 3. main.dart overrides: storeShiftRepositoryProvider with storeShiftRepositoryImplProvider
+/// 4. Presentation uses: storeShiftRepositoryProvider (gets Data's implementation)
 
 /// ========================================
 /// UseCase Providers
@@ -79,7 +89,7 @@ final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSetti
 
 /// Provider to fetch shifts for the selected store
 ///
-/// Uses GetShifts UseCase to retrieve shifts.
+/// Uses Domain Repository Provider (implementation injected via DI)
 /// Returns empty list if no store is selected.
 final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) async {
   final appState = ref.watch(appStateProvider);
@@ -89,14 +99,14 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) a
     return [];
   }
 
-  // Use Domain layer's abstract repository provider (implementation via ProviderScope override)
+  // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getShiftsByStoreId(appState.storeChoosen);
 });
 
 /// Provider to fetch detailed store information
 ///
-/// Uses Domain layer's abstract repository provider.
+/// Uses Domain Repository Provider (implementation injected via DI)
 /// Returns null if no store is selected.
 final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
   final appState = ref.watch(appStateProvider);
@@ -106,7 +116,7 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
     return null;
   }
 
-  // Use Domain layer's abstract repository provider (implementation via ProviderScope override)
+  // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getStoreById(appState.storeChoosen);
 });
@@ -228,17 +238,20 @@ final updateStoreLocationProvider = Provider.autoDispose<
       required String storeId,
       required double latitude,
       required double longitude,
+      required String address,
     })>((ref) {
   return ({
     required String storeId,
     required double latitude,
     required double longitude,
+    required String address,
   }) async {
     final useCase = ref.read(updateStoreLocationUseCaseProvider);
     await useCase(UpdateStoreLocationParams(
       storeId: storeId,
       latitude: latitude,
       longitude: longitude,
+      address: address,
     ),);
   };
 });
