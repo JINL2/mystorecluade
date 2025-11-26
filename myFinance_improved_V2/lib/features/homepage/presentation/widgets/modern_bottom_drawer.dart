@@ -9,7 +9,8 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../data/models/user_companies_model.dart';
+import '../../../../core/domain/entities/company.dart';
+import '../../../../core/domain/entities/store.dart';
 import '../../domain/providers/usecase_providers.dart';
 import '../../domain/usecases/create_company.dart';
 import '../../domain/usecases/create_store.dart';
@@ -31,12 +32,12 @@ class ModernBottomDrawer extends ConsumerStatefulWidget {
     required this.userData,
   });
 
-  final UserCompaniesModel? userData;
+  final Map<String, dynamic>? userData;
 
   /// Show the bottom drawer as a modal bottom sheet
   static Future<T?> show<T>({
     required BuildContext context,
-    required UserCompaniesModel? userData,
+    required Map<String, dynamic>? userData,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -77,60 +78,30 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     super.dispose();
   }
 
-  /// ✅ Convert UserCompaniesModel to legacy Map format for backward compatibility
-  /// TODO: Remove this once all methods are refactored to use UserCompaniesModel
-  Map<String, dynamic>? _toLegacyFormat(UserCompaniesModel? model) {
-    if (model == null) return null;
-
-    return {
-      'user_id': model.userId,
-      'user_first_name': model.userFirstName,
-      'user_last_name': model.userLastName,
-      'profile_image': model.profileImage,
-      'company_count': model.companies.length,
-      'companies': model.companies.map((company) => {
-        'company_id': company.companyId,
-        'company_name': company.companyName,
-        'company_code': company.companyCode,
-        'stores': company.stores.map((store) => {
-          'store_id': store.storeId,
-          'store_name': store.storeName,
-          'store_code': store.storeCode,
-        }).toList(),
-        'role': company.role != null ? {
-          'role_name': company.role!.roleName,
-          'permissions': company.role!.permissions,
-        } : null,
-      }).toList(),
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     ref.watch(appStateProvider);
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
-    // ✅ Get UserCompaniesModel and convert to legacy format for compatibility
-    final userDataModel = userCompaniesAsync.maybeWhen(
+    // ✅ Get UserWithCompanies entity directly from provider
+    final userData = userCompaniesAsync.maybeWhen(
       data: (data) => data ?? widget.userData,
       orElse: () => widget.userData,
     );
-
-    // TODO: Refactor to use UserCompaniesModel directly
-    final userData = _toLegacyFormat(userDataModel);
 
     // Get selected company from app state
     final appState = ref.read(appStateProvider);
     final selectedCompanyId = appState.companyChoosen;
 
     // Find the selected company data from user companies
-    dynamic selectedCompany;
-    if (userData != null && userData is Map<String, dynamic>) {
-      final companies = (userData['companies'] as List<dynamic>?) ?? [];
+    Company? selectedCompany;
+    if (userData != null) {
       try {
-        selectedCompany = companies.firstWhere(
-          (c) => (c as Map<String, dynamic>)['company_id'] == selectedCompanyId,
+        final companies = (userData['companies'] as List<dynamic>?) ?? [];
+        final companyMap = companies.cast<Map<String, dynamic>>().firstWhere(
+          (c) => c['company_id'] == selectedCompanyId,
         );
+        selectedCompany = Company.fromMap(companyMap);
       } catch (e) {
         selectedCompany = null;
       }
@@ -149,8 +120,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           ),
         ),
 
-        // Header - uses UserCompaniesModel directly
-        custom.DrawerHeader(userData: userDataModel),
+        // Header - uses UserWithCompanies entity
+        custom.DrawerHeader(userData: userData),
 
         // Companies Section
         Expanded(
@@ -163,8 +134,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   Widget _buildCompaniesSection(
     BuildContext context,
     WidgetRef ref,
-    dynamic userData,
-    dynamic selectedCompany,
+    UserWithCompanies? userData,
+    Company? selectedCompany,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,18 +173,21 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             children: [
               // Existing Companies with their Stores
               ...() {
-                final companies = userData != null ? (userData['companies'] as List<dynamic>? ?? []) : [];
+                final companies = (userData?['companies'] as List<dynamic>?) ?? [];
 
-                final uniqueCompanies = <String, dynamic>{};
-                for (final company in companies) {
-                  uniqueCompanies[company['company_id'] as String] = company;
+                // Remove duplicates (if any)
+                final uniqueCompanies = <String, Company>{};
+                for (final companyMap in companies) {
+                  final company = Company.fromMap(companyMap as Map<String, dynamic>);
+                  uniqueCompanies[company.id] = company;
                 }
 
                 final companiesList = uniqueCompanies.values.toList();
 
+                // Sort to put selected company first
                 companiesList.sort((a, b) {
-                  if (a['company_id'] == selectedCompany?['company_id']) return -1;
-                  if (b['company_id'] == selectedCompany?['company_id']) return 1;
+                  if (a.id == selectedCompany?.id) return -1;
+                  if (b.id == selectedCompany?.id) return 1;
                   return 0;
                 });
 
@@ -221,7 +195,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   context,
                   ref,
                   company,
-                  company['company_id'] == selectedCompany?['company_id'],
+                  company.id == selectedCompany?.id,
                   selectedCompany,
                 ));
               }(),
@@ -264,20 +238,19 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   Widget _buildCompanyWithStores(
     BuildContext context,
     WidgetRef ref,
-    dynamic company,
+    Company company,
     bool isSelected,
-    dynamic selectedCompany,
+    Company? selectedCompany,
   ) {
     // Get selected store from app state
     final appState = ref.read(appStateProvider);
     final selectedStoreId = appState.storeChoosen;
 
     // Find the selected store data from company stores
-    dynamic selectedStore;
-    final stores = (company['stores'] as List<dynamic>?) ?? [];
+    Store? selectedStore;
     try {
-      selectedStore = stores.firstWhere(
-        (s) => (s as Map<String, dynamic>)['store_id'] == selectedStoreId,
+      selectedStore = company.stores.firstWhere(
+        (s) => s.id == selectedStoreId,
       );
     } catch (e) {
       selectedStore = null;
@@ -307,12 +280,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 Expanded(
                   child: InkWell(
                     onTap: () async {
-                      final stores = company['stores'] as List<dynamic>? ?? [];
+                      ref.read(appStateProvider.notifier).selectCompany(company.id);
 
-                      ref.read(appStateProvider.notifier).selectCompany(company['company_id'] as String);
-
-                      if (stores.isNotEmpty) {
-                        ref.read(appStateProvider.notifier).selectStore(stores[0]['store_id'] as String);
+                      if (company.stores.isNotEmpty) {
+                        ref.read(appStateProvider.notifier).selectStore(company.stores[0].id);
                       }
 
                       if (context.mounted) {
@@ -349,7 +320,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (company['company_name'] ?? '') as String,
+                                company.companyName,
                                 style: TossTextStyles.bodyLarge.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).colorScheme.onSurface,
@@ -359,7 +330,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                               Row(
                                 children: [
                                   Text(
-                                    '${(company['stores'] as List<dynamic>? ?? []).length} stores',
+                                    '${company.stores.length} stores',
                                     style: TossTextStyles.caption.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
@@ -373,7 +344,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                                   ),
                                   const SizedBox(width: TossSpacing.space2),
                                   Text(
-                                    (company['role']?['role_name'] ?? '') as String,
+                                    company.role.roleName,
                                     style: TossTextStyles.caption.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
@@ -394,21 +365,21 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        _expandedCompanies[company['company_id'] as String] = !(_expandedCompanies[company['company_id'] as String] ?? isSelected);
+                        _expandedCompanies[company.id] = !(_expandedCompanies[company.id] ?? isSelected);
                       });
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.full),
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space2),
                       decoration: BoxDecoration(
-                        color: (_expandedCompanies[company['company_id'] as String] ?? isSelected)
+                        color: (_expandedCompanies[company.id] ?? isSelected)
                           ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                           : TossColors.transparent,
                         borderRadius: BorderRadius.circular(TossBorderRadius.full),
                       ),
                       child: Icon(
-                        (_expandedCompanies[company['company_id'] as String] ?? isSelected) ? Icons.expand_less : Icons.expand_more,
-                        color: (_expandedCompanies[company['company_id'] as String] ?? isSelected)
+                        (_expandedCompanies[company.id] ?? isSelected) ? Icons.expand_less : Icons.expand_more,
+                        color: (_expandedCompanies[company.id] ?? isSelected)
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                         size: TossSpacing.iconMD,
@@ -421,7 +392,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           ),
 
           // Stores Section
-          if (_expandedCompanies[company['company_id'] as String] ?? isSelected) ...[
+          if (_expandedCompanies[company.id] ?? isSelected) ...[
             Container(
               padding: const EdgeInsets.fromLTRB(TossSpacing.space4, 0, TossSpacing.space4, TossSpacing.space4),
               child: Column(
@@ -429,15 +400,16 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 children: [
                   // Store Items
                   ...() {
-                    final stores = company['stores'] as List<dynamic>? ?? [];
+                    final stores = company.stores;
 
-                    final uniqueStores = <String, dynamic>{};
+                    // Remove duplicates (if any)
+                    final uniqueStores = <String, Store>{};
                     for (final store in stores) {
-                      uniqueStores[store['store_id'] as String] = store;
+                      uniqueStores[store.id] = store;
                     }
 
                     return uniqueStores.values.map((store) => _buildStoreItem(
-                      context, ref, store, selectedStore?['store_id'] == store['store_id'], company,
+                      context, ref, store, selectedStore?.id == store.id, company,
                     )).toList();
                   }(),
 
@@ -466,15 +438,15 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  Widget _buildStoreItem(BuildContext context, WidgetRef ref, dynamic store, bool isSelected, dynamic company) {
+  Widget _buildStoreItem(BuildContext context, WidgetRef ref, Store store, bool isSelected, Company company) {
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2/2, left: TossSpacing.space3),
       child: Material(
         color: TossColors.transparent,
         child: InkWell(
           onTap: () async {
-            ref.read(appStateProvider.notifier).selectCompany(company['company_id'] as String);
-            ref.read(appStateProvider.notifier).selectStore(store['store_id'] as String);
+            ref.read(appStateProvider.notifier).selectCompany(company.id);
+            ref.read(appStateProvider.notifier).selectStore(store.id);
             if (context.mounted) {
               Navigator.of(context).pop();
             }
@@ -498,7 +470,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Text(
-                    (store['store_name'] ?? '') as String,
+                    store.storeName,
                     style: TossTextStyles.body.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: Theme.of(context).colorScheme.onSurface,
@@ -519,7 +491,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  Widget _buildViewCodesButtonCompact(BuildContext context, WidgetRef ref, dynamic company) {
+  Widget _buildViewCodesButtonCompact(BuildContext context, WidgetRef ref, Company company) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
@@ -560,7 +532,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  Widget _buildAddStoreSlotCompact(BuildContext context, WidgetRef ref, dynamic company) {
+  Widget _buildAddStoreSlotCompact(BuildContext context, WidgetRef ref, Company company) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
@@ -608,27 +580,27 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  void _showStoreActionsBottomSheet(BuildContext context, WidgetRef ref, dynamic company) {
+  void _showStoreActionsBottomSheet(BuildContext context, WidgetRef ref, Company company) {
     StoreActionsSheet.show(
       context,
-      companyName: (company['company_name'] ?? '') as String,
+      companyName: company.companyName,
       onCreateStore: () => _handleCreateStore(context, ref, company),
       onJoinStore: () => _handleJoinStore(context, ref),
     );
   }
 
-  void _showCodesBottomSheet(BuildContext context, dynamic company) {
-    final stores = (company['stores'] as List<dynamic>? ?? [])
+  void _showCodesBottomSheet(BuildContext context, Company company) {
+    final stores = company.stores
         .map((s) => {
-              'store_name': s['store_name'],
-              'store_code': s['store_code'],
+              'store_name': s.storeName,
+              'store_code': s.storeCode,
             })
         .toList();
 
     CodesDisplaySheet.show(
       context,
-      companyName: (company['company_name'] ?? '') as String,
-      companyCode: (company['company_code'] ?? '') as String,
+      companyName: company.companyName,
+      companyCode: company.companyCode,
       stores: stores,
     );
   }
@@ -654,7 +626,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  void _handleCreateStore(BuildContext context, WidgetRef ref, dynamic company) {
+  void _handleCreateStore(BuildContext context, WidgetRef ref, Company company) {
     Navigator.of(context).pop(); // Close store actions sheet
     _showCreateStoreBottomSheet(context, ref, company);
   }
@@ -683,15 +655,15 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     );
   }
 
-  void _showCreateStoreBottomSheet(BuildContext context, WidgetRef ref, dynamic company) {
+  void _showCreateStoreBottomSheet(BuildContext context, WidgetRef ref, Company company) {
     // Use existing create_store_sheet.dart which handles submission internally
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => CreateStoreSheet(
-        companyId: (company['company_id'] ?? '') as String,
-        companyName: (company['company_name'] ?? '') as String,
+        companyId: company.id,
+        companyName: company.companyName,
       ),
     );
   }

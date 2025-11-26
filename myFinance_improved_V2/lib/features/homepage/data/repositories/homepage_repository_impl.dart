@@ -81,4 +81,25 @@ class HomepageRepositoryImpl implements HomepageRepository {
       throw Exception('Failed to fetch quick access features: $e');
     }
   }
+
+  // === Feature Click Tracking ===
+
+  @override
+  Future<void> logFeatureClick({
+    required String featureId,
+    required String featureName,
+    required String companyId,
+    String? categoryId,
+  }) async {
+    try {
+      await _dataSource.logFeatureClick(
+        featureId: featureId,
+        featureName: featureName,
+        companyId: companyId,
+        categoryId: categoryId,
+      );
+    } catch (e) {
+      // Silently fail - don't block user navigation
+    }
+  }
 }

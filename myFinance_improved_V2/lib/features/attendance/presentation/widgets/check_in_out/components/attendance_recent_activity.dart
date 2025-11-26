@@ -267,7 +267,6 @@ class AttendanceRecentActivity extends StatelessWidget {
               children: recentActivities.asMap().entries.map((entry) {
                 final index = entry.key;
                 final activity = entry.value;
-                final date = activity['date'] as DateTime;
                 final isLast = index == recentActivities.length - 1;
 
                 return Column(

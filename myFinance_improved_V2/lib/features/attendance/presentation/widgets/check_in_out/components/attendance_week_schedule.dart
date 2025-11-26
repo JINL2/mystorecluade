@@ -137,7 +137,6 @@ class AttendanceWeekSchedule extends StatelessWidget {
                 final date = schedule['date'] as DateTime;
                 final hasShift = schedule['hasShift'] as bool;
                 final hasApprovedShift = schedule['hasApprovedShift'] ?? false;
-                final hasNonApprovedShift =
                     schedule['hasNonApprovedShift'] ?? false;
                 final isSelected = date.day == selectedDate.day &&
                     date.month == selectedDate.month &&

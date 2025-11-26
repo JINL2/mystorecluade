@@ -34,6 +34,7 @@ import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
@@ -500,6 +501,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/edit-profile',
         name: 'edit-profile',
         builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
       GoRoute(
         path: '/notifications-settings',

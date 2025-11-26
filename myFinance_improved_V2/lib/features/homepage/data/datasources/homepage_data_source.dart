@@ -57,6 +57,18 @@ class HomepageDataSource {
           currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
           previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
           break;
+        case 'yesterday':
+          currentAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // Day before yesterday not available in RPC
+          break;
+        case 'thismonth':
+          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case 'thisyear':
+          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // Previous year data not available in current RPC
+          break;
         case 'month':
           currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
           previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
@@ -207,14 +219,48 @@ class HomepageDataSource {
     }
   }
 
+  // === Feature Click Tracking ===
+
+  /// Log feature click to user_preferences table via log_feature_click RPC
+  ///
+  /// Calls: rpc('log_feature_click', {...})
+  /// Purpose: Track which features users click most frequently for analytics
+  Future<void> logFeatureClick({
+    required String featureId,
+    required String featureName,
+    required String companyId,
+    String? categoryId,
+  }) async {
+    try {
+      await _supabaseService.client.rpc(
+        'log_feature_click',
+        params: {
+          'p_feature_id': featureId,
+          'p_feature_name': featureName,
+          'p_company_id': companyId,
+          'p_category_id': categoryId,
+        },
+      );
+    } catch (e) {
+      // Don't throw - logging clicks should not block user navigation
+      // Just silently fail
+    }
+  }
+
   /// Convert period string to date string for RPC
   ///
-  /// Converts: 'today', 'week', 'month', 'year' → '2025-01-16'
+  /// Converts: 'today', 'yesterday', 'thisMonth', 'thisYear' → '2025-11-26'
   String _periodToDate(String period) {
     final now = DateTime.now();
 
     switch (period.toLowerCase()) {
       case 'today':
+        return _formatDate(now);
+      case 'yesterday':
+        return _formatDate(now.subtract(const Duration(days: 1)));
+      case 'thismonth':
+        return _formatDate(now);
+      case 'thisyear':
         return _formatDate(now);
       case 'week':
         return _formatDate(now.subtract(const Duration(days: 7)));

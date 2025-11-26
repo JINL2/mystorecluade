@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../../domain/entities/stock_flow.dart';
+import '../formatters/cash_location_formatters.dart';
 
 class ActualFlowItem extends StatelessWidget {
   const ActualFlowItem({
@@ -41,7 +42,7 @@ class ActualFlowItem extends StatelessWidget {
               padding: EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
-                      flow.getFormattedDate(),
+                      CashLocationFormatters.formatActualFlowDate(flow),
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray600,
                         fontWeight: FontWeight.w600,
@@ -82,7 +83,7 @@ class ActualFlowItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (flow.getFormattedTime().isNotEmpty) ...[
+                      if (CashLocationFormatters.formatActualFlowTime(flow).isNotEmpty) ...[
                         Text(
                           ' • ',
                           style: TossTextStyles.caption.copyWith(
@@ -92,7 +93,7 @@ class ActualFlowItem extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          flow.getFormattedTime(),
+                          CashLocationFormatters.formatActualFlowTime(flow),
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray500,
                             fontSize: 13,

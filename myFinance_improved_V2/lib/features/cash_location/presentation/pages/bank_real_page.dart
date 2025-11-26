@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../formatters/cash_location_formatters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
@@ -93,7 +94,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     for (final entry in entries) {
       displayItems.add(BankRealDisplay(
         date: entry.recordDate,
-        time: entry.getFormattedTime(),
+        time: CashLocationFormatters.formatBankRealTime(entry),
         title: 'Bank Balance',
         locationName: entry.locationName,
         amount: entry.totalAmount,

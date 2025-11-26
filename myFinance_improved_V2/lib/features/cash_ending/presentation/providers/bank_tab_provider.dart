@@ -8,13 +8,15 @@ import 'bank_tab_state.dart';
 
 /// Provider for Bank Tab
 ///
-/// ✅ Injects GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 final bankTabProvider = StateNotifierProvider<BankTabNotifier, BankTabState>((ref) {
   final getStockFlowsUseCase = ref.watch(getStockFlowsUseCaseProvider);
-  final bankRepo = ref.watch(bankRepositoryProvider);
+  final saveBankBalanceUseCase = ref.watch(saveBankBalanceUseCaseProvider);
+  final getBalanceSummaryUseCase = ref.watch(getBankBalanceSummaryUseCaseProvider);
 
   return BankTabNotifier(
     getStockFlowsUseCase: getStockFlowsUseCase,
-    bankRepository: bankRepo,
+    saveBankBalanceUseCase: saveBankBalanceUseCase,
+    getBalanceSummaryUseCase: getBalanceSummaryUseCase,
   );
 });

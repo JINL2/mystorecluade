@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../../domain/entities/journal_entry.dart';
+import '../formatters/cash_location_formatters.dart';
 
 class TransactionItem extends StatelessWidget {
   const TransactionItem({

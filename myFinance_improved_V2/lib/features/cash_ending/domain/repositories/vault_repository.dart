@@ -3,6 +3,7 @@
 import '../entities/vault_transaction.dart';
 import '../entities/vault_recount.dart';
 import '../entities/balance_summary.dart';
+import '../entities/multi_currency_recount.dart';
 
 /// Repository interface for Vault operations (Domain Layer)
 ///
@@ -56,17 +57,11 @@ abstract class VaultRepository {
 
   /// Execute multi-currency RECOUNT (all currencies in one RPC call)
   ///
-  /// This is a specialized method that bypasses entity conversion
-  /// and directly calls the RPC with pre-built parameters.
-  ///
   /// More efficient than calling recountVault() multiple times
   /// because it creates a single cash_amount_entry for all currencies.
   ///
-  /// RPC Parameters:
-  /// - p_entry_type: 'vault'
-  /// - p_vault_transaction_type: 'recount'
-  /// - p_currencies: [{ currency_id, denominations: [...] }, ...]
+  /// ✅ Now uses MultiCurrencyRecount entity (type-safe)
   ///
   /// Throws exception on failure
-  Future<void> executeMultiCurrencyRecount(Map<String, dynamic> rpcParams);
+  Future<void> executeMultiCurrencyRecount(MultiCurrencyRecount recount);
 }

@@ -4,8 +4,12 @@ import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/entities/vault_recount.dart';
+import '../../domain/entities/multi_currency_recount.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
-import '../../domain/repositories/vault_repository.dart';
+import '../../domain/usecases/save_vault_transaction_usecase.dart';
+import '../../domain/usecases/recount_vault_usecase.dart';
+import '../../domain/usecases/execute_multi_currency_recount_usecase.dart';
+import '../../domain/usecases/get_balance_summary_usecase.dart';
 import 'base_tab_notifier.dart';
 import 'vault_tab_state.dart';
 
@@ -14,14 +18,23 @@ import 'vault_tab_state.dart';
 /// Extends BaseTabNotifier to eliminate duplicate code
 /// Only implements tab-specific save logic
 ///
-/// ✅ Uses GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
-  final VaultRepository _vaultRepository;
+  final SaveVaultTransactionUseCase _saveVaultTransactionUseCase;
+  final RecountVaultUseCase _recountVaultUseCase;
+  final ExecuteMultiCurrencyRecountUseCase _executeMultiCurrencyRecountUseCase;
+  final GetVaultBalanceSummaryUseCase _getBalanceSummaryUseCase;
 
   VaultTabNotifier({
     required GetStockFlowsUseCase getStockFlowsUseCase,
-    required VaultRepository vaultRepository,
-  })  : _vaultRepository = vaultRepository,
+    required SaveVaultTransactionUseCase saveVaultTransactionUseCase,
+    required RecountVaultUseCase recountVaultUseCase,
+    required ExecuteMultiCurrencyRecountUseCase executeMultiCurrencyRecountUseCase,
+    required GetVaultBalanceSummaryUseCase getBalanceSummaryUseCase,
+  })  : _saveVaultTransactionUseCase = saveVaultTransactionUseCase,
+        _recountVaultUseCase = recountVaultUseCase,
+        _executeMultiCurrencyRecountUseCase = executeMultiCurrencyRecountUseCase,
+        _getBalanceSummaryUseCase = getBalanceSummaryUseCase,
         super(
           getStockFlowsUseCase: getStockFlowsUseCase,
           initialState: const VaultTabState(),
@@ -63,6 +76,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   }
 
   /// Save vault transaction - tab-specific implementation
+  ///
+  /// ✅ Uses SaveVaultTransactionUseCase (Clean Architecture compliant)
   @override
   Future<bool> saveData({
     required data,
@@ -77,7 +92,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      await _vaultRepository.saveVaultTransaction(data);
+      // ✅ UseCase handles validation and save
+      await _saveVaultTransactionUseCase.execute(data);
 
       state = state.copyWith(isSaving: false);
 
@@ -123,6 +139,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   /// - adjustment_count: int
   /// - total_variance: num
   /// - adjustments: List<Map>
+  ///
+  /// ✅ Uses RecountVaultUseCase (Clean Architecture compliant)
   Future<Map<String, dynamic>> recountVault(VaultRecount recount) async {
     debugPrint('\n🟢 [VaultTabNotifier] recountVault() 호출 - Stock → Flow 변환 시작');
     debugPrint('   - locationId: ${recount.locationId}');
@@ -133,9 +151,9 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      debugPrint('🚀 [VaultTabNotifier] VaultRepository.recountVault() 호출...');
-      // Call repository to perform recount
-      final result = await _vaultRepository.recountVault(recount);
+      debugPrint('🚀 [VaultTabNotifier] RecountVaultUseCase.execute() 호출...');
+      // ✅ UseCase handles validation and recount
+      final result = await _recountVaultUseCase.execute(recount);
 
       debugPrint('✅ [VaultTabNotifier] RPC 응답 받음:');
       debugPrint('   - success: ${result['success']}');
@@ -170,6 +188,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   ///
   /// This is the main submit method called after vault recount.
   /// It fetches the balance summary and triggers the dialog display.
+  ///
+  /// ✅ Uses GetVaultBalanceSummaryUseCase (Clean Architecture compliant)
   Future<void> submitVaultEnding({
     required String locationId,
   }) async {
@@ -177,11 +197,9 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
     debugPrint('   - locationId: $locationId');
 
     try {
-      // Fetch balance summary from repository
+      // ✅ UseCase handles validation and fetches balance summary
       debugPrint('🚀 [VaultTabNotifier] getBalanceSummary() 호출...');
-      final balanceSummary = await _vaultRepository.getBalanceSummary(
-        locationId: locationId,
-      );
+      final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
 
       debugPrint('✅ [VaultTabNotifier] Balance Summary 받음:');
       debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');
@@ -213,35 +231,30 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
 
   /// Execute multi-currency RECOUNT (all currencies in one RPC call)
   ///
-  /// This directly calls insert_amount_multi_currency RPC with multiple currencies.
-  /// More efficient than calling recountVault() multiple times.
-  ///
-  /// RPC Parameters:
-  /// - p_entry_type: 'vault'
-  /// - p_vault_transaction_type: 'recount'
-  /// - p_currencies: [{ currency_id, denominations: [...] }, ...]
-  Future<void> executeMultiCurrencyRecount(Map<String, dynamic> rpcParams) async {
+  /// ✅ Uses ExecuteMultiCurrencyRecountUseCase (Clean Architecture compliant)
+  /// ✅ Now accepts MultiCurrencyRecount entity instead of Map
+  Future<void> executeMultiCurrencyRecount(MultiCurrencyRecount recount) async {
     debugPrint('\n🟢 [VaultTabNotifier] executeMultiCurrencyRecount() 호출');
-    debugPrint('   - Location: ${rpcParams['p_location_id']}');
-    debugPrint('   - Currencies: ${(rpcParams['p_currencies'] as List).length}개');
+    debugPrint('   - Location: ${recount.locationId}');
+    debugPrint('   - Currencies: ${recount.currencyRecounts.length}개');
 
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      debugPrint('🚀 [VaultTabNotifier] Calling insert_amount_multi_currency RPC directly...');
+      debugPrint('🚀 [VaultTabNotifier] ExecuteMultiCurrencyRecountUseCase.execute() 호출...');
 
-      // Call RPC directly through repository's data source
-      await _vaultRepository.executeMultiCurrencyRecount(rpcParams);
+      // ✅ UseCase handles validation and RPC execution
+      await _executeMultiCurrencyRecountUseCase.execute(recount);
 
       debugPrint('✅ [VaultTabNotifier] Multi-currency RECOUNT 완료!');
       state = state.copyWith(isSaving: false);
 
       // Reload stock flows after recount
-      if ((rpcParams['p_location_id'] as String).isNotEmpty) {
+      if (recount.locationId.isNotEmpty) {
         await loadStockFlows(
-          companyId: rpcParams['p_company_id'] as String,
-          storeId: rpcParams['p_store_id'] as String? ?? '',
-          locationId: rpcParams['p_location_id'] as String,
+          companyId: recount.companyId,
+          storeId: recount.storeId ?? '',
+          locationId: recount.locationId,
         );
       }
     } catch (e) {

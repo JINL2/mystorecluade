@@ -414,9 +414,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent>
       return;
     }
 
-    // Get currency symbol from shift overview data
-    final currencySymbol = shiftOverviewData?['currency_symbol'] as String?;
-
     showReportIssueDialog(
       context: context,
       ref: ref,

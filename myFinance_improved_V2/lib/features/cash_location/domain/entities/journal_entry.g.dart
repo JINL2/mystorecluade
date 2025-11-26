@@ -52,31 +52,24 @@ Map<String, dynamic> _$$JournalLineImplToJson(_$JournalLineImpl instance) =>
       'description': instance.description,
     };
 
-_$TransactionDisplayImpl _$$TransactionDisplayImplFromJson(
+_$TransactionDataImpl _$$TransactionDataImplFromJson(
         Map<String, dynamic> json) =>
-    _$TransactionDisplayImpl(
-      date: json['date'] as String,
-      time: json['time'] as String,
-      title: json['title'] as String,
-      locationName: json['locationName'] as String,
-      personName: json['personName'] as String,
-      amount: (json['amount'] as num).toDouble(),
+    _$TransactionDataImpl(
+      cashLine: JournalLine.fromJson(json['cashLine'] as Map<String, dynamic>),
+      counterpartLine:
+          JournalLine.fromJson(json['counterpartLine'] as Map<String, dynamic>),
       isIncome: json['isIncome'] as bool,
-      description: json['description'] as String,
+      amount: (json['amount'] as num).toDouble(),
       journalEntry:
           JournalEntry.fromJson(json['journalEntry'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$TransactionDisplayImplToJson(
-        _$TransactionDisplayImpl instance) =>
+Map<String, dynamic> _$$TransactionDataImplToJson(
+        _$TransactionDataImpl instance) =>
     <String, dynamic>{
-      'date': instance.date,
-      'time': instance.time,
-      'title': instance.title,
-      'locationName': instance.locationName,
-      'personName': instance.personName,
-      'amount': instance.amount,
+      'cashLine': instance.cashLine,
+      'counterpartLine': instance.counterpartLine,
       'isIncome': instance.isIncome,
-      'description': instance.description,
+      'amount': instance.amount,
       'journalEntry': instance.journalEntry,
     };

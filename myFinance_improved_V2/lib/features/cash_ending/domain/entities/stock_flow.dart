@@ -1,7 +1,5 @@
 // lib/features/cash_ending/domain/entities/stock_flow.dart
 
-import '../../../../core/utils/datetime_utils.dart';
-
 /// Domain entity for location summary
 class LocationSummary {
   final String cashLocationId;
@@ -49,47 +47,8 @@ class ActualFlow {
     required this.currentDenominations,
   });
 
-  /// Parse DateTime from createdAt - simplified single-pass parsing
-  /// Returns null if parsing fails
-  DateTime? _parseDateTime() {
-    try {
-      // Try parsing with Z suffix first (UTC format from DB)
-      return DateTime.parse('${createdAt}Z');
-    } catch (e) {
-      try {
-        // Fallback to regular ISO 8601 parsing
-        return DateTime.parse(createdAt);
-      } catch (e2) {
-        return null;
-      }
-    }
-  }
-
-  /// Get local DateTime for display
-  /// Returns null if parsing fails
-  DateTime? _getLocalDateTime() {
-    final parsed = _parseDateTime();
-    if (parsed != null) return parsed.toLocal();
-
-    // Fallback to DateTimeUtils
-    try {
-      return DateTimeUtils.toLocal(createdAt);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  String getFormattedDate() {
-    final date = _parseDateTime();
-    if (date == null) return createdAt;
-    return '${date.day}/${date.month}';
-  }
-
-  String getFormattedTime() {
-    final localDate = _getLocalDateTime();
-    if (localDate == null) return '';
-    return DateTimeUtils.formatTimeOnly(localDate);
-  }
+  // ✅ Formatting logic moved to Presentation Extension
+  // See: presentation/extensions/stock_flow_presentation_extension.dart
 }
 
 /// Currency information

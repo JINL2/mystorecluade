@@ -8,13 +8,15 @@ import 'cash_tab_state.dart';
 
 /// Provider for Cash Tab
 ///
-/// ✅ Injects GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 final cashTabProvider = StateNotifierProvider<CashTabNotifier, CashTabState>((ref) {
   final getStockFlowsUseCase = ref.watch(getStockFlowsUseCaseProvider);
-  final cashEndingRepo = ref.watch(cashEndingRepositoryProvider);
+  final saveCashEndingUseCase = ref.watch(saveCashEndingUseCaseProvider);
+  final getBalanceSummaryUseCase = ref.watch(getCashBalanceSummaryUseCaseProvider);
 
   return CashTabNotifier(
     getStockFlowsUseCase: getStockFlowsUseCase,
-    cashEndingRepository: cashEndingRepo,
+    saveCashEndingUseCase: saveCashEndingUseCase,
+    getBalanceSummaryUseCase: getBalanceSummaryUseCase,
   );
 });

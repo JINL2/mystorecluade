@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../formatters/cash_location_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -484,7 +485,7 @@ class RealDetailSheet extends StatelessWidget {
                     'Date',
                     DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt)),
                   ),
-                  _buildDetailRow(context, 'Time', flow.getFormattedTime()),
+                  _buildDetailRow(context, 'Time', CashLocationFormatters.formatActualFlowTime(flow)),
 
                   const SizedBox(height: 20),
                 ],

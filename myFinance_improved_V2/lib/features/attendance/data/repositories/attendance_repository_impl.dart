@@ -1,4 +1,5 @@
 import '../../domain/entities/attendance_location.dart';
+import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/shift_overview.dart';
 import '../../domain/entities/shift_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_datasource.dart';
+import '../models/check_in_result_model.dart';
 import '../models/monthly_shift_status_model.dart';
 import '../models/shift_overview_model.dart';
 import '../models/shift_request_model.dart';
@@ -39,14 +41,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> updateShiftRequest({
+  Future<CheckInResult> updateShiftRequest({
     required String userId,
     required String storeId,
     required String timestamp,
     required AttendanceLocation location,
     required String timezone,
   }) async {
-    final result = await _datasource.updateShiftRequest(
+    final json = await _datasource.updateShiftRequest(
       userId: userId,
       storeId: storeId,
       timestamp: timestamp,
@@ -54,7 +56,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       timezone: timezone,
     );
 
-    return result ?? {};
+    // ✅ Clean Architecture: Convert Map to Entity using Model
+    return CheckInResultModel.fromJson(json ?? {}).toEntity();
   }
 
   @override

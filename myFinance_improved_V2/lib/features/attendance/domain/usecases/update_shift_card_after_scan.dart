@@ -1,3 +1,4 @@
+import '../entities/scan_result.dart';
 import '../entities/shift_card.dart';
 
 /// Use Case for updating shift card after QR scan
@@ -6,6 +7,8 @@ import '../entities/shift_card.dart';
 /// 1. Check-in: Update actual_start_time and confirm_start_time
 /// 2. Check-in: Clear actual_end_time and confirm_end_time (for re-check-in scenarios)
 /// 3. Check-out: Update actual_end_time and confirm_end_time
+///
+/// ✅ Clean Architecture: Uses Domain entities (ScanResult, ShiftCard)
 class UpdateShiftCardAfterScan {
   /// Update shift card based on scan action
   ///
@@ -45,28 +48,20 @@ class UpdateShiftCardAfterScan {
   ///
   /// This is for edge cases where the shift card doesn't exist yet
   /// (shouldn't happen normally but provides fallback)
-  ShiftCard createFromScanResult({
-    required Map<String, dynamic> scanResult,
-    required String action,
-    required String timestamp,
-  }) {
-    final String requestDate = (scanResult['request_date'] ?? '') as String;
-    final String shiftRequestId = (scanResult['shift_request_id'] ?? '') as String;
-    final String shiftStartTime = (scanResult['shift_start_time'] ?? '09:00:00') as String;
-    final String shiftEndTime = (scanResult['shift_end_time'] ?? '18:00:00') as String;
-    final String storeName = (scanResult['store_name'] ?? '') as String;
-
+  ///
+  /// ✅ Clean Architecture: Uses ScanResult entity instead of Map
+  ShiftCard createFromScanResult(ScanResult scanResult) {
     return ShiftCard(
-      requestDate: requestDate,
-      shiftRequestId: shiftRequestId,
-      shiftTime: '$shiftStartTime - $shiftEndTime',
-      storeName: storeName,
+      requestDate: scanResult.requestDate,
+      shiftRequestId: scanResult.shiftRequestId,
+      shiftTime: scanResult.shiftTimeRange,
+      storeName: scanResult.storeName,
       scheduledHours: 0.0,
       isApproved: true,
-      actualStartTime: action == 'check_in' ? timestamp : null,
-      confirmStartTime: action == 'check_in' ? timestamp : null,
-      actualEndTime: action == 'check_out' ? timestamp : null,
-      confirmEndTime: action == 'check_out' ? timestamp : null,
+      actualStartTime: scanResult.isCheckIn ? scanResult.timestamp : null,
+      confirmStartTime: scanResult.isCheckIn ? scanResult.timestamp : null,
+      actualEndTime: scanResult.isCheckOut ? scanResult.timestamp : null,
+      confirmEndTime: scanResult.isCheckOut ? scanResult.timestamp : null,
       paidHours: 0.0,
       isLate: false,
       lateMinutes: 0,

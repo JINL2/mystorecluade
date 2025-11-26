@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../../domain/entities/stock_flow.dart';
+import '../../extensions/stock_flow_presentation_extension.dart';
 
 /// Flow Detail Bottom Sheet - Shows cash/bank/vault transaction details
 class FlowDetailBottomSheet extends StatelessWidget {

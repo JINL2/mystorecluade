@@ -21,7 +21,6 @@ Future<void> showActivityDetailsDialog({
   }
 
   // Capture the root context for ScaffoldMessenger
-  final rootContext = context;
 
   // Parse date for better display
   final dateStr = (cardData['request_date'] ?? '').toString();

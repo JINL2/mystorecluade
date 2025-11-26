@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../data/models/user_companies_model.dart';
 
 /// Header section of the modern bottom drawer
 class DrawerHeader extends StatelessWidget {
@@ -12,7 +11,7 @@ class DrawerHeader extends StatelessWidget {
     required this.userData,
   });
 
-  final UserCompaniesModel? userData;
+  final Map<String, dynamic>? userData;
 
   @override
   Widget build(BuildContext context) {
@@ -41,14 +40,14 @@ class DrawerHeader extends StatelessWidget {
                     // ✅ Profile Image (type-safe)
                     CircleAvatar(
                       radius: TossSpacing.paddingXL,
-                      backgroundImage: userData?.profileImage != null && userData!.profileImage!.isNotEmpty
-                          ? NetworkImage(userData!.profileImage!)
+                      backgroundImage: userData?['profile_image'] != null && (userData!['profile_image'] as String).isNotEmpty
+                          ? NetworkImage(userData!['profile_image'] as String)
                           : null,
                       backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                      child: userData?.profileImage == null || userData!.profileImage!.isEmpty
+                      child: userData?['profile_image'] == null || (userData!['profile_image'] as String).isEmpty
                           ? Text(
-                              userData?.userFirstName != null && userData!.userFirstName!.isNotEmpty
-                                ? userData!.userFirstName![0]
+                              userData?['user_first_name'] != null && (userData!['user_first_name'] as String).isNotEmpty
+                                ? (userData!['user_first_name'] as String)[0]
                                 : 'U',
                               style: TossTextStyles.h3.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
@@ -68,7 +67,7 @@ class DrawerHeader extends StatelessWidget {
                             children: [
                               Text(
                                 userData != null
-                                  ? '${userData?.userFirstName ?? ''} ${userData?.userLastName ?? ''}'
+                                  ? '${userData!['user_first_name'] ?? ''} ${userData!['user_last_name'] ?? ''}'.trim()
                                   : 'User',
                                 style: TossTextStyles.body.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -85,7 +84,7 @@ class DrawerHeader extends StatelessWidget {
                           ),
                           const SizedBox(height: TossSpacing.space1/2),
                           Text(
-                            'View profile • ${userData?.companies.length ?? 0} companies',
+                            'View profile • ${userData?.companyCount ?? 0} companies',
                             style: TossTextStyles.caption.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                             ),

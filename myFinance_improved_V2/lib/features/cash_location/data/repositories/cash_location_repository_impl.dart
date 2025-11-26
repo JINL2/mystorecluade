@@ -115,6 +115,8 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
       limit: limit,
     );
 
+    // Note: Filtering by location_type should be done in UseCase if needed
+    // Repository just converts models to entities
     return models.map((model) => model.toEntity()).toList();
   }
 
@@ -232,19 +234,38 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
   }
 
   @override
-  Future<void> updateMainAccountStatus({
-    required String locationId,
-    required bool isMain,
+  Future<CashLocationDetail?> getMainAccount({
     required String companyId,
     required String storeId,
     required String locationType,
   }) async {
-    await dataSource.updateMainAccountStatus(
-      locationId: locationId,
-      isMain: isMain,
+    final model = await dataSource.getMainAccount(
       companyId: companyId,
       storeId: storeId,
       locationType: locationType,
+    );
+    return model?.toEntity();
+  }
+
+  @override
+  Future<void> updateAccountMainStatus({
+    required String locationId,
+    required bool isMain,
+  }) async {
+    await dataSource.updateAccountMainStatus(
+      locationId: locationId,
+      isMain: isMain,
+    );
+  }
+
+  @override
+  Future<void> batchUpdateMainStatus({
+    required List<String> locationIds,
+    required List<bool> isMainValues,
+  }) async {
+    await dataSource.batchUpdateMainStatus(
+      locationIds: locationIds,
+      isMainValues: isMainValues,
     );
   }
 }

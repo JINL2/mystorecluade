@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
-import '../../../../data/models/shift_overview_model.dart';
+import '../../../../domain/entities/scan_result.dart';
 import '../../../../domain/entities/shift_card.dart';
 import '../../../../domain/entities/shift_overview.dart';
 import '../../../../domain/usecases/determine_shift_status.dart';
@@ -12,12 +12,15 @@ import '../../../../domain/value_objects/month_bounds.dart';
 import '../../../providers/attendance_providers.dart';
 
 /// Mixin for managing attendance data fetching and caching
+///
+/// ✅ Clean Architecture: Uses Domain entities for caching
+/// Converts to Map only when needed for backward compatibility with existing UI widgets
 mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   // Cache for monthly overview data - key is "yyyy-MM" format
-  final Map<String, Map<String, dynamic>> monthlyOverviewCache = {};
+  final Map<String, ShiftOverview> monthlyOverviewCache = {};
 
   // Cache for monthly cards data - key is "yyyy-MM" format
-  final Map<String, List<Map<String, dynamic>>> monthlyCardsCache = {};
+  final Map<String, List<ShiftCard>> monthlyCardsCache = {};
 
   // Track which months have been loaded
   final Set<String> loadedMonths = {};
@@ -26,6 +29,8 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
   List<Map<String, dynamic>> allShiftCardsData = [];
 
   // Current displayed month overview
+  // ⚠️ TECHNICAL DEBT: Should be ShiftOverview? but kept as Map for backward compatibility with UI
+  // TODO: Refactor consuming widgets to use ShiftOverview entity directly
   Map<String, dynamic>? shiftOverviewData;
 
   String? currentDisplayedMonth;
@@ -47,13 +52,16 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
     // If we already have data for this month and not force refreshing, just update the display from cache
     if (hasOverview && hasCards && !forceRefresh) {
       setState(() {
-        shiftOverviewData = monthlyOverviewCache[monthKey];
+        // ✅ Convert cached entity to Map for backward compatibility
+        final cachedOverview = monthlyOverviewCache[monthKey]!;
+        shiftOverviewData = _shiftOverviewToMap(cachedOverview);
         currentDisplayedMonth = monthKey;
 
-        // Rebuild allShiftCardsData from cached data
+        // Rebuild allShiftCardsData from cached entities
         allShiftCardsData.clear();
         for (final cachedMonth in monthlyCardsCache.keys) {
-          allShiftCardsData.addAll(monthlyCardsCache[cachedMonth]!);
+          final cardsForMonth = monthlyCardsCache[cachedMonth]!;
+          allShiftCardsData.addAll(cardsForMonth.map((card) => card.toJson()));
         }
 
         // Sort all cards by date (descending)
@@ -121,32 +129,26 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         ),
       ]);
 
-      // Convert ShiftOverview entity to JSON using Model for backward compatibility
+      // ✅ Clean Architecture: Keep entities in cache
       final overviewEntity = results[0] as ShiftOverview;
-      final overviewResponse = ShiftOverviewModel.fromEntity(overviewEntity).toJson();
-      // Keep ShiftCard entities for Use Case
       final cardsEntityList = results[1] as List<ShiftCard>;
-      // Convert to JSON for backward compatibility with existing UI
-      final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
 
-      // Cache the overview data
-      monthlyOverviewCache[monthKey] = overviewResponse;
-
-      // Cache the cards data for this month
-      monthlyCardsCache[monthKey] = List<Map<String, dynamic>>.from(cardsResponse);
+      // Cache the entities directly (Clean Architecture compliant)
+      monthlyOverviewCache[monthKey] = overviewEntity;
+      monthlyCardsCache[monthKey] = cardsEntityList;
 
       // Mark this month as loaded
       loadedMonths.add(monthKey);
 
       // Rebuild allShiftCardsData from ALL cached months
       setState(() {
-        // Clear and rebuild allShiftCardsData from all cached months
+        // Clear and rebuild allShiftCardsData from all cached entities
         allShiftCardsData.clear();
 
-        // Add cards from all cached months
+        // Add cards from all cached months (convert entities to Maps for backward compatibility)
         for (final cachedMonth in monthlyCardsCache.keys) {
           final monthCards = monthlyCardsCache[cachedMonth]!;
-          allShiftCardsData.addAll(monthCards);
+          allShiftCardsData.addAll(monthCards.map((card) => card.toJson()));
         }
 
         // Sort all cards by date
@@ -156,7 +158,8 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
           return dateB.compareTo(dateA); // Descending order
         });
 
-        shiftOverviewData = overviewResponse;
+        // ✅ Convert entity to Map for backward compatibility
+        shiftOverviewData = _shiftOverviewToMap(overviewEntity);
         currentDisplayedMonth = monthKey;
         isLoading = false;
 
@@ -190,20 +193,17 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
 
   /// Update local state after QR scan (check-in/out)
   ///
-  /// Uses UpdateShiftCardAfterScan UseCase for business logic
-  void updateLocalStateAfterQRScan(Map<String, dynamic> scanResult) {
-    final String requestDate = (scanResult['request_date'] ?? '') as String;
-    final String action = (scanResult['action'] ?? '') as String;
-    // Note: timestamp from QR scan is already in UTC from the server
-    // If missing, convert current time to UTC
-    final String timestamp = (scanResult['timestamp'] ?? DateTime.now().toUtc().toIso8601String()) as String;
+  /// ✅ Clean Architecture: Uses Domain entities (ScanResult, ShiftCard)
+  void updateLocalStateAfterQRScan(Map<String, dynamic> scanResultMap) {
+    // ✅ Convert Map to Domain entity
+    final scanResult = ScanResult.fromJson(scanResultMap);
 
     // Get UseCase from provider
     final updateShiftCardUseCase = ref.read(updateShiftCardAfterScanProvider);
 
-    // Find the existing shift card for today's date
+    // Find the existing shift card for the scan date
     final existingCardIndex = allShiftCardsData.indexWhere((card) {
-      return card['request_date'] == requestDate;
+      return card['request_date'] == scanResult.requestDate;
     });
 
     if (existingCardIndex != -1) {
@@ -213,23 +213,19 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
       // Convert Map to ShiftCard entity
       final existingCardEntity = ShiftCard.fromJson(existingCardMap);
 
-      // Apply business logic through UseCase
+      // ✅ Apply business logic through UseCase with typed parameters
       final updatedCardEntity = updateShiftCardUseCase(
         card: existingCardEntity,
-        action: action,
-        timestamp: timestamp,
+        action: scanResult.action,
+        timestamp: scanResult.timestamp,
       );
 
       // Convert back to JSON for backward compatibility
       allShiftCardsData[existingCardIndex] = updatedCardEntity.toJson();
     } else {
       // Create new card if it doesn't exist (shouldn't happen normally)
-      // Use UseCase to create with proper business rules
-      final newCardEntity = updateShiftCardUseCase.createFromScanResult(
-        scanResult: scanResult,
-        action: action,
-        timestamp: timestamp,
-      );
+      // ✅ Use UseCase with ScanResult entity
+      final newCardEntity = updateShiftCardUseCase.createFromScanResult(scanResult);
 
       allShiftCardsData.add(newCardEntity.toJson());
     }
@@ -290,5 +286,32 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         }
       }
     }
+  }
+
+  // ========================================
+  // Private Helper Methods
+  // ========================================
+
+  /// Convert ShiftOverview entity to Map for backward compatibility
+  ///
+  /// ⚠️ TEMPORARY: This method exists only for backward compatibility with existing UI
+  /// TODO: Refactor UI widgets to accept ShiftOverview entity directly
+  Map<String, dynamic> _shiftOverviewToMap(ShiftOverview overview) {
+    return {
+      'request_month': overview.requestMonth,
+      'actual_work_days': overview.actualWorkDays,
+      'actual_work_hours': overview.actualWorkHours,
+      'estimated_salary': overview.estimatedSalary,
+      'currency_symbol': overview.currencySymbol,
+      'salary_amount': overview.salaryAmount,
+      'salary_type': overview.salaryType,
+      'late_deduction_total': overview.lateDeductionTotal,
+      'overtime_total': overview.overtimeTotal,
+      'salary_stores': overview.salaryStores.map((store) => {
+        'store_id': store.storeId,
+        'store_name': store.storeName,
+        'estimated_salary': store.estimatedSalary,
+      }).toList(),
+    };
   }
 }

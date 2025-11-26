@@ -18,8 +18,8 @@ class JournalEntry with _$JournalEntry {
     required List<JournalLine> lines,
   }) = _JournalEntry;
 
-  // Helper method to get a formatted transaction for display
-  TransactionDisplay? getTransactionDisplay(String locationType) {
+  // Business logic: Get transaction data by location type (no formatting)
+  TransactionData? getTransactionData(String locationType) {
     // Filter lines by location type (cash, bank, or vault)
     final relevantLines = lines.where((line) =>
       line.locationType == locationType ||
@@ -44,46 +44,13 @@ class JournalEntry with _$JournalEntry {
     final isIncome = cashLine.debit > 0;
     final amount = isIncome ? cashLine.debit : cashLine.credit;
 
-    // Create a meaningful title from the counterpart
-    String title = '';
-    if (counterpartLine.accountName.isNotEmpty) {
-      title = _formatTitle(counterpartLine.accountName);
-    } else if (journalDescription.isNotEmpty) {
-      title = journalDescription;
-    } else {
-      title = isIncome ? 'Cash In' : 'Cash Out';
-    }
-
-    return TransactionDisplay(
-      date: entryDate,
-      time: _formatTime(transactionDate),
-      title: title,
-      locationName: cashLine.locationName ?? 'Unknown',
-      personName: '',
-      amount: amount,
+    return TransactionData(
+      cashLine: cashLine,
+      counterpartLine: counterpartLine,
       isIncome: isIncome,
-      description: journalDescription,
+      amount: amount,
       journalEntry: this,
     );
-  }
-
-  static String _formatTitle(String accountName) {
-    final words = accountName.toLowerCase()
-        .replaceAll('expenses', '')
-        .replaceAll('expense', '')
-        .replaceAll('_', ' ')
-        .trim()
-        .split(' ');
-
-    return words.map((word) =>
-      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '',
-    ).join(' ');
-  }
-
-  static String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 
   factory JournalEntry.fromJson(Map<String, dynamic> json) =>
@@ -108,20 +75,17 @@ class JournalLine with _$JournalLine {
       _$JournalLineFromJson(json);
 }
 
+/// Business data for transaction (no UI formatting)
 @freezed
-class TransactionDisplay with _$TransactionDisplay {
-  const factory TransactionDisplay({
-    required String date,
-    required String time,
-    required String title,
-    required String locationName,
-    required String personName,
-    required double amount,
+class TransactionData with _$TransactionData {
+  const factory TransactionData({
+    required JournalLine cashLine,
+    required JournalLine counterpartLine,
     required bool isIncome,
-    required String description,
+    required double amount,
     required JournalEntry journalEntry,
-  }) = _TransactionDisplay;
+  }) = _TransactionData;
 
-  factory TransactionDisplay.fromJson(Map<String, dynamic> json) =>
-      _$TransactionDisplayFromJson(json);
+  factory TransactionData.fromJson(Map<String, dynamic> json) =>
+      _$TransactionDataFromJson(json);
 }

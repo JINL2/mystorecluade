@@ -245,35 +245,28 @@ class TransactionListItem extends ConsumerWidget {
           ),
         ),
         
-        // Amount - Optimized width for space efficiency
-        SizedBox(
-          width: 85,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+        // Amount - No fixed width to show full numbers
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
+              style: TossTextStyles.body.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.right,
+            ),
+            if (line.accountType.isNotEmpty)
               Text(
-                '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
-                style: TossTextStyles.body.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
+                _getAccountTypeLabel(line.accountType),
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray400,
+                  fontSize: 10,
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
                 textAlign: TextAlign.right,
               ),
-              if (line.accountType.isNotEmpty)
-                Text(
-                  _getAccountTypeLabel(line.accountType),
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray400,
-                    fontSize: 10,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  textAlign: TextAlign.right,
-                ),
-            ],
-          ),
+          ],
         ),
       ],
     );
@@ -312,7 +305,12 @@ class TransactionListItem extends ConsumerWidget {
   }
 
   String _formatCurrency(double amount) {
-    return NumberFormatter.formatCurrencyDecimal(amount.abs(), '', decimalPlaces: 2);
+    final absAmount = amount.abs();
+    // Only show decimals if non-zero
+    if (absAmount == absAmount.roundToDouble()) {
+      return NumberFormatter.formatWithCommas(absAmount.round());
+    }
+    return NumberFormatter.formatCurrencyDecimal(absAmount, '', decimalPlaces: 2);
   }
 
   void _showTransactionDetail(BuildContext context) {

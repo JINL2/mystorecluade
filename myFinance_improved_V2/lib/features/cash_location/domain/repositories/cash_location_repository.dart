@@ -112,12 +112,22 @@ abstract class CashLocationRepository {
   /// Delete cash location
   Future<void> deleteCashLocation(String locationId);
 
-  /// Update main account status (unsets other main accounts if setting as main)
-  Future<void> updateMainAccountStatus({
-    required String locationId,
-    required bool isMain,
+  /// Get the current main account for a location type
+  Future<CashLocationDetail?> getMainAccount({
     required String companyId,
     required String storeId,
     required String locationType,
+  });
+
+  /// Update a single account's main status (without business logic)
+  Future<void> updateAccountMainStatus({
+    required String locationId,
+    required bool isMain,
+  });
+
+  /// Batch update multiple accounts' main status
+  Future<void> batchUpdateMainStatus({
+    required List<String> locationIds,
+    required List<bool> isMainValues,
   });
 }

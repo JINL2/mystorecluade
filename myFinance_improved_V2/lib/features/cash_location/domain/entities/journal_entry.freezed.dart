@@ -589,110 +589,84 @@ abstract class _JournalLine implements JournalLine {
       throw _privateConstructorUsedError;
 }
 
-TransactionDisplay _$TransactionDisplayFromJson(Map<String, dynamic> json) {
-  return _TransactionDisplay.fromJson(json);
+TransactionData _$TransactionDataFromJson(Map<String, dynamic> json) {
+  return _TransactionData.fromJson(json);
 }
 
 /// @nodoc
-mixin _$TransactionDisplay {
-  String get date => throw _privateConstructorUsedError;
-  String get time => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
-  String get locationName => throw _privateConstructorUsedError;
-  String get personName => throw _privateConstructorUsedError;
-  double get amount => throw _privateConstructorUsedError;
+mixin _$TransactionData {
+  JournalLine get cashLine => throw _privateConstructorUsedError;
+  JournalLine get counterpartLine => throw _privateConstructorUsedError;
   bool get isIncome => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
+  double get amount => throw _privateConstructorUsedError;
   JournalEntry get journalEntry => throw _privateConstructorUsedError;
 
-  /// Serializes this TransactionDisplay to a JSON map.
+  /// Serializes this TransactionData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $TransactionDisplayCopyWith<TransactionDisplay> get copyWith =>
+  $TransactionDataCopyWith<TransactionData> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $TransactionDisplayCopyWith<$Res> {
-  factory $TransactionDisplayCopyWith(
-          TransactionDisplay value, $Res Function(TransactionDisplay) then) =
-      _$TransactionDisplayCopyWithImpl<$Res, TransactionDisplay>;
+abstract class $TransactionDataCopyWith<$Res> {
+  factory $TransactionDataCopyWith(
+          TransactionData value, $Res Function(TransactionData) then) =
+      _$TransactionDataCopyWithImpl<$Res, TransactionData>;
   @useResult
   $Res call(
-      {String date,
-      String time,
-      String title,
-      String locationName,
-      String personName,
-      double amount,
+      {JournalLine cashLine,
+      JournalLine counterpartLine,
       bool isIncome,
-      String description,
+      double amount,
       JournalEntry journalEntry});
 
+  $JournalLineCopyWith<$Res> get cashLine;
+  $JournalLineCopyWith<$Res> get counterpartLine;
   $JournalEntryCopyWith<$Res> get journalEntry;
 }
 
 /// @nodoc
-class _$TransactionDisplayCopyWithImpl<$Res, $Val extends TransactionDisplay>
-    implements $TransactionDisplayCopyWith<$Res> {
-  _$TransactionDisplayCopyWithImpl(this._value, this._then);
+class _$TransactionDataCopyWithImpl<$Res, $Val extends TransactionData>
+    implements $TransactionDataCopyWith<$Res> {
+  _$TransactionDataCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? date = null,
-    Object? time = null,
-    Object? title = null,
-    Object? locationName = null,
-    Object? personName = null,
-    Object? amount = null,
+    Object? cashLine = null,
+    Object? counterpartLine = null,
     Object? isIncome = null,
-    Object? description = null,
+    Object? amount = null,
     Object? journalEntry = null,
   }) {
     return _then(_value.copyWith(
-      date: null == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
-              as String,
-      time: null == time
-          ? _value.time
-          : time // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      locationName: null == locationName
-          ? _value.locationName
-          : locationName // ignore: cast_nullable_to_non_nullable
-              as String,
-      personName: null == personName
-          ? _value.personName
-          : personName // ignore: cast_nullable_to_non_nullable
-              as String,
-      amount: null == amount
-          ? _value.amount
-          : amount // ignore: cast_nullable_to_non_nullable
-              as double,
+      cashLine: null == cashLine
+          ? _value.cashLine
+          : cashLine // ignore: cast_nullable_to_non_nullable
+              as JournalLine,
+      counterpartLine: null == counterpartLine
+          ? _value.counterpartLine
+          : counterpartLine // ignore: cast_nullable_to_non_nullable
+              as JournalLine,
       isIncome: null == isIncome
           ? _value.isIncome
           : isIncome // ignore: cast_nullable_to_non_nullable
               as bool,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double,
       journalEntry: null == journalEntry
           ? _value.journalEntry
           : journalEntry // ignore: cast_nullable_to_non_nullable
@@ -700,7 +674,27 @@ class _$TransactionDisplayCopyWithImpl<$Res, $Val extends TransactionDisplay>
     ) as $Val);
   }
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $JournalLineCopyWith<$Res> get cashLine {
+    return $JournalLineCopyWith<$Res>(_value.cashLine, (value) {
+      return _then(_value.copyWith(cashLine: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TransactionData
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $JournalLineCopyWith<$Res> get counterpartLine {
+    return $JournalLineCopyWith<$Res>(_value.counterpartLine, (value) {
+      return _then(_value.copyWith(counterpartLine: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -712,84 +706,64 @@ class _$TransactionDisplayCopyWithImpl<$Res, $Val extends TransactionDisplay>
 }
 
 /// @nodoc
-abstract class _$$TransactionDisplayImplCopyWith<$Res>
-    implements $TransactionDisplayCopyWith<$Res> {
-  factory _$$TransactionDisplayImplCopyWith(_$TransactionDisplayImpl value,
-          $Res Function(_$TransactionDisplayImpl) then) =
-      __$$TransactionDisplayImplCopyWithImpl<$Res>;
+abstract class _$$TransactionDataImplCopyWith<$Res>
+    implements $TransactionDataCopyWith<$Res> {
+  factory _$$TransactionDataImplCopyWith(_$TransactionDataImpl value,
+          $Res Function(_$TransactionDataImpl) then) =
+      __$$TransactionDataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {String date,
-      String time,
-      String title,
-      String locationName,
-      String personName,
-      double amount,
+      {JournalLine cashLine,
+      JournalLine counterpartLine,
       bool isIncome,
-      String description,
+      double amount,
       JournalEntry journalEntry});
 
+  @override
+  $JournalLineCopyWith<$Res> get cashLine;
+  @override
+  $JournalLineCopyWith<$Res> get counterpartLine;
   @override
   $JournalEntryCopyWith<$Res> get journalEntry;
 }
 
 /// @nodoc
-class __$$TransactionDisplayImplCopyWithImpl<$Res>
-    extends _$TransactionDisplayCopyWithImpl<$Res, _$TransactionDisplayImpl>
-    implements _$$TransactionDisplayImplCopyWith<$Res> {
-  __$$TransactionDisplayImplCopyWithImpl(_$TransactionDisplayImpl _value,
-      $Res Function(_$TransactionDisplayImpl) _then)
+class __$$TransactionDataImplCopyWithImpl<$Res>
+    extends _$TransactionDataCopyWithImpl<$Res, _$TransactionDataImpl>
+    implements _$$TransactionDataImplCopyWith<$Res> {
+  __$$TransactionDataImplCopyWithImpl(
+      _$TransactionDataImpl _value, $Res Function(_$TransactionDataImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? date = null,
-    Object? time = null,
-    Object? title = null,
-    Object? locationName = null,
-    Object? personName = null,
-    Object? amount = null,
+    Object? cashLine = null,
+    Object? counterpartLine = null,
     Object? isIncome = null,
-    Object? description = null,
+    Object? amount = null,
     Object? journalEntry = null,
   }) {
-    return _then(_$TransactionDisplayImpl(
-      date: null == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
-              as String,
-      time: null == time
-          ? _value.time
-          : time // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      locationName: null == locationName
-          ? _value.locationName
-          : locationName // ignore: cast_nullable_to_non_nullable
-              as String,
-      personName: null == personName
-          ? _value.personName
-          : personName // ignore: cast_nullable_to_non_nullable
-              as String,
-      amount: null == amount
-          ? _value.amount
-          : amount // ignore: cast_nullable_to_non_nullable
-              as double,
+    return _then(_$TransactionDataImpl(
+      cashLine: null == cashLine
+          ? _value.cashLine
+          : cashLine // ignore: cast_nullable_to_non_nullable
+              as JournalLine,
+      counterpartLine: null == counterpartLine
+          ? _value.counterpartLine
+          : counterpartLine // ignore: cast_nullable_to_non_nullable
+              as JournalLine,
       isIncome: null == isIncome
           ? _value.isIncome
           : isIncome // ignore: cast_nullable_to_non_nullable
               as bool,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double,
       journalEntry: null == journalEntry
           ? _value.journalEntry
           : journalEntry // ignore: cast_nullable_to_non_nullable
@@ -800,126 +774,97 @@ class __$$TransactionDisplayImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$TransactionDisplayImpl implements _TransactionDisplay {
-  const _$TransactionDisplayImpl(
-      {required this.date,
-      required this.time,
-      required this.title,
-      required this.locationName,
-      required this.personName,
-      required this.amount,
+class _$TransactionDataImpl implements _TransactionData {
+  const _$TransactionDataImpl(
+      {required this.cashLine,
+      required this.counterpartLine,
       required this.isIncome,
-      required this.description,
+      required this.amount,
       required this.journalEntry});
 
-  factory _$TransactionDisplayImpl.fromJson(Map<String, dynamic> json) =>
-      _$$TransactionDisplayImplFromJson(json);
+  factory _$TransactionDataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TransactionDataImplFromJson(json);
 
   @override
-  final String date;
+  final JournalLine cashLine;
   @override
-  final String time;
-  @override
-  final String title;
-  @override
-  final String locationName;
-  @override
-  final String personName;
-  @override
-  final double amount;
+  final JournalLine counterpartLine;
   @override
   final bool isIncome;
   @override
-  final String description;
+  final double amount;
   @override
   final JournalEntry journalEntry;
 
   @override
   String toString() {
-    return 'TransactionDisplay(date: $date, time: $time, title: $title, locationName: $locationName, personName: $personName, amount: $amount, isIncome: $isIncome, description: $description, journalEntry: $journalEntry)';
+    return 'TransactionData(cashLine: $cashLine, counterpartLine: $counterpartLine, isIncome: $isIncome, amount: $amount, journalEntry: $journalEntry)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$TransactionDisplayImpl &&
-            (identical(other.date, date) || other.date == date) &&
-            (identical(other.time, time) || other.time == time) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.locationName, locationName) ||
-                other.locationName == locationName) &&
-            (identical(other.personName, personName) ||
-                other.personName == personName) &&
-            (identical(other.amount, amount) || other.amount == amount) &&
+            other is _$TransactionDataImpl &&
+            (identical(other.cashLine, cashLine) ||
+                other.cashLine == cashLine) &&
+            (identical(other.counterpartLine, counterpartLine) ||
+                other.counterpartLine == counterpartLine) &&
             (identical(other.isIncome, isIncome) ||
                 other.isIncome == isIncome) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.journalEntry, journalEntry) ||
                 other.journalEntry == journalEntry));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, date, time, title, locationName,
-      personName, amount, isIncome, description, journalEntry);
+  int get hashCode => Object.hash(
+      runtimeType, cashLine, counterpartLine, isIncome, amount, journalEntry);
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$TransactionDisplayImplCopyWith<_$TransactionDisplayImpl> get copyWith =>
-      __$$TransactionDisplayImplCopyWithImpl<_$TransactionDisplayImpl>(
+  _$$TransactionDataImplCopyWith<_$TransactionDataImpl> get copyWith =>
+      __$$TransactionDataImplCopyWithImpl<_$TransactionDataImpl>(
           this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TransactionDisplayImplToJson(
+    return _$$TransactionDataImplToJson(
       this,
     );
   }
 }
 
-abstract class _TransactionDisplay implements TransactionDisplay {
-  const factory _TransactionDisplay(
-      {required final String date,
-      required final String time,
-      required final String title,
-      required final String locationName,
-      required final String personName,
-      required final double amount,
+abstract class _TransactionData implements TransactionData {
+  const factory _TransactionData(
+      {required final JournalLine cashLine,
+      required final JournalLine counterpartLine,
       required final bool isIncome,
-      required final String description,
-      required final JournalEntry journalEntry}) = _$TransactionDisplayImpl;
+      required final double amount,
+      required final JournalEntry journalEntry}) = _$TransactionDataImpl;
 
-  factory _TransactionDisplay.fromJson(Map<String, dynamic> json) =
-      _$TransactionDisplayImpl.fromJson;
+  factory _TransactionData.fromJson(Map<String, dynamic> json) =
+      _$TransactionDataImpl.fromJson;
 
   @override
-  String get date;
+  JournalLine get cashLine;
   @override
-  String get time;
-  @override
-  String get title;
-  @override
-  String get locationName;
-  @override
-  String get personName;
-  @override
-  double get amount;
+  JournalLine get counterpartLine;
   @override
   bool get isIncome;
   @override
-  String get description;
+  double get amount;
   @override
   JournalEntry get journalEntry;
 
-  /// Create a copy of TransactionDisplay
+  /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$TransactionDisplayImplCopyWith<_$TransactionDisplayImpl> get copyWith =>
+  _$$TransactionDataImplCopyWith<_$TransactionDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

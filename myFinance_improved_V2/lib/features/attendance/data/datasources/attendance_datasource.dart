@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -354,13 +355,16 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Debug log: Print parameters before RPC call
-      print('🔵 [insertShiftRequest] Calling RPC with params:');
-      print('  - userId: $userId');
-      print('  - shiftId: $shiftId');
-      print('  - storeId: $storeId');
-      print('  - requestTime: $requestTime');
-      print('  - timezone: $timezone');
+      // ✅ Clean code: Debug logs wrapped in assert for development only
+      assert(() {
+        debugPrint('🔵 [insertShiftRequest] Calling RPC with params:');
+        debugPrint('  - userId: $userId');
+        debugPrint('  - shiftId: $shiftId');
+        debugPrint('  - storeId: $storeId');
+        debugPrint('  - requestTime: $requestTime');
+        debugPrint('  - timezone: $timezone');
+        return true;
+      }());
 
       final response = await _supabase.rpc<dynamic>(
         'insert_shift_request_v3',
@@ -373,8 +377,11 @@ class AttendanceDatasource {
         },
       );
 
-      // Debug log: Print raw response
-      print('🟢 [insertShiftRequest] Raw RPC response: $response');
+      // ✅ Clean code: Debug logs wrapped in assert for development only
+      assert(() {
+        debugPrint('🟢 [insertShiftRequest] Raw RPC response: $response');
+        return true;
+      }());
 
       if (response == null) {
         return null;
@@ -428,13 +435,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Debug log: Print parameters before RPC call
-      print('🔵 [deleteShiftRequest] Calling RPC with params:');
-      print('  - userId: $userId');
-      print('  - shiftId: $shiftId');
-      print('  - requestDate: $requestDate');
-      print('  - timezone: $timezone');
-
       // Call RPC function
       // Note: RPC expects request_time (TIMESTAMPTZ format with timezone offset)
       // Convert requestDate string to DateTime, then to ISO 8601 with offset
@@ -447,8 +447,6 @@ class AttendanceDatasource {
       );
       final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
 
-      print('🔵 [deleteShiftRequest] Converted requestTime: $requestTime');
-
       final response = await _supabase.rpc<dynamic>(
         'delete_shift_request',
         params: {
@@ -458,9 +456,6 @@ class AttendanceDatasource {
           'p_timezone': timezone,
         },
       );
-
-      // Debug log: Print raw response
-      print('🟢 [deleteShiftRequest] Raw RPC response: $response');
 
       if (response == null) {
         throw const AttendanceServerException('RPC call failed - no response');
@@ -482,15 +477,9 @@ class AttendanceDatasource {
       if (success == false) {
         final message = result['message'] as String? ?? 'Unknown error';
         final errorCode = result['error_code'] as String? ?? 'UNKNOWN';
-        print('🔴 [deleteShiftRequest] RPC error: $errorCode - $message');
         throw AttendanceServerException('$errorCode: $message');
       }
-
-      // Debug log: Success
-      print('🟢 [deleteShiftRequest] DELETE successful');
     } catch (e) {
-      // Debug log: Error
-      print('🔴 [deleteShiftRequest] DELETE failed: $e');
       throw AttendanceServerException(e.toString());
     }
   }

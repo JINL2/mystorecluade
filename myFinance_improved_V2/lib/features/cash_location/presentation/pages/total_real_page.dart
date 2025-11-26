@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../formatters/cash_location_formatters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
@@ -103,7 +104,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     for (final entry in entries) {
       displayItems.add(CashRealDisplay(
         date: entry.recordDate,
-        time: entry.getFormattedTime(),
+        time: CashLocationFormatters.formatCashRealTime(entry),
         title: entry.getTransactionType(),
         locationName: entry.locationName,
         amount: entry.totalAmount,

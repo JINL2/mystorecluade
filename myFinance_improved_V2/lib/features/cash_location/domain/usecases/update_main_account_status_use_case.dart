@@ -32,12 +32,29 @@ class UpdateMainAccountStatusUseCase
 
   @override
   Future<void> call(UpdateMainAccountStatusParams params) async {
-    return repository.updateMainAccountStatus(
+    // Business Rule: Only one main account per location type
+    if (params.isMainAccount) {
+      // 1. Find existing main account
+      final existingMainAccount = await repository.getMainAccount(
+        companyId: params.companyId,
+        storeId: params.storeId,
+        locationType: params.locationType,
+      );
+
+      // 2. If there's an existing main account, unset it first
+      if (existingMainAccount != null &&
+          existingMainAccount.locationId != params.locationId) {
+        await repository.updateAccountMainStatus(
+          locationId: existingMainAccount.locationId,
+          isMain: false,
+        );
+      }
+    }
+
+    // 3. Update the target account's main status
+    await repository.updateAccountMainStatus(
       locationId: params.locationId,
       isMain: params.isMainAccount,
-      companyId: params.companyId,
-      storeId: params.storeId,
-      locationType: params.locationType,
     );
   }
 }
