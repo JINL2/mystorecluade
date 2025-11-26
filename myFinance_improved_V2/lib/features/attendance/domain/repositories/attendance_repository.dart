@@ -138,4 +138,34 @@ abstract class AttendanceRepository {
     required String requestDate,
     required String timezone,
   });
+
+  /// Get monthly shift status as raw JSON for UI display
+  ///
+  /// Matches RPC: get_monthly_shift_status_manager_v2
+  ///
+  /// Returns raw JSON preserving the nested structure:
+  /// ```json
+  /// [
+  ///   {
+  ///     "request_date": "2025-11-27",
+  ///     "shifts": [
+  ///       {
+  ///         "shift_id": "...",
+  ///         "shift_name": "...",
+  ///         "pending_employees": [...],
+  ///         "approved_employees": [...]
+  ///       }
+  ///     ]
+  ///   }
+  /// ]
+  /// ```
+  ///
+  /// Use this method when UI needs the full nested structure.
+  /// Use [getMonthlyShiftStatusManager] when entity conversion is needed.
+  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusRaw({
+    required String storeId,
+    required String companyId,
+    required String requestTime,
+    required String timezone,
+  });
 }

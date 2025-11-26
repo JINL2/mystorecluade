@@ -152,4 +152,20 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       timezone: timezone,
     );
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusRaw({
+    required String storeId,
+    required String companyId,
+    required String requestTime,
+    required String timezone,
+  }) async {
+    // Return raw JSON without entity conversion to preserve nested structure
+    return await _datasource.getMonthlyShiftStatusManager(
+      storeId: storeId,
+      companyId: companyId,
+      requestTime: requestTime,
+      timezone: timezone,
+    );
+  }
 }
