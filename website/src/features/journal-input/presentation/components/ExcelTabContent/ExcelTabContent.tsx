@@ -4,7 +4,7 @@
  * Refactored: Uses Zustand provider for state management (ARCHITECTURE.md compliant)
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import type { TossSelectorOption } from '@/shared/components/selectors/TossSelector/TossSelector.types';
 import type { ExcelTabContentProps } from './ExcelTabContent.types';
@@ -21,12 +21,17 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   companyId,
   selectedStoreId,
   userId,
+  stores,
+  onStoreSelect,
   onCheckAccountMapping,
   onGetCounterpartyStores,
   onGetCounterpartyCashLocations,
   onSubmitSuccess,
   onSubmitError,
 }) => {
+  // Refresh trigger for RecentTransactionHistory
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // Use custom hook (provider wrapper)
   const {
     rows,
@@ -306,6 +311,8 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     const result = await submitExcelEntry(companyId, selectedStoreId, userId, accounts, counterparties);
 
     if (result.success) {
+      // Trigger refresh of RecentTransactionHistory
+      setRefreshTrigger(prev => prev + 1);
       if (onSubmitSuccess) {
         onSubmitSuccess();
       }
@@ -321,6 +328,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
       <table className={styles.table}>
         <thead>
           <tr>
+            <th>Store</th>
             <th>Date</th>
             <th>Account</th>
             <th>Location</th>
@@ -333,8 +341,25 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <tr key={row.id}>
+              {/* Store selector - only show on first row */}
+              {index === 0 ? (
+                <td rowSpan={rows.length} className={styles.storeCell}>
+                  <div className={styles.storeSelectorWrapper}>
+                    <TossSelector
+                      value={selectedStoreId || ''}
+                      options={stores.map(s => ({ value: s.store_id, label: s.store_name }))}
+                      onChange={(value) => onStoreSelect(value || null)}
+                      placeholder="Select store..."
+                      searchable={true}
+                      inline={false}
+                      fullWidth={true}
+                      emptyMessage="No stores available"
+                    />
+                  </div>
+                </td>
+              ) : null}
               <td>
                 <input
                   type="date"
@@ -614,7 +639,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
       )}
 
       {/* Recent Transaction History */}
-      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} />
+      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} refreshTrigger={refreshTrigger} />
     </div>
   );
 };

@@ -1,0 +1,105 @@
+/**
+ * EmployeeSection Component Styles
+ */
+
+.employeeSection {
+  margin-top: var(--space-6);
+  background: white;
+  border-radius: var(--radius-large);
+  padding: var(--space-5);
+  border: 1px solid var(--toss-gray-200);
+}
+
+.sectionTitle {
+  font-size: var(--font-large);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dragHint {
+  font-size: var(--font-small);
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.noEmployees {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--font-medium);
+}
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.employeeCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--toss-gray-200);
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.employeeCard:hover {
+  background: var(--toss-blue-50);
+  border-color: var(--toss-blue-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.employeeCard:active {
+  cursor: grabbing;
+}
+
+.employeeCard.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.employeeAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--toss-blue-100);
+  color: var(--toss-blue-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-small);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.employeeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.employeeName {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.employeeRole {
+  font-size: var(--font-xsmall);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

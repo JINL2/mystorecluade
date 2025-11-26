@@ -20,22 +20,18 @@ class InputCard implements UseCase<CardInputResult, InputCardParams> {
       throw ArgumentError('Shift request ID cannot be empty');
     }
 
-    if (params.confirmStartTime.isEmpty) {
-      throw ArgumentError('Confirm start time cannot be empty');
-    }
-
-    if (params.confirmEndTime.isEmpty) {
-      throw ArgumentError('Confirm end time cannot be empty');
-    }
-
-    // Validate time format (HH:mm)
+    // Validate time format (HH:mm) only if times are provided
     final timeRegex = RegExp(r'^\d{2}:\d{2}$');
-    if (!timeRegex.hasMatch(params.confirmStartTime)) {
-      throw ArgumentError('Invalid start time format. Expected HH:mm');
+    if (params.confirmStartTime != null && params.confirmStartTime!.isNotEmpty) {
+      if (!timeRegex.hasMatch(params.confirmStartTime!)) {
+        throw ArgumentError('Invalid start time format. Expected HH:mm');
+      }
     }
 
-    if (!timeRegex.hasMatch(params.confirmEndTime)) {
-      throw ArgumentError('Invalid end time format. Expected HH:mm');
+    if (params.confirmEndTime != null && params.confirmEndTime!.isNotEmpty) {
+      if (!timeRegex.hasMatch(params.confirmEndTime!)) {
+        throw ArgumentError('Invalid end time format. Expected HH:mm');
+      }
     }
 
     return await _repository.inputCard(
@@ -56,8 +52,8 @@ class InputCard implements UseCase<CardInputResult, InputCardParams> {
 class InputCardParams {
   final String managerId;
   final String shiftRequestId;
-  final String confirmStartTime;
-  final String confirmEndTime;
+  final String? confirmStartTime;  // Nullable - RPC will keep existing value if null
+  final String? confirmEndTime;    // Nullable - RPC will keep existing value if null
   final String? newTagContent;
   final String? newTagType;
   final bool isLate;
@@ -67,8 +63,8 @@ class InputCardParams {
   const InputCardParams({
     required this.managerId,
     required this.shiftRequestId,
-    required this.confirmStartTime,
-    required this.confirmEndTime,
+    this.confirmStartTime,  // Now optional
+    this.confirmEndTime,    // Now optional
     this.newTagContent,
     this.newTagType,
     required this.isLate,

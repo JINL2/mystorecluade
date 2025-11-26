@@ -315,11 +315,12 @@ class TimeTableDatasource {
   /// - Returns timezone-converted times using p_timezone parameter
   /// - Validates minimum work time (30 min) and maximum work time (12 hours)
   /// - Removes existing auto-generated manual_override tags before adding new ones
+  /// - confirmStartTime/confirmEndTime can be null to keep existing values
   Future<Map<String, dynamic>> inputCard({
     required String managerId,
     required String shiftRequestId,
-    required String confirmStartTime,
-    required String confirmEndTime,
+    String? confirmStartTime,  // Nullable - RPC keeps existing if null
+    String? confirmEndTime,    // Nullable - RPC keeps existing if null
     String? newTagContent,
     String? newTagType,
     required bool isLate,
@@ -332,8 +333,8 @@ class TimeTableDatasource {
         params: {
           'p_manager_id': managerId,
           'p_shift_request_id': shiftRequestId,
-          'p_confirm_start_time': confirmStartTime,
-          'p_confirm_end_time': confirmEndTime,
+          'p_confirm_start_time': confirmStartTime,  // null is valid - RPC keeps existing
+          'p_confirm_end_time': confirmEndTime,      // null is valid - RPC keeps existing
           'p_new_tag_content': newTagContent,
           'p_new_tag_type': newTagType,
           'p_is_late': isLate,

@@ -3,10 +3,11 @@
  * Complete ledger view with journal entry grouping
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useJournalHistory } from '../../hooks/useJournalHistory';
@@ -24,9 +25,40 @@ export const TransactionHistoryPage: React.FC = () => {
     loading,
     error,
     hasSearched,
+    employees,
+    accounts,
+    currentCreatedBy,
+    currentAccountId,
+    currentStoreId,
+    currentStartDate,
+    currentEndDate,
     searchJournalEntries,
+    setCreatedByFilter,
+    setAccountFilter,
     clearSearch,
   } = useJournalHistory(companyId);
+
+  // Transform employees to TossSelector options
+  const employeeOptions = useMemo(() => {
+    return [
+      { value: '', label: 'All' },
+      ...employees.map((emp) => ({
+        value: emp.userId,
+        label: emp.fullName,
+      })),
+    ];
+  }, [employees]);
+
+  // Transform accounts to TossSelector options
+  const accountOptions = useMemo(() => {
+    return [
+      { value: '', label: 'All' },
+      ...accounts.map((acc) => ({
+        value: acc.accountId,
+        label: acc.accountName,
+      })),
+    ];
+  }, [accounts]);
 
   // Show error dialog when error occurs
   useEffect(() => {
@@ -40,7 +72,36 @@ export const TransactionHistoryPage: React.FC = () => {
   }, [error, showError]);
 
   const handleSearch = (filters: TransactionFilterValues) => {
-    searchJournalEntries(filters.storeId, filters.fromDate || null, filters.toDate || null);
+    // Reset filters on new search
+    setCreatedByFilter(null);
+    setAccountFilter(null);
+    searchJournalEntries(
+      filters.storeId,
+      filters.fromDate || null,
+      filters.toDate || null,
+      null,
+      null
+    );
+  };
+
+  const handleCreatedByChange = (userId: string) => {
+    const newCreatedBy = userId || null;
+    setCreatedByFilter(newCreatedBy);
+
+    // Re-search if already searched
+    if (hasSearched) {
+      searchJournalEntries(currentStoreId, currentStartDate, currentEndDate, newCreatedBy, currentAccountId);
+    }
+  };
+
+  const handleAccountChange = (accountId: string) => {
+    const newAccountId = accountId || null;
+    setAccountFilter(newAccountId);
+
+    // Re-search if already searched
+    if (hasSearched) {
+      searchJournalEntries(currentStoreId, currentStartDate, currentEndDate, currentCreatedBy, newAccountId);
+    }
   };
 
   const handleClear = () => {
@@ -86,14 +147,15 @@ export const TransactionHistoryPage: React.FC = () => {
     </div>
   );
 
-  const renderJournalEntry = (journal: JournalEntry) => (
+  const renderJournalEntry = (journal: JournalEntry, index: number) => (
     <React.Fragment key={journal.journalId}>
       {/* Journal Header Row */}
-      <tr className={styles.journalHeader}>
+      <tr className={`${styles.journalHeader} ${index > 0 ? styles.journalSeparator : ''}`}>
         <td>
           <div className={styles.journalDate}>{journal.formattedDate}</div>
           <div className={styles.journalTime}>{journal.formattedTime}</div>
         </td>
+        <td>-</td>
         <td>{journal.description || '-'}</td>
         <td>
           {journal.storeName ? (
@@ -112,25 +174,26 @@ export const TransactionHistoryPage: React.FC = () => {
       </tr>
 
       {/* Journal Lines */}
-      {journal.sortedLines.map((line, index) => {
-        const alternateClass = index % 2 === 1 ? styles.alternate : '';
+      {journal.sortedLines.map((line, lineIndex) => {
+        const alternateClass = lineIndex % 2 === 1 ? styles.alternate : '';
 
         // Build full description with counterparty and location
-        let fullDescription = line.description || line.accountName;
+        let fullDescription = line.description || '';
         if (line.displayCounterparty && line.displayLocation) {
-          fullDescription = `${fullDescription} • ${line.displayCounterparty} • ${line.displayLocation}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayCounterparty} • ${line.displayLocation}` : `${line.displayCounterparty} • ${line.displayLocation}`;
         } else if (line.displayCounterparty) {
-          fullDescription = `${fullDescription} • ${line.displayCounterparty}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayCounterparty}` : line.displayCounterparty;
         } else if (line.displayLocation) {
-          fullDescription = `${fullDescription} • ${line.displayLocation}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayLocation}` : line.displayLocation;
         }
 
         return (
           <tr key={line.lineId} className={`${styles.lineRow} ${alternateClass}`}>
+            <td>-</td>
             <td className={styles.accountCell}>
               <strong>{line.accountName}</strong>
             </td>
-            <td className={styles.lineDescription}>{fullDescription}</td>
+            <td className={styles.lineDescription}>{fullDescription || '-'}</td>
             <td>-</td>
             <td>-</td>
             <td className={`${styles.amountCell} ${styles.debitAmount}`}>
@@ -145,7 +208,7 @@ export const TransactionHistoryPage: React.FC = () => {
 
       {/* Total Row */}
       <tr className={styles.totalRow}>
-        <td colSpan={4} className={styles.totalLabel}>
+        <td colSpan={5} className={styles.totalLabel}>
           Total:
         </td>
         <td className={`${styles.amountCell} ${styles.debitAmount}`}>
@@ -170,12 +233,37 @@ export const TransactionHistoryPage: React.FC = () => {
       <table className={styles.transactionTable}>
         <thead>
           <tr>
-            <th style={{ width: '160px' }}>DATE & TIME</th>
-            <th style={{ width: '200px' }}>DESCRIPTION</th>
-            <th style={{ width: '120px' }}>STORE</th>
-            <th style={{ width: '120px' }}>CREATED BY</th>
-            <th style={{ width: '120px' }}>DEBIT</th>
-            <th style={{ width: '120px' }}>CREDIT</th>
+            <th style={{ width: '140px' }}>DATE & TIME</th>
+            <th style={{ width: '200px' }}>
+              <div className={styles.headerWithFilter}>
+                <span>ACCOUNT</span>
+                <TossSelector
+                  value={currentAccountId || ''}
+                  options={accountOptions}
+                  onChange={handleAccountChange}
+                  placeholder="All"
+                  searchable
+                  className={styles.accountSelector}
+                />
+              </div>
+            </th>
+            <th style={{ width: '180px' }}>DESCRIPTION</th>
+            <th style={{ width: '100px' }}>STORE</th>
+            <th style={{ width: '180px' }}>
+              <div className={styles.headerWithFilter}>
+                <span>CREATED BY</span>
+                <TossSelector
+                  value={currentCreatedBy || ''}
+                  options={employeeOptions}
+                  onChange={handleCreatedByChange}
+                  placeholder="All"
+                  searchable
+                  className={styles.createdBySelector}
+                />
+              </div>
+            </th>
+            <th style={{ width: '100px' }}>DEBIT</th>
+            <th style={{ width: '100px' }}>CREDIT</th>
           </tr>
         </thead>
         <tbody>{journalEntries.map(renderJournalEntry)}</tbody>

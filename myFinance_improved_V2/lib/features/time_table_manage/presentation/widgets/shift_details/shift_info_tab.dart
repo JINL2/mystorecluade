@@ -30,8 +30,9 @@ class ShiftInfoTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Problem Alert if there's an unsolved problem
-          if (hasUnsolvedProblem) ...[
+          // Problem Alert - Show if problem exists (solved or unsolved)
+          // Keep showing report reason even after problem is solved
+          if (card.hasProblem) ...[
             Container(
               margin: const EdgeInsets.fromLTRB(
                 TossSpacing.space5,
@@ -41,10 +42,15 @@ class ShiftInfoTab extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.05),
+                // Use different color based on solved status
+                color: card.isProblemSolved
+                    ? TossColors.success.withValues(alpha: 0.05)
+                    : TossColors.error.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 border: Border.all(
-                  color: TossColors.error.withValues(alpha: 0.2),
+                  color: card.isProblemSolved
+                      ? TossColors.success.withValues(alpha: 0.2)
+                      : TossColors.error.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -53,16 +59,22 @@ class ShiftInfoTab extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        color: TossColors.error,
+                      Icon(
+                        card.isProblemSolved
+                            ? Icons.check_circle_outline
+                            : Icons.warning_amber_rounded,
+                        color: card.isProblemSolved
+                            ? TossColors.success
+                            : TossColors.error,
                         size: 20,
                       ),
                       const SizedBox(width: TossSpacing.space2),
                       Text(
-                        'Problem Detected',
+                        card.isProblemSolved ? 'Problem Resolved' : 'Problem Detected',
                         style: TossTextStyles.body.copyWith(
-                          color: TossColors.error,
+                          color: card.isProblemSolved
+                              ? TossColors.success
+                              : TossColors.error,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -73,16 +85,9 @@ class ShiftInfoTab extends StatelessWidget {
                     Text(
                       'Type: ${card.problemType!}',
                       style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.error.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ],
-                  if (false) ...[
-                    const SizedBox(height: TossSpacing.space2),
-                    Text(
-                      '',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray700,
+                        color: card.isProblemSolved
+                            ? TossColors.success.withValues(alpha: 0.8)
+                            : TossColors.error.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -95,50 +100,6 @@ class ShiftInfoTab extends StatelessWidget {
                         color: TossColors.gray700,
                       ),
                     ),
-                  ],
-                  // Display notice tags if available
-                  if (card.tags.isNotEmpty) ...[
-                    const SizedBox(height: TossSpacing.space3),
-                    Text(
-                      'Report Details:',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space2),
-                    ...card.tags.map((tag) {
-                      final type = tag.tagType;
-                      final content = tag.tagContent;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: TossSpacing.space1),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(color: TossColors.error)),
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TossTextStyles.bodySmall.copyWith(
-                                    color: TossColors.gray700,
-                                  ),
-                                  children: [
-                                    if (type.isNotEmpty) ...[
-                                      TextSpan(
-                                        text: '$type: ',
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
-                                      ),
-                                    ],
-                                    TextSpan(text: content),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
                   ],
                 ],
               ),

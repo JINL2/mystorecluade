@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -929,7 +930,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     // Get values from app state and card
                     final appState = ref.read(appStateProvider);
                     final userId = appState.user['user_id'];
-                    final timezone = appState.user['timezone'] ?? 'UTC';
+                    // ✅ Use device's local timezone in IANA format (e.g., "Asia/Seoul")
+                    final timezone = DateTimeUtils.getLocalTimezone();
                     final shiftRequestId = widget.card.shiftRequestId;
                     final isLate = widget.card.isLate;
                     
@@ -946,42 +948,14 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     );
                     
                     try {
-                      // ✅ FIXED: Use ShiftTimeFormatter for time validation and conversion
-                      // Format times - use edited times if available, otherwise use existing confirm times
+                      // ✅ Format times - validate if provided, otherwise send null to keep existing
                       String? startTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(editedStartTime);
                       String? endTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(editedEndTime);
 
-                      // If times weren't edited, try to use existing confirm times from card
-                      if (startTimeHHmm == null || startTimeHHmm.isEmpty) {
-                        final existingStart = widget.card.confirmedStartTime?.toIso8601String();
-                        startTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(existingStart);
-                      }
-                      if (endTimeHHmm == null || endTimeHHmm.isEmpty) {
-                        final existingEnd = widget.card.confirmedEndTime?.toIso8601String();
-                        endTimeHHmm = ShiftTimeFormatter.validateAndFormatTime(existingEnd);
-                      }
-
-                      // Validate that both times are present
-                      if (startTimeHHmm == null || startTimeHHmm.isEmpty ||
-                          endTimeHHmm == null || endTimeHHmm.isEmpty) {
-                        throw Exception('Both start and end times are required');
-                      }
-
-                      // Get request date for time conversion
-                      final requestDate = widget.card.requestDate;
-                      if (requestDate.isEmpty) {
-                        throw Exception('Request date is required for time conversion');
-                      }
-
-                      // ✅ FIXED: Use ShiftTimeFormatter to convert local time to UTC
-                      final startTimeForDb = ShiftTimeFormatter.convertLocalToUtc(
-                        startTimeHHmm,
-                        requestDate,
-                      );
-                      final endTimeForDb = ShiftTimeFormatter.convertLocalToUtc(
-                        endTimeHHmm,
-                        requestDate,
-                      );
+                      // ✅ Send local time directly - RPC handles timezone conversion using p_timezone
+                      // null values will cause RPC to keep existing times in database
+                      final startTimeForDb = (startTimeHHmm != null && startTimeHHmm.isNotEmpty) ? startTimeHHmm : null;
+                      final endTimeForDb = (endTimeHHmm != null && endTimeHHmm.isNotEmpty) ? endTimeHHmm : null;
 
                       // ✅ FIXED: Use TagInput for tag processing
                       final processedTagContent = tagInput.trimmedContent;

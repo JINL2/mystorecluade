@@ -53,6 +53,7 @@ export interface ScheduleState {
     shiftId: string,
     employeeId: string,
     date: string,
+    shiftStartTime: string,
     approvedBy: string
   ) => Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }>;
 

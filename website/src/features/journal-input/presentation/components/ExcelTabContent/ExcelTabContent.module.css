@@ -6,10 +6,36 @@
   padding: var(--space-4);
 }
 
+/* Store cell - spans multiple rows with high z-index for dropdown */
+.storeCell {
+  position: relative;
+  padding: 0;
+  vertical-align: top;
+  background: #fafbfc;
+  min-width: 160px;
+  max-width: 200px;
+  z-index: 100;
+}
+
+.storeCell:focus-within {
+  z-index: 1001;
+}
+
+.storeSelectorWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  padding: 8px;
+  z-index: inherit;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  position: relative;
+  overflow: visible;
 }
 
 .table th {

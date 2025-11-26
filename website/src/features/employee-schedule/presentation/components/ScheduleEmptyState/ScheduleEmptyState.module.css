@@ -1,0 +1,47 @@
+/**
+ * ScheduleEmptyState Component Styles
+ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  background: white;
+  border-radius: var(--radius-large);
+  border: 1px solid var(--toss-gray-200);
+}
+
+.errorState {
+  border-color: var(--toss-red-200);
+  background: var(--toss-red-50);
+}
+
+.emptyIcon,
+.errorIcon {
+  margin-bottom: var(--space-6);
+}
+
+.emptyTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.errorState .emptyTitle {
+  color: var(--toss-red-600);
+}
+
+.emptyText {
+  font-size: var(--font-medium);
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-6) 0;
+  max-width: 400px;
+}
+
+.errorState .emptyText {
+  color: var(--toss-red-500);
+}
