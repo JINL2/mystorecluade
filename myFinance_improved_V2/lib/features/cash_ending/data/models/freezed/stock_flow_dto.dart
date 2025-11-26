@@ -140,7 +140,8 @@ class ActualFlowDto with _$ActualFlowDto {
       _$ActualFlowDtoFromJson(json);
 
   ActualFlow toEntity() {
-    // Convert UTC strings to local time
+    // ✅ UTC Migration: RPC now returns timestamptz from created_at_utc and system_time_utc
+    // Convert UTC strings to local time for display
     final createdAtLocal = (createdAt.isNotEmpty)
         ? DateTimeUtils.toLocal(createdAt).toIso8601String()
         : '';

@@ -41,7 +41,7 @@ class TransactionDataSource {
       };
 
       final response = await _supabaseService.client.rpc<dynamic>(
-        'get_transaction_history',
+        'get_transaction_history_utc',
         params: params,
       );
 

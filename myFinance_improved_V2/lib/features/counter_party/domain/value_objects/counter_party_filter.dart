@@ -13,6 +13,21 @@ enum CounterPartySortOption {
 
   final String displayName;
   const CounterPartySortOption(this.displayName);
+
+  /// Convert to database column name
+  /// This is a Domain concern - mapping business concepts to storage
+  String toColumnName() {
+    switch (this) {
+      case CounterPartySortOption.name:
+        return 'name';
+      case CounterPartySortOption.type:
+        return 'type';
+      case CounterPartySortOption.createdAt:
+        return 'created_at';
+      case CounterPartySortOption.isInternal:
+        return 'is_internal';
+    }
+  }
 }
 
 /// Filter Options Model

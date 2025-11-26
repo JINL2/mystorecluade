@@ -1,5 +1,4 @@
 import '../entities/counter_party.dart';
-import '../entities/counter_party_stats.dart';
 import '../value_objects/counter_party_filter.dart';
 import '../value_objects/counter_party_type.dart';
 
@@ -9,11 +8,6 @@ abstract class CounterPartyRepository {
   Future<List<CounterParty>> getCounterParties({
     required String companyId,
     CounterPartyFilter? filter,
-  });
-
-  /// Get counter party statistics
-  Future<CounterPartyStats> getCounterPartyStats({
-    required String companyId,
   });
 
   /// Get a single counter party by ID

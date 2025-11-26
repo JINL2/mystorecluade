@@ -58,7 +58,7 @@ class SupabaseTransactionRepository implements TransactionRepository {
       'p_company_id': params.companyId,                                        // UUID
       'p_created_by': params.userId,                                           // UUID
       'p_description': params.description,                                     // TEXT
-      'p_entry_date': entryDate,                                              // TIMESTAMP (as date string)
+      'p_entry_date_utc': entryDate,                                          // TIMESTAMPTZ (as date string)
       'p_lines': transactionLines,                                             // JSONB
       'p_counterparty_id': counterpartyId,                                     // UUID (nullable)
       'p_if_cash_location_id': counterpartyCashLocationId,                     // UUID (nullable)
@@ -66,7 +66,7 @@ class SupabaseTransactionRepository implements TransactionRepository {
     };
 
     // Call Supabase RPC
-    await _supabaseService.client.rpc('insert_journal_with_everything', params: rpcParams);
+    await _supabaseService.client.rpc('insert_journal_with_everything_utc', params: rpcParams);
   }
 
   @override
@@ -86,7 +86,7 @@ class SupabaseTransactionRepository implements TransactionRepository {
       'p_company_id': transactionDto.companyId,
       'p_created_by': transactionDto.createdBy,
       'p_description': transactionDto.description,
-      'p_entry_date': entryDate,
+      'p_entry_date_utc': entryDate,
       'p_lines': journalLines, // 🚨 CRITICAL: Converted JSONB array
       'p_counterparty_id': transactionDto.counterpartyId,
       'p_if_cash_location_id': transactionDto.cashLocationId,
@@ -94,7 +94,7 @@ class SupabaseTransactionRepository implements TransactionRepository {
     };
 
     // Call RPC to create transaction with all journal entries
-    await _supabaseService.client.rpc('insert_journal_with_everything', params: rpcParams);
+    await _supabaseService.client.rpc('insert_journal_with_everything_utc', params: rpcParams);
   }
 
   @override

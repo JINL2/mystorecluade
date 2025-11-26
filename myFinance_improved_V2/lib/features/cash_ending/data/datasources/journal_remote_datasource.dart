@@ -26,13 +26,13 @@ class JournalRemoteDataSource {
   }) async {
     try {
       final response = await _supabase.rpc(
-        'insert_journal_with_everything',
+        'insert_journal_with_everything_utc',
         params: {
           'p_base_amount': baseAmount,
           'p_company_id': companyId,
           'p_created_by': createdBy,
           'p_description': description,
-          'p_entry_date': entryDate,
+          'p_entry_date_utc': entryDate,
           'p_lines': lines,
           'p_counterparty_id': counterpartyId,
           'p_if_cash_location_id': ifCashLocationId,

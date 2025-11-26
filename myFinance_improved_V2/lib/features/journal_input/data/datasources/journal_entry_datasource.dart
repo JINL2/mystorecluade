@@ -193,13 +193,13 @@ class JournalEntryDataSource {
 
       // Call the journal RPC
       await _supabase.rpc<void>(
-        'insert_journal_with_everything',
+        'insert_journal_with_everything_utc',
         params: {
           'p_base_amount': totalDebits,
           'p_company_id': companyId,
           'p_created_by': userId,
           'p_description': journalEntry.overallDescription,
-          'p_entry_date': entryDate,
+          'p_entry_date_utc': entryDate,
           'p_lines': pLines,
           'p_counterparty_id': mainCounterpartyId,
           'p_if_cash_location_id': journalEntry.counterpartyCashLocationId,

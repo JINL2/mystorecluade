@@ -1,6 +1,7 @@
 // lib/features/cash_ending/domain/entities/balance_summary.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intl/intl.dart';
 
 part 'balance_summary.freezed.dart';
 
@@ -46,16 +47,21 @@ class BalanceSummary with _$BalanceSummary {
     return BalanceStatus.unknown;
   }
 
-  /// Get formatted amounts with currency symbol
-  String get formattedTotalJournal =>
-      '$currencySymbol${totalJournal.toStringAsFixed(2)}';
+  /// Get formatted amounts with currency symbol and thousand separators
+  String get formattedTotalJournal {
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return '$currencySymbol${formatter.format(totalJournal)}';
+  }
 
-  String get formattedTotalReal =>
-      '$currencySymbol${totalReal.toStringAsFixed(2)}';
+  String get formattedTotalReal {
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return '$currencySymbol${formatter.format(totalReal)}';
+  }
 
   String get formattedDifference {
+    final formatter = NumberFormat('#,##0.00', 'en_US');
     final sign = difference > 0 ? '+' : '';
-    return '$sign$currencySymbol${difference.toStringAsFixed(2)}';
+    return '$sign$currencySymbol${formatter.format(difference.abs())}';
   }
 
   /// Calculate difference percentage (difference / totalReal * 100)

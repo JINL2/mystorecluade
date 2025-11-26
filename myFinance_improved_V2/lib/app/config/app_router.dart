@@ -16,8 +16,10 @@ import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
+import '../../features/cash_location/presentation/pages/account_settings_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
 import '../../features/counter_party/presentation/pages/counter_party_page.dart';
+import '../../features/counter_party/presentation/pages/debt_account_settings_page.dart';
 import '../../features/report_control/presentation/pages/report_control_page.dart';
 import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
 import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
@@ -536,6 +538,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/registerCounterparty',
         name: 'registerCounterparty',
         builder: (context, state) => const CounterPartyPage(),
+      ),
+
+      // Debt Account Settings Route (for internal counter parties)
+      GoRoute(
+        path: '/debtAccountSettings/:counterpartyId/:name',
+        name: 'debtAccountSettings',
+        builder: (context, state) {
+          final counterpartyId = state.pathParameters['counterpartyId']!;
+          final name = state.pathParameters['name']!; // go_router already decodes
+
+          return DebtAccountSettingsPage(
+            counterpartyId: counterpartyId,
+            counterpartyName: name,
+          );
+        },
       ),
 
       // Add Fix Asset Route

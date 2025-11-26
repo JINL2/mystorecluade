@@ -29,24 +29,29 @@ class CashEndingConstants {
   @Deprecated('Use rpcInsertAmountMultiCurrency instead')
   static const String rpcVaultAmountRecount = 'vault_amount_recount';
 
-  /// RPC function for getting location stock flow
-  static const String rpcGetLocationStockFlow = 'get_location_stock_flow';
+  /// RPC function for getting location stock flow (UTC version)
+  /// ✅ Uses created_at_utc and system_time_utc columns
+  static const String rpcGetLocationStockFlow = 'get_location_stock_flow_utc';
 
   /// RPC function for getting cash location balance summary (Journal vs Real)
   /// ⚠️ OLD: Uses flow data from v_cash_location view
+  @Deprecated('Use rpcGetBalanceSummaryV2 instead')
   static const String rpcGetBalanceSummary = 'get_cash_location_balance_summary';
 
-  /// RPC function for getting cash location balance summary V2 (STOCK-BASED)
-  /// ✅ NEW: Uses stock data from cash_amount_entries.balance_after
-  static const String rpcGetBalanceSummaryV2 = 'get_cash_location_balance_summary_v2';
+  /// RPC function for getting cash location balance summary V2 (STOCK-BASED, UTC)
+  /// ✅ Uses stock data from cash_amount_entries.balance_after
+  /// ✅ Uses record_date_utc column
+  static const String rpcGetBalanceSummaryV2 = 'get_cash_location_balance_summary_v2_utc';
 
-  /// RPC function for getting multiple locations balance summary
+  /// RPC function for getting multiple locations balance summary (UTC)
+  /// ✅ Uses record_date_utc column
   static const String rpcGetMultipleBalanceSummary =
-      'get_multiple_locations_balance_summary';
+      'get_multiple_locations_balance_summary_utc';
 
-  /// RPC function for getting company-wide balance summary
+  /// RPC function for getting company-wide balance summary (UTC)
+  /// ✅ Uses record_date_utc column
   static const String rpcGetCompanyBalanceSummary =
-      'get_company_balance_summary';
+      'get_company_balance_summary_utc';
 
   // ============================================================================
   // Pagination Configuration

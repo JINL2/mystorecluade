@@ -107,7 +107,7 @@ class CashLocationDataSource {
     }
   }
 
-  /// Get cash real entries using RPC
+  /// Get cash real entries using RPC (UTC version)
   Future<List<CashRealEntryModel>> getCashReal({
     required String companyId,
     required String storeId,
@@ -117,7 +117,7 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<List<dynamic>>(
-        'get_cash_real',
+        'get_cash_real_utc',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -134,7 +134,7 @@ class CashLocationDataSource {
     }
   }
 
-  /// Get bank real entries using RPC
+  /// Get bank real entries using RPC (UTC version)
   Future<List<BankRealEntryModel>> getBankReal({
     required String companyId,
     required String storeId,
@@ -143,7 +143,7 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<List<dynamic>>(
-        'get_bank_real',
+        'get_bank_real_utc',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -160,7 +160,7 @@ class CashLocationDataSource {
     }
   }
 
-  /// Get vault real entries using RPC
+  /// Get vault real entries using RPC (UTC version)
   Future<List<VaultRealEntryModel>> getVaultReal({
     required String companyId,
     required String storeId,
@@ -169,7 +169,7 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<List<dynamic>>(
-        'get_vault_real',
+        'get_vault_real_utc',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -217,7 +217,7 @@ class CashLocationDataSource {
     }
   }
 
-  /// Get location stock flow data using RPC
+  /// Get location stock flow data using RPC (UTC version)
   Future<StockFlowResponse> getLocationStockFlow({
     required String companyId,
     required String storeId,
@@ -227,7 +227,7 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<Map<String, dynamic>>(
-        'get_location_stock_flow_v2',
+        'get_location_stock_flow_v2_utc',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -243,7 +243,7 @@ class CashLocationDataSource {
     }
   }
 
-  /// Insert journal entry with lines using RPC
+  /// Insert journal entry with lines using RPC (UTC version)
   Future<Map<String, dynamic>> insertJournalWithEverything({
     required double baseAmount,
     required String companyId,
@@ -257,13 +257,13 @@ class CashLocationDataSource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'insert_journal_with_everything',
+        'insert_journal_with_everything_utc',
         params: {
           'p_base_amount': baseAmount,
           'p_company_id': companyId,
           'p_created_by': createdBy,
           'p_description': description,
-          'p_entry_date': entryDate,
+          'p_entry_date_utc': entryDate,
           'p_lines': lines,
           'p_counterparty_id': counterpartyId,
           'p_if_cash_location_id': ifCashLocationId,
