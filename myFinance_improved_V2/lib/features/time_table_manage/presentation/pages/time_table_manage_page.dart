@@ -122,13 +122,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
 
     // ✅ Fetch initial data AFTER build is complete to avoid Provider lifecycle violation
+    // ✅ Always force refresh on page entry to ensure fresh data from RPC
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // shiftMetadata is now auto-loaded by shiftMetadataProvider
-        fetchMonthlyShiftStatus();
-        // Also fetch overview data
-        fetchManagerOverview();
-        fetchManagerCards();
+        // Invalidate shiftMetadataProvider to force fresh data on page entry
+        ref.invalidate(shiftMetadataProvider(selectedStoreId!));
+        // Fetch with forceRefresh to ensure fresh data from RPC
+        fetchMonthlyShiftStatus(forceRefresh: true);
+        // Also fetch overview data - force refresh to get latest data
+        fetchManagerOverview(forceRefresh: true);
+        fetchManagerCards(forceRefresh: true);
       });
     }
   }

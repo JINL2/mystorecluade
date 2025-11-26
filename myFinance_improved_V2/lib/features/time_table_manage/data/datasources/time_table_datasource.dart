@@ -413,6 +413,8 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
+      print('🔍 Datasource: Calling manager_shift_get_schedule_v2 with storeId: $storeId, timezone: $timezone');
+
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_get_schedule_v2',
         params: {
@@ -421,16 +423,29 @@ class TimeTableDatasource {
         },
       );
 
+      print('🔍 Datasource: RPC response type: ${response.runtimeType}');
+      print('🔍 Datasource: RPC response: $response');
+
       if (response == null) {
+        print('⚠️ Datasource: Response is null');
         return {};
       }
 
       if (response is Map<String, dynamic>) {
+        print('✅ Datasource: Response is Map with keys: ${response.keys.toList()}');
+        if (response.containsKey('store_employees')) {
+          print('   - store_employees count: ${(response['store_employees'] as List?)?.length ?? 0}');
+        }
+        if (response.containsKey('store_shifts')) {
+          print('   - store_shifts count: ${(response['store_shifts'] as List?)?.length ?? 0}');
+        }
         return response;
       }
 
+      print('⚠️ Datasource: Response is not a Map, returning empty');
       return {};
     } catch (e, stackTrace) {
+      print('❌ Datasource: Error fetching schedule data: $e');
       throw TimeTableException(
         'Failed to fetch schedule data: $e',
         originalError: e,
