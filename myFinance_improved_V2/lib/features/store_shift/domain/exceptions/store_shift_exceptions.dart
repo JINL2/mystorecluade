@@ -65,6 +65,14 @@ class StoreLocationUpdateException extends StoreShiftException {
   String toString() => 'StoreLocationUpdateException: $message';
 }
 
+/// Exception thrown when operational settings update fails
+class OperationalSettingsUpdateException extends StoreShiftException {
+  const OperationalSettingsUpdateException([super.message = 'Failed to update operational settings', super.stackTrace]);
+
+  @override
+  String toString() => 'OperationalSettingsUpdateException: $message';
+}
+
 /// Exception thrown when user is unauthorized to perform operation
 class UnauthorizedException extends StoreShiftException {
   const UnauthorizedException([super.message = 'User is not authenticated', super.stackTrace]);

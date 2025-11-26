@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
+import '../../../../core/utils/datetime_utils.dart';
+import '../../../../core/utils/location_utils.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
@@ -840,12 +842,18 @@ class _OperationalSettingsContentState extends ConsumerState<_OperationalSetting
     setState(() => _isSubmitting = true);
 
     try {
+      // Get device's local timezone and format current local time for RPC
+      final timezone = await DateTimeUtils.getLocalTimezone();
+      final localTime = DateTimeUtils.toLocalRpcFormat(DateTime.now());
+
       final useCase = ref.read(updateOperationalSettingsUseCaseProvider);
       await useCase(UpdateOperationalSettingsParams(
         storeId: widget.store['store_id'] as String,
         huddleTime: int.tryParse(_huddleTimeController.text),
         paymentTime: int.tryParse(_paymentTimeController.text),
         allowedDistance: int.tryParse(_allowedDistanceController.text),
+        localTime: localTime,
+        timezone: timezone,
       ),);
 
       if (mounted) {
@@ -877,5 +885,99 @@ class _OperationalSettingsContentState extends ConsumerState<_OperationalSetting
         );
       }
     }
+  }
+}
+
+/// Show Store Location Confirmation Dialog
+///
+/// Shows a confirm dialog asking if the user wants to set current location
+/// as the store location. On confirmation, gets current GPS location and
+/// calls update_store_location RPC.
+Future<void> showStoreLocationDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String storeId,
+) async {
+  // Show confirmation dialog
+  final confirmed = await TossConfirmCancelDialog.show(
+    context: context,
+    title: 'Set Store Location',
+    message: 'Do you want to set the current location as the store location?',
+    confirmButtonText: 'OK',
+    cancelButtonText: 'Cancel',
+  );
+
+  if (confirmed != true || !context.mounted) return;
+
+  // Show loading indicator
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+
+  try {
+    // Get current location using LocationUtils
+    final position = await LocationUtils.getCurrentLocation();
+
+    if (!context.mounted) return;
+
+    // Close loading indicator
+    Navigator.pop(context);
+
+    if (position == null) {
+      // Location permission denied or service disabled
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Location Error',
+          message: 'Unable to get current location. Please check location permissions and try again.',
+          primaryButtonText: 'OK',
+        ),
+      );
+      return;
+    }
+
+    // Call update store location via provider (UseCase)
+    await ref.read(updateStoreLocationProvider)(
+      storeId: storeId,
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+
+    if (!context.mounted) return;
+
+    // Refresh store details
+    ref.invalidate(storeDetailsProvider);
+
+    // Show success dialog
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Location Updated',
+        message: 'Store location has been updated successfully.',
+        primaryButtonText: 'OK',
+      ),
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+
+    // Close loading indicator if still showing
+    Navigator.of(context, rootNavigator: true).pop();
+
+    // Show error dialog
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: 'Update Failed',
+        message: 'Failed to update store location: $e',
+        primaryButtonText: 'OK',
+      ),
+    );
   }
 }

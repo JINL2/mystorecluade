@@ -77,13 +77,11 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     required String storeId,
     required double latitude,
     required double longitude,
-    required String address,
   }) async {
     await _dataSource.updateStoreLocation(
       storeId: storeId,
       latitude: latitude,
       longitude: longitude,
-      address: address,
     );
   }
 
@@ -93,12 +91,16 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     int? huddleTime,
     int? paymentTime,
     int? allowedDistance,
+    String? localTime,
+    String timezone = 'Asia/Ho_Chi_Minh',
   }) async {
     await _dataSource.updateOperationalSettings(
       storeId: storeId,
       huddleTime: huddleTime,
       paymentTime: paymentTime,
       allowedDistance: allowedDistance,
+      localTime: localTime,
+      timezone: timezone,
     );
   }
 }
