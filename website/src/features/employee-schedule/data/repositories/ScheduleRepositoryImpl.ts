@@ -101,6 +101,7 @@ export class ScheduleRepositoryImpl implements IScheduleRepository {
     shiftId: string,
     storeId: string,
     date: string,
+    shiftStartTime: string,
     approvedBy: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -109,6 +110,7 @@ export class ScheduleRepositoryImpl implements IScheduleRepository {
         shiftId,
         storeId,
         date,
+        shiftStartTime,
         approvedBy
       );
 

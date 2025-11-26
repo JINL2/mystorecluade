@@ -15,6 +15,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
   selectedDate,
   shifts,
   employees,
+  assignments,
   onAddEmployee,
   loading = false,
 }) => {
@@ -36,8 +37,25 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
     description: shift.timeRange,
   }));
 
-  // Convert employees to TossSelector options
-  const employeeOptions: TossSelectorOption[] = employees.map((employee) => ({
+  // Filter out employees who are already assigned to the selected shift on the selected date
+  const availableEmployees = employees.filter((employee) => {
+    // If no shift is selected yet, show all employees
+    if (!selectedShiftId) return true;
+
+    // Check if this employee is already assigned to this shift on this date
+    const isAlreadyAssigned = assignments.some(
+      (assignment) =>
+        assignment.userId === employee.userId &&
+        assignment.shiftId === selectedShiftId &&
+        assignment.date === selectedDate
+    );
+
+    // Only show employees who are NOT already assigned
+    return !isAlreadyAssigned;
+  });
+
+  // Convert available employees to TossSelector options
+  const employeeOptions: TossSelectorOption[] = availableEmployees.map((employee) => ({
     value: employee.userId,
     label: employee.fullName,
     description: employee.displayRole,

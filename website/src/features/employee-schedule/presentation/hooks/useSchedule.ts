@@ -34,13 +34,44 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
   const getWeekRange = useScheduleStore((state) => state.getWeekRange);
   const getWeekDays = useScheduleStore((state) => state.getWeekDays);
   const getAssignmentsForDate = useScheduleStore((state) => state.getAssignmentsForDate);
-  const createAssignment = useScheduleStore((state) => state.createAssignment);
+  const _createAssignment = useScheduleStore((state) => state.createAssignment);
   const setSelectedStore = useScheduleStore((state) => state.setSelectedStore);
   const openAddEmployeeModal = useScheduleStore((state) => state.openAddEmployeeModal);
   const closeAddEmployeeModal = useScheduleStore((state) => state.closeAddEmployeeModal);
   const setAddingEmployee = useScheduleStore((state) => state.setAddingEmployee);
   const showNotification = useScheduleStore((state) => state.showNotification);
   const clearNotification = useScheduleStore((state) => state.clearNotification);
+
+  // Wrapper to add shift start time lookup
+  const createAssignment = async (
+    shiftId: string,
+    employeeId: string,
+    date: string,
+    approvedBy: string
+  ) => {
+    // Debug: Log available shifts and search parameters
+    console.group('🔍 createAssignment - Shift Lookup');
+    console.log('Looking for shiftId:', shiftId);
+    console.log('Available shifts:', shifts);
+    console.log('Shifts count:', shifts.length);
+    console.log('Shift IDs:', shifts.map(s => ({ id: s.shiftId, name: s.shiftName, startTime: s.startTime })));
+    console.groupEnd();
+
+    // Find the shift to get its start time
+    const shift = shifts.find(s => s.shiftId === shiftId);
+    if (!shift) {
+      console.error('❌ Shift not found! shiftId:', shiftId);
+      return {
+        success: false,
+        error: 'Shift not found',
+      };
+    }
+
+    console.log('✅ Shift found:', { id: shift.shiftId, name: shift.shiftName, startTime: shift.startTime });
+
+    // Call the store action with shift start time
+    return _createAssignment(shiftId, employeeId, date, shift.startTime, approvedBy);
+  };
 
   // Load data when companyId, selectedStoreId, or currentWeek changes
   useEffect(() => {

@@ -50,6 +50,7 @@ export interface IScheduleRepository {
    * @param shiftId - Shift identifier
    * @param storeId - Store identifier
    * @param date - Assignment date
+   * @param shiftStartTime - Shift start time (HH:mm:ss format)
    * @param approvedBy - User ID of approver
    * @returns Success status
    */
@@ -58,6 +59,7 @@ export interface IScheduleRepository {
     shiftId: string,
     storeId: string,
     date: string,
+    shiftStartTime: string,
     approvedBy: string
   ): Promise<{ success: boolean; error?: string }>;
 

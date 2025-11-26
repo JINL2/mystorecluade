@@ -4,6 +4,7 @@
 
 import { ScheduleShift } from '../../../domain/entities/ScheduleShift';
 import { ScheduleEmployee } from '../../../domain/entities/ScheduleEmployee';
+import { ScheduleAssignment } from '../../../domain/entities/ScheduleAssignment';
 
 export interface AddEmployeeModalProps {
   /**
@@ -30,6 +31,11 @@ export interface AddEmployeeModalProps {
    * Available employees to choose from
    */
   employees: ScheduleEmployee[];
+
+  /**
+   * Existing assignments to check for duplicates
+   */
+  assignments: ScheduleAssignment[];
 
   /**
    * Callback when adding employee to shift
