@@ -1,5 +1,4 @@
 import '../../domain/entities/counter_party.dart';
-import '../../domain/entities/counter_party_stats.dart';
 import '../../domain/repositories/counter_party_repository.dart';
 import '../../domain/value_objects/counter_party_filter.dart';
 import '../../domain/value_objects/counter_party_type.dart';
@@ -18,7 +17,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   }) async {
     try {
       final typeFilters = filter?.types?.map((t) => t.displayName).toList();
-      final sortColumn = _getSortColumn(filter?.sortBy);
+      final sortColumn = filter?.sortBy.toColumnName() ?? 'is_internal';
 
       final data = await _dataSource.getCounterParties(
         companyId: companyId,
@@ -33,37 +32,6 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
       return data.map((json) => CounterParty.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to load counterparties: $e');
-    }
-  }
-
-  @override
-  Future<CounterPartyStats> getCounterPartyStats({
-    required String companyId,
-  }) async {
-    try {
-      final data = await _dataSource.getCounterParties(
-        companyId: companyId,
-        sortColumn: 'created_at',
-        ascending: false,
-      );
-
-      final counterParties = data.map((json) => CounterParty.fromJson(json)).toList();
-
-      // Calculate statistics
-      return CounterPartyStats(
-        total: counterParties.length,
-        suppliers: counterParties.where((cp) => cp.type == CounterPartyType.supplier).length,
-        customers: counterParties.where((cp) => cp.type == CounterPartyType.customer).length,
-        employees: counterParties.where((cp) => cp.type == CounterPartyType.employee).length,
-        teamMembers: counterParties.where((cp) => cp.type == CounterPartyType.teamMember).length,
-        myCompanies: counterParties.where((cp) => cp.type == CounterPartyType.myCompany).length,
-        others: counterParties.where((cp) => cp.type == CounterPartyType.other).length,
-        activeCount: counterParties.where((cp) => !cp.isDeleted).length,
-        inactiveCount: counterParties.where((cp) => cp.isDeleted).length,
-        recentAdditions: counterParties.take(5).toList(),
-      );
-    } catch (e) {
-      throw Exception('Failed to load statistics: $e');
     }
   }
 
@@ -159,19 +127,5 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
       userId: userId,
       companyId: companyId,
     );
-  }
-
-  String _getSortColumn(CounterPartySortOption? option) {
-    switch (option) {
-      case CounterPartySortOption.name:
-        return 'name';
-      case CounterPartySortOption.type:
-        return 'type';
-      case CounterPartySortOption.createdAt:
-        return 'created_at';
-      case CounterPartySortOption.isInternal:
-      case null:
-        return 'is_internal';
-    }
   }
 }

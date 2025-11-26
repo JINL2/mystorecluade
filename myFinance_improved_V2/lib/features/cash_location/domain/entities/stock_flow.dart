@@ -33,8 +33,10 @@ class JournalFlow with _$JournalFlow {
 
   String getFormattedDate() {
     try {
-      final dateTime = DateTime.parse(createdAt);
-      return '${dateTime.day}/${dateTime.month}';
+      // createdAt is already in local time (converted in Model layer)
+      // Just parse and format it
+      final localDateTime = DateTime.parse(createdAt);
+      return '${localDateTime.day}/${localDateTime.month}';
     } catch (e) {
       return '';
     }
@@ -42,19 +44,12 @@ class JournalFlow with _$JournalFlow {
 
   String getFormattedTime() {
     try {
-      // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
-      // Example: "2025-10-27 17:54:41.715" should be treated as UTC
-      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
-      final localDateTime = utcDateTime.toLocal();
+      // createdAt is already in local time (converted in Model layer at Line 24)
+      // Just parse and format it - NO need to convert again!
+      final localDateTime = DateTime.parse(createdAt);
       return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
-      // Fallback: try parsing with toLocal if Z format fails
-      try {
-        final localDateTime = DateTimeUtils.toLocal(createdAt);
-        return DateTimeUtils.formatTimeOnly(localDateTime);
-      } catch (e2) {
-        return '';
-      }
+      return '';
     }
   }
 
@@ -80,8 +75,10 @@ class ActualFlow with _$ActualFlow {
 
   String getFormattedDate() {
     try {
-      final dateTime = DateTime.parse(createdAt);
-      return '${dateTime.day}/${dateTime.month}';
+      // createdAt is already in local time (converted in Model layer)
+      // Just parse and format it
+      final localDateTime = DateTime.parse(createdAt);
+      return '${localDateTime.day}/${localDateTime.month}';
     } catch (e) {
       return '';
     }
@@ -89,19 +86,12 @@ class ActualFlow with _$ActualFlow {
 
   String getFormattedTime() {
     try {
-      // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
-      // Example: "2025-10-27 17:54:41.715" should be treated as UTC
-      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
-      final localDateTime = utcDateTime.toLocal();
+      // createdAt is already in local time (converted in Model layer at Line 71)
+      // Just parse and format it - NO need to convert again!
+      final localDateTime = DateTime.parse(createdAt);
       return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
-      // Fallback: try parsing with toLocal if Z format fails
-      try {
-        final localDateTime = DateTimeUtils.toLocal(createdAt);
-        return DateTimeUtils.formatTimeOnly(localDateTime);
-      } catch (e2) {
-        return '';
-      }
+      return '';
     }
   }
 
