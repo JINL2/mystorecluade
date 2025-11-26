@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/store_shift_exceptions.dart';
 
 /// Store Shift Data Source
@@ -215,7 +216,14 @@ class StoreShiftDataSource {
 
   /// Update operational settings
   ///
-  /// Uses direct UPDATE on 'stores' table
+  /// Uses RPC function 'update_store_setting'
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  /// - p_huddle_time: integer (optional)
+  /// - p_payment_time: integer (optional)
+  /// - p_allowed_distance: integer (optional)
+  /// - p_time: text (local time, e.g., '2025-11-26 16:30:00')
+  /// - p_timezone: text (e.g., 'Asia/Ho_Chi_Minh')
   Future<void> updateOperationalSettings({
     required String storeId,
     int? huddleTime,
@@ -223,20 +231,30 @@ class StoreShiftDataSource {
     int? allowedDistance,
   }) async {
     try {
-      final updateData = <String, dynamic>{};
+      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
+      final now = DateTime.now();
+      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-      if (huddleTime != null) updateData['huddle_time'] = huddleTime;
-      if (paymentTime != null) updateData['payment_time'] = paymentTime;
-      if (allowedDistance != null) updateData['allowed_distance'] = allowedDistance;
+      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-      if (updateData.isEmpty) {
-        return;
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'update_store_setting',
+        params: {
+          'p_store_id': storeId,
+          'p_huddle_time': huddleTime,
+          'p_payment_time': paymentTime,
+          'p_allowed_distance': allowedDistance,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
+
+      // Check RPC response for success
+      if (response['success'] == false) {
+        throw Exception(response['message'] ?? 'Unknown error');
       }
-
-      await _client
-          .from('stores')
-          .update(updateData)
-          .eq('store_id', storeId);
     } catch (e, stackTrace) {
       throw StoreLocationUpdateException(
         'Failed to update operational settings: $e',

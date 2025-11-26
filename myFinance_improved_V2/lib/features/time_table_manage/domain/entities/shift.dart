@@ -4,6 +4,7 @@
 class Shift {
   final String shiftId;
   final String storeId;
+  final String? storeName;
   final String shiftDate;
   final DateTime planStartTime;
   final DateTime planEndTime;
@@ -15,6 +16,7 @@ class Shift {
   const Shift({
     required this.shiftId,
     required this.storeId,
+    this.storeName,
     required this.shiftDate,
     required this.planStartTime,
     required this.planEndTime,
@@ -46,6 +48,7 @@ class Shift {
   Shift copyWith({
     String? shiftId,
     String? storeId,
+    String? storeName,
     String? shiftDate,
     DateTime? planStartTime,
     DateTime? planEndTime,
@@ -57,6 +60,7 @@ class Shift {
     return Shift(
       shiftId: shiftId ?? this.shiftId,
       storeId: storeId ?? this.storeId,
+      storeName: storeName ?? this.storeName,
       shiftDate: shiftDate ?? this.shiftDate,
       planStartTime: planStartTime ?? this.planStartTime,
       planEndTime: planEndTime ?? this.planEndTime,

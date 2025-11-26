@@ -61,6 +61,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
     return Shift(
       shiftId: '', // RPC doesn't return shift_id
       storeId: '', // RPC doesn't return store_id
+      storeName: storeName,
       shiftDate: requestDate,
       planStartTime: _parseTime(shiftTime?.startTime) ?? now,
       planEndTime: _parseTime(shiftTime?.endTime) ?? now,

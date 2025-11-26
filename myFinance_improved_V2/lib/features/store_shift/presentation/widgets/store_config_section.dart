@@ -16,14 +16,12 @@ class StoreConfigSection extends StatelessWidget {
   final Map<String, dynamic> store;
   final VoidCallback? onEditSettings;
   final VoidCallback? onEditLocation;
-  final VoidCallback? onViewPerformance;
 
   const StoreConfigSection({
     super.key,
     required this.store,
     this.onEditSettings,
     this.onEditLocation,
-    this.onViewPerformance,
   });
 
   String _getLocationSubtitle() {
@@ -168,15 +166,6 @@ class StoreConfigSection extends StatelessWidget {
             title: 'Store Location',
             subtitle: _getLocationSubtitle(),
             onTap: onEditLocation,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-
-          // Store Performance
-          _buildConfigOption(
-            icon: LucideIcons.lineChart,
-            title: 'Store Performance',
-            subtitle: 'View detailed analytics',
-            onTap: onViewPerformance,
           ),
         ],
       ),
