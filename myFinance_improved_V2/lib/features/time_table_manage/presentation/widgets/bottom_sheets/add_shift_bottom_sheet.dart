@@ -142,6 +142,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
     // Watch form state
     final formState = ref.watch(addShiftFormProvider(storeId));
 
+    // ✅ Use shiftMetadataProvider for shifts data (same as Schedule tab)
+    final shiftMetadataAsync = ref.watch(shiftMetadataProvider(storeId));
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: const BoxDecoration(
