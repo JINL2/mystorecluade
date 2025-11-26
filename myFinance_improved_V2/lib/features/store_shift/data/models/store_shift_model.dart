@@ -20,60 +20,58 @@ class StoreShiftModel extends StoreShift {
 
   /// Create model from JSON (from Supabase response)
   ///
-  /// **중요:** DB의 timetz는 PostgreSQL이 클라이언트 타임존으로 자동 변환하여 반환합니다.
+  /// **중요:** DB에 저장된 UTC 시간을 로컬 시간으로 변환합니다.
   factory StoreShiftModel.fromJson(Map<String, dynamic> json) {
-    // Support both old (start_time) and new (start_time_utc) column names
-    final startTimeValue = json['start_time_utc'] ?? json['start_time'];
-    final endTimeValue = json['end_time_utc'] ?? json['end_time'];
-
-    // Support both old (created_at) and new (created_at_utc) column names
-    // created_at is timestamptz (date+time), created_at_utc is timetz (time only)
-    // For display purposes, we use the legacy created_at/updated_at columns
-    final createdAtValue = json['created_at'] as String?;
-    final updatedAtValue = json['updated_at'] as String?;
-
     return StoreShiftModel(
       shiftId: json['shift_id'] as String,
       shiftName: json['shift_name'] as String,
-      // Parse timetz format (e.g., "14:00:00+09:00")
-      startTime: _parseTimetzString(startTimeValue as String? ?? '00:00:00'),
-      endTime: _parseTimetzString(endTimeValue as String? ?? '00:00:00'),
+      // Convert UTC time to local time for display
+      startTime: _convertUtcTimeToLocal(json['start_time'] as String),
+      endTime: _convertUtcTimeToLocal(json['end_time'] as String),
       shiftBonus: json['shift_bonus'] as int,
       isActive: json['is_active'] as bool? ?? true,
-      // Convert UTC timestamps to local time (fallback to current time if null)
-      createdAt: createdAtValue != null
-          ? DateTimeUtils.toLocal(createdAtValue)
-          : DateTime.now(),
-      updatedAt: updatedAtValue != null
-          ? DateTimeUtils.toLocal(updatedAtValue)
-          : DateTime.now(),
+      // Convert UTC timestamps to local time
+      createdAt: DateTimeUtils.toLocal(json['created_at'] as String),
+      updatedAt: DateTimeUtils.toLocal(json['updated_at'] as String),
     );
   }
 
-  /// Parse timetz string and return time in HH:mm:ss format
+  /// Convert UTC time string to local time string
   ///
-  /// Example: "14:00:00+09:00" → "14:00:00"
-  /// PostgreSQL automatically converts timetz to client's timezone
-  static String _parseTimetzString(String timetzString) {
+  /// Example: UTC "06:15:00" → Local "15:15:00" (in KST, UTC+9)
+  static String _convertUtcTimeToLocal(String utcTimeString) {
     try {
-      // Remove timezone offset if present (e.g., "14:00:00+09:00" → "14:00:00")
-      String cleanedTime = timetzString;
-      if (timetzString.contains('+') || timetzString.contains('-')) {
-        // Find the position of timezone offset
-        final plusIndex = timetzString.indexOf('+');
-        final minusIndex = timetzString.lastIndexOf('-');
-        final offsetIndex = plusIndex != -1 ? plusIndex : minusIndex;
+      // Parse "HH:mm" or "HH:mm:ss" format
+      final parts = utcTimeString.split(':');
+      if (parts.length >= 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        final second = parts.length >= 3 ? int.parse(parts[2]) : 0;
 
-        if (offsetIndex > 0) {
-          cleanedTime = timetzString.substring(0, offsetIndex);
-        }
+        // Create a UTC DateTime object with today's date and the parsed time
+        final now = DateTime.now();
+        final utcDateTime = DateTime.utc(
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+          second,
+        );
+
+        // Convert to local time
+        final localDateTime = utcDateTime.toLocal();
+
+        // Return as time string in HH:mm:ss format
+        final localHour = localDateTime.hour.toString().padLeft(2, '0');
+        final localMinute = localDateTime.minute.toString().padLeft(2, '0');
+        final localSecond = localDateTime.second.toString().padLeft(2, '0');
+        return '$localHour:$localMinute:$localSecond';
       }
-
-      return cleanedTime;
     } catch (e) {
       // If parsing fails, return the original string
     }
-    return timetzString;
+    return utcTimeString;
   }
 
   /// Convert model to JSON (for Supabase operations)

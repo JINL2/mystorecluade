@@ -16,31 +16,24 @@ class GetScheduleData implements UseCase<ScheduleData, GetScheduleDataParams> {
       throw ArgumentError('Store ID cannot be empty');
     }
 
-    return await _repository.getScheduleData(
-      storeId: params.storeId,
-      timezone: params.timezone,
-    );
+    return await _repository.getScheduleData(storeId: params.storeId);
   }
 }
 
 /// Parameters for GetScheduleData UseCase
 class GetScheduleDataParams {
   final String storeId;
-  final String timezone;
 
   const GetScheduleDataParams({
     required this.storeId,
-    required this.timezone,
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is GetScheduleDataParams &&
-        other.storeId == storeId &&
-        other.timezone == timezone;
+    return other is GetScheduleDataParams && other.storeId == storeId;
   }
 
   @override
-  int get hashCode => storeId.hashCode ^ timezone.hashCode;
+  int get hashCode => storeId.hashCode;
 }

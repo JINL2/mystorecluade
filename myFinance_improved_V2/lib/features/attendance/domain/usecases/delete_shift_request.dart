@@ -12,13 +12,11 @@ class DeleteShiftRequest {
     required String userId,
     required String shiftId,
     required String requestDate,
-    required String timezone,
   }) {
     return _repository.deleteShiftRequest(
       userId: userId,
       shiftId: shiftId,
       requestDate: requestDate,
-      timezone: timezone,
     );
   }
 }

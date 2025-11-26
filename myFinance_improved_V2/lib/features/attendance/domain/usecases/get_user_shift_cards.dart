@@ -3,25 +3,23 @@ import '../repositories/attendance_repository.dart';
 
 /// Get user shift cards for the month
 ///
-/// Matches RPC: user_shift_cards_v3
+/// Matches RPC: user_shift_cards or get_my_shift_cards
 class GetUserShiftCards {
   final AttendanceRepository _repository;
 
   GetUserShiftCards(this._repository);
 
   Future<List<ShiftCard>> call({
-    required String requestTime,
+    required String requestDate,
     required String userId,
     required String companyId,
     required String storeId,
-    required String timezone,
   }) {
     return _repository.getUserShiftCards(
-      requestTime: requestTime,
+      requestDate: requestDate,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
-      timezone: timezone,
     );
   }
 }

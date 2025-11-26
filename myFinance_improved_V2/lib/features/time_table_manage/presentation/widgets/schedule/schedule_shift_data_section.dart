@@ -119,12 +119,9 @@ class ScheduleShiftDataSection extends ConsumerWidget {
 
   /// Get shifts with requests for a specific date using Provider
   List<ShiftWithRequests> _getEmployeeShiftsForDate(WidgetRef ref) {
-    if (selectedStoreId == null || selectedStoreId!.isEmpty) {
-      return [];
-    }
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) return [];
 
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-
     final monthlyStatuses = ref.read(monthlyShiftStatusProvider(selectedStoreId!)).allMonthlyStatuses;
 
     for (var monthlyStatus in monthlyStatuses) {
@@ -133,7 +130,6 @@ class ScheduleShiftDataSection extends ConsumerWidget {
         return dailyData.shifts;
       }
     }
-
     return [];
   }
 

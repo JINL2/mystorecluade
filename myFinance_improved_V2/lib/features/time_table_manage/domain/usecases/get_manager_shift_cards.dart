@@ -18,7 +18,6 @@ class GetManagerShiftCards
       endDate: params.endDate,
       companyId: params.companyId,
       storeId: params.storeId,
-      timezone: params.timezone,
     );
   }
 }
@@ -29,14 +28,12 @@ class GetManagerShiftCardsParams {
   final String endDate;
   final String companyId;
   final String storeId;
-  final String timezone;
 
   const GetManagerShiftCardsParams({
     required this.startDate,
     required this.endDate,
     required this.companyId,
     required this.storeId,
-    required this.timezone,
   });
 
   @override
@@ -46,8 +43,7 @@ class GetManagerShiftCardsParams {
         other.startDate == startDate &&
         other.endDate == endDate &&
         other.companyId == companyId &&
-        other.storeId == storeId &&
-        other.timezone == timezone;
+        other.storeId == storeId;
   }
 
   @override
@@ -55,6 +51,5 @@ class GetManagerShiftCardsParams {
       startDate.hashCode ^
       endDate.hashCode ^
       companyId.hashCode ^
-      storeId.hashCode ^
-      timezone.hashCode;
+      storeId.hashCode;
 }

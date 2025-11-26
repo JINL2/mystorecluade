@@ -3,7 +3,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Get shift metadata for a store
 ///
-/// Matches RPC: get_shift_metadata_v2
+/// Matches RPC: get_shift_metadata
 class GetShiftMetadata {
   final AttendanceRepository _repository;
 
@@ -11,11 +11,7 @@ class GetShiftMetadata {
 
   Future<List<ShiftMetadata>> call({
     required String storeId,
-    required String timezone,
   }) {
-    return _repository.getShiftMetadata(
-      storeId: storeId,
-      timezone: timezone,
-    );
+    return _repository.getShiftMetadata(storeId: storeId);
   }
 }

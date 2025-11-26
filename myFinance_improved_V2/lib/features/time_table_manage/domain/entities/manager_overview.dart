@@ -6,7 +6,6 @@ class ManagerOverview {
   final int totalShifts;
   final int totalApprovedRequests;
   final int totalPendingRequests;
-  final int totalProblems;
   final int totalEmployees;
   final double totalEstimatedCost;
   final Map<String, dynamic> additionalStats;
@@ -16,7 +15,6 @@ class ManagerOverview {
     required this.totalShifts,
     required this.totalApprovedRequests,
     required this.totalPendingRequests,
-    required this.totalProblems,
     required this.totalEmployees,
     required this.totalEstimatedCost,
     this.additionalStats = const {},
@@ -37,9 +35,6 @@ class ManagerOverview {
   /// Check if there are pending requests
   bool get hasPendingRequests => totalPendingRequests > 0;
 
-  /// Check if there are problems
-  bool get hasProblems => totalProblems > 0;
-
   /// Get average employees per shift
   double get averageEmployeesPerShift {
     if (totalShifts == 0) return 0.0;
@@ -52,7 +47,6 @@ class ManagerOverview {
     int? totalShifts,
     int? totalApprovedRequests,
     int? totalPendingRequests,
-    int? totalProblems,
     int? totalEmployees,
     double? totalEstimatedCost,
     Map<String, dynamic>? additionalStats,
@@ -62,7 +56,6 @@ class ManagerOverview {
       totalShifts: totalShifts ?? this.totalShifts,
       totalApprovedRequests: totalApprovedRequests ?? this.totalApprovedRequests,
       totalPendingRequests: totalPendingRequests ?? this.totalPendingRequests,
-      totalProblems: totalProblems ?? this.totalProblems,
       totalEmployees: totalEmployees ?? this.totalEmployees,
       totalEstimatedCost: totalEstimatedCost ?? this.totalEstimatedCost,
       additionalStats: additionalStats ?? this.additionalStats,
@@ -70,5 +63,5 @@ class ManagerOverview {
   }
 
   @override
-  String toString() => 'ManagerOverview(month: $month, shifts: $totalShifts, approved: $totalApprovedRequests, pending: $totalPendingRequests, problems: $totalProblems)';
+  String toString() => 'ManagerOverview(month: $month, shifts: $totalShifts, approved: $totalApprovedRequests, pending: $totalPendingRequests)';
 }
