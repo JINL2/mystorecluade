@@ -9,6 +9,10 @@ import 'features/journal_input/data/repositories/repository_providers.dart'
     as journal_data;
 import 'features/journal_input/domain/providers/repository_providers.dart'
     as journal_domain;
+import 'features/store_shift/data/repositories/repository_providers.dart'
+    as store_shift_data;
+import 'features/store_shift/domain/providers/repository_provider.dart'
+    as store_shift_domain;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,8 +56,13 @@ Future<void> main() async {
       ProviderScope(
         overrides: [
           // Override domain layer provider with data layer implementation
-          journal_domain.journalEntryRepositoryProvider
-              .overrideWithProvider(journal_data.journalEntryRepositoryProvider),
+          journal_domain.journalEntryRepositoryProvider.overrideWith(
+            (ref) => ref.watch(journal_data.journalEntryRepositoryProvider),
+          ),
+          // Store Shift: Override domain provider with data layer implementation
+          store_shift_domain.storeShiftRepositoryProvider.overrideWith(
+            (ref) => ref.watch(store_shift_data.storeShiftRepositoryImplProvider),
+          ),
         ],
         child: const MyFinanceApp(),
       ),

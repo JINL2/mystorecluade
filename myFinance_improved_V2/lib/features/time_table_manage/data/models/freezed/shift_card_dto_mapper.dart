@@ -67,7 +67,6 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       targetCount: 0, // RPC doesn't return target_count
       currentCount: 0, // RPC doesn't return current_count
       shiftName: shiftName,
-      storeName: storeName,
     );
   }
 

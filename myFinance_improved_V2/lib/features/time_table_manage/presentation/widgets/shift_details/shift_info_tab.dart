@@ -367,7 +367,7 @@ class ShiftInfoTab extends StatelessWidget {
                           const SizedBox(height: TossSpacing.space3),
                           ShiftDetailRow(
                             label: 'Store',
-                            value: card.shift.storeName ?? 'N/A',
+                            value: card.shift.storeId,
                           ),
                           ShiftDetailRow(
                             label: 'Shift Type',

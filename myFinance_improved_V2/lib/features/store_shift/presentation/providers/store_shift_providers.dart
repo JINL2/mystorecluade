@@ -1,9 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/store_shift.dart';
-import '../../domain/repositories/store_shift_repository.dart';
+import '../../domain/providers/repository_provider.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
 import '../../domain/usecases/get_shifts.dart';
@@ -20,16 +19,16 @@ import 'states/store_settings_state.dart';
 /// ========================================
 ///
 /// This file contains ALL providers for store_shift feature.
-/// Presentation layer is responsible for Dependency Injection.
+/// Presentation layer uses Domain layer providers only.
 ///
-/// ✅ Imports Data layer ONLY for DI (repository implementation)
-/// ✅ Imports Domain layer for business logic (entities, usecases, interfaces)
-///
-/// This is ACCEPTABLE in Clean Architecture:
-/// - Presentation knows about Data (for DI)
-/// - Presentation knows about Domain (for business logic)
+/// ✅ Clean Architecture Compliance:
+/// - Presentation imports Domain layer ONLY
+/// - Repository implementation is provided via ProviderScope override at app initialization
 /// - Domain knows NOTHING about Presentation or Data
 /// - Data knows ONLY about Domain
+///
+/// ⚠️ IMPORTANT: storeShiftRepositoryProvider must be overridden in main.dart
+/// See: lib/features/store_shift/data/repositories/repository_providers.dart
 
 /// ========================================
 /// UseCase Providers
@@ -37,37 +36,37 @@ import 'states/store_settings_state.dart';
 
 /// Get Shifts UseCase Provider
 final getShiftsUseCaseProvider = Provider<GetShifts>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return GetShifts(repository);
 });
 
 /// Create Shift UseCase Provider
 final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return CreateShift(repository);
 });
 
 /// Update Shift UseCase Provider
 final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateShift(repository);
 });
 
 /// Delete Shift UseCase Provider
 final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return DeleteShift(repository);
 });
 
 /// Update Store Location UseCase Provider
 final updateStoreLocationUseCaseProvider = Provider<UpdateStoreLocation>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateStoreLocation(repository);
 });
 
 /// Update Operational Settings UseCase Provider
 final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSettings>((ref) {
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateOperationalSettings(repository);
 });
 
@@ -90,14 +89,14 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) a
     return [];
   }
 
-  // Use repository implementation directly in Presentation (acceptable for DI)
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  // Use Domain layer's abstract repository provider (implementation via ProviderScope override)
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getShiftsByStoreId(appState.storeChoosen);
 });
 
 /// Provider to fetch detailed store information
 ///
-/// Uses repository implementation.
+/// Uses Domain layer's abstract repository provider.
 /// Returns null if no store is selected.
 final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
   final appState = ref.watch(appStateProvider);
@@ -107,8 +106,8 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
     return null;
   }
 
-  // Use repository implementation directly in Presentation (acceptable for DI)
-  final repository = ref.watch(storeShiftRepositoryImplProvider);
+  // Use Domain layer's abstract repository provider (implementation via ProviderScope override)
+  final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getStoreById(appState.storeChoosen);
 });
 

@@ -5,6 +5,7 @@ import 'base_usecase.dart';
 /// Get Monthly Shift Status UseCase
 ///
 /// Retrieves monthly shift status for manager view.
+/// Matches RPC: get_monthly_shift_status_manager_v2
 class GetMonthlyShiftStatus
     implements UseCase<List<MonthlyShiftStatus>, GetMonthlyShiftStatusParams> {
   final TimeTableRepository _repository;
@@ -15,35 +16,39 @@ class GetMonthlyShiftStatus
   Future<List<MonthlyShiftStatus>> call(
       GetMonthlyShiftStatusParams params,) async {
     return await _repository.getMonthlyShiftStatus(
-      requestDate: params.requestDate,
+      requestTime: params.requestTime,
       companyId: params.companyId,
       storeId: params.storeId,
+      timezone: params.timezone,
     );
   }
 }
 
 /// Parameters for GetMonthlyShiftStatus UseCase
 class GetMonthlyShiftStatusParams {
-  final String requestDate;
+  final String requestTime;
   final String companyId;
   final String storeId;
+  final String timezone;
 
   const GetMonthlyShiftStatusParams({
-    required this.requestDate,
+    required this.requestTime,
     required this.companyId,
     required this.storeId,
+    required this.timezone,
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is GetMonthlyShiftStatusParams &&
-        other.requestDate == requestDate &&
+        other.requestTime == requestTime &&
         other.companyId == companyId &&
-        other.storeId == storeId;
+        other.storeId == storeId &&
+        other.timezone == timezone;
   }
 
   @override
   int get hashCode =>
-      requestDate.hashCode ^ companyId.hashCode ^ storeId.hashCode;
+      requestTime.hashCode ^ companyId.hashCode ^ storeId.hashCode ^ timezone.hashCode;
 }

@@ -11,8 +11,9 @@ import '../states/shift_details_form_state.dart';
 /// Manages the business logic for the Shift Details form
 class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
   final TimeTableRepository _repository;
+  final String _timezone;
 
-  ShiftDetailsFormNotifier(ShiftCard card, this._repository)
+  ShiftDetailsFormNotifier(ShiftCard card, this._repository, this._timezone)
       : super(_createInitialState(card));
 
   /// Create initial state from card data
@@ -112,6 +113,7 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
         newTagType: tagInput?.tagType,
         isLate: false, // TODO: Calculate based on times
         isProblemSolved: state.isProblemSolved,
+        timezone: _timezone,
       );
 
       // Update original values after successful save

@@ -18,7 +18,6 @@ extension ShiftDtoMapper on ShiftDto {
       targetCount: targetCount,
       currentCount: currentCount,
       shiftName: shiftName,
-      storeName: storeName,
     );
   }
 }
