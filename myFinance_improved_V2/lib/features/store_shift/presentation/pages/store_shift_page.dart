@@ -19,7 +19,6 @@ import '../providers/store_shift_providers.dart';
 import '../widgets/shift_list_item.dart';
 import '../widgets/store_config_section.dart';
 import '../widgets/store_info_card.dart';
-import '../widgets/store_operating_hours_widget.dart';
 import 'store_shift_page_dialogs.dart';
 
 /// Store Shift Page
@@ -361,19 +360,11 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           _showEditOperationalSettingsSheet(context, store);
                         },
                         onEditLocation: () {
-                          // TODO: Show location setting dialog
-                        },
-                        onViewPerformance: () {
-                          // TODO: Navigate to performance page
-                        },
-                      ),
-                      const SizedBox(height: TossSpacing.space4),
-
-                      // Operating Hours
-                      StoreOperatingHoursWidget(
-                        store: store,
-                        onEdit: () {
-                          // TODO: Show edit operating hours dialog
+                          showStoreLocationDialog(
+                            context,
+                            ref,
+                            appState.storeChoosen,
+                          );
                         },
                       ),
                     ],

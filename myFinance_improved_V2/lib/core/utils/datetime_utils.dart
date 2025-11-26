@@ -1,3 +1,4 @@
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 
 /// DateTime utility for consistent timezone handling across the app
@@ -214,5 +215,66 @@ class DateTimeUtils {
   /// ```
   static String formatTimeOnly(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Gets the device's local IANA timezone identifier
+  ///
+  /// Returns timezone in IANA format (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+  ///
+  /// Example:
+  /// ```dart
+  /// final timezone = await DateTimeUtils.getLocalTimezone();
+  /// // Korea: "Asia/Seoul"
+  /// // Vietnam: "Asia/Ho_Chi_Minh"
+  /// // USA (NY): "America/New_York"
+  /// ```
+  static Future<String> getLocalTimezone() async {
+    try {
+      return await FlutterTimezone.getLocalTimezone();
+    } catch (e) {
+      // Fallback: estimate timezone from offset
+      return _estimateTimezoneFromOffset();
+    }
+  }
+
+  /// Estimates IANA timezone from device's UTC offset
+  ///
+  /// This is a fallback when FlutterTimezone fails.
+  /// Note: This is an approximation and may not be accurate for all regions.
+  static String _estimateTimezoneFromOffset() {
+    final offset = DateTime.now().timeZoneOffset;
+    final hours = offset.inHours;
+
+    // Common timezone mappings based on UTC offset
+    switch (hours) {
+      case 9:
+        return 'Asia/Seoul'; // KST
+      case 7:
+        return 'Asia/Ho_Chi_Minh'; // ICT (Vietnam, Thailand)
+      case 8:
+        return 'Asia/Singapore'; // SGT
+      case 0:
+        return 'UTC';
+      case -5:
+        return 'America/New_York'; // EST
+      case -8:
+        return 'America/Los_Angeles'; // PST
+      default:
+        return 'UTC';
+    }
+  }
+
+  /// Formats local time for RPC calls (yyyy-MM-dd HH:mm:ss)
+  ///
+  /// Unlike toRpcFormat which converts to UTC, this keeps the local time.
+  /// Used when RPC expects local time with separate timezone parameter.
+  ///
+  /// Example:
+  /// ```dart
+  /// final localTime = DateTimeUtils.toLocalRpcFormat(DateTime.now());
+  /// // "2025-11-26 16:30:00"
+  /// ```
+  static String toLocalRpcFormat(DateTime dateTime) {
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 }

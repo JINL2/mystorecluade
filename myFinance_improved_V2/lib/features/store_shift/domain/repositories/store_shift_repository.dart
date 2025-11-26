@@ -76,14 +76,12 @@ abstract class StoreShiftRepository {
   /// - [storeId]: The ID of the store
   /// - [latitude]: Latitude coordinate
   /// - [longitude]: Longitude coordinate
-  /// - [address]: Store address
   ///
   /// Throws an exception if the operation fails
   Future<void> updateStoreLocation({
     required String storeId,
     required double latitude,
     required double longitude,
-    required String address,
   });
 
   /// Update operational settings
@@ -93,6 +91,8 @@ abstract class StoreShiftRepository {
   /// - [huddleTime]: Huddle time in minutes (optional)
   /// - [paymentTime]: Payment time in minutes (optional)
   /// - [allowedDistance]: Check-in distance in meters (optional)
+  /// - [localTime]: Local time string for update timestamp (optional)
+  /// - [timezone]: Timezone identifier (default: 'Asia/Ho_Chi_Minh')
   ///
   /// Throws an exception if the operation fails
   Future<void> updateOperationalSettings({
@@ -100,5 +100,7 @@ abstract class StoreShiftRepository {
     int? huddleTime,
     int? paymentTime,
     int? allowedDistance,
+    String? localTime,
+    String timezone = 'Asia/Ho_Chi_Minh',
   });
 }

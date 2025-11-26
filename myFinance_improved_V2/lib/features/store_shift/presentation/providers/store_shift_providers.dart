@@ -229,20 +229,17 @@ final updateStoreLocationProvider = Provider.autoDispose<
       required String storeId,
       required double latitude,
       required double longitude,
-      required String address,
     })>((ref) {
   return ({
     required String storeId,
     required double latitude,
     required double longitude,
-    required String address,
   }) async {
     final useCase = ref.read(updateStoreLocationUseCaseProvider);
     await useCase(UpdateStoreLocationParams(
       storeId: storeId,
       latitude: latitude,
       longitude: longitude,
-      address: address,
     ),);
   };
 });

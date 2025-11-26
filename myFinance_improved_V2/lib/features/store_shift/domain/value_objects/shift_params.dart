@@ -51,13 +51,11 @@ class UpdateStoreLocationParams {
   final String storeId;
   final double latitude;
   final double longitude;
-  final String address;
 
   const UpdateStoreLocationParams({
     required this.storeId,
     required this.latitude,
     required this.longitude,
-    required this.address,
   });
 }
 
@@ -67,11 +65,15 @@ class UpdateOperationalSettingsParams {
   final int? huddleTime;
   final int? paymentTime;
   final int? allowedDistance;
+  final String? localTime;
+  final String timezone;
 
   const UpdateOperationalSettingsParams({
     required this.storeId,
     this.huddleTime,
     this.paymentTime,
     this.allowedDistance,
+    this.localTime,
+    this.timezone = 'Asia/Ho_Chi_Minh',
   });
 }

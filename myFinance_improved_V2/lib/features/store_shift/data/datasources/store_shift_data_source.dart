@@ -159,18 +159,17 @@ class StoreShiftDataSource {
   /// Update store location
   ///
   /// Uses RPC function 'update_store_location'
+  /// Parameters: p_store_id, p_store_lat, p_store_lng
   Future<void> updateStoreLocation({
     required String storeId,
     required double latitude,
     required double longitude,
-    required String address,
   }) async {
     try {
       await _client.rpc<void>('update_store_location', params: {
         'p_store_id': storeId,
-        'p_latitude': latitude,
-        'p_longitude': longitude,
-        'p_address': address,
+        'p_store_lat': latitude,
+        'p_store_lng': longitude,
       },);
     } catch (e, stackTrace) {
       throw StoreLocationUpdateException(
@@ -182,30 +181,41 @@ class StoreShiftDataSource {
 
   /// Update operational settings
   ///
-  /// Uses direct UPDATE on 'stores' table
-  Future<void> updateOperationalSettings({
+  /// Uses RPC function 'update_store_setting'
+  /// Returns JSON response with success status and message
+  Future<Map<String, dynamic>> updateOperationalSettings({
     required String storeId,
     int? huddleTime,
     int? paymentTime,
     int? allowedDistance,
+    String? localTime,
+    String timezone = 'Asia/Ho_Chi_Minh',
   }) async {
     try {
-      final updateData = <String, dynamic>{};
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'update_store_setting',
+        params: {
+          'p_store_id': storeId,
+          'p_huddle_time': huddleTime,
+          'p_payment_time': paymentTime,
+          'p_allowed_distance': allowedDistance,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
 
-      if (huddleTime != null) updateData['huddle_time'] = huddleTime;
-      if (paymentTime != null) updateData['payment_time'] = paymentTime;
-      if (allowedDistance != null) updateData['allowed_distance'] = allowedDistance;
-
-      if (updateData.isEmpty) {
-        return;
+      if (response['success'] != true) {
+        throw OperationalSettingsUpdateException(
+          response['message'] as String? ?? 'Unknown error',
+          StackTrace.current,
+        );
       }
 
-      await _client
-          .from('stores')
-          .update(updateData)
-          .eq('store_id', storeId);
+      return response;
     } catch (e, stackTrace) {
-      throw StoreLocationUpdateException(
+      if (e is OperationalSettingsUpdateException) rethrow;
+
+      throw OperationalSettingsUpdateException(
         'Failed to update operational settings: $e',
         stackTrace,
       );
