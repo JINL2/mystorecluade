@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'package:myfinance_improved/core/domain/entities/feature.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
+import 'package:myfinance_improved/features/homepage/domain/providers/repository_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -128,7 +130,10 @@ class _CategorySection extends StatelessWidget {
 
             return Column(
               children: [
-                _FeatureListItem(feature: feature),
+                _FeatureListItem(
+                  feature: feature,
+                  categoryId: category.categoryId,
+                ),
                 if (!isLast)
                   Container(
                     margin: const EdgeInsets.symmetric(
@@ -146,19 +151,38 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-class _FeatureListItem extends StatelessWidget {
+class _FeatureListItem extends ConsumerWidget {
   const _FeatureListItem({
     required this.feature,
+    required this.categoryId,
   });
 
   final Feature feature;
+  final String categoryId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
+          // Get current company ID from app state
+          final appState = ref.read(appStateProvider);
+          final companyId = appState.companyChoosen;
+
+          // Log feature click for analytics (non-blocking)
+          if (companyId.isNotEmpty) {
+            final repository = ref.read(homepageRepositoryProvider);
+            // Fire and forget - don't await
+            repository.logFeatureClick(
+              featureId: feature.featureId,
+              featureName: feature.featureName,
+              companyId: companyId,
+              categoryId: categoryId,
+            );
+          }
+
+          // Navigate to feature route
           final route = feature.featureRoute.startsWith('/')
               ? feature.featureRoute
               : '/${feature.featureRoute}';

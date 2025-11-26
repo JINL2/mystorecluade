@@ -107,9 +107,32 @@ class NotificationRepository {
 
       // Notification marked as read
       return true;
-      
+
     } catch (e) {
       // Failed to mark notification as read: $e
+      return false;
+    }
+  }
+
+  /// Mark all notifications as read for a user
+  Future<bool> markAllAsRead(String userId) async {
+    try {
+      final now = DateTime.now().toUtc();
+      await _supabase
+          .from(_notificationsTable)
+          .update({
+            'is_read': true,
+            'read_at': now.toIso8601String(),
+            'updated_at': now.toIso8601String(),
+          })
+          .eq('user_id', userId)
+          .eq('is_read', false);
+
+      // All notifications marked as read
+      return true;
+
+    } catch (e) {
+      // Failed to mark all notifications as read: $e
       return false;
     }
   }

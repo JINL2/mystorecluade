@@ -210,15 +210,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   timezone: timezone,
                 );
 
-                // Check if the RPC call was successful
-                if (result == null || result.isEmpty) {
-                  throw Exception('Failed to update shift request. Please try again.');
-                }
-
-                // Check if RPC explicitly indicates failure
-                // The datasource returns {'success': true/false} for various cases
-                if (result.containsKey('success') && result['success'] == false) {
-                  final errorMsg = result['message'] ?? result['error'] ?? 'Failed to update shift request';
+                // ✅ Clean Architecture: Check Entity properties instead of Map
+                if (!result.success) {
+                  final errorMsg = result.message ?? 'Failed to update shift request';
                   throw Exception(errorMsg);
                 }
 
@@ -238,31 +232,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Show success popup
                 if (mounted) {
                   // Determine if it was check-in or check-out based on result
-                  String message = 'Check-in Successful';
-
-                  // Check various possible response formats from the RPC
-                  // The RPC v5 returns {status: 'check_in'|'check_out'|'attend', time: 'timestamp'}
-                  final status = result['status']?.toString().toLowerCase() ?? '';
-                  final returnedTime = result['time'];
-
-                  // Determine action based on status field
-                  if (status.contains('out') || status == 'check_out') {
-                    message = 'Check-out Successful';
-                  } else if (status.contains('in') || status == 'check_in') {
-                    message = 'Check-in Successful';
-                  } else if (status == 'attend') {
-                    message = 'Attendance Recorded';
-                  } else {
-                    // Default to check-in (most common case)
-                    message = 'Check-in Successful';
-                  }
+                  // ✅ Clean Architecture: Use Entity properties
+                  String message = result.isCheckOut ? 'Check-out Successful' : 'Check-in Successful';
 
                   // Prepare data to pass back to attendance page
                   final checkInOutData = <String, dynamic>{
-                    ...result,  // Include all result data from RPC
                     'message': message,
-                    'timestamp': returnedTime ?? currentTime,
-                    'action': message.contains('out') ? 'check_out' : 'check_in',
+                    'timestamp': result.timestamp,
+                    'action': result.action,
+                    'request_date': result.requestDate,
+                    'shift_request_id': result.shiftRequestId,
                   };
                   
                   // Show the success dialog with result data

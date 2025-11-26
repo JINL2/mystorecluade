@@ -5,12 +5,14 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/entities/vault_recount.dart';
 import '../../domain/entities/balance_summary.dart';
+import '../../domain/entities/multi_currency_recount.dart';
 import '../../domain/repositories/vault_repository.dart';
 import '../datasources/vault_remote_datasource.dart';
 import '../datasources/cash_ending_remote_datasource.dart';
 import '../models/freezed/vault_transaction_dto.dart';
 import '../models/freezed/vault_recount_dto.dart';
 import '../models/freezed/balance_summary_dto.dart';
+import '../models/freezed/multi_currency_recount_dto.dart';
 import 'base_repository.dart';
 
 /// Repository Implementation for Vault operations (Data Layer)
@@ -118,13 +120,19 @@ class VaultRepositoryImpl extends BaseRepository implements VaultRepository {
   }
 
   @override
-  Future<void> executeMultiCurrencyRecount(Map<String, dynamic> rpcParams) async {
+  Future<void> executeMultiCurrencyRecount(MultiCurrencyRecount recount) async {
     debugPrint('\n🟢 [VaultRepositoryImpl] executeMultiCurrencyRecount() 호출');
-    debugPrint('   - Location: ${rpcParams['p_location_id']}');
-    debugPrint('   - Currencies: ${(rpcParams['p_currencies'] as List).length}개');
+    debugPrint('   - Location: ${recount.locationId}');
+    debugPrint('   - Currencies: ${recount.currencyRecounts.length}개');
 
     return executeWithErrorHandling(
       () async {
+        // Convert entity to DTO
+        final dto = MultiCurrencyRecountDto.fromEntity(recount);
+
+        // Prepare RPC parameters
+        final rpcParams = dto.toRpcParams();
+
         debugPrint('🚀 [VaultRepositoryImpl] Calling insert_amount_multi_currency RPC...');
 
         // Call RPC through cash ending datasource (universal RPC)

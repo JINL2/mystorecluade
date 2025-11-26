@@ -4,19 +4,23 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   plugins:
     - custom_lint
-  
+
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "**/*.mocks.dart"
     - "build/**"
     - "test/**.mocks.dart"
-  
+
+  errors:
+    # ✅ Ignore JsonKey warnings in Freezed entities (known Dart analyzer issue)
+    invalid_annotation_target: ignore
+
   language:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
-  
+
   strong-mode:
     implicit-casts: false
     implicit-dynamic: false

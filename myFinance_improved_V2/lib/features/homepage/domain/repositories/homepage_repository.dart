@@ -33,4 +33,14 @@ abstract class HomepageRepository {
     required String userId,
     required String companyId,
   });
+
+  // === Feature Click Tracking ===
+
+  /// Log feature click for analytics
+  Future<void> logFeatureClick({
+    required String featureId,
+    required String featureName,
+    required String companyId,
+    String? categoryId,
+  });
 }

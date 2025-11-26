@@ -22,6 +22,8 @@ import '../data/repositories/journal_repository_impl.dart';
 import '../data/repositories/location_repository_impl.dart';
 import '../data/repositories/stock_flow_repository_impl.dart';
 import '../data/repositories/vault_repository_impl.dart';
+import '../data/repositories/auth_repository_impl.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/bank_repository.dart';
 import '../domain/repositories/cash_ending_repository.dart';
 import '../domain/repositories/currency_repository.dart';
@@ -31,12 +33,18 @@ import '../domain/repositories/stock_flow_repository.dart';
 import '../domain/repositories/vault_repository.dart';
 import '../domain/usecases/create_error_adjustment_usecase.dart';
 import '../domain/usecases/create_foreign_currency_translation_usecase.dart';
+import '../domain/usecases/execute_multi_currency_recount_usecase.dart';
+import '../domain/usecases/get_balance_summary_usecase.dart';
+import '../domain/usecases/get_current_user_usecase.dart';
 import '../domain/usecases/get_stock_flows_usecase.dart';
 import '../domain/usecases/load_currencies_usecase.dart';
 import '../domain/usecases/load_locations_usecase.dart';
 import '../domain/usecases/load_recent_cash_endings_usecase.dart';
 import '../domain/usecases/load_stores_usecase.dart';
+import '../domain/usecases/recount_vault_usecase.dart';
+import '../domain/usecases/save_bank_balance_usecase.dart';
 import '../domain/usecases/save_cash_ending_usecase.dart';
+import '../domain/usecases/save_vault_transaction_usecase.dart';
 import '../domain/usecases/select_store_usecase.dart';
 
 // ============================================================================
@@ -132,6 +140,11 @@ final journalRepositoryProvider = Provider<JournalRepository>((ref) {
   return JournalRepositoryImpl(remoteDataSource: remoteDataSource);
 });
 
+/// Provider for Auth Repository
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl();
+});
+
 // ============================================================================
 // USE CASES (Domain Business Logic)
 // ============================================================================
@@ -189,4 +202,57 @@ final foreignCurrencyTranslationUseCaseProvider =
     Provider<CreateForeignCurrencyTranslationUseCase>((ref) {
   final repository = ref.watch(journalRepositoryProvider);
   return CreateForeignCurrencyTranslationUseCase(repository);
+});
+
+// ============================================================================
+// NEW USE CASES (Clean Architecture Refactoring)
+// ============================================================================
+
+/// Provider for GetCurrentUserUseCase
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return GetCurrentUserUseCase(authRepository);
+});
+
+/// Provider for GetCashBalanceSummaryUseCase
+final getCashBalanceSummaryUseCaseProvider = Provider<GetCashBalanceSummaryUseCase>((ref) {
+  final cashEndingRepository = ref.watch(cashEndingRepositoryProvider);
+  return GetCashBalanceSummaryUseCase(cashEndingRepository);
+});
+
+/// Provider for GetBankBalanceSummaryUseCase
+final getBankBalanceSummaryUseCaseProvider = Provider<GetBankBalanceSummaryUseCase>((ref) {
+  final bankRepository = ref.watch(bankRepositoryProvider);
+  return GetBankBalanceSummaryUseCase(bankRepository);
+});
+
+/// Provider for GetVaultBalanceSummaryUseCase
+final getVaultBalanceSummaryUseCaseProvider = Provider<GetVaultBalanceSummaryUseCase>((ref) {
+  final vaultRepository = ref.watch(vaultRepositoryProvider);
+  return GetVaultBalanceSummaryUseCase(vaultRepository);
+});
+
+/// Provider for SaveBankBalanceUseCase
+final saveBankBalanceUseCaseProvider = Provider<SaveBankBalanceUseCase>((ref) {
+  final bankRepository = ref.watch(bankRepositoryProvider);
+  return SaveBankBalanceUseCase(bankRepository);
+});
+
+/// Provider for SaveVaultTransactionUseCase
+final saveVaultTransactionUseCaseProvider = Provider<SaveVaultTransactionUseCase>((ref) {
+  final vaultRepository = ref.watch(vaultRepositoryProvider);
+  return SaveVaultTransactionUseCase(vaultRepository);
+});
+
+/// Provider for RecountVaultUseCase
+final recountVaultUseCaseProvider = Provider<RecountVaultUseCase>((ref) {
+  final vaultRepository = ref.watch(vaultRepositoryProvider);
+  return RecountVaultUseCase(vaultRepository);
+});
+
+/// Provider for ExecuteMultiCurrencyRecountUseCase
+final executeMultiCurrencyRecountUseCaseProvider =
+    Provider<ExecuteMultiCurrencyRecountUseCase>((ref) {
+  final vaultRepository = ref.watch(vaultRepositoryProvider);
+  return ExecuteMultiCurrencyRecountUseCase(vaultRepository);
 });

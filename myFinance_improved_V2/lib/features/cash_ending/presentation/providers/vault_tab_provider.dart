@@ -8,13 +8,19 @@ import 'vault_tab_state.dart';
 
 /// Provider for Vault Tab
 ///
-/// ✅ Injects GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 final vaultTabProvider = StateNotifierProvider<VaultTabNotifier, VaultTabState>((ref) {
   final getStockFlowsUseCase = ref.watch(getStockFlowsUseCaseProvider);
-  final vaultRepo = ref.watch(vaultRepositoryProvider);
+  final saveVaultTransactionUseCase = ref.watch(saveVaultTransactionUseCaseProvider);
+  final recountVaultUseCase = ref.watch(recountVaultUseCaseProvider);
+  final executeMultiCurrencyRecountUseCase = ref.watch(executeMultiCurrencyRecountUseCaseProvider);
+  final getBalanceSummaryUseCase = ref.watch(getVaultBalanceSummaryUseCaseProvider);
 
   return VaultTabNotifier(
     getStockFlowsUseCase: getStockFlowsUseCase,
-    vaultRepository: vaultRepo,
+    saveVaultTransactionUseCase: saveVaultTransactionUseCase,
+    recountVaultUseCase: recountVaultUseCase,
+    executeMultiCurrencyRecountUseCase: executeMultiCurrencyRecountUseCase,
+    getBalanceSummaryUseCase: getBalanceSummaryUseCase,
   );
 });

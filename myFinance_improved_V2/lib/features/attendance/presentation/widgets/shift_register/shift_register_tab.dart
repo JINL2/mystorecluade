@@ -13,8 +13,9 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+// ⚠️ Clean Architecture Violation: Data layer import in Presentation
+// Kept temporarily due to entity/RPC structure mismatch (see monthlyShiftStatus field comment)
 import '../../../data/models/monthly_shift_status_model.dart';
-import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_data.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/attendance_providers.dart';
@@ -33,9 +34,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   String? selectedStoreId;
   List<ShiftMetadata>? shiftMetadata; // Store shift metadata from RPC
   bool isLoadingMetadata = false;
-  // TODO: Refactor to use List<MonthlyShiftStatus> entities instead of Map
-  // Currently using Map for backward compatibility with existing UI code
-  List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status as JSON
+  // ⚠️ TECHNICAL DEBT: Should use List<MonthlyShiftStatus> entities
+  // Current blocker: MonthlyShiftStatus entity doesn't match actual RPC nested structure
+  // RPC returns: { request_date, total_pending, total_approved, shifts: [...] }
+  // Entity has: { requestDate, shiftId, shiftName, pendingEmployees, approvedEmployees }
+  // TODO: Either update entity structure OR refactor RPC to match entity
+  List<Map<String, dynamic>>? monthlyShiftStatus;
   bool isLoadingShiftStatus = false;
 
   // ScrollController for auto-scroll functionality
@@ -97,11 +101,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       }
 
     } catch (e) {
-      print('❌ Error fetching shift metadata: $e');
+      // ✅ Error handling without production logging
       if (mounted) {
         setState(() {
           isLoadingMetadata = false;
           shiftMetadata = [];
+          // TODO: Show error message to user via SnackBar or Dialog
         });
       }
     }
@@ -136,7 +141,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
         timezone: timezone,
       );
 
-      // Convert Entity list to JSON list for backward compatibility with existing UI
+      // ⚠️ TEMPORARY: Convert back to Map until entity structure matches RPC response
+      // See field comment above for details
       final jsonList = entityList
           .map((entity) => MonthlyShiftStatusModel.fromEntity(entity).toJson())
           .toList();
@@ -1686,23 +1692,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
           // Get user's local timezone (same as registerShiftRequest)
           final timezone = DateTimeUtils.getLocalTimezone();
 
-          // Debug log: Print parameters before UseCase call
-          print('🔵 [UI] Calling deleteShiftRequest with:');
-          print('  - userId: ${user.id}');
-          print('  - shiftId: $shiftId');
-          print('  - requestDate: $dateStr');
-          print('  - requestTime: $requestTime');
-          print('  - timezone: $timezone');
-
+          // ✅ Call UseCase without debug logging
           await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
             timezone: timezone,
           );
-
-          // Debug log: Success
-          print('🟢 [UI] deleteShiftRequest completed successfully');
 
           // Optimistic UI update: immediately remove from local state
           // This prevents the race condition where fetch happens before DB commit
@@ -2707,7 +2703,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
               
               // Check if any employees are registered for this shift (for display purposes)
               final hasAnyRegistrations = pendingEmployees.isNotEmpty || approvedEmployees.isNotEmpty;
-              final hasPendingEmployees = pendingEmployees.isNotEmpty;
               final isSelected = selectedShift == shiftIdStr;
               
               return GestureDetector(
@@ -3099,12 +3094,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   
   // Get ALL shifts from store metadata
   List<Map<String, dynamic>> _getAllStoreShifts() {
+    // ✅ Safe null check without production logging
     if (shiftMetadata == null || shiftMetadata!.isEmpty) {
-      print('⚠️ shiftMetadata is null or empty');
       return [];
     }
-
-    print('✅ shiftMetadata has ${shiftMetadata!.length} items');
 
     // Convert ShiftMetadata entities to Maps and filter for active shifts
     return shiftMetadata!

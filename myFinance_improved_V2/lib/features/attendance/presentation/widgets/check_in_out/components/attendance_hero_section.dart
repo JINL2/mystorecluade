@@ -88,7 +88,6 @@ class AttendanceHeroSection extends StatelessWidget {
 
     // Parse data from the API response
     final requestMonth = shiftOverviewData!['request_month'] ?? '';
-    final actualWorkDays = shiftOverviewData!['actual_work_days'] ?? 0;
     final actualWorkHours = (shiftOverviewData!['actual_work_hours'] ?? 0).toDouble();
     final estimatedSalary = shiftOverviewData!['estimated_salary'] ?? '0';
     final currencySymbol = shiftOverviewData!['currency_symbol'] ?? '₩';

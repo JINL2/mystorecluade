@@ -154,6 +154,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
 
   Widget _buildNotificationsList() {
     final notificationsAsync = ref.watch(notificationsProvider(_filter));
+    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+    final isUnreadTab = _tabController.index == 1;
 
     return notificationsAsync.when(
       data: (notifications) {
@@ -161,22 +163,62 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
           return _buildEmptyState();
         }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(notificationsProvider(_filter));
-          },
-          color: TossColors.primary,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            itemCount: notifications.length,
-            itemBuilder: (context, index) {
-              final notification = notifications[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-                child: _buildNotificationCard(notification),
-              );
-            },
-          ),
+        return Column(
+          children: [
+            // Mark all as read button (only show in Unread tab)
+            if (isUnreadTab && unreadCountAsync.maybeWhen(
+              data: (count) => count > 0,
+              orElse: () => false,
+            ))
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
+                ),
+                color: TossColors.surface,
+                child: OutlinedButton.icon(
+                  onPressed: _markAllAsRead,
+                  icon: const Icon(
+                    Icons.done_all_rounded,
+                    size: 18,
+                  ),
+                  label: const Text('Mark all as read'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: TossColors.primary,
+                    side: const BorderSide(color: TossColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space4,
+                      vertical: TossSpacing.space3,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Notifications list
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(notificationsProvider(_filter));
+                },
+                color: TossColors.primary,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+                      child: _buildNotificationCard(notification),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         );
       },
       loading: () => const Center(

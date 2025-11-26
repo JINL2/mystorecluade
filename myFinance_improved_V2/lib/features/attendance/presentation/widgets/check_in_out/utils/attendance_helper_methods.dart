@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../domain/entities/shift_card.dart';
 
 /// Helper methods for attendance-related operations
 class AttendanceHelpers {
@@ -129,54 +130,83 @@ class AttendanceHelpers {
     }
   }
 
-  /// Get work status text from card data
+  /// ✅ Clean Architecture: Get work status text using Domain entity
   ///
-  /// ⚠️ DEPRECATED: This method contains business logic and should not be in Presentation layer
-  /// TODO: Migrate to use ShiftCard.workStatus getter from Domain layer instead
-  ///
-  /// Clean Architecture violation: Business logic should be in Domain layer, not Presentation helpers
-  @Deprecated('Use ShiftCard.workStatus getter instead. This will be removed in future version.')
+  /// Accepts Map for backward compatibility, but uses Domain entity internally
   static String getWorkStatusFromCard(Map<String, dynamic> card) {
-    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
-    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-
-    if (isApproved != true) {
-      return 'Pending Approval';
-    }
-
-    if (actualStart != null && actualEnd == null) {
-      return 'Working';
-    } else if (actualStart != null && actualEnd != null) {
-      return 'Completed';
-    } else {
-      return 'Approved';
+    try {
+      // Convert Map to Domain entity
+      final shiftCard = _mapToShiftCard(card);
+      // Use Domain entity's business logic
+      return shiftCard.workStatus;
+    } catch (e) {
+      // Fallback if conversion fails
+      return 'Unknown';
     }
   }
 
-  /// Get work status color from card data
+  /// ✅ Clean Architecture: Get work status color using Domain entity
   ///
-  /// ⚠️ DEPRECATED: This method contains UI business logic and should use Domain entities
-  /// TODO: Create a proper color mapping based on ShiftCard.workStatus
-  ///
-  /// Clean Architecture violation: Status determination should use Domain layer logic
-  @Deprecated('Use ShiftCard.workStatus with separate color mapping. This will be removed in future version.')
+  /// UI layer responsibility: Map status to colors
+  /// Business logic responsibility (Domain): Determine status
   static Color getWorkStatusColorFromCard(Map<String, dynamic> card) {
-    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
-    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+    final status = getWorkStatusFromCard(card);
+    return getColorForWorkStatus(status);
+  }
 
-    if (isApproved != true) {
-      return TossColors.warning;
+  /// Get color for work status string
+  ///
+  /// ✅ Clean Architecture: UI-only logic (color mapping)
+  static Color getColorForWorkStatus(String status) {
+    switch (status) {
+      case 'Pending Approval':
+        return TossColors.warning;
+      case 'Working':
+        return TossColors.primary; // Blue for working
+      case 'Completed':
+        return TossColors.success; // Green for completed
+      case 'Approved':
+        return TossColors.success.withOpacity(0.7); // Lighter green for approved
+      default:
+        return TossColors.gray400;
     }
+  }
 
-    if (actualStart != null && actualEnd == null) {
-      return TossColors.primary; // Blue for working
-    } else if (actualStart != null && actualEnd != null) {
-      return TossColors.success; // Green for completed
-    } else {
-      return TossColors.success.withOpacity(0.7); // Lighter green for approved
-    }
+  /// Convert Map to ShiftCard entity
+  ///
+  /// ⚠️ TEMPORARY: Helper to convert Map to entity for backward compatibility
+  /// TODO: Refactor calling code to use ShiftCard entities directly
+  static ShiftCard _mapToShiftCard(Map<String, dynamic> map) {
+    // Provide defaults for required fields
+    return ShiftCard(
+      requestDate: map['request_date']?.toString() ?? '',
+      shiftRequestId: map['shift_request_id']?.toString() ?? '',
+      shiftTime: map['shift_time']?.toString() ?? '',
+      storeName: map['store_name']?.toString() ?? '',
+      scheduledHours: (map['scheduled_hours'] as num?)?.toDouble() ?? 0.0,
+      isApproved: map['is_approved'] as bool? ?? false,
+      actualStartTime: map['actual_start_time']?.toString(),
+      actualEndTime: map['actual_end_time']?.toString(),
+      confirmStartTime: map['confirm_start_time']?.toString(),
+      confirmEndTime: map['confirm_end_time']?.toString(),
+      paidHours: (map['paid_hours'] as num?)?.toDouble() ?? 0.0,
+      isLate: map['is_late'] as bool? ?? false,
+      lateMinutes: (map['late_minutes'] as num?) ?? 0,
+      lateDeducutAmount: (map['late_deducut_amount'] as num?)?.toDouble() ?? 0.0,
+      isExtratime: map['is_extratime'] as bool? ?? false,
+      overtimeMinutes: (map['overtime_minutes'] as num?) ?? 0,
+      basePay: map['base_pay']?.toString() ?? '0',
+      bonusAmount: (map['bonus_amount'] as num?)?.toDouble() ?? 0.0,
+      totalPayWithBonus: map['total_pay_with_bonus']?.toString() ?? '0',
+      salaryType: map['salary_type']?.toString() ?? 'hourly',
+      salaryAmount: map['salary_amount']?.toString() ?? '0',
+      isValidCheckinLocation: map['is_valid_checkin_location'] as bool?,
+      checkinDistanceFromStore: (map['checkin_distance_from_store'] as num?)?.toDouble(),
+      checkoutDistanceFromStore: (map['checkout_distance_from_store'] as num?)?.toDouble(),
+      isReported: map['is_reported'] as bool? ?? false,
+      isProblem: map['is_problem'] as bool? ?? false,
+      isProblemSolved: map['is_problem_solved'] as bool? ?? false,
+    );
   }
 
   /// Format number with comma separators

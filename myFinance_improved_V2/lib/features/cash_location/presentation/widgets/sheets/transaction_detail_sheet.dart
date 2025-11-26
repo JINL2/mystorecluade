@@ -10,7 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/journal_entry.dart';
 
 // Import presentation display model
-import '../../providers/cash_location_providers.dart' show TransactionDisplay;
+import '../../formatters/cash_location_formatters.dart';
 
 /// Bottom sheet for displaying TransactionDisplay details
 /// Uses domain entities: TransactionDisplay, JournalEntry, JournalLine
@@ -149,10 +149,11 @@ class TransactionDetailSheet extends StatelessWidget {
                   'Date',
                   _formatDate(transaction.date),
                 ),
-                _buildDetailRow(
-                  'Time',
-                  _formatTime(journalEntry.transactionDate),
-                ),
+                if (journalEntry != null)
+                  _buildDetailRow(
+                    'Time',
+                    _formatTime(journalEntry.transactionDate),
+                  ),
                 _buildDetailRow(
                   'Location',
                   transaction.locationName,
@@ -166,7 +167,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Journal Lines Section
-                if (journalEntry.lines.length > 1)
+                if (journalEntry != null && journalEntry.lines.length > 1)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

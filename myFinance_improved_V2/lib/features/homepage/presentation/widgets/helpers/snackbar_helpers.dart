@@ -112,15 +112,13 @@ class SnackbarHelpers {
     // Invalidate providers to force refresh
     debugPrint('🔄 [NavigateToDashboard] Invalidating all data providers...');
     ref.invalidate(userCompaniesProvider);
-    ref.invalidate(forceRefreshUserCompaniesProvider);
     ref.invalidate(categoriesWithFeaturesProvider);
-    ref.invalidate(forceRefreshCategoriesProvider);
 
     // Force immediate fetch of fresh data
     debugPrint('🔄 [NavigateToDashboard] Forcing immediate data fetch...');
     try {
-      await ref.read(forceRefreshUserCompaniesProvider.future);
-      await ref.read(forceRefreshCategoriesProvider.future);
+      await ref.read(userCompaniesProvider.future);
+      await ref.read(categoriesWithFeaturesProvider.future);
       debugPrint('✅ [NavigateToDashboard] Fresh data fetched successfully');
     } catch (e) {
       debugPrint('❌ [NavigateToDashboard] Error fetching fresh data: $e');

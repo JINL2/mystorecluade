@@ -1,4 +1,5 @@
 import '../entities/attendance_location.dart';
+import '../entities/check_in_result.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/shift_card.dart';
 import '../entities/shift_metadata.dart';
@@ -37,8 +38,8 @@ abstract class AttendanceRepository {
   /// [location] - GPS location
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns updated shift data as Map with status and time
-  Future<Map<String, dynamic>> updateShiftRequest({
+  /// Returns CheckInResult entity with action details
+  Future<CheckInResult> updateShiftRequest({
     required String userId,
     required String storeId,
     required String timestamp,

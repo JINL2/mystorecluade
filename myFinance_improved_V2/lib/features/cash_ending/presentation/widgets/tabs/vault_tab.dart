@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -13,9 +12,11 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/vault_recount.dart';
+import '../../../domain/entities/multi_currency_recount.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/vault_tab_provider.dart';
@@ -809,15 +810,15 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       }
       debugPrint('═══════════════════════════════════════════════════════');
 
-      // Build multi-currency RPC parameters
-      final rpcParams = _buildMultiCurrencyRecountParams(
+      // Build multi-currency recount entity
+      final multiCurrencyRecount = _buildMultiCurrencyRecountEntity(
         state: state,
         currenciesWithData: currenciesWithData,
       );
 
       debugPrint('🚀 [VaultTab] Calling insert_amount_multi_currency RPC...');
       // Execute RECOUNT RPC (single call for all currencies)
-      await vaultTabNotifier.executeMultiCurrencyRecount(rpcParams);
+      await vaultTabNotifier.executeMultiCurrencyRecount(multiCurrencyRecount);
       debugPrint('✅ [VaultTab] RECOUNT RPC complete!');
 
       // After recount, fetch balance summary
@@ -832,8 +833,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
       if (!context.mounted) return;
 
-      // Get userId for auto-balance
-      final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
+      // ✅ Get userId via UseCase (Clean Architecture compliant)
+      final getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
+      final userId = getCurrentUserUseCase.executeOrNull() ?? '';
 
       // Navigate to completion page with recount data
       Navigator.of(context).push(
@@ -916,54 +918,43 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     return grandTotal;
   }
 
-  /// Build multi-currency RPC parameters for RECOUNT
+  /// Build multi-currency recount entity
   ///
-  /// This creates the JSON structure required by insert_amount_multi_currency RPC:
-  /// {
-  ///   p_entry_type: 'vault',
-  ///   p_vault_transaction_type: 'recount',
-  ///   p_currencies: [
-  ///     { currency_id: '...', denominations: [...] },
-  ///     { currency_id: '...', denominations: [...] }
-  ///   ]
-  /// }
-  Map<String, dynamic> _buildMultiCurrencyRecountParams({
+  /// ✅ Clean Architecture compliant - creates domain entity instead of Map
+  MultiCurrencyRecount _buildMultiCurrencyRecountEntity({
     required CashEndingState state,
     required List<Currency> currenciesWithData,
   }) {
-    // Build currencies array
-    final currenciesJson = currenciesWithData.map((currency) {
-      // Build denominations array for this currency
-      final denominationsJson = currency.denominations
-          .where((d) => d.quantity > 0)  // Only include non-zero quantities
-          .map((d) => {
-                'denomination_id': d.denominationId,
-                'quantity': d.quantity,
-              })
-          .toList();
+    // ✅ Get user ID via UseCase (Clean Architecture compliant)
+    final getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
+    final userId = getCurrentUserUseCase.execute(); // Will throw if not authenticated
 
-      return {
-        'currency_id': currency.currencyId,
-        'denominations': denominationsJson,
-      };
+    final now = DateTime.now().toUtc();
+
+    // Build VaultRecount entities for each currency
+    final currencyRecounts = currenciesWithData.map((currency) {
+      return VaultRecount(
+        companyId: widget.companyId,
+        storeId: state.selectedStoreId == 'headquarter' ? null : state.selectedStoreId,
+        locationId: state.selectedVaultLocationId!,
+        currencyId: currency.currencyId,
+        userId: userId,
+        recordDate: now,
+        createdAt: now,
+        denominations: currency.denominations
+            .where((d) => d.quantity > 0)
+            .toList(),
+      );
     }).toList();
 
-    // Get user ID from Supabase auth
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    return {
-      'p_entry_type': 'vault',
-      'p_vault_transaction_type': 'recount',
-      'p_company_id': widget.companyId,
-      'p_location_id': state.selectedVaultLocationId,
-      'p_record_date': DateTime.now().toIso8601String().split('T')[0],  // YYYY-MM-DD
-      'p_created_by': userId,
-      'p_store_id': state.selectedStoreId == 'headquarter' ? null : state.selectedStoreId,
-      'p_description': 'Vault inventory recount',
-      'p_currencies': currenciesJson,
-    };
+    // Create MultiCurrencyRecount entity
+    return MultiCurrencyRecount(
+      companyId: widget.companyId,
+      storeId: state.selectedStoreId == 'headquarter' ? null : state.selectedStoreId,
+      locationId: state.selectedVaultLocationId!,
+      userId: userId,
+      recordDate: now,
+      currencyRecounts: currencyRecounts,
+    );
   }
 }

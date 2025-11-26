@@ -2,19 +2,16 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
-
 part 'stock_flow.freezed.dart';
 part 'stock_flow.g.dart';
 
 /// Domain entities for stock flow tracking in cash locations
 /// These classes represent the core business logic for tracking
 /// journal flows and actual cash flows
+/// Note: Formatting methods removed - use presentation layer formatters
 
 @freezed
 class JournalFlow with _$JournalFlow {
-  const JournalFlow._();
-
   const factory JournalFlow({
     required String flowId,
     required String createdAt,
@@ -31,36 +28,12 @@ class JournalFlow with _$JournalFlow {
     CounterAccount? counterAccount,
   }) = _JournalFlow;
 
-  String getFormattedDate() {
-    try {
-      // createdAt is already in local time (converted in Model layer)
-      // Just parse and format it
-      final localDateTime = DateTime.parse(createdAt);
-      return '${localDateTime.day}/${localDateTime.month}';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  String getFormattedTime() {
-    try {
-      // createdAt is already in local time (converted in Model layer at Line 24)
-      // Just parse and format it - NO need to convert again!
-      final localDateTime = DateTime.parse(createdAt);
-      return DateTimeUtils.formatTimeOnly(localDateTime);
-    } catch (e) {
-      return '';
-    }
-  }
-
   factory JournalFlow.fromJson(Map<String, dynamic> json) =>
       _$JournalFlowFromJson(json);
 }
 
 @freezed
 class ActualFlow with _$ActualFlow {
-  const ActualFlow._();
-
   const factory ActualFlow({
     required String flowId,
     required String createdAt,
@@ -72,28 +45,6 @@ class ActualFlow with _$ActualFlow {
     required CreatedBy createdBy,
     required List<DenominationDetail> currentDenominations,
   }) = _ActualFlow;
-
-  String getFormattedDate() {
-    try {
-      // createdAt is already in local time (converted in Model layer)
-      // Just parse and format it
-      final localDateTime = DateTime.parse(createdAt);
-      return '${localDateTime.day}/${localDateTime.month}';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  String getFormattedTime() {
-    try {
-      // createdAt is already in local time (converted in Model layer at Line 71)
-      // Just parse and format it - NO need to convert again!
-      final localDateTime = DateTime.parse(createdAt);
-      return DateTimeUtils.formatTimeOnly(localDateTime);
-    } catch (e) {
-      return '';
-    }
-  }
 
   factory ActualFlow.fromJson(Map<String, dynamic> json) =>
       _$ActualFlowFromJson(json);

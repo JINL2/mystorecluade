@@ -84,6 +84,7 @@ class CashLocationDataSource {
 
   /// Get cash locations using RPC for selectors
   /// This method is for cash location selectors in forms
+  /// Returns all data - filtering should be done in domain/use case layer
   Future<List<CashLocationRPCResponse>> getCashLocationsForSelector({
     required String companyId,
   }) async {
@@ -95,12 +96,9 @@ class CashLocationDataSource {
         },
       );
 
+      // Simply convert to models - no business logic filtering
       return response
           .map((json) => CashLocationRPCResponse.fromJson(json as Map<String, dynamic>))
-          .where((location) =>
-              !location.isDeleted &&
-              (location.additionalData['company_id'] == companyId),
-          )
           .toList();
     } catch (e) {
       throw Exception('Failed to load cash locations: ${e.toString()}');
@@ -161,6 +159,7 @@ class CashLocationDataSource {
   }
 
   /// Get vault real entries using RPC (UTC version)
+  /// Returns all entries from the RPC - filtering should be done in domain/use case layer
   Future<List<VaultRealEntryModel>> getVaultReal({
     required String companyId,
     required String storeId,
@@ -178,13 +177,10 @@ class CashLocationDataSource {
         },
       );
 
-      // Filter to only include vault type entries
-      final vaultEntries = response
-          .where((json) => (json as Map<String, dynamic>)['location_type'] == 'vault')
+      // Simply convert to models - no business logic filtering
+      return response
           .map((json) => VaultRealEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
-
-      return vaultEntries;
     } catch (e) {
       return [];
     }
@@ -358,26 +354,36 @@ class CashLocationDataSource {
     }
   }
 
-  /// Update main account status (unsets other main accounts if setting as main)
-  Future<void> updateMainAccountStatus({
-    required String locationId,
-    required bool isMain,
+  /// Get the current main account for a location type
+  Future<CashLocationDetailModel?> getMainAccount({
     required String companyId,
     required String storeId,
     required String locationType,
   }) async {
     try {
-      // If setting as main, first unset any existing main account
-      if (isMain) {
-        await _supabase
-            .from('cash_locations')
-            .update({'main_cash_location': false})
-            .eq('company_id', companyId)
-            .eq('store_id', storeId)
-            .eq('location_type', locationType);
-      }
+      final response = await _supabase
+          .from('cash_locations')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('store_id', storeId)
+          .eq('location_type', locationType)
+          .eq('main_cash_location', true)
+          .maybeSingle();
 
-      // Update the current account
+      if (response == null) return null;
+
+      return CashLocationDetailModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to get main account: ${e.toString()}');
+    }
+  }
+
+  /// Update a single account's main status (simple CRUD, no business logic)
+  Future<void> updateAccountMainStatus({
+    required String locationId,
+    required bool isMain,
+  }) async {
+    try {
       await _supabase
           .from('cash_locations')
           .update({
@@ -386,7 +392,24 @@ class CashLocationDataSource {
           })
           .eq('cash_location_id', locationId);
     } catch (e) {
-      throw Exception('Failed to update main account status: ${e.toString()}');
+      throw Exception('Failed to update account main status: ${e.toString()}');
+    }
+  }
+
+  /// Batch update multiple accounts' main status
+  Future<void> batchUpdateMainStatus({
+    required List<String> locationIds,
+    required List<bool> isMainValues,
+  }) async {
+    try {
+      for (var i = 0; i < locationIds.length; i++) {
+        await updateAccountMainStatus(
+          locationId: locationIds[i],
+          isMain: isMainValues[i],
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to batch update main status: ${e.toString()}');
     }
   }
 }

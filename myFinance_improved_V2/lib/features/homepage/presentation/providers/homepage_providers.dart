@@ -8,9 +8,11 @@ import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
+import '../../domain/entities/user_with_companies.dart';
 import '../../domain/providers/repository_providers.dart';
 import '../../domain/providers/use_case_providers.dart';
 import '../../domain/revenue_period.dart';
+import '../../domain/usecases/auto_select_company_store.dart';
 
 // === Revenue Provider ===
 
@@ -188,6 +190,11 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
 /// Provider for fetching user companies and stores
 ///
 /// Caches data in AppState and auto-selects company/store
+/// Returns UserWithCompanies domain entity
+/// Global user companies provider (returns Map for backward compatibility)
+///
+/// This provider is used globally across the app and returns Map<String, dynamic>
+/// for backward compatibility with existing code.
 final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final authState = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -205,24 +212,25 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
   }
 
   // Fetch user companies data (either from cache or repository)
-  Map<String, dynamic> userData;
-  List<dynamic> companiesData;
+  UserWithCompanies userEntity;
 
   if (appState.user.isNotEmpty && appState.user['user_id'] == user.id) {
-    userData = appState.user;
-    companiesData = (userData['companies'] as List<dynamic>?) ?? [];
+    // Return cached entity - need to convert Map back to entity
+    // This is a workaround until AppState is refactored to store entities
+    final repository = ref.watch(homepageRepositoryProvider);
+    userEntity = await repository.getUserCompanies(user.id);
   } else {
     // Fetch fresh user companies data from repository
     final repository = ref.watch(homepageRepositoryProvider);
-    final userCompanies = await repository.getUserCompanies(user.id);
+    userEntity = await repository.getUserCompanies(user.id);
 
-    // Convert to Map for AppState
-    userData = {
-      'user_id': userCompanies.userId,
-      'user_first_name': userCompanies.userFirstName,
-      'user_last_name': userCompanies.userLastName,
-      'profile_image': userCompanies.profileImage,
-      'companies': userCompanies.companies.map((company) => {
+    // Convert entity to Map for AppState (backward compatibility)
+    final userData = {
+      'user_id': userEntity.userId,
+      'user_first_name': userEntity.userFirstName,
+      'user_last_name': userEntity.userLastName,
+      'profile_image': userEntity.profileImage,
+      'companies': userEntity.companies.map((company) => {
         'company_id': company.id,
         'company_name': company.companyName,
         'company_code': company.companyCode,
@@ -238,8 +246,6 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
       },).toList(),
     };
 
-    companiesData = userData['companies'] as List<dynamic>;
-
     // Save to AppState
     appStateNotifier.updateUser(
       user: userData,
@@ -247,79 +253,71 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     );
   }
 
-  // Auto-select company and store
-  if (companiesData.isNotEmpty && appState.companyChoosen.isEmpty) {
-    // Try to load last selected company/store from cache
+  // Auto-select company and store using UseCase
+  if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
+    // Load last selection from cache
     final lastSelection = await appStateNotifier.loadLastSelection();
-    final lastCompanyId = lastSelection['companyId'];
-    final lastStoreId = lastSelection['storeId'];
 
-    String? selectedCompanyId;
-    String? selectedCompanyName;
-    List<dynamic>? selectedCompanyStores;
-
-    // Check if last selected company still exists
-    if (lastCompanyId != null && lastCompanyId.isNotEmpty) {
-      try {
-        final cachedCompany = companiesData.firstWhere(
-          (company) => (company as Map<String, dynamic>)['company_id'] == lastCompanyId,
-        );
-
-        final companyMap = cachedCompany as Map<String, dynamic>;
-        selectedCompanyId = companyMap['company_id'] as String;
-        selectedCompanyName = companyMap['company_name'] as String;
-        selectedCompanyStores = (companyMap['stores'] as List<dynamic>?) ?? [];
-      } catch (e) {
-        // Cached company not found, will use first company
-      }
-    }
-
-    // If no cached company found, use first company
-    if (selectedCompanyId == null) {
-      final firstCompany = companiesData.first as Map<String, dynamic>;
-      selectedCompanyId = firstCompany['company_id'] as String;
-      selectedCompanyName = firstCompany['company_name'] as String;
-      selectedCompanyStores = (firstCompany['stores'] as List<dynamic>?) ?? [];
-    }
-
-    // Auto-select store
-    String? selectedStoreId;
-    String? selectedStoreName;
-
-    if (selectedCompanyStores!.isNotEmpty) {
-      // Check if last selected store still exists in this company
-      if (lastStoreId != null && lastStoreId.isNotEmpty) {
-        try {
-          final cachedStore = selectedCompanyStores.firstWhere(
-            (store) => (store as Map<String, dynamic>)['store_id'] == lastStoreId,
-          );
-
-          final storeMap = cachedStore as Map<String, dynamic>;
-          selectedStoreId = storeMap['store_id'] as String;
-          selectedStoreName = storeMap['store_name'] as String;
-        } catch (e) {
-          // Cached store not found, will use first store
-        }
-      }
-
-      // If no cached store found, use first store
-      if (selectedStoreId == null) {
-        final firstStore = selectedCompanyStores.first as Map<String, dynamic>;
-        selectedStoreId = firstStore['store_id'] as String;
-        selectedStoreName = firstStore['store_name'] as String;
-      }
-    }
-
-    // Update both company and store in single call to avoid duplicate save
-    appStateNotifier.updateBusinessContext(
-      companyId: selectedCompanyId,
-      storeId: selectedStoreId ?? '',
-      companyName: selectedCompanyName,
-      storeName: selectedStoreName,
+    // Execute auto-select use case (business logic encapsulated)
+    final autoSelect = AutoSelectCompanyStore();
+    final selection = autoSelect(
+      AutoSelectParams(
+        userEntity: userEntity,
+        lastCompanyId: lastSelection['companyId'] as String?,
+        lastStoreId: lastSelection['storeId'] as String?,
+      ),
     );
+
+    // Update app state with selected company/store
+    if (selection.hasSelection) {
+      appStateNotifier.updateBusinessContext(
+        companyId: selection.company!.id,
+        storeId: selection.store?.id ?? '',
+        companyName: selection.company!.companyName,
+        storeName: selection.store?.storeName,
+      );
+    }
   }
 
-  return userData;
+  // Convert entity to Map for global compatibility
+  return {
+    'user_id': userEntity.userId,
+    'user_first_name': userEntity.userFirstName,
+    'user_last_name': userEntity.userLastName,
+    'profile_image': userEntity.profileImage,
+    'companies': userEntity.companies.map((company) => {
+      'company_id': company.id,
+      'company_name': company.companyName,
+      'company_code': company.companyCode,
+      'stores': company.stores.map((store) => {
+        'store_id': store.id,
+        'store_name': store.storeName,
+        'store_code': store.storeCode,
+      },).toList(),
+      'role': {
+        'role_name': company.role.roleName,
+        'permissions': company.role.permissions,
+      },
+    },).toList(),
+  };
+});
+
+/// Entity-based provider for homepage (Clean Architecture)
+///
+/// This provider returns UserWithCompanies entity for use within the homepage feature.
+/// It leverages the global userCompaniesProvider but converts the Map to entity.
+final userCompaniesEntityProvider = FutureProvider<UserWithCompanies?>((ref) async {
+  final userDataMap = await ref.watch(userCompaniesProvider.future);
+
+  if (userDataMap == null) {
+    return null;
+  }
+
+  // Convert Map to Entity
+  final repository = ref.watch(homepageRepositoryProvider);
+  final userId = userDataMap['user_id'] as String;
+
+  return await repository.getUserCompanies(userId);
 });
 
 // === UI State Providers ===

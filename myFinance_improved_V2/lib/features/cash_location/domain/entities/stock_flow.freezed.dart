@@ -294,7 +294,7 @@ class __$$JournalFlowImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$JournalFlowImpl extends _JournalFlow {
+class _$JournalFlowImpl implements _JournalFlow {
   const _$JournalFlowImpl(
       {required this.flowId,
       required this.createdAt,
@@ -308,8 +308,7 @@ class _$JournalFlowImpl extends _JournalFlow {
       required this.accountId,
       required this.accountName,
       required this.createdBy,
-      this.counterAccount})
-      : super._();
+      this.counterAccount});
 
   factory _$JournalFlowImpl.fromJson(Map<String, dynamic> json) =>
       _$$JournalFlowImplFromJson(json);
@@ -412,7 +411,7 @@ class _$JournalFlowImpl extends _JournalFlow {
   }
 }
 
-abstract class _JournalFlow extends JournalFlow {
+abstract class _JournalFlow implements JournalFlow {
   const factory _JournalFlow(
       {required final String flowId,
       required final String createdAt,
@@ -427,7 +426,6 @@ abstract class _JournalFlow extends JournalFlow {
       required final String accountName,
       required final CreatedBy createdBy,
       final CounterAccount? counterAccount}) = _$JournalFlowImpl;
-  const _JournalFlow._() : super._();
 
   factory _JournalFlow.fromJson(Map<String, dynamic> json) =
       _$JournalFlowImpl.fromJson;
@@ -692,7 +690,7 @@ class __$$ActualFlowImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ActualFlowImpl extends _ActualFlow {
+class _$ActualFlowImpl implements _ActualFlow {
   const _$ActualFlowImpl(
       {required this.flowId,
       required this.createdAt,
@@ -703,8 +701,7 @@ class _$ActualFlowImpl extends _ActualFlow {
       required this.currency,
       required this.createdBy,
       required final List<DenominationDetail> currentDenominations})
-      : _currentDenominations = currentDenominations,
-        super._();
+      : _currentDenominations = currentDenominations;
 
   factory _$ActualFlowImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActualFlowImplFromJson(json);
@@ -793,7 +790,7 @@ class _$ActualFlowImpl extends _ActualFlow {
   }
 }
 
-abstract class _ActualFlow extends ActualFlow {
+abstract class _ActualFlow implements ActualFlow {
   const factory _ActualFlow(
           {required final String flowId,
           required final String createdAt,
@@ -805,7 +802,6 @@ abstract class _ActualFlow extends ActualFlow {
           required final CreatedBy createdBy,
           required final List<DenominationDetail> currentDenominations}) =
       _$ActualFlowImpl;
-  const _ActualFlow._() : super._();
 
   factory _ActualFlow.fromJson(Map<String, dynamic> json) =
       _$ActualFlowImpl.fromJson;

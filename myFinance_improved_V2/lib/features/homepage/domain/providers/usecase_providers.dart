@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../usecases/auto_select_company_store.dart';
 import '../usecases/create_company.dart';
 import '../usecases/create_store.dart';
 import '../usecases/get_company_types.dart';
@@ -53,4 +54,16 @@ final createStoreUseCaseProvider = Provider<CreateStore>((ref) {
 final joinByCodeUseCaseProvider = Provider<JoinByCode>((ref) {
   final repository = ref.watch(joinRepositoryProvider);
   return JoinByCode(repository);
+});
+
+// ============================================================================
+// Selection Use Cases
+// ============================================================================
+
+/// Auto Select Company/Store Use Case provider
+///
+/// Handles business logic for automatically selecting company and store
+/// based on last selection or default (first) values
+final autoSelectCompanyStoreProvider = Provider<AutoSelectCompanyStore>((ref) {
+  return AutoSelectCompanyStore();
 });

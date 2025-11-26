@@ -3,8 +3,9 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/cash_ending.dart';
-import '../../domain/repositories/cash_ending_repository.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
+import '../../domain/usecases/save_cash_ending_usecase.dart';
+import '../../domain/usecases/get_balance_summary_usecase.dart';
 import 'base_tab_notifier.dart';
 import 'cash_tab_state.dart';
 
@@ -13,14 +14,17 @@ import 'cash_tab_state.dart';
 /// Extends BaseTabNotifier to eliminate duplicate code
 /// Only implements tab-specific save logic
 ///
-/// ✅ Uses GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 class CashTabNotifier extends BaseTabNotifier<CashTabState> {
-  final CashEndingRepository _cashEndingRepository;
+  final SaveCashEndingUseCase _saveCashEndingUseCase;
+  final GetCashBalanceSummaryUseCase _getBalanceSummaryUseCase;
 
   CashTabNotifier({
     required GetStockFlowsUseCase getStockFlowsUseCase,
-    required CashEndingRepository cashEndingRepository,
-  })  : _cashEndingRepository = cashEndingRepository,
+    required SaveCashEndingUseCase saveCashEndingUseCase,
+    required GetCashBalanceSummaryUseCase getBalanceSummaryUseCase,
+  })  : _saveCashEndingUseCase = saveCashEndingUseCase,
+        _getBalanceSummaryUseCase = getBalanceSummaryUseCase,
         super(
           getStockFlowsUseCase: getStockFlowsUseCase,
           initialState: const CashTabState(),
@@ -62,6 +66,8 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
   }
 
   /// Save cash ending - tab-specific implementation
+  ///
+  /// ✅ Uses SaveCashEndingUseCase (Clean Architecture compliant)
   @override
   Future<bool> saveData({
     required data,
@@ -76,7 +82,8 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      await _cashEndingRepository.saveCashEnding(data);
+      // ✅ UseCase handles validation and save
+      await _saveCashEndingUseCase.execute(data);
 
       state = state.copyWith(isSaving: false);
 
@@ -113,6 +120,8 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
   ///
   /// This is the main submit method called after cash ending save.
   /// It fetches the balance summary and triggers the dialog display.
+  ///
+  /// ✅ Uses GetCashBalanceSummaryUseCase (Clean Architecture compliant)
   Future<void> submitCashEnding({
     required String locationId,
   }) async {
@@ -120,11 +129,9 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
     debugPrint('   - locationId: $locationId');
 
     try {
-      // Fetch balance summary from repository
+      // ✅ UseCase handles validation and fetches balance summary
       debugPrint('🚀 [CashTabNotifier] getBalanceSummary() 호출...');
-      final balanceSummary = await _cashEndingRepository.getBalanceSummary(
-        locationId: locationId,
-      );
+      final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
 
       debugPrint('✅ [CashTabNotifier] Balance Summary 받음:');
       debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');

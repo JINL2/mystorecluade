@@ -17,6 +17,7 @@ import '../providers/cash_location_providers.dart';
 import '../widgets/transaction_item.dart';
 import '../widgets/sheets/transaction_detail_sheet.dart';
 import '../widgets/sheets/filter_bottom_sheet.dart';
+import '../formatters/cash_location_formatters.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -102,14 +103,14 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   
   List<TransactionDisplay> _convertToTransactions(List<JournalEntry> entries) {
     final List<TransactionDisplay> transactions = [];
-    
+
     for (final entry in entries) {
-      final transaction = entry.getTransactionDisplay(widget.locationType);
+      final transaction = CashLocationFormatters.getTransactionDisplay(entry, widget.locationType);
       if (transaction != null) {
         transactions.add(transaction);
       }
     }
-    
+
     return transactions;
   }
   

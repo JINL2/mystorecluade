@@ -3,8 +3,9 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/bank_balance.dart';
-import '../../domain/repositories/bank_repository.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
+import '../../domain/usecases/save_bank_balance_usecase.dart';
+import '../../domain/usecases/get_balance_summary_usecase.dart';
 import 'bank_tab_state.dart';
 import 'base_tab_notifier.dart';
 
@@ -13,14 +14,17 @@ import 'base_tab_notifier.dart';
 /// Extends BaseTabNotifier to eliminate duplicate code
 /// Only implements tab-specific save logic
 ///
-/// ✅ Uses GetStockFlowsUseCase (Clean Architecture compliant)
+/// ✅ 100% UseCase-based (Clean Architecture compliant)
 class BankTabNotifier extends BaseTabNotifier<BankTabState> {
-  final BankRepository _bankRepository;
+  final SaveBankBalanceUseCase _saveBankBalanceUseCase;
+  final GetBankBalanceSummaryUseCase _getBalanceSummaryUseCase;
 
   BankTabNotifier({
     required GetStockFlowsUseCase getStockFlowsUseCase,
-    required BankRepository bankRepository,
-  })  : _bankRepository = bankRepository,
+    required SaveBankBalanceUseCase saveBankBalanceUseCase,
+    required GetBankBalanceSummaryUseCase getBalanceSummaryUseCase,
+  })  : _saveBankBalanceUseCase = saveBankBalanceUseCase,
+        _getBalanceSummaryUseCase = getBalanceSummaryUseCase,
         super(
           getStockFlowsUseCase: getStockFlowsUseCase,
           initialState: const BankTabState(),
@@ -62,6 +66,8 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   }
 
   /// Save bank balance - tab-specific implementation
+  ///
+  /// ✅ Uses SaveBankBalanceUseCase (Clean Architecture compliant)
   @override
   Future<bool> saveData({
     required data,
@@ -76,7 +82,8 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
-      await _bankRepository.saveBankBalance(data);
+      // ✅ UseCase handles validation and save
+      await _saveBankBalanceUseCase.execute(data);
 
       state = state.copyWith(isSaving: false);
 
@@ -113,6 +120,8 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   ///
   /// This is the main submit method called after bank balance save.
   /// It fetches the balance summary and triggers the dialog display.
+  ///
+  /// ✅ Uses GetBankBalanceSummaryUseCase (Clean Architecture compliant)
   Future<void> submitBankEnding({
     required String locationId,
   }) async {
@@ -120,11 +129,9 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
     debugPrint('   - locationId: $locationId');
 
     try {
-      // Fetch balance summary from repository
+      // ✅ UseCase handles validation and fetches balance summary
       debugPrint('🚀 [BankTabNotifier] getBalanceSummary() 호출...');
-      final balanceSummary = await _bankRepository.getBalanceSummary(
-        locationId: locationId,
-      );
+      final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
 
       debugPrint('✅ [BankTabNotifier] Balance Summary 받음:');
       debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');

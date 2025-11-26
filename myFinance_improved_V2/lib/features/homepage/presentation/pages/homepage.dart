@@ -8,6 +8,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
 import '../widgets/empty_state_screen.dart';
@@ -41,6 +42,7 @@ class _HomepageState extends ConsumerState<Homepage> {
           );
         }
 
+        // Check if user has any companies
         final companies = (userData['companies'] as List<dynamic>?) ?? [];
         if (companies.isEmpty) {
           return EmptyStateScreen(
@@ -231,12 +233,23 @@ class _HomepageState extends ConsumerState<Homepage> {
             Row(
               children: [
                 // Notification bell with badge
-                _buildIconGhost(
-                  icon: Icons.notifications_none_rounded,
-                  showBadge: true,
-                  badgeCount: 2,
-                  onTap: () {
-                    // TODO: Navigate to notifications
+                Consumer(
+                  builder: (context, ref, child) {
+                    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+                    final unreadCount = unreadCountAsync.when(
+                      data: (count) => count,
+                      loading: () => 0,
+                      error: (_, __) => 0,
+                    );
+
+                    return _buildIconGhost(
+                      icon: Icons.notifications_none_rounded,
+                      showBadge: unreadCount > 0,
+                      badgeCount: unreadCount,
+                      onTap: () {
+                        context.push('/notifications');
+                      },
+                    );
                   },
                 ),
 

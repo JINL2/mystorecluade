@@ -21,6 +21,7 @@ import '../widgets/journal_flow_item.dart';
 import '../widgets/real_detail_sheet.dart';
 import '../widgets/sheets/auto_mapping_sheet.dart';
 import '../widgets/sheets/filter_bottom_sheet.dart';
+import '../formatters/cash_location_formatters.dart';
 import 'account_settings_page.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
@@ -1106,13 +1107,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     for (int i = 0; i < filteredFlows.length; i++) {
       final flow = filteredFlows[i];
-      final currentDate = flow.getFormattedDate();
+      final currentDate = CashLocationFormatters.formatJournalFlowDate(flow);
       final bool showDate = currentDate != lastDate;
-      
+
       if (showDate) {
         lastDate = currentDate;
       }
-      
+
       items.add(_buildJournalItem(flow, showDate));
     }
     
@@ -1197,13 +1198,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     for (int i = 0; i < filteredFlows.length; i++) {
       final flow = filteredFlows[i];
-      final currentDate = flow.getFormattedDate();
+      final currentDate = CashLocationFormatters.formatActualFlowDate(flow);
       final bool showDate = currentDate != lastDate;
-      
+
       if (showDate) {
         lastDate = currentDate;
       }
-      
+
       items.add(_buildRealItem(flow, showDate));
     }
     

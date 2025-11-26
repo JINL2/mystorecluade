@@ -1,5 +1,8 @@
 import 'store.dart';
 
+/// Company entity representing a business organization
+///
+/// Rich Domain Model with business logic and rules
 class Company {
   const Company({
     required this.id,
@@ -14,6 +17,81 @@ class Company {
   final String companyCode;
   final UserRole role;
   final List<Store> stores;
+
+  // ============================================================================
+  // Computed Properties (Business Logic)
+  // ============================================================================
+
+  /// Check if company code is valid format
+  ///
+  /// Valid format: "COMP" prefix + 5 digits (e.g., "COMP12345")
+  bool get hasValidCode =>
+      companyCode.isNotEmpty &&
+      companyCode.startsWith('COMP') &&
+      companyCode.length == 9;
+
+  /// Check if company name is long
+  ///
+  /// Long names may need special handling in UI
+  bool get hasLongName => companyName.length > 50;
+
+  /// Get display name for UI
+  ///
+  /// Truncates long names with ellipsis
+  String get displayName => companyName.length > 30
+      ? '${companyName.substring(0, 27)}...'
+      : companyName;
+
+  /// Get store count
+  int get storeCount => stores.length;
+
+  /// Check if company has any stores
+  bool get hasStores => stores.isNotEmpty;
+
+  /// Get first store (if exists)
+  Store? get firstStore => stores.isNotEmpty ? stores.first : null;
+
+  // ============================================================================
+  // Business Methods
+  // ============================================================================
+
+  /// Find store by ID
+  ///
+  /// Returns null if not found
+  Store? findStoreById(String storeId) {
+    try {
+      return stores.firstWhere((store) => store.id == storeId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Check if user has specific permission
+  ///
+  /// Returns true if permission exists in user's role
+  bool hasPermission(String permission) {
+    return role.permissions.contains(permission);
+  }
+
+  /// Check if user is owner
+  ///
+  /// Owner has all permissions
+  bool get isOwner => role.roleName.toLowerCase() == 'owner';
+
+  /// Check if user is admin
+  bool get isAdmin => role.roleName.toLowerCase() == 'admin';
+
+  /// Check if user can manage stores
+  ///
+  /// Requires 'manage_stores' permission or owner role
+  bool get canManageStores =>
+      isOwner || hasPermission('manage_stores');
+
+  /// Check if user can invite members
+  ///
+  /// Requires 'invite_members' permission or owner role
+  bool get canInviteMembers =>
+      isOwner || hasPermission('invite_members');
 }
 
 class UserRole {

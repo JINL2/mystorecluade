@@ -77,7 +77,7 @@ class RevenueCard extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Revenue ${selectedPeriod.displayName}',
+                      selectedPeriod.displayName,
                       style: TossTextStyles.h3.copyWith(
                         fontSize: 20,
                         color: TossColors.textPrimary,
