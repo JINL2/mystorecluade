@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/constants/icon_mapper.dart';
+import '../../../../core/utils/location_utils.dart';
+import '../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -360,11 +364,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           _showEditOperationalSettingsSheet(context, store);
                         },
                         onEditLocation: () {
-                          showStoreLocationDialog(
-                            context,
-                            ref,
-                            appState.storeChoosen,
-                          );
+                          _showSetStoreLocationDialog(context, store);
                         },
                       ),
                     ],
@@ -423,5 +423,113 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
   /// Show Edit Operational Settings Bottom Sheet
   void _showEditOperationalSettingsSheet(BuildContext context, Map<String, dynamic> store) {
     showOperationalSettingsDialog(context, store);
+  }
+
+  /// Show Store Location Confirmation Dialog
+  Future<void> _showSetStoreLocationDialog(BuildContext context, Map<String, dynamic> store) async {
+    final confirmed = await TossConfirmCancelDialog.show(
+      context: context,
+      title: 'Set Store Location',
+      message: 'Do you want to set the store location to your current position?',
+      confirmButtonText: 'Set Location',
+      cancelButtonText: 'Cancel',
+    );
+
+    if (confirmed == true && mounted) {
+      await _updateStoreLocation(store);
+    }
+  }
+
+  /// Update store location using current GPS position
+  Future<void> _updateStoreLocation(Map<String, dynamic> store) async {
+    if (!mounted) return;
+
+    final currentContext = context;
+
+    // Show loading indicator
+    showDialog<void>(
+      context: currentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      // Get current location
+      final position = await LocationUtils.getCurrentLocation();
+
+      if (position == null) {
+        if (mounted) {
+          Navigator.pop(currentContext); // Close loading
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to get current location. Please check location permissions.'),
+              backgroundColor: TossColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      final storeId = store['store_id'] as String?;
+      if (storeId == null) {
+        if (mounted) {
+          Navigator.pop(currentContext); // Close loading
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            const SnackBar(
+              content: Text('Store ID not found'),
+              backgroundColor: TossColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Call update_store_location RPC
+      await Supabase.instance.client.rpc<void>(
+        'update_store_location',
+        params: {
+          'p_store_id': storeId,
+          'p_store_lat': position.latitude,
+          'p_store_lng': position.longitude,
+        },
+      );
+
+      if (mounted) {
+        Navigator.pop(currentContext); // Close loading
+
+        // Refresh store details
+        ref.invalidate(storeDetailsProvider);
+
+        // Show success dialog
+        await showDialog<void>(
+          context: currentContext,
+          barrierDismissible: false,
+          builder: (dialogContext) => TossDialog.success(
+            title: 'Location Updated',
+            message: 'Store location has been updated successfully.',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(currentContext); // Close loading
+
+        // Show error dialog
+        await showDialog<void>(
+          context: currentContext,
+          barrierDismissible: true,
+          builder: (dialogContext) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update location: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        );
+      }
+    }
   }
 }

@@ -4,6 +4,7 @@
 class Shift {
   final String shiftId;
   final String storeId;
+  final String? storeName;
   final String shiftDate;
   final DateTime planStartTime;
   final DateTime planEndTime;
@@ -11,11 +12,11 @@ class Shift {
   final int currentCount;
   final List<String> tags;
   final String? shiftName;
-  final String? storeName;
 
   const Shift({
     required this.shiftId,
     required this.storeId,
+    this.storeName,
     required this.shiftDate,
     required this.planStartTime,
     required this.planEndTime,
@@ -23,7 +24,6 @@ class Shift {
     required this.currentCount,
     this.tags = const [],
     this.shiftName,
-    this.storeName,
   });
 
   /// Check if shift is fully staffed
@@ -48,6 +48,7 @@ class Shift {
   Shift copyWith({
     String? shiftId,
     String? storeId,
+    String? storeName,
     String? shiftDate,
     DateTime? planStartTime,
     DateTime? planEndTime,
@@ -55,11 +56,11 @@ class Shift {
     int? currentCount,
     List<String>? tags,
     String? shiftName,
-    String? storeName,
   }) {
     return Shift(
       shiftId: shiftId ?? this.shiftId,
       storeId: storeId ?? this.storeId,
+      storeName: storeName ?? this.storeName,
       shiftDate: shiftDate ?? this.shiftDate,
       planStartTime: planStartTime ?? this.planStartTime,
       planEndTime: planEndTime ?? this.planEndTime,
@@ -67,7 +68,6 @@ class Shift {
       currentCount: currentCount ?? this.currentCount,
       tags: tags ?? this.tags,
       shiftName: shiftName ?? this.shiftName,
-      storeName: storeName ?? this.storeName,
     );
   }
 

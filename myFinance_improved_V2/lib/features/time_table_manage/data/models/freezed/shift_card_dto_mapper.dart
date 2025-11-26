@@ -61,13 +61,13 @@ extension ShiftCardDtoMapper on ShiftCardDto {
     return Shift(
       shiftId: '', // RPC doesn't return shift_id
       storeId: '', // RPC doesn't return store_id
+      storeName: storeName,
       shiftDate: requestDate,
       planStartTime: _parseTime(shiftTime?.startTime) ?? now,
       planEndTime: _parseTime(shiftTime?.endTime) ?? now,
       targetCount: 0, // RPC doesn't return target_count
       currentCount: 0, // RPC doesn't return current_count
       shiftName: shiftName,
-      storeName: storeName,
     );
   }
 

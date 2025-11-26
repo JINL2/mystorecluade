@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/store_shift_exceptions.dart';
 
 /// Store Shift Data Source
@@ -22,18 +23,17 @@ class StoreShiftDataSource {
   ///
   /// Uses direct table query on 'store_shifts'
   /// Filters: store_id, is_active = true
-  /// Order: start_time ascending
+  /// Order: start_time_utc ascending
   ///
-  /// Note: created_at and updated_at are fetched as UTC and will be
-  /// converted to local time in the model layer using DateTimeUtils.toLocal()
+  /// Note: Fetches both legacy (created_at, updated_at) and new (created_at_utc, updated_at_utc) columns
   Future<List<Map<String, dynamic>>> getShiftsByStoreId(String storeId) async {
     try {
       final response = await _client
           .from('store_shifts')
-          .select('shift_id, shift_name, start_time, end_time, shift_bonus, is_active, created_at, updated_at')
+          .select('shift_id, shift_name, start_time_utc, end_time_utc, shift_bonus, is_active, created_at, updated_at, created_at_utc, updated_at_utc')
           .eq('store_id', storeId)
           .eq('is_active', true)
-          .order('start_time', ascending: true);
+          .order('start_time_utc', ascending: true);
 
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e, stackTrace) {
@@ -47,6 +47,9 @@ class StoreShiftDataSource {
   /// Create a new shift
   ///
   /// Uses INSERT on 'store_shifts' table
+  /// Stores all time data in *_utc columns (timetz type with timezone offset)
+  /// - start_time_utc, end_time_utc: HH:mm+ZZ:ZZ format
+  /// - created_at_utc, updated_at_utc: HH:mm:ss+ZZ:ZZ format
   Future<Map<String, dynamic>> createShift({
     required String storeId,
     required String shiftName,
@@ -55,11 +58,18 @@ class StoreShiftDataSource {
     required int shiftBonus,
   }) async {
     try {
+      // Get current time with timezone offset (HH:mm:ss+ZZ:ZZ format)
+      final now = DateTime.now();
+      final currentTime = _formatDateTimeWithTimezone(now);
+
       final insertData = {
         'store_id': storeId,
         'shift_name': shiftName,
-        'start_time': startTime,
-        'end_time': endTime,
+        // timetz columns with timezone
+        'start_time_utc': startTime,
+        'end_time_utc': endTime,
+        'created_at_utc': currentTime,
+        'updated_at_utc': currentTime,
         'shift_bonus': shiftBonus,
         'is_active': true,
       };
@@ -79,9 +89,29 @@ class StoreShiftDataSource {
     }
   }
 
+  /// Format DateTime to timetz format with timezone offset
+  /// Example: 2025-01-15 14:30:45 in UTC+9 -> "14:30:45+09:00"
+  String _formatDateTimeWithTimezone(DateTime dateTime) {
+    final offset = dateTime.timeZoneOffset;
+
+    // Format time part (HH:mm:ss)
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+
+    // Format timezone offset (+HH:mm or -HH:mm)
+    final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
+    final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+    final offsetSign = offset.isNegative ? '-' : '+';
+
+    return '$hour:$minute:$second$offsetSign$offsetHours:$offsetMinutes';
+  }
+
   /// Update an existing shift
   ///
   /// Uses UPDATE on 'store_shifts' table
+  /// Updates *_utc columns (timetz type with timezone offset)
+  /// Always updates updated_at_utc with current time (HH:mm:ss+ZZ:ZZ format)
   Future<Map<String, dynamic>> updateShift({
     required String shiftId,
     String? shiftName,
@@ -93,13 +123,17 @@ class StoreShiftDataSource {
       final updateData = <String, dynamic>{};
 
       if (shiftName != null) updateData['shift_name'] = shiftName;
-      if (startTime != null) updateData['start_time'] = startTime;
-      if (endTime != null) updateData['end_time'] = endTime;
+      if (startTime != null) updateData['start_time_utc'] = startTime;
+      if (endTime != null) updateData['end_time_utc'] = endTime;
       if (shiftBonus != null) updateData['shift_bonus'] = shiftBonus;
 
       if (updateData.isEmpty) {
         throw const InvalidShiftDataException('No fields to update');
       }
+
+      // Always update updated_at_utc with current time
+      final now = DateTime.now();
+      updateData['updated_at_utc'] = _formatDateTimeWithTimezone(now);
 
       final response = await _client
           .from('store_shifts')
@@ -159,17 +193,18 @@ class StoreShiftDataSource {
   /// Update store location
   ///
   /// Uses RPC function 'update_store_location'
-  /// Parameters: p_store_id, p_store_lat, p_store_lng
   Future<void> updateStoreLocation({
     required String storeId,
     required double latitude,
     required double longitude,
+    required String address,
   }) async {
     try {
       await _client.rpc<void>('update_store_location', params: {
         'p_store_id': storeId,
-        'p_store_lat': latitude,
-        'p_store_lng': longitude,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_address': address,
       },);
     } catch (e, stackTrace) {
       throw StoreLocationUpdateException(
@@ -182,16 +217,28 @@ class StoreShiftDataSource {
   /// Update operational settings
   ///
   /// Uses RPC function 'update_store_setting'
-  /// Returns JSON response with success status and message
-  Future<Map<String, dynamic>> updateOperationalSettings({
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  /// - p_huddle_time: integer (optional)
+  /// - p_payment_time: integer (optional)
+  /// - p_allowed_distance: integer (optional)
+  /// - p_time: text (local time, e.g., '2025-11-26 16:30:00')
+  /// - p_timezone: text (e.g., 'Asia/Ho_Chi_Minh')
+  Future<void> updateOperationalSettings({
     required String storeId,
     int? huddleTime,
     int? paymentTime,
     int? allowedDistance,
-    String? localTime,
-    String timezone = 'Asia/Ho_Chi_Minh',
   }) async {
     try {
+      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
+      final now = DateTime.now();
+      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+
+      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      final timezone = DateTimeUtils.getLocalTimezone();
+
       final response = await _client.rpc<Map<String, dynamic>>(
         'update_store_setting',
         params: {
@@ -204,18 +251,12 @@ class StoreShiftDataSource {
         },
       );
 
-      if (response['success'] != true) {
-        throw OperationalSettingsUpdateException(
-          response['message'] as String? ?? 'Unknown error',
-          StackTrace.current,
-        );
+      // Check RPC response for success
+      if (response['success'] == false) {
+        throw Exception(response['message'] ?? 'Unknown error');
       }
-
-      return response;
     } catch (e, stackTrace) {
-      if (e is OperationalSettingsUpdateException) rethrow;
-
-      throw OperationalSettingsUpdateException(
+      throw StoreLocationUpdateException(
         'Failed to update operational settings: $e',
         stackTrace,
       );

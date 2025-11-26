@@ -13,6 +13,7 @@ class UpdateStoreLocation implements UseCase<void, UpdateStoreLocationParams> {
       storeId: params.storeId,
       latitude: params.latitude,
       longitude: params.longitude,
+      address: params.address,
     );
   }
 }

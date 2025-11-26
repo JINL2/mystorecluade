@@ -8,7 +8,9 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../providers/time_table_providers.dart';
+import '../../providers/usecase/time_table_usecase_providers.dart';
 
 /// Schedule Approve Button
 ///
@@ -61,9 +63,11 @@ class ScheduleApproveButton extends ConsumerWidget {
         return !currentState; // Toggle the state
       }).toList();
 
-      await ref.read(timeTableRepositoryProvider).processBulkApproval(
-        shiftRequestIds: shiftRequestIdsList,
-        approvalStates: approvalStatesList,
+      await ref.read(processBulkApprovalUseCaseProvider).call(
+        ProcessBulkApprovalParams(
+          shiftRequestIds: shiftRequestIdsList,
+          approvalStates: approvalStatesList,
+        ),
       );
 
       // Determine action based on selected items - if mixed states, show generic message

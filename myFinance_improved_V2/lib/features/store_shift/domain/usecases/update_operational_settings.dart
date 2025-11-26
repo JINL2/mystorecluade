@@ -14,8 +14,6 @@ class UpdateOperationalSettings implements UseCase<void, UpdateOperationalSettin
       huddleTime: params.huddleTime,
       paymentTime: params.paymentTime,
       allowedDistance: params.allowedDistance,
-      localTime: params.localTime,
-      timezone: params.timezone,
     );
   }
 }
