@@ -6,7 +6,12 @@ import '../entities/manager_shift_cards.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/operation_result.dart';
 import '../entities/schedule_data.dart';
+import '../entities/shift.dart';
+import '../entities/shift_approval_result.dart';
 import '../entities/shift_metadata.dart';
+import '../entities/shift_request.dart';
+import '../entities/tag.dart';
+import '../value_objects/create_shift_params.dart';
 
 /// Time Table Repository Interface
 ///
@@ -15,54 +20,40 @@ import '../entities/shift_metadata.dart';
 abstract class TimeTableRepository {
   /// Get shift metadata for a store
   ///
-  /// Uses get_shift_metadata_v2 RPC with timezone support
-  ///
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [ShiftMetadata] with available tags and settings
   Future<ShiftMetadata> getShiftMetadata({
     required String storeId,
-    required String timezone,
   });
 
   /// Get raw shift metadata for UI display
   ///
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns dynamic list directly from RPC for backward compatibility
   Future<dynamic> getShiftMetadataRaw({
     required String storeId,
-    required String timezone,
   });
 
   /// Get monthly shift status for manager view
   ///
-  /// Matches RPC: get_monthly_shift_status_manager_v2
-  ///
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestDate] - Date in format 'yyyy-MM-dd'
   /// [companyId] - Company ID
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of [MonthlyShiftStatus] for 3 months
+  /// Returns list of [MonthlyShiftStatus] (may include next month)
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatus({
-    required String requestTime,
+    required String requestDate,
     required String companyId,
     required String storeId,
-    required String timezone,
   });
 
   /// Get manager overview data for a month
   ///
-  /// Uses manager_shift_get_overview_v2 RPC with timezone support
-  ///
-  /// [startDate] - Start date in format 'yyyy-MM-dd' (local date)
-  /// [endDate] - End date in format 'yyyy-MM-dd' (local date)
+  /// [requestDate] - Date in format 'yyyy-MM-dd'
   /// [companyId] - Company ID
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [ManagerOverview] with statistics
   Future<ManagerOverview> getManagerOverview({
@@ -70,18 +61,14 @@ abstract class TimeTableRepository {
     required String endDate,
     required String companyId,
     required String storeId,
-    required String timezone,
   });
 
   /// Get manager shift cards for employee view
   ///
-  /// Uses manager_shift_get_cards_v2 RPC with timezone support
-  ///
-  /// [startDate] - Start date in format 'yyyy-MM-dd' (local date)
-  /// [endDate] - End date in format 'yyyy-MM-dd' (local date)
+  /// [startDate] - Start date in format 'yyyy-MM-dd'
+  /// [endDate] - End date in format 'yyyy-MM-dd'
   /// [companyId] - Company ID
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [ManagerShiftCards] entity with cards collection
   Future<ManagerShiftCards> getManagerShiftCards({
@@ -89,24 +76,26 @@ abstract class TimeTableRepository {
     required String endDate,
     required String companyId,
     required String storeId,
-    required String timezone,
   });
 
-  /// Toggle shift request approval status using v2 RPC
+  /// Toggle shift request approval status
   ///
-  /// Uses toggle_shift_approval_v2 RPC
-  /// - Toggles is_approved state for shift requests
-  /// - Updates approved_by and updated_at_utc
-  /// - Updates start_time_utc and end_time_utc from store_shifts
-  /// - Handles overnight shifts correctly
+  /// [shiftRequestId] - Shift request ID
+  /// [newApprovalState] - New approval state (true = approved, false = pending)
   ///
-  /// [shiftRequestIds] - List of shift request IDs to toggle
-  /// [userId] - User ID performing the approval
+  /// Returns [ShiftApprovalResult] with updated request
+  Future<ShiftApprovalResult> toggleShiftApproval({
+    required String shiftRequestId,
+    required bool newApprovalState,
+  });
+
+  /// Create a new shift
   ///
-  /// Returns void (no result)
-  Future<void> toggleShiftApproval({
-    required List<String> shiftRequestIds,
-    required String userId,
+  /// [params] - Parameters for creating the shift
+  ///
+  /// Returns created [Shift] entity
+  Future<Shift> createShift({
+    required CreateShiftParams params,
   });
 
   /// Delete a shift
@@ -129,59 +118,41 @@ abstract class TimeTableRepository {
     required String userId,
   });
 
-  /// Get available employees for shift assignment using v2 RPC
-  ///
-  /// Uses manager_shift_get_schedule_v2 RPC with timezone support
-  /// - Returns shift times converted to local timezone
-  /// - Uses start_time_utc and end_time_utc columns
+  /// Get available employees for shift assignment
   ///
   /// [storeId] - Store ID
   /// [shiftDate] - Shift date in format 'yyyy-MM-dd'
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [AvailableEmployeesData] with employees list and existing shifts
   Future<AvailableEmployeesData> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
-    required String timezone,
   });
 
-  /// Get schedule data (employees and shifts) for a store using v2 RPC
-  ///
-  /// Uses manager_shift_get_schedule_v2 RPC with timezone support
-  /// - Returns shift times converted to local timezone
-  /// - Uses start_time_utc and end_time_utc columns
+  /// Get schedule data (employees and shifts) for a store
   ///
   /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [ScheduleData] with employees and shifts
   Future<ScheduleData> getScheduleData({
     required String storeId,
-    required String timezone,
   });
 
-  /// Insert new schedule (assign employee to shift) using v2 RPC
-  ///
-  /// Uses manager_shift_insert_schedule_v2 RPC with timezone support
-  /// - Handles duplicate detection and overnight shifts
-  /// - Calculates start_time_utc and end_time_utc automatically
+  /// Insert new schedule (assign employee to shift)
   ///
   /// [userId] - Employee user ID
   /// [shiftId] - Shift ID
   /// [storeId] - Store ID
-  /// [requestTime] - Request time in UTC timestamp format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestDate] - Request date in format 'yyyy-MM-dd'
   /// [approvedBy] - User ID of approver
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [OperationResult] indicating success or failure
   Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String requestDate,
     required String approvedBy,
-    required String timezone,
   });
 
   /// Process bulk shift approval
@@ -195,13 +166,22 @@ abstract class TimeTableRepository {
     required List<bool> approvalStates,
   });
 
-  /// Input card data (comprehensive shift update with tags) using v2 RPC
+  /// Update shift details
   ///
-  /// Uses manager_shift_input_card_v2 RPC with timezone support
-  /// - Uses v2/_utc columns for all time and status fields
-  /// - Supports night shifts with automatic date adjustment
-  /// - Auto-generates tags when status values change
-  /// - Enriches tags with creator names
+  /// [shiftRequestId] - Shift request ID
+  /// [startTime] - Start time (optional)
+  /// [endTime] - End time (optional)
+  /// [isProblemSolved] - Problem solved status (optional)
+  ///
+  /// Returns updated [ShiftRequest] entity
+  Future<ShiftRequest> updateShift({
+    required String shiftRequestId,
+    String? startTime,
+    String? endTime,
+    bool? isProblemSolved,
+  });
+
+  /// Input card data (comprehensive shift update with tags)
   ///
   /// [managerId] - Manager user ID performing the update
   /// [shiftRequestId] - Shift request ID to update
@@ -211,7 +191,6 @@ abstract class TimeTableRepository {
   /// [newTagType] - Optional tag type
   /// [isLate] - Whether employee was late
   /// [isProblemSolved] - Whether any problem was resolved
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [CardInputResult] with updated shift request
   Future<CardInputResult> inputCard({
@@ -223,7 +202,15 @@ abstract class TimeTableRepository {
     String? newTagType,
     required bool isLate,
     required bool isProblemSolved,
-    required String timezone,
+  });
+
+  /// Get tags by card ID
+  ///
+  /// [cardId] - Card ID
+  ///
+  /// Returns list of [Tag] entities
+  Future<List<Tag>> getTagsByCardId({
+    required String cardId,
   });
 
   /// Add bonus to shift

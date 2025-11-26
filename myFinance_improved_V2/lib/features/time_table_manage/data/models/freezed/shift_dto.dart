@@ -18,6 +18,7 @@ class ShiftDto with _$ShiftDto {
     @JsonKey(name: 'current_count') @Default(0) int currentCount,
     @JsonKey(name: 'tags') @Default([]) List<String> tags,
     @JsonKey(name: 'shift_name') String? shiftName,
+    @JsonKey(name: 'store_name') String? storeName,
   }) = _ShiftDto;
 
   factory ShiftDto.fromJson(Map<String, dynamic> json) =>

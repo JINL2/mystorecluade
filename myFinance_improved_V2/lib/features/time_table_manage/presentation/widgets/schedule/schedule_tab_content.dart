@@ -149,7 +149,7 @@ class ScheduleTabContent extends ConsumerWidget {
                     selectedShiftRequests: selectedShiftRequests,
                     selectedShiftApprovalStates: selectedShiftApprovalStates,
                     selectedShiftRequestIds: selectedShiftRequestIds,
-                    userId: (ref.read(appStateProvider).user['user_id'] as String?) ?? '',
+                    userId: ref.read(appStateProvider).user['user_id'] ?? '',
                     selectedDate: selectedDate,
                     onSuccess: onApprovalSuccess,
                   ),

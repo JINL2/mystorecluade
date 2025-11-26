@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'shift_card.freezed.dart';
 part 'shift_card.g.dart';
 
-/// Shift Card Entity - from user_shift_cards_v2 RPC
+/// Shift Card Entity - from user_shift_cards RPC
 /// Represents a user's shift card with attendance details
 @freezed
 class ShiftCard with _$ShiftCard {

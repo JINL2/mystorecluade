@@ -148,6 +148,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     shiftId: string,
     employeeId: string,
     date: string,
+    shiftStartTime: string,
     approvedBy: string
   ) => {
     try {
@@ -176,6 +177,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         shiftId,
         get().selectedStoreId || '',
         date,
+        shiftStartTime,
         approvedBy
       );
 

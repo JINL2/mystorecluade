@@ -8947,6 +8947,16 @@ export type Database = {
         }
         Returns: Json
       }
+      get_shift_schedule_info_v2: {
+        Args: {
+          p_company_id: string
+          p_end_date: string
+          p_start_date: string
+          p_store_id: string
+          p_timezone: string
+        }
+        Returns: Json
+      }
       get_single_counterparty: {
         Args: {
           p_company_id: string
@@ -9673,6 +9683,17 @@ export type Database = {
           p_request_date: string
           p_shift_id: string
           p_store_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      manager_shift_insert_schedule_v2: {
+        Args: {
+          p_approved_by: string
+          p_request_time: string
+          p_shift_id: string
+          p_store_id: string
+          p_timezone: string
           p_user_id: string
         }
         Returns: Json

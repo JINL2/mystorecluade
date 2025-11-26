@@ -4,7 +4,7 @@
  * Integrated single-page design with LeftFilter + StoreSelector
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
@@ -12,6 +12,7 @@ import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { AddEmployeeModal } from '../../components/AddEmployeeModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
 import { useSchedule } from '../../hooks/useSchedule';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { useAppState } from '@/app/providers/app_state_provider';
@@ -24,9 +25,22 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
   const companyId = currentCompany?.company_id || '';
   const currentUserId = currentUser?.user_id || '';
 
+  // Drag and drop state
+  const [draggedEmployeeId, setDraggedEmployeeId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ shiftId: string; date: string } | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [pendingAssignment, setPendingAssignment] = useState<{
+    employeeId: string;
+    employeeName: string;
+    shiftId: string;
+    shiftName: string;
+    date: string;
+  } | null>(null);
+
   // Get all state from provider
   const {
     shifts,
+    assignments,
     employees,
     loading,
     loadingEmployees,
@@ -120,6 +134,96 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     } finally {
       setAddingEmployee(false);
     }
+  };
+
+  // Drag and drop handlers
+  const handleEmployeeDragStart = (e: React.DragEvent<HTMLDivElement>, employeeId: string) => {
+    setDraggedEmployeeId(employeeId);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleEmployeeDragEnd = () => {
+    setDraggedEmployeeId(null);
+    setDropTarget(null);
+  };
+
+  const handleCellDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleCellDragEnter = (shiftId: string, date: string) => {
+    if (draggedEmployeeId) {
+      setDropTarget({ shiftId, date });
+    }
+  };
+
+  const handleCellDragLeave = () => {
+    setDropTarget(null);
+  };
+
+  const handleCellDrop = (e: React.DragEvent<HTMLDivElement>, shiftId: string, date: string) => {
+    e.preventDefault();
+    setDropTarget(null);
+
+    if (!draggedEmployeeId) return;
+
+    // Find employee and shift details
+    const employee = employees.find((emp) => emp.userId === draggedEmployeeId);
+    const shift = shifts.find((s) => s.shiftId === shiftId);
+
+    if (!employee || !shift) {
+      setDraggedEmployeeId(null);
+      return;
+    }
+
+    // Check for duplicate assignment (same user_id, same shift, same date)
+    const dayAssignments = getAssignmentsForDate(date);
+    const isDuplicate = dayAssignments.some(
+      (assignment) =>
+        assignment.userId === draggedEmployeeId &&
+        assignment.shift.shiftId === shiftId
+    );
+
+    if (isDuplicate) {
+      // Show error message for duplicate assignment
+      showNotification({
+        variant: 'error',
+        title: 'Duplicate Assignment',
+        message: `${employee.fullName} is already assigned to ${shift.shiftName} on this date.`,
+      });
+      setDraggedEmployeeId(null);
+      return;
+    }
+
+    // Set pending assignment and show confirmation modal
+    setPendingAssignment({
+      employeeId: draggedEmployeeId,
+      employeeName: employee.fullName,
+      shiftId: shift.shiftId,
+      shiftName: shift.shiftName,
+      date,
+    });
+    setIsConfirmModalOpen(true);
+    setDraggedEmployeeId(null);
+  };
+
+  const handleConfirmAssignment = async () => {
+    if (!pendingAssignment) return;
+
+    await handleAddEmployee(
+      pendingAssignment.shiftId,
+      pendingAssignment.employeeId,
+      pendingAssignment.date
+    );
+
+    setIsConfirmModalOpen(false);
+    setPendingAssignment(null);
+  };
+
+  const handleCancelAssignment = () => {
+    setIsConfirmModalOpen(false);
+    setPendingAssignment(null);
   };
 
   // Format week display
@@ -308,27 +412,9 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
                       </TossButton>
                     </div>
 
-                    {/* Shift Legend */}
-                    {shifts.length > 0 && (
-                      <div className={styles.shiftLegend}>
-                        <h3 className={styles.legendTitle}>Shifts</h3>
-                        <div className={styles.legendItems}>
-                          {shifts.map((shift) => (
-                            <div key={shift.shiftId} className={styles.legendItem}>
-                              <div className={styles.legendColor} style={{ backgroundColor: shift.color }}></div>
-                              <div className={styles.legendInfo}>
-                                <span className={styles.legendName}>{shift.shiftName}</span>
-                                <span className={styles.legendTime}>{shift.timeRange}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Schedule Grid */}
                     <div className={styles.scheduleSection}>
-                      {weekDays.length === 0 ? (
+                      {weekDays.length === 0 || shifts.length === 0 ? (
                         <div className={styles.emptyState}>
                           <svg
                             className={styles.emptyIcon}
@@ -459,77 +545,111 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
                             <circle cx="60" cy="99" r="1.5" fill="white" />
                           </svg>
                           <h3 className={styles.emptyTitle}>No Schedule Available</h3>
-                          <p className={styles.emptyText}>No schedule data for the selected week</p>
+                          <p className={styles.emptyText}>
+                            {shifts.length === 0 ? 'No shifts configured for this store' : 'No schedule data for the selected week'}
+                          </p>
                         </div>
                       ) : (
-                        <div className={styles.scheduleGrid}>
-                          {weekDays.map((date) => {
-                            const dayAssignments = getAssignmentsForDate(date);
-                            const isTodayDate = isToday(date);
-
-                            return (
-                              <div
-                                key={date}
-                                className={`${styles.dayColumn} ${isTodayDate ? styles.today : ''}`}
-                              >
-                                <div className={styles.dayHeader}>
+                        <div className={styles.scheduleGridContainer}>
+                          {/* Header Row */}
+                          <div className={styles.scheduleHeader}>
+                            <div className={styles.shiftHeaderCell}>Shifts</div>
+                            {weekDays.map((date) => {
+                              const isTodayDate = isToday(date);
+                              return (
+                                <div
+                                  key={date}
+                                  className={`${styles.dateHeaderCell} ${isTodayDate ? styles.today : ''}`}
+                                >
                                   <div className={styles.dayName}>{formatDayHeader(date)}</div>
                                   {isTodayDate && <span className={styles.todayBadge}>Today</span>}
                                 </div>
-                                <div className={styles.assignmentList}>
-                                  {dayAssignments.length === 0 ? (
-                                    <div className={styles.noAssignments}>No shifts</div>
-                                  ) : (
-                                    <>
-                                      {dayAssignments.map((assignment) => (
-                                        <div
-                                          key={assignment.assignmentId}
-                                          className={styles.assignmentCard}
-                                          style={{ borderLeftColor: assignment.shift.color }}
-                                        >
-                                          <div className={styles.assignmentName}>
-                                            {assignment.fullName || 'Unknown Employee'}
-                                          </div>
-                                          <div className={styles.assignmentShift}>{assignment.shift.shiftName}</div>
-                                          <div className={styles.assignmentTime}>{assignment.shift.timeRange}</div>
-                                          <span className={`${styles.statusBadge} ${styles[assignment.status]}`}>
-                                            {assignment.status}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </>
-                                  )}
+                              );
+                            })}
+                          </div>
 
-                                  {/* Add Employee Button */}
-                                  <button
-                                    className={styles.addEmployeeButton}
-                                    onClick={() => openAddEmployeeModal(date)}
-                                  >
-                                    <svg
-                                      className={styles.addIcon}
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <line x1="12" y1="5" x2="12" y2="19" />
-                                      <line x1="5" y1="12" x2="19" y2="12" />
-                                    </svg>
-                                    <span>Add Employee</span>
-                                  </button>
-                                </div>
+                          {/* Shift Rows */}
+                          {shifts.map((shift) => (
+                            <div key={shift.shiftId} className={styles.shiftRow}>
+                              {/* Shift Info Cell */}
+                              <div className={styles.shiftInfoCell} style={{ borderLeftColor: shift.color }}>
+                                <div className={styles.shiftName}>{shift.shiftName}</div>
+                                <div className={styles.shiftTime}>{shift.timeRange}</div>
                               </div>
-                            );
-                          })}
+
+                              {/* Date Cells */}
+                              {weekDays.map((date) => {
+                                const isTodayDate = isToday(date);
+                                const dayAssignments = getAssignmentsForDate(date);
+                                const shiftAssignments = dayAssignments.filter(
+                                  (assignment) => assignment.shift.shiftId === shift.shiftId
+                                );
+                                const isDropTarget = dropTarget?.shiftId === shift.shiftId && dropTarget?.date === date;
+
+                                return (
+                                  <div
+                                    key={date}
+                                    className={`${styles.assignmentCell} ${isTodayDate ? styles.today : ''} ${isDropTarget ? styles.dropTarget : ''}`}
+                                    onDragOver={handleCellDragOver}
+                                    onDragEnter={() => handleCellDragEnter(shift.shiftId, date)}
+                                    onDragLeave={handleCellDragLeave}
+                                    onDrop={(e) => handleCellDrop(e, shift.shiftId, date)}
+                                  >
+                                    {shiftAssignments.length === 0 ? (
+                                      <button
+                                        className={styles.addEmployeeCellButton}
+                                        onClick={() => openAddEmployeeModal(date)}
+                                        title="Add Employee"
+                                      >
+                                        <svg
+                                          className={styles.addIconSmall}
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                        >
+                                          <line x1="12" y1="5" x2="12" y2="19" />
+                                          <line x1="5" y1="12" x2="19" y2="12" />
+                                        </svg>
+                                      </button>
+                                    ) : (
+                                      <div className={styles.employeeList}>
+                                        {shiftAssignments.map((assignment) => (
+                                          <div
+                                            key={assignment.assignmentId}
+                                            className={styles.employeeChip}
+                                            title={`${assignment.fullName} - ${assignment.status}`}
+                                          >
+                                            <span className={styles.employeeName}>
+                                              {assignment.fullName || 'Unknown'}
+                                            </span>
+                                            <span className={`${styles.statusDot} ${styles[assignment.status]}`}></span>
+                                          </div>
+                                        ))}
+                                        <button
+                                          className={styles.addEmployeeCellButtonSmall}
+                                          onClick={() => openAddEmployeeModal(date)}
+                                          title="Add Another Employee"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
 
                     {/* Employee List */}
                     <div className={styles.employeeSection}>
-                      <h3 className={styles.sectionTitle}>Employees ({employees.length})</h3>
+                      <h3 className={styles.sectionTitle}>
+                        Employees ({employees.length})
+                        <span className={styles.dragHint}>Drag employees to schedule cells</span>
+                      </h3>
                       {loadingEmployees ? (
                         <LoadingAnimation />
                       ) : employees.length === 0 ? (
@@ -537,7 +657,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
                       ) : (
                         <div className={styles.employeeGrid}>
                           {employees.map((employee) => (
-                            <div key={employee.userId} className={styles.employeeCard}>
+                            <div
+                              key={employee.userId}
+                              className={`${styles.employeeCard} ${draggedEmployeeId === employee.userId ? styles.dragging : ''}`}
+                              draggable={true}
+                              onDragStart={(e) => handleEmployeeDragStart(e, employee.userId)}
+                              onDragEnd={handleEmployeeDragEnd}
+                            >
                               <div className={styles.employeeAvatar}>{employee.initials}</div>
                               <div className={styles.employeeInfo}>
                                 <div className={styles.employeeName}>{employee.fullName}</div>
@@ -564,6 +690,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           selectedDate={selectedDate}
           shifts={shifts}
           employees={employees}
+          assignments={assignments}
           onAddEmployee={handleAddEmployee}
           loading={addingEmployee}
         />
@@ -579,6 +706,45 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           onClose={clearNotification}
         />
       )}
+
+      {/* Confirm Assignment Modal */}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={handleCancelAssignment}
+        onConfirm={handleConfirmAssignment}
+        variant="info"
+        title="Add Employee to Shift"
+        message="Do you want to add this employee to the selected shift?"
+        confirmText="Add Employee"
+        cancelText="Cancel"
+        confirmButtonVariant="primary"
+        isLoading={addingEmployee}
+        closeOnBackdropClick={true}
+      >
+        {pendingAssignment && (
+          <div className={styles.confirmContent}>
+            <div className={styles.confirmRow}>
+              <span className={styles.confirmLabel}>Employee:</span>
+              <span className={styles.confirmValue}>{pendingAssignment.employeeName}</span>
+            </div>
+            <div className={styles.confirmRow}>
+              <span className={styles.confirmLabel}>Shift:</span>
+              <span className={styles.confirmValue}>{pendingAssignment.shiftName}</span>
+            </div>
+            <div className={styles.confirmRow}>
+              <span className={styles.confirmLabel}>Date:</span>
+              <span className={styles.confirmValue}>
+                {new Date(pendingAssignment.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+          </div>
+        )}
+      </ConfirmModal>
     </>
   );
 };

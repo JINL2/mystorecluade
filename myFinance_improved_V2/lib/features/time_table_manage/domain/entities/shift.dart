@@ -11,6 +11,7 @@ class Shift {
   final int currentCount;
   final List<String> tags;
   final String? shiftName;
+  final String? storeName;
 
   const Shift({
     required this.shiftId,
@@ -22,6 +23,7 @@ class Shift {
     required this.currentCount,
     this.tags = const [],
     this.shiftName,
+    this.storeName,
   });
 
   /// Check if shift is fully staffed
@@ -53,6 +55,7 @@ class Shift {
     int? currentCount,
     List<String>? tags,
     String? shiftName,
+    String? storeName,
   }) {
     return Shift(
       shiftId: shiftId ?? this.shiftId,
@@ -64,6 +67,7 @@ class Shift {
       currentCount: currentCount ?? this.currentCount,
       tags: tags ?? this.tags,
       shiftName: shiftName ?? this.shiftName,
+      storeName: storeName ?? this.storeName,
     );
   }
 

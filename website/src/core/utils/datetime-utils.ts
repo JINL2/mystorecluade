@@ -423,4 +423,40 @@ export class DateTimeUtils {
       return 'Invalid Date';
     }
   }
+
+  /**
+   * Gets the user's local timezone (IANA format)
+   *
+   * @returns Timezone string (e.g., "Asia/Seoul", "America/New_York")
+   *
+   * @example
+   * DateTimeUtils.getLocalTimezone(); // "Asia/Seoul" (for Korean users)
+   * DateTimeUtils.getLocalTimezone(); // "America/Los_Angeles" (for US West Coast)
+   */
+  static getLocalTimezone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
+  /**
+   * Converts Date to local ISO string (yyyy-MM-ddTHH:mm:ss)
+   *
+   * This preserves the local time without converting to UTC.
+   * Used for RPC calls that require local time input.
+   *
+   * @param date - Local Date object
+   * @returns Local timestamp in ISO format without timezone suffix
+   *
+   * @example
+   * const now = new Date(); // 2025-01-15 14:30:00 (KST +9)
+   * DateTimeUtils.toLocalIso(now); // "2025-01-15T14:30:00"
+   */
+  static toLocalIso(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
 }

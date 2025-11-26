@@ -12,31 +12,24 @@ class GetShiftMetadata implements UseCase<ShiftMetadata, GetShiftMetadataParams>
 
   @override
   Future<ShiftMetadata> call(GetShiftMetadataParams params) async {
-    return await _repository.getShiftMetadata(
-      storeId: params.storeId,
-      timezone: params.timezone,
-    );
+    return await _repository.getShiftMetadata(storeId: params.storeId);
   }
 }
 
 /// Parameters for GetShiftMetadata UseCase
 class GetShiftMetadataParams {
   final String storeId;
-  final String timezone;
 
   const GetShiftMetadataParams({
     required this.storeId,
-    required this.timezone,
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is GetShiftMetadataParams &&
-        other.storeId == storeId &&
-        other.timezone == timezone;
+    return other is GetShiftMetadataParams && other.storeId == storeId;
   }
 
   @override
-  int get hashCode => storeId.hashCode ^ timezone.hashCode;
+  int get hashCode => storeId.hashCode;
 }

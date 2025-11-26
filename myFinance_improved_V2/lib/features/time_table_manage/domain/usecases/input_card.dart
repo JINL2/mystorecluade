@@ -47,7 +47,6 @@ class InputCard implements UseCase<CardInputResult, InputCardParams> {
       newTagType: params.newTagType,
       isLate: params.isLate,
       isProblemSolved: params.isProblemSolved,
-      timezone: params.timezone,
     );
   }
 }
@@ -62,7 +61,6 @@ class InputCardParams {
   final String? newTagType;
   final bool isLate;
   final bool isProblemSolved;
-  final String timezone;
 
   const InputCardParams({
     required this.managerId,
@@ -73,7 +71,6 @@ class InputCardParams {
     this.newTagType,
     required this.isLate,
     required this.isProblemSolved,
-    required this.timezone,
   });
 
   @override
@@ -87,8 +84,7 @@ class InputCardParams {
         other.newTagContent == newTagContent &&
         other.newTagType == newTagType &&
         other.isLate == isLate &&
-        other.isProblemSolved == isProblemSolved &&
-        other.timezone == timezone;
+        other.isProblemSolved == isProblemSolved;
   }
 
   @override
@@ -100,6 +96,5 @@ class InputCardParams {
       newTagContent.hashCode ^
       newTagType.hashCode ^
       isLate.hashCode ^
-      isProblemSolved.hashCode ^
-      timezone.hashCode;
+      isProblemSolved.hashCode;
 }

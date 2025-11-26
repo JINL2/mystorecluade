@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/store_shift.dart';
-import '../../domain/providers/repository_provider.dart';
+import '../../domain/repositories/store_shift_repository.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
 import '../../domain/usecases/get_shifts.dart';
@@ -15,30 +16,20 @@ import 'states/shift_page_state.dart';
 import 'states/store_settings_state.dart';
 
 /// ========================================
-/// CLEAN ARCHITECTURE COMPLIANCE ✅
+/// Presentation Layer Providers
 /// ========================================
 ///
-/// Presentation layer structure (IMPROVED):
-/// - Imports repository provider from DOMAIN layer (repository_provider.dart)
-/// - Data layer provides concrete implementation through override in main.dart
-/// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
+/// This file contains ALL providers for store_shift feature.
+/// Presentation layer is responsible for Dependency Injection.
 ///
-/// Dependency Flow:
-/// Presentation → Domain Providers → Domain Interfaces
-///                     ↑
-///              Data Implementation (injected via ProviderScope.overrides)
+/// ✅ Imports Data layer ONLY for DI (repository implementation)
+/// ✅ Imports Domain layer for business logic (entities, usecases, interfaces)
 ///
-/// Clean Architecture Benefits:
-/// ✅ Presentation does NOT import Data layer at all
-/// ✅ Presentation only knows about Domain interfaces
-/// ✅ Data layer can be swapped without affecting Presentation
-/// ✅ Easy to mock repositories for testing
-///
-/// Implementation:
-/// 1. Domain defines: storeShiftRepositoryProvider (throws UnimplementedError)
-/// 2. Data provides: storeShiftRepositoryImplProvider (concrete implementation)
-/// 3. main.dart overrides: storeShiftRepositoryProvider with storeShiftRepositoryImplProvider
-/// 4. Presentation uses: storeShiftRepositoryProvider (gets Data's implementation)
+/// This is ACCEPTABLE in Clean Architecture:
+/// - Presentation knows about Data (for DI)
+/// - Presentation knows about Domain (for business logic)
+/// - Domain knows NOTHING about Presentation or Data
+/// - Data knows ONLY about Domain
 
 /// ========================================
 /// UseCase Providers
@@ -46,37 +37,37 @@ import 'states/store_settings_state.dart';
 
 /// Get Shifts UseCase Provider
 final getShiftsUseCaseProvider = Provider<GetShifts>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return GetShifts(repository);
 });
 
 /// Create Shift UseCase Provider
 final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return CreateShift(repository);
 });
 
 /// Update Shift UseCase Provider
 final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return UpdateShift(repository);
 });
 
 /// Delete Shift UseCase Provider
 final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return DeleteShift(repository);
 });
 
 /// Update Store Location UseCase Provider
 final updateStoreLocationUseCaseProvider = Provider<UpdateStoreLocation>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return UpdateStoreLocation(repository);
 });
 
 /// Update Operational Settings UseCase Provider
 final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSettings>((ref) {
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return UpdateOperationalSettings(repository);
 });
 
@@ -89,7 +80,7 @@ final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSetti
 
 /// Provider to fetch shifts for the selected store
 ///
-/// Uses Domain Repository Provider (implementation injected via DI)
+/// Uses GetShifts UseCase to retrieve shifts.
 /// Returns empty list if no store is selected.
 final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) async {
   final appState = ref.watch(appStateProvider);
@@ -99,14 +90,14 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) a
     return [];
   }
 
-  // Use Domain Repository Provider (Clean Architecture compliant)
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  // Use repository implementation directly in Presentation (acceptable for DI)
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return await repository.getShiftsByStoreId(appState.storeChoosen);
 });
 
 /// Provider to fetch detailed store information
 ///
-/// Uses Domain Repository Provider (implementation injected via DI)
+/// Uses repository implementation.
 /// Returns null if no store is selected.
 final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
   final appState = ref.watch(appStateProvider);
@@ -116,8 +107,8 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
     return null;
   }
 
-  // Use Domain Repository Provider (Clean Architecture compliant)
-  final repository = ref.watch(storeShiftRepositoryProvider);
+  // Use repository implementation directly in Presentation (acceptable for DI)
+  final repository = ref.watch(storeShiftRepositoryImplProvider);
   return await repository.getStoreById(appState.storeChoosen);
 });
 

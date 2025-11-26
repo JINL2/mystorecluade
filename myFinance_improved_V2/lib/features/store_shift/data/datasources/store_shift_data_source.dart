@@ -22,17 +22,18 @@ class StoreShiftDataSource {
   ///
   /// Uses direct table query on 'store_shifts'
   /// Filters: store_id, is_active = true
-  /// Order: start_time_utc ascending
+  /// Order: start_time ascending
   ///
-  /// Note: Fetches both legacy (created_at, updated_at) and new (created_at_utc, updated_at_utc) columns
+  /// Note: created_at and updated_at are fetched as UTC and will be
+  /// converted to local time in the model layer using DateTimeUtils.toLocal()
   Future<List<Map<String, dynamic>>> getShiftsByStoreId(String storeId) async {
     try {
       final response = await _client
           .from('store_shifts')
-          .select('shift_id, shift_name, start_time_utc, end_time_utc, shift_bonus, is_active, created_at, updated_at, created_at_utc, updated_at_utc')
+          .select('shift_id, shift_name, start_time, end_time, shift_bonus, is_active, created_at, updated_at')
           .eq('store_id', storeId)
           .eq('is_active', true)
-          .order('start_time_utc', ascending: true);
+          .order('start_time', ascending: true);
 
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e, stackTrace) {
@@ -46,9 +47,6 @@ class StoreShiftDataSource {
   /// Create a new shift
   ///
   /// Uses INSERT on 'store_shifts' table
-  /// Stores all time data in *_utc columns (timetz type with timezone offset)
-  /// - start_time_utc, end_time_utc: HH:mm+ZZ:ZZ format
-  /// - created_at_utc, updated_at_utc: HH:mm:ss+ZZ:ZZ format
   Future<Map<String, dynamic>> createShift({
     required String storeId,
     required String shiftName,
@@ -57,18 +55,11 @@ class StoreShiftDataSource {
     required int shiftBonus,
   }) async {
     try {
-      // Get current time with timezone offset (HH:mm:ss+ZZ:ZZ format)
-      final now = DateTime.now();
-      final currentTime = _formatDateTimeWithTimezone(now);
-
       final insertData = {
         'store_id': storeId,
         'shift_name': shiftName,
-        // timetz columns with timezone
-        'start_time_utc': startTime,
-        'end_time_utc': endTime,
-        'created_at_utc': currentTime,
-        'updated_at_utc': currentTime,
+        'start_time': startTime,
+        'end_time': endTime,
         'shift_bonus': shiftBonus,
         'is_active': true,
       };
@@ -88,29 +79,9 @@ class StoreShiftDataSource {
     }
   }
 
-  /// Format DateTime to timetz format with timezone offset
-  /// Example: 2025-01-15 14:30:45 in UTC+9 -> "14:30:45+09:00"
-  String _formatDateTimeWithTimezone(DateTime dateTime) {
-    final offset = dateTime.timeZoneOffset;
-
-    // Format time part (HH:mm:ss)
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final second = dateTime.second.toString().padLeft(2, '0');
-
-    // Format timezone offset (+HH:mm or -HH:mm)
-    final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-    final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-    final offsetSign = offset.isNegative ? '-' : '+';
-
-    return '$hour:$minute:$second$offsetSign$offsetHours:$offsetMinutes';
-  }
-
   /// Update an existing shift
   ///
   /// Uses UPDATE on 'store_shifts' table
-  /// Updates *_utc columns (timetz type with timezone offset)
-  /// Always updates updated_at_utc with current time (HH:mm:ss+ZZ:ZZ format)
   Future<Map<String, dynamic>> updateShift({
     required String shiftId,
     String? shiftName,
@@ -122,17 +93,13 @@ class StoreShiftDataSource {
       final updateData = <String, dynamic>{};
 
       if (shiftName != null) updateData['shift_name'] = shiftName;
-      if (startTime != null) updateData['start_time_utc'] = startTime;
-      if (endTime != null) updateData['end_time_utc'] = endTime;
+      if (startTime != null) updateData['start_time'] = startTime;
+      if (endTime != null) updateData['end_time'] = endTime;
       if (shiftBonus != null) updateData['shift_bonus'] = shiftBonus;
 
       if (updateData.isEmpty) {
         throw const InvalidShiftDataException('No fields to update');
       }
-
-      // Always update updated_at_utc with current time
-      final now = DateTime.now();
-      updateData['updated_at_utc'] = _formatDateTimeWithTimezone(now);
 
       final response = await _client
           .from('store_shifts')

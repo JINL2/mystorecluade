@@ -19,6 +19,7 @@ _$ShiftDtoImpl _$$ShiftDtoImplFromJson(Map<String, dynamic> json) =>
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       shiftName: json['shift_name'] as String?,
+      storeName: json['store_name'] as String?,
     );
 
 Map<String, dynamic> _$$ShiftDtoImplToJson(_$ShiftDtoImpl instance) =>
@@ -32,4 +33,5 @@ Map<String, dynamic> _$$ShiftDtoImplToJson(_$ShiftDtoImpl instance) =>
       'current_count': instance.currentCount,
       'tags': instance.tags,
       'shift_name': instance.shiftName,
+      'store_name': instance.storeName,
     };

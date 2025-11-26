@@ -1,27 +1,54 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'monthly_shift_status.freezed.dart';
-
-/// Monthly Shift Status Entity - Pure business object
+/// Monthly Shift Status Entity
 ///
-/// Represents shift status for the month from RPC: get_monthly_shift_status_manager_v2
-/// Does NOT contain JSON serialization - that's handled by MonthlyShiftStatusModel in Data layer.
-@freezed
-class MonthlyShiftStatus with _$MonthlyShiftStatus {
-  const MonthlyShiftStatus._();
+/// Represents shift status for the month from RPC: get_monthly_shift_status_manager
+///
+/// Note: This wraps the raw RPC response for backward compatibility
+/// while providing type-safe accessors for common fields.
+class MonthlyShiftStatus {
+  final Map<String, dynamic> _data;
 
-  const factory MonthlyShiftStatus({
-    required String requestDate,
-    required String shiftId,
-    String? shiftName,
-    String? shiftType,
-    @Default([]) List<EmployeeStatus> pendingEmployees,
-    @Default([]) List<EmployeeStatus> approvedEmployees,
-  }) = _MonthlyShiftStatus;
+  MonthlyShiftStatus(this._data);
 
-  // ========================================
-  // Business Logic Methods
-  // ========================================
+  /// Create from JSON (from RPC: get_monthly_shift_status_manager)
+  factory MonthlyShiftStatus.fromJson(Map<String, dynamic> json) {
+    return MonthlyShiftStatus(Map<String, dynamic>.from(json));
+  }
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() => Map<String, dynamic>.from(_data);
+
+  /// Access underlying data (for backward compatibility)
+  dynamic operator [](String key) => _data[key];
+
+  /// Set underlying data (for backward compatibility)
+  void operator []=(String key, dynamic value) => _data[key] = value;
+
+  /// Request date
+  String get requestDate => _data['request_date'] as String? ?? '';
+
+  /// Shift ID (tries multiple possible field names)
+  String get shiftId =>
+      (_data['shift_id'] ?? _data['id'] ?? _data['store_shift_id'])?.toString() ?? '';
+
+  /// Shift name
+  String? get shiftName => _data['shift_name'] as String?;
+
+  /// Shift type
+  String? get shiftType => _data['shift_type'] as String?;
+
+  /// Pending employees list
+  List<Map<String, dynamic>> get pendingEmployees {
+    if (_data['pending_employees'] == null) return [];
+    final list = _data['pending_employees'] as List;
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Approved employees list
+  List<Map<String, dynamic>> get approvedEmployees {
+    if (_data['approved_employees'] == null) return [];
+    final list = _data['approved_employees'] as List;
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
 
   /// Total employees count
   int get totalEmployees => pendingEmployees.length + approvedEmployees.length;
@@ -29,31 +56,6 @@ class MonthlyShiftStatus with _$MonthlyShiftStatus {
   /// Has any employees
   bool get hasEmployees => totalEmployees > 0;
 
-  /// Get approval rate
-  double get approvalRate {
-    if (totalEmployees == 0) return 0.0;
-    return approvedEmployees.length / totalEmployees;
-  }
-
-  /// Check if all employees are approved
-  bool get isFullyApproved => pendingEmployees.isEmpty && approvedEmployees.isNotEmpty;
-
-  /// Check if has pending employees
-  bool get hasPendingEmployees => pendingEmployees.isNotEmpty;
-}
-
-/// Employee Status Entity
-///
-/// Represents employee status within monthly shift
-@freezed
-class EmployeeStatus with _$EmployeeStatus {
-  const factory EmployeeStatus({
-    required String userId,
-    required String userName,
-    String? userEmail,
-    String? userPhone,
-    DateTime? requestTime,
-    bool? isApproved,
-    String? approvedBy,
-  }) = _EmployeeStatus;
+  @override
+  String toString() => 'MonthlyShiftStatus(date: $requestDate, shift: $shiftId, total: $totalEmployees)';
 }

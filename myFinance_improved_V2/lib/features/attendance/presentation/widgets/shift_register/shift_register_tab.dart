@@ -6,14 +6,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
-import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../data/models/monthly_shift_status_model.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_data.dart';
 import '../../../domain/entities/shift_metadata.dart';
@@ -33,9 +31,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   String? selectedStoreId;
   List<ShiftMetadata>? shiftMetadata; // Store shift metadata from RPC
   bool isLoadingMetadata = false;
-  // TODO: Refactor to use List<MonthlyShiftStatus> entities instead of Map
-  // Currently using Map for backward compatibility with existing UI code
-  List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status as JSON
+  List<MonthlyShiftStatus>? monthlyShiftStatus; // Store monthly shift status from RPC
   bool isLoadingShiftStatus = false;
 
   // ScrollController for auto-scroll functionality
@@ -81,11 +77,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     try {
       // Use get shift metadata use case
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
-      final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await getShiftMetadata(
         storeId: storeId,
-        timezone: timezone,
       );
 
       if (mounted) {
@@ -116,33 +110,22 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     });
     
     try {
-      // Format as local timestamp with timezone offset for the first day of the focused month
-      // Format: "2024-11-01T00:00:00+07:00"
-      final firstDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1, 0, 0, 0);
-      final requestTime = DateTimeUtils.toLocalWithOffset(firstDayOfMonth);
-
-      // Get user's local timezone
-      final timezone = DateTimeUtils.getLocalTimezone();
+      // Format date as YYYY-MM-DD for the first day of the focused month
+      final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
 
       // Use get monthly shift status use case
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      final entityList = await getMonthlyShiftStatus(
+      final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
-        requestTime: requestTime,
-        timezone: timezone,
+        requestDate: requestDate,
       );
 
-      // Convert Entity list to JSON list for backward compatibility with existing UI
-      final jsonList = entityList
-          .map((entity) => MonthlyShiftStatusModel.fromEntity(entity).toJson())
-          .toList();
-
       setState(() {
-        monthlyShiftStatus = jsonList;
+        monthlyShiftStatus = response;
         isLoadingShiftStatus = false;
       });
       
@@ -311,8 +294,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     int existingIndex = -1;
 
     for (int i = 0; i < monthlyShiftStatus!.length; i++) {
-      if (monthlyShiftStatus![i]['request_date'] == requestDate) {
-        existingDayData = Map<String, dynamic>.from(monthlyShiftStatus![i]);
+      if (monthlyShiftStatus![i].requestDate == requestDate) {
+        existingDayData = monthlyShiftStatus![i].toJson();
         existingIndex = i;
         break;
       }
@@ -435,13 +418,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
           }
         ],
       };
-      monthlyShiftStatus!.add(newDayData);
+      monthlyShiftStatus!.add(MonthlyShiftStatus.fromJson(newDayData));
     }
 
     // Trigger UI update
     setState(() {
       // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
+      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
     });
     
     
@@ -508,7 +491,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     // Trigger UI update
     setState(() {
       // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
+      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
     });
   }
   
@@ -663,11 +646,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     // monthlyShiftStatus contains days with nested shifts and employee arrays
     // We need to find the day data first, then look for the user in the shift's employee arrays
     final dayData = monthlyShiftStatus?.firstWhere(
-      (day) => day['request_date'] == dateStr,
-      orElse: () => <String, dynamic>{},
+      (day) => day.requestDate == dateStr,
+      orElse: () => MonthlyShiftStatus({}),
     );
 
-    if (dayData != null && dayData.isNotEmpty) {
+    if (dayData != null && dayData.toJson().isNotEmpty) {
     } else {
     }
 
@@ -676,7 +659,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     final user = authStateAsync.value;
     Map<String, dynamic>? userShiftData;
 
-    if (dayData != null && dayData.isNotEmpty && user != null) {
+    if (dayData != null && dayData.toJson().isNotEmpty && user != null) {
       final shifts = dayData['shifts'] as List? ?? [];
       
       // Look ONLY for the SELECTED shift, not all shifts
@@ -942,29 +925,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                             try {
                               // Use register shift request use case
                               final registerShiftRequest = ref.read(registerShiftRequestProvider);
-
-                              // Create DateTime for the selected date with current time
-                              // Format: "2024-11-15T10:30:25+07:00"
-                              final now = DateTime.now();
-                              final requestDateTime = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                now.hour,
-                                now.minute,
-                                now.second,
-                              );
-                              final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-
-                              // Get user's local timezone
-                              final timezone = DateTimeUtils.getLocalTimezone();
-
                               await registerShiftRequest(
                                 userId: user.id,
                                 shiftId: selectedShift!,
                                 storeId: selectedStoreId!,
-                                requestTime: requestTime,
-                                timezone: timezone,
+                                requestDate: dateStr,
                               );
                               
                               
@@ -1658,51 +1623,23 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       // Cancel each shift
       for (final shift in shiftsToCancel) {
         // Get shift_id and prepare request_date
-        final shiftId = shift['shift_id']?.toString() ??
-                       shift['id']?.toString() ??
+        final shiftId = shift['shift_id']?.toString() ?? 
+                       shift['id']?.toString() ?? 
                        shift['store_shift_id']?.toString() ?? '';
         final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-
-
+        
+        
         if (shiftId.isNotEmpty) {
 
           // Delete using the three-column filter approach via use case
           // This uniquely identifies the row without needing shift_request_id
           final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
-
-          // Create DateTime for the selected date with current time
-          // Same format as registerShiftRequest: "2024-11-15T10:30:25+07:00"
-          final now = DateTime.now();
-          final requestDateTime = DateTime(
-            selectedDate.year,
-            selectedDate.month,
-            selectedDate.day,
-            now.hour,
-            now.minute,
-            now.second,
-          );
-          final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-
-          // Get user's local timezone (same as registerShiftRequest)
-          final timezone = DateTimeUtils.getLocalTimezone();
-
-          // Debug log: Print parameters before UseCase call
-          print('🔵 [UI] Calling deleteShiftRequest with:');
-          print('  - userId: ${user.id}');
-          print('  - shiftId: $shiftId');
-          print('  - requestDate: $dateStr');
-          print('  - requestTime: $requestTime');
-          print('  - timezone: $timezone');
-
           await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
-            timezone: timezone,
           );
 
-          // Debug log: Success
-          print('🟢 [UI] deleteShiftRequest completed successfully');
 
           // Optimistic UI update: immediately remove from local state
           // This prevents the race condition where fetch happens before DB commit
@@ -2462,9 +2399,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
       final result = monthlyShiftStatus!.firstWhere(
-        (dayData) => dayData['request_date'] == dateStr,
+        (dayData) => dayData.requestDate == dateStr,
       );
-      return result;
+      return result.toJson();
     } catch (e) {
       return null;
     }

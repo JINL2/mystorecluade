@@ -14,6 +14,7 @@ class ShiftModel {
   final int currentCount;
   final List<String> tags;
   final String? shiftName;
+  final String? storeName;
 
   const ShiftModel({
     required this.shiftId,
@@ -25,6 +26,7 @@ class ShiftModel {
     required this.currentCount,
     this.tags = const [],
     this.shiftName,
+    this.storeName,
   });
 
   /// Create from JSON
@@ -42,6 +44,7 @@ class ShiftModel {
               .toList() ??
           [],
       shiftName: json['shift_name'] as String?,
+      storeName: json['store_name'] as String?,
     );
   }
 
@@ -57,6 +60,7 @@ class ShiftModel {
       'current_count': currentCount,
       'tags': tags,
       if (shiftName != null) 'shift_name': shiftName,
+      if (storeName != null) 'store_name': storeName,
     };
   }
 
@@ -72,6 +76,7 @@ class ShiftModel {
       currentCount: currentCount,
       tags: tags,
       shiftName: shiftName,
+      storeName: storeName,
     );
   }
 
@@ -87,6 +92,7 @@ class ShiftModel {
       currentCount: entity.currentCount,
       tags: entity.tags,
       shiftName: entity.shiftName,
+      storeName: entity.storeName,
     );
   }
 }

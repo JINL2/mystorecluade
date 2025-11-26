@@ -24,8 +24,8 @@ class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
       throw ArgumentError('Store ID cannot be empty');
     }
 
-    if (params.requestTime.isEmpty) {
-      throw ArgumentError('Request time cannot be empty');
+    if (params.requestDate.isEmpty) {
+      throw ArgumentError('Request date cannot be empty');
     }
 
     if (params.approvedBy.isEmpty) {
@@ -36,9 +36,8 @@ class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
       userId: params.userId,
       shiftId: params.shiftId,
       storeId: params.storeId,
-      requestTime: params.requestTime,
+      requestDate: params.requestDate,
       approvedBy: params.approvedBy,
-      timezone: params.timezone,
     );
   }
 }
@@ -48,17 +47,15 @@ class InsertScheduleParams {
   final String userId;
   final String shiftId;
   final String storeId;
-  final String requestTime;
+  final String requestDate;
   final String approvedBy;
-  final String timezone;
 
   const InsertScheduleParams({
     required this.userId,
     required this.shiftId,
     required this.storeId,
-    required this.requestTime,
+    required this.requestDate,
     required this.approvedBy,
-    required this.timezone,
   });
 
   @override
@@ -68,9 +65,8 @@ class InsertScheduleParams {
         other.userId == userId &&
         other.shiftId == shiftId &&
         other.storeId == storeId &&
-        other.requestTime == requestTime &&
-        other.approvedBy == approvedBy &&
-        other.timezone == timezone;
+        other.requestDate == requestDate &&
+        other.approvedBy == approvedBy;
   }
 
   @override
@@ -78,7 +74,6 @@ class InsertScheduleParams {
       userId.hashCode ^
       shiftId.hashCode ^
       storeId.hashCode ^
-      requestTime.hashCode ^
-      approvedBy.hashCode ^
-      timezone.hashCode;
+      requestDate.hashCode ^
+      approvedBy.hashCode;
 }
