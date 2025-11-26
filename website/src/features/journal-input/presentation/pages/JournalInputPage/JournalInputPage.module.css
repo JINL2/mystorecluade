@@ -38,17 +38,25 @@
   margin: 0;
 }
 
+/* ==================== JOURNAL HEADER WRAPPER ==================== */
+.journalHeaderWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
 /* ==================== JOURNAL HEADER CARD ==================== */
 .journalHeaderCard {
   background: white;
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
-  margin-bottom: var(--space-4);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-5);
+  width: 100%;
 }
 
 .journalDateInfo {
@@ -91,6 +99,50 @@
 .journalStoreText {
   font-size: var(--font-small);
   color: var(--toss-gray-600);
+}
+
+/* ==================== MINI TAB SWITCHER ==================== */
+.miniTabsWrapper {
+  display: flex;
+  background: var(--toss-gray-100);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  position: relative;
+}
+
+.miniTab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1;
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--toss-gray-500);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.miniTab:hover {
+  color: var(--toss-gray-700);
+}
+
+.miniTab.active {
+  color: var(--toss-primary);
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.miniTabIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 /* ==================== STORE SELECTOR CARD ==================== */
@@ -832,15 +884,10 @@
     flex-direction: column;
   }
 
-  .tab {
-    padding: 10px 16px;
-    font-size: var(--font-small);
-    gap: 6px;
-  }
-
-  .tabIcon {
-    width: 18px;
-    height: 18px;
+  .journalHeaderCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
 
   .excelTableCard {

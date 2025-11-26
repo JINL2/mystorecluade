@@ -43,10 +43,10 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
     if (!selectedShiftId) return true;
 
     // Check if this employee is already assigned to this shift on this date
-    const isAlreadyAssigned = assignments.some(
+    const isAlreadyAssigned = assignments?.some(
       (assignment) =>
         assignment.userId === employee.userId &&
-        assignment.shiftId === selectedShiftId &&
+        assignment.shift.shiftId === selectedShiftId &&
         assignment.date === selectedDate
     );
 

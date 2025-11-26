@@ -365,8 +365,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   Future<CardInputResult> inputCard({
     required String managerId,
     required String shiftRequestId,
-    required String confirmStartTime,
-    required String confirmEndTime,
+    String? confirmStartTime,  // Nullable - RPC keeps existing if null
+    String? confirmEndTime,    // Nullable - RPC keeps existing if null
     String? newTagContent,
     String? newTagType,
     required bool isLate,

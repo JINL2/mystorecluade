@@ -13,6 +13,11 @@
   position: relative;
   width: var(--store-selector-width, 280px);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  z-index: 100;
+}
+
+.storeSelector:has(.dropdown.active) {
+  z-index: 1001;
 }
 
 .storeSelector.disabled {

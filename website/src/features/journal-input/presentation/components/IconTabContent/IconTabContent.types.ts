@@ -17,6 +17,7 @@ export interface IconTabContentProps {
   companyId: string;
   selectedStoreId: string | null;
   submitting: boolean;
+  refreshTrigger?: number;
   onAddTransaction: () => void;
   onEditTransaction: (index: number) => void;
   onDeleteTransaction: (index: number) => void;

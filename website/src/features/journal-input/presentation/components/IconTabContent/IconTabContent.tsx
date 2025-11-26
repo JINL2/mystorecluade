@@ -15,6 +15,7 @@ export const IconTabContent: React.FC<IconTabContentProps> = ({
   companyId,
   selectedStoreId,
   submitting,
+  refreshTrigger,
   onAddTransaction,
   onEditTransaction,
   onDeleteTransaction,
@@ -222,7 +223,7 @@ export const IconTabContent: React.FC<IconTabContentProps> = ({
       </div>
 
       {/* Recent Transaction History */}
-      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} />
+      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} refreshTrigger={refreshTrigger} />
     </>
   );
 };

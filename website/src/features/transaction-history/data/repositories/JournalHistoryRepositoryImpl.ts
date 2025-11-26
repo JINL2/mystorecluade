@@ -23,7 +23,8 @@ export class JournalHistoryRepositoryImpl implements IJournalHistoryRepository {
     storeId: string | null,
     startDate: string | null,
     endDate: string | null,
-    accountId?: string | null
+    accountId?: string | null,
+    createdBy?: string | null
   ): Promise<JournalHistoryResult> {
     try {
       // Convert date-only strings to UTC datetime for RPC call
@@ -35,13 +36,14 @@ export class JournalHistoryRepositoryImpl implements IJournalHistoryRepository {
         ? DateTimeUtils.toRpcFormat(new Date(endDate + 'T23:59:59'))
         : '';
 
-      const data = await this.dataSource.getTransactions(
+      const data = await this.dataSource.getTransactionsUtc({
         companyId,
         storeId,
-        utcStartDate,
-        utcEndDate,
-        accountId
-      );
+        startDate: utcStartDate || null,
+        endDate: utcEndDate || null,
+        accountId,
+        createdBy,
+      });
 
       // Use JournalEntryModel to convert and sort journal entries
       const journalEntries = JournalEntryModel.fromJsonArray(data);

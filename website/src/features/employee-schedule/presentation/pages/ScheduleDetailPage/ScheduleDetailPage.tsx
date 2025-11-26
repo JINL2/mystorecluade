@@ -12,6 +12,10 @@ import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useSchedule } from '../../hooks/useSchedule';
 import { AddEmployeeModal } from '../../components/AddEmployeeModal';
+import { WeekNavigator } from '../../components/WeekNavigator';
+import { ScheduleGrid } from '../../components/ScheduleGrid';
+import { EmployeeSection } from '../../components/EmployeeSection';
+import { ScheduleEmptyState } from '../../components/ScheduleEmptyState';
 import type { ScheduleDetailPageProps } from './ScheduleDetailPage.types';
 import styles from './ScheduleDetailPage.module.css';
 
@@ -83,21 +87,18 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
         return;
       }
 
-      // Success - show success message and close modal
       showNotification({
         variant: 'success',
         title: 'Success',
         message: 'Employee successfully added to shift',
       });
       closeAddEmployeeModal();
-
-      // Refresh schedule data after successful creation
       refresh();
-    } catch (error) {
+    } catch (err) {
       showNotification({
         variant: 'error',
         title: 'Unexpected Error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        message: err instanceof Error ? err.message : 'An unexpected error occurred',
       });
     } finally {
       setAddingEmployee(false);
@@ -115,17 +116,15 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
     return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   };
 
-  // Format day header
-  const formatDayHeader = (date: string): string => {
-    const d = new Date(date);
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+  // Dummy drag handlers (ScheduleDetailPage doesn't support drag & drop)
+  const handleCellDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
   };
+  const handleCellDragEnter = () => {};
+  const handleCellDragLeave = () => {};
+  const handleCellDrop = () => {};
 
-  // Check if date is today
-  const isToday = (date: string): boolean => {
-    const today = new Date().toISOString().split('T')[0];
-    return date === today;
-  };
+  const weekDays = getWeekDays();
 
   // Show loading if app state is not ready
   if (!currentCompany || !storeId) {
@@ -172,240 +171,110 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
         <Navbar activeItem="employee" />
         <div className={styles.pageLayout}>
           <div className={styles.container}>
-          <div className={styles.header}>
-            <div className={styles.breadcrumb}>
-              <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
-                ← Back to Dashboard
-              </TossButton>
+            <div className={styles.header}>
+              <div className={styles.breadcrumb}>
+                <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
+                  ← Back to Dashboard
+                </TossButton>
+              </div>
+              <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
             </div>
-            <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
-          </div>
-          <LoadingAnimation fullscreen />
+            <ScheduleEmptyState
+              variant="error"
+              error={error}
+              onAction={refresh}
+              actionText="Try Again"
+            />
           </div>
         </div>
-        <ErrorMessage
-          variant="error"
-          title="Failed to Load Schedule"
-          message={error}
-          isOpen={true}
-          onClose={handleBackToDashboard}
-          confirmText="Try Again"
-          onConfirm={refresh}
-        />
       </>
     );
   }
-
-  const weekDays = getWeekDays();
 
   return (
     <>
       <Navbar activeItem="employee" />
       <div className={styles.pageLayout}>
         <div className={styles.container}>
-        {/* Page Header with Back Button */}
-        <div className={styles.header}>
-          <div>
-            <div className={styles.breadcrumb}>
-              <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
-                ← Back to Dashboard
-              </TossButton>
-            </div>
-            <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
-            <p className={styles.subtitle}>Manage work shifts and assignments</p>
-          </div>
-        </div>
-
-        {/* Week Navigator */}
-        <div className={styles.weekNavigator}>
-          <TossButton variant="outline" size="sm" onClick={goToPreviousWeek}>
-            ◀ Previous Week
-          </TossButton>
-          <div className={styles.weekDisplay}>{formatWeekDisplay()}</div>
-          <TossButton variant="outline" size="sm" onClick={goToNextWeek}>
-            Next Week ▶
-          </TossButton>
-          <TossButton variant="outline" size="sm" onClick={goToCurrentWeek}>
-            This Week
-          </TossButton>
-        </div>
-
-        {/* Schedule Grid */}
-        <div className={styles.scheduleSection}>
-          {weekDays.length === 0 || shifts.length === 0 ? (
-            <div className={styles.emptyState}>
-              <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Background Circle */}
-                <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
-
-                {/* Calendar Base */}
-                <rect x="30" y="35" width="60" height="55" rx="6" fill="white" stroke="#0064FF" strokeWidth="2"/>
-
-                {/* Calendar Header */}
-                <rect x="30" y="35" width="60" height="15" rx="6" fill="#0064FF"/>
-                <rect x="30" y="43" width="60" height="7" fill="#0064FF"/>
-
-                {/* Calendar Rings */}
-                <circle cx="42" cy="35" r="3" fill="white"/>
-                <circle cx="60" cy="35" r="3" fill="white"/>
-                <circle cx="78" cy="35" r="3" fill="white"/>
-
-                {/* Calendar Grid - Week Days */}
-                <line x1="37" y1="58" x2="47" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="52" y1="58" x2="62" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="67" y1="58" x2="77" y2="58" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-
-                <line x1="37" y1="68" x2="47" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="52" y1="68" x2="62" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="67" y1="68" x2="77" y2="68" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-
-                <line x1="37" y1="78" x2="47" y2="78" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="52" y1="78" x2="62" y2="78" stroke="#0064FF" strokeWidth="3" strokeLinecap="round"/>
-                <line x1="67" y1="78" x2="77" y2="78" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-
-                {/* Empty State Icon - Question Mark Circle */}
-                <circle cx="60" cy="95" r="14" fill="#0064FF"/>
-                <path d="M60 88 Q60 85 63 85 Q66 85 66 88 Q66 91 63 93 L60 95" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                <circle cx="60" cy="99" r="1.5" fill="white"/>
-              </svg>
-              <h3 className={styles.emptyTitle}>No Schedule Available</h3>
-              <p className={styles.emptyText}>
-                {shifts.length === 0 ? 'No shifts configured for this store' : 'No schedule data for the selected week'}
-              </p>
-            </div>
-          ) : (
-            <div className={styles.scheduleGridContainer}>
-              {/* Header Row */}
-              <div className={styles.scheduleHeader}>
-                <div className={styles.shiftHeaderCell}>Shifts</div>
-                {weekDays.map((date) => {
-                  const isTodayDate = isToday(date);
-                  return (
-                    <div
-                      key={date}
-                      className={`${styles.dateHeaderCell} ${isTodayDate ? styles.today : ''}`}
-                    >
-                      <div className={styles.dayName}>{formatDayHeader(date)}</div>
-                      {isTodayDate && <span className={styles.todayBadge}>Today</span>}
-                    </div>
-                  );
-                })}
+          {/* Page Header with Back Button */}
+          <div className={styles.header}>
+            <div>
+              <div className={styles.breadcrumb}>
+                <TossButton variant="ghost" size="sm" onClick={handleBackToDashboard}>
+                  ← Back to Dashboard
+                </TossButton>
               </div>
-
-              {/* Shift Rows */}
-              {shifts.map((shift) => (
-                <div key={shift.shiftId} className={styles.shiftRow}>
-                  {/* Shift Info Cell */}
-                  <div className={styles.shiftInfoCell} style={{ borderLeftColor: shift.color }}>
-                    <div className={styles.shiftName}>{shift.shiftName}</div>
-                    <div className={styles.shiftTime}>{shift.timeRange}</div>
-                  </div>
-
-                  {/* Date Cells */}
-                  {weekDays.map((date) => {
-                    const isTodayDate = isToday(date);
-                    const dayAssignments = getAssignmentsForDate(date);
-                    const shiftAssignments = dayAssignments.filter(
-                      (assignment) => assignment.shift.shiftId === shift.shiftId
-                    );
-
-                    return (
-                      <div
-                        key={date}
-                        className={`${styles.assignmentCell} ${isTodayDate ? styles.today : ''}`}
-                      >
-                        {shiftAssignments.length === 0 ? (
-                          <button
-                            className={styles.addEmployeeCellButton}
-                            onClick={() => openAddEmployeeModal(date)}
-                            title="Add Employee"
-                          >
-                            <svg
-                              className={styles.addIconSmall}
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <line x1="12" y1="5" x2="12" y2="19" />
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
-                        ) : (
-                          <div className={styles.employeeList}>
-                            {shiftAssignments.map((assignment) => (
-                              <div
-                                key={assignment.assignmentId}
-                                className={styles.employeeChip}
-                                title={`${assignment.fullName} - ${assignment.status}`}
-                              >
-                                <span className={styles.employeeName}>
-                                  {assignment.fullName || 'Unknown'}
-                                </span>
-                                <span className={`${styles.statusDot} ${styles[assignment.status]}`}></span>
-                              </div>
-                            ))}
-                            <button
-                              className={styles.addEmployeeCellButtonSmall}
-                              onClick={() => openAddEmployeeModal(date)}
-                              title="Add Another Employee"
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+              <h1 className={styles.title}>{selectedStoreName} - Schedule</h1>
+              <p className={styles.subtitle}>Manage work shifts and assignments</p>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Employee List */}
-        <div className={styles.employeeSection}>
-          <h3 className={styles.sectionTitle}>Employees ({employees.length})</h3>
-          {loadingEmployees ? (
-            <LoadingAnimation />
-          ) : employees.length === 0 ? (
-            <div className={styles.noEmployees}>No employees found for this store</div>
-          ) : (
-            <div className={styles.employeeGrid}>
-              {employees.map((employee) => (
-                <div key={employee.userId} className={styles.employeeCard}>
-                  <div className={styles.employeeAvatar}>{employee.initials}</div>
-                  <div className={styles.employeeInfo}>
-                    <div className={styles.employeeName}>{employee.fullName}</div>
-                    <div className={styles.employeeRole}>{employee.displayRole}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Add Employee Modal */}
-        <AddEmployeeModal
-          isOpen={isAddEmployeeModalOpen}
-          onClose={closeAddEmployeeModal}
-          selectedDate={selectedDate}
-          shifts={shifts}
-          employees={employees}
-          onAddEmployee={handleAddEmployee}
-          loading={addingEmployee}
-        />
-
-        {/* Notification Dialog */}
-        {notification && (
-          <ErrorMessage
-            variant={notification.variant}
-            title={notification.title}
-            message={notification.message}
-            isOpen={true}
-            onClose={clearNotification}
+          {/* Week Navigator */}
+          <WeekNavigator
+            weekDisplay={formatWeekDisplay()}
+            onPreviousWeek={goToPreviousWeek}
+            onNextWeek={goToNextWeek}
+            onCurrentWeek={goToCurrentWeek}
           />
-        )}
+
+          {/* Schedule Grid */}
+          <div className={styles.scheduleSection}>
+            {weekDays.length === 0 || shifts.length === 0 ? (
+              <ScheduleEmptyState
+                variant="no-schedule"
+                message={
+                  shifts.length === 0
+                    ? 'No shifts configured for this store'
+                    : 'No schedule data for the selected week'
+                }
+              />
+            ) : (
+              <ScheduleGrid
+                weekDays={weekDays}
+                shifts={shifts}
+                getAssignmentsForDate={getAssignmentsForDate}
+                dropTarget={null}
+                onOpenAddEmployeeModal={openAddEmployeeModal}
+                onCellDragOver={handleCellDragOver}
+                onCellDragEnter={handleCellDragEnter}
+                onCellDragLeave={handleCellDragLeave}
+                onCellDrop={handleCellDrop}
+              />
+            )}
+          </div>
+
+          {/* Employee Section */}
+          <EmployeeSection
+            employees={employees}
+            loading={loadingEmployees}
+            draggedEmployeeId={null}
+            showDragHint={false}
+            onDragStart={() => {}}
+            onDragEnd={() => {}}
+          />
+
+          {/* Add Employee Modal */}
+          <AddEmployeeModal
+            isOpen={isAddEmployeeModalOpen}
+            onClose={closeAddEmployeeModal}
+            selectedDate={selectedDate}
+            shifts={shifts}
+            employees={employees}
+            assignments={getAssignmentsForDate(selectedDate)}
+            onAddEmployee={handleAddEmployee}
+            loading={addingEmployee}
+          />
+
+          {/* Notification Dialog */}
+          {notification && (
+            <ErrorMessage
+              variant={notification.variant}
+              title={notification.title}
+              message={notification.message}
+              isOpen={true}
+              onClose={clearNotification}
+            />
+          )}
         </div>
       </div>
     </>

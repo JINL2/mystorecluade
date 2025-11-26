@@ -11,7 +11,6 @@ import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useJournalInput } from '../../hooks/useJournalInput';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import type { TransactionFormData } from '../../components/TransactionForm';
 import type { JournalInputPageProps } from './JournalInputPage.types';
 import { TransactionLine } from '../../../domain/entities/TransactionLine';
@@ -23,7 +22,7 @@ import styles from './JournalInputPage.module.css';
 
 export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   const { user } = useAuth();
-  const { currentCompany, currentStore } = useAppState();
+  const { currentCompany, currentStore, setCurrentStore } = useAppState();
 
   const companyId = currentCompany?.company_id || '';
   const stores = currentCompany?.stores || [];
@@ -62,9 +61,16 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [errorMessageText, setErrorMessageText] = useState('');
 
+  // Refresh trigger for RecentTransactionHistory (Icon tab)
+  const [iconTabRefreshTrigger, setIconTabRefreshTrigger] = useState(0);
+
   const handleStoreSelect = (storeId: string | null) => {
     setSelectedStoreId(storeId);
     resetJournalEntry(storeId);
+
+    // Update App state so other pages reflect the store change
+    const selectedStore = stores.find(s => s.store_id === storeId) || null;
+    setCurrentStore(selectedStore);
   };
 
   // Show loading if no company selected yet
@@ -176,6 +182,8 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   const handleConfirmSubmit = async () => {
     const result = await submitJournalEntry();
     if (result.success) {
+      // Trigger refresh of RecentTransactionHistory
+      setIconTabRefreshTrigger(prev => prev + 1);
       setShowSuccessMessage(true);
     } else {
       setErrorMessageText(result.error || 'Failed to submit journal entry');
@@ -211,50 +219,37 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
           </div>
 
         {/* Journal Header with Date and Company Info */}
-        <div className={styles.journalHeaderCard}>
-          <div className={styles.journalDateInfo}>
-            <svg className={styles.journalDateIcon} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,3H18V1H16V3H8V1H6V3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
-            </svg>
-            <span className={styles.journalDateText}>{formatJournalDate(journalEntry.date)}</span>
+        <div className={styles.journalHeaderWrapper}>
+          <div className={styles.journalHeaderCard}>
+            <div className={styles.journalDateInfo}>
+              <svg className={styles.journalDateIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,3H18V1H16V3H8V1H6V3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
+              </svg>
+              <span className={styles.journalDateText}>{formatJournalDate(journalEntry.date)}</span>
+            </div>
+            <div className={styles.journalCompanyInfo}>
+              <svg className={styles.journalCompanyIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H18V17H20V19M20,15H18V13H20V15M20,11H18V9H20V11M16,19H14V17H16V19M16,15H14V13H16V15M16,11H14V9H16V11"/>
+              </svg>
+              <span className={styles.journalCompanyText}>{currentCompany?.company_name || 'Company'}</span>
+            </div>
           </div>
-          <div className={styles.journalCompanyInfo}>
-            <svg className={styles.journalCompanyIcon} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H18V17H20V19M20,15H18V13H20V15M20,11H18V9H20V11M16,19H14V17H16V19M16,15H14V13H16V15M16,11H14V9H16V11"/>
-            </svg>
-            <span className={styles.journalCompanyText}>{currentCompany?.company_name || 'Company'}</span>
-          </div>
-        </div>
-
-        {/* Store Selector */}
-        <div className={styles.storeSelectorCard}>
-          <StoreSelector
-            stores={stores}
-            selectedStoreId={selectedStoreId}
-            onStoreSelect={handleStoreSelect}
-            companyId={companyId}
-            showAllStoresOption={false}
-            width="100%"
-          />
-        </div>
-
-        {/* Input Method Tabs */}
-        <div className={styles.tabsContainer}>
-          <div className={`${styles.tabsWrapper} ${activeTab === 'icon' ? styles.iconActive : ''}`}>
+          {/* Mini Tab Switcher - Below card, right aligned */}
+          <div className={`${styles.miniTabsWrapper} ${activeTab === 'icon' ? styles.iconActive : ''}`}>
             <button
-              className={`${styles.tab} ${activeTab === 'excel' ? styles.active : ''}`}
+              className={`${styles.miniTab} ${activeTab === 'excel' ? styles.active : ''}`}
               onClick={() => setActiveTab('excel')}
             >
-              <svg className={styles.tabIcon} viewBox="0 0 24 24" fill="currentColor">
+              <svg className={styles.miniTabIcon} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12.9,14.5L15.8,19H14L12,15.6L10,19H8.2L11.1,14.5L8.2,10H10L12,13.4L14,10H15.8L12.9,14.5Z"/>
               </svg>
               Excel
             </button>
             <button
-              className={`${styles.tab} ${activeTab === 'icon' ? styles.active : ''}`}
+              className={`${styles.miniTab} ${activeTab === 'icon' ? styles.active : ''}`}
               onClick={() => setActiveTab('icon')}
             >
-              <svg className={styles.tabIcon} viewBox="0 0 24 24" fill="currentColor">
+              <svg className={styles.miniTabIcon} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/>
               </svg>
               Icon
@@ -272,6 +267,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             companyId={companyId}
             selectedStoreId={selectedStoreId}
             submitting={submitting}
+            refreshTrigger={iconTabRefreshTrigger}
             onAddTransaction={handleAddTransaction}
             onEditTransaction={handleEditTransaction}
             onDeleteTransaction={handleDeleteTransaction}
@@ -288,6 +284,8 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             companyId={companyId}
             selectedStoreId={selectedStoreId}
             userId={user?.id || ''}
+            stores={stores}
+            onStoreSelect={handleStoreSelect}
             onCheckAccountMapping={checkAccountMapping}
             onGetCounterpartyStores={getCounterpartyStores}
             onGetCounterpartyCashLocations={getCounterpartyCashLocations}

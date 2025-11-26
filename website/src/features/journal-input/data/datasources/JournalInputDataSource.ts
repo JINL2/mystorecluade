@@ -228,7 +228,7 @@ export class JournalInputDataSource {
       p_company_id: params.companyId,
       p_created_by: params.createdBy,
       p_description: params.description,
-      p_entry_date: utcEntryDate,
+      p_entry_date_utc: utcEntryDate,
       p_lines: lines,
       p_store_id: params.storeId,
       p_counterparty_id: mainCounterpartyId,
@@ -239,7 +239,7 @@ export class JournalInputDataSource {
     console.log('p_lines:', JSON.stringify(lines, null, 2));
     console.log('Full params:', JSON.stringify(rpcParams, null, 2));
 
-    const { data, error } = await supabase.rpc('insert_journal_with_everything', rpcParams);
+    const { data, error } = await supabase.rpc('insert_journal_with_everything_utc' as any, rpcParams);
 
     if (error) {
       console.error('Error submitting journal entry:', error);

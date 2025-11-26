@@ -1,0 +1,203 @@
+/**
+ * ScheduleGrid Component Styles
+ */
+
+.scheduleGridContainer {
+  background: white;
+  border-radius: var(--radius-large);
+  overflow: hidden;
+  border: 1px solid var(--toss-gray-200);
+}
+
+/* Header Row */
+.scheduleHeader {
+  display: grid;
+  grid-template-columns: 150px repeat(7, 1fr);
+  background: var(--toss-gray-50);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.shiftHeaderCell {
+  padding: var(--space-4);
+  font-weight: 600;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  border-right: 1px solid var(--toss-gray-200);
+}
+
+.dateHeaderCell {
+  padding: var(--space-3);
+  text-align: center;
+  border-right: 1px solid var(--toss-gray-200);
+}
+
+.dateHeaderCell:last-child {
+  border-right: none;
+}
+
+.dateHeaderCell.today {
+  background: var(--toss-blue-50);
+}
+
+.dayName {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.todayBadge {
+  display: inline-block;
+  margin-top: var(--space-1);
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background: var(--toss-blue-600);
+  border-radius: var(--radius-small);
+}
+
+/* Shift Rows */
+.shiftRow {
+  display: grid;
+  grid-template-columns: 150px repeat(7, 1fr);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.shiftRow:last-child {
+  border-bottom: none;
+}
+
+.shiftInfoCell {
+  padding: var(--space-3);
+  border-right: 1px solid var(--toss-gray-200);
+  border-left: 4px solid var(--toss-blue-600);
+  background: var(--toss-gray-50);
+}
+
+.shiftName {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.shiftTime {
+  font-size: var(--font-xsmall);
+  color: var(--text-tertiary);
+}
+
+/* Assignment Cell */
+.assignmentCell {
+  padding: var(--space-2);
+  border-right: 1px solid var(--toss-gray-200);
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.assignmentCell:last-child {
+  border-right: none;
+}
+
+.assignmentCell.today {
+  background: var(--toss-blue-50);
+}
+
+.assignmentCell.dropTarget {
+  background: var(--toss-green-50);
+  border: 2px dashed var(--toss-green-500);
+}
+
+/* Add Employee Button */
+.addEmployeeCellButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px dashed var(--toss-gray-300);
+  background: transparent;
+  color: var(--toss-gray-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeCellButton:hover {
+  border-color: var(--toss-blue-500);
+  color: var(--toss-blue-500);
+  background: var(--toss-blue-50);
+}
+
+.addIconSmall {
+  width: 18px;
+  height: 18px;
+}
+
+/* Employee List */
+.employeeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.employeeChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  background: var(--toss-gray-100);
+  border-radius: var(--radius-small);
+  font-size: var(--font-xsmall);
+}
+
+.employeeChip .employeeName {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDot.scheduled {
+  background: var(--toss-orange-500);
+}
+
+.statusDot.confirmed {
+  background: var(--toss-green-500);
+}
+
+.statusDot.absent {
+  background: var(--toss-red-500);
+}
+
+.addEmployeeCellButtonSmall {
+  width: 100%;
+  padding: var(--space-1);
+  border: 1px dashed var(--toss-gray-300);
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--toss-gray-400);
+  cursor: pointer;
+  font-size: var(--font-small);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeCellButtonSmall:hover {
+  border-color: var(--toss-blue-500);
+  color: var(--toss-blue-500);
+  background: var(--toss-blue-50);
+}

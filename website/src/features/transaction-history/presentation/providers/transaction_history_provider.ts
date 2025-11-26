@@ -4,11 +4,29 @@
  */
 
 import { create } from 'zustand';
-import { TransactionHistoryState } from './states/transaction_history_state';
+import { TransactionHistoryState, AccountInfo } from './states/transaction_history_state';
 import { JournalHistoryRepositoryImpl } from '../../data/repositories/JournalHistoryRepositoryImpl';
 import { TransactionFilterValidator } from '../../domain/validators/TransactionFilterValidator';
+import { TransactionHistoryDataSource } from '../../data/datasources/TransactionHistoryDataSource';
+import { JournalEntry } from '../../domain/entities/JournalEntry';
 
 const repository = new JournalHistoryRepositoryImpl();
+const dataSource = new TransactionHistoryDataSource();
+
+// Helper function to extract unique accounts from journal entries
+const extractUniqueAccounts = (entries: JournalEntry[]): AccountInfo[] => {
+  const accountMap = new Map<string, string>();
+  entries.forEach((entry) => {
+    entry.lines.forEach((line) => {
+      if (line.accountId && line.accountName && !accountMap.has(line.accountId)) {
+        accountMap.set(line.accountId, line.accountName);
+      }
+    });
+  });
+  return Array.from(accountMap.entries())
+    .map(([accountId, accountName]) => ({ accountId, accountName }))
+    .sort((a, b) => a.accountName.localeCompare(b.accountName));
+};
 
 export const useTransactionHistoryStore = create<TransactionHistoryState>((set, get) => ({
   // Initial State
@@ -17,13 +35,22 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
   error: null,
   hasSearched: false,
 
+  // Employee State
+  employees: [],
+  employeesLoading: false,
+
+  // Account State
+  accounts: [],
+
   // Filter State
   currentStoreId: null,
   currentStartDate: null,
   currentEndDate: null,
+  currentCreatedBy: null,
+  currentAccountId: null,
 
   // Actions
-  searchJournalEntries: async (storeId, startDate, endDate) => {
+  searchJournalEntries: async (storeId, startDate, endDate, createdBy, accountId) => {
     const state = get();
 
     set({ loading: true, error: null, hasSearched: true });
@@ -64,7 +91,8 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
         storeId,
         startDate,
         endDate,
-        null
+        accountId,
+        createdBy
       );
 
       if (!result.success) {
@@ -76,11 +104,18 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
         return;
       }
 
+      const entries = result.data || [];
+      // Extract unique accounts only on initial search (no account filter)
+      const accounts = accountId ? get().accounts : extractUniqueAccounts(entries);
+
       set({
-        journalEntries: result.data || [],
+        journalEntries: entries,
+        accounts,
         currentStoreId: storeId,
         currentStartDate: startDate,
         currentEndDate: endDate,
+        currentCreatedBy: createdBy ?? null,
+        currentAccountId: accountId ?? null,
         loading: false,
       });
     } catch (err) {
@@ -92,14 +127,49 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
     }
   },
 
+  setCreatedByFilter: (createdBy) => {
+    set({ currentCreatedBy: createdBy });
+  },
+
+  setAccountFilter: (accountId) => {
+    set({ currentAccountId: accountId });
+  },
+
+  fetchEmployees: async () => {
+    const state = get();
+    const companyId = (state as any).companyId || '';
+
+    if (!companyId) {
+      return;
+    }
+
+    // Skip if already loaded
+    if (state.employees.length > 0) {
+      return;
+    }
+
+    set({ employeesLoading: true });
+
+    try {
+      const employees = await dataSource.getEmployees(companyId);
+      set({ employees, employeesLoading: false });
+    } catch (err) {
+      console.error('Failed to fetch employees:', err);
+      set({ employeesLoading: false });
+    }
+  },
+
   clearSearch: () => {
     set({
       journalEntries: [],
       hasSearched: false,
       error: null,
+      accounts: [],
       currentStoreId: null,
       currentStartDate: null,
       currentEndDate: null,
+      currentCreatedBy: null,
+      currentAccountId: null,
     });
   },
 
@@ -113,9 +183,14 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
       loading: false,
       error: null,
       hasSearched: false,
+      employees: [],
+      employeesLoading: false,
+      accounts: [],
       currentStoreId: null,
       currentStartDate: null,
       currentEndDate: null,
+      currentCreatedBy: null,
+      currentAccountId: null,
     });
   },
 }));

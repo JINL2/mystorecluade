@@ -1,0 +1,20 @@
+/**
+ * WeekNavigator Component Styles
+ */
+
+.weekNavigator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  margin-bottom: var(--space-4);
+}
+
+.weekDisplay {
+  font-size: var(--font-medium);
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 200px;
+  text-align: center;
+}

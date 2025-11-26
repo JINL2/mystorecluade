@@ -205,8 +205,8 @@ abstract class TimeTableRepository {
   ///
   /// [managerId] - Manager user ID performing the update
   /// [shiftRequestId] - Shift request ID to update
-  /// [confirmStartTime] - Confirmed start time (HH:mm format)
-  /// [confirmEndTime] - Confirmed end time (HH:mm format)
+  /// [confirmStartTime] - Confirmed start time (HH:mm format), null to keep existing
+  /// [confirmEndTime] - Confirmed end time (HH:mm format), null to keep existing
   /// [newTagContent] - Optional tag content to add
   /// [newTagType] - Optional tag type
   /// [isLate] - Whether employee was late
@@ -217,8 +217,8 @@ abstract class TimeTableRepository {
   Future<CardInputResult> inputCard({
     required String managerId,
     required String shiftRequestId,
-    required String confirmStartTime,
-    required String confirmEndTime,
+    String? confirmStartTime,  // Nullable - RPC keeps existing if null
+    String? confirmEndTime,    // Nullable - RPC keeps existing if null
     String? newTagContent,
     String? newTagType,
     required bool isLate,
