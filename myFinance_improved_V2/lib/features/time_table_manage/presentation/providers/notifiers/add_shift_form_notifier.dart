@@ -10,8 +10,9 @@ import '../states/add_shift_form_state.dart';
 class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
   final TimeTableRepository _repository;
   final String _storeId;
+  final String _timezone;
 
-  AddShiftFormNotifier(this._repository, this._storeId)
+  AddShiftFormNotifier(this._repository, this._storeId, this._timezone)
       : super(const AddShiftFormState()) {
     // Load data on initialization
     loadScheduleData();
@@ -30,7 +31,10 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isLoadingData: true, error: null);
 
     try {
-      final scheduleData = await _repository.getScheduleData(storeId: _storeId);
+      final scheduleData = await _repository.getScheduleData(
+        storeId: _storeId,
+        timezone: _timezone,
+      );
 
       final employees = scheduleData.employees
           .map((emp) => {
@@ -90,15 +94,16 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      final formattedDate =
-          '${state.selectedDate!.year}-${state.selectedDate!.month.toString().padLeft(2, '0')}-${state.selectedDate!.day.toString().padLeft(2, '0')}';
+      // Convert selected date to UTC timestamp for requestTime
+      final requestTime = DateTime.now().toUtc().toIso8601String().substring(0, 19).replaceAll('T', ' ');
 
       await _repository.insertSchedule(
         userId: state.selectedEmployeeId!,
         shiftId: state.selectedShiftId!,
         storeId: _storeId,
-        requestDate: formattedDate,
+        requestTime: requestTime,
         approvedBy: approvedBy,
+        timezone: _timezone,
       );
 
       state = state.copyWith(isSaving: false);

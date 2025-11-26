@@ -215,4 +215,118 @@ class DateTimeUtils {
   static String formatTimeOnly(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
+
+  /// Converts DateTime to ISO 8601 string with local timezone offset
+  ///
+  /// This format includes the timezone offset to preserve exact moment in time
+  /// while maintaining the local time representation.
+  ///
+  /// Format: "yyyy-MM-ddTHH:mm:ss+HH:mm" (e.g., "2024-11-15T10:30:25+07:00")
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = DateTime.now(); // 2025-01-15 14:30:25 (KST +9)
+  /// DateTimeUtils.toLocalWithOffset(now); // "2025-01-15T14:30:25+09:00"
+  ///
+  /// // Vietnam time
+  /// final vietnamTime = DateTime.now(); // 2024-11-15 10:30:25 (ICT +7)
+  /// DateTimeUtils.toLocalWithOffset(vietnamTime); // "2024-11-15T10:30:25+07:00"
+  ///
+  /// // For RPC calls
+  /// await supabase.rpc('user_shift_overview_v3', {
+  ///   'p_request_time': DateTimeUtils.toLocalWithOffset(DateTime.now())
+  /// });
+  /// ```
+  static String toLocalWithOffset(DateTime dateTime) {
+    // Get timezone offset
+    final offset = dateTime.timeZoneOffset;
+    final hours = offset.inHours;
+    final minutes = offset.inMinutes.remainder(60);
+
+    // Format offset as +HH:mm or -HH:mm
+    final sign = hours >= 0 ? '+' : '-';
+    final absHours = hours.abs().toString().padLeft(2, '0');
+    final absMinutes = minutes.abs().toString().padLeft(2, '0');
+    final offsetString = '$sign$absHours:$absMinutes';
+
+    // Format datetime as ISO 8601 with offset
+    final year = dateTime.year.toString();
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+
+    return '$year-$month-${day}T$hour:$minute:$second$offsetString';
+  }
+
+  /// Gets the user's local timezone in IANA format (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  ///
+  /// This timezone string is used for RPC functions that need to handle timezone-aware calculations.
+  /// Since Dart doesn't provide direct access to IANA timezone names, we derive it from the offset.
+  ///
+  /// **Note**: This is a best-effort approximation. Multiple timezones can share the same offset.
+  /// For production, consider using platform-specific APIs or a timezone package.
+  ///
+  /// Example:
+  /// ```dart
+  /// final timezone = DateTimeUtils.getLocalTimezone();
+  /// // Korea (UTC+9): "Asia/Seoul"
+  /// // Vietnam (UTC+7): "Asia/Ho_Chi_Minh"
+  /// // UTC: "UTC"
+  ///
+  /// await supabase.rpc('user_shift_overview_v3', {
+  ///   'p_timezone': timezone,
+  /// });
+  /// ```
+  static String getLocalTimezone() {
+    final now = DateTime.now();
+    final offset = now.timeZoneOffset;
+
+    // Get timezone name from DateTime
+    final timeZoneName = now.timeZoneName;
+
+    // If timezone name is available and not just an offset, use it
+    if (timeZoneName.isNotEmpty && !timeZoneName.contains('+') && !timeZoneName.contains('-')) {
+      // Common timezone abbreviations to IANA mapping
+      const timezoneMap = {
+        'KST': 'Asia/Seoul',
+        'JST': 'Asia/Tokyo',
+        'ICT': 'Asia/Ho_Chi_Minh',
+        'CST': 'Asia/Shanghai',
+        'PST': 'America/Los_Angeles',
+        'EST': 'America/New_York',
+        'GMT': 'Europe/London',
+        'UTC': 'UTC',
+      };
+
+      if (timezoneMap.containsKey(timeZoneName)) {
+        return timezoneMap[timeZoneName]!;
+      }
+    }
+
+    // Fallback: Map offset to most common timezone
+    // This is not perfect but works for most cases
+    final hours = offset.inHours;
+    final minutes = offset.inMinutes.remainder(60);
+
+    // Format: +HH:MM or -HH:MM
+    final sign = hours >= 0 ? '+' : '-';
+    final absHours = hours.abs().toString().padLeft(2, '0');
+    final absMinutes = minutes.abs().toString().padLeft(2, '0');
+
+    // Map common offsets to IANA timezones
+    const offsetToTimezone = {
+      '+09:00': 'Asia/Seoul',      // Korea, Japan
+      '+08:00': 'Asia/Shanghai',   // China, Singapore
+      '+07:00': 'Asia/Ho_Chi_Minh', // Vietnam, Thailand
+      '+05:30': 'Asia/Kolkata',    // India
+      '+00:00': 'UTC',             // UTC
+      '-05:00': 'America/New_York', // US Eastern
+      '-08:00': 'America/Los_Angeles', // US Pacific
+    };
+
+    final offsetString = '$sign$absHours:$absMinutes';
+    return offsetToTimezone[offsetString] ?? 'UTC';
+  }
 }

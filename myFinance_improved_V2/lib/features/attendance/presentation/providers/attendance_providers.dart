@@ -1,51 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../data/datasources/attendance_datasource.dart';
-import '../../data/repositories/attendance_repository_impl.dart';
-import '../../domain/repositories/attendance_repository.dart';
+import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
-import '../../domain/usecases/get_current_shift.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
+import '../../domain/usecases/update_shift_card_after_scan.dart';
 import '../../domain/value_objects/month_bounds.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// Repository Provider (Presentation Layer Dependency Injection)
+// CLEAN ARCHITECTURE COMPLIANCE ✅
 // ========================================
-
-/// Supabase client provider
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Attendance datasource provider
-final _attendanceDatasourceProvider = Provider<AttendanceDatasource>((ref) {
-  final client = ref.watch(_supabaseClientProvider);
-  return AttendanceDatasource(client);
-});
-
-/// Attendance repository provider
-///
-/// CLEAN ARCHITECTURE FIX:
-/// Previously imported from Data layer (violation).
-/// Now defined in Presentation layer with proper DI.
-///
-/// Presentation depends on:
-/// - Domain: AttendanceRepository (interface)
-/// - Data: AttendanceRepositoryImpl, AttendanceDatasource (implementation)
-final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final datasource = ref.watch(_attendanceDatasourceProvider);
-  return AttendanceRepositoryImpl(datasource: datasource);
-});
+//
+// Presentation layer structure (IMPROVED):
+// - Imports repository provider from DOMAIN layer (attendance_repository_provider.dart)
+// - Data layer provides concrete implementation through override in main.dart
+// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
+//
+// Dependency Flow:
+// Presentation → Domain Providers → Domain Interfaces
+//                     ↑
+//              Data Implementation (injected via ProviderScope.overrides)
+//
+// Clean Architecture Benefits:
+// ✅ Presentation does NOT import Data layer at all
+// ✅ Presentation only knows about Domain interfaces
+// ✅ Data layer can be swapped without affecting Presentation
+// ✅ Easy to mock repositories for testing
+//
+// Implementation:
+// 1. Domain defines: attendanceRepositoryProvider (throws UnimplementedError)
+// 2. Data provides: attendanceRepositoryProviderImpl (concrete implementation)
+// 3. main.dart overrides: attendanceRepositoryProvider with attendanceRepositoryProviderImpl
+// 4. Presentation uses: attendanceRepositoryProvider (gets Data's implementation)
+//
 
 // ========================================
 // Use Case Providers
@@ -99,10 +95,9 @@ final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
   return GetUserShiftCards(repository);
 });
 
-/// Get current shift use case provider
-final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetCurrentShift(repository);
+/// Update shift card after scan use case provider
+final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref) {
+  return UpdateShiftCardAfterScan();
 });
 
 // ========================================
@@ -167,12 +162,14 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
       final now = DateTime.now();
       final monthBounds = MonthBounds.fromDate(now);
       final requestTime = monthBounds.lastMomentUtcFormatted; // "yyyy-MM-dd HH:mm:ss" in UTC
+      final timezone = DateTimeUtils.getLocalTimezone(); // User's local timezone
 
       final overview = await getShiftOverview(
         requestTime: requestTime,
         userId: userId,
         companyId: companyId,
         storeId: storeId,
+        timezone: timezone,
       );
 
       state = ShiftOverviewState(
@@ -192,39 +189,3 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
   }
 }
 
-/// Provider for current shift status
-final currentShiftProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
-  final getCurrentShift = ref.read(getCurrentShiftProvider);
-  final authStateAsync = ref.read(authStateProvider);
-  final appState = ref.read(appStateProvider);
-
-  final user = authStateAsync.value;
-  final userId = user?.id;
-  final storeId = appState.storeChoosen;
-
-  if (userId == null || storeId.isEmpty) {
-    return null;
-  }
-
-  return await getCurrentShift(
-    userId: userId,
-    storeId: storeId,
-  );
-});
-
-/// Provider for checking if user is currently working
-final isWorkingProvider = Provider<bool>((ref) {
-  final currentShift = ref.watch(currentShiftProvider);
-
-  return currentShift.when(
-    data: (shift) {
-      if (shift == null) return false;
-      // Check if user has checked in but not checked out
-      return shift['actual_start_time'] != null &&
-          shift['actual_end_time'] == null;
-    },
-    loading: () => false,
-    error: (_, __) => false,
-  );
-});

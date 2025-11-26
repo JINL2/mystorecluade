@@ -5,10 +5,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/monitoring/sentry_config.dart';
+import 'features/attendance/data/providers/attendance_data_providers.dart'
+    as attendance_data;
+import 'features/attendance/domain/providers/attendance_repository_provider.dart'
+    as attendance_domain;
 import 'features/journal_input/data/repositories/repository_providers.dart'
     as journal_data;
 import 'features/journal_input/domain/providers/repository_providers.dart'
     as journal_domain;
+import 'features/store_shift/data/repositories/repository_providers.dart'
+    as store_shift_data;
+import 'features/store_shift/domain/providers/repository_provider.dart'
+    as store_shift_domain;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,8 +60,15 @@ Future<void> main() async {
       ProviderScope(
         overrides: [
           // Override domain layer provider with data layer implementation
+          // Attendance feature
+          attendance_domain.attendanceRepositoryProvider
+              .overrideWithProvider(attendance_data.attendanceRepositoryProviderImpl),
+          // Journal Input feature
           journal_domain.journalEntryRepositoryProvider
               .overrideWithProvider(journal_data.journalEntryRepositoryProvider),
+          // Store Shift feature
+          store_shift_domain.storeShiftRepositoryProvider
+              .overrideWithProvider(store_shift_data.storeShiftRepositoryImplProvider),
         ],
         child: const MyFinanceApp(),
       ),

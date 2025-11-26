@@ -11,9 +11,13 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_card.dart';
+import '../../../domain/usecases/delete_shift_tag.dart';
+import '../../../domain/usecases/input_card.dart';
+import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import '../../../domain/value_objects/tag_input.dart';
 import '../../providers/time_table_providers.dart';
+import '../../providers/usecase/time_table_usecase_providers.dart';
 import '../shift_details/bonus_management_tab.dart';
 import '../shift_details/confirmed_times_editor.dart';
 import '../shift_details/problem_status_section.dart';
@@ -271,9 +275,11 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       final isCurrentlyApproved = widget.card.isApproved;
       final newState = !isCurrentlyApproved;
 
-      await ref.read(timeTableRepositoryProvider).processBulkApproval(
-        shiftRequestIds: [shiftRequestId],
-        approvalStates: [newState],
+      await ref.read(processBulkApprovalUseCaseProvider).call(
+        ProcessBulkApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          approvalStates: [newState],
+        ),
       );
 
       // Close loading dialog
@@ -354,10 +360,12 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Debug log
 
-      // Use repository instead of direct Supabase call
-      final response = await ref.read(timeTableRepositoryProvider).deleteShiftTag(
-        tagId: tagId,
-        userId: userId,
+      // Use UseCase instead of direct Repository call
+      final response = await ref.read(deleteShiftTagUseCaseProvider).call(
+        DeleteShiftTagParams(
+          tagId: tagId,
+          userId: userId,
+        ),
       );
 
       // Debug log response
@@ -921,6 +929,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     // Get values from app state and card
                     final appState = ref.read(appStateProvider);
                     final userId = appState.user['user_id'];
+                    final timezone = appState.user['timezone'] ?? 'UTC';
                     final shiftRequestId = widget.card.shiftRequestId;
                     final isLate = widget.card.isLate;
                     
@@ -983,16 +992,19 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         throw Exception('Invalid shift request ID');
                       }
 
-                      // Use repository instead of direct Supabase call
-                      final cardInputResult = await ref.read(timeTableRepositoryProvider).inputCard(
-                        managerId: userId,
-                        shiftRequestId: shiftRequestId,
-                        confirmStartTime: startTimeForDb,
-                        confirmEndTime: endTimeForDb,
-                        newTagContent: processedTagContent,
-                        newTagType: processedTagType,
-                        isLate: isLate,
-                        isProblemSolved: isProblemSolved,
+                      // Use UseCase instead of direct Repository call
+                      await ref.read(inputCardUseCaseProvider).call(
+                        InputCardParams(
+                          managerId: userId,
+                          shiftRequestId: shiftRequestId,
+                          confirmStartTime: startTimeForDb,
+                          confirmEndTime: endTimeForDb,
+                          newTagContent: processedTagContent,
+                          newTagType: processedTagType,
+                          isLate: isLate,
+                          isProblemSolved: isProblemSolved,
+                          timezone: timezone,
+                        ),
                       );
 
                       // Close loading dialog
