@@ -191,12 +191,41 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
       );
 
+      print('🔍 Repository received data: ${data.keys.toList()}');
+      if (data['stores'] is List) {
+        final stores = data['stores'] as List;
+        print('🔍 Repository stores count: ${stores.length}');
+        if (stores.isNotEmpty) {
+          final firstStore = stores.first;
+          print('🔍 Repository first store keys: ${firstStore.keys.toList()}');
+          print('🔍 Repository first store storeName: ${firstStore['store_name']}');
+          if (firstStore['cards'] is List && (firstStore['cards'] as List).isNotEmpty) {
+            final firstCard = firstStore['cards'][0];
+            print('🔍 Repository first card keys: ${firstCard.keys.toList()}');
+            print('🔍 Repository first card storeName: ${firstCard['store_name']}');
+          }
+        }
+      }
+
       final dto = ManagerShiftCardsDto.fromJson(data);
+      print('🔍 DTO stores count: ${dto.stores.length}');
+      if (dto.stores.isNotEmpty) {
+        print('🔍 DTO first store storeName: ${dto.stores.first.storeName}');
+        if (dto.stores.first.cards.isNotEmpty) {
+          print('🔍 DTO first card storeName: ${dto.stores.first.cards.first.storeName}');
+        }
+      }
+
       final entity = dto.toEntity(
         storeId: storeId,
         startDate: startDate,
         endDate: endDate,
       );
+      print('🔍 Entity cards count: ${entity.cards.length}');
+      if (entity.cards.isNotEmpty) {
+        print('🔍 Entity first card shift.storeName: ${entity.cards.first.shift.storeName}');
+      }
+
       return entity;
     } catch (e) {
       if (e is TimeTableException) rethrow;

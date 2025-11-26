@@ -10,7 +10,16 @@ extension ManagerShiftCardsDtoMapper on ManagerShiftCardsDto {
     required String endDate,
   }) {
     // If multiple stores, combine all cards from all stores
-    final allCards = stores.expand((store) => store.cards).toList();
+    // Also ensure each card gets the store_name from its parent store
+    final allCards = stores.expand((store) {
+      return store.cards.map((card) {
+        // If card doesn't have storeName, use parent store's storeName
+        if (card.storeName == null || card.storeName!.isEmpty) {
+          return card.copyWith(storeName: store.storeName);
+        }
+        return card;
+      });
+    }).toList();
 
     return ManagerShiftCards(
       storeId: storeId,

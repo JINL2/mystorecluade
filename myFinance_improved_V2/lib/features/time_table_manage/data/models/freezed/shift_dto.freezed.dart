@@ -38,6 +38,8 @@ mixin _$ShiftDto {
   List<String> get tags => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_name')
   String? get shiftName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_name')
+  String? get storeName => throw _privateConstructorUsedError;
 
   /// Serializes this ShiftDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -63,7 +65,8 @@ abstract class $ShiftDtoCopyWith<$Res> {
       @JsonKey(name: 'target_count') int targetCount,
       @JsonKey(name: 'current_count') int currentCount,
       @JsonKey(name: 'tags') List<String> tags,
-      @JsonKey(name: 'shift_name') String? shiftName});
+      @JsonKey(name: 'shift_name') String? shiftName,
+      @JsonKey(name: 'store_name') String? storeName});
 }
 
 /// @nodoc
@@ -90,6 +93,7 @@ class _$ShiftDtoCopyWithImpl<$Res, $Val extends ShiftDto>
     Object? currentCount = null,
     Object? tags = null,
     Object? shiftName = freezed,
+    Object? storeName = freezed,
   }) {
     return _then(_value.copyWith(
       shiftId: null == shiftId
@@ -128,6 +132,10 @@ class _$ShiftDtoCopyWithImpl<$Res, $Val extends ShiftDto>
           ? _value.shiftName
           : shiftName // ignore: cast_nullable_to_non_nullable
               as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -149,7 +157,8 @@ abstract class _$$ShiftDtoImplCopyWith<$Res>
       @JsonKey(name: 'target_count') int targetCount,
       @JsonKey(name: 'current_count') int currentCount,
       @JsonKey(name: 'tags') List<String> tags,
-      @JsonKey(name: 'shift_name') String? shiftName});
+      @JsonKey(name: 'shift_name') String? shiftName,
+      @JsonKey(name: 'store_name') String? storeName});
 }
 
 /// @nodoc
@@ -174,6 +183,7 @@ class __$$ShiftDtoImplCopyWithImpl<$Res>
     Object? currentCount = null,
     Object? tags = null,
     Object? shiftName = freezed,
+    Object? storeName = freezed,
   }) {
     return _then(_$ShiftDtoImpl(
       shiftId: null == shiftId
@@ -212,6 +222,10 @@ class __$$ShiftDtoImplCopyWithImpl<$Res>
           ? _value.shiftName
           : shiftName // ignore: cast_nullable_to_non_nullable
               as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -228,7 +242,8 @@ class _$ShiftDtoImpl implements _ShiftDto {
       @JsonKey(name: 'target_count') this.targetCount = 0,
       @JsonKey(name: 'current_count') this.currentCount = 0,
       @JsonKey(name: 'tags') final List<String> tags = const [],
-      @JsonKey(name: 'shift_name') this.shiftName})
+      @JsonKey(name: 'shift_name') this.shiftName,
+      @JsonKey(name: 'store_name') this.storeName})
       : _tags = tags;
 
   factory _$ShiftDtoImpl.fromJson(Map<String, dynamic> json) =>
@@ -267,10 +282,13 @@ class _$ShiftDtoImpl implements _ShiftDto {
   @override
   @JsonKey(name: 'shift_name')
   final String? shiftName;
+  @override
+  @JsonKey(name: 'store_name')
+  final String? storeName;
 
   @override
   String toString() {
-    return 'ShiftDto(shiftId: $shiftId, storeId: $storeId, shiftDate: $shiftDate, planStartTime: $planStartTime, planEndTime: $planEndTime, targetCount: $targetCount, currentCount: $currentCount, tags: $tags, shiftName: $shiftName)';
+    return 'ShiftDto(shiftId: $shiftId, storeId: $storeId, shiftDate: $shiftDate, planStartTime: $planStartTime, planEndTime: $planEndTime, targetCount: $targetCount, currentCount: $currentCount, tags: $tags, shiftName: $shiftName, storeName: $storeName)';
   }
 
   @override
@@ -292,7 +310,9 @@ class _$ShiftDtoImpl implements _ShiftDto {
                 other.currentCount == currentCount) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
             (identical(other.shiftName, shiftName) ||
-                other.shiftName == shiftName));
+                other.shiftName == shiftName) &&
+            (identical(other.storeName, storeName) ||
+                other.storeName == storeName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -307,7 +327,8 @@ class _$ShiftDtoImpl implements _ShiftDto {
       targetCount,
       currentCount,
       const DeepCollectionEquality().hash(_tags),
-      shiftName);
+      shiftName,
+      storeName);
 
   /// Create a copy of ShiftDto
   /// with the given fields replaced by the non-null parameter values.
@@ -335,7 +356,8 @@ abstract class _ShiftDto implements ShiftDto {
       @JsonKey(name: 'target_count') final int targetCount,
       @JsonKey(name: 'current_count') final int currentCount,
       @JsonKey(name: 'tags') final List<String> tags,
-      @JsonKey(name: 'shift_name') final String? shiftName}) = _$ShiftDtoImpl;
+      @JsonKey(name: 'shift_name') final String? shiftName,
+      @JsonKey(name: 'store_name') final String? storeName}) = _$ShiftDtoImpl;
 
   factory _ShiftDto.fromJson(Map<String, dynamic> json) =
       _$ShiftDtoImpl.fromJson;
@@ -367,6 +389,9 @@ abstract class _ShiftDto implements ShiftDto {
   @override
   @JsonKey(name: 'shift_name')
   String? get shiftName;
+  @override
+  @JsonKey(name: 'store_name')
+  String? get storeName;
 
   /// Create a copy of ShiftDto
   /// with the given fields replaced by the non-null parameter values.
