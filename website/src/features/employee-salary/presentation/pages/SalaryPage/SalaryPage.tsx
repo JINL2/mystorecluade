@@ -3,14 +3,13 @@
  * Employee salary management with expandable card layout and LeftFilter integration
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
-import { SelectorModal } from '@/shared/components/common/SelectorModal';
 import { useSalary } from '../../hooks/useSalary';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SalaryPageProps } from './SalaryPage.types';
@@ -22,7 +21,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'monthly' | 'hourly' | 'problems' | 'overtime'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-  const [showExportModal, setShowExportModal] = useState(false);
 
   // Use app state's currentStore for selected store
   const selectedStoreId = currentStore?.store_id || null;
@@ -69,45 +67,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
 
   // Get stores for filter
   const stores = currentCompany?.stores || [];
-
-  // Export modal options
-  const exportOptions = useMemo(() => {
-    const options = [];
-
-    // If a store is selected, show option for current store
-    if (selectedStoreId) {
-      const currentStoreName = stores.find((s) => s.store_id === selectedStoreId)?.store_name || 'Current Store';
-      options.push({
-        id: 'current-store',
-        label: `Export ${currentStoreName} Only`,
-        variant: 'primary' as const,
-      });
-    }
-
-    // Always show option for all stores
-    options.push({
-      id: 'all-stores',
-      label: 'Export All Stores',
-      variant: 'secondary' as const,
-    });
-
-    return options;
-  }, [selectedStoreId, stores]);
-
-  // Handle export selection
-  const handleExportSelect = (optionId: string) => {
-    setShowExportModal(false);
-    const companyName = currentCompany?.company_name || 'Company';
-
-    if (optionId === 'current-store' && selectedStoreId) {
-      const store = stores.find((s) => s.store_id === selectedStoreId);
-      const storeName = store?.store_name || 'Store';
-      exportToExcel(selectedStoreId, companyName, storeName);
-    } else {
-      // all-stores
-      exportToExcel(null, companyName, 'AllStores');
-    }
-  };
 
   // Filter records
   const filteredRecords = records.filter((record) => {
@@ -243,7 +202,15 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               {/* Export Excel Button */}
               <button
                 className={styles.exportExcelBtn}
-                onClick={() => setShowExportModal(true)}
+                onClick={() => {
+                  const companyName = currentCompany?.company_name || 'Company';
+                  let storeName = 'AllStores';
+                  if (selectedStore) {
+                    const store = stores.find((s) => s.store_id === selectedStore);
+                    storeName = store?.store_name || 'Store';
+                  }
+                  exportToExcel(selectedStore, companyName, storeName);
+                }}
                 disabled={exporting || records.length === 0}
               >
                 {exporting ? (
@@ -494,19 +461,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               onConfirm={refresh}
             />
           )}
-
-          {/* Export Scope Selection Modal */}
-          <SelectorModal
-            isOpen={showExportModal}
-            onClose={() => setShowExportModal(false)}
-            onSelect={handleExportSelect}
-            variant="info"
-            title="Export Excel"
-            message="Choose export scope for salary data"
-            options={exportOptions}
-            cancelText="Cancel"
-            isLoading={exporting}
-          />
           </div>
         </div>
       </div>
