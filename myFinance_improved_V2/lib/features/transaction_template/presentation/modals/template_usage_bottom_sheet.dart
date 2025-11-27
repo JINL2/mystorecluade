@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
@@ -154,6 +155,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
+  // Number formatter for thousand separators
+  final NumberFormat _numberFormat = NumberFormat('#,###');
+  String _previousAmountValue = '';
+
   // Dynamic selection state
   String? _selectedMyCashLocationId;
   String? _selectedCounterpartyId;
@@ -173,8 +178,35 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Analyze template to determine required fields
     _analysis = TemplateAnalysisResult.analyze(widget.template);
 
-    // Add listeners for real-time validation
+    // Add listeners for real-time validation and formatting
     _amountController.addListener(_validateAmountField);
+    _amountController.addListener(_formatAmountField);
+  }
+
+  /// Format amount field with thousand separators
+  void _formatAmountField() {
+    final text = _amountController.text;
+    if (text == _previousAmountValue) return;
+
+    // Remove all non-numeric characters
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) {
+      _previousAmountValue = '';
+      return;
+    }
+
+    // Parse and format the number
+    final number = int.tryParse(cleanText);
+    if (number == null) return;
+
+    final formatted = _numberFormat.format(number);
+
+    // Update the text field with formatted value
+    _amountController.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+    _previousAmountValue = formatted;
   }
 
   /// Real-time amount field validation

@@ -48,6 +48,7 @@ class ManageTabView extends ConsumerWidget {
   String _getMonthlyStatValue(String statKey) {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final overview = managerOverviewDataByMonth[monthKey];
+    final cards = managerCardsDataByMonth[monthKey];
 
     if (overview == null) {
       return '0';
@@ -58,7 +59,8 @@ class ManageTabView extends ConsumerWidget {
       case 'total_requests':
         return overview.totalShifts.toString();
       case 'total_problems':
-        return (overview.additionalStats['total_problems'] ?? 0).toString();
+        // Use client-side filtered problemCount (unsolved problems only)
+        return (cards?.problemCount ?? 0).toString();
       case 'total_approved':
         return overview.totalApprovedRequests.toString();
       case 'total_pending':
@@ -88,7 +90,7 @@ class ManageTabView extends ConsumerWidget {
     bool hasProblem = false;
 
     for (final card in dateCards) {
-      if (card.hasProblem) {
+      if (card.hasProblem && !card.isProblemSolved) {
         hasProblem = true;
       }
 
@@ -199,7 +201,7 @@ class ManageTabView extends ConsumerWidget {
     if (monthData != null) {
       for (final card in monthData.cards) {
         final requestDate = card.requestDate;
-        final isProblem = card.hasProblem;
+        final isProblem = card.hasProblem && !card.isProblemSolved;
         final isApproved = card.isApproved;
 
         // Priority: Problem > Pending > Approved
