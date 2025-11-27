@@ -178,8 +178,9 @@ class ShiftDetailListWidget extends ConsumerWidget {
     }
 
     return shiftMetadata!
-        .where((shift) => shift.isActive)
+        .where((shift) => shift.isActive == true)
         .map((shift) => shift.toJson())
+        .cast<Map<String, dynamic>>()
         .toList();
   }
 }

@@ -66,7 +66,6 @@ class AttendanceContentController {
 
       final getShiftOverview = ref.read(getShiftOverviewProvider);
       final getUserShiftCards = ref.read(getUserShiftCardsProvider);
-      final getCurrentShift = ref.read(getCurrentShiftProvider);
 
       final userId = user?.id;
       final companyId = appState.companyChoosen;
@@ -101,18 +100,9 @@ class AttendanceContentController {
         timezone: timezone,
       );
 
-      final currentShiftFuture = getCurrentShift(
-        requestTime: requestTime,
-        userId: userId,
-        companyId: companyId,
-        storeId: storeId,
-        timezone: timezone,
-      );
-
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         overviewFuture,
         cardsFuture,
-        currentShiftFuture,
       ]);
 
       // Convert entities to maps

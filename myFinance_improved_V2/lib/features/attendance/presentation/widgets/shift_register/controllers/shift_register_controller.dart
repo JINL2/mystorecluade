@@ -42,7 +42,7 @@ class ShiftRegisterController {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
       final response = await getShiftMetadata(
         storeId: storeId,
-        timezone: 'Asia/Seoul', // TODO: Get from user settings
+        timezone: 'Asia/Seoul',
       );
 
       setState(() {
@@ -75,9 +75,9 @@ class ShiftRegisterController {
       final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
-        requestTime: requestDate,
-        timezone: 'Asia/Seoul', // TODO: Get from user settings
-      });
+        requestTime: requestTime,
+        timezone: 'Asia/Seoul',
+      );
 
       setState(() {
         monthlyShiftStatus = response;
@@ -127,24 +127,24 @@ class ShiftRegisterController {
   void selectDate(DateTime date) {
     setState(() {
       selectedDate = date;
-      resetSelections();
     });
+    resetSelections();
   }
 
   /// Navigate to previous date
   void goToPreviousDate() {
     setState(() {
       selectedDate = selectedDate.subtract(const Duration(days: 1));
-      resetSelections();
     });
+    resetSelections();
   }
 
   /// Navigate to next date
   void goToNextDate() {
     setState(() {
       selectedDate = selectedDate.add(const Duration(days: 1));
-      resetSelections();
     });
+    resetSelections();
   }
 
   /// Change focused month
@@ -154,8 +154,8 @@ class ShiftRegisterController {
         focusedMonth.year,
         focusedMonth.month + monthDelta,
       );
-      resetSelections();
     });
+    resetSelections();
     await fetchMonthlyShiftStatus();
   }
 
@@ -163,8 +163,8 @@ class ShiftRegisterController {
   Future<void> updateSelectedStore(String storeId, String? storeName) async {
     setState(() {
       selectedStoreId = storeId;
-      resetSelections();
     });
+    resetSelections();
 
     ref.read(appStateProvider.notifier).selectStore(storeId, storeName: storeName);
     await fetchShiftMetadata(storeId);
@@ -191,127 +191,139 @@ class ShiftRegisterController {
     required String profileImage,
     required String requestDate,
   }) {
-    monthlyShiftStatus ??= [];
+    if (monthlyShiftStatus == null) return;
 
-    final newEmployee = {
-      'user_id': userId,
-      'user_name': userName,
-      'profile_image': profileImage,
-      'is_approved': false,
-      'shift_request_id': null,
-    };
+    // Find existing day or create new one
+    final existingDayIndex = monthlyShiftStatus!.indexWhere(
+      (day) => day.requestDate == requestDate,
+    );
 
-    Map<String, dynamic>? existingDayData;
-    int existingIndex = -1;
+    if (existingDayIndex != -1) {
+      // Update existing day
+      final existingDay = monthlyShiftStatus![existingDayIndex];
+      final updatedDay = _addEmployeeToDay(
+        existingDay,
+        shiftId,
+        userId,
+        userName,
+        profileImage,
+      );
 
-    for (int i = 0; i < monthlyShiftStatus!.length; i++) {
-      if (monthlyShiftStatus![i].requestDate == requestDate) {
-        existingDayData = monthlyShiftStatus![i].toJson();
-        existingIndex = i;
-        break;
-      }
-    }
-
-    if (existingDayData != null && existingIndex != -1) {
-      _updateExistingDayData(existingDayData, shiftId, newEmployee, userId);
+      setState(() {
+        monthlyShiftStatus![existingDayIndex] = updatedDay;
+      });
     } else {
-      _createNewDayData(requestDate, shiftId, newEmployee);
-    }
+      // Create new day
+      final newDay = _createNewDay(
+        requestDate,
+        shiftId,
+        userId,
+        userName,
+        profileImage,
+      );
 
-    setState(() {
-      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
-    });
+      setState(() {
+        monthlyShiftStatus = [...monthlyShiftStatus!, newDay];
+      });
+    }
   }
 
-  void _updateExistingDayData(
-    Map<String, dynamic> dayData,
+  MonthlyShiftStatus _addEmployeeToDay(
+    MonthlyShiftStatus day,
     String shiftId,
-    Map<String, dynamic> newEmployee,
     String userId,
+    String userName,
+    String profileImage,
   ) {
-    var shifts = dayData['shifts'] as List<dynamic>? ?? [];
-    bool shiftFound = false;
+    final newEmployee = EmployeeStatus(
+      userId: userId,
+      userName: userName,
+      profileImage: profileImage,
+      isApproved: false,
+    );
 
-    for (var shift in shifts) {
-      if (shift['shift_id'].toString() == shiftId) {
-        shiftFound = true;
-        var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-        var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+    // Find shift in day
+    final shiftIndex = day.shifts.indexWhere((s) => s.shiftId == shiftId);
 
-        bool alreadyRegistered = pendingEmployees.any((emp) => emp['user_id'] == userId) ||
-            approvedEmployees.any((emp) => emp['user_id'] == userId);
+    if (shiftIndex != -1) {
+      // Update existing shift
+      final existingShift = day.shifts[shiftIndex];
 
-        if (!alreadyRegistered) {
-          pendingEmployees.add(newEmployee);
-          shift['pending_employees'] = pendingEmployees;
-          dayData['total_pending'] = (dayData['total_pending'] ?? 0) + 1;
-        }
-        break;
-      }
-    }
+      // Check if user already registered
+      final alreadyRegistered = existingShift.pendingEmployees.any((e) => e.userId == userId) ||
+          existingShift.approvedEmployees.any((e) => e.userId == userId);
 
-    if (!shiftFound) {
-      _addNewShiftToDay(shifts, shiftId, newEmployee, dayData);
+      if (alreadyRegistered) return day;
+
+      final updatedShift = existingShift.copyWith(
+        pendingEmployees: [...existingShift.pendingEmployees, newEmployee],
+      );
+
+      final updatedShifts = List<DailyShift>.from(day.shifts);
+      updatedShifts[shiftIndex] = updatedShift;
+
+      return day.copyWith(
+        shifts: updatedShifts,
+        totalPending: day.totalPending + 1,
+      );
+    } else {
+      // Create new shift
+      final shiftMeta = _getShiftMetadata(shiftId);
+      final newShift = DailyShift(
+        shiftId: shiftId,
+        shiftName: (shiftMeta?['shift_name'] ?? shiftMeta?['name'] ?? 'Unknown') as String?,
+        startTime: (shiftMeta?['start_time'] ?? '00:00:00') as String?,
+        endTime: (shiftMeta?['end_time'] ?? '00:00:00') as String?,
+        pendingEmployees: [newEmployee],
+        approvedEmployees: [],
+      );
+
+      return day.copyWith(
+        shifts: [...day.shifts, newShift],
+        totalPending: day.totalPending + 1,
+      );
     }
   }
 
-  void _addNewShiftToDay(
-    List<dynamic> shifts,
+  MonthlyShiftStatus _createNewDay(
+    String requestDate,
     String shiftId,
-    Map<String, dynamic> newEmployee,
-    Map<String, dynamic> dayData,
+    String userId,
+    String userName,
+    String profileImage,
   ) {
-    final allStoreShifts = getAllStoreShifts();
-    Map<String, dynamic>? shiftMetadata;
+    final newEmployee = EmployeeStatus(
+      userId: userId,
+      userName: userName,
+      profileImage: profileImage,
+      isApproved: false,
+    );
 
-    for (final storeShift in allStoreShifts) {
-      final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
-      if (storeShiftId == shiftId) {
-        shiftMetadata = storeShift;
-        break;
-      }
-    }
+    final shiftMeta = _getShiftMetadata(shiftId);
+    final newShift = DailyShift(
+      shiftId: shiftId,
+      shiftName: (shiftMeta?['shift_name'] ?? shiftMeta?['name'] ?? 'Unknown') as String?,
+      startTime: (shiftMeta?['start_time'] ?? '00:00:00') as String?,
+      endTime: (shiftMeta?['end_time'] ?? '00:00:00') as String?,
+      pendingEmployees: [newEmployee],
+      approvedEmployees: [],
+    );
 
-    final newShift = {
-      'shift_id': shiftId,
-      'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
-      'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
-      'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
-      'pending_employees': [newEmployee],
-      'approved_employees': [],
-    };
-    shifts.add(newShift);
-    dayData['total_pending'] = (dayData['total_pending'] ?? 0) + 1;
+    return MonthlyShiftStatus(
+      requestDate: requestDate,
+      totalPending: 1,
+      totalApproved: 0,
+      shifts: [newShift],
+    );
   }
 
-  void _createNewDayData(String requestDate, String shiftId, Map<String, dynamic> newEmployee) {
-    final allStoreShifts = getAllStoreShifts();
-    Map<String, dynamic>? shiftMetadata;
-
-    for (final storeShift in allStoreShifts) {
-      final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
-      if (storeShiftId == shiftId) {
-        shiftMetadata = storeShift;
-        break;
-      }
+  Map<String, dynamic>? _getShiftMetadata(String shiftId) {
+    final allShifts = getAllStoreShifts();
+    for (final shift in allShifts) {
+      final id = (shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'])?.toString();
+      if (id == shiftId) return shift;
     }
-
-    final newDayData = {
-      'request_date': requestDate,
-      'total_pending': 1,
-      'total_approved': 0,
-      'shifts': [
-        {
-          'shift_id': shiftId,
-          'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
-          'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
-          'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
-          'pending_employees': [newEmployee],
-          'approved_employees': [],
-        }
-      ],
-    };
-    monthlyShiftStatus!.add(MonthlyShiftStatus.fromJson(newDayData));
+    return null;
   }
 
   /// Optimistically remove user from local shift status
@@ -320,105 +332,99 @@ class ShiftRegisterController {
     required String userId,
     required String requestDate,
   }) {
-    if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return;
+    if (monthlyShiftStatus == null) return;
 
-    for (int dayIndex = 0; dayIndex < monthlyShiftStatus!.length; dayIndex++) {
-      if (monthlyShiftStatus![dayIndex]['request_date'] == requestDate) {
-        final dayData = monthlyShiftStatus![dayIndex];
-        final shifts = dayData['shifts'] as List<dynamic>?;
+    final dayIndex = monthlyShiftStatus!.indexWhere(
+      (day) => day.requestDate == requestDate,
+    );
 
-        bool removedFromPending = false;
-        bool removedFromApproved = false;
+    if (dayIndex == -1) return;
 
-        if (shifts != null) {
-          for (var shift in shifts) {
-            if (shift['shift_id'].toString() == shiftId) {
-              var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-              int pendingCountBefore = pendingEmployees.length;
-              pendingEmployees.removeWhere((emp) => emp['user_id'] == userId);
-              shift['pending_employees'] = pendingEmployees;
-              if (pendingCountBefore > pendingEmployees.length) {
-                removedFromPending = true;
-              }
-
-              var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
-              int approvedCountBefore = approvedEmployees.length;
-              approvedEmployees.removeWhere((emp) => emp['user_id'] == userId);
-              shift['approved_employees'] = approvedEmployees;
-              if (approvedCountBefore > approvedEmployees.length) {
-                removedFromApproved = true;
-              }
-
-              break;
-            }
-          }
-        }
-
-        if (removedFromPending) {
-          dayData['total_pending'] = (dayData['total_pending'] ?? 1) - 1;
-        }
-        if (removedFromApproved) {
-          dayData['total_approved'] = (dayData['total_approved'] ?? 1) - 1;
-        }
-
-        break;
-      }
-    }
+    final day = monthlyShiftStatus![dayIndex];
+    final updatedDay = _removeEmployeeFromDay(day, shiftId, userId);
 
     setState(() {
-      monthlyShiftStatus = List<MonthlyShiftStatus>.from(monthlyShiftStatus!);
+      monthlyShiftStatus![dayIndex] = updatedDay;
     });
+  }
+
+  MonthlyShiftStatus _removeEmployeeFromDay(
+    MonthlyShiftStatus day,
+    String shiftId,
+    String userId,
+  ) {
+    final shiftIndex = day.shifts.indexWhere((s) => s.shiftId == shiftId);
+    if (shiftIndex == -1) return day;
+
+    final shift = day.shifts[shiftIndex];
+
+    final pendingBefore = shift.pendingEmployees.length;
+    final approvedBefore = shift.approvedEmployees.length;
+
+    final updatedPending = shift.pendingEmployees.where((e) => e.userId != userId).toList();
+    final updatedApproved = shift.approvedEmployees.where((e) => e.userId != userId).toList();
+
+    final pendingRemoved = pendingBefore - updatedPending.length;
+    final approvedRemoved = approvedBefore - updatedApproved.length;
+
+    final updatedShift = shift.copyWith(
+      pendingEmployees: updatedPending,
+      approvedEmployees: updatedApproved,
+    );
+
+    final updatedShifts = List<DailyShift>.from(day.shifts);
+    updatedShifts[shiftIndex] = updatedShift;
+
+    return day.copyWith(
+      shifts: updatedShifts,
+      totalPending: day.totalPending - pendingRemoved,
+      totalApproved: day.totalApproved - approvedRemoved,
+    );
   }
 
   /// Get user shift data for a specific date and shift
   Map<String, dynamic>? getUserShiftData(DateTime date) {
-    if (selectedShift == null) return null;
+    if (selectedShift == null || monthlyShiftStatus == null) return null;
 
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final dayData = monthlyShiftStatus?.firstWhere(
-      (day) => day.requestDate == dateStr,
-      orElse: () => MonthlyShiftStatus({}),
-    );
 
-    if (dayData == null || dayData.toJson().isEmpty) return null;
+    try {
+      final day = monthlyShiftStatus!.firstWhere(
+        (d) => d.requestDate == dateStr,
+      );
 
-    final authStateAsync = ref.read(authStateProvider);
-    final user = authStateAsync.value;
-    if (user == null) return null;
+      final shift = day.getShiftById(selectedShift!);
+      if (shift == null) return null;
 
-    final shifts = dayData['shifts'] as List? ?? [];
-
-    for (final shift in shifts) {
-      final shiftId = shift['shift_id']?.toString() ?? '';
-      if (shiftId != selectedShift) continue;
+      final authStateAsync = ref.read(authStateProvider);
+      final user = authStateAsync.value;
+      if (user == null) return null;
 
       // Check pending employees
-      final pendingEmployees = shift['pending_employees'] as List? ?? [];
-      for (final emp in pendingEmployees) {
-        if (emp['user_id'] == user.id) {
+      for (final emp in shift.pendingEmployees) {
+        if (emp.userId == user.id) {
           return {
-            'shift_id': shiftId,
-            'shift_request_id': emp['shift_request_id'],
+            'shift_id': shift.shiftId,
+            'shift_request_id': emp.shiftRequestId,
             'is_approved': false,
-            'shift_type': shift['shift_name'] ?? shift['shift_type'],
+            'shift_type': shift.shiftName ?? shift.shiftType,
           };
         }
       }
 
       // Check approved employees
-      final approvedEmployees = shift['approved_employees'] as List? ?? [];
-      for (final emp in approvedEmployees) {
-        if (emp['user_id'] == user.id) {
+      for (final emp in shift.approvedEmployees) {
+        if (emp.userId == user.id) {
           return {
-            'shift_id': shiftId,
-            'shift_request_id': emp['shift_request_id'],
+            'shift_id': shift.shiftId,
+            'shift_request_id': emp.shiftRequestId,
             'is_approved': true,
-            'shift_type': shift['shift_name'] ?? shift['shift_type'],
+            'shift_type': shift.shiftName ?? shift.shiftType,
           };
         }
       }
-
-      break;
+    } catch (e) {
+      return null;
     }
 
     return null;

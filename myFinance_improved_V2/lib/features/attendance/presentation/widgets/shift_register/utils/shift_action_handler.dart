@@ -421,7 +421,7 @@ class ShiftActionHandler {
   }
 
   Future<void> _showCancelConfirmationDialog(List<Map<String, dynamic>> shiftsToCancel) async {
-    await ShiftAlerts.showCancelConfirmationDialog(
+    ShiftAlerts.showCancelConfirmationDialog(
       context,
       shiftsToCancel: shiftsToCancel,
       onConfirm: () async {

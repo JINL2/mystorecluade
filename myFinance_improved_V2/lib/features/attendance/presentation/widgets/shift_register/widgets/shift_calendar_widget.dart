@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/toss_theme.dart';
-import '../../../../../providers/app_state_provider.dart';
+import '../../../../../../app/providers/app_state_provider.dart';
+import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../../shared/themes/toss_border_radius.dart';
+import '../../../../domain/entities/monthly_shift_status.dart';
+import '../../../../data/models/monthly_shift_status_model.dart';
 
 /// Calendar grid widget showing monthly view with shift status indicators
 class ShiftCalendarWidget extends ConsumerWidget {
@@ -196,9 +201,9 @@ class ShiftCalendarWidget extends ConsumerWidget {
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
       final result = monthlyShiftStatus!.firstWhere(
-        (dayData) => dayData.requestDate == dateStr,
-      );
-      return result.toJson();
+        (dayData) => (dayData as MonthlyShiftStatus).requestDate == dateStr,
+      ) as MonthlyShiftStatus;
+      return MonthlyShiftStatusModel.fromEntity(result).toJson();
     } catch (e) {
       return null;
     }

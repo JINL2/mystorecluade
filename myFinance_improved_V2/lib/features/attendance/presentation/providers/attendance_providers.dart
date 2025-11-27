@@ -6,7 +6,6 @@ import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
-import '../../domain/usecases/get_current_shift.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
@@ -75,12 +74,6 @@ final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
 final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftCards(repository);
-});
-
-/// Get current shift use case provider
-final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetCurrentShift(repository);
 });
 
 /// Update shift card after scan use case provider
@@ -180,7 +173,7 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
 /// Provider for current shift status
 final currentShiftProvider =
     FutureProvider<ShiftCard?>((ref) async {
-  final getCurrentShift = ref.read(getCurrentShiftProvider);
+  final getUserShiftCards = ref.read(getUserShiftCardsProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
 
@@ -197,12 +190,20 @@ final currentShiftProvider =
   final requestTime =
       '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-  return await getCurrentShift(
+  final shiftCards = await getUserShiftCards(
     requestTime: requestTime,
     userId: userId,
     companyId: companyId,
     storeId: storeId,
     timezone: 'Asia/Seoul', // TODO: Get from user settings
+  );
+
+  // Return the first shift that is currently active (checked in but not checked out)
+  if (shiftCards.isEmpty) return null;
+
+  return shiftCards.firstWhere(
+    (card) => card.isCheckedIn && !card.isCheckedOut,
+    orElse: () => shiftCards.first,
   );
 });
 

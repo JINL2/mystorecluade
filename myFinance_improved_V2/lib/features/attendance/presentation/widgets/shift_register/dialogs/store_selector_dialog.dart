@@ -80,7 +80,7 @@ class StoreSelectorDialog {
                     onTap: () async {
                       HapticFeedback.selectionClick();
                       Navigator.pop(context);
-                      await onStoreSelected(store);
+                      await onStoreSelected(store as Map<String, dynamic>);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

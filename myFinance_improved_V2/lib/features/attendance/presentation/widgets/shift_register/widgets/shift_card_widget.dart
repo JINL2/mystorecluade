@@ -2,8 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/theme/toss_theme.dart';
-import '../../../../../providers/auth_state_provider.dart';
+import '../../../../../../app/providers/auth_providers.dart';
+import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../../shared/themes/toss_border_radius.dart';
 
 /// Individual shift card widget
 class ShiftCardWidget extends ConsumerWidget {

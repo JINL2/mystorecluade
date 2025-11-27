@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/toss_theme.dart';
+import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 
 /// Reusable shift information card component
 class ShiftInfoCard extends StatelessWidget {
