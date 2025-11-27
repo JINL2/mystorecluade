@@ -100,9 +100,16 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         final companies = (userData['companies'] as List<dynamic>?) ?? [];
         final companyMap = companies.cast<Map<String, dynamic>>().firstWhere(
           (c) => c['company_id'] == selectedCompanyId,
+          orElse: () => <String, dynamic>{},
         );
-        selectedCompany = Company.fromMap(companyMap);
-      } catch (e) {
+
+        if (companyMap.isNotEmpty) {
+          selectedCompany = Company.fromMap(companyMap);
+        }
+      } catch (e, stackTrace) {
+        // Log error for debugging but don't crash
+        debugPrint('❌ Error finding company $selectedCompanyId: $e');
+        debugPrint('Stack trace: $stackTrace');
         selectedCompany = null;
       }
     }

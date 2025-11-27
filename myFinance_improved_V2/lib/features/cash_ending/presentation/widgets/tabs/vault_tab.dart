@@ -99,27 +99,28 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   @override
   void dispose() {
-    // Dispose all controllers
-    for (final currencyControllers in _controllers.values) {
-      for (final controller in currencyControllers.values) {
-        controller.dispose();
-      }
+    // 1. Dispose toolbar controller FIRST (releases focus node references)
+    //    This prevents accessing disposed focus nodes during cleanup
+    if (_toolbarController != null) {
+      _toolbarController!.dispose();
+      _toolbarController = null;
     }
 
-    // Dispose all focus nodes BEFORE disposing toolbar
-    // (toolbar controller references these focus nodes but doesn't own them)
+    // 2. Dispose all focus nodes
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
         focusNode.dispose();
       }
     }
+    _focusNodes.clear();
 
-    // Dispose toolbar controller last
-    // Note: We already disposed its focus nodes above, so we need to clear them first
-    if (_toolbarController != null) {
-      _toolbarController!.focusNodes.clear();
-      _toolbarController!.dispose();
+    // 3. Dispose all text editing controllers
+    for (final currencyControllers in _controllers.values) {
+      for (final controller in currencyControllers.values) {
+        controller.dispose();
+      }
     }
+    _controllers.clear();
 
     super.dispose();
   }
@@ -929,7 +930,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     final getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
     final userId = getCurrentUserUseCase.execute(); // Will throw if not authenticated
 
-    final now = DateTime.now().toUtc();
+    // ✅ Get current time via TimeProvider (testable)
+    final timeProvider = ref.read(timeProviderProvider);
+    final now = timeProvider.now();
 
     // Build VaultRecount entities for each currency
     final currencyRecounts = currenciesWithData.map((currency) {

@@ -199,7 +199,12 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
                           selectedDate = date;
                         });
                         HapticFeedback.selectionClick();
-
+                        
+                        // Check if this is a new month
+                        final clickedMonthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+                        final currentMonthKey = '${focusedDate.year}-${focusedDate.month.toString().padLeft(2, '0')}';
+                        
+                        
                         // Close the modal
                         Navigator.pop(context);
                         

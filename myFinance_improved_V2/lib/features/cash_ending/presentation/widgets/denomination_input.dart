@@ -24,6 +24,9 @@ class DenominationInput extends StatelessWidget {
   final VoidCallback onChanged;
   final FocusNode? focusNode;
 
+  // Static NumberFormat to avoid creating new instances on every build
+  static final _numberFormat = NumberFormat('#,###');
+
   const DenominationInput({
     super.key,
     required this.denomination,
@@ -36,7 +39,7 @@ class DenominationInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final amount = denomination.value.toInt();
-    final formattedAmount = NumberFormat('#,###').format(amount);
+    final formattedAmount = _numberFormat.format(amount);
 
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
@@ -79,14 +82,14 @@ class DenominationInput extends StatelessWidget {
 
           // Right section: Amount display
           Expanded(
-            child: ListenableBuilder(
-              listenable: controller,
-              builder: (context, _) {
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
                 // Calculate subtotal from controller value (not denomination.quantity)
                 // because denomination entity doesn't update with user input
-                final quantity = int.tryParse(controller.text.trim()) ?? 0;
+                final quantity = int.tryParse(value.text.trim()) ?? 0;
                 final subtotal = denomination.value * quantity;
-                final subtotalText = NumberFormat('#,###').format(subtotal.toInt());
+                final subtotalText = _numberFormat.format(subtotal.toInt());
 
                 // Check if subtotal is zero
                 final isZero = subtotal == 0;

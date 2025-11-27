@@ -188,16 +188,14 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Invalid store ID format');
                 }
                 
-                // Get current time with timezone offset for RPC
-                // Format: "2024-11-15T10:30:25+07:00"
+                // Get current date and time
                 final now = DateTime.now();
-                final currentTime = DateTimeUtils.toLocalWithOffset(now);
-
+                final requestDate = DateTimeUtils.toDateOnly(now);
+                // Convert to UTC for database storage
+                final currentTime = DateTimeUtils.toUtc(now);
+                
                 // Submit attendance using check in use case
                 final checkInShift = ref.read(checkInShiftProvider);
-
-                // Get user's local timezone
-                final timezone = DateTimeUtils.getLocalTimezone();
 
                 final result = await checkInShift(
                   userId: userId,
@@ -207,10 +205,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     latitude: position.latitude,
                     longitude: position.longitude,
                   ),
-                  timezone: timezone,
+                  timezone: 'Asia/Seoul', // TODO: Get from user settings
                 );
 
-                // ✅ Clean Architecture: Check Entity properties instead of Map
+                // Check if the RPC call was successful
                 if (!result.success) {
                   final errorMsg = result.message ?? 'Failed to update shift request';
                   throw Exception(errorMsg);
@@ -231,16 +229,18 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                 // Show success popup
                 if (mounted) {
-                  // Determine if it was check-in or check-out based on result
-                  // ✅ Clean Architecture: Use Entity properties
-                  String message = result.isCheckOut ? 'Check-out Successful' : 'Check-in Successful';
+                  // Determine message based on action
+                  String message = result.isCheckIn
+                      ? 'Check-in Successful'
+                      : 'Check-out Successful';
 
                   // Prepare data to pass back to attendance page
                   final checkInOutData = <String, dynamic>{
+                    'success': true,
                     'message': message,
-                    'timestamp': result.timestamp,
                     'action': result.action,
                     'request_date': result.requestDate,
+                    'timestamp': result.timestamp,
                     'shift_request_id': result.shiftRequestId,
                   };
                   

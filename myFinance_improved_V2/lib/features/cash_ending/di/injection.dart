@@ -46,6 +46,17 @@ import '../domain/usecases/save_bank_balance_usecase.dart';
 import '../domain/usecases/save_cash_ending_usecase.dart';
 import '../domain/usecases/save_vault_transaction_usecase.dart';
 import '../domain/usecases/select_store_usecase.dart';
+import '../domain/services/time_provider.dart';
+import '../data/services/system_time_provider.dart';
+
+// ============================================================================
+// SERVICES
+// ============================================================================
+
+/// Provider for TimeProvider (for testable time operations)
+final timeProviderProvider = Provider<TimeProvider>((ref) {
+  return SystemTimeProvider();
+});
 
 // ============================================================================
 // DATA SOURCES

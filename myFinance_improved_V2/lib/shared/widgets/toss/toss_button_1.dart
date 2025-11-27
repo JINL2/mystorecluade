@@ -321,7 +321,7 @@ class _TossButton1State extends State<TossButton1>
 
   Color _getBackgroundColor() {
     if (!widget.isEnabled) {
-      return widget.disabledBackgroundColor ?? TossColors.gray200;
+      return widget.disabledBackgroundColor ?? TossColors.gray100;
     }
 
     if (widget.backgroundColor != null) {
@@ -342,7 +342,7 @@ class _TossButton1State extends State<TossButton1>
 
   Color _getTextColor() {
     if (!widget.isEnabled) {
-      return widget.disabledTextColor ?? TossColors.gray400;
+      return widget.disabledTextColor ?? TossColors.gray600;
     }
 
     if (widget.textColor != null) {
@@ -377,6 +377,32 @@ class _TossButton1State extends State<TossButton1>
       case TossButton1Variant.textButton:
         return TossColors.transparent;
     }
+  }
+
+  /// Get adjusted padding to compensate for border (inset border effect)
+  /// For outlined buttons, reduce padding by border width to maintain same total size
+  EdgeInsets _getAdjustedPadding() {
+    final basePadding = widget.padding ??
+        const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        );
+
+    // Check if button has a visible border
+    final borderColor = _getBorderColor();
+    final borderWidth = widget.borderWidth ??
+        (borderColor != TossColors.transparent ? 1.0 : 0.0);
+
+    // If no border, return original padding
+    if (borderWidth == 0) {
+      return basePadding;
+    }
+
+    // Reduce padding by border width to create inset border effect
+    return EdgeInsets.symmetric(
+      horizontal: basePadding.horizontal / 2 - borderWidth,
+      vertical: basePadding.vertical / 2 - borderWidth,
+    );
   }
 
   void _handleTapDown(TapDownDetails details) {
@@ -444,11 +470,7 @@ class _TossButton1State extends State<TossButton1>
             widget.borderRadius ?? TossBorderRadius.md,
           ),
           child: Container(
-            padding: widget.padding ??
-                const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
+            padding: _getAdjustedPadding(),
             decoration: BoxDecoration(
               color: _getBackgroundColor(),
               borderRadius: BorderRadius.circular(

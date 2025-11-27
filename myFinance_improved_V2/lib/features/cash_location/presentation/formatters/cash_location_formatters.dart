@@ -15,6 +15,15 @@ class CashLocationFormatters {
   CashLocationFormatters._(); // Private constructor - utility class
 
   // ============================================================================
+  // Cached DateFormat instances for performance
+  // ============================================================================
+
+  static final DateFormat _timeFormat = DateFormat('HH:mm');
+  static final DateFormat _shortDateFormat = DateFormat('d/M');
+  static final DateFormat _fullDateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
+  static final NumberFormat _currencyFormat = NumberFormat('#,###', 'en_US');
+
+  // ============================================================================
   // Date and Time Formatting
   // ============================================================================
 
@@ -22,7 +31,7 @@ class CashLocationFormatters {
   static String formatShortDate(String dateTimeString) {
     try {
       final localDateTime = DateTime.parse(dateTimeString);
-      return '${localDateTime.day}/${localDateTime.month}';
+      return _shortDateFormat.format(localDateTime);
     } catch (e) {
       return dateTimeString;
     }
@@ -47,7 +56,7 @@ class CashLocationFormatters {
 
   /// Format full date and time
   static String formatDateTime(DateTime dateTime) {
-    return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    return _fullDateTimeFormat.format(dateTime);
   }
 
   // ============================================================================
@@ -66,7 +75,7 @@ class CashLocationFormatters {
 
   /// Format journal entry time for display
   static String formatJournalTime(DateTime dateTime) {
-    return DateFormat('HH:mm').format(dateTime);
+    return _timeFormat.format(dateTime);
   }
 
   /// Get formatted transaction display from journal entry
@@ -153,15 +162,13 @@ class CashLocationFormatters {
 
   /// Format amount with currency symbol
   static String formatCurrency(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
-    return '$symbol${formatter.format(amount.round())}';
+    return '$symbol${_currencyFormat.format(amount.round())}';
   }
 
   /// Format amount without currency symbol
   static String formatAmount(double amount) {
-    final formatter = NumberFormat('#,###', 'en_US');
-    return formatter.format(amount.round());
+    return _currencyFormat.format(amount.round());
   }
 }
 

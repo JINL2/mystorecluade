@@ -609,9 +609,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
 
       if (success) {
         // Invalidate cache to refresh the list
-        // Note: Provider invalidation temporarily disabled - needs proper setup
-        // final appState = ref.read(appStateProvider);
-        // ref.invalidate(allCashLocationsProvider(...));
+        ref.invalidate(allCashLocationsProvider);
 
         // Show success message
         if (mounted) {
@@ -753,8 +751,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ));
 
       // Invalidate cache to refresh the list
-      // TODO: Fix provider invalidation after proper setup
-      // ref.invalidate(allCashLocationsProvider(...));
+      ref.invalidate(allCashLocationsProvider);
 
       if (mounted) {
         await showDialog(

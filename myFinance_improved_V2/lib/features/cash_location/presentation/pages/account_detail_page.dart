@@ -696,19 +696,22 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       );
       
       Navigator.pop(context); // Close loading dialog
-      
-      if (result['success'] == true) {
-        // Refresh data immediately after successful creation
-        await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
-        await _onRefresh();
-        
-        // Show success message after refresh
-        _showSuccessDialog(isError: true);
-      } else {
-        // Show error message
-        final errorMsg = (result['error'] ?? 'Failed to create journal entry').toString();
-        _showErrorDialog(errorMsg);
-      }
+
+      // Use pattern matching with sealed class
+      result.when(
+        success: (journalId, message, additionalData) async {
+          // Refresh data immediately after successful creation
+          await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
+          await _onRefresh();
+
+          // Show success message after refresh
+          _showSuccessDialog(isError: true);
+        },
+        failure: (error, errorCode, errorDetails) {
+          // Show error message
+          _showErrorDialog(error);
+        },
+      );
     } catch (e) {
       Navigator.pop(context); // Close loading dialog
       _showErrorDialog('An error occurred: ${e.toString()}');
@@ -755,21 +758,24 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           storeId: storeId,
         ),
       );
-      
+
       Navigator.pop(context); // Close loading dialog
-      
-      if (result['success'] == true) {
-        // Refresh data immediately after successful creation
-        await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
-        await _onRefresh();
-        
-        // Show success message after refresh
-        _showSuccessDialog(isError: false);
-      } else {
-        // Show error message
-        final errorMsg = (result['error'] ?? 'Failed to create journal entry').toString();
-        _showErrorDialog(errorMsg);
-      }
+
+      // Use pattern matching with sealed class
+      result.when(
+        success: (journalId, message, additionalData) async {
+          // Refresh data immediately after successful creation
+          await Future.delayed(const Duration(milliseconds: 500)); // Small delay to ensure server processing
+          await _onRefresh();
+
+          // Show success message after refresh
+          _showSuccessDialog(isError: false);
+        },
+        failure: (error, errorCode, errorDetails) {
+          // Show error message
+          _showErrorDialog(error);
+        },
+      );
     } catch (e) {
       Navigator.pop(context); // Close loading dialog
       _showErrorDialog('An error occurred: ${e.toString()}');

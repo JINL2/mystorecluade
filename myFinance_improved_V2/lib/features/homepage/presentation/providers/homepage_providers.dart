@@ -9,6 +9,7 @@ import '../../domain/entities/currency.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
+import '../../domain/mappers/user_entity_mapper.dart';
 import '../../domain/providers/repository_providers.dart';
 import '../../domain/providers/use_case_providers.dart';
 import '../../domain/revenue_period.dart';
@@ -211,42 +212,15 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     return null;
   }
 
-  // Fetch user companies data (either from cache or repository)
-  UserWithCompanies userEntity;
+  // Fetch user companies data from repository
+  final repository = ref.read(homepageRepositoryProvider);
+  final userEntity = await repository.getUserCompanies(user.id);
 
-  if (appState.user.isNotEmpty && appState.user['user_id'] == user.id) {
-    // Return cached entity - need to convert Map back to entity
-    // This is a workaround until AppState is refactored to store entities
-    final repository = ref.watch(homepageRepositoryProvider);
-    userEntity = await repository.getUserCompanies(user.id);
-  } else {
-    // Fetch fresh user companies data from repository
-    final repository = ref.watch(homepageRepositoryProvider);
-    userEntity = await repository.getUserCompanies(user.id);
+  // Convert entity to Map once (avoid duplication)
+  final userData = convertUserEntityToMap(userEntity);
 
-    // Convert entity to Map for AppState (backward compatibility)
-    final userData = {
-      'user_id': userEntity.userId,
-      'user_first_name': userEntity.userFirstName,
-      'user_last_name': userEntity.userLastName,
-      'profile_image': userEntity.profileImage,
-      'companies': userEntity.companies.map((company) => {
-        'company_id': company.id,
-        'company_name': company.companyName,
-        'company_code': company.companyCode,
-        'stores': company.stores.map((store) => {
-          'store_id': store.id,
-          'store_name': store.storeName,
-          'store_code': store.storeCode,
-        },).toList(),
-        'role': {
-          'role_name': company.role.roleName,
-          'permissions': company.role.permissions,
-        },
-      },).toList(),
-    };
-
-    // Save to AppState
+  // Update AppState only if data changed
+  if (appState.user.isEmpty || appState.user['user_id'] != user.id) {
     appStateNotifier.updateUser(
       user: userData,
       isAuthenticated: true,
@@ -279,45 +253,35 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     }
   }
 
-  // Convert entity to Map for global compatibility
-  return {
-    'user_id': userEntity.userId,
-    'user_first_name': userEntity.userFirstName,
-    'user_last_name': userEntity.userLastName,
-    'profile_image': userEntity.profileImage,
-    'companies': userEntity.companies.map((company) => {
-      'company_id': company.id,
-      'company_name': company.companyName,
-      'company_code': company.companyCode,
-      'stores': company.stores.map((store) => {
-        'store_id': store.id,
-        'store_name': store.storeName,
-        'store_code': store.storeCode,
-      },).toList(),
-      'role': {
-        'role_name': company.role.roleName,
-        'permissions': company.role.permissions,
-      },
-    },).toList(),
-  };
+  // Return Map (already converted once, reuse userData)
+  return userData;
 });
 
 /// Entity-based provider for homepage (Clean Architecture)
 ///
 /// This provider returns UserWithCompanies entity for use within the homepage feature.
-/// It leverages the global userCompaniesProvider but converts the Map to entity.
-final userCompaniesEntityProvider = FutureProvider<UserWithCompanies?>((ref) async {
-  final userDataMap = await ref.watch(userCompaniesProvider.future);
+/// It leverages the global userCompaniesProvider and converts Map to Entity WITHOUT
+/// making additional network requests (performance optimization).
+final userCompaniesEntityProvider = Provider<AsyncValue<UserWithCompanies?>>((ref) {
+  final userDataMapAsync = ref.watch(userCompaniesProvider);
 
-  if (userDataMap == null) {
-    return null;
-  }
+  return userDataMapAsync.when(
+    data: (userDataMap) {
+      if (userDataMap == null) {
+        return const AsyncValue.data(null);
+      }
 
-  // Convert Map to Entity
-  final repository = ref.watch(homepageRepositoryProvider);
-  final userId = userDataMap['user_id'] as String;
-
-  return await repository.getUserCompanies(userId);
+      // Convert Map to Entity (no network request, just data transformation)
+      try {
+        final entity = convertMapToUserEntity(userDataMap);
+        return AsyncValue.data(entity);
+      } catch (e, stackTrace) {
+        return AsyncValue.error(e, stackTrace);
+      }
+    },
+    loading: () => const AsyncValue.loading(),
+    error: (error, stackTrace) => AsyncValue.error(error, stackTrace),
+  );
 });
 
 // === UI State Providers ===
