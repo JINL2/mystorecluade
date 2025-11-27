@@ -30,6 +30,7 @@ import 'toss_error_view.dart';
 import 'toss_loading_view.dart';
 import 'toss_section_header.dart';
 import 'toss_white_card.dart';
+import 'avatar_stack_interact.dart';
 
 /// Design Library Page
 ///
@@ -1119,6 +1120,149 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 title: 'Store Location',
                 subtitle: '123 Main Street',
                 onTap: () {},
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // AvatarStackInteract
+        _buildComponentShowcase(
+          'AvatarStackInteract',
+          'Interactive avatar stack with bottom sheet showing user list',
+          'avatar_stack_interact.dart',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Basic Usage (3 users):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                ],
+                title: 'Applied Users',
+                subtitle: 'Morning Shift - Downtown Store',
+                countTextFormat: '{count} applied',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'With +N Indicator (6 users, shows 4 + "+2"):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                  AvatarUser(
+                    id: '4',
+                    name: 'Sarah Williams',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=44',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '5',
+                    name: 'David Brown',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '6',
+                    name: 'Emily Davis',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=20',
+                    subtitle: 'Assistant Manager',
+                  ),
+                ],
+                title: 'Team Members',
+                subtitle: 'Click to view all team members',
+                countTextFormat: '{count} members',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Without Avatars (fallback icons):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(id: '1', name: 'John Doe', subtitle: 'Store Manager'),
+                  AvatarUser(id: '2', name: 'Jane Smith', subtitle: 'Assistant Manager'),
+                  AvatarUser(id: '3', name: 'Bob Wilson', subtitle: 'Staff'),
+                ],
+                title: 'Assigned Staff',
+                countTextFormat: '{count} assigned',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Large Group (10 users):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(id: '1', name: 'John Doe', avatarUrl: 'https://i.pravatar.cc/150?img=12', subtitle: 'Manager'),
+                  AvatarUser(id: '2', name: 'Jane Smith', avatarUrl: 'https://i.pravatar.cc/150?img=5', subtitle: 'Staff'),
+                  AvatarUser(id: '3', name: 'Mike Johnson', avatarUrl: 'https://i.pravatar.cc/150?img=33', subtitle: 'Supervisor'),
+                  AvatarUser(id: '4', name: 'Sarah Williams', avatarUrl: 'https://i.pravatar.cc/150?img=44', subtitle: 'Staff'),
+                  AvatarUser(id: '5', name: 'David Brown', avatarUrl: 'https://i.pravatar.cc/150?img=15', subtitle: 'Staff'),
+                  AvatarUser(id: '6', name: 'Emily Davis', avatarUrl: 'https://i.pravatar.cc/150?img=20', subtitle: 'Assistant Manager'),
+                  AvatarUser(id: '7', name: 'Chris Taylor', avatarUrl: 'https://i.pravatar.cc/150?img=51', subtitle: 'Staff'),
+                  AvatarUser(id: '8', name: 'Lisa Anderson', avatarUrl: 'https://i.pravatar.cc/150?img=47', subtitle: 'Staff'),
+                  AvatarUser(id: '9', name: 'Tom Martinez', avatarUrl: 'https://i.pravatar.cc/150?img=59', subtitle: 'Supervisor'),
+                  AvatarUser(id: '10', name: 'Amy White', avatarUrl: 'https://i.pravatar.cc/150?img=29', subtitle: 'Staff'),
+                ],
+                title: 'All Applicants',
+                subtitle: 'Showing all applicants for this shift',
+                countTextFormat: '{count} applicants',
               ),
             ],
           ),
