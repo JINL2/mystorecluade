@@ -82,41 +82,34 @@ class AttendanceRecentActivity extends StatelessWidget {
           // Parse the request_date and combine with times to get full DateTime
           final baseDate = date;
 
-          // Parse start time (UTC from DB - convert to local time)
+          // Parse start time
+          // IMPORTANT: RPC already converts times to local timezone
+          // Full datetime strings (with 'T') need conversion, time-only strings are already local
           DateTime startDateTime;
           if (actualStart.toString().contains('T')) {
             startDateTime = DateTimeUtils.toLocal(actualStart.toString());
           } else {
-            // Time-only format from RPC - combine with date and convert
+            // Time-only format from RPC - already in local time, just parse
             final startParts = actualStart.toString().split(':');
-            if (startParts.length >= 2 && requestDate != null) {
-              final utcTimestamp = '${requestDate}T${actualStart.toString().padRight(8, ':00')}Z';
-              startDateTime = DateTimeUtils.toLocal(utcTimestamp);
-            } else {
-              final hour = int.tryParse(startParts[0]) ?? 0;
-              final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
-              startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-            }
+            final hour = int.tryParse(startParts[0]) ?? 0;
+            final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
+            startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
           }
 
-          // Parse end time (UTC from DB - convert to local time)
+          // Parse end time
+          // IMPORTANT: RPC already converts times to local timezone
           DateTime endDateTime;
           if (actualEnd.toString().contains('T')) {
             endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
           } else {
-            // Time-only format from RPC - combine with date and convert
+            // Time-only format from RPC - already in local time, just parse
             final endParts = actualEnd.toString().split(':');
-            if (endParts.length >= 2 && requestDate != null) {
-              final utcTimestamp = '${requestDate}T${actualEnd.toString().padRight(8, ':00')}Z';
-              endDateTime = DateTimeUtils.toLocal(utcTimestamp);
-            } else {
-              final hour = int.tryParse(endParts[0]) ?? 0;
-              final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
-              endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-            }
+            final hour = int.tryParse(endParts[0]) ?? 0;
+            final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
+            endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
           }
 
-          // Calculate hours worked based on converted local times
+          // Calculate hours worked
           final duration = endDateTime.difference(startDateTime);
           final hours = duration.inHours;
           final minutes = duration.inMinutes % 60;
@@ -142,9 +135,10 @@ class AttendanceRecentActivity extends StatelessWidget {
         }
       }
 
-      // Convert shift time from UTC to local time
-      final rawShiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
-      final localShiftTime = AttendanceHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+      // shift_time is already converted to local timezone by RPC (user_shift_cards_v3)
+      // RPC uses: to_char(vsr.start_time_utc AT TIME ZONE p_timezone, 'HH24:MI')
+      // No additional conversion needed
+      final shiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
 
       return {
         'date': date,
@@ -152,7 +146,7 @@ class AttendanceRecentActivity extends StatelessWidget {
         'checkOut': checkOutTime,
         'hours': hoursWorked,
         'store': card['store_name'] ?? 'Store',
-        'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $localShiftTime',
+        'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $shiftTime',
         'status': actualEnd != null ? 'completed' : 'in_progress',
         'lateMinutes': card['late_minutes'] ?? 0,
         'overtimeMinutes': card['overtime_minutes'] ?? 0,

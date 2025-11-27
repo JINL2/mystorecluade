@@ -63,3 +63,4 @@ UserWithCompanies convertMapToUserEntity(Map<String, dynamic> map) {
         .toList(),
   );
 }
+

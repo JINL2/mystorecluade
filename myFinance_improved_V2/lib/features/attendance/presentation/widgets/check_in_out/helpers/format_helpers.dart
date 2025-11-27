@@ -26,7 +26,10 @@ class FormatHelpers {
   }
 
   /// Format time from various formats to HH:mm
-  /// Handles UTC to local time conversion
+  ///
+  /// IMPORTANT: RPC (user_shift_cards_v3) already converts times to local timezone
+  /// using: to_char(time_column AT TIME ZONE p_timezone, 'HH24:MI')
+  /// So NO additional UTC conversion is needed here - just format the time string
   static String formatTime(dynamic time, {String? requestDate}) {
     if (time == null || time.toString().isEmpty) {
       return '--:--';
@@ -35,11 +38,11 @@ class FormatHelpers {
     final timeStr = time.toString();
 
     try {
-      // Datetime string (UTC from DB - convert to local)
+      // Full datetime string with 'T' or space (e.g., "2025-10-27T14:56:00Z")
+      // This case is for raw UTC timestamps that need conversion
       if (timeStr.contains('T') || (timeStr.contains(' ') && timeStr.length > 10)) {
         DateTime dateTime;
 
-        // PostgreSQL format: "2025-10-27 14:56:00"
         if (timeStr.contains(' ') && !timeStr.contains('T')) {
           final isoFormat = '${timeStr.replaceFirst(' ', 'T')}Z';
           dateTime = DateTimeUtils.toLocal(isoFormat);
@@ -50,22 +53,9 @@ class FormatHelpers {
         return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
       }
 
-      // Time string (HH:mm:ss or HH:mm) from RPC
+      // Time string (HH:mm:ss or HH:mm) from RPC to_char()
+      // RPC already converted to local time, so just format and return as-is
       if (timeStr.contains(':') && !timeStr.contains(' ') && timeStr.length <= 10) {
-        if (requestDate != null && requestDate.isNotEmpty) {
-          final utcTimestamp = '${requestDate}T${timeStr}Z';
-          try {
-            final dateTime = DateTimeUtils.toLocal(utcTimestamp);
-            return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-          } catch (e) {
-            final parts = timeStr.split(':');
-            if (parts.length >= 2) {
-              return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
-            }
-          }
-        }
-
-        // No request_date, return as-is
         final parts = timeStr.split(':');
         if (parts.length >= 2) {
           return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
@@ -81,9 +71,9 @@ class FormatHelpers {
     }
   }
 
-  /// Format shift time range from UTC to local
-  /// Input: "14:56 ~ 17:56" (UTC)
-  /// Output: "21:56 ~ 00:56" (Local)
+  /// Format shift time string (already in local time from RPC)
+  /// Input: "09:30 ~ 15:30" (local time from RPC)
+  /// Output: "09:30 ~ 15:30" (formatted, no conversion needed)
   static String formatShiftTime(String? shiftTime, {String? requestDate}) {
     if (shiftTime == null || shiftTime.isEmpty) {
       return '--:-- ~ --:--';

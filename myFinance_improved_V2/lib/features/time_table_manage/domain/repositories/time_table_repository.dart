@@ -161,27 +161,27 @@ abstract class TimeTableRepository {
     required String timezone,
   });
 
-  /// Insert new schedule (assign employee to shift) using v2 RPC
+  /// Insert new schedule (assign employee to shift) using v3 RPC
   ///
-  /// Uses manager_shift_insert_schedule_v2 RPC with timezone support
+  /// Uses manager_shift_insert_schedule_v3 RPC
+  /// - p_request_date is DATE type (yyyy-MM-dd format)
+  /// - No timezone parameter needed - RPC handles UTC conversion internally
   /// - Handles duplicate detection and overnight shifts
-  /// - Calculates start_time_utc and end_time_utc automatically
+  /// - Calculates start_time_utc and end_time_utc from store_shifts table
   ///
   /// [userId] - Employee user ID
   /// [shiftId] - Shift ID
   /// [storeId] - Store ID
-  /// [requestTime] - Request time in UTC timestamp format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestDate] - Selected date from calendar in format 'yyyy-MM-dd'
   /// [approvedBy] - User ID of approver
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns [OperationResult] indicating success or failure
   Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String requestDate,
     required String approvedBy,
-    required String timezone,
   });
 
   /// Process bulk shift approval
