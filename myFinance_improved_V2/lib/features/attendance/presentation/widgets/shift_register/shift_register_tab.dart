@@ -13,9 +13,6 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-// ⚠️ Clean Architecture Violation: Data layer import in Presentation
-// Kept temporarily due to entity/RPC structure mismatch (see monthlyShiftStatus field comment)
-import '../../../data/models/monthly_shift_status_model.dart';
 import '../../../domain/entities/shift_data.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/attendance_providers.dart';
@@ -34,11 +31,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   String? selectedStoreId;
   List<ShiftMetadata>? shiftMetadata; // Store shift metadata from RPC
   bool isLoadingMetadata = false;
-  // ⚠️ TECHNICAL DEBT: Should use List<MonthlyShiftStatus> entities
-  // Current blocker: MonthlyShiftStatus entity doesn't match actual RPC nested structure
-  // RPC returns: { request_date, total_pending, total_approved, shifts: [...] }
-  // Entity has: { requestDate, shiftId, shiftName, pendingEmployees, approvedEmployees }
-  // TODO: Either update entity structure OR refactor RPC to match entity
+  // Raw JSON from RPC with nested structure:
+  // [{ request_date, shifts: [{ shift_id, pending_employees, approved_employees }] }]
   List<Map<String, dynamic>>? monthlyShiftStatus;
   bool isLoadingShiftStatus = false;
 
@@ -115,11 +109,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   // Fetch monthly shift status from Supabase RPC (Shows all employees' registrations)
   Future<void> fetchMonthlyShiftStatus() async {
     if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
-    
+
     setState(() {
       isLoadingShiftStatus = true;
     });
-    
+
     try {
       // Format as local timestamp with timezone offset for the first day of the focused month
       // Format: "2024-11-01T00:00:00+07:00"
@@ -129,29 +123,23 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       // Get user's local timezone
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      // Use get monthly shift status use case
-      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
+      // Use get monthly shift status raw use case - returns raw JSON with nested shifts array
+      final getMonthlyShiftStatusRaw = ref.read(getMonthlyShiftStatusRawProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      final entityList = await getMonthlyShiftStatus(
+      final jsonList = await getMonthlyShiftStatusRaw(
         storeId: selectedStoreId!,
         companyId: companyId,
         requestTime: requestTime,
         timezone: timezone,
       );
 
-      // ⚠️ TEMPORARY: Convert back to Map until entity structure matches RPC response
-      // See field comment above for details
-      final jsonList = entityList
-          .map((entity) => MonthlyShiftStatusModel.fromEntity(entity).toJson())
-          .toList();
-
       setState(() {
         monthlyShiftStatus = jsonList;
         isLoadingShiftStatus = false;
       });
-      
+
     } catch (e) {
       setState(() {
         isLoadingShiftStatus = false;

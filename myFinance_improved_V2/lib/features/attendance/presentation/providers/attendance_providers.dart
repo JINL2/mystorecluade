@@ -7,6 +7,7 @@ import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
+import '../../domain/usecases/get_monthly_shift_status_raw.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
@@ -81,6 +82,14 @@ final getMonthlyShiftStatusProvider = Provider<GetMonthlyShiftStatus>((ref) {
 final deleteShiftRequestProvider = Provider<DeleteShiftRequest>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return DeleteShiftRequest(repository);
+});
+
+/// Get monthly shift status raw use case provider
+/// Returns raw JSON with nested shifts array for UI display
+final getMonthlyShiftStatusRawProvider =
+    Provider<GetMonthlyShiftStatusRaw>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetMonthlyShiftStatusRaw(repository);
 });
 
 /// Report shift issue use case provider
