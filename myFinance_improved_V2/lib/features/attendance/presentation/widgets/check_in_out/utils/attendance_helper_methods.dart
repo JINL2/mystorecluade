@@ -7,7 +7,10 @@ import '../../../../domain/entities/shift_card.dart';
 /// Helper methods for attendance-related operations
 class AttendanceHelpers {
   /// Format time from various formats to HH:mm
-  /// Handles UTC to local time conversion
+  ///
+  /// IMPORTANT: RPC (user_shift_cards_v3) already converts times to local timezone
+  /// using: to_char(time_column AT TIME ZONE p_timezone, 'HH24:MI')
+  /// So NO additional UTC conversion is needed here - just format the time string
   static String formatTime(dynamic time, {String? requestDate}) {
     if (time == null || time.toString().isEmpty) {
       return '--:--';
@@ -16,19 +19,15 @@ class AttendanceHelpers {
     final timeStr = time.toString();
 
     try {
-      // If it's a datetime string (UTC from DB - need to convert to local time)
-      // Handles both ISO8601 (2025-10-27T14:56:00Z) and PostgreSQL format (2025-10-27 14:56:00)
+      // If it's a full datetime string with 'T' or space (e.g., "2025-10-27T14:56:00Z")
+      // This case is for raw UTC timestamps that need conversion
       if (timeStr.contains('T') || (timeStr.contains(' ') && timeStr.length > 10)) {
         DateTime dateTime;
 
-        // PostgreSQL "timestamp without time zone" format: "2025-10-27 14:56:00"
-        // We treat this as UTC and convert to local time
         if (timeStr.contains(' ') && !timeStr.contains('T')) {
-          // Parse as UTC by adding 'Z' suffix
           final isoFormat = '${timeStr.replaceFirst(' ', 'T')}Z';
           dateTime = DateTimeUtils.toLocal(isoFormat);
         } else {
-          // ISO8601 format with 'T'
           dateTime = DateTimeUtils.toLocal(timeStr);
         }
 
@@ -36,24 +35,8 @@ class AttendanceHelpers {
       }
 
       // If it's just time string (HH:mm:ss or HH:mm) from RPC to_char()
-      // We need to combine with request_date to convert from UTC to local time
+      // RPC already converted to local time, so just format and return as-is
       if (timeStr.contains(':') && !timeStr.contains(' ') && timeStr.length <= 10) {
-        if (requestDate != null && requestDate.isNotEmpty) {
-          // Combine date + time and treat as UTC
-          final utcTimestamp = '${requestDate}T${timeStr}Z';
-          try {
-            final dateTime = DateTimeUtils.toLocal(utcTimestamp);
-            return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-          } catch (e) {
-            // If parsing fails, return time as-is
-            final parts = timeStr.split(':');
-            if (parts.length >= 2) {
-              return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
-            }
-          }
-        }
-
-        // No request_date provided, return time as-is
         final parts = timeStr.split(':');
         if (parts.length >= 2) {
           return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
@@ -70,9 +53,9 @@ class AttendanceHelpers {
     }
   }
 
-  /// Convert shift time string from UTC to local time
-  /// Input: "14:56 ~ 17:56" (UTC), requestDate: "2025-10-27"
-  /// Output: "21:56 ~ 00:56" (Local time, Vietnam = UTC+7)
+  /// Format shift time string (already in local time from RPC)
+  /// Input: "09:30 ~ 15:30" (local time from RPC)
+  /// Output: "09:30 ~ 15:30" (formatted, no conversion needed)
   static String formatShiftTime(String? shiftTime, {String? requestDate}) {
     if (shiftTime == null || shiftTime.isEmpty) {
       return '--:-- ~ --:--';

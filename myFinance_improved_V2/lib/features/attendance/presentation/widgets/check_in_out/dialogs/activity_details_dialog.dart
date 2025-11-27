@@ -36,10 +36,10 @@ Future<void> showActivityDetailsDialog({
   // Get currency symbol
   final currency = currencySymbol ?? 'VND';
 
-  // Parse shift time and convert from UTC to local time
-  final rawShiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
-  final requestDate = cardData['request_date']?.toString();
-  String shiftTime = AttendanceHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+  // shift_time is already converted to local timezone by RPC (user_shift_cards_v3)
+  // RPC uses: to_char(vsr.start_time_utc AT TIME ZONE p_timezone, 'HH24:MI')
+  // No additional conversion needed
+  String shiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
 
   await showModalBottomSheet(
     context: context,
