@@ -1,0 +1,355 @@
+/**
+ * SelectorModal Styles
+ * Toss-style selection modal - Clean, minimal, center-aligned
+ * Based on ErrorMessage component design
+ */
+
+/* ==================== BACKDROP ==================== */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: backdropFadeIn 0.2s ease-out;
+  padding: 16px;
+}
+
+.backdropClosing {
+  animation: backdropFadeOut 0.2s ease-out forwards;
+}
+
+/* ==================== DIALOG BOX ==================== */
+.dialog {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  background: var(--toss-white, #FFFFFF);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 32px 24px 24px 24px;
+  animation: dialogFadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.dialogClosing {
+  animation: dialogFadeOut 0.2s ease-out forwards;
+}
+
+/* ==================== ICON ==================== */
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.iconContainer svg {
+  display: block;
+}
+
+/* ==================== TITLE ==================== */
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--toss-gray-900, #111827);
+  margin: 0 0 12px 0;
+  word-break: keep-all;
+}
+
+/* ==================== MESSAGE ==================== */
+.message {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--toss-gray-600, #6B7280);
+  margin: 0 0 28px 0;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+/* ==================== OPTIONS SECTION ==================== */
+.optionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* ==================== OPTION BUTTONS ==================== */
+.optionButton {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.optionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary variant - Toss Blue */
+.optionPrimary {
+  background-color: var(--toss-primary, #0064FF);
+  color: #FFFFFF;
+}
+
+.optionPrimary:hover:not(:disabled) {
+  background-color: var(--toss-primary-dark, #0052CC);
+  transform: translateY(-1px);
+}
+
+.optionPrimary:active:not(:disabled) {
+  background-color: var(--toss-primary-darker, #004099);
+  transform: translateY(0);
+}
+
+.optionPrimary:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.2);
+}
+
+/* Secondary variant - Gray background */
+.optionSecondary {
+  background-color: var(--toss-gray-100, #F3F4F6);
+  color: var(--toss-gray-700, #374151);
+  border: 1px solid var(--toss-gray-200, #E5E7EB);
+}
+
+.optionSecondary:hover:not(:disabled) {
+  background-color: var(--toss-gray-200, #E5E7EB);
+  border-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.optionSecondary:active:not(:disabled) {
+  background-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.optionSecondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.1);
+}
+
+/* Outline variant - Border only */
+.optionOutline {
+  background: transparent;
+  color: var(--toss-primary, #0064FF);
+  border: 1px solid var(--toss-gray-300, #D1D5DB);
+}
+
+.optionOutline:hover:not(:disabled) {
+  background-color: var(--toss-gray-50, #F9FAFB);
+  border-color: var(--toss-primary, #0064FF);
+}
+
+.optionOutline:active:not(:disabled) {
+  background-color: var(--toss-gray-100, #F3F4F6);
+}
+
+.optionOutline:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.1);
+}
+
+/* Option icon */
+.optionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.optionIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Option label */
+.optionLabel {
+  font-weight: 600;
+}
+
+/* Option description - Hidden in minimal design */
+.optionDescription {
+  display: none;
+}
+
+/* ==================== CANCEL BUTTON ==================== */
+.cancelButton {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--toss-gray-100, #F3F4F6);
+  color: var(--toss-gray-700, #374151);
+  border: 1px solid var(--toss-gray-200, #E5E7EB);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--toss-gray-200, #E5E7EB);
+  border-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.cancelButton:active:not(:disabled) {
+  background-color: var(--toss-gray-300, #D1D5DB);
+}
+
+.cancelButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.1);
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== CUSTOM CONTENT ==================== */
+.customContent {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* ==================== LOADING OVERLAY ==================== */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 10;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dialogFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 640px) {
+  .dialog {
+    width: calc(100% - 32px);
+    max-width: none;
+    padding: 28px 20px 20px 20px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .message {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .optionButton,
+  .cancelButton {
+    height: 48px;
+    font-size: 15px;
+  }
+}
+
+/* ==================== DARK MODE SUPPORT ==================== */
+@media (prefers-color-scheme: dark) {
+  .dialog {
+    background: #FFFFFF !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  }
+
+  .title {
+    color: #111827 !important;
+  }
+
+  .message {
+    color: #6B7280 !important;
+  }
+
+  .optionSecondary,
+  .cancelButton {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border-color: #E5E7EB !important;
+  }
+}
+
+/* ==================== REDUCED MOTION SUPPORT ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .backdropClosing,
+  .dialog,
+  .dialogClosing {
+    animation: none;
+  }
+
+  .optionButton:hover,
+  .cancelButton:hover {
+    transform: none;
+  }
+}
