@@ -58,8 +58,9 @@ export interface SalaryState {
 
   /**
    * Load salary data for company and month
+   * @param storeId - Optional store filter (null = all stores)
    */
-  loadSalaryData: (companyId: string, month: string) => Promise<AsyncOperationResult>;
+  loadSalaryData: (companyId: string, month: string, storeId?: string | null) => Promise<AsyncOperationResult>;
 
   /**
    * Refresh current salary data

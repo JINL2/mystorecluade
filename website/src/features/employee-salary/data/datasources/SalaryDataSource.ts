@@ -100,15 +100,19 @@ export class SalaryDataSource {
    * Fetch salary data from Supabase RPC
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store filter (null = all stores)
    */
   async getSalaryData(
     companyId: string,
-    month: string
+    month: string,
+    storeId: string | null = null
   ): Promise<{ success: boolean; data?: SalaryRawData; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
       const timezone = this.getUserTimezone();
 
+      // Note: p_store_id filtering is done client-side for now
+      // RPC does not support p_store_id parameter yet
       const { data, error } = await supabase.rpc('get_employee_salary_v2', {
         p_company_id: companyId,
         p_month: month,
@@ -147,17 +151,22 @@ export class SalaryDataSource {
    * Export salary data to Excel via RPC
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store filter (null = all stores)
    */
   async exportToExcel(
     companyId: string,
-    month: string
+    month: string,
+    storeId: string | null = null
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
+      const timezone = this.getUserTimezone();
 
-      const { data, error } = await supabase.rpc('get_employee_salary_excel', {
+      const { data, error } = await supabase.rpc('get_employee_salary_excel_v2', {
         p_company_id: companyId,
-        p_request_month: month,
+        p_month: month,
+        p_timezone: timezone,
+        p_store_id: storeId,
       });
 
       if (error) {
