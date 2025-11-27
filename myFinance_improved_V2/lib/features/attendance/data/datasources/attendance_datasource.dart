@@ -38,13 +38,26 @@ class AttendanceDatasource {
   /// Time-only fields (no conversion needed):
   /// - scheduled_start_time, scheduled_end_time (HH:mm:ss format)
   /// - shift_start_time, shift_end_time (HH:mm:ss format)
-  Map<String, dynamic> _processNestedData(Map<String, dynamic> data) {
+  Map<String, dynamic> _processNestedData(
+    Map<String, dynamic> data, {
+    int depth = 0,
+    int maxDepth = 10,
+  }) {
+    // ✅ Prevent stack overflow from circular references
+    if (depth >= maxDepth) {
+      return data; // Return data as-is if max depth reached
+    }
+
     final result = Map<String, dynamic>.from(data);
 
-    // Recursively process nested structures
+    // Recursively process nested structures with depth tracking
     // Note: No timezone conversion happens here - data stays as UTC strings
     if (result['store_shifts'] is Map<String, dynamic>) {
-      result['store_shifts'] = _processNestedData(result['store_shifts'] as Map<String, dynamic>);
+      result['store_shifts'] = _processNestedData(
+        result['store_shifts'] as Map<String, dynamic>,
+        depth: depth + 1,
+        maxDepth: maxDepth,
+      );
     }
 
     return result;

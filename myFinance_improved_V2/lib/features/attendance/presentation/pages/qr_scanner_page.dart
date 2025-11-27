@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,9 +34,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
   bool isProcessing = false;
   bool hasScanned = false; // Add flag to prevent multiple scans
   bool isShowingDialog = false; // Add flag to prevent multiple dialogs
+  Timer? _autoCloseTimer; // Timer for auto-close dialog
 
   @override
   void dispose() {
+    _autoCloseTimer?.cancel();
     cameraController.dispose();
     super.dispose();
   }
@@ -103,24 +107,31 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => TossDialog.success(
+      builder: (dialogContext) => TossDialog.success(
         title: message,
         subtitle: DateTimeUtils.format(DateTime.now()),
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          context.pop(); // Close dialog
-          Navigator.of(context).pop(resultData); // Return to previous screen with result data
+          // Cancel auto-close timer if user manually closes
+          _autoCloseTimer?.cancel();
+          _autoCloseTimer = null;
+
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.of(dialogContext).pop(); // Close dialog
+            Navigator.of(context).pop(resultData); // Return to previous screen with result data
+          }
         },
         dismissible: false,
       ),
     );
 
-    // Auto close after 2 seconds and return to previous screen with result data
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.pop(); // Close dialog
+    // Auto close after 2 seconds - using Timer for proper cancellation
+    _autoCloseTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Close dialog
         Navigator.of(context).pop(resultData); // Return to previous screen with result data
       }
+      _autoCloseTimer = null;
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/journal_result.dart';
 import '../../domain/usecases/create_error_adjustment_use_case.dart';
 import '../../domain/usecases/create_foreign_currency_translation_use_case.dart';
 import '../../domain/usecases/get_stock_flow_use_case.dart';
@@ -155,7 +156,7 @@ class AccountDetailNotifier extends StateNotifier<AccountDetailState> {
   }
 
   /// Create error adjustment journal
-  Future<Map<String, dynamic>> createErrorAdjustment({
+  Future<JournalResult> createErrorAdjustment({
     required double errorAmount,
     required String companyId,
     required String storeId,
@@ -183,7 +184,7 @@ class AccountDetailNotifier extends StateNotifier<AccountDetailState> {
   }
 
   /// Create foreign currency translation journal
-  Future<Map<String, dynamic>> createForeignCurrencyTranslation({
+  Future<JournalResult> createForeignCurrencyTranslation({
     required double errorAmount,
     required String companyId,
     required String storeId,

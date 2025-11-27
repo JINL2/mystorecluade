@@ -1,4 +1,6 @@
 import 'package:intl/intl.dart';
+import '../constants/account_ids.dart';
+import '../entities/journal_result.dart';
 import '../repositories/cash_location_repository.dart';
 import 'use_case.dart';
 
@@ -22,16 +24,16 @@ class CreateErrorAdjustmentParams {
 
 /// Use case for creating error adjustment journal entry
 class CreateErrorAdjustmentUseCase
-    implements UseCase<Map<String, dynamic>, CreateErrorAdjustmentParams> {
+    implements UseCase<JournalResult, CreateErrorAdjustmentParams> {
   final CashLocationRepository repository;
 
   CreateErrorAdjustmentUseCase(this.repository);
 
   @override
-  Future<Map<String, dynamic>> call(CreateErrorAdjustmentParams params) async {
-    // Constants for account IDs
-    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-    const errorAccountId = 'a45fac5d-010c-4b1b-92e9-ddcf8f3222bf';
+  Future<JournalResult> call(CreateErrorAdjustmentParams params) async {
+    // Use centralized account ID constants
+    const cashAccountId = AccountIds.cash;
+    const errorAccountId = AccountIds.errorAdjustment;
 
     // Get current date
     final now = DateTime.now().toLocal();
@@ -60,16 +62,25 @@ class CreateErrorAdjustmentUseCase
       },
     ];
 
-    return repository.insertJournalWithEverything(
-      baseAmount: absAmount,
-      companyId: params.companyId,
-      createdBy: params.userId,
-      description: 'Make Error - ${params.locationName}',
-      entryDate: entryDate,
-      lines: lines,
-      counterpartyId: null,
-      ifCashLocationId: null,
-      storeId: params.storeId,
-    );
+    try {
+      final response = await repository.insertJournalWithEverything(
+        baseAmount: absAmount,
+        companyId: params.companyId,
+        createdBy: params.userId,
+        description: 'Make Error - ${params.locationName}',
+        entryDate: entryDate,
+        lines: lines,
+        counterpartyId: null,
+        ifCashLocationId: null,
+        storeId: params.storeId,
+      );
+
+      return JournalResult.fromResponse(response);
+    } catch (e) {
+      return JournalResult.failure(
+        error: e.toString(),
+        errorCode: 'ERROR_ADJUSTMENT_FAILED',
+      );
+    }
   }
 }

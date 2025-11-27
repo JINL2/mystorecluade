@@ -32,7 +32,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _accountNumberController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
+  final TextEditingController _currencyController = TextEditingController(); // Fixed: No longer creates new instances
+
   // Currency selection
   String? _selectedCurrencyId;
   CurrencyType? _selectedCurrency;
@@ -78,7 +79,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       case 'name': return _nameController;
       case 'bankName': return _bankNameController;
       case 'accountNumber': return _accountNumberController;
-      case 'currency': return TextEditingController(); // Dummy for currency
+      case 'currency': return _currencyController; // Fixed: Reuse existing controller
       default: return _nameController;
     }
   }
@@ -113,6 +114,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     _bankNameController.dispose();
     _accountNumberController.dispose();
     _descriptionController.dispose();
+    _currencyController.dispose(); // Fixed: Dispose currency controller
     super.dispose();
   }
   

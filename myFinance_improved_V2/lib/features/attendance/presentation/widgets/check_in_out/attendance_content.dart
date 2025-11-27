@@ -70,14 +70,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent>
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        // Clear all cached data and refresh from current month
-        setState(() {
-          allShiftCardsData.clear();
-          monthlyOverviewCache.clear();
-          monthlyCardsCache.clear();
-          loadedMonths.clear();
-        });
-        await fetchMonthData(centerDate);
+        // ✅ Only refresh current month's data (preserve other months' cache)
+        await fetchMonthData(centerDate, forceRefresh: true);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

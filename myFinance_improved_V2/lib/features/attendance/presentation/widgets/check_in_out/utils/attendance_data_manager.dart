@@ -22,6 +22,9 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
   // Cache for monthly cards data - key is "yyyy-MM" format
   final Map<String, List<ShiftCard>> monthlyCardsCache = {};
 
+  // ✅ Cache for JSON conversion - prevents repeated toJson() calls
+  final Map<String, List<Map<String, dynamic>>> _jsonCache = {};
+
   // Track which months have been loaded
   final Set<String> loadedMonths = {};
 
@@ -57,19 +60,20 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         shiftOverviewData = _shiftOverviewToMap(cachedOverview);
         currentDisplayedMonth = monthKey;
 
-        // Rebuild allShiftCardsData from cached entities
+        // ✅ Rebuild allShiftCardsData from cached JSON (no repeated toJson() calls)
         allShiftCardsData.clear();
         for (final cachedMonth in monthlyCardsCache.keys) {
-          final cardsForMonth = monthlyCardsCache[cachedMonth]!;
-          allShiftCardsData.addAll(cardsForMonth.map((card) => card.toJson()));
+          // Use cached JSON if available, otherwise convert and cache
+          if (!_jsonCache.containsKey(cachedMonth)) {
+            _jsonCache[cachedMonth] = monthlyCardsCache[cachedMonth]!
+              .map((card) => card.toJson())
+              .toList();
+          }
+          allShiftCardsData.addAll(_jsonCache[cachedMonth]!);
         }
 
         // Sort all cards by date (descending)
-        allShiftCardsData.sort((a, b) {
-          final dateA = a['request_date']?.toString() ?? '';
-          final dateB = b['request_date']?.toString() ?? '';
-          return dateB.compareTo(dateA);
-        });
+        _sortAllShiftCardsByDate();
 
         isLoading = false;
       });
@@ -137,26 +141,24 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
       monthlyOverviewCache[monthKey] = overviewEntity;
       monthlyCardsCache[monthKey] = cardsEntityList;
 
+      // ✅ Cache JSON conversion for new month data
+      _jsonCache[monthKey] = cardsEntityList.map((card) => card.toJson()).toList();
+
       // Mark this month as loaded
       loadedMonths.add(monthKey);
 
       // Rebuild allShiftCardsData from ALL cached months
       setState(() {
-        // Clear and rebuild allShiftCardsData from all cached entities
+        // Clear and rebuild allShiftCardsData from all cached JSON
         allShiftCardsData.clear();
 
-        // Add cards from all cached months (convert entities to Maps for backward compatibility)
+        // ✅ Add cards from cached JSON (no repeated conversions)
         for (final cachedMonth in monthlyCardsCache.keys) {
-          final monthCards = monthlyCardsCache[cachedMonth]!;
-          allShiftCardsData.addAll(monthCards.map((card) => card.toJson()));
+          allShiftCardsData.addAll(_jsonCache[cachedMonth]!);
         }
 
         // Sort all cards by date
-        allShiftCardsData.sort((a, b) {
-          final dateA = (a['request_date'] ?? '') as String;
-          final dateB = (b['request_date'] ?? '') as String;
-          return dateB.compareTo(dateA); // Descending order
-        });
+        _sortAllShiftCardsByDate();
 
         // ✅ Convert entity to Map for backward compatibility
         shiftOverviewData = _shiftOverviewToMap(overviewEntity);
@@ -201,6 +203,9 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
     // Get UseCase from provider
     final updateShiftCardUseCase = ref.read(updateShiftCardAfterScanProvider);
 
+    // Extract month key for cache synchronization
+    final monthKey = scanResult.requestDate.substring(0, 7); // "yyyy-MM"
+
     // Find the existing shift card for the scan date
     final existingCardIndex = allShiftCardsData.indexWhere((card) {
       return card['request_date'] == scanResult.requestDate;
@@ -220,12 +225,33 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
         timestamp: scanResult.timestamp,
       );
 
+      // ✅ Update Entity cache to keep in sync
+      if (monthlyCardsCache.containsKey(monthKey)) {
+        final cards = monthlyCardsCache[monthKey]!;
+        final cardIndex = cards.indexWhere((c) => c.requestDate == scanResult.requestDate);
+        if (cardIndex != -1) {
+          cards[cardIndex] = updatedCardEntity;
+        }
+      }
+
+      // ✅ Invalidate JSON cache for this month (will be regenerated on next access)
+      _jsonCache.remove(monthKey);
+
       // Convert back to JSON for backward compatibility
       allShiftCardsData[existingCardIndex] = updatedCardEntity.toJson();
     } else {
       // Create new card if it doesn't exist (shouldn't happen normally)
       // ✅ Use UseCase with ScanResult entity
       final newCardEntity = updateShiftCardUseCase.createFromScanResult(scanResult);
+
+      // ✅ Add to Entity cache
+      if (!monthlyCardsCache.containsKey(monthKey)) {
+        monthlyCardsCache[monthKey] = [];
+      }
+      monthlyCardsCache[monthKey]!.add(newCardEntity);
+
+      // ✅ Invalidate JSON cache
+      _jsonCache.remove(monthKey);
 
       allShiftCardsData.add(newCardEntity.toJson());
     }
@@ -291,6 +317,15 @@ mixin AttendanceDataManager<T extends ConsumerStatefulWidget> on ConsumerState<T
   // ========================================
   // Private Helper Methods
   // ========================================
+
+  /// Sort all shift cards by date (descending order)
+  void _sortAllShiftCardsByDate() {
+    allShiftCardsData.sort((a, b) {
+      final dateA = a['request_date']?.toString() ?? '';
+      final dateB = b['request_date']?.toString() ?? '';
+      return dateB.compareTo(dateA); // Descending
+    });
+  }
 
   /// Convert ShiftOverview entity to Map for backward compatibility
   ///
