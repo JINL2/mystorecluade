@@ -25,14 +25,14 @@ class FormatHelpers {
     return value.toString();
   }
 
-  /// Format time from various formats to HH:mm
+  /// Format time from various formats to HH:mm:ss
   ///
   /// IMPORTANT: RPC (user_shift_cards_v3) already converts times to local timezone
-  /// using: to_char(time_column AT TIME ZONE p_timezone, 'HH24:MI')
+  /// using: to_char(time_column AT TIME ZONE p_timezone, 'HH24:MI:SS')
   /// So NO additional UTC conversion is needed here - just format the time string
   static String formatTime(dynamic time, {String? requestDate}) {
     if (time == null || time.toString().isEmpty) {
-      return '--:--';
+      return '--:--:--';
     }
 
     final timeStr = time.toString();
@@ -50,24 +50,28 @@ class FormatHelpers {
           dateTime = DateTimeUtils.toLocal(timeStr);
         }
 
-        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
       }
 
       // Time string (HH:mm:ss or HH:mm) from RPC to_char()
       // RPC already converted to local time, so just format and return as-is
       if (timeStr.contains(':') && !timeStr.contains(' ') && timeStr.length <= 10) {
         final parts = timeStr.split(':');
-        if (parts.length >= 2) {
-          return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+        if (parts.length >= 3) {
+          return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+        } else if (parts.length >= 2) {
+          return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
         }
       }
 
       return timeStr;
     } catch (e) {
-      if (timeStr.length >= 5) {
-        return timeStr.substring(0, 5);
+      if (timeStr.length >= 8) {
+        return timeStr.substring(0, 8);
+      } else if (timeStr.length >= 5) {
+        return '${timeStr.substring(0, 5)}:00';
       }
-      return '--:--';
+      return '--:--:--';
     }
   }
 

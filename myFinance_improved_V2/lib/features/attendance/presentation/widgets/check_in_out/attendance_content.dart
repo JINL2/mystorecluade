@@ -9,13 +9,13 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../modals/calendar_bottom_sheet.dart';
+import '../../modals/shift_details_bottom_sheet.dart';
 
 // Extracted component imports
 import './components/attendance_hero_section.dart';
 import './components/attendance_qr_button.dart';
 import './components/attendance_recent_activity.dart';
 import './components/attendance_week_schedule.dart';
-import './dialogs/report_issue_dialog.dart';
 import './utils/attendance_data_manager.dart';
 
 class AttendanceContent extends ConsumerStatefulWidget {
@@ -408,12 +408,15 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent>
       return;
     }
 
-    showReportIssueDialog(
+    // Get currency symbol from shift overview data
+    final currencySymbol = shiftOverviewData?['currency_symbol']?.toString() ?? 'VND';
+
+    showShiftDetailsBottomSheet(
       context: context,
       ref: ref,
-      shiftRequestId: (cardData['shift_request_id'] ?? '').toString(),
       cardData: cardData,
-      onSuccess: () {
+      currencySymbol: currencySymbol,
+      onReportSuccess: () {
         // Refresh data after successful report
         fetchMonthData(selectedDate, forceRefresh: true);
       },

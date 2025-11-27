@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -73,51 +72,13 @@ class AttendanceRecentActivity extends StatelessWidget {
       // Use AttendanceHelpers to properly convert UTC to local time
       String checkInTime = AttendanceHelpers.formatTime(actualStart, requestDate: requestDate);
       String checkOutTime = AttendanceHelpers.formatTime(actualEnd, requestDate: requestDate);
-      String hoursWorked = '0h 0m';
 
-      // Calculate hours worked if we have both times
-      if (actualStart != null && actualStart.toString().isNotEmpty &&
-          actualEnd != null && actualEnd.toString().isNotEmpty) {
-        try {
-          // Parse the request_date and combine with times to get full DateTime
-          final baseDate = date;
-
-          // Parse start time
-          // IMPORTANT: RPC already converts times to local timezone
-          // Full datetime strings (with 'T') need conversion, time-only strings are already local
-          DateTime startDateTime;
-          if (actualStart.toString().contains('T')) {
-            startDateTime = DateTimeUtils.toLocal(actualStart.toString());
-          } else {
-            // Time-only format from RPC - already in local time, just parse
-            final startParts = actualStart.toString().split(':');
-            final hour = int.tryParse(startParts[0]) ?? 0;
-            final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
-            startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-          }
-
-          // Parse end time
-          // IMPORTANT: RPC already converts times to local timezone
-          DateTime endDateTime;
-          if (actualEnd.toString().contains('T')) {
-            endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
-          } else {
-            // Time-only format from RPC - already in local time, just parse
-            final endParts = actualEnd.toString().split(':');
-            final hour = int.tryParse(endParts[0]) ?? 0;
-            final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
-            endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-          }
-
-          // Calculate hours worked
-          final duration = endDateTime.difference(startDateTime);
-          final hours = duration.inHours;
-          final minutes = duration.inMinutes % 60;
-          hoursWorked = '${hours}h ${minutes}m';
-        } catch (e) {
-          // Error calculating duration
-        }
-      }
+      // Use paid_hours directly from RPC (already calculated server-side)
+      // No need to recalculate from actual_start_time/actual_end_time
+      final paidHours = (card['paid_hours'] as num?)?.toDouble() ?? 0.0;
+      final hours = paidHours.floor();
+      final minutes = ((paidHours - hours) * 60).round();
+      String hoursWorked = '${hours}h ${minutes}m';
 
       // Check if shift is approved and reported
       final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
