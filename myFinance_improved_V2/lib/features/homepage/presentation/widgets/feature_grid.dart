@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'package:myfinance_improved/core/domain/entities/feature.dart';
@@ -15,16 +16,91 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 class FeatureGrid extends ConsumerWidget {
   const FeatureGrid({super.key});
 
+  /// Extract permitted feature IDs from appState for current company
+  List<String> _getPermittedFeatureIds(AppState appState) {
+    try {
+      final companies = appState.user['companies'] as List<dynamic>?;
+      if (companies == null || companies.isEmpty) {
+        print('🔒 No companies found in appState');
+        return [];
+      }
+
+      // Find current selected company
+      final currentCompanyId = appState.companyChoosen;
+      if (currentCompanyId.isEmpty) {
+        print('🔒 No company selected');
+        return [];
+      }
+
+      Map<String, dynamic>? currentCompany;
+      try {
+        currentCompany = companies.firstWhere(
+          (c) => c['company_id'] == currentCompanyId,
+        ) as Map<String, dynamic>?;
+      } catch (e) {
+        print('🔒 Current company not found: $currentCompanyId');
+        return [];
+      }
+
+      if (currentCompany == null) {
+        print('🔒 Current company is null');
+        return [];
+      }
+
+      // Get role permissions
+      final role = currentCompany['role'] as Map<String, dynamic>?;
+      if (role == null) {
+        print('🔒 No role found for company');
+        return [];
+      }
+
+      final permissions = role['permissions'] as List<dynamic>?;
+      if (permissions == null || permissions.isEmpty) {
+        print('🔒 No permissions found in role');
+        print('🔒 Role data: $role');
+        return [];
+      }
+
+      // Convert to List<String>
+      final permittedIds = permissions.map((p) => p.toString()).toList();
+      print('🔓 Permitted feature IDs (${permittedIds.length}): ${permittedIds.take(5)}...');
+      return permittedIds;
+    } catch (e, stackTrace) {
+      print('🔒 Error getting permitted feature IDs: $e');
+      print('🔒 Stack trace: $stackTrace');
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
+    final appState = ref.watch(appStateProvider);
 
     return categoriesAsync.when(
       data: (categories) {
-        // Filter out categories with no features
-        final categoriesWithFeatures = categories
-            .where((category) => category.features.isNotEmpty)
-            .toList();
+        // Get user's permitted feature IDs from current company
+        final List<String> permittedFeatureIds = _getPermittedFeatureIds(appState);
+
+        // Filter features based on user permissions
+        // If no permissions found, show all features (fallback for safety)
+        final categoriesWithFeatures = permittedFeatureIds.isEmpty
+            ? categories.where((category) => category.features.isNotEmpty).toList()
+            : categories
+                .map((category) {
+                  // Filter features by permission
+                  final permittedFeatures = category.features
+                      .where((feature) => permittedFeatureIds.contains(feature.featureId))
+                      .toList();
+
+                  return CategoryWithFeatures(
+                    categoryId: category.categoryId,
+                    categoryName: category.categoryName,
+                    features: permittedFeatures,
+                  );
+                })
+                .where((category) => category.features.isNotEmpty)
+                .toList();
 
         if (categoriesWithFeatures.isEmpty) {
           return const _EmptyFeatures();

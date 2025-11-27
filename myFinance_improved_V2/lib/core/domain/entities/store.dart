@@ -15,6 +15,20 @@ class Store {
   final String companyId;
 
   // ============================================================================
+  // Factory Constructors
+  // ============================================================================
+
+  /// Create Store from Map
+  factory Store.fromMap(Map<String, dynamic> map) {
+    return Store(
+      id: map['store_id'] as String,
+      storeName: map['store_name'] as String,
+      storeCode: map['store_code'] as String,
+      companyId: map['company_id'] as String? ?? '',
+    );
+  }
+
+  // ============================================================================
   // Computed Properties (Business Logic)
   // ============================================================================
 

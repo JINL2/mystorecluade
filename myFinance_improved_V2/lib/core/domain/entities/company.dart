@@ -19,6 +19,23 @@ class Company {
   final List<Store> stores;
 
   // ============================================================================
+  // Factory Constructors
+  // ============================================================================
+
+  /// Create Company from Map
+  factory Company.fromMap(Map<String, dynamic> map) {
+    return Company(
+      id: map['company_id'] as String,
+      companyName: map['company_name'] as String,
+      companyCode: map['company_code'] as String,
+      role: UserRole.fromMap(map['role'] as Map<String, dynamic>),
+      stores: (map['stores'] as List<dynamic>)
+          .map((s) => Store.fromMap(s as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  // ============================================================================
   // Computed Properties (Business Logic)
   // ============================================================================
 
@@ -102,4 +119,14 @@ class UserRole {
 
   final String roleName;
   final List<String> permissions;
+
+  /// Create UserRole from Map
+  factory UserRole.fromMap(Map<String, dynamic> map) {
+    return UserRole(
+      roleName: map['role_name'] as String,
+      permissions: (map['permissions'] as List<dynamic>)
+          .map((p) => p as String)
+          .toList(),
+    );
+  }
 }
