@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 
-/// Status helper functions for attendance UI
-class StatusHelpers {
-  /// Get color for main status
+/// Helper class for attendance status colors and text
+class AttendanceStatusHelper {
+  /// Get status color for hero section
   static Color getStatusColor(String status) {
     switch (status) {
       case 'working':
-        return TossColors.success; // Green
+        return TossColors.success; // Green for currently working
       case 'finished':
-        return TossColors.primary; // Blue
+        return TossColors.primary; // Blue for finished shift
       case 'scheduled':
-        return TossColors.warning; // Orange
+        return TossColors.warning; // Orange for has shift today
       case 'off_duty':
       default:
-        return TossColors.gray400; // Gray
+        return TossColors.gray400; // Gray for off duty
     }
   }
 
-  /// Get text for main status
+  /// Get status text for hero section
   static String getStatusText(String status) {
     switch (status) {
       case 'working':
@@ -33,23 +33,23 @@ class StatusHelpers {
     }
   }
 
-  /// Get color for activity status
+  /// Get activity status color for recent activity
   static Color getActivityStatusColor(String status) {
     switch (status) {
       case 'working':
-        return TossColors.primary;
+        return TossColors.primary; // Blue for currently working
       case 'completed':
-        return TossColors.success;
+        return TossColors.success; // Green for completed shift
       case 'approved':
-        return TossColors.success.withOpacity(0.7);
+        return TossColors.success.withOpacity(0.7); // Lighter green for approved but not started
       case 'pending':
-        return TossColors.warning;
+        return TossColors.warning; // Orange for pending approval
       default:
         return TossColors.gray400;
     }
   }
 
-  /// Get text for activity status
+  /// Get activity status text for recent activity
   static String getActivityStatusText(String status) {
     switch (status) {
       case 'working':
@@ -65,30 +65,9 @@ class StatusHelpers {
     }
   }
 
-  /// Get work status text from card data
-  static String getWorkStatusFromCard(Map<String, dynamic> card) {
-    final isApproved =
-        card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
-    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-
-    if (isApproved != true) {
-      return 'Pending Approval';
-    }
-
-    if (actualStart != null && actualEnd == null) {
-      return 'Working';
-    } else if (actualStart != null && actualEnd != null) {
-      return 'Completed';
-    } else {
-      return 'Approved';
-    }
-  }
-
   /// Get work status color from card data
   static Color getWorkStatusColorFromCard(Map<String, dynamic> card) {
-    final isApproved =
-        card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
     final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
     final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
 
@@ -97,11 +76,11 @@ class StatusHelpers {
     }
 
     if (actualStart != null && actualEnd == null) {
-      return TossColors.primary; // Blue - working
+      return TossColors.primary; // Blue for working
     } else if (actualStart != null && actualEnd != null) {
-      return TossColors.success; // Green - completed
+      return TossColors.success; // Green for completed
     } else {
-      return TossColors.success.withOpacity(0.7); // Light green - approved
+      return TossColors.success.withOpacity(0.7); // Lighter green for approved
     }
   }
 }

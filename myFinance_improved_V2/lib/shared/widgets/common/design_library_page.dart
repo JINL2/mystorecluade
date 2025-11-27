@@ -11,11 +11,13 @@ import '../toss/toss_badge.dart';
 import '../toss/toss_bottom_sheet.dart';
 import '../toss/toss_button.dart' as toss_button;
 import '../toss/toss_chip.dart';
+import '../toss/toss_expandable_card.dart';
 import '../toss/toss_icon_button.dart';
 import '../toss/toss_list_tile.dart';
 import '../toss/toss_search_field.dart';
 import '../toss/toss_tab_bar_1.dart';
 import '../toss/toss_text_field.dart';
+import '../toss/toggle_button.dart';
 import 'debounced_button.dart';
 import 'employee_profile_avatar.dart';
 import 'enhanced_quantity_selector.dart';
@@ -45,6 +47,9 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
   int _quantity = 5;
   DateTime? _selectedDate = DateTime.now();
   late TabController _tabController;
+  String _selectedToggleId = 'week';
+  bool _expandableCard1Expanded = true;
+  bool _expandableCard2Expanded = false;
 
   @override
   void initState() {
@@ -401,6 +406,62 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 onChanged: (value) {
                   setState(() {
                     _selectedChip = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // ToggleButtonGroup
+        _buildComponentShowcase(
+          'ToggleButtonGroup',
+          'Segmented pill-shaped toggle buttons (Week/Month style)',
+          'toggle_button.dart',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Week/Month Style:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ToggleButtonGroup(
+                items: const [
+                  ToggleButtonItem(id: 'week', label: 'Week'),
+                  ToggleButtonItem(id: 'month', label: 'Month'),
+                ],
+                selectedId: _selectedToggleId,
+                onToggle: (id) {
+                  setState(() {
+                    _selectedToggleId = id;
+                  });
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Three Options:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ToggleButtonGroup(
+                items: const [
+                  ToggleButtonItem(id: 'day', label: 'Day'),
+                  ToggleButtonItem(id: 'week2', label: 'Week'),
+                  ToggleButtonItem(id: 'month2', label: 'Month'),
+                ],
+                selectedId: _selectedToggleId,
+                onToggle: (id) {
+                  setState(() {
+                    _selectedToggleId = id;
                   });
                 },
               ),
@@ -876,6 +937,120 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 ),
               ],
             ),
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // TossExpandableCard
+        _buildComponentShowcase(
+          'TossExpandableCard',
+          'Collapsible card with expandable content section',
+          'toss_expandable_card.dart',
+          Column(
+            children: [
+              TossExpandableCard(
+                title: 'Payment Details',
+                isExpanded: _expandableCard1Expanded,
+                onToggle: () {
+                  setState(() {
+                    _expandableCard1Expanded = !_expandableCard1Expanded;
+                  });
+                },
+                content: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Base pay',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '\$80.00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Bonus pay',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '\$12.00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              TossExpandableCard(
+                title: 'Attendance Records',
+                isExpanded: _expandableCard2Expanded,
+                onToggle: () {
+                  setState(() {
+                    _expandableCard2Expanded = !_expandableCard2Expanded;
+                  });
+                },
+                content: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Check-in',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '09:03:00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Check-out',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '17:05:00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
 
