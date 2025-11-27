@@ -90,6 +90,13 @@ export interface SalaryRawData {
 
 export class SalaryDataSource {
   /**
+   * Get user's timezone
+   */
+  private getUserTimezone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
+  /**
    * Fetch salary data from Supabase RPC
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
@@ -100,10 +107,12 @@ export class SalaryDataSource {
   ): Promise<{ success: boolean; data?: SalaryRawData; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
+      const timezone = this.getUserTimezone();
 
-      const { data, error } = await supabase.rpc('get_employee_salary', {
+      const { data, error } = await supabase.rpc('get_employee_salary_v2', {
         p_company_id: companyId,
         p_month: month,
+        p_timezone: timezone,
       });
 
       if (error) {
@@ -123,7 +132,7 @@ export class SalaryDataSource {
 
       return {
         success: true,
-        data: data as SalaryRawData,
+        data: data as unknown as SalaryRawData,
       };
     } catch (error) {
       console.error('Salary datasource error:', error);
@@ -148,7 +157,7 @@ export class SalaryDataSource {
 
       const { data, error } = await supabase.rpc('get_employee_salary_excel', {
         p_company_id: companyId,
-        p_month: month,
+        p_request_month: month,
       });
 
       if (error) {

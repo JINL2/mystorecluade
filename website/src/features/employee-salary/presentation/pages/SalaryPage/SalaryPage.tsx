@@ -75,10 +75,10 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
       return false;
     }
     // Store filter - null means "All Stores"
-    // Check if the employee's stores include the selected store
-    if (selectedStoreId && currentStore?.store_name) {
-      // storeName is a comma-separated list of store names
-      if (!record.storeName.includes(currentStore.store_name)) {
+    // Check if the employee has actual payment in the selected store
+    if (selectedStoreId) {
+      // Use hasPaymentInStore to check if employee has payment > 0 in this store
+      if (!record.hasPaymentInStore(selectedStoreId)) {
         return false;
       }
     }
