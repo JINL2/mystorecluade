@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../data/providers/attendance_data_providers.dart';
+import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_current_shift.dart';
@@ -12,6 +13,7 @@ import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
+import '../../domain/usecases/update_shift_card_after_scan.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
@@ -81,6 +83,11 @@ final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
   return GetCurrentShift(repository);
 });
 
+/// Update shift card after scan use case provider
+final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref) {
+  return UpdateShiftCardAfterScan();
+});
+
 // ========================================
 // Presentation Layer Providers
 // ========================================
@@ -138,18 +145,19 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
         return;
       }
 
-      // IMPORTANT: RPC functions require the LAST day of the month as p_request_date
+      // IMPORTANT: RPC functions require the LAST day of the month as p_request_time
       final now = DateTime.now();
       // Calculate the last day of the current month
       final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-      final requestDate =
-          '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
+      final requestTime =
+          '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')} 23:59:59';
 
       final overview = await getShiftOverview(
-        requestDate: requestDate,
+        requestTime: requestTime,
         userId: userId,
         companyId: companyId,
         storeId: storeId,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
       state = ShiftOverviewState(
@@ -171,22 +179,30 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
 
 /// Provider for current shift status
 final currentShiftProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+    FutureProvider<ShiftCard?>((ref) async {
   final getCurrentShift = ref.read(getCurrentShiftProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
 
   final user = authStateAsync.value;
   final userId = user?.id;
+  final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
 
-  if (userId == null || storeId.isEmpty) {
+  if (userId == null || companyId.isEmpty || storeId.isEmpty) {
     return null;
   }
 
+  final now = DateTime.now();
+  final requestTime =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+
   return await getCurrentShift(
+    requestTime: requestTime,
     userId: userId,
+    companyId: companyId,
     storeId: storeId,
+    timezone: 'Asia/Seoul', // TODO: Get from user settings
   );
 });
 
@@ -198,8 +214,7 @@ final isWorkingProvider = Provider<bool>((ref) {
     data: (shift) {
       if (shift == null) return false;
       // Check if user has checked in but not checked out
-      return shift['actual_start_time'] != null &&
-          shift['actual_end_time'] == null;
+      return shift.isCheckedIn && !shift.isCheckedOut;
     },
     loading: () => false,
     error: (_, __) => false,

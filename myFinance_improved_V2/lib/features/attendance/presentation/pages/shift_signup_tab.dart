@@ -78,7 +78,10 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
-      final response = await getShiftMetadata(storeId: storeId);
+      final response = await getShiftMetadata(
+        storeId: storeId,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
+      );
 
       // Debug: Print shift times
       print('📋 Shift Metadata fetched:');

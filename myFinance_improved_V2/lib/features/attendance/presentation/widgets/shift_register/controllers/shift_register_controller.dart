@@ -40,7 +40,10 @@ class ShiftRegisterController {
 
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
-      final response = await getShiftMetadata(storeId: storeId);
+      final response = await getShiftMetadata(
+        storeId: storeId,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
+      );
 
       setState(() {
         shiftMetadata = response;
@@ -64,7 +67,7 @@ class ShiftRegisterController {
     });
 
     try {
-      final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
+      final requestTime = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01 00:00:00';
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
@@ -72,7 +75,8 @@ class ShiftRegisterController {
       final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
-        requestDate: requestDate,
+        requestTime: requestDate,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
       });
 
       setState(() {

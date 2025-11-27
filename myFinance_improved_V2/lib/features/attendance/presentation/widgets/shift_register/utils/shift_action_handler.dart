@@ -251,7 +251,8 @@ class ShiftActionHandler {
         userId: user.id,
         shiftId: controller.selectedShift!,
         storeId: controller.selectedStoreId!,
-        requestDate: dateStr,
+        requestTime: '$dateStr 00:00:00',
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
       final appState = ref.read(appStateProvider);
@@ -455,6 +456,7 @@ class ShiftActionHandler {
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
+            timezone: 'Asia/Seoul', // TODO: Get from user settings
           );
 
           controller.removeFromLocalShiftStatusOptimistically(

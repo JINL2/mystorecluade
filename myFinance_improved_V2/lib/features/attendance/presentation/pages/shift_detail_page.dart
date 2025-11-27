@@ -80,10 +80,13 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
   /// Get confirmed start time (use scheduled time from shift, not actual check-in)
   /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedStartTime() {
-    // Priority 1: Use scheduled start time from shift_time field
-    final scheduledStart = widget.shift.scheduledStartTime;
-    if (scheduledStart != null) {
-      return scheduledStart;
+    // Priority 1: Parse from shift_time field (format: "09:00-18:00" or "Morning Shift")
+    final shiftTime = widget.shift.shiftTime;
+    if (shiftTime.contains('-')) {
+      final parts = shiftTime.split('-');
+      if (parts.isNotEmpty) {
+        return parts[0].trim(); // Return start time (e.g., "09:00")
+      }
     }
 
     // Priority 2: Fall back to confirm_start_time from database
@@ -93,10 +96,13 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
   /// Get confirmed end time (use scheduled time from shift, not actual check-out)
   /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedEndTime() {
-    // Priority 1: Use scheduled end time from shift_time field
-    final scheduledEnd = widget.shift.scheduledEndTime;
-    if (scheduledEnd != null) {
-      return scheduledEnd;
+    // Priority 1: Parse from shift_time field (format: "09:00-18:00" or "Morning Shift")
+    final shiftTime = widget.shift.shiftTime;
+    if (shiftTime.contains('-')) {
+      final parts = shiftTime.split('-');
+      if (parts.length > 1) {
+        return parts[1].trim(); // Return end time (e.g., "18:00")
+      }
     }
 
     // Priority 2: Fall back to confirm_end_time from database

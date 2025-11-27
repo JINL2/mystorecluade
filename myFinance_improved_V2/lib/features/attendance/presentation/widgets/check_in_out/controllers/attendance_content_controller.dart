@@ -81,31 +81,58 @@ class AttendanceContentController {
 
       // Calculate last day of month for RPC
       final lastDayOfMonth = DateTime(targetDate.year, targetDate.month + 1, 0);
-      final requestDate = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
+      final requestTime = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')} 23:59:59';
+      final timezone = 'Asia/Seoul'; // TODO: Get from user settings
 
       // Parallel API calls
-      final results = await Future.wait<dynamic>([
-        getShiftOverview(
-          requestDate: requestDate,
-          userId: userId,
-          companyId: companyId,
-          storeId: storeId,
-        ),
-        getUserShiftCards(
-          requestDate: requestDate,
-          userId: userId,
-          companyId: companyId,
-          storeId: storeId,
-        ),
-        getCurrentShift(
-          userId: userId,
-          storeId: storeId,
-        ),
+      final overviewFuture = getShiftOverview(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      final cardsFuture = getUserShiftCards(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      final currentShiftFuture = getCurrentShift(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      final results = await Future.wait([
+        overviewFuture,
+        cardsFuture,
+        currentShiftFuture,
       ]);
 
       // Convert entities to maps
       final overviewEntity = results[0] as ShiftOverview;
-      final overviewResponse = overviewEntity.toMap();
+      final overviewResponse = {
+        'request_month': overviewEntity.requestMonth,
+        'actual_work_days': overviewEntity.actualWorkDays,
+        'actual_work_hours': overviewEntity.actualWorkHours,
+        'estimated_salary': overviewEntity.estimatedSalary,
+        'currency_symbol': overviewEntity.currencySymbol,
+        'salary_amount': overviewEntity.salaryAmount,
+        'salary_type': overviewEntity.salaryType,
+        'late_deduction_total': overviewEntity.lateDeductionTotal,
+        'overtime_total': overviewEntity.overtimeTotal,
+        'salary_stores': overviewEntity.salaryStores.map((s) => {
+          'store_id': s.storeId,
+          'store_name': s.storeName,
+          'estimated_salary': s.estimatedSalary,
+        }).toList(),
+      };
       final cardsEntityList = results[1] as List<ShiftCard>;
       final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
 
