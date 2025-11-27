@@ -3,6 +3,17 @@
  * Domain layer - Business object representing employee salary record
  */
 
+export interface StorePayment {
+  store_id: string;
+  store_name: string;
+  store_total_payment: number;
+  worked_hours?: number;
+  base_payment?: number;
+  late_deduction?: number;
+  bonus_amount?: number;
+  overtime_amount?: number;
+}
+
 export class SalaryRecord {
   constructor(
     public readonly userId: string,
@@ -17,6 +28,7 @@ export class SalaryRecord {
     public readonly currencySymbol: string,
     public readonly currencyCode: string,
     public readonly salaryType: 'monthly' | 'hourly',
+    public readonly stores: StorePayment[] = [],
     public readonly paymentDate: Date | null = null,
     public readonly status: 'pending' | 'paid' | 'processing' = 'pending'
   ) {}
@@ -75,6 +87,22 @@ export class SalaryRecord {
   }
 
   /**
+   * Check if employee has payment in a specific store
+   */
+  hasPaymentInStore(storeId: string): boolean {
+    const store = this.stores.find(s => s.store_id === storeId);
+    return store ? store.store_total_payment > 0 : false;
+  }
+
+  /**
+   * Get payment amount for a specific store
+   */
+  getStorePayment(storeId: string): number {
+    const store = this.stores.find(s => s.store_id === storeId);
+    return store?.store_total_payment || 0;
+  }
+
+  /**
    * Factory method to create SalaryRecord
    */
   static create(data: {
@@ -90,6 +118,7 @@ export class SalaryRecord {
     currency_symbol: string;
     currency_code: string;
     salary_type: 'monthly' | 'hourly';
+    stores?: StorePayment[];
     payment_date?: Date | null;
     status?: 'pending' | 'paid' | 'processing';
   }): SalaryRecord {
@@ -106,6 +135,7 @@ export class SalaryRecord {
       data.currency_symbol,
       data.currency_code,
       data.salary_type,
+      data.stores || [],
       data.payment_date || null,
       data.status || 'pending'
     );

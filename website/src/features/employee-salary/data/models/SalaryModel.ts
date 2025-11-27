@@ -3,7 +3,7 @@
  * Data layer - DTO mapper for salary data
  */
 
-import { SalaryRecord } from '../../domain/entities/SalaryRecord';
+import { SalaryRecord, StorePayment } from '../../domain/entities/SalaryRecord';
 import { SalarySummary } from '../../domain/entities/SalarySummary';
 import type { SalaryRawData, SalaryEmployeeRaw } from '../datasources/SalaryDataSource';
 import { DateTimeUtils } from '@/core/utils/datetime-utils';
@@ -21,6 +21,18 @@ export class SalaryModel {
 
     // Get store names from stores array
     const storeNames = rawData.stores?.map(s => s.store_name).join(', ') || 'N/A';
+
+    // Map stores array for filtering
+    const stores: StorePayment[] = rawData.stores?.map(s => ({
+      store_id: s.store_id,
+      store_name: s.store_name,
+      store_total_payment: s.store_total_payment || 0,
+      worked_hours: s.worked_hours,
+      base_payment: s.base_payment,
+      late_deduction: s.late_deduction,
+      bonus_amount: s.bonus_amount,
+      overtime_amount: s.overtime_amount,
+    })) || [];
 
     // Calculate base salary based on type
     let baseSalary = 0;
@@ -43,6 +55,7 @@ export class SalaryModel {
       currency_symbol: currencyInfo.currency_symbol,
       currency_code: currencyInfo.currency_code,
       salary_type: rawData.salary_type,
+      stores: stores,
       payment_date: rawData.payment_date
         ? DateTimeUtils.toLocal(rawData.payment_date)  // Convert UTC → Local
         : null,
