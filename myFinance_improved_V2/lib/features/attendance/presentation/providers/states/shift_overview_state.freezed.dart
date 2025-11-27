@@ -34,6 +34,8 @@ abstract class $ShiftOverviewStateCopyWith<$Res> {
       _$ShiftOverviewStateCopyWithImpl<$Res, ShiftOverviewState>;
   @useResult
   $Res call({ShiftOverview overview, bool isLoading, String? error});
+
+  $ShiftOverviewCopyWith<$Res> get overview;
 }
 
 /// @nodoc
@@ -70,6 +72,16 @@ class _$ShiftOverviewStateCopyWithImpl<$Res, $Val extends ShiftOverviewState>
               as String?,
     ) as $Val);
   }
+
+  /// Create a copy of ShiftOverviewState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ShiftOverviewCopyWith<$Res> get overview {
+    return $ShiftOverviewCopyWith<$Res>(_value.overview, (value) {
+      return _then(_value.copyWith(overview: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -81,6 +93,9 @@ abstract class _$$ShiftOverviewStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call({ShiftOverview overview, bool isLoading, String? error});
+
+  @override
+  $ShiftOverviewCopyWith<$Res> get overview;
 }
 
 /// @nodoc

@@ -11,7 +11,6 @@ class TossSelectionItem {
   final String title;
   final String? subtitle;
   final IconData? icon;
-  final String? avatarUrl; // Avatar image URL
   final Map<String, dynamic>? data;
   final bool isSelected;
 
@@ -20,7 +19,6 @@ class TossSelectionItem {
     required this.title,
     this.subtitle,
     this.icon,
-    this.avatarUrl,
     this.data,
     this.isSelected = false,
   });
@@ -53,7 +51,6 @@ class TossSelectionItem {
     required String title,
     String? subtitle,
     IconData? icon,
-    String? avatarUrl,
     Map<String, dynamic>? data,
   }) {
     return TossSelectionItem(
@@ -61,7 +58,6 @@ class TossSelectionItem {
       title: title,
       subtitle: subtitle,
       icon: icon,
-      avatarUrl: avatarUrl,
       data: data,
     );
   }
@@ -343,55 +339,31 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.transparent,
-          border: (isLast || widget.borderBottomWidth == 0)
-              ? null
-              : Border(
-                  bottom: BorderSide(
-                    color: TossColors.gray100,
-                    width: widget.borderBottomWidth,
-                  ),
-                ),
+          border: Border(
+            bottom: BorderSide(
+              color: TossColors.gray100,
+              width: isLast ? 0 : widget.borderBottomWidth,
+            ),
+          ),
         ),
         child: Row(
           children: [
-            // Avatar or Icon container
-            if (item.avatarUrl != null)
-              // Show avatar
-              Container(
-                width: TossSpacing.iconXL,
-                height: TossSpacing.iconXL,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray200,
-                    width: isSelected ? 2 : 1,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: TossSpacing.iconSM,
-                  backgroundColor: TossColors.gray200,
-                  backgroundImage: NetworkImage(item.avatarUrl!),
-                  onBackgroundImageError: (_, __) {},
-                  child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
-                ),
-              )
-            else
-              // Show icon container
-              Container(
-                width: TossSpacing.iconXL,
-                height: TossSpacing.iconXL,
-                decoration: BoxDecoration(
-                  color: isSelected
-                    ? TossColors.primary.withValues(alpha: 0.1)
-                    : TossColors.gray50,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Icon(
-                  itemIcon,
-                  size: TossSpacing.iconSM,
-                  color: isSelected ? TossColors.primary : widget.unselectedIconColor,
-                ),
+            // Icon container
+            Container(
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
+              decoration: BoxDecoration(
+                color: isSelected
+                  ? TossColors.primary.withValues(alpha: 0.1)
+                  : TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
+              child: Icon(
+                itemIcon,
+                size: TossSpacing.iconSM,
+                color: isSelected ? TossColors.primary : widget.unselectedIconColor,
+              ),
+            ),
 
             const SizedBox(width: TossSpacing.space3),
 

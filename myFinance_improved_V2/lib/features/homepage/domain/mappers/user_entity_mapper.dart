@@ -46,35 +46,7 @@ Map<String, dynamic> convertStoreToMap(Store store) {
     'store_id': store.id,
     'store_name': store.storeName,
     'store_code': store.storeCode,
-    'company_id': store.companyId,
   };
-}
-
-/// Convert Map to Company entity
-Company convertMapToCompany(Map<String, dynamic> map) {
-  return Company(
-    id: map['company_id'] as String,
-    companyName: map['company_name'] as String,
-    companyCode: map['company_code'] as String,
-    role: UserRole(
-      roleName: (map['role'] as Map<String, dynamic>)['role_name'] as String,
-      permissions: ((map['role'] as Map<String, dynamic>)['permissions'] as List<dynamic>)
-          .cast<String>(),
-    ),
-    stores: (map['stores'] as List<dynamic>)
-        .map((s) => convertMapToStore(s as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-/// Convert Map to Store entity
-Store convertMapToStore(Map<String, dynamic> map) {
-  return Store(
-    id: map['store_id'] as String,
-    storeName: map['store_name'] as String,
-    storeCode: map['store_code'] as String,
-    companyId: map['company_id'] as String? ?? '',
-  );
 }
 
 /// Convert Map to UserWithCompanies entity
@@ -87,7 +59,7 @@ UserWithCompanies convertMapToUserEntity(Map<String, dynamic> map) {
     userLastName: map['user_last_name'] as String,
     profileImage: map['profile_image'] as String,
     companies: (map['companies'] as List<dynamic>)
-        .map((c) => convertMapToCompany(c as Map<String, dynamic>))
+        .map((c) => Company.fromMap(c as Map<String, dynamic>))
         .toList(),
   );
 }

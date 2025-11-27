@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,9 +34,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
   bool isProcessing = false;
   bool hasScanned = false; // Add flag to prevent multiple scans
   bool isShowingDialog = false; // Add flag to prevent multiple dialogs
+  Timer? _autoCloseTimer; // Timer for auto-close dialog
 
   @override
   void dispose() {
+    _autoCloseTimer?.cancel();
     cameraController.dispose();
     super.dispose();
   }
@@ -103,24 +107,31 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => TossDialog.success(
+      builder: (dialogContext) => TossDialog.success(
         title: message,
         subtitle: DateTimeUtils.format(DateTime.now()),
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          context.pop(); // Close dialog
-          Navigator.of(context).pop(resultData); // Return to previous screen with result data
+          // Cancel auto-close timer if user manually closes
+          _autoCloseTimer?.cancel();
+          _autoCloseTimer = null;
+
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.of(dialogContext).pop(); // Close dialog
+            Navigator.of(context).pop(resultData); // Return to previous screen with result data
+          }
         },
         dismissible: false,
       ),
     );
 
-    // Auto close after 2 seconds and return to previous screen with result data
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.pop(); // Close dialog
+    // Auto close after 2 seconds - using Timer for proper cancellation
+    _autoCloseTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Close dialog
         Navigator.of(context).pop(resultData); // Return to previous screen with result data
       }
+      _autoCloseTimer = null;
     });
   }
 
@@ -188,14 +199,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Invalid store ID format');
                 }
                 
-                // Get current date and time
+                // Get current time with timezone offset for RPC
+                // Format: "2024-11-15T10:30:25+07:00"
                 final now = DateTime.now();
-                final requestDate = DateTimeUtils.toDateOnly(now);
-                // Convert to UTC for database storage
-                final currentTime = DateTimeUtils.toUtc(now);
-                
+                final currentTime = DateTimeUtils.toLocalWithOffset(now);
+
                 // Submit attendance using check in use case
                 final checkInShift = ref.read(checkInShiftProvider);
+
+                // Get user's local timezone
+                final timezone = DateTimeUtils.getLocalTimezone();
 
                 final result = await checkInShift(
                   userId: userId,
@@ -205,10 +218,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     latitude: position.latitude,
                     longitude: position.longitude,
                   ),
-                  timezone: 'Asia/Seoul', // TODO: Get from user settings
+                  timezone: timezone,
                 );
 
-                // Check if the RPC call was successful
+                // ✅ Clean Architecture: Check Entity properties instead of Map
                 if (!result.success) {
                   final errorMsg = result.message ?? 'Failed to update shift request';
                   throw Exception(errorMsg);
@@ -229,18 +242,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                 // Show success popup
                 if (mounted) {
-                  // Determine message based on action
-                  String message = result.isCheckIn
-                      ? 'Check-in Successful'
-                      : 'Check-out Successful';
+                  // Determine if it was check-in or check-out based on result
+                  // ✅ Clean Architecture: Use Entity properties
+                  String message = result.isCheckOut ? 'Check-out Successful' : 'Check-in Successful';
 
                   // Prepare data to pass back to attendance page
                   final checkInOutData = <String, dynamic>{
-                    'success': true,
                     'message': message,
+                    'timestamp': result.timestamp,
                     'action': result.action,
                     'request_date': result.requestDate,
-                    'timestamp': result.timestamp,
                     'shift_request_id': result.shiftRequestId,
                   };
                   
