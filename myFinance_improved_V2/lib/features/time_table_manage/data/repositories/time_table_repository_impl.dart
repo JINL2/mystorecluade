@@ -335,16 +335,18 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestDate,
+    required String requestTime,
     required String approvedBy,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.insertSchedule(
         userId: userId,
         shiftId: shiftId,
         storeId: storeId,
-        requestDate: requestDate,
+        requestTime: requestTime,
         approvedBy: approvedBy,
+        timezone: timezone,
       );
 
       // ✅ FREEZED: Direct DTO conversion

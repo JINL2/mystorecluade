@@ -11,11 +11,13 @@ import '../toss/toss_badge.dart';
 import '../toss/toss_bottom_sheet.dart';
 import '../toss/toss_button.dart' as toss_button;
 import '../toss/toss_chip.dart';
+import '../toss/toss_expandable_card.dart';
 import '../toss/toss_icon_button.dart';
 import '../toss/toss_list_tile.dart';
 import '../toss/toss_search_field.dart';
 import '../toss/toss_tab_bar_1.dart';
 import '../toss/toss_text_field.dart';
+import '../toss/toggle_button.dart';
 import 'debounced_button.dart';
 import 'employee_profile_avatar.dart';
 import 'enhanced_quantity_selector.dart';
@@ -28,6 +30,7 @@ import 'toss_error_view.dart';
 import 'toss_loading_view.dart';
 import 'toss_section_header.dart';
 import 'toss_white_card.dart';
+import 'avatar_stack_interact.dart';
 
 /// Design Library Page
 ///
@@ -45,6 +48,9 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
   int _quantity = 5;
   DateTime? _selectedDate = DateTime.now();
   late TabController _tabController;
+  String _selectedToggleId = 'week';
+  bool _expandableCard1Expanded = true;
+  bool _expandableCard2Expanded = false;
 
   @override
   void initState() {
@@ -401,6 +407,62 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 onChanged: (value) {
                   setState(() {
                     _selectedChip = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // ToggleButtonGroup
+        _buildComponentShowcase(
+          'ToggleButtonGroup',
+          'Segmented pill-shaped toggle buttons (Week/Month style)',
+          'toggle_button.dart',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Week/Month Style:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ToggleButtonGroup(
+                items: const [
+                  ToggleButtonItem(id: 'week', label: 'Week'),
+                  ToggleButtonItem(id: 'month', label: 'Month'),
+                ],
+                selectedId: _selectedToggleId,
+                onToggle: (id) {
+                  setState(() {
+                    _selectedToggleId = id;
+                  });
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Three Options:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ToggleButtonGroup(
+                items: const [
+                  ToggleButtonItem(id: 'day', label: 'Day'),
+                  ToggleButtonItem(id: 'week2', label: 'Week'),
+                  ToggleButtonItem(id: 'month2', label: 'Month'),
+                ],
+                selectedId: _selectedToggleId,
+                onToggle: (id) {
+                  setState(() {
+                    _selectedToggleId = id;
                   });
                 },
               ),
@@ -881,6 +943,120 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
 
         const SizedBox(height: TossSpacing.space4),
 
+        // TossExpandableCard
+        _buildComponentShowcase(
+          'TossExpandableCard',
+          'Collapsible card with expandable content section',
+          'toss_expandable_card.dart',
+          Column(
+            children: [
+              TossExpandableCard(
+                title: 'Payment Details',
+                isExpanded: _expandableCard1Expanded,
+                onToggle: () {
+                  setState(() {
+                    _expandableCard1Expanded = !_expandableCard1Expanded;
+                  });
+                },
+                content: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Base pay',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '\$80.00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Bonus pay',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '\$12.00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              TossExpandableCard(
+                title: 'Attendance Records',
+                isExpanded: _expandableCard2Expanded,
+                onToggle: () {
+                  setState(() {
+                    _expandableCard2Expanded = !_expandableCard2Expanded;
+                  });
+                },
+                content: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Check-in',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '09:03:00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Check-out',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '17:05:00',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
         // TossIconButton
         _buildComponentShowcase(
           'TossIconButton',
@@ -944,6 +1120,149 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 title: 'Store Location',
                 subtitle: '123 Main Street',
                 onTap: () {},
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // AvatarStackInteract
+        _buildComponentShowcase(
+          'AvatarStackInteract',
+          'Interactive avatar stack with bottom sheet showing user list',
+          'avatar_stack_interact.dart',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Basic Usage (3 users):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                ],
+                title: 'Applied Users',
+                subtitle: 'Morning Shift - Downtown Store',
+                countTextFormat: '{count} applied',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'With +N Indicator (6 users, shows 4 + "+2"):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                  AvatarUser(
+                    id: '4',
+                    name: 'Sarah Williams',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=44',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '5',
+                    name: 'David Brown',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '6',
+                    name: 'Emily Davis',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=20',
+                    subtitle: 'Assistant Manager',
+                  ),
+                ],
+                title: 'Team Members',
+                subtitle: 'Click to view all team members',
+                countTextFormat: '{count} members',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Without Avatars (fallback icons):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(id: '1', name: 'John Doe', subtitle: 'Store Manager'),
+                  AvatarUser(id: '2', name: 'Jane Smith', subtitle: 'Assistant Manager'),
+                  AvatarUser(id: '3', name: 'Bob Wilson', subtitle: 'Staff'),
+                ],
+                title: 'Assigned Staff',
+                countTextFormat: '{count} assigned',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Large Group (10 users):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              AvatarStackInteract(
+                users: const [
+                  AvatarUser(id: '1', name: 'John Doe', avatarUrl: 'https://i.pravatar.cc/150?img=12', subtitle: 'Manager'),
+                  AvatarUser(id: '2', name: 'Jane Smith', avatarUrl: 'https://i.pravatar.cc/150?img=5', subtitle: 'Staff'),
+                  AvatarUser(id: '3', name: 'Mike Johnson', avatarUrl: 'https://i.pravatar.cc/150?img=33', subtitle: 'Supervisor'),
+                  AvatarUser(id: '4', name: 'Sarah Williams', avatarUrl: 'https://i.pravatar.cc/150?img=44', subtitle: 'Staff'),
+                  AvatarUser(id: '5', name: 'David Brown', avatarUrl: 'https://i.pravatar.cc/150?img=15', subtitle: 'Staff'),
+                  AvatarUser(id: '6', name: 'Emily Davis', avatarUrl: 'https://i.pravatar.cc/150?img=20', subtitle: 'Assistant Manager'),
+                  AvatarUser(id: '7', name: 'Chris Taylor', avatarUrl: 'https://i.pravatar.cc/150?img=51', subtitle: 'Staff'),
+                  AvatarUser(id: '8', name: 'Lisa Anderson', avatarUrl: 'https://i.pravatar.cc/150?img=47', subtitle: 'Staff'),
+                  AvatarUser(id: '9', name: 'Tom Martinez', avatarUrl: 'https://i.pravatar.cc/150?img=59', subtitle: 'Supervisor'),
+                  AvatarUser(id: '10', name: 'Amy White', avatarUrl: 'https://i.pravatar.cc/150?img=29', subtitle: 'Staff'),
+                ],
+                title: 'All Applicants',
+                subtitle: 'Showing all applicants for this shift',
+                countTextFormat: '{count} applicants',
               ),
             ],
           ),

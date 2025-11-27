@@ -2,47 +2,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../../../core/utils/datetime_utils.dart';
-import '../../domain/providers/attendance_repository_provider.dart';
+import '../../data/providers/attendance_data_providers.dart';
+import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
+import '../../domain/usecases/get_current_shift.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
-import '../../domain/usecases/get_monthly_shift_status_raw.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
 import '../../domain/usecases/update_shift_card_after_scan.dart';
-import '../../domain/value_objects/month_bounds.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// CLEAN ARCHITECTURE COMPLIANCE ✅
+// Re-export Repository Provider (for complex operations)
 // ========================================
-//
-// Presentation layer structure (IMPROVED):
-// - Imports repository provider from DOMAIN layer (attendance_repository_provider.dart)
-// - Data layer provides concrete implementation through override in main.dart
-// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
-//
-// Dependency Flow:
-// Presentation → Domain Providers → Domain Interfaces
-//                     ↑
-//              Data Implementation (injected via ProviderScope.overrides)
-//
-// Clean Architecture Benefits:
-// ✅ Presentation does NOT import Data layer at all
-// ✅ Presentation only knows about Domain interfaces
-// ✅ Data layer can be swapped without affecting Presentation
-// ✅ Easy to mock repositories for testing
-//
-// Implementation:
-// 1. Domain defines: attendanceRepositoryProvider (throws UnimplementedError)
-// 2. Data provides: attendanceRepositoryProviderImpl (concrete implementation)
-// 3. main.dart overrides: attendanceRepositoryProvider with attendanceRepositoryProviderImpl
-// 4. Presentation uses: attendanceRepositoryProvider (gets Data's implementation)
-//
+
+/// Re-export repository provider from data layer
+/// Use this ONLY for complex operations that combine multiple use cases
+/// Prefer individual use case providers for simple operations
+export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
 
 // ========================================
 // Use Case Providers
@@ -84,14 +65,6 @@ final deleteShiftRequestProvider = Provider<DeleteShiftRequest>((ref) {
   return DeleteShiftRequest(repository);
 });
 
-/// Get monthly shift status raw use case provider
-/// Returns raw JSON with nested shifts array for UI display
-final getMonthlyShiftStatusRawProvider =
-    Provider<GetMonthlyShiftStatusRaw>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetMonthlyShiftStatusRaw(repository);
-});
-
 /// Report shift issue use case provider
 final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
@@ -102,6 +75,12 @@ final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
 final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftCards(repository);
+});
+
+/// Get current shift use case provider
+final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetCurrentShift(repository);
 });
 
 /// Update shift card after scan use case provider
@@ -166,19 +145,19 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
         return;
       }
 
-      // IMPORTANT: RPC functions require UTC timestamp with last moment of month
-      // Use MonthBounds Value Object for month boundary calculation
+      // IMPORTANT: RPC functions require the LAST day of the month as p_request_time
       final now = DateTime.now();
-      final monthBounds = MonthBounds.fromDate(now);
-      final requestTime = monthBounds.lastMomentUtcFormatted; // "yyyy-MM-dd HH:mm:ss" in UTC
-      final timezone = DateTimeUtils.getLocalTimezone(); // User's local timezone
+      // Calculate the last day of the current month
+      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+      final requestTime =
+          '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')} 23:59:59';
 
       final overview = await getShiftOverview(
         requestTime: requestTime,
         userId: userId,
         companyId: companyId,
         storeId: storeId,
-        timezone: timezone,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
       state = ShiftOverviewState(
@@ -198,3 +177,46 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
   }
 }
 
+/// Provider for current shift status
+final currentShiftProvider =
+    FutureProvider<ShiftCard?>((ref) async {
+  final getCurrentShift = ref.read(getCurrentShiftProvider);
+  final authStateAsync = ref.read(authStateProvider);
+  final appState = ref.read(appStateProvider);
+
+  final user = authStateAsync.value;
+  final userId = user?.id;
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
+
+  if (userId == null || companyId.isEmpty || storeId.isEmpty) {
+    return null;
+  }
+
+  final now = DateTime.now();
+  final requestTime =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+
+  return await getCurrentShift(
+    requestTime: requestTime,
+    userId: userId,
+    companyId: companyId,
+    storeId: storeId,
+    timezone: 'Asia/Seoul', // TODO: Get from user settings
+  );
+});
+
+/// Provider for checking if user is currently working
+final isWorkingProvider = Provider<bool>((ref) {
+  final currentShift = ref.watch(currentShiftProvider);
+
+  return currentShift.when(
+    data: (shift) {
+      if (shift == null) return false;
+      // Check if user has checked in but not checked out
+      return shift.isCheckedIn && !shift.isCheckedOut;
+    },
+    loading: () => false,
+    error: (_, __) => false,
+  );
+});
