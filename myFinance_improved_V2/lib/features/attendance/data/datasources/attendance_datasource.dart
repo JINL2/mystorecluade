@@ -209,6 +209,17 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
+      // ✅ Debug: Log RPC parameters
+      assert(() {
+        debugPrint('🔵 [getUserShiftCards] RPC params:');
+        debugPrint('  - requestTime: $requestTime');
+        debugPrint('  - userId: $userId');
+        debugPrint('  - companyId: $companyId');
+        debugPrint('  - storeId: $storeId');
+        debugPrint('  - timezone: $timezone');
+        return true;
+      }());
+
       final response = await _supabase.rpc<dynamic>(
         'user_shift_cards_v3',
         params: {
@@ -224,6 +235,13 @@ class AttendanceDatasource {
         return [];
       }
 
+      // ✅ Debug: Log raw response
+      assert(() {
+        final count = response is List ? response.length : 'not a list';
+        debugPrint('🟢 [getUserShiftCards] Raw response count: $count');
+        return true;
+      }());
+
       // Convert UTC times to local time and return as list
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
@@ -237,10 +255,19 @@ class AttendanceDatasource {
               if (utcString.isNotEmpty) {
                 final localDateTime = DateTimeUtils.toLocal(utcString);
                 converted['request_date'] = DateTimeUtils.toDateOnly(localDateTime);
+                // ✅ Debug: Log conversion
+                assert(() {
+                  debugPrint('🔄 [getUserShiftCards] Converted: $utcString → ${converted['request_date']}');
+                  return true;
+                }());
               }
             } catch (e) {
               // If conversion fails, use request_time as-is
               converted['request_date'] = converted['request_time'];
+              assert(() {
+                debugPrint('⚠️ [getUserShiftCards] Conversion failed: $e');
+                return true;
+              }());
             }
           }
 

@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'shift_card.freezed.dart';
 part 'shift_card.g.dart';
 
-/// Shift Card Entity - from user_shift_cards_v2 RPC
+/// Shift Card Entity - from user_shift_cards_v3 RPC
 /// Represents a user's shift card with attendance details
 @freezed
 class ShiftCard with _$ShiftCard {
@@ -13,6 +13,7 @@ class ShiftCard with _$ShiftCard {
     // Basic info
     @JsonKey(name: 'request_date') required String requestDate,
     @JsonKey(name: 'shift_request_id') required String shiftRequestId,
+    @JsonKey(name: 'shift_name') String? shiftName, // e.g., "Afternoon", "Morning"
     @JsonKey(name: 'shift_time') required String shiftTime,
     @JsonKey(name: 'store_name') required String storeName,
 

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
@@ -220,4 +221,55 @@ final isWorkingProvider = Provider<bool>((ref) {
     loading: () => false,
     error: (_, __) => false,
   );
+});
+
+/// Provider for monthly shift cards (Week/Month view용)
+/// Parameter: String (년-월 형식, e.g., "2025-11")
+/// DateTime 대신 String을 사용하여 동일한 월에 대해 캐싱 및 리빌드 방지
+final monthlyShiftCardsProvider =
+    FutureProvider.family<List<ShiftCard>, String>((ref, yearMonth) async {
+  final getUserShiftCards = ref.read(getUserShiftCardsProvider);
+  final authStateAsync = ref.read(authStateProvider);
+  final appState = ref.read(appStateProvider);
+
+  final user = authStateAsync.value;
+  final userId = user?.id;
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
+
+  if (userId == null || companyId.isEmpty || storeId.isEmpty) {
+    return [];
+  }
+
+  // Parse year-month string (e.g., "2025-11")
+  final parts = yearMonth.split('-');
+  final year = int.parse(parts[0]);
+  final month = int.parse(parts[1]);
+
+  // Calculate the last day of the month for RPC
+  // Use toLocalWithOffset for proper timezone format (e.g., "2025-11-30T23:59:59+09:00")
+  final lastDayOfMonth = DateTime(year, month + 1, 0, 23, 59, 59);
+  final requestTime = DateTimeUtils.toLocalWithOffset(lastDayOfMonth);
+  final timezone = DateTimeUtils.getLocalTimezone();
+
+  final shiftCards = await getUserShiftCards(
+    requestTime: requestTime,
+    userId: userId,
+    companyId: companyId,
+    storeId: storeId,
+    timezone: timezone,
+  );
+
+  // ✅ Debug: Log loaded shift cards
+  assert(() {
+    // ignore: avoid_print
+    print('📅 [monthlyShiftCardsProvider] Loaded ${shiftCards.length} cards for $yearMonth');
+    for (final card in shiftCards) {
+      // ignore: avoid_print
+      print('  - ${card.requestDate}: ${card.shiftTime}');
+    }
+    return true;
+  }());
+
+  return shiftCards;
 });

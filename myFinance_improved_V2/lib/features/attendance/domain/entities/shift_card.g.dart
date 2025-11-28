@@ -10,6 +10,7 @@ _$ShiftCardImpl _$$ShiftCardImplFromJson(Map<String, dynamic> json) =>
     _$ShiftCardImpl(
       requestDate: json['request_date'] as String,
       shiftRequestId: json['shift_request_id'] as String,
+      shiftName: json['shift_name'] as String?,
       shiftTime: json['shift_time'] as String,
       storeName: json['store_name'] as String,
       scheduledHours: (json['scheduled_hours'] as num).toDouble(),
@@ -43,6 +44,7 @@ Map<String, dynamic> _$$ShiftCardImplToJson(_$ShiftCardImpl instance) =>
     <String, dynamic>{
       'request_date': instance.requestDate,
       'shift_request_id': instance.shiftRequestId,
+      'shift_name': instance.shiftName,
       'shift_time': instance.shiftTime,
       'store_name': instance.storeName,
       'scheduled_hours': instance.scheduledHours,

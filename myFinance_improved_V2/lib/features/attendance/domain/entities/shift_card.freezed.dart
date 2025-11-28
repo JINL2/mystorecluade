@@ -25,6 +25,9 @@ mixin _$ShiftCard {
   String get requestDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'shift_name')
+  String? get shiftName =>
+      throw _privateConstructorUsedError; // e.g., "Afternoon", "Morning"
   @JsonKey(name: 'shift_time')
   String get shiftTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'store_name')
@@ -100,6 +103,7 @@ abstract class $ShiftCardCopyWith<$Res> {
   $Res call(
       {@JsonKey(name: 'request_date') String requestDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'shift_time') String shiftTime,
       @JsonKey(name: 'store_name') String storeName,
       @JsonKey(name: 'scheduled_hours') double scheduledHours,
@@ -146,6 +150,7 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
   $Res call({
     Object? requestDate = null,
     Object? shiftRequestId = null,
+    Object? shiftName = freezed,
     Object? shiftTime = null,
     Object? storeName = null,
     Object? scheduledHours = null,
@@ -181,6 +186,10 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String,
+      shiftName: freezed == shiftName
+          ? _value.shiftName
+          : shiftName // ignore: cast_nullable_to_non_nullable
+              as String?,
       shiftTime: null == shiftTime
           ? _value.shiftTime
           : shiftTime // ignore: cast_nullable_to_non_nullable
@@ -296,6 +305,7 @@ abstract class _$$ShiftCardImplCopyWith<$Res>
   $Res call(
       {@JsonKey(name: 'request_date') String requestDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'shift_time') String shiftTime,
       @JsonKey(name: 'store_name') String storeName,
       @JsonKey(name: 'scheduled_hours') double scheduledHours,
@@ -340,6 +350,7 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
   $Res call({
     Object? requestDate = null,
     Object? shiftRequestId = null,
+    Object? shiftName = freezed,
     Object? shiftTime = null,
     Object? storeName = null,
     Object? scheduledHours = null,
@@ -375,6 +386,10 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String,
+      shiftName: freezed == shiftName
+          ? _value.shiftName
+          : shiftName // ignore: cast_nullable_to_non_nullable
+              as String?,
       shiftTime: null == shiftTime
           ? _value.shiftTime
           : shiftTime // ignore: cast_nullable_to_non_nullable
@@ -485,6 +500,7 @@ class _$ShiftCardImpl extends _ShiftCard {
   const _$ShiftCardImpl(
       {@JsonKey(name: 'request_date') required this.requestDate,
       @JsonKey(name: 'shift_request_id') required this.shiftRequestId,
+      @JsonKey(name: 'shift_name') this.shiftName,
       @JsonKey(name: 'shift_time') required this.shiftTime,
       @JsonKey(name: 'store_name') required this.storeName,
       @JsonKey(name: 'scheduled_hours') required this.scheduledHours,
@@ -524,6 +540,10 @@ class _$ShiftCardImpl extends _ShiftCard {
   @override
   @JsonKey(name: 'shift_request_id')
   final String shiftRequestId;
+  @override
+  @JsonKey(name: 'shift_name')
+  final String? shiftName;
+// e.g., "Afternoon", "Morning"
   @override
   @JsonKey(name: 'shift_time')
   final String shiftTime;
@@ -610,7 +630,7 @@ class _$ShiftCardImpl extends _ShiftCard {
 
   @override
   String toString() {
-    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftTime: $shiftTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, isLate: $isLate, lateMinutes: $lateMinutes, lateDeducutAmount: $lateDeducutAmount, isExtratime: $isExtratime, overtimeMinutes: $overtimeMinutes, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, isReported: $isReported, isProblem: $isProblem, isProblemSolved: $isProblemSolved)';
+    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftName: $shiftName, shiftTime: $shiftTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, isLate: $isLate, lateMinutes: $lateMinutes, lateDeducutAmount: $lateDeducutAmount, isExtratime: $isExtratime, overtimeMinutes: $overtimeMinutes, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, isReported: $isReported, isProblem: $isProblem, isProblemSolved: $isProblemSolved)';
   }
 
   @override
@@ -622,6 +642,8 @@ class _$ShiftCardImpl extends _ShiftCard {
                 other.requestDate == requestDate) &&
             (identical(other.shiftRequestId, shiftRequestId) ||
                 other.shiftRequestId == shiftRequestId) &&
+            (identical(other.shiftName, shiftName) ||
+                other.shiftName == shiftName) &&
             (identical(other.shiftTime, shiftTime) ||
                 other.shiftTime == shiftTime) &&
             (identical(other.storeName, storeName) ||
@@ -680,6 +702,7 @@ class _$ShiftCardImpl extends _ShiftCard {
         runtimeType,
         requestDate,
         shiftRequestId,
+        shiftName,
         shiftTime,
         storeName,
         scheduledHours,
@@ -727,6 +750,7 @@ abstract class _ShiftCard extends ShiftCard {
   const factory _ShiftCard(
       {@JsonKey(name: 'request_date') required final String requestDate,
       @JsonKey(name: 'shift_request_id') required final String shiftRequestId,
+      @JsonKey(name: 'shift_name') final String? shiftName,
       @JsonKey(name: 'shift_time') required final String shiftTime,
       @JsonKey(name: 'store_name') required final String storeName,
       @JsonKey(name: 'scheduled_hours') required final double scheduledHours,
@@ -770,6 +794,9 @@ abstract class _ShiftCard extends ShiftCard {
   @override
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId;
+  @override
+  @JsonKey(name: 'shift_name')
+  String? get shiftName; // e.g., "Afternoon", "Morning"
   @override
   @JsonKey(name: 'shift_time')
   String get shiftTime;
