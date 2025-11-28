@@ -430,10 +430,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
             onTap: () {
               ShiftDetailDialog.show(
                 context,
-                shiftDate: DateFormat('yyyy-MM-dd').format(cardDate),
-                shiftType: shiftType,
-                shiftTime: card.shiftTime,
-                shiftStatus: status.name,
+                shiftCard: card,
               );
             },
           ),
@@ -514,10 +511,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
             onTap: () {
               ShiftDetailDialog.show(
                 context,
-                shiftDate: DateFormat('yyyy-MM-dd').format(cardDate),
-                shiftType: shiftType,
-                shiftTime: card.shiftTime,
-                shiftStatus: status.name,
+                shiftCard: card,
               );
             },
           ),

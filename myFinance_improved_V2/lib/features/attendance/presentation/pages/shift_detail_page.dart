@@ -270,7 +270,7 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.shift.shiftTime,
+                  widget.shift.shiftName ?? 'Shift',
                   style: TossTextStyles.titleMedium.copyWith(
                     color: TossColors.gray900,
                     fontWeight: FontWeight.w600,
@@ -345,7 +345,7 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
-            label: 'Hourly salary',
+            label: widget.shift.salaryType == 'monthly' ? 'Monthly salary' : 'Hourly salary',
             value: _formatMoney(widget.shift.salaryAmountValue),
           ),
           const SizedBox(height: 12),

@@ -40,15 +40,16 @@ class ScheduleHeader extends StatelessWidget {
       return ShiftStatus.upcoming;
     }
 
-    // Past or today's shift
-    if (card.actualStartTime != null && card.actualEndTime != null) {
+    // Past or today's shift - use entity's isCheckedIn/isCheckedOut getters
+    // which check both actualStartTime/actualEndTime AND confirmStartTime/confirmEndTime
+    if (card.isCheckedIn && card.isCheckedOut) {
       // Check-in and check-out completed
       return card.isLate ? ShiftStatus.late : ShiftStatus.completed;
     }
 
-    if (card.actualStartTime != null && card.actualEndTime == null) {
-      // Currently working (checked in but not out)
-      return ShiftStatus.inProgress;
+    if (card.isCheckedIn && !card.isCheckedOut) {
+      // Currently working (checked in but not out) - On-time
+      return ShiftStatus.onTime;
     }
 
     // Past date but no check-in
@@ -56,8 +57,8 @@ class ScheduleHeader extends StatelessWidget {
       return ShiftStatus.undone;
     }
 
-    // Today's shift that hasn't started yet
-    return ShiftStatus.onTime;
+    // Today's shift that hasn't checked in yet
+    return ShiftStatus.undone;
   }
 
   /// Parse request_date string to DateTime

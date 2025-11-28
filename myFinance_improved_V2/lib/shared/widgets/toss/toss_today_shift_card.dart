@@ -79,7 +79,7 @@ class TossTodayShiftCard extends StatelessWidget {
       case ShiftStatus.completed:
         return 'Completed';
       case ShiftStatus.noShift:
-        return '';
+        return 'No-Shift';
     }
   }
 
@@ -126,17 +126,23 @@ class TossTodayShiftCard extends StatelessWidget {
 
     switch (status) {
       case ShiftStatus.upcoming:
-      case ShiftStatus.onTime:
+      case ShiftStatus.undone:
+        // Not checked in yet - show Check-in button
         buttonText = 'Check-in';
         onPressed = onCheckIn;
         break;
+      case ShiftStatus.onTime:
+        // Checked in but not checked out - show Check-out button
+        buttonText = 'Check-out';
+        onPressed = onCheckOut;
+        break;
       case ShiftStatus.inProgress:
+        // Legacy: kept for compatibility
         buttonText = 'Check-out';
         onPressed = onCheckOut;
         break;
       case ShiftStatus.completed:
       case ShiftStatus.late:
-      case ShiftStatus.undone:
         buttonText = 'View Details';
         onPressed = onCheckIn; // Reuse onCheckIn for view details
         break;
