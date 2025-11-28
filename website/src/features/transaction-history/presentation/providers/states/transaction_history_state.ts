@@ -13,10 +13,14 @@ export interface AccountInfo {
 
 export interface TransactionHistoryState {
   // State
-  journalEntries: JournalEntry[];
+  journalEntries: JournalEntry[];       // Filtered entries for display
+  allJournalEntries: JournalEntry[];    // Original unfiltered entries from RPC
   loading: boolean;
   error: string | null;
   hasSearched: boolean;
+
+  // Company ID (injected by useJournalHistory hook)
+  companyId: string;
 
   // Employee State
   employees: EmployeeInfo[];
@@ -29,19 +33,17 @@ export interface TransactionHistoryState {
   currentStoreId: string | null;
   currentStartDate: string | null;
   currentEndDate: string | null;
-  currentCreatedBy: string | null;
-  currentAccountId: string | null;
+  currentCreatedByIds: string[];
+  currentAccountIds: string[];
 
   // Actions
   searchJournalEntries: (
     storeId: string | null,
     startDate: string | null,
-    endDate: string | null,
-    createdBy?: string | null,
-    accountId?: string | null
+    endDate: string | null
   ) => Promise<void>;
-  setCreatedByFilter: (createdBy: string | null) => void;
-  setAccountFilter: (accountId: string | null) => void;
+  setCreatedByFilter: (createdByIds: string[]) => void;
+  setAccountFilter: (accountIds: string[]) => void;
   fetchEmployees: () => Promise<void>;
   clearSearch: () => void;
   setError: (error: string | null) => void;

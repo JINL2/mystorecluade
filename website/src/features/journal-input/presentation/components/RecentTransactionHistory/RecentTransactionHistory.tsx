@@ -1,49 +1,90 @@
 /**
  * RecentTransactionHistory Component
- * Displays last 30 days of transaction history
+ * Displays transaction history with inline filters
  * Used in Journal Input page (Icon and Excel tabs)
+ * Updated: Added Store/Date filters in header row + multi-select filters for CREATED BY and ACCOUNT
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { TossSelector } from '@/shared/components/selectors/TossSelector';
+import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { useJournalHistory } from '@/features/transaction-history/presentation/hooks/useJournalHistory';
 import { JournalEntry } from '@/features/transaction-history/domain/entities/JournalEntry';
 import type { RecentTransactionHistoryProps } from './RecentTransactionHistory.types';
 import styles from './RecentTransactionHistory.module.css';
 
-export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> = ({ companyId, storeId, refreshTrigger }) => {
+// Helper functions for default date range (30 days)
+const getThirtyDaysAgo = (): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - 30);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getToday = (): string => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> = ({
+  companyId,
+  stores,
+  refreshTrigger
+}) => {
   const {
     journalEntries,
     loading,
+    employees,
+    accounts,
+    currentCreatedByIds,
+    currentAccountIds,
     searchJournalEntries,
+    setCreatedByFilter,
+    setAccountFilter,
   } = useJournalHistory(companyId);
 
-  // Calculate date range: 30 days ago to today (local time)
-  const dateRange = useMemo(() => {
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+  // Local state for filters (independent from parent - this is for filtering history only)
+  const [filterStoreId, setFilterStoreId] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState<string>(getThirtyDaysAgo());
+  const [toDate, setToDate] = useState<string>(getToday());
 
-    // Format as YYYY-MM-DD in local time
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      fromDate: formatDate(thirtyDaysAgo),
-      toDate: formatDate(today),
-    };
-  }, []);
-
-  // Auto-load data on mount, when storeId changes, or when refreshTrigger changes
+  // Auto-load data on mount, when filters change, or when refreshTrigger changes
   useEffect(() => {
     if (companyId) {
-      searchJournalEntries(storeId, dateRange.fromDate, dateRange.toDate);
+      searchJournalEntries(filterStoreId, fromDate, toDate);
     }
-  }, [companyId, storeId, dateRange.fromDate, dateRange.toDate, searchJournalEntries, refreshTrigger]);
+  }, [companyId, filterStoreId, fromDate, toDate, searchJournalEntries, refreshTrigger]);
+
+  // Transform employees to TossSelector options (no "All" option for multi-select)
+  const employeeOptions = useMemo(() => {
+    return employees.map((emp) => ({
+      value: emp.userId,
+      label: emp.fullName,
+    }));
+  }, [employees]);
+
+  // Transform accounts to TossSelector options (no "All" option for multi-select)
+  const accountOptions = useMemo(() => {
+    return accounts.map((acc) => ({
+      value: acc.accountId,
+      label: acc.accountName,
+    }));
+  }, [accounts]);
+
+  // Handlers for filter changes
+  const handleCreatedByChange = (userIds: string[]) => {
+    setCreatedByFilter(userIds);
+  };
+
+  const handleAccountChange = (accountIds: string[]) => {
+    setAccountFilter(accountIds);
+  };
 
   const renderLoadingState = () => (
     <div className={styles.loadingState}>
@@ -68,14 +109,15 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
     </div>
   );
 
-  const renderJournalEntry = (journal: JournalEntry) => (
+  const renderJournalEntry = (journal: JournalEntry, index: number) => (
     <React.Fragment key={journal.journalId}>
       {/* Journal Header Row */}
-      <tr className={styles.journalHeader}>
+      <tr className={`${styles.journalHeader} ${index > 0 ? styles.journalSeparator : ''}`}>
         <td>
           <div className={styles.journalDate}>{journal.formattedDate}</div>
           <div className={styles.journalTime}>{journal.formattedTime}</div>
         </td>
+        <td>-</td>
         <td>{journal.description || '-'}</td>
         <td>
           {journal.storeName ? (
@@ -94,25 +136,26 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
       </tr>
 
       {/* Journal Lines */}
-      {journal.sortedLines.map((line, index) => {
-        const alternateClass = index % 2 === 1 ? styles.alternate : '';
+      {journal.sortedLines.map((line, lineIndex) => {
+        const alternateClass = lineIndex % 2 === 1 ? styles.alternate : '';
 
         // Build full description with counterparty and location
-        let fullDescription = line.description || line.accountName;
+        let fullDescription = line.description || '';
         if (line.displayCounterparty && line.displayLocation) {
-          fullDescription = `${fullDescription} • ${line.displayCounterparty} • ${line.displayLocation}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayCounterparty} • ${line.displayLocation}` : `${line.displayCounterparty} • ${line.displayLocation}`;
         } else if (line.displayCounterparty) {
-          fullDescription = `${fullDescription} • ${line.displayCounterparty}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayCounterparty}` : line.displayCounterparty;
         } else if (line.displayLocation) {
-          fullDescription = `${fullDescription} • ${line.displayLocation}`;
+          fullDescription = fullDescription ? `${fullDescription} • ${line.displayLocation}` : line.displayLocation;
         }
 
         return (
           <tr key={line.lineId} className={`${styles.lineRow} ${alternateClass}`}>
+            <td>-</td>
             <td className={styles.accountCell}>
               <strong>{line.accountName}</strong>
             </td>
-            <td className={styles.lineDescription}>{fullDescription}</td>
+            <td className={styles.lineDescription}>{fullDescription || '-'}</td>
             <td>-</td>
             <td>-</td>
             <td className={`${styles.amountCell} ${styles.debitAmount}`}>
@@ -127,7 +170,7 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
 
       {/* Total Row */}
       <tr className={styles.totalRow}>
-        <td colSpan={4} className={styles.totalLabel}>
+        <td colSpan={5} className={styles.totalLabel}>
           Total:
         </td>
         <td className={`${styles.amountCell} ${styles.debitAmount}`}>
@@ -143,24 +186,103 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
   const renderTransactionTable = () => (
     <div className={styles.tableWrapper}>
       <div className={styles.tableHeader}>
-        <h3 className={styles.tableTitle}>Recent Transactions (Last 30 Days)</h3>
-        <p className={styles.tableSubtitle}>
-          Found {journalEntries.length} journal{journalEntries.length !== 1 ? 's' : ''}
-        </p>
+        <div className={styles.tableHeaderRow}>
+          <div className={styles.titleSection}>
+            <h3 className={styles.tableTitle}>Transaction History</h3>
+            <p className={styles.tableSubtitle}>
+              Found {journalEntries.length} journal{journalEntries.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className={styles.filterSection}>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>STORE</label>
+              <StoreSelector
+                stores={stores}
+                selectedStoreId={filterStoreId}
+                onStoreSelect={setFilterStoreId}
+                showAllStoresOption={true}
+                width="160px"
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>FROM DATE</label>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>TO DATE</label>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <table className={styles.transactionTable}>
         <thead>
           <tr>
-            <th style={{ width: '160px' }}>DATE & TIME</th>
-            <th style={{ width: '200px' }}>DESCRIPTION</th>
-            <th style={{ width: '120px' }}>STORE</th>
-            <th style={{ width: '120px' }}>CREATED BY</th>
-            <th style={{ width: '120px' }}>DEBIT</th>
-            <th style={{ width: '120px' }}>CREDIT</th>
+            <th style={{ width: '140px' }}>DATE & TIME</th>
+            <th style={{ width: '180px' }}>
+              <div className={styles.headerWithFilter}>
+                <span>ACCOUNT</span>
+                <TossSelector
+                  values={currentAccountIds}
+                  options={accountOptions}
+                  onChangeMultiple={handleAccountChange}
+                  placeholder="All"
+                  searchable
+                  multiple
+                  className={styles.accountSelector}
+                />
+              </div>
+            </th>
+            <th style={{ width: '150px' }}>DESCRIPTION</th>
+            <th style={{ width: '100px' }}>STORE</th>
+            <th style={{ width: '160px' }}>
+              <div className={styles.headerWithFilter}>
+                <span>CREATED BY</span>
+                <TossSelector
+                  values={currentCreatedByIds}
+                  options={employeeOptions}
+                  onChangeMultiple={handleCreatedByChange}
+                  placeholder="All"
+                  searchable
+                  multiple
+                  className={styles.createdBySelector}
+                />
+              </div>
+            </th>
+            <th style={{ width: '100px' }}>DEBIT</th>
+            <th style={{ width: '100px' }}>CREDIT</th>
           </tr>
         </thead>
-        <tbody>{journalEntries.map(renderJournalEntry)}</tbody>
+        <tbody>
+          {journalEntries.length > 0 ? (
+            journalEntries.map((journal, index) => renderJournalEntry(journal, index))
+          ) : (
+            <tr>
+              <td colSpan={7} className={styles.emptyTableCell}>
+                <div className={styles.emptyTableState}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3v18h18" />
+                    <path d="M18 17V9" />
+                    <path d="M13 17V5" />
+                    <path d="M8 17v-3" />
+                  </svg>
+                  <p>No transactions found for the selected filters.</p>
+                </div>
+              </td>
+            </tr>
+          )}
+        </tbody>
       </table>
     </div>
   );
@@ -168,8 +290,7 @@ export const RecentTransactionHistory: React.FC<RecentTransactionHistoryProps> =
   return (
     <div className={styles.container}>
       {loading && renderLoadingState()}
-      {!loading && journalEntries.length === 0 && renderEmptyResults()}
-      {!loading && journalEntries.length > 0 && renderTransactionTable()}
+      {!loading && renderTransactionTable()}
     </div>
   );
 };

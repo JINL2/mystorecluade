@@ -64,6 +64,9 @@ export interface JournalInputState {
     storeId?: string | null
   ) => Promise<CashLocation[]>;
 
+  // Async Actions - Cash Location Loading (for Excel tab)
+  loadCashLocations: (storeId: string | null) => Promise<CashLocation[]>;
+
   // Reset
   reset: () => void;
 }

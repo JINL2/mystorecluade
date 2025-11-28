@@ -43,6 +43,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     checkAccountMapping,
     getCounterpartyStores,
     getCounterpartyCashLocations,
+    loadCashLocations,
   } = useJournalInput(companyId, selectedStoreId, user?.id || '');
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -265,7 +266,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             cashLocations={cashLocations}
             counterparties={counterparties}
             companyId={companyId}
-            selectedStoreId={selectedStoreId}
+            stores={stores}
             submitting={submitting}
             refreshTrigger={iconTabRefreshTrigger}
             onAddTransaction={handleAddTransaction}
@@ -282,13 +283,12 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             cashLocations={cashLocations}
             counterparties={counterparties}
             companyId={companyId}
-            selectedStoreId={selectedStoreId}
             userId={user?.id || ''}
             stores={stores}
-            onStoreSelect={handleStoreSelect}
             onCheckAccountMapping={checkAccountMapping}
             onGetCounterpartyStores={getCounterpartyStores}
             onGetCounterpartyCashLocations={getCounterpartyCashLocations}
+            onLoadCashLocations={loadCashLocations}
             onSubmitSuccess={() => setShowSuccessMessage(true)}
             onSubmitError={(error) => {
               setErrorMessageText(error);

@@ -3,7 +3,7 @@
  * Complete ledger view with journal entry grouping
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
@@ -11,7 +11,7 @@ import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useJournalHistory } from '../../hooks/useJournalHistory';
-import { TransactionFilter, TransactionFilterValues } from '../../components/TransactionFilter';
+import { TransactionFilter, TransactionFilterValues, getFirstDayOfMonth, getLastDayOfMonth } from '../../components/TransactionFilter';
 import { JournalEntry } from '../../../domain/entities/JournalEntry';
 import styles from './TransactionHistoryPage.module.css';
 
@@ -19,46 +19,49 @@ export const TransactionHistoryPage: React.FC = () => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
   const { messageState, closeMessage, showError } = useErrorMessage();
+  const hasInitialLoaded = useRef(false);
 
   const {
     journalEntries,
     loading,
     error,
-    hasSearched,
     employees,
     accounts,
-    currentCreatedBy,
-    currentAccountId,
-    currentStoreId,
-    currentStartDate,
-    currentEndDate,
+    currentCreatedByIds,
+    currentAccountIds,
     searchJournalEntries,
     setCreatedByFilter,
     setAccountFilter,
-    clearSearch,
   } = useJournalHistory(companyId);
 
-  // Transform employees to TossSelector options
+  // Transform employees to TossSelector options (no "All" option for multi-select)
   const employeeOptions = useMemo(() => {
-    return [
-      { value: '', label: 'All' },
-      ...employees.map((emp) => ({
-        value: emp.userId,
-        label: emp.fullName,
-      })),
-    ];
+    return employees.map((emp) => ({
+      value: emp.userId,
+      label: emp.fullName,
+    }));
   }, [employees]);
 
-  // Transform accounts to TossSelector options
+  // Transform accounts to TossSelector options (no "All" option for multi-select)
   const accountOptions = useMemo(() => {
-    return [
-      { value: '', label: 'All' },
-      ...accounts.map((acc) => ({
-        value: acc.accountId,
-        label: acc.accountName,
-      })),
-    ];
+    return accounts.map((acc) => ({
+      value: acc.accountId,
+      label: acc.accountName,
+    }));
   }, [accounts]);
+
+  // Auto-load data on page mount with default values
+  useEffect(() => {
+    if (companyId && !hasInitialLoaded.current) {
+      hasInitialLoaded.current = true;
+      // Load with default values: current month, all stores
+      searchJournalEntries(
+        null, // all stores
+        getFirstDayOfMonth(),
+        getLastDayOfMonth()
+      );
+    }
+  }, [companyId, searchJournalEntries]);
 
   // Show error dialog when error occurs
   useEffect(() => {
@@ -71,57 +74,24 @@ export const TransactionHistoryPage: React.FC = () => {
     }
   }, [error, showError]);
 
-  const handleSearch = (filters: TransactionFilterValues) => {
-    // Reset filters on new search
-    setCreatedByFilter(null);
-    setAccountFilter(null);
+  const handleFilterChange = (filters: TransactionFilterValues) => {
+    // Search calls RPC once, filters are applied client-side
     searchJournalEntries(
       filters.storeId,
       filters.fromDate || null,
-      filters.toDate || null,
-      null,
-      null
+      filters.toDate || null
     );
   };
 
-  const handleCreatedByChange = (userId: string) => {
-    const newCreatedBy = userId || null;
-    setCreatedByFilter(newCreatedBy);
-
-    // Re-search if already searched
-    if (hasSearched) {
-      searchJournalEntries(currentStoreId, currentStartDate, currentEndDate, newCreatedBy, currentAccountId);
-    }
+  const handleCreatedByChange = (userIds: string[]) => {
+    // Client-side filtering only, no RPC call
+    setCreatedByFilter(userIds);
   };
 
-  const handleAccountChange = (accountId: string) => {
-    const newAccountId = accountId || null;
-    setAccountFilter(newAccountId);
-
-    // Re-search if already searched
-    if (hasSearched) {
-      searchJournalEntries(currentStoreId, currentStartDate, currentEndDate, currentCreatedBy, newAccountId);
-    }
+  const handleAccountChange = (accountIds: string[]) => {
+    // Client-side filtering only, no RPC call
+    setAccountFilter(accountIds);
   };
-
-  const handleClear = () => {
-    clearSearch();
-  };
-
-  const renderInitialState = () => (
-    <div className={styles.emptyState}>
-      <div className={styles.emptyIcon}>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-      </div>
-      <h3 className={styles.emptyTitle}>Search Transactions</h3>
-      <p className={styles.emptyText}>
-        Select filters and click Search to view transaction history
-      </p>
-    </div>
-  );
 
   const renderLoadingState = () => (
     <div className={styles.loadingState}>
@@ -238,11 +208,12 @@ export const TransactionHistoryPage: React.FC = () => {
               <div className={styles.headerWithFilter}>
                 <span>ACCOUNT</span>
                 <TossSelector
-                  value={currentAccountId || ''}
+                  values={currentAccountIds}
                   options={accountOptions}
-                  onChange={handleAccountChange}
+                  onChangeMultiple={handleAccountChange}
                   placeholder="All"
                   searchable
+                  multiple
                   className={styles.accountSelector}
                 />
               </div>
@@ -253,11 +224,12 @@ export const TransactionHistoryPage: React.FC = () => {
               <div className={styles.headerWithFilter}>
                 <span>CREATED BY</span>
                 <TossSelector
-                  value={currentCreatedBy || ''}
+                  values={currentCreatedByIds}
                   options={employeeOptions}
-                  onChange={handleCreatedByChange}
+                  onChangeMultiple={handleCreatedByChange}
                   placeholder="All"
                   searchable
+                  multiple
                   className={styles.createdBySelector}
                 />
               </div>
@@ -266,7 +238,25 @@ export const TransactionHistoryPage: React.FC = () => {
             <th style={{ width: '100px' }}>CREDIT</th>
           </tr>
         </thead>
-        <tbody>{journalEntries.map(renderJournalEntry)}</tbody>
+        <tbody>
+          {journalEntries.length > 0 ? (
+            journalEntries.map(renderJournalEntry)
+          ) : (
+            <tr>
+              <td colSpan={7} className={styles.emptyTableCell}>
+                <div className={styles.emptyTableState}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3v18h18" />
+                    <path d="M18 17V9" />
+                    <path d="M13 17V5" />
+                    <path d="M8 17v-3" />
+                  </svg>
+                  <p>No transactions found for the selected filters.</p>
+                </div>
+              </td>
+            </tr>
+          )}
+        </tbody>
       </table>
     </div>
   );
@@ -281,13 +271,11 @@ export const TransactionHistoryPage: React.FC = () => {
             <p className={styles.subtitle}>View all transactions</p>
           </div>
 
-          <TransactionFilter onSearch={handleSearch} onClear={handleClear} />
+          <TransactionFilter onFilterChange={handleFilterChange} />
 
           <div className={styles.contentCard}>
             {loading && renderLoadingState()}
-            {!loading && !hasSearched && renderInitialState()}
-            {!loading && hasSearched && journalEntries.length === 0 && renderEmptyResults()}
-            {!loading && hasSearched && journalEntries.length > 0 && renderTransactionTable()}
+            {!loading && renderTransactionTable()}
           </div>
         </div>
       </div>

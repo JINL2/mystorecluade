@@ -105,9 +105,12 @@ export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
   label,
   placeholder = 'Select an option',
   value,
+  values = [],
   options,
   onChange,
+  onChangeMultiple,
   onSelect,
+  multiple = false,
   showAddButton = false,
   addButtonText = 'Add new',
   onAddClick,
@@ -147,9 +150,20 @@ export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
       )
     : options;
 
-  // Get selected option
+  // Get selected option(s)
   const selectedOption = options.find(opt => opt.value === value);
-  const displayValue = selectedOption ? selectedOption.label : '';
+  const selectedOptions = multiple ? options.filter(opt => values.includes(opt.value)) : [];
+
+  // Display value for single or multi select
+  const getDisplayValue = () => {
+    if (multiple) {
+      if (selectedOptions.length === 0) return '';
+      if (selectedOptions.length === 1) return selectedOptions[0].label;
+      return `${selectedOptions.length} selected`;
+    }
+    return selectedOption ? selectedOption.label : '';
+  };
+  const displayValue = getDisplayValue();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -202,14 +216,34 @@ export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
   const handleOptionClick = (optionValue: string) => {
     const option = options.find(opt => opt.value === optionValue);
     if (option && !option.disabled) {
-      onChange(optionValue, option);
-      setIsOpen(false);
-      setSearchTerm('');
-      setIsTyping(false);
-      setHighlightedIndex(-1);
-      // Call onSelect callback after selection is complete
-      if (onSelect) {
-        onSelect(optionValue, option);
+      if (multiple) {
+        // Multi-select mode: toggle selection
+        const isCurrentlySelected = values.includes(optionValue);
+        let newValues: string[];
+        if (isCurrentlySelected) {
+          newValues = values.filter(v => v !== optionValue);
+        } else {
+          newValues = [...values, optionValue];
+        }
+        const newOptions = options.filter(opt => newValues.includes(opt.value));
+        if (onChangeMultiple) {
+          onChangeMultiple(newValues, newOptions);
+        }
+        // Don't close dropdown in multi-select mode
+        setSearchTerm('');
+      } else {
+        // Single-select mode
+        if (onChange) {
+          onChange(optionValue, option);
+        }
+        setIsOpen(false);
+        setSearchTerm('');
+        setIsTyping(false);
+        setHighlightedIndex(-1);
+        // Call onSelect callback after selection is complete
+        if (onSelect) {
+          onSelect(optionValue, option);
+        }
       }
     }
   };
@@ -391,7 +425,9 @@ export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
               <div className={styles.tossSelectEmpty}>{emptyMessage}</div>
             ) : (
               filteredOptions.map((option, index) => {
-                const isSelected = option.value === value;
+                const isSelected = multiple
+                  ? values.includes(option.value)
+                  : option.value === value;
                 const isHighlighted = index === highlightedIndex;
                 const optionClasses = [
                   styles.tossSelectOption,
@@ -410,6 +446,19 @@ export const TossSelector = forwardRef<HTMLInputElement, TossSelectorProps>(({
                     role="option"
                     aria-selected={isSelected}
                   >
+                    {multiple && (
+                      <span className={styles.tossSelectCheckbox}>
+                        {isSelected ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                          </svg>
+                        )}
+                      </span>
+                    )}
                     {showBadges && option.badge && (
                       <span
                         className={styles.tossSelectOptionBadge}
