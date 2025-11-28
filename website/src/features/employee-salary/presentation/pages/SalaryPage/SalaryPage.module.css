@@ -26,10 +26,24 @@
   }
 }
 
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+    flex-direction: column;
+  }
+}
+
 /* Sidebar Wrapper */
 .sidebarWrapper {
   flex-shrink: 0;
   margin-right: 24px;
+}
+
+@media (max-width: 768px) {
+  .sidebarWrapper {
+    display: none;
+  }
 }
 
 /* Main Content Area */
@@ -62,7 +76,7 @@
 }
 
 .salaryTitle {
-  font-size: var(--font-h1);
+  font-size: 32px; /* DESIGN_SYSTEM: Page Title = 32px */
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -737,14 +751,14 @@
 }
 
 .emptyTitle {
-  font-size: var(--font-h3);
+  font-size: 24px; /* DESIGN_SYSTEM: Empty State Title = 24px */
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--space-2);
 }
 
 .emptyText {
-  font-size: var(--font-base);
+  font-size: 16px; /* DESIGN_SYSTEM: Empty State Text = 16px */
   color: var(--text-secondary);
 }
 
