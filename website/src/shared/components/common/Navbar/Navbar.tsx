@@ -11,7 +11,7 @@ import type { NavbarProps, NavItem, Company } from './Navbar.types';
 import styles from './Navbar.module.css';
 
 export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, onSignOut }) => {
-  const { currentCompany, companies, setCurrentCompany } = useAppState();
+  const { currentCompany, companies, setCurrentCompany, setCurrentStore } = useAppState();
   const [userName, setUserName] = useState<string>(user?.name || 'Loading...');
   const [userEmail, setUserEmail] = useState<string>(user?.email || 'Loading...');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -251,12 +251,15 @@ export const Navbar: React.FC<NavbarProps> = ({ activeItem = 'dashboard', user, 
     // Save selected company
     localStorage.setItem('companyChoosen', companyId);
 
-    // Update first store for the selected company
+    // Update first store for the selected company (one-time default on company change)
     if (company.stores && company.stores.length > 0) {
-      localStorage.setItem('storeChoosen', company.stores[0].store_id);
+      const firstStore = company.stores[0];
+      localStorage.setItem('storeChoosen', firstStore.store_id);
+      setCurrentStore(firstStore);
     } else {
       // Clear store if no stores available
       localStorage.removeItem('storeChoosen');
+      setCurrentStore(null);
     }
 
     // Update current company in app state
