@@ -18,6 +18,7 @@ export class SalaryModel {
     const baseInfo = salaryInfo?.base_info || {};
     const deductions = salaryInfo?.deductions || {};
     const bonuses = salaryInfo?.bonuses || {};
+    const overtime = salaryInfo?.overtime || {};
 
     // Get store names from stores array
     const storeNames = rawData.stores?.map(s => s.store_name).join(', ') || 'N/A';
@@ -60,6 +61,10 @@ export class SalaryModel {
         ? DateTimeUtils.toLocal(rawData.payment_date)  // Convert UTC → Local
         : null,
       status: rawData.status || 'pending',
+      late_count: deductions.late_count || 0,
+      late_minutes: deductions.late_minutes || 0,
+      overtime_count: overtime.overtime_count || 0,
+      overtime_amount: overtime.overtime_amount || 0,
     });
   }
 

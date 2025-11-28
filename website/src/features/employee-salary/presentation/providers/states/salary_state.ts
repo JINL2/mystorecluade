@@ -5,17 +5,7 @@
 
 import type { SalaryRecord } from '../../../domain/entities/SalaryRecord';
 import type { SalarySummary } from '../../../domain/entities/SalarySummary';
-
-export interface SalaryNotification {
-  variant: 'success' | 'error' | 'warning' | 'info';
-  message: string;
-  title?: string;
-}
-
-export interface AsyncOperationResult {
-  success: boolean;
-  error?: string;
-}
+import type { SalaryNotification, AsyncOperationResult } from './types';
 
 /**
  * Complete state interface for employee-salary feature
@@ -59,7 +49,7 @@ export interface SalaryState {
   /**
    * Load salary data for company and month
    */
-  loadSalaryData: (companyId: string, month: string) => Promise<AsyncOperationResult>;
+  loadSalaryData: (companyId: string, month: string, storeId?: string | null) => Promise<AsyncOperationResult>;
 
   /**
    * Refresh current salary data

@@ -26,9 +26,10 @@ export interface ISalaryRepository {
    * Get salary records for a specific month
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store filter
    * @returns SalaryDataResult with records and summary
    */
-  getSalaryData(companyId: string, month: string): Promise<SalaryDataResult>;
+  getSalaryData(companyId: string, month: string, storeId?: string | null): Promise<SalaryDataResult>;
 
   /**
    * Export salary data to Excel

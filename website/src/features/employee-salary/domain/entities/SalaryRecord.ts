@@ -30,7 +30,11 @@ export class SalaryRecord {
     public readonly salaryType: 'monthly' | 'hourly',
     public readonly stores: StorePayment[] = [],
     public readonly paymentDate: Date | null = null,
-    public readonly status: 'pending' | 'paid' | 'processing' = 'pending'
+    public readonly status: 'pending' | 'paid' | 'processing' = 'pending',
+    public readonly lateCount: number = 0,
+    public readonly lateMinutes: number = 0,
+    public readonly overtimeCount: number = 0,
+    public readonly overtimeAmount: number = 0
   ) {}
 
   /**
@@ -79,6 +83,13 @@ export class SalaryRecord {
   }
 
   /**
+   * Get formatted overtime amount
+   */
+  get formattedOvertimeAmount(): string {
+    return this.formatAmount(this.overtimeAmount);
+  }
+
+  /**
    * Check if payment is overdue
    */
   get isOverdue(): boolean {
@@ -121,6 +132,10 @@ export class SalaryRecord {
     stores?: StorePayment[];
     payment_date?: Date | null;
     status?: 'pending' | 'paid' | 'processing';
+    late_count?: number;
+    late_minutes?: number;
+    overtime_count?: number;
+    overtime_amount?: number;
   }): SalaryRecord {
     return new SalaryRecord(
       data.user_id,
@@ -137,7 +152,11 @@ export class SalaryRecord {
       data.salary_type,
       data.stores || [],
       data.payment_date || null,
-      data.status || 'pending'
+      data.status || 'pending',
+      data.late_count || 0,
+      data.late_minutes || 0,
+      data.overtime_count || 0,
+      data.overtime_amount || 0
     );
   }
 }
