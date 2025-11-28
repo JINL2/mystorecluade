@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -72,13 +73,58 @@ class AttendanceRecentActivity extends StatelessWidget {
       // Use AttendanceHelpers to properly convert UTC to local time
       String checkInTime = AttendanceHelpers.formatTime(actualStart, requestDate: requestDate);
       String checkOutTime = AttendanceHelpers.formatTime(actualEnd, requestDate: requestDate);
+      String hoursWorked = '0h 0m';
 
-      // Use paid_hours directly from RPC (already calculated server-side)
-      // No need to recalculate from actual_start_time/actual_end_time
-      final paidHours = (card['paid_hours'] as num?)?.toDouble() ?? 0.0;
-      final hours = paidHours.floor();
-      final minutes = ((paidHours - hours) * 60).round();
-      String hoursWorked = '${hours}h ${minutes}m';
+      // Calculate hours worked if we have both times
+      if (actualStart != null && actualStart.toString().isNotEmpty &&
+          actualEnd != null && actualEnd.toString().isNotEmpty) {
+        try {
+          // Parse the request_date and combine with times to get full DateTime
+          final baseDate = date;
+
+          // Parse start time (UTC from DB - convert to local time)
+          DateTime startDateTime;
+          if (actualStart.toString().contains('T')) {
+            startDateTime = DateTimeUtils.toLocal(actualStart.toString());
+          } else {
+            // Time-only format from RPC - combine with date and convert
+            final startParts = actualStart.toString().split(':');
+            if (startParts.length >= 2 && requestDate != null) {
+              final utcTimestamp = '${requestDate}T${actualStart.toString().padRight(8, ':00')}Z';
+              startDateTime = DateTimeUtils.toLocal(utcTimestamp);
+            } else {
+              final hour = int.tryParse(startParts[0]) ?? 0;
+              final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
+              startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+            }
+          }
+
+          // Parse end time (UTC from DB - convert to local time)
+          DateTime endDateTime;
+          if (actualEnd.toString().contains('T')) {
+            endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
+          } else {
+            // Time-only format from RPC - combine with date and convert
+            final endParts = actualEnd.toString().split(':');
+            if (endParts.length >= 2 && requestDate != null) {
+              final utcTimestamp = '${requestDate}T${actualEnd.toString().padRight(8, ':00')}Z';
+              endDateTime = DateTimeUtils.toLocal(utcTimestamp);
+            } else {
+              final hour = int.tryParse(endParts[0]) ?? 0;
+              final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
+              endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+            }
+          }
+
+          // Calculate hours worked based on converted local times
+          final duration = endDateTime.difference(startDateTime);
+          final hours = duration.inHours;
+          final minutes = duration.inMinutes % 60;
+          hoursWorked = '${hours}h ${minutes}m';
+        } catch (e) {
+          // Error calculating duration
+        }
+      }
 
       // Check if shift is approved and reported
       final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
@@ -96,10 +142,9 @@ class AttendanceRecentActivity extends StatelessWidget {
         }
       }
 
-      // shift_time is already converted to local timezone by RPC (user_shift_cards_v3)
-      // RPC uses: to_char(vsr.start_time_utc AT TIME ZONE p_timezone, 'HH24:MI')
-      // No additional conversion needed
-      final shiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
+      // Convert shift time from UTC to local time
+      final rawShiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
+      final localShiftTime = AttendanceHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
 
       return {
         'date': date,
@@ -107,7 +152,7 @@ class AttendanceRecentActivity extends StatelessWidget {
         'checkOut': checkOutTime,
         'hours': hoursWorked,
         'store': card['store_name'] ?? 'Store',
-        'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $shiftTime',
+        'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $localShiftTime',
         'status': actualEnd != null ? 'completed' : 'in_progress',
         'lateMinutes': card['late_minutes'] ?? 0,
         'overtimeMinutes': card['overtime_minutes'] ?? 0,

@@ -15,6 +15,7 @@ import '../widgets/empty_state_screen.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
+import '../widgets/salary_card.dart';
 
 class Homepage extends ConsumerStatefulWidget {
   const Homepage({super.key}); // ✅ Removed const to allow rebuilds
@@ -78,6 +79,48 @@ class _HomepageState extends ConsumerState<Homepage> {
     );
   }
 
+  /// Check if user has permission to view company revenue
+  /// Permission ID: aef426a2-c50a-4ce2-aee9-c6509cfbd571
+  bool _hasRevenuePermission() {
+    final appState = ref.read(appStateProvider);
+    const revenuePermissionId = 'aef426a2-c50a-4ce2-aee9-c6509cfbd571';
+
+    try {
+      final companies = appState.user['companies'] as List<dynamic>?;
+      if (companies == null || companies.isEmpty) {
+        return false;
+      }
+
+      final currentCompanyId = appState.companyChoosen;
+      if (currentCompanyId.isEmpty) {
+        return false;
+      }
+
+      final currentCompany = companies.firstWhere(
+        (c) => c['company_id'] == currentCompanyId,
+      ) as Map<String, dynamic>?;
+
+      if (currentCompany == null) {
+        return false;
+      }
+
+      final role = currentCompany['role'] as Map<String, dynamic>?;
+      if (role == null) {
+        return false;
+      }
+
+      final permissions = role['permissions'] as List<dynamic>?;
+      if (permissions == null) {
+        return false;
+      }
+
+      return permissions.contains(revenuePermissionId);
+    } catch (e) {
+      print('⚠️ Error checking revenue permission: $e');
+      return false;
+    }
+  }
+
   Widget _buildHomepage() {
     final appState = ref.watch(appStateProvider);
 
@@ -97,10 +140,12 @@ class _HomepageState extends ConsumerState<Homepage> {
                 child: SizedBox(height: TossSpacing.space4),
               ),
 
-              // Revenue Card with inline company/store selector (if company selected)
+              // Revenue Card or Salary Card (based on permission)
               if (appState.companyChoosen.isNotEmpty)
-                const SliverToBoxAdapter(
-                  child: RevenueCard(),
+                SliverToBoxAdapter(
+                  child: _hasRevenuePermission()
+                      ? const RevenueCard()
+                      : const SalaryCard(), // Show salary if no revenue permission
                 ),
 
               // Quick Access Section

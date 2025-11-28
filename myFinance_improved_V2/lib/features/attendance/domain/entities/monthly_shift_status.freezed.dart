@@ -17,13 +17,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$MonthlyShiftStatus {
   String get requestDate => throw _privateConstructorUsedError;
-  String get shiftId => throw _privateConstructorUsedError;
-  String? get shiftName => throw _privateConstructorUsedError;
-  String? get shiftType => throw _privateConstructorUsedError;
-  List<EmployeeStatus> get pendingEmployees =>
-      throw _privateConstructorUsedError;
-  List<EmployeeStatus> get approvedEmployees =>
-      throw _privateConstructorUsedError;
+  int get totalPending => throw _privateConstructorUsedError;
+  int get totalApproved => throw _privateConstructorUsedError;
+  List<DailyShift> get shifts => throw _privateConstructorUsedError;
 
   /// Create a copy of MonthlyShiftStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -40,11 +36,9 @@ abstract class $MonthlyShiftStatusCopyWith<$Res> {
   @useResult
   $Res call(
       {String requestDate,
-      String shiftId,
-      String? shiftName,
-      String? shiftType,
-      List<EmployeeStatus> pendingEmployees,
-      List<EmployeeStatus> approvedEmployees});
+      int totalPending,
+      int totalApproved,
+      List<DailyShift> shifts});
 }
 
 /// @nodoc
@@ -63,37 +57,27 @@ class _$MonthlyShiftStatusCopyWithImpl<$Res, $Val extends MonthlyShiftStatus>
   @override
   $Res call({
     Object? requestDate = null,
-    Object? shiftId = null,
-    Object? shiftName = freezed,
-    Object? shiftType = freezed,
-    Object? pendingEmployees = null,
-    Object? approvedEmployees = null,
+    Object? totalPending = null,
+    Object? totalApproved = null,
+    Object? shifts = null,
   }) {
     return _then(_value.copyWith(
       requestDate: null == requestDate
           ? _value.requestDate
           : requestDate // ignore: cast_nullable_to_non_nullable
               as String,
-      shiftId: null == shiftId
-          ? _value.shiftId
-          : shiftId // ignore: cast_nullable_to_non_nullable
-              as String,
-      shiftName: freezed == shiftName
-          ? _value.shiftName
-          : shiftName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      shiftType: freezed == shiftType
-          ? _value.shiftType
-          : shiftType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      pendingEmployees: null == pendingEmployees
-          ? _value.pendingEmployees
-          : pendingEmployees // ignore: cast_nullable_to_non_nullable
-              as List<EmployeeStatus>,
-      approvedEmployees: null == approvedEmployees
-          ? _value.approvedEmployees
-          : approvedEmployees // ignore: cast_nullable_to_non_nullable
-              as List<EmployeeStatus>,
+      totalPending: null == totalPending
+          ? _value.totalPending
+          : totalPending // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalApproved: null == totalApproved
+          ? _value.totalApproved
+          : totalApproved // ignore: cast_nullable_to_non_nullable
+              as int,
+      shifts: null == shifts
+          ? _value.shifts
+          : shifts // ignore: cast_nullable_to_non_nullable
+              as List<DailyShift>,
     ) as $Val);
   }
 }
@@ -108,11 +92,9 @@ abstract class _$$MonthlyShiftStatusImplCopyWith<$Res>
   @useResult
   $Res call(
       {String requestDate,
-      String shiftId,
-      String? shiftName,
-      String? shiftType,
-      List<EmployeeStatus> pendingEmployees,
-      List<EmployeeStatus> approvedEmployees});
+      int totalPending,
+      int totalApproved,
+      List<DailyShift> shifts});
 }
 
 /// @nodoc
@@ -129,17 +111,176 @@ class __$$MonthlyShiftStatusImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? requestDate = null,
-    Object? shiftId = null,
-    Object? shiftName = freezed,
-    Object? shiftType = freezed,
-    Object? pendingEmployees = null,
-    Object? approvedEmployees = null,
+    Object? totalPending = null,
+    Object? totalApproved = null,
+    Object? shifts = null,
   }) {
     return _then(_$MonthlyShiftStatusImpl(
       requestDate: null == requestDate
           ? _value.requestDate
           : requestDate // ignore: cast_nullable_to_non_nullable
               as String,
+      totalPending: null == totalPending
+          ? _value.totalPending
+          : totalPending // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalApproved: null == totalApproved
+          ? _value.totalApproved
+          : totalApproved // ignore: cast_nullable_to_non_nullable
+              as int,
+      shifts: null == shifts
+          ? _value._shifts
+          : shifts // ignore: cast_nullable_to_non_nullable
+              as List<DailyShift>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
+  const _$MonthlyShiftStatusImpl(
+      {required this.requestDate,
+      this.totalPending = 0,
+      this.totalApproved = 0,
+      final List<DailyShift> shifts = const []})
+      : _shifts = shifts,
+        super._();
+
+  @override
+  final String requestDate;
+  @override
+  @JsonKey()
+  final int totalPending;
+  @override
+  @JsonKey()
+  final int totalApproved;
+  final List<DailyShift> _shifts;
+  @override
+  @JsonKey()
+  List<DailyShift> get shifts {
+    if (_shifts is EqualUnmodifiableListView) return _shifts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_shifts);
+  }
+
+  @override
+  String toString() {
+    return 'MonthlyShiftStatus(requestDate: $requestDate, totalPending: $totalPending, totalApproved: $totalApproved, shifts: $shifts)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MonthlyShiftStatusImpl &&
+            (identical(other.requestDate, requestDate) ||
+                other.requestDate == requestDate) &&
+            (identical(other.totalPending, totalPending) ||
+                other.totalPending == totalPending) &&
+            (identical(other.totalApproved, totalApproved) ||
+                other.totalApproved == totalApproved) &&
+            const DeepCollectionEquality().equals(other._shifts, _shifts));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, requestDate, totalPending,
+      totalApproved, const DeepCollectionEquality().hash(_shifts));
+
+  /// Create a copy of MonthlyShiftStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MonthlyShiftStatusImplCopyWith<_$MonthlyShiftStatusImpl> get copyWith =>
+      __$$MonthlyShiftStatusImplCopyWithImpl<_$MonthlyShiftStatusImpl>(
+          this, _$identity);
+}
+
+abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
+  const factory _MonthlyShiftStatus(
+      {required final String requestDate,
+      final int totalPending,
+      final int totalApproved,
+      final List<DailyShift> shifts}) = _$MonthlyShiftStatusImpl;
+  const _MonthlyShiftStatus._() : super._();
+
+  @override
+  String get requestDate;
+  @override
+  int get totalPending;
+  @override
+  int get totalApproved;
+  @override
+  List<DailyShift> get shifts;
+
+  /// Create a copy of MonthlyShiftStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MonthlyShiftStatusImplCopyWith<_$MonthlyShiftStatusImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$DailyShift {
+  String get shiftId => throw _privateConstructorUsedError;
+  String? get shiftName => throw _privateConstructorUsedError;
+  String? get shiftType => throw _privateConstructorUsedError;
+  String? get startTime => throw _privateConstructorUsedError;
+  String? get endTime => throw _privateConstructorUsedError;
+  List<EmployeeStatus> get pendingEmployees =>
+      throw _privateConstructorUsedError;
+  List<EmployeeStatus> get approvedEmployees =>
+      throw _privateConstructorUsedError;
+
+  /// Create a copy of DailyShift
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $DailyShiftCopyWith<DailyShift> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $DailyShiftCopyWith<$Res> {
+  factory $DailyShiftCopyWith(
+          DailyShift value, $Res Function(DailyShift) then) =
+      _$DailyShiftCopyWithImpl<$Res, DailyShift>;
+  @useResult
+  $Res call(
+      {String shiftId,
+      String? shiftName,
+      String? shiftType,
+      String? startTime,
+      String? endTime,
+      List<EmployeeStatus> pendingEmployees,
+      List<EmployeeStatus> approvedEmployees});
+}
+
+/// @nodoc
+class _$DailyShiftCopyWithImpl<$Res, $Val extends DailyShift>
+    implements $DailyShiftCopyWith<$Res> {
+  _$DailyShiftCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of DailyShift
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? shiftId = null,
+    Object? shiftName = freezed,
+    Object? shiftType = freezed,
+    Object? startTime = freezed,
+    Object? endTime = freezed,
+    Object? pendingEmployees = null,
+    Object? approvedEmployees = null,
+  }) {
+    return _then(_value.copyWith(
       shiftId: null == shiftId
           ? _value.shiftId
           : shiftId // ignore: cast_nullable_to_non_nullable
@@ -151,6 +292,86 @@ class __$$MonthlyShiftStatusImplCopyWithImpl<$Res>
       shiftType: freezed == shiftType
           ? _value.shiftType
           : shiftType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      startTime: freezed == startTime
+          ? _value.startTime
+          : startTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endTime: freezed == endTime
+          ? _value.endTime
+          : endTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pendingEmployees: null == pendingEmployees
+          ? _value.pendingEmployees
+          : pendingEmployees // ignore: cast_nullable_to_non_nullable
+              as List<EmployeeStatus>,
+      approvedEmployees: null == approvedEmployees
+          ? _value.approvedEmployees
+          : approvedEmployees // ignore: cast_nullable_to_non_nullable
+              as List<EmployeeStatus>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$DailyShiftImplCopyWith<$Res>
+    implements $DailyShiftCopyWith<$Res> {
+  factory _$$DailyShiftImplCopyWith(
+          _$DailyShiftImpl value, $Res Function(_$DailyShiftImpl) then) =
+      __$$DailyShiftImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String shiftId,
+      String? shiftName,
+      String? shiftType,
+      String? startTime,
+      String? endTime,
+      List<EmployeeStatus> pendingEmployees,
+      List<EmployeeStatus> approvedEmployees});
+}
+
+/// @nodoc
+class __$$DailyShiftImplCopyWithImpl<$Res>
+    extends _$DailyShiftCopyWithImpl<$Res, _$DailyShiftImpl>
+    implements _$$DailyShiftImplCopyWith<$Res> {
+  __$$DailyShiftImplCopyWithImpl(
+      _$DailyShiftImpl _value, $Res Function(_$DailyShiftImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of DailyShift
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? shiftId = null,
+    Object? shiftName = freezed,
+    Object? shiftType = freezed,
+    Object? startTime = freezed,
+    Object? endTime = freezed,
+    Object? pendingEmployees = null,
+    Object? approvedEmployees = null,
+  }) {
+    return _then(_$DailyShiftImpl(
+      shiftId: null == shiftId
+          ? _value.shiftId
+          : shiftId // ignore: cast_nullable_to_non_nullable
+              as String,
+      shiftName: freezed == shiftName
+          ? _value.shiftName
+          : shiftName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftType: freezed == shiftType
+          ? _value.shiftType
+          : shiftType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      startTime: freezed == startTime
+          ? _value.startTime
+          : startTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endTime: freezed == endTime
+          ? _value.endTime
+          : endTime // ignore: cast_nullable_to_non_nullable
               as String?,
       pendingEmployees: null == pendingEmployees
           ? _value._pendingEmployees
@@ -166,12 +387,13 @@ class __$$MonthlyShiftStatusImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
-  const _$MonthlyShiftStatusImpl(
-      {required this.requestDate,
-      required this.shiftId,
+class _$DailyShiftImpl extends _DailyShift {
+  const _$DailyShiftImpl(
+      {required this.shiftId,
       this.shiftName,
       this.shiftType,
+      this.startTime,
+      this.endTime,
       final List<EmployeeStatus> pendingEmployees = const [],
       final List<EmployeeStatus> approvedEmployees = const []})
       : _pendingEmployees = pendingEmployees,
@@ -179,13 +401,15 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
         super._();
 
   @override
-  final String requestDate;
-  @override
   final String shiftId;
   @override
   final String? shiftName;
   @override
   final String? shiftType;
+  @override
+  final String? startTime;
+  @override
+  final String? endTime;
   final List<EmployeeStatus> _pendingEmployees;
   @override
   @JsonKey()
@@ -208,21 +432,22 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
 
   @override
   String toString() {
-    return 'MonthlyShiftStatus(requestDate: $requestDate, shiftId: $shiftId, shiftName: $shiftName, shiftType: $shiftType, pendingEmployees: $pendingEmployees, approvedEmployees: $approvedEmployees)';
+    return 'DailyShift(shiftId: $shiftId, shiftName: $shiftName, shiftType: $shiftType, startTime: $startTime, endTime: $endTime, pendingEmployees: $pendingEmployees, approvedEmployees: $approvedEmployees)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$MonthlyShiftStatusImpl &&
-            (identical(other.requestDate, requestDate) ||
-                other.requestDate == requestDate) &&
+            other is _$DailyShiftImpl &&
             (identical(other.shiftId, shiftId) || other.shiftId == shiftId) &&
             (identical(other.shiftName, shiftName) ||
                 other.shiftName == shiftName) &&
             (identical(other.shiftType, shiftType) ||
                 other.shiftType == shiftType) &&
+            (identical(other.startTime, startTime) ||
+                other.startTime == startTime) &&
+            (identical(other.endTime, endTime) || other.endTime == endTime) &&
             const DeepCollectionEquality()
                 .equals(other._pendingEmployees, _pendingEmployees) &&
             const DeepCollectionEquality()
@@ -232,35 +457,34 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      requestDate,
       shiftId,
       shiftName,
       shiftType,
+      startTime,
+      endTime,
       const DeepCollectionEquality().hash(_pendingEmployees),
       const DeepCollectionEquality().hash(_approvedEmployees));
 
-  /// Create a copy of MonthlyShiftStatus
+  /// Create a copy of DailyShift
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$MonthlyShiftStatusImplCopyWith<_$MonthlyShiftStatusImpl> get copyWith =>
-      __$$MonthlyShiftStatusImplCopyWithImpl<_$MonthlyShiftStatusImpl>(
-          this, _$identity);
+  _$$DailyShiftImplCopyWith<_$DailyShiftImpl> get copyWith =>
+      __$$DailyShiftImplCopyWithImpl<_$DailyShiftImpl>(this, _$identity);
 }
 
-abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
-  const factory _MonthlyShiftStatus(
-      {required final String requestDate,
-      required final String shiftId,
+abstract class _DailyShift extends DailyShift {
+  const factory _DailyShift(
+      {required final String shiftId,
       final String? shiftName,
       final String? shiftType,
+      final String? startTime,
+      final String? endTime,
       final List<EmployeeStatus> pendingEmployees,
-      final List<EmployeeStatus> approvedEmployees}) = _$MonthlyShiftStatusImpl;
-  const _MonthlyShiftStatus._() : super._();
+      final List<EmployeeStatus> approvedEmployees}) = _$DailyShiftImpl;
+  const _DailyShift._() : super._();
 
-  @override
-  String get requestDate;
   @override
   String get shiftId;
   @override
@@ -268,15 +492,19 @@ abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
   @override
   String? get shiftType;
   @override
+  String? get startTime;
+  @override
+  String? get endTime;
+  @override
   List<EmployeeStatus> get pendingEmployees;
   @override
   List<EmployeeStatus> get approvedEmployees;
 
-  /// Create a copy of MonthlyShiftStatus
+  /// Create a copy of DailyShift
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MonthlyShiftStatusImplCopyWith<_$MonthlyShiftStatusImpl> get copyWith =>
+  _$$DailyShiftImplCopyWith<_$DailyShiftImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -286,6 +514,8 @@ mixin _$EmployeeStatus {
   String get userName => throw _privateConstructorUsedError;
   String? get userEmail => throw _privateConstructorUsedError;
   String? get userPhone => throw _privateConstructorUsedError;
+  String? get profileImage => throw _privateConstructorUsedError;
+  String? get shiftRequestId => throw _privateConstructorUsedError;
   DateTime? get requestTime => throw _privateConstructorUsedError;
   bool? get isApproved => throw _privateConstructorUsedError;
   String? get approvedBy => throw _privateConstructorUsedError;
@@ -308,6 +538,8 @@ abstract class $EmployeeStatusCopyWith<$Res> {
       String userName,
       String? userEmail,
       String? userPhone,
+      String? profileImage,
+      String? shiftRequestId,
       DateTime? requestTime,
       bool? isApproved,
       String? approvedBy});
@@ -332,6 +564,8 @@ class _$EmployeeStatusCopyWithImpl<$Res, $Val extends EmployeeStatus>
     Object? userName = null,
     Object? userEmail = freezed,
     Object? userPhone = freezed,
+    Object? profileImage = freezed,
+    Object? shiftRequestId = freezed,
     Object? requestTime = freezed,
     Object? isApproved = freezed,
     Object? approvedBy = freezed,
@@ -352,6 +586,14 @@ class _$EmployeeStatusCopyWithImpl<$Res, $Val extends EmployeeStatus>
       userPhone: freezed == userPhone
           ? _value.userPhone
           : userPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftRequestId: freezed == shiftRequestId
+          ? _value.shiftRequestId
+          : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String?,
       requestTime: freezed == requestTime
           ? _value.requestTime
@@ -382,6 +624,8 @@ abstract class _$$EmployeeStatusImplCopyWith<$Res>
       String userName,
       String? userEmail,
       String? userPhone,
+      String? profileImage,
+      String? shiftRequestId,
       DateTime? requestTime,
       bool? isApproved,
       String? approvedBy});
@@ -404,6 +648,8 @@ class __$$EmployeeStatusImplCopyWithImpl<$Res>
     Object? userName = null,
     Object? userEmail = freezed,
     Object? userPhone = freezed,
+    Object? profileImage = freezed,
+    Object? shiftRequestId = freezed,
     Object? requestTime = freezed,
     Object? isApproved = freezed,
     Object? approvedBy = freezed,
@@ -424,6 +670,14 @@ class __$$EmployeeStatusImplCopyWithImpl<$Res>
       userPhone: freezed == userPhone
           ? _value.userPhone
           : userPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftRequestId: freezed == shiftRequestId
+          ? _value.shiftRequestId
+          : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String?,
       requestTime: freezed == requestTime
           ? _value.requestTime
@@ -449,6 +703,8 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
       required this.userName,
       this.userEmail,
       this.userPhone,
+      this.profileImage,
+      this.shiftRequestId,
       this.requestTime,
       this.isApproved,
       this.approvedBy});
@@ -462,6 +718,10 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
   @override
   final String? userPhone;
   @override
+  final String? profileImage;
+  @override
+  final String? shiftRequestId;
+  @override
   final DateTime? requestTime;
   @override
   final bool? isApproved;
@@ -470,7 +730,7 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
 
   @override
   String toString() {
-    return 'EmployeeStatus(userId: $userId, userName: $userName, userEmail: $userEmail, userPhone: $userPhone, requestTime: $requestTime, isApproved: $isApproved, approvedBy: $approvedBy)';
+    return 'EmployeeStatus(userId: $userId, userName: $userName, userEmail: $userEmail, userPhone: $userPhone, profileImage: $profileImage, shiftRequestId: $shiftRequestId, requestTime: $requestTime, isApproved: $isApproved, approvedBy: $approvedBy)';
   }
 
   @override
@@ -485,6 +745,10 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
                 other.userEmail == userEmail) &&
             (identical(other.userPhone, userPhone) ||
                 other.userPhone == userPhone) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage) &&
+            (identical(other.shiftRequestId, shiftRequestId) ||
+                other.shiftRequestId == shiftRequestId) &&
             (identical(other.requestTime, requestTime) ||
                 other.requestTime == requestTime) &&
             (identical(other.isApproved, isApproved) ||
@@ -494,8 +758,17 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, userId, userName, userEmail,
-      userPhone, requestTime, isApproved, approvedBy);
+  int get hashCode => Object.hash(
+      runtimeType,
+      userId,
+      userName,
+      userEmail,
+      userPhone,
+      profileImage,
+      shiftRequestId,
+      requestTime,
+      isApproved,
+      approvedBy);
 
   /// Create a copy of EmployeeStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -513,6 +786,8 @@ abstract class _EmployeeStatus implements EmployeeStatus {
       required final String userName,
       final String? userEmail,
       final String? userPhone,
+      final String? profileImage,
+      final String? shiftRequestId,
       final DateTime? requestTime,
       final bool? isApproved,
       final String? approvedBy}) = _$EmployeeStatusImpl;
@@ -525,6 +800,10 @@ abstract class _EmployeeStatus implements EmployeeStatus {
   String? get userEmail;
   @override
   String? get userPhone;
+  @override
+  String? get profileImage;
+  @override
+  String? get shiftRequestId;
   @override
   DateTime? get requestTime;
   @override

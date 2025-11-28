@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 
 /// Status helper functions for attendance UI
-///
-/// CLEAN ARCHITECTURE COMPLIANCE:
-/// This class contains ONLY UI presentation logic (colors, text formatting).
-/// Business logic for determining status is in Domain layer (ShiftCard.workStatus).
 class StatusHelpers {
   /// Get color for main status
   static Color getStatusColor(String status) {
@@ -45,7 +41,7 @@ class StatusHelpers {
       case 'completed':
         return TossColors.success;
       case 'approved':
-        return TossColors.success.withValues(alpha: 0.7);
+        return TossColors.success.withOpacity(0.7);
       case 'pending':
         return TossColors.warning;
       default:
@@ -68,26 +64,44 @@ class StatusHelpers {
         return 'Unknown';
     }
   }
-}
 
-/// Color mapper for ShiftCard work status
-///
-/// Maps work status from Domain entity to UI colors.
-/// This is pure UI logic - no business rules.
-class ShiftCardColorMapper {
-  /// Get color based on work status string from ShiftCard.workStatus
-  static Color forWorkStatus(String workStatus) {
-    switch (workStatus) {
-      case 'Working':
-        return TossColors.primary; // Blue for working
-      case 'Completed':
-        return TossColors.success; // Green for completed
-      case 'Approved':
-        return TossColors.success.withValues(alpha: 0.7); // Lighter green for approved
-      case 'Pending Approval':
-        return TossColors.warning; // Orange for pending
-      default:
-        return TossColors.gray400; // Gray for unknown
+  /// Get work status text from card data
+  static String getWorkStatusFromCard(Map<String, dynamic> card) {
+    final isApproved =
+        card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
+    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+
+    if (isApproved != true) {
+      return 'Pending Approval';
+    }
+
+    if (actualStart != null && actualEnd == null) {
+      return 'Working';
+    } else if (actualStart != null && actualEnd != null) {
+      return 'Completed';
+    } else {
+      return 'Approved';
+    }
+  }
+
+  /// Get work status color from card data
+  static Color getWorkStatusColorFromCard(Map<String, dynamic> card) {
+    final isApproved =
+        card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
+    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+
+    if (isApproved != true) {
+      return TossColors.warning;
+    }
+
+    if (actualStart != null && actualEnd == null) {
+      return TossColors.primary; // Blue - working
+    } else if (actualStart != null && actualEnd != null) {
+      return TossColors.success; // Green - completed
+    } else {
+      return TossColors.success.withOpacity(0.7); // Light green - approved
     }
   }
 }

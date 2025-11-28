@@ -8,11 +8,13 @@ import 'package:uuid/uuid.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../../domain/entities/manager_overview.dart';
@@ -20,7 +22,6 @@ import '../../domain/entities/shift_card.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
-import '../widgets/common/animated_tab_bar.dart';
 import '../widgets/manage/manage_tab_view.dart';
 import '../widgets/schedule/schedule_tab_content.dart';
 
@@ -99,14 +100,18 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 1); // Changed to 4 tabs, default to Schedule
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         HapticFeedback.selectionClick();
-        // Fetch overview data when switching to Manage tab
+        // Fetch overview data when switching to Overview tab
         if (_tabController.index == 0 && selectedStoreId != null) {
           fetchManagerOverview();
           fetchManagerCards();
+        }
+        // Fetch data when switching to Schedule tab
+        if (_tabController.index == 1 && selectedStoreId != null) {
+          fetchMonthlyShiftStatus();
         }
       }
     });
@@ -197,15 +202,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         child: Column(
           children: [
             // Tab Bar
-            AnimatedTabBar(
+            TossTabBar1(
               controller: _tabController,
-              tabs: const ['Manage', 'Schedule'],
+              tabs: const ['Overview', 'Schedule', 'Timesheets', 'Stats'],
             ),
             // Tab Content
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
+                  // Overview Tab (was Manage)
                   ManageTabView(
                     manageSelectedDate: manageSelectedDate,
                     selectedFilter: selectedFilter,
@@ -291,6 +297,26 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       final stores = (selectedCompany?['stores'] as List<dynamic>?) ?? [];
                       _showStoreSelector(stores);
                     },
+                  ),
+                  // Timesheets Tab - Placeholder
+                  Center(
+                    child: Text(
+                      'Timesheets\n(Coming Soon)',
+                      textAlign: TextAlign.center,
+                      style: TossTextStyles.h3.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                  ),
+                  // Stats Tab - Placeholder
+                  Center(
+                    child: Text(
+                      'Stats\n(Coming Soon)',
+                      textAlign: TextAlign.center,
+                      style: TossTextStyles.h3.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
                   ),
                 ],
               ),

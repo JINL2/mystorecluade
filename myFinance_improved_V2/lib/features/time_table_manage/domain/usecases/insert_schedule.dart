@@ -4,9 +4,7 @@ import 'base_usecase.dart';
 
 /// Insert Schedule UseCase
 ///
-/// Inserts a new schedule (assigns employee to shift) using v3 RPC.
-/// - p_request_date is DATE type (yyyy-MM-dd format)
-/// - No timezone parameter needed - RPC handles UTC conversion internally
+/// Inserts a new schedule (assigns employee to shift).
 class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
   final TimeTableRepository _repository;
 
@@ -26,8 +24,8 @@ class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
       throw ArgumentError('Store ID cannot be empty');
     }
 
-    if (params.requestDate.isEmpty) {
-      throw ArgumentError('Request date cannot be empty');
+    if (params.requestTime.isEmpty) {
+      throw ArgumentError('Request time cannot be empty');
     }
 
     if (params.approvedBy.isEmpty) {
@@ -38,8 +36,9 @@ class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
       userId: params.userId,
       shiftId: params.shiftId,
       storeId: params.storeId,
-      requestDate: params.requestDate,
+      requestTime: params.requestTime,
       approvedBy: params.approvedBy,
+      timezone: params.timezone,
     );
   }
 }
@@ -49,15 +48,17 @@ class InsertScheduleParams {
   final String userId;
   final String shiftId;
   final String storeId;
-  final String requestDate; // yyyy-MM-dd format
+  final String requestTime;
   final String approvedBy;
+  final String timezone;
 
   const InsertScheduleParams({
     required this.userId,
     required this.shiftId,
     required this.storeId,
-    required this.requestDate,
+    required this.requestTime,
     required this.approvedBy,
+    required this.timezone,
   });
 
   @override
@@ -67,8 +68,9 @@ class InsertScheduleParams {
         other.userId == userId &&
         other.shiftId == shiftId &&
         other.storeId == storeId &&
-        other.requestDate == requestDate &&
-        other.approvedBy == approvedBy;
+        other.requestTime == requestTime &&
+        other.approvedBy == approvedBy &&
+        other.timezone == timezone;
   }
 
   @override
@@ -76,6 +78,7 @@ class InsertScheduleParams {
       userId.hashCode ^
       shiftId.hashCode ^
       storeId.hashCode ^
-      requestDate.hashCode ^
-      approvedBy.hashCode;
+      requestTime.hashCode ^
+      approvedBy.hashCode ^
+      timezone.hashCode;
 }
