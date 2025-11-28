@@ -875,6 +875,45 @@
   margin-bottom: var(--space-4);
 }
 
+/* Always Included Section */
+.alwaysIncludedSection {
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--toss-gray-200);
+}
+
+.alwaysIncludedTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.alwaysIncludedTitle svg {
+  color: var(--toss-gray-500);
+}
+
+.alwaysIncludedItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.alwaysIncludedItem {
+  background: var(--toss-white);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-small);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 /* Column Selection Section */
 .columnSelectionSection {
   margin-bottom: var(--space-5);
@@ -959,6 +998,26 @@
 .columnCheckboxItem.checked .columnLabel {
   color: var(--toss-primary);
   font-weight: 500;
+}
+
+/* Important column (with star) */
+.columnCheckboxItem.important {
+  background: #FFF8E1;
+  border-color: #FFB300;
+}
+
+.columnCheckboxItem.important:hover {
+  background: #FFECB3;
+}
+
+.columnCheckboxItem.important.checked {
+  background: #FFE082;
+  border-color: #FFA000;
+}
+
+.columnCheckboxItem.important .columnLabel {
+  color: #F57C00;
+  font-weight: 600;
 }
 
 /* Export Scope Section */
