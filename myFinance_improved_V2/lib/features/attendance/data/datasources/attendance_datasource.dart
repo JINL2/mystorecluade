@@ -464,6 +464,37 @@ class AttendanceDatasource {
     }
   }
 
+  /// Get base currency for a company
+  ///
+  /// Uses get_base_currency RPC to fetch company's base currency settings
+  /// Returns the full response including base_currency and company_currencies
+  Future<Map<String, dynamic>> getBaseCurrency({
+    required String companyId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_base_currency',
+        params: {
+          'p_company_id': companyId,
+        },
+      );
+
+      if (response == null) {
+        return {};
+      }
+
+      // Handle list response (RPC returns array)
+      if (response is List) {
+        if (response.isEmpty) return {};
+        return response.first as Map<String, dynamic>;
+      }
+
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
   /// Delete shift request
   ///
   /// Uses delete_shift_request RPC function

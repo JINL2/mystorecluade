@@ -4,9 +4,11 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../data/providers/attendance_data_providers.dart';
+import '../../domain/entities/base_currency.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
+import '../../domain/usecases/get_base_currency.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_shift_overview.dart';
@@ -80,6 +82,12 @@ final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
 /// Update shift card after scan use case provider
 final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref) {
   return UpdateShiftCardAfterScan();
+});
+
+/// Get base currency use case provider
+final getBaseCurrencyUseCaseProvider = Provider<GetBaseCurrency>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetBaseCurrency(repository);
 });
 
 // ========================================
@@ -272,4 +280,24 @@ final monthlyShiftCardsProvider =
   }());
 
   return shiftCards;
+});
+
+/// Provider for base currency (fetches company's base currency symbol)
+/// Used to display currency symbol in salary and payment sections
+final baseCurrencyProvider = FutureProvider<BaseCurrency?>((ref) async {
+  final getBaseCurrency = ref.read(getBaseCurrencyUseCaseProvider);
+  final appState = ref.read(appStateProvider);
+
+  final companyId = appState.companyChoosen;
+
+  if (companyId.isEmpty) {
+    return null;
+  }
+
+  try {
+    return await getBaseCurrency(companyId: companyId);
+  } catch (e) {
+    // Return null on error, UI can show default symbol
+    return null;
+  }
 });

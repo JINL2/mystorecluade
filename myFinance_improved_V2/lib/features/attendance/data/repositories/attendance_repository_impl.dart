@@ -1,4 +1,5 @@
 import '../../domain/entities/attendance_location.dart';
+import '../../domain/entities/base_currency.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
@@ -7,6 +8,7 @@ import '../../domain/entities/shift_overview.dart';
 import '../../domain/entities/shift_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_datasource.dart';
+import '../models/base_currency_model.dart';
 import '../models/check_in_result_model.dart';
 import '../models/monthly_shift_status_model.dart';
 import '../models/shift_overview_model.dart';
@@ -167,5 +169,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       requestTime: requestTime,
       timezone: timezone,
     );
+  }
+
+  @override
+  Future<BaseCurrency> getBaseCurrency({
+    required String companyId,
+  }) async {
+    final json = await _datasource.getBaseCurrency(
+      companyId: companyId,
+    );
+    return BaseCurrencyModel.fromRpcResponse(json).toEntity();
   }
 }

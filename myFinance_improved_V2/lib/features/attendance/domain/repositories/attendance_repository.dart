@@ -1,4 +1,5 @@
 import '../entities/attendance_location.dart';
+import '../entities/base_currency.dart';
 import '../entities/check_in_result.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/shift_card.dart';
@@ -167,5 +168,16 @@ abstract class AttendanceRepository {
     required String companyId,
     required String requestTime,
     required String timezone,
+  });
+
+  /// Get base currency for a company
+  ///
+  /// Matches RPC: get_base_currency
+  ///
+  /// [companyId] - Company ID
+  ///
+  /// Returns [BaseCurrency] with currency symbol and details
+  Future<BaseCurrency> getBaseCurrency({
+    required String companyId,
   });
 }
