@@ -212,23 +212,21 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     return null;
   }
 
-  // Fetch user companies data from repository
+  // Fetch user companies data from repository (always fetch fresh data)
   final repository = ref.read(homepageRepositoryProvider);
   final userEntity = await repository.getUserCompanies(user.id);
 
   // Convert entity to Map once (avoid duplication)
   final userData = convertUserEntityToMap(userEntity);
 
-  // Update AppState only if data changed
-  if (appState.user.isEmpty || appState.user['user_id'] != user.id) {
-    appStateNotifier.updateUser(
-      user: userData,
-      isAuthenticated: true,
-    );
-  }
+  // Always update AppState with fresh data
+  appStateNotifier.updateUser(
+    user: userData,
+    isAuthenticated: true,
+  );
 
   // Auto-select company and store using UseCase
-  if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
+  if (userEntity.companies.isNotEmpty) {
     // Load last selection from cache
     final lastSelection = await appStateNotifier.loadLastSelection();
 
