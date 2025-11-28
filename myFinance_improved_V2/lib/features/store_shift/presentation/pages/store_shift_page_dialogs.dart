@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../core/utils/number_formatter.dart';
@@ -10,12 +10,9 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../../shared/widgets/toss/toss_time_picker.dart';
 import '../../domain/entities/store_shift.dart';
-import '../../domain/value_objects/shift_params.dart';
 import '../providers/store_shift_providers.dart';
 
 /// Show Edit Shift Dialog
@@ -407,7 +404,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             children: [
               Row(
                 children: [
-                  Icon(
+                  FaIcon(
                     IconMapper.getIcon('clock'),
                     color: TossColors.primary,
                     size: TossSpacing.iconSM,
@@ -487,7 +484,7 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
             ),
             child: Row(
               children: [
-                Icon(
+                FaIcon(
                   IconMapper.getIcon('stopwatch'),
                   color: TossColors.success,
                   size: TossSpacing.iconSM,
@@ -593,34 +590,33 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
   }
 }
 
-/// Helper: Parse time string to TimeOfDay from timetz format
+/// Helper: Parse time string to TimeOfDay and convert from UTC to local
 ///
-/// **중요:** DB에 저장된 timetz 값을 파싱합니다.
-/// 예: "14:00:00+09:00" → TimeOfDay(14, 0)
-/// PostgreSQL은 timetz를 클라이언트 타임존으로 자동 변환하여 반환합니다.
+/// **중요:** DB에 저장된 UTC 시간을 로컬 시간으로 변환합니다.
+/// 예: DB의 UTC 06:15 → 한국(UTC+9)에서 15:15로 표시
 TimeOfDay? _parseTimeString(String timeString) {
   try {
-    // Remove timezone offset if present (e.g., "14:00:00+09:00" → "14:00:00")
-    String cleanedTime = timeString;
-    if (timeString.contains('+') || timeString.contains('-')) {
-      // Find the position of timezone offset
-      final plusIndex = timeString.indexOf('+');
-      final minusIndex = timeString.lastIndexOf('-');
-      final offsetIndex = plusIndex != -1 ? plusIndex : minusIndex;
-
-      if (offsetIndex > 0) {
-        cleanedTime = timeString.substring(0, offsetIndex);
-      }
-    }
-
     // Parse "HH:mm" or "HH:mm:ss" format
-    final parts = cleanedTime.split(':');
+    final parts = timeString.split(':');
     if (parts.length >= 2) {
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
 
-      // Return as TimeOfDay (already in local timezone from DB)
-      return TimeOfDay(hour: hour, minute: minute);
+      // Create a UTC DateTime object with today's date and the parsed time
+      final now = DateTime.now();
+      final utcDateTime = DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // Convert to local time
+      final localDateTime = utcDateTime.toLocal();
+
+      // Return as TimeOfDay in local timezone
+      return TimeOfDay(hour: localDateTime.hour, minute: localDateTime.minute);
     }
   } catch (e) {
     // Return null if parsing fails
@@ -628,25 +624,28 @@ TimeOfDay? _parseTimeString(String timeString) {
   return null;
 }
 
-/// Helper: Format TimeOfDay to "HH:mm+ZZ:ZZ" string with timezone offset
+/// Helper: Format TimeOfDay to "HH:mm" string and convert to UTC
 ///
-/// **중요:** 사용자가 선택한 로컬 시간을 타임존 정보와 함께 DB에 저장합니다.
-/// 예: 한국(UTC+9)에서 14:00 선택 → "14:00+09:00"로 저장
+/// **중요:** 사용자가 선택한 로컬 시간을 UTC로 변환하여 DB에 저장합니다.
+/// 예: 한국(UTC+9)에서 15:15 선택 → UTC 06:15로 변환
 String _formatTimeOfDay(TimeOfDay time) {
-  // Get local timezone offset
+  // Create a DateTime object with today's date and the selected time (in local timezone)
   final now = DateTime.now();
-  final offset = now.timeZoneOffset;
+  final localDateTime = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    time.hour,
+    time.minute,
+  );
 
-  // Format timezone offset as +HH:mm or -HH:mm
-  final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-  final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-  final offsetSign = offset.isNegative ? '-' : '+';
+  // Convert to UTC
+  final utcDateTime = localDateTime.toUtc();
 
-  // Format time with timezone: HH:mm+ZZ:ZZ
-  final hour = time.hour.toString().padLeft(2, '0');
-  final minute = time.minute.toString().padLeft(2, '0');
-
-  return '$hour:$minute$offsetSign$offsetHours:$offsetMinutes';
+  // Return UTC time in HH:mm format
+  final hour = utcDateTime.hour.toString().padLeft(2, '0');
+  final minute = utcDateTime.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
 }
 
 /// Helper: Calculate duration between start and end times
@@ -667,213 +666,4 @@ String _calculateDuration(TimeOfDay start, TimeOfDay end) {
     return '$hours hours';
   }
   return '$hours hours $minutes minutes';
-}
-
-/// Show Operational Settings Dialog
-void showOperationalSettingsDialog(BuildContext context, Map<String, dynamic> store) {
-  TossBottomSheet.show(
-    context: context,
-    title: 'Edit Operational Settings',
-    content: _OperationalSettingsContent(store: store),
-  );
-}
-
-/// Operational Settings Content Widget
-class _OperationalSettingsContent extends ConsumerStatefulWidget {
-  final Map<String, dynamic> store;
-
-  const _OperationalSettingsContent({required this.store});
-
-  @override
-  ConsumerState<_OperationalSettingsContent> createState() => _OperationalSettingsContentState();
-}
-
-class _OperationalSettingsContentState extends ConsumerState<_OperationalSettingsContent> {
-  late final TextEditingController _huddleTimeController;
-  late final TextEditingController _paymentTimeController;
-  late final TextEditingController _allowedDistanceController;
-  bool _isSubmitting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _huddleTimeController = TextEditingController(
-      text: (widget.store['huddle_time'] ?? 15).toString(),
-    );
-    _paymentTimeController = TextEditingController(
-      text: (widget.store['payment_time'] ?? 30).toString(),
-    );
-    _allowedDistanceController = TextEditingController(
-      text: (widget.store['allowed_distance'] ?? 100).toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _huddleTimeController.dispose();
-    _paymentTimeController.dispose();
-    _allowedDistanceController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Huddle Time
-          TossTextField(
-          label: 'Huddle Time',
-          hintText: '15',
-          controller: _huddleTimeController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space3),
-            child: Align(
-              alignment: Alignment.centerRight,
-              widthFactor: 1.0,
-              child: Text(
-                'minutes',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Text(
-          'Time allocated for team meetings',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space5),
-
-        // Payment Time
-        TossTextField(
-          label: 'Payment Time',
-          hintText: '30',
-          controller: _paymentTimeController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space3),
-            child: Align(
-              alignment: Alignment.centerRight,
-              widthFactor: 1.0,
-              child: Text(
-                'minutes',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Text(
-          'Time allocated for payment processing',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space5),
-
-        // Check-in Distance
-        TossTextField(
-          label: 'Check-in Distance',
-          hintText: '100',
-          controller: _allowedDistanceController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space3),
-            child: Align(
-              alignment: Alignment.centerRight,
-              widthFactor: 1.0,
-              child: Text(
-                'meters',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Text(
-          'Maximum distance from store for check-in',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space6),
-
-        // Save Button
-        TossPrimaryButton(
-          text: 'Save Changes',
-          onPressed: _isSubmitting ? null : _handleSave,
-          fullWidth: true,
-          leadingIcon: _isSubmitting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: TossColors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : null,
-        ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleSave() async {
-    setState(() => _isSubmitting = true);
-
-    try {
-      final useCase = ref.read(updateOperationalSettingsUseCaseProvider);
-      await useCase(UpdateOperationalSettingsParams(
-        storeId: widget.store['store_id'] as String,
-        huddleTime: int.tryParse(_huddleTimeController.text),
-        paymentTime: int.tryParse(_paymentTimeController.text),
-        allowedDistance: int.tryParse(_allowedDistanceController.text),
-      ),);
-
-      if (mounted) {
-        // Refresh store details
-        ref.invalidate(storeDetailsProvider);
-
-        Navigator.pop(context);
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.success(
-            title: 'Settings Updated',
-            message: 'Operational settings updated successfully',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Update Failed',
-            message: 'Failed to update settings: $e',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-    }
-  }
 }
