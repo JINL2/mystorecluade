@@ -50,7 +50,8 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
     month: string,
     storeId: string | null = null,
     companyName: string = 'Company',
-    storeName: string = 'AllStores'
+    storeName: string = 'AllStores',
+    selectedColumns?: string[]
   ): Promise<SalaryExportResult> {
     try {
       // Import ExcelJS dynamically
@@ -149,8 +150,8 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Shift Records');
 
-      // Define columns (updated for RPC v2)
-      worksheet.columns = [
+      // All available columns definition (updated for RPC v2)
+      const allColumns = [
         { header: 'Row Type', key: 'is_summary', width: 10 },
         { header: 'User ID', key: 'user_id', width: 36 },
         { header: 'First Name', key: 'first_name', width: 15 },
@@ -193,6 +194,16 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         { header: 'OT Count', key: 'extratime_count', width: 10 },
         { header: 'Problem Count', key: 'problem_count', width: 12 },
       ];
+
+      // Filter columns based on selection (always include is_summary for row type identification)
+      const filteredColumns = selectedColumns && selectedColumns.length > 0
+        ? [
+            allColumns[0], // Always include 'is_summary' (Row Type)
+            ...allColumns.slice(1).filter(col => selectedColumns.includes(col.key))
+          ]
+        : allColumns;
+
+      worksheet.columns = filteredColumns;
 
       // Add data rows and track summary row indices
       const summaryRowIndices: number[] = [];

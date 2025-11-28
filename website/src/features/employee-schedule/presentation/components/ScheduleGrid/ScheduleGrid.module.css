@@ -1,34 +1,37 @@
 /**
  * ScheduleGrid Component Styles
+ * Following DESIGN_SYSTEM.md - Toss Design System
  */
 
 .scheduleGridContainer {
-  background: white;
-  border-radius: var(--radius-large);
+  background: #FFFFFF;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--toss-gray-200);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
 }
 
 /* Header Row */
 .scheduleHeader {
   display: grid;
   grid-template-columns: 150px repeat(7, 1fr);
-  background: var(--toss-gray-50);
-  border-bottom: 1px solid var(--toss-gray-200);
+  background: var(--color-gray-50, #F8F9FA);
+  border-bottom: 1px solid var(--color-gray-300, #DEE2E6);
 }
 
 .shiftHeaderCell {
-  padding: var(--space-4);
+  padding: var(--space-4, 16px);
   font-weight: 600;
-  font-size: var(--font-small);
-  color: var(--text-secondary);
-  border-right: 1px solid var(--toss-gray-200);
+  font-size: 12px;
+  color: var(--color-gray-600, #6C757D);
+  border-right: 1px solid var(--color-gray-200, #E9ECEF);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .dateHeaderCell {
-  padding: var(--space-3);
+  padding: var(--space-3, 12px);
   text-align: center;
-  border-right: 1px solid var(--toss-gray-200);
+  border-right: 1px solid var(--color-gray-200, #E9ECEF);
 }
 
 .dateHeaderCell:last-child {
@@ -36,31 +39,31 @@
 }
 
 .dateHeaderCell.today {
-  background: var(--toss-blue-50);
+  background: #F0F6FF;
 }
 
 .dayName {
-  font-size: var(--font-small);
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-gray-900, #212529);
 }
 
 .todayBadge {
   display: inline-block;
-  margin-top: var(--space-1);
+  margin-top: var(--space-1, 4px);
   padding: 2px 6px;
   font-size: 10px;
   font-weight: 600;
-  color: white;
-  background: var(--toss-blue-600);
-  border-radius: var(--radius-small);
+  color: #FFFFFF;
+  background: #0064FF;
+  border-radius: 4px;
 }
 
 /* Shift Rows */
 .shiftRow {
   display: grid;
   grid-template-columns: 150px repeat(7, 1fr);
-  border-bottom: 1px solid var(--toss-gray-200);
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
 }
 
 .shiftRow:last-child {
@@ -68,28 +71,28 @@
 }
 
 .shiftInfoCell {
-  padding: var(--space-3);
-  border-right: 1px solid var(--toss-gray-200);
-  border-left: 4px solid var(--toss-blue-600);
-  background: var(--toss-gray-50);
+  padding: var(--space-3, 12px);
+  border-right: 1px solid var(--color-gray-200, #E9ECEF);
+  border-left: 4px solid #0064FF;
+  background: var(--color-gray-50, #F8F9FA);
 }
 
 .shiftName {
-  font-size: var(--font-small);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-1);
+  color: var(--color-gray-900, #212529);
+  margin-bottom: var(--space-1, 4px);
 }
 
 .shiftTime {
-  font-size: var(--font-xsmall);
-  color: var(--text-tertiary);
+  font-size: 11px;
+  color: var(--color-gray-500, #ADB5BD);
 }
 
 /* Assignment Cell */
 .assignmentCell {
-  padding: var(--space-2);
-  border-right: 1px solid var(--toss-gray-200);
+  padding: var(--space-2, 8px);
+  border-right: 1px solid var(--color-gray-200, #E9ECEF);
   min-height: 80px;
   display: flex;
   flex-direction: column;
@@ -103,12 +106,12 @@
 }
 
 .assignmentCell.today {
-  background: var(--toss-blue-50);
+  background: #F0F6FF;
 }
 
 .assignmentCell.dropTarget {
-  background: var(--toss-green-50);
-  border: 2px dashed var(--toss-green-500);
+  background: #E3FFF4;
+  border: 2px dashed #00C896;
 }
 
 /* Add Employee Button */
@@ -116,9 +119,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px dashed var(--toss-gray-300);
+  border: 2px dashed var(--color-gray-300, #DEE2E6);
   background: transparent;
-  color: var(--toss-gray-400);
+  color: var(--color-gray-400, #CED4DA);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -127,9 +130,14 @@
 }
 
 .addEmployeeCellButton:hover {
-  border-color: var(--toss-blue-500);
-  color: var(--toss-blue-500);
-  background: var(--toss-blue-50);
+  border-color: #0064FF;
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+.addEmployeeCellButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
 }
 
 .addIconSmall {
@@ -141,7 +149,7 @@
 .employeeList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-1, 4px);
   width: 100%;
 }
 
@@ -149,21 +157,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-1) var(--space-2);
-  background: var(--toss-gray-100);
-  border-radius: var(--radius-small);
-  font-size: var(--font-xsmall);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  background: var(--color-gray-100, #F1F3F5);
+  border-radius: 4px;
+  font-size: 11px;
 }
 
 .employeeChip .employeeName {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--color-gray-900, #212529);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80px;
 }
 
+/* Status Dot - Following DESIGN_SYSTEM semantic colors */
 .statusDot {
   width: 8px;
   height: 8px;
@@ -172,32 +181,37 @@
 }
 
 .statusDot.scheduled {
-  background: var(--toss-orange-500);
+  background: #FF9500; /* Warning - Pending/Scheduled */
 }
 
 .statusDot.confirmed {
-  background: var(--toss-green-500);
+  background: #00C896; /* Success - Confirmed */
 }
 
 .statusDot.absent {
-  background: var(--toss-red-500);
+  background: #FF5847; /* Error - Absent */
 }
 
 .addEmployeeCellButtonSmall {
   width: 100%;
-  padding: var(--space-1);
-  border: 1px dashed var(--toss-gray-300);
-  border-radius: var(--radius-small);
+  padding: var(--space-1, 4px);
+  border: 1px dashed var(--color-gray-300, #DEE2E6);
+  border-radius: 4px;
   background: transparent;
-  color: var(--toss-gray-400);
+  color: var(--color-gray-400, #CED4DA);
   cursor: pointer;
-  font-size: var(--font-small);
+  font-size: 12px;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .addEmployeeCellButtonSmall:hover {
-  border-color: var(--toss-blue-500);
-  color: var(--toss-blue-500);
-  background: var(--toss-blue-50);
+  border-color: #0064FF;
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+.addEmployeeCellButtonSmall:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
 }

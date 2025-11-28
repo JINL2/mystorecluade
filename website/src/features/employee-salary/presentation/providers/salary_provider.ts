@@ -127,7 +127,8 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
   exportToExcel: async (
     storeId: string | null,
     companyName: string,
-    storeName: string
+    storeName: string,
+    selectedColumns?: string[]
   ): Promise<AsyncOperationResult> => {
     const { companyId, currentMonth } = get();
 
@@ -206,7 +207,8 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
         currentMonth,
         storeId,
         companyName,
-        storeName
+        storeName,
+        selectedColumns
       );
 
       if (!result.success || !result.blob) {

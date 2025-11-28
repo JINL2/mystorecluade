@@ -10,12 +10,61 @@ import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
-import { SelectModal } from '@/shared/components/common/SelectModal';
-import type { SelectOption } from '@/shared/components/common/SelectModal';
 import { useSalary } from '../../hooks/useSalary';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SalaryPageProps } from './SalaryPage.types';
 import styles from './SalaryPage.module.css';
+
+// Excel export column definitions
+export interface ExportColumn {
+  key: string;
+  label: string;
+  defaultChecked: boolean;
+}
+
+// Available columns for export (only First Name, Last Name, User Name are default selected)
+const EXPORT_COLUMNS: ExportColumn[] = [
+  { key: 'user_id', label: 'User ID', defaultChecked: false },
+  { key: 'first_name', label: 'First Name', defaultChecked: true },
+  { key: 'last_name', label: 'Last Name', defaultChecked: true },
+  { key: 'user_name', label: 'User Name', defaultChecked: true },
+  { key: 'user_email', label: 'Email', defaultChecked: false },
+  { key: 'user_bank_name', label: 'Bank Name', defaultChecked: false },
+  { key: 'user_account_number', label: 'Account Number', defaultChecked: false },
+  { key: 'store_name', label: 'Store Name', defaultChecked: false },
+  { key: 'store_code', label: 'Store Code', defaultChecked: false },
+  { key: 'shift_request_id', label: 'Shift ID', defaultChecked: false },
+  { key: 'request_date', label: 'Date', defaultChecked: false },
+  { key: 'shift_name', label: 'Shift Name', defaultChecked: false },
+  { key: 'start_time', label: 'Start Time', defaultChecked: false },
+  { key: 'end_time', label: 'End Time', defaultChecked: false },
+  { key: 'actual_start_time', label: 'Actual Start', defaultChecked: false },
+  { key: 'actual_end_time', label: 'Actual End', defaultChecked: false },
+  { key: 'confirm_start_time', label: 'Confirm Start', defaultChecked: false },
+  { key: 'confirm_end_time', label: 'Confirm End', defaultChecked: false },
+  { key: 'scheduled_hours', label: 'Scheduled Hours', defaultChecked: false },
+  { key: 'actual_worked_hours', label: 'Actual Hours', defaultChecked: false },
+  { key: 'paid_hours', label: 'Paid Hours', defaultChecked: false },
+  { key: 'is_late', label: 'Is Late', defaultChecked: false },
+  { key: 'late_minutes', label: 'Late Minutes', defaultChecked: false },
+  { key: 'late_deduction_krw', label: 'Late Deduction', defaultChecked: false },
+  { key: 'is_extratime', label: 'Is Overtime', defaultChecked: false },
+  { key: 'overtime_minutes', label: 'OT Minutes', defaultChecked: false },
+  { key: 'overtime_amount', label: 'OT Amount', defaultChecked: false },
+  { key: 'salary_type', label: 'Salary Type', defaultChecked: false },
+  { key: 'salary_amount', label: 'Salary Amount', defaultChecked: false },
+  { key: 'bonus_amount', label: 'Bonus', defaultChecked: false },
+  { key: 'total_salary_pay', label: 'Total Pay', defaultChecked: false },
+  { key: 'total_pay_with_bonus', label: 'Total w/ Bonus', defaultChecked: false },
+  { key: 'is_approved', label: 'Approved', defaultChecked: false },
+  { key: 'is_problem', label: 'Has Problem', defaultChecked: false },
+  { key: 'problem_type', label: 'Problem Type', defaultChecked: false },
+  { key: 'report_reason', label: 'Report Reason', defaultChecked: false },
+  { key: 'total_shift_count', label: 'Shift Count', defaultChecked: false },
+  { key: 'late_count', label: 'Late Count', defaultChecked: false },
+  { key: 'extratime_count', label: 'OT Count', defaultChecked: false },
+  { key: 'problem_count', label: 'Problem Count', defaultChecked: false },
+];
 
 export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   const { currentCompany, currentStore, setCurrentStore } = useAppState();
@@ -24,6 +73,17 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   const [filterType, setFilterType] = useState<'all' | 'monthly' | 'hourly' | 'problems' | 'overtime'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // Export column selection state
+  const [selectedColumns, setSelectedColumns] = useState<Set<string>>(() => {
+    const defaultSelected = new Set<string>();
+    EXPORT_COLUMNS.forEach(col => {
+      if (col.defaultChecked) {
+        defaultSelected.add(col.key);
+      }
+    });
+    return defaultSelected;
+  });
 
   // Use app state's currentStore for selected store
   const selectedStoreId = currentStore?.store_id || null;
@@ -109,52 +169,49 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
       .slice(0, 2) || '??';
   };
 
-  // Handle export option selection
-  const handleExportSelect = (value: string) => {
-    setShowExportModal(false);
-    const companyName = currentCompany?.company_name || 'Company';
-
-    if (value === 'store') {
-      // Export selected store only
-      const storeName = currentStore?.store_name || 'Store';
-      exportToExcel(selectedStoreId, companyName, storeName);
+  // Toggle column selection
+  const toggleColumn = (key: string) => {
+    const newSelected = new Set(selectedColumns);
+    if (newSelected.has(key)) {
+      newSelected.delete(key);
     } else {
-      // Export entire company (null storeId)
-      exportToExcel(null, companyName, 'AllStores');
+      newSelected.add(key);
+    }
+    setSelectedColumns(newSelected);
+  };
+
+  // Select all / Deselect all columns
+  const toggleAllColumns = () => {
+    if (selectedColumns.size === EXPORT_COLUMNS.length) {
+      setSelectedColumns(new Set());
+    } else {
+      setSelectedColumns(new Set(EXPORT_COLUMNS.map(col => col.key)));
     }
   };
 
-  // Build export options for SelectModal
-  const buildExportOptions = (): SelectOption[] => {
-    const options: SelectOption[] = [];
-
-    // Only show "Selected Store" option if a store is selected
-    if (selectedStoreId && currentStore) {
-      options.push({
-        value: 'store',
-        label: 'Selected Store Only',
-        description: `Export data for "${currentStore.store_name}" only`,
-        icon: (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A2.25,2.25 0 0,1 14.25,11A2.25,2.25 0 0,1 12,13.25A2.25,2.25 0 0,1 9.75,11A2.25,2.25 0 0,1 12,8.75M12,15C13.5,15 16.5,15.75 16.5,17.25V18H7.5V17.25C7.5,15.75 10.5,15 12,15Z" />
-          </svg>
-        ),
-      });
+  // Handle export with selected columns
+  const handleExportWithColumns = (scope: 'store' | 'company') => {
+    if (selectedColumns.size === 0) {
+      return; // Don't export if no columns selected
     }
 
-    // Always show "Entire Company" option
-    options.push({
-      value: 'company',
-      label: 'Entire Company',
-      description: 'Export data for all stores in the company',
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18,15H16V17H18M18,11H16V13H18M20,19H12V17H14V15H12V13H14V11H12V9H20M10,7H8V5H10M10,11H8V9H10M10,15H8V13H10M10,19H8V17H10M6,7H4V5H6M6,11H4V9H6M6,15H4V13H6M6,19H4V17H6M12,7V3H2V21H22V7H12Z" />
-        </svg>
-      ),
-    });
+    setShowExportModal(false);
+    const companyName = currentCompany?.company_name || 'Company';
+    const columnsArray = Array.from(selectedColumns);
 
-    return options;
+    if (scope === 'store') {
+      const storeName = currentStore?.store_name || 'Store';
+      exportToExcel(selectedStoreId, companyName, storeName, columnsArray);
+    } else {
+      exportToExcel(null, companyName, 'AllStores', columnsArray);
+    }
+  };
+
+  // Close export modal
+  const handleCloseExportModal = () => {
+    if (!exporting) {
+      setShowExportModal(false);
+    }
   };
 
   // Show loading if no company selected yet
@@ -481,16 +538,147 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
           )}
 
           {/* Export Excel Modal */}
-          <SelectModal
-            isOpen={showExportModal}
-            onClose={() => setShowExportModal(false)}
-            onSelect={handleExportSelect}
-            title="Export Excel"
-            message="Select the scope of data to export"
-            options={buildExportOptions()}
-            cancelText="Cancel"
-            isLoading={exporting}
-          />
+          {showExportModal && (
+            <div className={styles.exportModalBackdrop} onClick={handleCloseExportModal}>
+              <div
+                className={styles.exportModalContainer}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Loading Overlay */}
+                {exporting && (
+                  <div className={styles.exportModalLoading}>
+                    <LoadingAnimation size="medium" />
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className={styles.exportModalHeader}>
+                  <div className={styles.exportModalHeaderIcon}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                    </svg>
+                  </div>
+                  <h2 className={styles.exportModalTitle}>Export Excel</h2>
+                </div>
+
+                {/* Body */}
+                <div className={styles.exportModalBody}>
+                  <p className={styles.exportModalMessage}>
+                    Select the columns to include in your Excel export
+                  </p>
+
+                  {/* Column Selection */}
+                  <div className={styles.columnSelectionSection}>
+                    <div className={styles.columnSelectionHeader}>
+                      <span className={styles.columnSelectionTitle}>
+                        Columns ({selectedColumns.size}/{EXPORT_COLUMNS.length})
+                      </span>
+                      <button
+                        className={styles.selectAllButton}
+                        onClick={toggleAllColumns}
+                        type="button"
+                      >
+                        {selectedColumns.size === EXPORT_COLUMNS.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+
+                    <div className={styles.columnGrid}>
+                      {EXPORT_COLUMNS.map((col) => (
+                        <label
+                          key={col.key}
+                          className={`${styles.columnCheckboxItem} ${selectedColumns.has(col.key) ? styles.checked : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            className={styles.columnCheckbox}
+                            checked={selectedColumns.has(col.key)}
+                            onChange={() => toggleColumn(col.key)}
+                          />
+                          <span className={styles.columnLabel}>{col.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Export Scope */}
+                  <div className={styles.exportScopeSection}>
+                    <div className={styles.exportScopeTitle}>Export Scope</div>
+                    <div className={styles.exportScopeOptions}>
+                      {/* Selected Store Option */}
+                      {selectedStoreId && currentStore && (
+                        <button
+                          className={styles.exportScopeOption}
+                          onClick={() => handleExportWithColumns('store')}
+                          disabled={exporting || selectedColumns.size === 0}
+                          type="button"
+                        >
+                          <div className={styles.exportScopeIcon}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A2.25,2.25 0 0,1 14.25,11A2.25,2.25 0 0,1 12,13.25A2.25,2.25 0 0,1 9.75,11A2.25,2.25 0 0,1 12,8.75M12,15C13.5,15 16.5,15.75 16.5,17.25V18H7.5V17.25C7.5,15.75 10.5,15 12,15Z" />
+                            </svg>
+                          </div>
+                          <div className={styles.exportScopeContent}>
+                            <div className={styles.exportScopeLabel}>Selected Store Only</div>
+                            <div className={styles.exportScopeDescription}>
+                              Export data for "{currentStore.store_name}" only
+                            </div>
+                          </div>
+                          <div className={styles.exportScopeArrow}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                            </svg>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Entire Company Option */}
+                      <button
+                        className={styles.exportScopeOption}
+                        onClick={() => handleExportWithColumns('company')}
+                        disabled={exporting || selectedColumns.size === 0}
+                        type="button"
+                      >
+                        <div className={styles.exportScopeIcon}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18,15H16V17H18M18,11H16V13H18M20,19H12V17H14V15H12V13H14V11H12V9H20M10,7H8V5H10M10,11H8V9H10M10,15H8V13H10M10,19H8V17H10M6,7H4V5H6M6,11H4V9H6M6,15H4V13H6M6,19H4V17H6M12,7V3H2V21H22V7H12Z" />
+                          </svg>
+                        </div>
+                        <div className={styles.exportScopeContent}>
+                          <div className={styles.exportScopeLabel}>Entire Company</div>
+                          <div className={styles.exportScopeDescription}>
+                            Export data for all stores in the company
+                          </div>
+                        </div>
+                        <div className={styles.exportScopeArrow}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                          </svg>
+                        </div>
+                      </button>
+                    </div>
+
+                    {selectedColumns.size === 0 && (
+                      <p style={{ color: '#FF5847', fontSize: '13px', marginTop: '8px' }}>
+                        Please select at least one column to export
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className={styles.exportModalFooter}>
+                  <button
+                    className={styles.exportCancelButton}
+                    onClick={handleCloseExportModal}
+                    disabled={exporting}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Message Modal */}
           {notification && (

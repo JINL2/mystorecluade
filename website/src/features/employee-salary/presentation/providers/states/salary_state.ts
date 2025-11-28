@@ -7,6 +7,9 @@ import type { SalaryRecord } from '../../../domain/entities/SalaryRecord';
 import type { SalarySummary } from '../../../domain/entities/SalarySummary';
 import type { SalaryNotification, AsyncOperationResult } from './types';
 
+// Re-export for convenience
+export type { AsyncOperationResult } from './types';
+
 /**
  * Complete state interface for employee-salary feature
  */
@@ -73,11 +76,16 @@ export interface SalaryState {
 
   /**
    * Export to Excel
+   * @param storeId - Store ID to filter by (null for all stores)
+   * @param companyName - Company name for filename
+   * @param storeName - Store name for filename
+   * @param selectedColumns - Array of column keys to include in export (optional, all columns if not provided)
    */
   exportToExcel: (
     storeId: string | null,
     companyName: string,
-    storeName: string
+    storeName: string,
+    selectedColumns?: string[]
   ) => Promise<AsyncOperationResult>;
 
   // ==================== Reset ====================
