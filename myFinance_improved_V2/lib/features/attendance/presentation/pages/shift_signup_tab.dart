@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
@@ -19,7 +20,7 @@ import '../widgets/shift_signup/shift_signup_card.dart';
 /// - Week navigation (< Previous week | This week • 10-16 Jun | Next week >)
 /// - 7 date circles (Mon-Sun) with blue dots for dates with available shifts
 /// - "Available Shifts on {date}" header
-/// - Shift cards with 4 states: Available, Waitlist, Applied, Assigned
+/// - Shift cards with 3 states: Available, Applied, Assigned
 class ShiftSignupTab extends ConsumerStatefulWidget {
   const ShiftSignupTab({super.key});
 
@@ -37,9 +38,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
   // Track which shifts the user has applied to
   Set<String> appliedShiftIds = {};
-
-  // Track which shifts the user has joined waitlist for
-  Set<String> waitlistedShiftIds = {};
 
   // Keep state alive when switching tabs
   @override
@@ -126,17 +124,33 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     return activeShifts;
   }
 
-  // Mock: Get dates with available shifts (for blue dots)
-  // TODO: Replace with real data from monthly shift status
-  Set<DateTime> _getDatesWithShifts() {
-    final shifts = _getActiveShifts();
-    if (shifts.isEmpty) return {};
-
-    // For demo: add shifts for 3 random days this week
+  // Get dates with assigned shifts (blue circle border)
+  // TODO: Replace with real data from backend
+  Set<DateTime> get datesWithAssignedShifts {
+    // Mock: Days where user is assigned
     return {
-      weekStartDate,
-      weekStartDate.add(const Duration(days: 2)),
-      weekStartDate.add(const Duration(days: 4)),
+      weekStartDate, // Monday - assigned
+      weekStartDate.add(const Duration(days: 4)), // Friday - assigned
+    };
+  }
+
+  // Get dates with available shifts (blue dot)
+  // TODO: Replace with real data from backend
+  Set<DateTime> get datesWithAvailableShifts {
+    // Mock: Days with available shifts
+    return {
+      weekStartDate.add(const Duration(days: 1)), // Tuesday - available
+      weekStartDate.add(const Duration(days: 3)), // Thursday - available
+    };
+  }
+
+  // Get dates with all shifts full (gray dot)
+  // TODO: Replace with real data from backend
+  Set<DateTime> get datesWithFullShifts {
+    // Mock: Days with all shifts full
+    return {
+      weekStartDate.add(const Duration(days: 2)), // Wednesday - full
+      weekStartDate.add(const Duration(days: 5)), // Saturday - full
     };
   }
 
@@ -204,21 +218,14 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       return ShiftSignupStatus.applied;
     }
 
-    // Check if user is on waitlist for this shift
-    if (waitlistedShiftIds.contains(shiftId)) {
-      return ShiftSignupStatus.onWaitlist;
-    }
-
     // Mock: Demo other variations for testing
     // TODO: Replace with real data from backend
-    switch (index % 4) {
+    switch (index % 3) {
       case 0:
         return ShiftSignupStatus.available;
       case 1:
         return ShiftSignupStatus.available; // With appliedCount
       case 2:
-        return ShiftSignupStatus.waitlist;
-      case 3:
         return ShiftSignupStatus.assigned;
       default:
         return ShiftSignupStatus.available;
@@ -239,12 +246,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   // TODO: Replace with real data from shift assignments
   int _getFilledSlots(ShiftMetadata shift, int index) {
     final total = shift.numberShift ?? 3;
-    // Variation #3 (waitlist) should be full
-    if (index % 5 == 2) {
-      return total; // Full
-    }
-    // Variation #5 (assigned) should be full
-    if (index % 5 == 4) {
+    // Variation #3 (assigned) should be full
+    if (index % 3 == 2) {
       return total; // Full
     }
     // Others partially filled
@@ -305,7 +308,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     }
 
     final shifts = _getActiveShifts();
-    final datesWithShifts = _getDatesWithShifts();
 
     return Container(
       color: TossColors.background,
@@ -332,7 +334,9 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
               child: WeekDatesPicker(
                 selectedDate: selectedDate,
                 weekStartDate: weekStartDate,
-                datesWithShifts: datesWithShifts,
+                datesWithAssignedShifts: datesWithAssignedShifts,
+                datesWithAvailableShifts: datesWithAvailableShifts,
+                datesWithFullShifts: datesWithFullShifts,
                 onDateSelected: _onDateSelected,
               ),
             ),
@@ -402,12 +406,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
                             onApply: status == ShiftSignupStatus.available
                                 ? () => _handleApply(shift)
                                 : null,
-                            onWaitlist: status == ShiftSignupStatus.waitlist
-                                ? () => _handleWaitlist(shift)
-                                : null,
-                            onLeaveWaitlist: status == ShiftSignupStatus.onWaitlist
-                                ? () => _handleLeaveWaitlist(shift)
-                                : null,
                             onWithdraw: status == ShiftSignupStatus.applied
                                 ? () => _handleWithdraw(shift)
                                 : null,
@@ -436,22 +434,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     // TODO: Implement backend API call to apply for shift
   }
 
-  void _handleWaitlist(ShiftMetadata shift) {
-    print('Join waitlist for shift: ${shift.shiftName}');
-    setState(() {
-      waitlistedShiftIds.add(shift.shiftId);
-    });
-    // TODO: Implement backend API call to join waitlist
-  }
-
-  void _handleLeaveWaitlist(ShiftMetadata shift) {
-    print('Leave waitlist for shift: ${shift.shiftName}');
-    setState(() {
-      waitlistedShiftIds.remove(shift.shiftId);
-    });
-    // TODO: Implement backend API call to leave waitlist
-  }
-
   void _handleWithdraw(ShiftMetadata shift) {
     print('Withdraw from shift: ${shift.shiftName}');
     setState(() {
@@ -469,17 +451,45 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   void _handleViewAppliedUsers(ShiftMetadata shift) {
     // Mock data - replace with real data from backend
     final mockAppliedUsers = [
-      {'id': '1', 'name': 'John Doe', 'avatar': 'https://i.pravatar.cc/150?img=1'},
-      {'id': '2', 'name': 'Jane Smith', 'avatar': 'https://i.pravatar.cc/150?img=2'},
-      {'id': '3', 'name': 'Mike Johnson', 'avatar': 'https://i.pravatar.cc/150?img=3'},
-      {'id': '4', 'name': 'Sarah Williams', 'avatar': 'https://i.pravatar.cc/150?img=4'},
+      {'id': '1', 'name': 'John Doe', 'avatar': 'https://i.pravatar.cc/150?img=1', 'isAssigned': true},
+      {'id': '2', 'name': 'Jane Smith', 'avatar': 'https://i.pravatar.cc/150?img=2', 'isAssigned': false},
+      {'id': '3', 'name': 'Mike Johnson', 'avatar': 'https://i.pravatar.cc/150?img=3', 'isAssigned': true},
+      {'id': '4', 'name': 'Sarah Williams', 'avatar': 'https://i.pravatar.cc/150?img=4', 'isAssigned': true},
     ];
 
+    // Sort: assigned users first, then applied users
+    mockAppliedUsers.sort((a, b) {
+      final aAssigned = a['isAssigned'] as bool;
+      final bAssigned = b['isAssigned'] as bool;
+      if (aAssigned && !bAssigned) return -1;
+      if (!aAssigned && bAssigned) return 1;
+      return 0;
+    });
+
     final items = mockAppliedUsers.map((user) {
+      final isAssigned = user['isAssigned'] as bool;
       return TossSelectionItem.fromGeneric(
         id: user['id'] as String,
         title: user['name'] as String,
-        avatarUrl: user['avatar'] as String, // Pass avatar URL
+        avatarUrl: user['avatar'] as String,
+        trailing: isAssigned
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                border: Border.all(color: TossColors.gray200, width: 1),
+              ),
+              child: Text(
+                'Assigned',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
+          : null,
       );
     }).toList();
 

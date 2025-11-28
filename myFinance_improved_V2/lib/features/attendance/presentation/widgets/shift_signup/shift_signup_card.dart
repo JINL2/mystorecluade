@@ -7,8 +7,6 @@ import '../../../../../shared/widgets/toss/toss_button_1.dart';
 /// Shift signup status determining the action button state
 enum ShiftSignupStatus {
   available, // Can apply - shows blue "+ Apply" button
-  waitlist, // Full but can waitlist - shows gray "+ Waitlist" button
-  onWaitlist, // User is on waitlist - shows gray outline "- Leave" button
   applied, // Already applied - shows blue outline "- Withdraw" button
   assigned, // Already assigned - shows gray "Assigned" badge
 }
@@ -16,16 +14,14 @@ enum ShiftSignupStatus {
 /// ShiftSignupCard - Card showing shift details with action button
 ///
 /// Design Specs (from provided Flutter code):
-/// - Card background: White (default), gray50 for waitlist only
+/// - Card background: White
 /// - Left: Shift info (type, time, location, applied/assigned count)
 /// - Right: Action button + slots count
 ///
-/// 5 Variations:
-/// 1. Available: White card, blue "Apply" button, "0/3 assigned"
-/// 2. Available + Applied: White card, blue "Apply" button, "1 applied", "0/3 assigned"
-/// 3. Waitlist (Full): Gray card, gray "Waitlist" button, "4/4 assigned"
-/// 4. Applied (User): White card, blue outline "Withdraw" button, "You applied", "1/3 assigned"
-/// 5. Assigned: White card, gray "Assigned" badge, "3/3 assigned"
+/// 3 Variations:
+/// 1. Available: White card, blue "Apply" button, "0/3 applied"
+/// 2. Applied (User): White card, blue outline "Withdraw" button, "You applied", "1/3 applied"
+/// 3. Assigned: White card, gray "Assigned" badge, "3/3 assigned"
 class ShiftSignupCard extends StatelessWidget {
   final String shiftType; // "Morning", "Afternoon", "Night"
   final String timeRange; // "09:00 - 13:00"
@@ -37,8 +33,6 @@ class ShiftSignupCard extends StatelessWidget {
   final bool userApplied; // Whether current user has applied
   final List<String>? assignedUserAvatars; // Avatar URLs (max 4) - for assigned status
   final VoidCallback? onApply;
-  final VoidCallback? onWaitlist;
-  final VoidCallback? onLeaveWaitlist;
   final VoidCallback? onWithdraw;
   final VoidCallback? onTap; // Tap entire card
   final VoidCallback? onViewAppliedUsers; // Tap avatar stack to view applied users
@@ -55,8 +49,6 @@ class ShiftSignupCard extends StatelessWidget {
     this.userApplied = false,
     this.assignedUserAvatars,
     this.onApply,
-    this.onWaitlist,
-    this.onLeaveWaitlist,
     this.onWithdraw,
     this.onTap,
     this.onViewAppliedUsers,
@@ -66,7 +58,7 @@ class ShiftSignupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // All cards use white background
     return GestureDetector(
-      onTap: onTap,
+      onTap: onViewAppliedUsers ?? onTap,
       child: Container(
         decoration: BoxDecoration(
           color: TossColors.white,
@@ -124,52 +116,18 @@ class ShiftSignupCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Applied/Assigned count or "You applied" text
-                  if (userApplied) ...[
+                  // Applied/Assigned count - ALWAYS show when there are users
+                  if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        // Avatar stack for other applied users (if provided)
-                        if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                          _buildAvatarStack(assignedUserAvatars!),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          'You applied',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.gray600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else if (appliedCount > 0 && status == ShiftSignupStatus.available) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        // Avatar stack for applied users (if provided)
-                        if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                          _buildAvatarStack(assignedUserAvatars!),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          '$appliedCount applied',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.gray600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else if (status == ShiftSignupStatus.assigned && assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        // Avatar stack
+                        // Avatar stack (always visible when avatars available)
                         _buildAvatarStack(assignedUserAvatars!),
                         const SizedBox(width: 8),
                         Text(
-                          '${assignedUserAvatars!.length} assigned',
+                          userApplied
+                            ? 'You applied'
+                            : '$appliedCount applied',
                           style: TossTextStyles.labelSmall.copyWith(
                             color: TossColors.gray600,
                             fontSize: 12,
@@ -192,10 +150,8 @@ class ShiftSignupCard extends StatelessWidget {
                 _buildActionButton(),
                 const SizedBox(height: 4),
                 Text(
-                  // Show "X applied" for available/waitlist shifts, "X assigned" for assigned shifts
-                  status == ShiftSignupStatus.assigned
-                      ? '$filledSlots/$totalSlots assigned'
-                      : '$appliedCount/$totalSlots applied',
+                  // ONLY show assigned count on right side
+                  '$filledSlots/$totalSlots assigned',
                   style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray500,
                     fontSize: 11,
@@ -218,41 +174,15 @@ class ShiftSignupCard extends StatelessWidget {
           onPressed: onApply,
           leadingIcon: const Icon(Icons.add, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
         );
 
       case ShiftSignupStatus.applied:
         // Blue outline button: "- Withdraw"
-        // TossButton1 automatically adjusts padding for inset border effect
         return TossButton1.outlined(
           text: 'Withdraw',
           onPressed: onWithdraw,
           leadingIcon: const Icon(Icons.remove, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
-        );
-
-      case ShiftSignupStatus.waitlist:
-        // Gray filled button: "+ Waitlist"
-        return TossButton1.secondary(
-          text: 'Waitlist',
-          onPressed: onWaitlist,
-          leadingIcon: const Icon(Icons.add, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
-        );
-
-      case ShiftSignupStatus.onWaitlist:
-        // Gray filled button: "- Leave" (same appearance as Assigned)
-        return TossButton1.secondary(
-          text: 'Leave',
-          onPressed: onLeaveWaitlist,
-          leadingIcon: const Icon(Icons.remove, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          fontSize: 14,
         );
 
       case ShiftSignupStatus.assigned:
@@ -262,35 +192,31 @@ class ShiftSignupCard extends StatelessWidget {
           onPressed: null, // Disabled - non-interactive badge
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fontSize: 14,
-          // TossButton1 automatically handles disabled state styling
         );
     }
   }
 
-  /// Build clickable avatar stack
+  /// Build avatar stack
   Widget _buildAvatarStack(List<String> avatars) {
-    return GestureDetector(
-      onTap: onViewAppliedUsers,
-      child: SizedBox(
-        height: 24,
-        width: (avatars.length * 18).toDouble() + 6,
-        child: Stack(
-          children: List.generate(
-            avatars.length.clamp(0, 4),
-            (index) => Positioned(
-              left: index * 18.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: TossColors.white, width: 1),
-                ),
-                child: CircleAvatar(
-                  radius: 12,
-                  backgroundColor: TossColors.gray200,
-                  backgroundImage: NetworkImage(avatars[index]),
-                  onBackgroundImageError: (_, __) {},
-                  child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
-                ),
+    return SizedBox(
+      height: 24,
+      width: (avatars.length * 18).toDouble() + 6,
+      child: Stack(
+        children: List.generate(
+          avatars.length.clamp(0, 4),
+          (index) => Positioned(
+            left: index * 18.0,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: TossColors.white, width: 1),
+              ),
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: TossColors.gray200,
+                backgroundImage: NetworkImage(avatars[index]),
+                onBackgroundImageError: (_, __) {},
+                child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
               ),
             ),
           ),

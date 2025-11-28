@@ -172,41 +172,9 @@ class _ShiftManagementCardState extends State<ShiftManagementCard> with SingleTi
         TossSpacing.space3,
         TossSpacing.space3,
       ),
-      child: AvatarStackInteract(
-        users: widget.shift.assignedEmployees
-            .map((emp) => AvatarUser(
-                  id: emp.id,
-                  name: emp.name,
-                  avatarUrl: emp.avatarUrl,
-                  actionState: null,
-                ))
-            .toList(),
-        title: 'Assigned Employees',
-        countTextFormat:
-            '${widget.shift.assignedCount}/${widget.shift.maxCapacity} assigned',
-        maxVisibleAvatars: 4,
-        avatarSize: 24,
-        overlapOffset: 18,
-        showCount: true,
-        actionButtons: widget.onRemoveFromShift != null
-            ? [
-                UserActionButton(
-                  id: 'remove',
-                  label: 'Remove',
-                  icon: Icons.close,
-                  backgroundColor: TossColors.error,
-                  textColor: TossColors.white,
-                ),
-              ]
-            : null,
-        onActionTap: (user, actionId) {
-          final employee = widget.shift.assignedEmployees.firstWhere(
-            (emp) => emp.id == user.id,
-          );
-          if (actionId == 'remove' && widget.onRemoveFromShift != null) {
-            widget.onRemoveFromShift!(employee);
-          }
-        },
+      child: _AssignedEmployeesStack(
+        shift: widget.shift,
+        onRemoveFromShift: widget.onRemoveFromShift,
       ),
     );
   }
@@ -305,6 +273,270 @@ class _ShiftManagementCardState extends State<ShiftManagementCard> with SingleTi
     return Container(
       height: 1,
       color: TossColors.gray200,
+    );
+  }
+}
+
+/// Stateful wrapper for assigned employees stack
+/// This allows the bottom sheet to properly update when employees are removed
+class _AssignedEmployeesStack extends StatefulWidget {
+  final ShiftData shift;
+  final Function(Employee)? onRemoveFromShift;
+
+  const _AssignedEmployeesStack({
+    required this.shift,
+    this.onRemoveFromShift,
+  });
+
+  @override
+  State<_AssignedEmployeesStack> createState() => _AssignedEmployeesStackState();
+}
+
+class _AssignedEmployeesStackState extends State<_AssignedEmployeesStack> {
+  void _showBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
+            ),
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(TossBorderRadius.xl),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: 16),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Title
+                Text(
+                  'Assigned Employees',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
+                ),
+                const SizedBox(height: 8),
+                // Employee list
+                Flexible(
+                  child: Builder(
+                    builder: (context) {
+                      // Get the current employee list (this will be fresh after state updates)
+                      final currentEmployees = widget.shift.assignedEmployees;
+
+                      if (currentEmployees.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Text(
+                              'No assigned employees',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: currentEmployees.length,
+                        separatorBuilder: (context, index) => const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: TossColors.gray50,
+                          indent: 68,
+                        ),
+                        itemBuilder: (context, index) {
+                          final employee = currentEmployees[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: Row(
+                          children: [
+                            // Avatar
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: TossColors.gray200,
+                              backgroundImage: NetworkImage(employee.avatarUrl),
+                              onBackgroundImageError: (_, __) {},
+                            ),
+                            const SizedBox(width: 12),
+                            // Name
+                            Expanded(
+                              child: Text(
+                                employee.name,
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Remove button
+                            GestureDetector(
+                              onTap: () async {
+                                if (widget.onRemoveFromShift != null) {
+                                  widget.onRemoveFromShift!(employee);
+                                  // Wait for parent to process the state change
+                                  await Future.delayed(const Duration(milliseconds: 10));
+                                  // Rebuild the bottom sheet with updated data
+                                  if (context.mounted) {
+                                    setSheetState(() {});
+                                  }
+                                }
+                              },
+                              child: Container(
+                                height: 32,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: TossColors.gray100,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: TossColors.gray200, width: 1),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: TossColors.gray700,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Remove',
+                                      style: TossTextStyles.labelSmall.copyWith(
+                                        color: TossColors.gray700,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final employees = widget.shift.assignedEmployees;
+
+    return GestureDetector(
+      onTap: _showBottomSheet,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Avatar stack
+          if (employees.isNotEmpty) _buildAvatarStack(employees),
+
+          // Count text
+          if (employees.isNotEmpty) const SizedBox(width: 8),
+          Text(
+            '${widget.shift.assignedCount}/${widget.shift.maxCapacity} assigned',
+            style: TossTextStyles.labelSmall.copyWith(
+              color: TossColors.gray600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build the avatar stack manually
+  Widget _buildAvatarStack(List<Employee> employees) {
+    const maxVisible = 4;
+    const avatarSize = 24.0;
+    const overlapOffset = 18.0;
+
+    final displayCount = employees.length.clamp(0, maxVisible);
+    final hasMore = employees.length > maxVisible;
+
+    return SizedBox(
+      height: avatarSize,
+      width: (displayCount * overlapOffset) + (avatarSize - overlapOffset) + (hasMore ? overlapOffset : 0),
+      child: Stack(
+        children: [
+          // Avatar circles
+          ...List.generate(
+            displayCount,
+            (index) => Positioned(
+              left: index * overlapOffset,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: TossColors.white, width: 1),
+                ),
+                child: CircleAvatar(
+                  radius: avatarSize / 2,
+                  backgroundColor: TossColors.gray200,
+                  backgroundImage: NetworkImage(employees[index].avatarUrl),
+                  onBackgroundImageError: (_, __) {},
+                ),
+              ),
+            ),
+          ),
+
+          // "+N more" indicator
+          if (hasMore)
+            Positioned(
+              left: displayCount * overlapOffset,
+              child: Container(
+                width: avatarSize,
+                height: avatarSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: TossColors.gray700,
+                  border: Border.all(color: TossColors.white, width: 1),
+                ),
+                child: Center(
+                  child: Text(
+                    '+${employees.length - maxVisible}',
+                    style: TossTextStyles.labelSmall.copyWith(
+                      color: TossColors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

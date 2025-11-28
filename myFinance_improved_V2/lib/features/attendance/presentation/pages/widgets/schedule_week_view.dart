@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../shared/widgets/toss/toss_week_shift_card.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 
 /// Week view component with navigation and shift list

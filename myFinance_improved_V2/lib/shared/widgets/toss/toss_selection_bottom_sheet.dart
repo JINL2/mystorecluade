@@ -14,6 +14,7 @@ class TossSelectionItem {
   final String? avatarUrl; // Avatar image URL
   final Map<String, dynamic>? data;
   final bool isSelected;
+  final Widget? trailing; // Optional trailing widget (e.g., chip, badge)
 
   const TossSelectionItem({
     required this.id,
@@ -23,6 +24,7 @@ class TossSelectionItem {
     this.avatarUrl,
     this.data,
     this.isSelected = false,
+    this.trailing,
   });
 
   /// Factory constructor for store items
@@ -55,6 +57,7 @@ class TossSelectionItem {
     IconData? icon,
     String? avatarUrl,
     Map<String, dynamic>? data,
+    Widget? trailing,
   }) {
     return TossSelectionItem(
       id: id,
@@ -63,6 +66,7 @@ class TossSelectionItem {
       icon: icon,
       avatarUrl: avatarUrl,
       data: data,
+      trailing: trailing,
     );
   }
 }
@@ -422,6 +426,12 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                 ],
               ),
             ),
+
+            // Trailing widget (chip, badge, etc.)
+            if (item.trailing != null) ...[
+              const SizedBox(width: TossSpacing.space2),
+              item.trailing!,
+            ],
 
             // Selected indicator
             if (isSelected)

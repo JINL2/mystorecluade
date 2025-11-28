@@ -10,6 +10,10 @@ import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../shift_management_card.dart';
 import '../../models/schedule_models.dart';
+import '../../providers/state/manager_shift_cards_provider.dart';
+import '../../providers/state/shift_metadata_provider.dart';
+import '../../../domain/entities/shift_card.dart';
+import 'package:intl/intl.dart';
 
 /// Schedule Tab Content - Redesigned
 ///
@@ -22,7 +26,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final String Function(int month) getMonthName;
   final VoidCallback onAddShiftTap;
-  final Function(DateTime date) onDateSelected;
+  final void Function(DateTime date) onDateSelected;
   final Future<void> Function() onPreviousMonth;
   final Future<void> Function() onNextMonth;
   final Future<void> Function() onApprovalSuccess;
@@ -52,14 +56,30 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
 class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   late DateTime _currentWeekStart;
   late DateTime _selectedDate;
-  late List<ShiftData> _shifts;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.selectedDate;
     _currentWeekStart = _getWeekStart(_selectedDate);
-    _shifts = _initializeShifts();
+
+    // Load shift data for current month
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMonthData();
+    });
+  }
+
+  /// Load shift cards data for current month
+  void _loadMonthData() {
+    if (widget.selectedStoreId == null) return;
+
+    // Load shift cards (requests)
+    ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+      month: _selectedDate,
+    );
+
+    // Load shift metadata (available shifts)
+    ref.invalidate(shiftMetadataProvider(widget.selectedStoreId!));
   }
 
   @override
@@ -70,6 +90,12 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         _selectedDate = widget.selectedDate;
         _currentWeekStart = _getWeekStart(_selectedDate);
       });
+      _loadMonthData();
+    }
+
+    // Reload if store changed
+    if (widget.selectedStoreId != oldWidget.selectedStoreId) {
+      _loadMonthData();
     }
   }
 
@@ -127,7 +153,9 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           WeekDatesPicker(
             selectedDate: _selectedDate,
             weekStartDate: _currentWeekStart,
-            datesWithShifts: _getDatesWithShifts(),
+            datesWithAssignedShifts: _getDatesWithShifts(), // User's assigned shifts
+            datesWithAvailableShifts: {}, // No available shifts on My Schedule tab
+            datesWithFullShifts: {}, // No full shifts indicator needed
             onDateSelected: (date) {
               setState(() => _selectedDate = date);
               widget.onDateSelected(date);
@@ -147,17 +175,87 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Shift cards
-          ..._getShiftsForSelectedDate().map(
-            (shift) => ShiftManagementCard(
-              shift: shift,
-              onApprove: _handleApprove,
-              onOverbook: _handleOverbook,
-              onRemoveFromShift: _handleRemove,
-            ),
-          ),
+          // Shift cards or empty state
+          ..._buildShiftsList(),
 
           const SizedBox(height: TossSpacing.space4),
+        ],
+      ),
+    );
+  }
+
+  /// Build shifts list or empty/loading state
+  List<Widget> _buildShiftsList() {
+    if (widget.selectedStoreId == null) {
+      return [
+        _buildEmptyState('Please select a store'),
+      ];
+    }
+
+    final cardsState = ref.watch(managerCardsProvider(widget.selectedStoreId!));
+
+    // Show loading state
+    if (cardsState.isLoading) {
+      return [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(TossSpacing.space8),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    // Show error state
+    if (cardsState.error != null) {
+      return [
+        _buildEmptyState('Error loading shifts\n${cardsState.error}'),
+      ];
+    }
+
+    final shifts = _getShiftsForSelectedDate();
+
+    // Show empty state if no shifts
+    if (shifts.isEmpty) {
+      return [
+        _buildEmptyState('No shifts scheduled for this day'),
+      ];
+    }
+
+    // Show shift cards
+    return shifts.map((shift) => Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: ShiftManagementCard(
+        shift: shift,
+        onApprove: _handleApprove,
+        onOverbook: _handleOverbook,
+        onRemoveFromShift: _handleRemove,
+      ),
+    )).toList();
+  }
+
+  /// Build empty state widget
+  Widget _buildEmptyState(String message) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 48,
+            color: TossColors.gray400,
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
         ],
       ),
     );
@@ -208,10 +306,20 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Change week by number of days
   void _changeWeek(int days) {
+    final newWeekStart = _currentWeekStart.add(Duration(days: days));
+    final newSelectedDate = _selectedDate.add(Duration(days: days));
+
     setState(() {
-      _currentWeekStart = _currentWeekStart.add(Duration(days: days));
-      _selectedDate = _selectedDate.add(Duration(days: days));
+      _currentWeekStart = newWeekStart;
+      _selectedDate = newSelectedDate;
     });
+
+    // Load new month data if month changed
+    if (_selectedDate.month != newSelectedDate.month ||
+        _selectedDate.year != newSelectedDate.year) {
+      _loadMonthData();
+    }
+
     widget.onDateSelected(_selectedDate);
   }
 
@@ -222,133 +330,108 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
       _selectedDate = today;
       _currentWeekStart = _getWeekStart(today);
     });
+
+    // Load current month data
+    _loadMonthData();
     widget.onDateSelected(_selectedDate);
   }
 
-  /// Get dates with available shifts (mock data - replace with real data)
+  /// Get dates with available shifts from real data
+  /// Shows ALL days in the week (since shifts are available every day)
   Set<DateTime> _getDatesWithShifts() {
-    // TODO: Replace with real data from providers
-    return {
-      _currentWeekStart.add(const Duration(days: 1)), // Tuesday
-      _currentWeekStart.add(const Duration(days: 2)), // Wednesday
-      _currentWeekStart.add(const Duration(days: 3)), // Thursday
-      _currentWeekStart.add(const Duration(days: 4)), // Friday
-      _currentWeekStart.add(const Duration(days: 5)), // Saturday
-    };
+    if (widget.selectedStoreId == null) return {};
+
+    // Get shift metadata to check if store has active shifts
+    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+    if (!metadataAsync.hasValue || metadataAsync.value == null) return {};
+
+    final metadata = metadataAsync.value!;
+
+    // If no active shifts configured, show nothing
+    if (metadata.activeShifts.isEmpty) return {};
+
+    // Show all 7 days of the week (shifts are available every day)
+    final dateSet = <DateTime>{};
+    for (int i = 0; i < 7; i++) {
+      final date = _currentWeekStart.add(Duration(days: i));
+      dateSet.add(DateTime(date.year, date.month, date.day));
+    }
+
+    return dateSet;
   }
 
-  /// Initialize shifts with mock data
-  List<ShiftData> _initializeShifts() {
-    // TODO: Replace with real data from providers
-    return [
-      // Morning shift
-      ShiftData(
-        name: 'Morning',
-        startTime: '09:00',
-        endTime: '13:00',
-        assignedCount: 2,
-        maxCapacity: 4,
-        assignedEmployees: [
-          Employee(
-            name: 'John Doe',
-            avatarUrl: 'https://i.pravatar.cc/150?img=1',
-          ),
-          Employee(
-            name: 'Jane Smith',
-            avatarUrl: 'https://i.pravatar.cc/150?img=2',
-          ),
-        ],
-        applicants: [
-          Employee(
-            name: 'Alex Rivera',
-            avatarUrl: 'https://i.pravatar.cc/150?img=3',
-          ),
-          Employee(
-            name: 'Jamie Lee',
-            avatarUrl: 'https://i.pravatar.cc/150?img=4',
-          ),
-          Employee(
-            name: 'Taylor Kim',
-            avatarUrl: 'https://i.pravatar.cc/150?img=5',
-          ),
-        ],
-        waitlist: [],
-      ),
-
-      // Afternoon shift
-      ShiftData(
-        name: 'Afternoon',
-        startTime: '13:00',
-        endTime: '17:00',
-        assignedCount: 4,
-        maxCapacity: 4,
-        assignedEmployees: [
-          Employee(
-            name: 'John Doe',
-            avatarUrl: 'https://i.pravatar.cc/150?img=1',
-          ),
-          Employee(
-            name: 'Jane Smith',
-            avatarUrl: 'https://i.pravatar.cc/150?img=2',
-          ),
-          Employee(
-            name: 'Alex Rivera',
-            avatarUrl: 'https://i.pravatar.cc/150?img=3',
-          ),
-          Employee(
-            name: 'Jamie Lee',
-            avatarUrl: 'https://i.pravatar.cc/150?img=4',
-          ),
-        ],
-        applicants: [],
-        waitlist: [
-          Employee(
-            name: 'Morgan Chen',
-            avatarUrl: 'https://i.pravatar.cc/150?img=6',
-          ),
-          Employee(
-            name: 'Sam Patel',
-            avatarUrl: 'https://i.pravatar.cc/150?img=7',
-          ),
-        ],
-      ),
-    ];
-  }
-
-  /// Get shifts for selected date
+  /// Get shifts for selected date from real data
+  /// Combines shift metadata (available shifts) with shift cards (requests)
   List<ShiftData> _getShiftsForSelectedDate() {
-    return _shifts;
+    if (widget.selectedStoreId == null) return [];
+
+    // Get shift metadata (available shifts)
+    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+
+    // Return empty if metadata still loading
+    if (!metadataAsync.hasValue || metadataAsync.value == null) return [];
+
+    final metadata = metadataAsync.value!;
+    final activeShifts = metadata.activeShifts;
+
+    // Get shift cards (actual requests)
+    final cardsState = ref.watch(managerCardsProvider(widget.selectedStoreId!));
+    final monthKey = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}';
+    final monthData = cardsState.dataByMonth[monthKey];
+
+    // Get cards for selected date
+    final selectedDateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final cardsForDate = monthData?.getCardsByDate(selectedDateStr) ?? [];
+
+    // Group cards by shift ID
+    final cardsMap = <String, List<ShiftCard>>{};
+    for (final card in cardsForDate) {
+      cardsMap.putIfAbsent(card.shift.shiftId, () => []).add(card);
+    }
+
+    // Create ShiftData for ALL active shifts (whether they have requests or not)
+    return activeShifts.map((shiftMeta) {
+      final cardsForShift = cardsMap[shiftMeta.shiftId] ?? [];
+
+      // Separate approved and pending employees
+      final assignedEmployees = cardsForShift
+          .where((c) => c.isApproved)
+          .map((c) => Employee(
+                id: c.employee.userId,
+                name: c.employee.userName,
+                avatarUrl: c.employee.profileImage ?? '',
+              ))
+          .toList();
+
+      final applicants = cardsForShift
+          .where((c) => !c.isApproved)
+          .map((c) => Employee(
+                id: c.employee.userId,
+                name: c.employee.userName,
+                avatarUrl: c.employee.profileImage ?? '',
+              ))
+          .toList();
+
+      return ShiftData(
+        id: shiftMeta.shiftId,
+        name: shiftMeta.shiftName,
+        startTime: shiftMeta.startTime,
+        endTime: shiftMeta.endTime,
+        assignedCount: assignedEmployees.length,
+        maxCapacity: shiftMeta.targetCount,
+        assignedEmployees: assignedEmployees,
+        applicants: applicants,
+        waitlist: [], // No waitlist in current domain model
+      );
+    }).toList();
   }
 
   /// Handle approve action
   void _handleApprove(Employee employee) {
-    setState(() {
-      // Find the shift containing this employee in applicants
-      for (var i = 0; i < _shifts.length; i++) {
-        final shift = _shifts[i];
-        final applicantIndex = shift.applicants.indexWhere((e) => e.id == employee.id);
-        if (applicantIndex != -1) {
-          // Create updated lists
-          final updatedApplicants = List<Employee>.from(shift.applicants)
-            ..removeAt(applicantIndex);
-          final updatedAssigned = List<Employee>.from(shift.assignedEmployees)
-            ..add(employee);
-
-          // Replace shift with updated version
-          _shifts[i] = shift.copyWith(
-            applicants: updatedApplicants,
-            assignedEmployees: updatedAssigned,
-            assignedCount: shift.assignedCount + 1,
-          );
-          break;
-        }
-      }
-    });
-
-    // Show success message
+    // TODO: Implement real approval logic with backend API
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('✓ ${employee.name} approved'),
+        content: Text('✓ ${employee.name} approved (API integration needed)'),
         duration: const Duration(milliseconds: 1500),
         backgroundColor: TossColors.success,
         behavior: SnackBarBehavior.floating,
@@ -358,33 +441,10 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Handle overbook action
   void _handleOverbook(Employee employee) {
-    setState(() {
-      // Find the shift containing this employee in waitlist
-      for (var i = 0; i < _shifts.length; i++) {
-        final shift = _shifts[i];
-        final waitlistIndex = shift.waitlist.indexWhere((e) => e.id == employee.id);
-        if (waitlistIndex != -1) {
-          // Create updated lists
-          final updatedWaitlist = List<Employee>.from(shift.waitlist)
-            ..removeAt(waitlistIndex);
-          final updatedAssigned = List<Employee>.from(shift.assignedEmployees)
-            ..add(employee);
-
-          // Replace shift with updated version
-          _shifts[i] = shift.copyWith(
-            waitlist: updatedWaitlist,
-            assignedEmployees: updatedAssigned,
-            assignedCount: shift.assignedCount + 1,
-          );
-          break;
-        }
-      }
-    });
-
-    // Show success message
+    // TODO: Implement real overbook logic with backend API
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('✓ ${employee.name} overbooked'),
+        content: Text('✓ ${employee.name} overbooked (API integration needed)'),
         duration: const Duration(milliseconds: 1500),
         backgroundColor: TossColors.primary,
         behavior: SnackBarBehavior.floating,
@@ -394,30 +454,10 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Handle remove from shift action
   void _handleRemove(Employee employee) {
-    setState(() {
-      // Find the shift containing this employee in assigned employees
-      for (var i = 0; i < _shifts.length; i++) {
-        final shift = _shifts[i];
-        final assignedIndex = shift.assignedEmployees.indexWhere((e) => e.id == employee.id);
-        if (assignedIndex != -1) {
-          // Create updated list with employee removed
-          final updatedAssigned = List<Employee>.from(shift.assignedEmployees)
-            ..removeAt(assignedIndex);
-
-          // Replace shift with updated version
-          _shifts[i] = shift.copyWith(
-            assignedEmployees: updatedAssigned,
-            assignedCount: shift.assignedCount - 1,
-          );
-          break;
-        }
-      }
-    });
-
-    // Show success message
+    // TODO: Implement real remove logic with backend API
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('✓ ${employee.name} removed from shift'),
+        content: Text('✓ ${employee.name} removed (API integration needed)'),
         duration: const Duration(milliseconds: 1500),
         backgroundColor: TossColors.gray700,
         behavior: SnackBarBehavior.floating,

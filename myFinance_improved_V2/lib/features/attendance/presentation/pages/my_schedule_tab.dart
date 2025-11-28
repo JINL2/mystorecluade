@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/toss/toss_today_shift_card.dart';
 import '../../../../shared/widgets/toss/toss_week_shift_card.dart';
 import '../../domain/entities/shift_card.dart';
 import '../providers/attendance_providers.dart';
@@ -141,41 +142,83 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     setState(() => _selectedDate = date);
   }
 
-  // Find the closest upcoming shift across all dates
-  // This ensures both week and month views highlight the same shift
+  // Find the closest/current shift within the displayed week
+  // Priority: Current ongoing shift > Next upcoming shift > Last shift in week
   DateTime? _findClosestUpcomingShift() {
     final now = DateTime.now();
-    DateTime? closestDate;
+    final today = DateTime(now.year, now.month, now.day);
 
-    // Check current week range
+    DateTime? closestUpcoming;
+    DateTime? lastInWeek;
+
+    // Check current week range only
     final weekRange = _weekRange;
     for (int i = 0; i < 7; i++) {
       final date = weekRange.start.add(Duration(days: i));
+      final dateOnly = DateTime(date.year, date.month, date.day);
+
       // Mock logic: shifts on even days (matching _buildMockWeekShifts)
-      if (i % 2 == 0 && date.isAfter(now)) {
-        if (closestDate == null || date.isBefore(closestDate)) {
-          closestDate = date;
+      if (i % 2 == 0) {
+        lastInWeek = date; // Track last shift in week
+
+        // Check if this is today (current/ongoing shift)
+        if (_isSameDay(dateOnly, today)) {
+          return date; // Current shift has highest priority
+        }
+
+        // Check if this is upcoming (after today)
+        if (dateOnly.isAfter(today)) {
+          if (closestUpcoming == null || date.isBefore(closestUpcoming)) {
+            closestUpcoming = date;
+          }
         }
       }
     }
 
-    // Also check current month for month view
-    final daysInMonth = _getDaysInMonth();
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_currentMonth.year, _currentMonth.month, day);
-      // Mock logic: shifts on weekdays (matching _buildMockShiftsInMonth)
-      if (date.weekday <= 5 && date.isAfter(now)) {
-        if (closestDate == null || date.isBefore(closestDate)) {
-          closestDate = date;
-        }
-      }
-    }
-
-    return closestDate;
+    // Return closest upcoming, or last shift if all are past
+    return closestUpcoming ?? lastInWeek;
   }
 
   int _getDaysInMonth() {
     return DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+  }
+
+  // Get today's shift or closest upcoming shift for the header card
+  Map<String, dynamic> _getTodayShiftData() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekRange = _getWeekRange(now);
+
+    // Check if today has a shift
+    for (int i = 0; i < 7; i++) {
+      final date = weekRange.start.add(Duration(days: i));
+      if (_isSameDay(date, today) && i % 2 == 0) {
+        // Today has a shift - return it
+        return {
+          'shiftType': i % 4 == 0 ? 'Morning' : 'Evening',
+          'timeRange': i % 4 == 0 ? '09:00 - 17:00' : '14:00 - 22:00',
+          'status': ShiftStatus.onTime,
+        };
+      }
+    }
+
+    // No shift today - find closest upcoming shift
+    final closestDate = _findClosestUpcomingShift();
+    if (closestDate != null) {
+      final dayIndex = closestDate.difference(weekRange.start).inDays;
+      return {
+        'shiftType': dayIndex % 4 == 0 ? 'Morning' : 'Evening',
+        'timeRange': dayIndex % 4 == 0 ? '09:00 - 17:00' : '14:00 - 22:00',
+        'status': ShiftStatus.onTime,
+      };
+    }
+
+    // Fallback to default
+    return {
+      'shiftType': 'Morning',
+      'timeRange': '09:00 - 17:00',
+      'status': ShiftStatus.onTime,
+    };
   }
 
   @override
@@ -187,6 +230,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
   Widget _buildWeekView() {
     final weekRange = _weekRange;
+    final todayShift = _getTodayShiftData();
 
     return SingleChildScrollView(
       child: Padding(
@@ -198,6 +242,10 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
             ScheduleHeader(
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
+              shiftType: todayShift['shiftType'] as String,
+              timeRange: todayShift['timeRange'] as String,
+              location: 'Downtown Store',
+              status: todayShift['status'] as ShiftStatus,
               onCheckIn: () {
                 // TODO: Implement check-in
               },
@@ -223,6 +271,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   }
 
   Widget _buildMonthView() {
+    final todayShift = _getTodayShiftData();
+
     return SingleChildScrollView(
       controller: _monthScrollController,
       child: Padding(
@@ -234,6 +284,10 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
             ScheduleHeader(
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
+              shiftType: todayShift['shiftType'] as String,
+              timeRange: todayShift['timeRange'] as String,
+              location: 'Downtown Store',
+              status: todayShift['status'] as ShiftStatus,
               onCheckIn: () {
                 // TODO: Implement check-in
               },
