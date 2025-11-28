@@ -10,6 +10,8 @@ import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { SelectModal } from '@/shared/components/common/SelectModal';
+import type { SelectOption } from '@/shared/components/common/SelectModal';
 import { useSalary } from '../../hooks/useSalary';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SalaryPageProps } from './SalaryPage.types';
@@ -21,6 +23,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'monthly' | 'hourly' | 'problems' | 'overtime'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Use app state's currentStore for selected store
   const selectedStoreId = currentStore?.store_id || null;
@@ -104,6 +107,54 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
       .join('')
       .toUpperCase()
       .slice(0, 2) || '??';
+  };
+
+  // Handle export option selection
+  const handleExportSelect = (value: string) => {
+    setShowExportModal(false);
+    const companyName = currentCompany?.company_name || 'Company';
+
+    if (value === 'store') {
+      // Export selected store only
+      const storeName = currentStore?.store_name || 'Store';
+      exportToExcel(selectedStoreId, companyName, storeName);
+    } else {
+      // Export entire company (null storeId)
+      exportToExcel(null, companyName, 'AllStores');
+    }
+  };
+
+  // Build export options for SelectModal
+  const buildExportOptions = (): SelectOption[] => {
+    const options: SelectOption[] = [];
+
+    // Only show "Selected Store" option if a store is selected
+    if (selectedStoreId && currentStore) {
+      options.push({
+        value: 'store',
+        label: 'Selected Store Only',
+        description: `Export data for "${currentStore.store_name}" only`,
+        icon: (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A2.25,2.25 0 0,1 14.25,11A2.25,2.25 0 0,1 12,13.25A2.25,2.25 0 0,1 9.75,11A2.25,2.25 0 0,1 12,8.75M12,15C13.5,15 16.5,15.75 16.5,17.25V18H7.5V17.25C7.5,15.75 10.5,15 12,15Z" />
+          </svg>
+        ),
+      });
+    }
+
+    // Always show "Entire Company" option
+    options.push({
+      value: 'company',
+      label: 'Entire Company',
+      description: 'Export data for all stores in the company',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18,15H16V17H18M18,11H16V13H18M20,19H12V17H14V15H12V13H14V11H12V9H20M10,7H8V5H10M10,11H8V9H10M10,15H8V13H10M10,19H8V17H10M6,7H4V5H6M6,11H4V9H6M6,15H4V13H6M6,19H4V17H6M12,7V3H2V21H22V7H12Z" />
+        </svg>
+      ),
+    });
+
+    return options;
   };
 
   // Show loading if no company selected yet
@@ -202,15 +253,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               {/* Export Excel Button */}
               <button
                 className={styles.exportExcelBtn}
-                onClick={() => {
-                  const companyName = currentCompany?.company_name || 'Company';
-                  let storeName = 'AllStores';
-                  if (selectedStore) {
-                    const store = stores.find((s) => s.store_id === selectedStore);
-                    storeName = store?.store_name || 'Store';
-                  }
-                  exportToExcel(selectedStore, companyName, storeName);
-                }}
+                onClick={() => setShowExportModal(true)}
                 disabled={exporting || records.length === 0}
               >
                 {exporting ? (
@@ -436,6 +479,18 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               ))}
             </div>
           )}
+
+          {/* Export Excel Modal */}
+          <SelectModal
+            isOpen={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            onSelect={handleExportSelect}
+            title="Export Excel"
+            message="Select the scope of data to export"
+            options={buildExportOptions()}
+            cancelText="Cancel"
+            isLoading={exporting}
+          />
 
           {/* Error Message Modal */}
           {notification && (

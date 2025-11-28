@@ -88,6 +88,50 @@ export interface SalaryRawData {
   };
 }
 
+export interface SalaryExcelRow {
+  shift_request_id: string | null;
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  user_name: string;
+  user_email: string;
+  user_bank_name: string | null;
+  user_account_number: string | null;
+  store_name: string | null;
+  store_code: string | null;
+  request_date: string | null;
+  shift_name: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  actual_start_time: string | null;
+  actual_end_time: string | null;
+  confirm_start_time: string | null;
+  confirm_end_time: string | null;
+  scheduled_hours: number | null;
+  actual_worked_hours: number | null;
+  paid_hours: number | null;
+  is_late: boolean | null;
+  late_minutes: number | null;
+  late_deduction_krw: number | null;
+  is_extratime: boolean | null;
+  overtime_minutes: number | null;
+  overtime_amount: number | null;
+  salary_type: string | null;
+  salary_amount: number | null;
+  bonus_amount: number | null;
+  total_salary_pay: number | null;
+  total_pay_with_bonus: number | null;
+  is_approved: boolean | null;
+  is_problem: boolean | null;
+  problem_type: string | null;
+  report_reason: string | null;
+  is_summary: boolean;
+  total_shift_count: number | null;
+  late_count: number | null;
+  extratime_count: number | null;
+  problem_count: number | null;
+}
+
 export class SalaryDataSource {
   /**
    * Get user's timezone
@@ -109,7 +153,8 @@ export class SalaryDataSource {
       const supabase = supabaseService.getClient();
       const timezone = this.getUserTimezone();
 
-      const { data, error } = await supabase.rpc('get_employee_salary_v2', {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.rpc as any)('get_employee_salary_v2', {
         p_company_id: companyId,
         p_month: month,
         p_timezone: timezone,
@@ -147,17 +192,23 @@ export class SalaryDataSource {
    * Export salary data to Excel via RPC
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store ID filter
    */
   async exportToExcel(
     companyId: string,
-    month: string
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    month: string,
+    storeId?: string | null
+  ): Promise<{ success: boolean; data?: SalaryExcelRow[]; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
+      const timezone = this.getUserTimezone();
 
-      const { data, error } = await supabase.rpc('get_employee_salary_excel', {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.rpc as any)('get_employee_salary_excel_v2', {
         p_company_id: companyId,
-        p_request_month: month,
+        p_month: month,
+        p_timezone: timezone,
+        p_store_id: storeId ?? null,
       });
 
       if (error) {
@@ -170,7 +221,7 @@ export class SalaryDataSource {
 
       return {
         success: true,
-        data,
+        data: data as SalaryExcelRow[],
       };
     } catch (error) {
       console.error('Salary Excel export error:', error);

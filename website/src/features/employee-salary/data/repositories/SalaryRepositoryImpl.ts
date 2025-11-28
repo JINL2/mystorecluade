@@ -48,7 +48,7 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
   async exportToExcel(
     companyId: string,
     month: string,
-    _storeId: string | null = null, // TODO: Use storeId for filtering in future
+    storeId: string | null = null,
     companyName: string = 'Company',
     storeName: string = 'AllStores'
   ): Promise<SalaryExportResult> {
@@ -56,8 +56,8 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
       // Import ExcelJS dynamically
       const ExcelJS = await import('exceljs');
 
-      // Call RPC to get shift records
-      const result = await this.dataSource.exportToExcel(companyId, month);
+      // Call RPC to get shift records (pass storeId for filtering)
+      const result = await this.dataSource.exportToExcel(companyId, month, storeId);
 
       if (!result.success || !result.data) {
         return {
@@ -77,16 +77,24 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
 
       console.log(`Excel export data received: ${data.length} shift records`);
 
-      // Process data for Excel - All 31 columns as per RPC
+      // Process data for Excel - All columns as per RPC v2
       const processedData = data.map((row) => ({
-        shift_request_id: row.shift_request_id || '',
+        // Row type indicator
+        is_summary: row.is_summary ? 'SUMMARY' : '',
+        // User info
         user_id: row.user_id || '',
         first_name: row.first_name || '',
         last_name: row.last_name || '',
         user_name: row.user_name || '',
         user_email: row.user_email || '',
+        // Bank info (new in v2)
+        user_bank_name: row.user_bank_name || '',
+        user_account_number: row.user_account_number || '',
+        // Store info
         store_name: row.store_name || '',
         store_code: row.store_code || '',
+        // Shift info
+        shift_request_id: row.shift_request_id || '',
         request_date: row.request_date
           ? DateTimeUtils.formatDateOnly(DateTimeUtils.toLocal(row.request_date))
           : '',
@@ -109,78 +117,105 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         confirm_end_time: row.confirm_end_time
           ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_end_time))
           : '',
+        // Hours
         scheduled_hours: row.scheduled_hours || 0,
         actual_worked_hours: row.actual_worked_hours || 0,
         paid_hours: row.paid_hours || 0,
-        is_late: row.is_late ? 'Yes' : 'No',
+        // Late info
+        is_late: row.is_late ? 'Yes' : row.is_late === false ? 'No' : '',
         late_minutes: row.late_minutes || 0,
         late_deduction_krw: row.late_deduction_krw || 0,
-        is_extratime: row.is_extratime ? 'Yes' : 'No',
+        // Overtime info
+        is_extratime: row.is_extratime ? 'Yes' : row.is_extratime === false ? 'No' : '',
         overtime_minutes: row.overtime_minutes || 0,
         overtime_amount: row.overtime_amount || 0,
+        // Salary info
         salary_type: row.salary_type || '',
         salary_amount: row.salary_amount || 0,
         bonus_amount: row.bonus_amount || 0,
         total_salary_pay: row.total_salary_pay || 0,
         total_pay_with_bonus: row.total_pay_with_bonus || 0,
-        is_approved: row.is_approved ? 'Yes' : 'No',
-        is_problem: row.is_problem ? 'Yes' : 'No',
+        // Status
+        is_approved: row.is_approved ? 'Yes' : row.is_approved === false ? 'No' : '',
+        is_problem: row.is_problem ? 'Yes' : row.is_problem === false ? 'No' : '',
         problem_type: row.problem_type || '',
         report_reason: row.report_reason || '',
+        // Summary stats (new in v2) - only for summary rows
+        total_shift_count: row.total_shift_count || '',
+        late_count: row.late_count || '',
+        extratime_count: row.extratime_count || '',
+        problem_count: row.problem_count || '',
       }));
 
       // Create workbook and worksheet
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Shift Records');
 
-      // Define columns
+      // Define columns (updated for RPC v2)
       worksheet.columns = [
-        { header: 'shift_request_id', key: 'shift_request_id', width: 36 },
-        { header: 'user_id', key: 'user_id', width: 36 },
-        { header: 'first_name', key: 'first_name', width: 15 },
-        { header: 'last_name', key: 'last_name', width: 15 },
-        { header: 'user_name', key: 'user_name', width: 20 },
-        { header: 'user_email', key: 'user_email', width: 25 },
-        { header: 'store_name', key: 'store_name', width: 20 },
-        { header: 'store_code', key: 'store_code', width: 12 },
-        { header: 'request_date', key: 'request_date', width: 12 },
-        { header: 'shift_name', key: 'shift_name', width: 15 },
-        { header: 'start_time', key: 'start_time', width: 18 },
-        { header: 'end_time', key: 'end_time', width: 18 },
-        { header: 'actual_start_time', key: 'actual_start_time', width: 18 },
-        { header: 'actual_end_time', key: 'actual_end_time', width: 18 },
-        { header: 'confirm_start_time', key: 'confirm_start_time', width: 18 },
-        { header: 'confirm_end_time', key: 'confirm_end_time', width: 18 },
-        { header: 'scheduled_hours', key: 'scheduled_hours', width: 14 },
-        { header: 'actual_worked_hours', key: 'actual_worked_hours', width: 16 },
-        { header: 'paid_hours', key: 'paid_hours', width: 12 },
-        { header: 'is_late', key: 'is_late', width: 8 },
-        { header: 'late_minutes', key: 'late_minutes', width: 12 },
-        { header: 'late_deduction_krw', key: 'late_deduction_krw', width: 16 },
-        { header: 'is_extratime', key: 'is_extratime', width: 10 },
-        { header: 'overtime_minutes', key: 'overtime_minutes', width: 15 },
-        { header: 'overtime_amount', key: 'overtime_amount', width: 15 },
-        { header: 'salary_type', key: 'salary_type', width: 12 },
-        { header: 'salary_amount', key: 'salary_amount', width: 15 },
-        { header: 'bonus_amount', key: 'bonus_amount', width: 15 },
-        { header: 'total_salary_pay', key: 'total_salary_pay', width: 16 },
-        { header: 'total_pay_with_bonus', key: 'total_pay_with_bonus', width: 18 },
-        { header: 'is_approved', key: 'is_approved', width: 12 },
-        { header: 'is_problem', key: 'is_problem', width: 12 },
-        { header: 'problem_type', key: 'problem_type', width: 15 },
-        { header: 'report_reason', key: 'report_reason', width: 20 },
+        { header: 'Row Type', key: 'is_summary', width: 10 },
+        { header: 'User ID', key: 'user_id', width: 36 },
+        { header: 'First Name', key: 'first_name', width: 15 },
+        { header: 'Last Name', key: 'last_name', width: 15 },
+        { header: 'User Name', key: 'user_name', width: 20 },
+        { header: 'Email', key: 'user_email', width: 25 },
+        { header: 'Store Name', key: 'store_name', width: 20 },
+        { header: 'Store Code', key: 'store_code', width: 12 },
+        { header: 'Shift ID', key: 'shift_request_id', width: 36 },
+        { header: 'Date', key: 'request_date', width: 12 },
+        { header: 'Shift Name', key: 'shift_name', width: 15 },
+        { header: 'Start Time', key: 'start_time', width: 18 },
+        { header: 'End Time', key: 'end_time', width: 18 },
+        { header: 'Actual Start', key: 'actual_start_time', width: 18 },
+        { header: 'Actual End', key: 'actual_end_time', width: 18 },
+        { header: 'Confirm Start', key: 'confirm_start_time', width: 18 },
+        { header: 'Confirm End', key: 'confirm_end_time', width: 18 },
+        { header: 'Scheduled Hours', key: 'scheduled_hours', width: 14 },
+        { header: 'Actual Hours', key: 'actual_worked_hours', width: 14 },
+        { header: 'Paid Hours', key: 'paid_hours', width: 12 },
+        { header: 'Is Late', key: 'is_late', width: 8 },
+        { header: 'Late Minutes', key: 'late_minutes', width: 12 },
+        { header: 'Late Deduction', key: 'late_deduction_krw', width: 14 },
+        { header: 'Is Overtime', key: 'is_extratime', width: 10 },
+        { header: 'OT Minutes', key: 'overtime_minutes', width: 12 },
+        { header: 'OT Amount', key: 'overtime_amount', width: 12 },
+        { header: 'Salary Type', key: 'salary_type', width: 12 },
+        { header: 'Salary Amount', key: 'salary_amount', width: 14 },
+        { header: 'Bonus', key: 'bonus_amount', width: 12 },
+        { header: 'Total Pay', key: 'total_salary_pay', width: 14 },
+        { header: 'Total w/ Bonus', key: 'total_pay_with_bonus', width: 14 },
+        { header: 'Bank Name', key: 'user_bank_name', width: 20 },
+        { header: 'Account Number', key: 'user_account_number', width: 20 },
+        { header: 'Approved', key: 'is_approved', width: 10 },
+        { header: 'Has Problem', key: 'is_problem', width: 10 },
+        { header: 'Problem Type', key: 'problem_type', width: 15 },
+        { header: 'Report Reason', key: 'report_reason', width: 20 },
+        { header: 'Shift Count', key: 'total_shift_count', width: 12 },
+        { header: 'Late Count', key: 'late_count', width: 10 },
+        { header: 'OT Count', key: 'extratime_count', width: 10 },
+        { header: 'Problem Count', key: 'problem_count', width: 12 },
       ];
 
-      // Add data rows
-      processedData.forEach((row) => {
-        worksheet.addRow(row);
+      // Add data rows and track summary row indices
+      const summaryRowIndices: number[] = [];
+      processedData.forEach((row, index) => {
+        const excelRow = worksheet.addRow(row);
+        // Track summary rows (index + 2 because row 1 is header)
+        if (row.is_summary === 'SUMMARY') {
+          summaryRowIndices.push(index + 2);
+        }
       });
+
+      // Find the column index for "Total w/ Bonus" (1-based)
+      const totalWithBonusColIndex = worksheet.columns.findIndex(
+        (col) => col.key === 'total_pay_with_bonus'
+      ) + 1;
 
       // Style header row
       const headerRow = worksheet.getRow(1);
       headerRow.font = {
         name: 'Arial',
-        size: 18,
+        size: 11,
         bold: true,
       };
       headerRow.alignment = {
@@ -188,7 +223,7 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         horizontal: 'center',
         wrapText: false,
       };
-      headerRow.height = 30;
+      headerRow.height = 25;
 
       // Add thick bottom border to header cells
       headerRow.eachCell({ includeEmpty: false }, (cell) => {
@@ -200,6 +235,90 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
           pattern: 'solid',
           fgColor: { argb: 'FFF2F2F2' },
         };
+      });
+
+      // Style "Total w/ Bonus" header cell with highlight
+      if (totalWithBonusColIndex > 0) {
+        const totalBonusHeaderCell = headerRow.getCell(totalWithBonusColIndex);
+        totalBonusHeaderCell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF4472C4' }, // Blue background
+        };
+        totalBonusHeaderCell.font = {
+          name: 'Arial',
+          size: 11,
+          bold: true,
+          color: { argb: 'FFFFFFFF' }, // White text
+        };
+      }
+
+      // Style "Total w/ Bonus" column cells (highlight entire column)
+      if (totalWithBonusColIndex > 0) {
+        for (let rowNum = 2; rowNum <= worksheet.rowCount; rowNum++) {
+          const cell = worksheet.getRow(rowNum).getCell(totalWithBonusColIndex);
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD6E3F8' }, // Light blue background
+          };
+          cell.font = {
+            name: 'Arial',
+            size: 10,
+            bold: true,
+          };
+        }
+      }
+
+      // Style summary rows (employee totals)
+      summaryRowIndices.forEach((rowNum) => {
+        const row = worksheet.getRow(rowNum);
+        row.height = 22;
+        row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          cell.font = {
+            name: 'Arial',
+            size: 15,
+            bold: true,
+          };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFF2CC' }, // Light yellow background
+          };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD4A500' } },
+            bottom: { style: 'thin', color: { argb: 'FFD4A500' } },
+          };
+          // Extra highlight for Total w/ Bonus in summary rows
+          if (colNumber === totalWithBonusColIndex) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FF4472C4' }, // Blue background
+            };
+            cell.font = {
+              name: 'Arial',
+              size: 15,
+              bold: true,
+              color: { argb: 'FFFFFFFF' }, // White text
+            };
+          }
+        });
+      });
+
+      // Auto-fit column widths based on content
+      worksheet.columns.forEach((column) => {
+        if (!column.eachCell) return;
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const cellValue = cell.value ? cell.value.toString() : '';
+          const cellLength = cellValue.length;
+          if (cellLength > maxLength) {
+            maxLength = cellLength;
+          }
+        });
+        // Set width with padding, minimum 10, maximum 50
+        column.width = Math.min(Math.max(maxLength + 2, 10), 50);
       });
 
       // Generate filename
