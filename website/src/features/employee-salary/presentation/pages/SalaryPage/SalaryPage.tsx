@@ -41,7 +41,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     goToPreviousMonth,
     goToNextMonth,
     exportToExcel,
-  } = useSalary(companyId, initialMonth);
+  } = useSalary(companyId, initialMonth, selectedStoreId);
 
   // Format month display (e.g., "2025-11")
   const formatMonthDisplay = (month: string): string => {
@@ -400,11 +400,11 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                     <div className={styles.employeeQuickStats}>
                       <div className={styles.quickStat}>
                         <span className={styles.quickStatLabel}>Late:</span>
-                        <span className={styles.quickStatValue}>0 times</span>
+                        <span className={styles.quickStatValue}>{record.lateCount} times</span>
                       </div>
                       <div className={styles.quickStat}>
                         <span className={styles.quickStatLabel}>Overtime:</span>
-                        <span className={styles.quickStatValue}>0 hours</span>
+                        <span className={styles.quickStatValue}>{record.overtimeCount} times</span>
                       </div>
                       <div className={styles.quickStat}>
                         <span className={styles.quickStatLabel}>Bonus:</span>
@@ -435,7 +435,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                             </div>
                             <div className={styles.breakdownRow}>
                               <span className={styles.breakdownLabel}>Overtime Payment</span>
-                              <span className={`${styles.breakdownValue} ${styles.positive}`}>+{record.currencySymbol}0</span>
+                              <span className={`${styles.breakdownValue} ${styles.positive}`}>+{record.formattedOvertimeAmount}</span>
                             </div>
                             <div className={styles.breakdownRow}>
                               <span className={styles.breakdownLabel}>Bonus</span>

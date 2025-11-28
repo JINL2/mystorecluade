@@ -144,10 +144,12 @@ export class SalaryDataSource {
    * Fetch salary data from Supabase RPC
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store ID filter
    */
   async getSalaryData(
     companyId: string,
-    month: string
+    month: string,
+    storeId?: string | null
   ): Promise<{ success: boolean; data?: SalaryRawData; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
@@ -158,6 +160,7 @@ export class SalaryDataSource {
         p_company_id: companyId,
         p_month: month,
         p_timezone: timezone,
+        p_store_id: storeId ?? null,
       });
 
       if (error) {

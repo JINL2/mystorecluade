@@ -19,9 +19,9 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
     this.dataSource = new SalaryDataSource();
   }
 
-  async getSalaryData(companyId: string, month: string): Promise<SalaryDataResult> {
+  async getSalaryData(companyId: string, month: string, storeId?: string | null): Promise<SalaryDataResult> {
     try {
-      const result = await this.dataSource.getSalaryData(companyId, month);
+      const result = await this.dataSource.getSalaryData(companyId, month, storeId);
 
       if (!result.success || !result.data) {
         return {

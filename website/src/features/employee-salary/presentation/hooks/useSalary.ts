@@ -11,7 +11,7 @@ import { useSalaryStore } from '../providers/salary_provider';
  * Custom hook for salary management
  * Wraps Zustand store and provides selected state/actions
  */
-export const useSalary = (companyId: string, initialMonth?: string) => {
+export const useSalary = (companyId: string, initialMonth?: string, storeId?: string | null) => {
   // Select only needed state to prevent unnecessary re-renders
   const records = useSalaryStore((state) => state.records);
   const summary = useSalaryStore((state) => state.summary);
@@ -46,12 +46,12 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
     }
   }, [initialMonth, setCurrentMonth]);
 
-  // Load salary data when companyId or currentMonth changes
+  // Load salary data when companyId, currentMonth, or storeId changes
   useEffect(() => {
     if (companyId && currentMonth) {
-      loadSalaryData(companyId, currentMonth);
+      loadSalaryData(companyId, currentMonth, storeId);
     }
-  }, [companyId, currentMonth, loadSalaryData]);
+  }, [companyId, currentMonth, storeId, loadSalaryData]);
 
   return {
     // State

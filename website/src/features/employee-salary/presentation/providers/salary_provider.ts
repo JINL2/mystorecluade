@@ -44,7 +44,7 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
 
   // ==================== Async Actions ====================
 
-  loadSalaryData: async (companyId: string, month: string): Promise<AsyncOperationResult> => {
+  loadSalaryData: async (companyId: string, month: string, storeId?: string | null): Promise<AsyncOperationResult> => {
     set({ loading: true, error: null });
 
     try {
@@ -62,7 +62,7 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
         return { success: false, error: errorMessages };
       }
 
-      const result = await repository.getSalaryData(companyId, month);
+      const result = await repository.getSalaryData(companyId, month, storeId);
 
       console.log('Salary Data Result:', result);
 
