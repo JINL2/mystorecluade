@@ -164,7 +164,6 @@ export class SalaryDataSource {
       });
 
       if (error) {
-        console.error('Salary RPC error:', error);
         return {
           success: false,
           error: error.message || 'Failed to fetch salary data',
@@ -183,7 +182,6 @@ export class SalaryDataSource {
         data: data as unknown as SalaryRawData,
       };
     } catch (error) {
-      console.error('Salary datasource error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -215,7 +213,6 @@ export class SalaryDataSource {
       });
 
       if (error) {
-        console.error('Salary Excel RPC error:', error);
         return {
           success: false,
           error: error.message || 'Failed to export salary data',
@@ -227,7 +224,6 @@ export class SalaryDataSource {
         data: data as SalaryExcelRow[],
       };
     } catch (error) {
-      console.error('Salary Excel export error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',

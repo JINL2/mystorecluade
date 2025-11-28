@@ -63,18 +63,10 @@ export class SalaryValidator {
       return errors;
     }
 
-    // Validate date is not in the future
+    // Date range validation (removed future month restriction - let API return empty data)
     const [year, monthNum] = month.split('-').map(Number);
     const inputDate = new Date(year, monthNum - 1, 1);
     const now = new Date();
-    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    if (inputDate > currentMonth) {
-      errors.push({
-        field: 'month',
-        message: 'Cannot query future months',
-      });
-    }
 
     // Validate date is not too old (e.g., max 5 years back)
     const fiveYearsAgo = new Date(now.getFullYear() - 5, now.getMonth(), 1);

@@ -75,8 +75,6 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         };
       }
 
-      console.log(`Excel export data received: ${data.length} shift records`);
-
       // Process data for Excel - All columns as per RPC v2
       const processedData = data.map((row) => ({
         // Row type indicator
@@ -339,7 +337,6 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         recordCount: data.length,
       };
     } catch (error) {
-      console.error('Export to Excel error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'An unexpected error occurred',

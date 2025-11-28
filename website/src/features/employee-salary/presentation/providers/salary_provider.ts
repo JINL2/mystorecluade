@@ -64,8 +64,6 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
 
       const result = await repository.getSalaryData(companyId, month, storeId);
 
-      console.log('Salary Data Result:', result);
-
       if (!result.success) {
         const errorMsg = result.error || 'Failed to load salary data';
         set({
@@ -76,14 +74,6 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
         return { success: false, error: errorMsg };
       }
 
-      console.log('Salary Records:', result.records);
-      if (result.records && result.records.length > 0) {
-        console.log('First Record:', result.records[0]);
-        console.log('Record fullName:', result.records[0].fullName);
-        console.log('Record totalSalary:', result.records[0].totalSalary);
-      }
-      console.log('Salary Summary:', result.summary);
-
       set({
         records: result.records || [],
         summary: result.summary || null,
@@ -92,7 +82,6 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
 
       return { success: true };
     } catch (err) {
-      console.error('Salary data error:', err);
       const errorMsg = err instanceof Error ? err.message : 'An unexpected error occurred';
       set({
         error: errorMsg,
@@ -202,13 +191,10 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
           excludeAcceptAllOption: true,
         });
 
-        console.log('File handle obtained successfully');
       } catch (err: any) {
         if (err && err.name === 'AbortError') {
-          console.log('User cancelled file selection');
           return { success: false, error: 'User cancelled' };
         }
-        console.log('Could not get file handle:', err?.name || 'Unknown error');
         // Continue with fallback
       }
     }
@@ -233,20 +219,17 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
       // If we have a file handle, use it
       if (fileHandle) {
         try {
-          console.log('Writing to pre-obtained file handle...');
           const writable = await fileHandle.createWritable();
           await writable.write(blob);
           await writable.close();
 
-          console.log(`Excel file saved successfully: ${filename}`);
           set({
             notification: {
               variant: 'success',
               message: `${result.recordCount || 0} shift records exported successfully to: ${filename}`,
             },
           });
-        } catch (error) {
-          console.error('Failed to write to file handle:', error);
+        } catch {
           // Fall back to traditional download
           fallbackDownload(blob, filename, set);
         }
@@ -256,7 +239,6 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
       }
       return { success: true };
     } catch (err) {
-      console.error('Export error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to export data';
       set({
         notification: {
@@ -299,8 +281,6 @@ const fallbackDownload = (blob: Blob, filename: string, set: any) => {
     URL.revokeObjectURL(url);
 
     setTimeout(() => {
-      const message = `📁 File "${filename}" is being saved to your browser's default download folder. To change download location, check your browser settings.`;
-      console.log(message);
       set({
         notification: {
           variant: 'success',
@@ -308,8 +288,7 @@ const fallbackDownload = (blob: Blob, filename: string, set: any) => {
         },
       });
     }, 1000);
-  } catch (error) {
-    console.error('Fallback download failed:', error);
+  } catch {
     set({
       notification: {
         variant: 'error',
