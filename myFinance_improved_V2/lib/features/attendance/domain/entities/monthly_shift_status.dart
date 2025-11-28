@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'monthly_shift_status.freezed.dart';
+part 'monthly_shift_status.g.dart';
 
 /// Monthly Shift Status Entity - Represents daily shift status
 ///
@@ -16,6 +17,10 @@ class MonthlyShiftStatus with _$MonthlyShiftStatus {
     @Default(0) int totalApproved,
     @Default([]) List<DailyShift> shifts,
   }) = _MonthlyShiftStatus;
+
+  /// JSON serialization support
+  factory MonthlyShiftStatus.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyShiftStatusFromJson(json);
 
   // ========================================
   // Business Logic Methods
@@ -64,6 +69,10 @@ class DailyShift with _$DailyShift {
     @Default([]) List<EmployeeStatus> approvedEmployees,
   }) = _DailyShift;
 
+  /// JSON serialization support
+  factory DailyShift.fromJson(Map<String, dynamic> json) =>
+      _$DailyShiftFromJson(json);
+
   /// Total employees in this shift
   int get totalEmployees => pendingEmployees.length + approvedEmployees.length;
 
@@ -87,4 +96,8 @@ class EmployeeStatus with _$EmployeeStatus {
     bool? isApproved,
     String? approvedBy,
   }) = _EmployeeStatus;
+
+  /// JSON serialization support
+  factory EmployeeStatus.fromJson(Map<String, dynamic> json) =>
+      _$EmployeeStatusFromJson(json);
 }

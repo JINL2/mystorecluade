@@ -9,9 +9,9 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
-import '../widgets/empty_state_screen.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
@@ -29,51 +29,72 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch user companies provider to ensure AppState is initialized
+    // Watch user companies provider - AsyncValue handles all states
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
-    // Wait for user companies to load before building UI
+    // Use AsyncValue.when to handle loading/error/data states cleanly
     return userCompaniesAsync.when(
       data: (userData) {
-        // Check if userData is null or has no companies
+        // ✅ If userData is null (logged out), show loading while GoRouter redirects
         if (userData == null) {
-          return EmptyStateScreen(
-            errorMessage: 'You haven\'t created or joined any company yet.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
+          return const Scaffold(
+            backgroundColor: TossColors.gray100,
+            body: TossLoadingView(
+              message: 'Logging out...',
+            ),
           );
         }
 
-        // Check if user has any companies
-        final companies = (userData['companies'] as List<dynamic>?) ?? [];
-        if (companies.isEmpty) {
-          return EmptyStateScreen(
-            errorMessage: 'You haven\'t created or joined any company yet.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
-          );
-        }
-
+        // If data loaded successfully, show homepage
         return _buildHomepage();
       },
-      loading: () => const Scaffold(
-        backgroundColor: TossColors.gray100,
-        body: Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
-        ),
-      ),
+      loading: () {
+        return const Scaffold(
+          backgroundColor: TossColors.gray100,
+          body: TossLoadingView(
+            message: 'Loading...',
+          ),
+        );
+      },
       error: (error, stack) {
-        // Check if it's a "no companies" error
-        final errorMessage = error.toString();
-        if (errorMessage.contains('No user companies data')) {
-          return EmptyStateScreen(
-            errorMessage: 'Unable to load your company information.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
-          );
-        }
-
-        // For other errors, show generic error screen with retry
-        return EmptyStateScreen(
-          errorMessage: 'Something went wrong: $errorMessage',
-          onRetry: () => ref.invalidate(userCompaniesProvider),
+        // Show error with retry button
+        return Scaffold(
+          backgroundColor: TossColors.gray100,
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(TossSpacing.space6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: TossColors.error,
+                  ),
+                  const SizedBox(height: TossSpacing.space4),
+                  Text(
+                    'Error loading data',
+                    style: TossTextStyles.h2.copyWith(
+                      color: TossColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    error.toString(),
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: TossSpacing.space6),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(userCompaniesProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -504,81 +525,29 @@ class _HomepageState extends ConsumerState<Homepage> {
     );
   }
 
-  /// Handle logout with enterprise-grade cleanup
+  /// Handle logout - Clean Riverpod pattern
   ///
-  /// Safe logout flow that prevents widget tree errors:
-  /// 1. Read all providers BEFORE starting logout
-  /// 2. Execute auth signOut (triggers GoRouter redirect)
-  /// 3. Let GoRouter handle navigation automatically
-  /// 4. NO manual pop() - let the menu close naturally during navigation
+  /// Let GoRouter handle redirect automatically via authState changes
   Future<void> _handleLogout() async {
     try {
-      // ✅ Read all providers BEFORE logout starts
-      // This prevents "Cannot use ref after dispose" errors
-      final authService = ref.read(authServiceProvider);
-      final appStateNotifier = ref.read(appStateProvider.notifier);
-
       if (!mounted) return;
 
-      // ✅ Save ScaffoldMessenger reference BEFORE async operations
-      final messenger = ScaffoldMessenger.of(context);
+      // Clear local cache
+      await ref.read(appStateProvider.notifier).clearLastSelection();
 
-      // Show loading indicator
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Text('Logging out...'),
-            ],
-          ),
-          backgroundColor: TossColors.primary,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      // Clear AppState
+      ref.read(appStateProvider.notifier).signOut();
 
-      // ✅ Small delay to show the loading message
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // ✅ Clear app state FIRST (before widget disposal)
-      // This must happen before authService.signOut() which triggers navigation
-      appStateNotifier.signOut();
-
-      // ✅ Execute auth logout
-      // This will:
-      // 1. Clear session
-      // 2. Sign out from Supabase
-      // 3. Invalidate providers
-      // 4. Trigger GoRouter redirect (auth state changes to null)
-      // 5. PopupMenu will close automatically during navigation
-      await authService.signOut();
-
-      // Note: Widget is disposed here due to GoRouter redirect
-      // PopupMenu closes automatically, no manual pop() needed
-      // This prevents "You have popped the last page" error
-
-      // ✅ Use saved messenger reference (safe even after dispose)
-      if (mounted) {
-        messenger.hideCurrentSnackBar();
-      }
+      // SignOut (authState becomes null → GoRouter auto-redirects)
+      await ref.read(authServiceProvider).signOut();
 
       // GoRouter will automatically redirect to /auth/login
-      // No manual navigation needed!
 
     } catch (e) {
-      // ✅ Only show error if widget is still mounted
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Logout failed: $e'),
+            content: Text('Logout error: $e'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

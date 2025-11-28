@@ -147,6 +147,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
     state = state.copyWith(isLoading: isLoading);
   }
 
+  /// Set logging out state
+  void setLoggingOut(bool isLoggingOut) {
+    state = state.copyWith(isLoggingOut: isLoggingOut);
+  }
+
   /// Set error state
   void setError(String? error) {
     state = state.copyWith(error: error);

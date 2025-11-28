@@ -36,6 +36,7 @@ mixin _$AppState {
   bool get isOfflineMode =>
       throw _privateConstructorUsedError; // Loading States
   bool get isLoading => throw _privateConstructorUsedError;
+  bool get isLoggingOut => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
 
   /// Create a copy of AppState
@@ -65,6 +66,7 @@ abstract class $AppStateCopyWith<$Res> {
       String languageCode,
       bool isOfflineMode,
       bool isLoading,
+      bool isLoggingOut,
       String? error});
 }
 
@@ -97,6 +99,7 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
     Object? languageCode = null,
     Object? isOfflineMode = null,
     Object? isLoading = null,
+    Object? isLoggingOut = null,
     Object? error = freezed,
   }) {
     return _then(_value.copyWith(
@@ -156,6 +159,10 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
+      isLoggingOut: null == isLoggingOut
+          ? _value.isLoggingOut
+          : isLoggingOut // ignore: cast_nullable_to_non_nullable
+              as bool,
       error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
@@ -187,6 +194,7 @@ abstract class _$$AppStateImplCopyWith<$Res>
       String languageCode,
       bool isOfflineMode,
       bool isLoading,
+      bool isLoggingOut,
       String? error});
 }
 
@@ -217,6 +225,7 @@ class __$$AppStateImplCopyWithImpl<$Res>
     Object? languageCode = null,
     Object? isOfflineMode = null,
     Object? isLoading = null,
+    Object? isLoggingOut = null,
     Object? error = freezed,
   }) {
     return _then(_$AppStateImpl(
@@ -276,6 +285,10 @@ class __$$AppStateImplCopyWithImpl<$Res>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
+      isLoggingOut: null == isLoggingOut
+          ? _value.isLoggingOut
+          : isLoggingOut // ignore: cast_nullable_to_non_nullable
+              as bool,
       error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
@@ -302,6 +315,7 @@ class _$AppStateImpl implements _AppState {
       this.languageCode = 'en',
       this.isOfflineMode = false,
       this.isLoading = false,
+      this.isLoggingOut = false,
       this.error = null})
       : _user = user,
         _categoryFeatures = categoryFeatures,
@@ -379,11 +393,14 @@ class _$AppStateImpl implements _AppState {
   final bool isLoading;
   @override
   @JsonKey()
+  final bool isLoggingOut;
+  @override
+  @JsonKey()
   final String? error;
 
   @override
   String toString() {
-    return 'AppState(user: $user, userId: $userId, isAuthenticated: $isAuthenticated, companyChoosen: $companyChoosen, storeChoosen: $storeChoosen, companyName: $companyName, storeName: $storeName, categoryFeatures: $categoryFeatures, permissions: $permissions, hasAdminPermission: $hasAdminPermission, themeMode: $themeMode, languageCode: $languageCode, isOfflineMode: $isOfflineMode, isLoading: $isLoading, error: $error)';
+    return 'AppState(user: $user, userId: $userId, isAuthenticated: $isAuthenticated, companyChoosen: $companyChoosen, storeChoosen: $storeChoosen, companyName: $companyName, storeName: $storeName, categoryFeatures: $categoryFeatures, permissions: $permissions, hasAdminPermission: $hasAdminPermission, themeMode: $themeMode, languageCode: $languageCode, isOfflineMode: $isOfflineMode, isLoading: $isLoading, isLoggingOut: $isLoggingOut, error: $error)';
   }
 
   @override
@@ -417,6 +434,8 @@ class _$AppStateImpl implements _AppState {
                 other.isOfflineMode == isOfflineMode) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isLoggingOut, isLoggingOut) ||
+                other.isLoggingOut == isLoggingOut) &&
             (identical(other.error, error) || other.error == error));
   }
 
@@ -437,6 +456,7 @@ class _$AppStateImpl implements _AppState {
       languageCode,
       isOfflineMode,
       isLoading,
+      isLoggingOut,
       error);
 
   /// Create a copy of AppState
@@ -464,6 +484,7 @@ abstract class _AppState implements AppState {
       final String languageCode,
       final bool isOfflineMode,
       final bool isLoading,
+      final bool isLoggingOut,
       final String? error}) = _$AppStateImpl;
 
 // User Context
@@ -496,6 +517,8 @@ abstract class _AppState implements AppState {
   bool get isOfflineMode; // Loading States
   @override
   bool get isLoading;
+  @override
+  bool get isLoggingOut;
   @override
   String? get error;
 

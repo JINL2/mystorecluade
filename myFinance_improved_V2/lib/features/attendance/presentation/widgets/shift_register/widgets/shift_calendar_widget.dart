@@ -7,7 +7,6 @@ import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../domain/entities/monthly_shift_status.dart';
-import '../../../../data/models/monthly_shift_status_model.dart';
 
 /// Calendar grid widget showing monthly view with shift status indicators
 class ShiftCalendarWidget extends ConsumerWidget {
@@ -203,7 +202,8 @@ class ShiftCalendarWidget extends ConsumerWidget {
       final result = monthlyShiftStatus!.firstWhere(
         (dayData) => (dayData as MonthlyShiftStatus).requestDate == dateStr,
       ) as MonthlyShiftStatus;
-      return MonthlyShiftStatusModel.fromEntity(result).toJson();
+      // ✅ Clean Architecture: Use Entity's toJson() directly (no Data Model dependency)
+      return result.toJson();
     } catch (e) {
       return null;
     }

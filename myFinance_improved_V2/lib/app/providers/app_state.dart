@@ -47,6 +47,7 @@ class AppState with _$AppState {
 
     // Loading States
     @Default(false) bool isLoading,
+    @Default(false) bool isLoggingOut,
     @Default(null) String? error,
   }) = _AppState;
 
@@ -70,6 +71,7 @@ class AppState with _$AppState {
       languageCode: (legacyState['languageCode'] as String?) ?? 'en',
       isOfflineMode: (legacyState['isOfflineMode'] as bool?) ?? false,
       isLoading: (legacyState['isLoading'] as bool?) ?? false,
+      isLoggingOut: (legacyState['isLoggingOut'] as bool?) ?? false,
       error: legacyState['error'] as String?,
     );
   }

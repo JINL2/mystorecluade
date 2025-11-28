@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/entities/shift_card.dart';
+import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
@@ -16,13 +16,21 @@ import '../../domain/usecases/update_shift_card_after_scan.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// Re-export Repository Provider (for complex operations)
+// Repository Provider (Clean Architecture)
 // ========================================
 
-/// Re-export repository provider from data layer
-/// Use this ONLY for complex operations that combine multiple use cases
-/// Prefer individual use case providers for simple operations
-export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
+/// ✅ Clean Architecture: Import from Domain layer only
+///
+/// The attendanceRepositoryProvider is defined in Domain layer as an interface.
+/// The actual implementation is provided by Data layer through DI override.
+///
+/// This ensures:
+/// - Presentation layer is decoupled from Data layer implementation
+/// - Repository can be easily mocked for testing
+/// - Implementation can be swapped without changing Presentation code
+///
+/// Note: The Data layer implementation must be registered/overridden at app initialization.
+/// See: lib/features/attendance/data/providers/attendance_data_providers.dart
 
 // ========================================
 // Use Case Providers

@@ -399,9 +399,13 @@ class _TossButton1State extends State<TossButton1>
     }
 
     // Reduce padding by border width to create inset border effect
+    // Ensure padding values never go negative by using max(0, value)
+    final horizontalPadding = (basePadding.horizontal / 2 - borderWidth).clamp(0.0, double.infinity);
+    final verticalPadding = (basePadding.vertical / 2 - borderWidth).clamp(0.0, double.infinity);
+
     return EdgeInsets.symmetric(
-      horizontal: basePadding.horizontal / 2 - borderWidth,
-      vertical: basePadding.vertical / 2 - borderWidth,
+      horizontal: horizontalPadding,
+      vertical: verticalPadding,
     );
   }
 

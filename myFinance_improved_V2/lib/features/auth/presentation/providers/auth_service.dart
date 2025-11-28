@@ -101,32 +101,22 @@ class AuthService {
 
   /// Sign out current user
   ///
-  /// Enterprise-grade logout with complete cleanup:
+  /// Clean logout with Riverpod best practices:
   /// 1. Clears session state
   /// 2. Executes logout UseCase (Supabase signOut)
-  /// 3. Invalidates all providers automatically
-  /// 4. Clears local cache and storage
+  /// 3. Providers watching authState will auto-reset (Riverpod pattern)
   ///
-  /// This method ensures complete cleanup without manual invalidation.
+  /// No manual provider invalidation needed - let Riverpod handle it!
   Future<void> signOut() async {
     // 1. Clear session first
     await _ref.read(sessionManagerProvider.notifier).clearSession();
 
-    // 2. Execute logout UseCase
+    // 2. Execute logout UseCase (sets authState to null)
     await _logoutUseCase.execute();
 
-    // 3. Invalidate all providers automatically
-    // This is safer than manual invalidation as it catches all providers
-    final container = _ref.container;
-    final allProviders = container.getAllProviderElements();
-
-    for (final element in allProviders) {
-      // Skip auth-related providers to avoid recursion
-      if (!element.origin.name.toString().contains('auth') &&
-          !element.origin.name.toString().contains('session')) {
-        element.invalidateSelf();
-      }
-    }
+    // That's it! Providers watching authStateProvider will auto-reset
+    // GoRouter's redirect will handle navigation
+    // No manual invalidation needed (Riverpod best practice)
   }
 
   /// Get session status for debugging

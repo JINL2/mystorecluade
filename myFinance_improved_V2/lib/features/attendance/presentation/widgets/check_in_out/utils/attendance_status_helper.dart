@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../domain/usecases/get_shift_work_status.dart';
+import '../../../../domain/value_objects/shift_status.dart';
 
 /// Helper class for attendance status colors and text
+///
+/// ✅ Clean Architecture: This is a pure UI helper that maps Domain concepts to UI elements.
+/// Business logic has been extracted to Domain UseCase: GetShiftWorkStatus
 class AttendanceStatusHelper {
   /// Get status color for hero section
   static Color getStatusColor(String status) {
@@ -66,21 +71,31 @@ class AttendanceStatusHelper {
   }
 
   /// Get work status color from card data
+  ///
+  /// ✅ Clean Architecture: Business logic delegated to Domain UseCase
+  /// This method now only handles UI mapping (Domain Status → UI Color)
   static Color getWorkStatusColorFromCard(Map<String, dynamic> card) {
-    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
-    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+    // Use Domain UseCase to determine status (business logic)
+    final getShiftWorkStatus = GetShiftWorkStatus();
+    final status = getShiftWorkStatus.fromMap(card);
 
-    if (isApproved != true) {
-      return TossColors.warning;
-    }
+    // Pure UI mapping: Status → Color
+    return getWorkStatusColorFromStatus(status);
+  }
 
-    if (actualStart != null && actualEnd == null) {
-      return TossColors.primary; // Blue for working
-    } else if (actualStart != null && actualEnd != null) {
-      return TossColors.success; // Green for completed
-    } else {
-      return TossColors.success.withOpacity(0.7); // Lighter green for approved
+  /// Get work status color from ShiftStatus enum
+  ///
+  /// Pure UI mapping without business logic
+  static Color getWorkStatusColorFromStatus(ShiftStatus status) {
+    switch (status) {
+      case ShiftStatus.working:
+        return TossColors.primary; // Blue for working
+      case ShiftStatus.finished:
+        return TossColors.success; // Green for completed
+      case ShiftStatus.scheduled:
+        return TossColors.success.withOpacity(0.7); // Lighter green for approved/pending
+      case ShiftStatus.offDuty:
+        return TossColors.gray400; // Gray for off duty
     }
   }
 }

@@ -14,12 +14,19 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
+MonthlyShiftStatus _$MonthlyShiftStatusFromJson(Map<String, dynamic> json) {
+  return _MonthlyShiftStatus.fromJson(json);
+}
+
 /// @nodoc
 mixin _$MonthlyShiftStatus {
   String get requestDate => throw _privateConstructorUsedError;
   int get totalPending => throw _privateConstructorUsedError;
   int get totalApproved => throw _privateConstructorUsedError;
   List<DailyShift> get shifts => throw _privateConstructorUsedError;
+
+  /// Serializes this MonthlyShiftStatus to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of MonthlyShiftStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -137,7 +144,7 @@ class __$$MonthlyShiftStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
   const _$MonthlyShiftStatusImpl(
       {required this.requestDate,
@@ -146,6 +153,9 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
       final List<DailyShift> shifts = const []})
       : _shifts = shifts,
         super._();
+
+  factory _$MonthlyShiftStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MonthlyShiftStatusImplFromJson(json);
 
   @override
   final String requestDate;
@@ -183,6 +193,7 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
             const DeepCollectionEquality().equals(other._shifts, _shifts));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, requestDate, totalPending,
       totalApproved, const DeepCollectionEquality().hash(_shifts));
@@ -195,6 +206,13 @@ class _$MonthlyShiftStatusImpl extends _MonthlyShiftStatus {
   _$$MonthlyShiftStatusImplCopyWith<_$MonthlyShiftStatusImpl> get copyWith =>
       __$$MonthlyShiftStatusImplCopyWithImpl<_$MonthlyShiftStatusImpl>(
           this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MonthlyShiftStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
@@ -204,6 +222,9 @@ abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
       final int totalApproved,
       final List<DailyShift> shifts}) = _$MonthlyShiftStatusImpl;
   const _MonthlyShiftStatus._() : super._();
+
+  factory _MonthlyShiftStatus.fromJson(Map<String, dynamic> json) =
+      _$MonthlyShiftStatusImpl.fromJson;
 
   @override
   String get requestDate;
@@ -222,6 +243,10 @@ abstract class _MonthlyShiftStatus extends MonthlyShiftStatus {
       throw _privateConstructorUsedError;
 }
 
+DailyShift _$DailyShiftFromJson(Map<String, dynamic> json) {
+  return _DailyShift.fromJson(json);
+}
+
 /// @nodoc
 mixin _$DailyShift {
   String get shiftId => throw _privateConstructorUsedError;
@@ -233,6 +258,9 @@ mixin _$DailyShift {
       throw _privateConstructorUsedError;
   List<EmployeeStatus> get approvedEmployees =>
       throw _privateConstructorUsedError;
+
+  /// Serializes this DailyShift to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of DailyShift
   /// with the given fields replaced by the non-null parameter values.
@@ -386,7 +414,7 @@ class __$$DailyShiftImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$DailyShiftImpl extends _DailyShift {
   const _$DailyShiftImpl(
       {required this.shiftId,
@@ -399,6 +427,9 @@ class _$DailyShiftImpl extends _DailyShift {
       : _pendingEmployees = pendingEmployees,
         _approvedEmployees = approvedEmployees,
         super._();
+
+  factory _$DailyShiftImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DailyShiftImplFromJson(json);
 
   @override
   final String shiftId;
@@ -454,6 +485,7 @@ class _$DailyShiftImpl extends _DailyShift {
                 .equals(other._approvedEmployees, _approvedEmployees));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -472,6 +504,13 @@ class _$DailyShiftImpl extends _DailyShift {
   @pragma('vm:prefer-inline')
   _$$DailyShiftImplCopyWith<_$DailyShiftImpl> get copyWith =>
       __$$DailyShiftImplCopyWithImpl<_$DailyShiftImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$DailyShiftImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class _DailyShift extends DailyShift {
@@ -484,6 +523,9 @@ abstract class _DailyShift extends DailyShift {
       final List<EmployeeStatus> pendingEmployees,
       final List<EmployeeStatus> approvedEmployees}) = _$DailyShiftImpl;
   const _DailyShift._() : super._();
+
+  factory _DailyShift.fromJson(Map<String, dynamic> json) =
+      _$DailyShiftImpl.fromJson;
 
   @override
   String get shiftId;
@@ -508,6 +550,10 @@ abstract class _DailyShift extends DailyShift {
       throw _privateConstructorUsedError;
 }
 
+EmployeeStatus _$EmployeeStatusFromJson(Map<String, dynamic> json) {
+  return _EmployeeStatus.fromJson(json);
+}
+
 /// @nodoc
 mixin _$EmployeeStatus {
   String get userId => throw _privateConstructorUsedError;
@@ -519,6 +565,9 @@ mixin _$EmployeeStatus {
   DateTime? get requestTime => throw _privateConstructorUsedError;
   bool? get isApproved => throw _privateConstructorUsedError;
   String? get approvedBy => throw _privateConstructorUsedError;
+
+  /// Serializes this EmployeeStatus to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of EmployeeStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -696,7 +745,7 @@ class __$$EmployeeStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$EmployeeStatusImpl implements _EmployeeStatus {
   const _$EmployeeStatusImpl(
       {required this.userId,
@@ -708,6 +757,9 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
       this.requestTime,
       this.isApproved,
       this.approvedBy});
+
+  factory _$EmployeeStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$EmployeeStatusImplFromJson(json);
 
   @override
   final String userId;
@@ -757,6 +809,7 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
                 other.approvedBy == approvedBy));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -778,6 +831,13 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
   _$$EmployeeStatusImplCopyWith<_$EmployeeStatusImpl> get copyWith =>
       __$$EmployeeStatusImplCopyWithImpl<_$EmployeeStatusImpl>(
           this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$EmployeeStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class _EmployeeStatus implements EmployeeStatus {
@@ -791,6 +851,9 @@ abstract class _EmployeeStatus implements EmployeeStatus {
       final DateTime? requestTime,
       final bool? isApproved,
       final String? approvedBy}) = _$EmployeeStatusImpl;
+
+  factory _EmployeeStatus.fromJson(Map<String, dynamic> json) =
+      _$EmployeeStatusImpl.fromJson;
 
   @override
   String get userId;
