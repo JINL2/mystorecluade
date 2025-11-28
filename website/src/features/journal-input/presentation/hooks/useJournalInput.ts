@@ -35,6 +35,7 @@ export const useJournalInput = (
   const getCounterpartyCashLocations = useJournalInputStore(
     (state) => state.getCounterpartyCashLocations
   );
+  const loadCashLocations = useJournalInputStore((state) => state.loadCashLocations);
   const loadInitialData = useJournalInputStore((state) => state.loadInitialData);
 
   // Initialize store with context values and load data on mount
@@ -74,5 +75,6 @@ export const useJournalInput = (
     checkAccountMapping,
     getCounterpartyStores,
     getCounterpartyCashLocations,
+    loadCashLocations,
   };
 };

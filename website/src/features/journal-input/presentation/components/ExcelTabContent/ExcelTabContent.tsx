@@ -16,21 +16,47 @@ import styles from './ExcelTabContent.module.css';
 
 export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   accounts,
-  cashLocations,
+  cashLocations: initialCashLocations,
   counterparties,
   companyId,
-  selectedStoreId,
   userId,
   stores,
-  onStoreSelect,
   onCheckAccountMapping,
   onGetCounterpartyStores,
   onGetCounterpartyCashLocations,
+  onLoadCashLocations,
   onSubmitSuccess,
   onSubmitError,
 }) => {
+  // Local state for store and date selection (independent - for submission only, no page refresh)
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+
+  // Local cash locations state (loaded when store changes)
+  const [localCashLocations, setLocalCashLocations] = useState<any[]>(initialCashLocations);
+
   // Refresh trigger for RecentTransactionHistory
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Load cash locations when store changes
+  useEffect(() => {
+    const loadCashLocations = async () => {
+      if (onLoadCashLocations) {
+        const locations = await onLoadCashLocations(selectedStoreId);
+        setLocalCashLocations(locations);
+      } else if (!selectedStoreId) {
+        // Fallback to initial cash locations when no loader or no store selected
+        setLocalCashLocations(initialCashLocations);
+      }
+    };
+    loadCashLocations();
+  }, [selectedStoreId, onLoadCashLocations, initialCashLocations]);
 
   // Use custom hook (provider wrapper)
   const {
@@ -112,10 +138,11 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
 
   // Validate form
   const validateForm = () => {
+    // Date must be selected (shared field)
+    if (!selectedDate) return false;
     if (difference !== 0) return false;
 
     for (const row of rows) {
-      if (!row.date) return false;
       if (!row.accountId) return false;
       if (isCashAccount(row.accountId) && !row.locationId) return false;
       if (isPayableOrReceivable(row.accountId) && !row.internalId && !row.externalId)
@@ -145,7 +172,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     const selectedLocations = getSelectedLocations();
     const currentRow = rows.find((r) => r.id === currentRowId);
 
-    return cashLocations.map((location) => ({
+    return localCashLocations.map((location) => ({
       value: location.locationId,
       label: location.locationName,
       disabled:
@@ -308,7 +335,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   const handleSubmit = async () => {
     if (!isFormValid || submitting) return;
 
-    const result = await submitExcelEntry(companyId, selectedStoreId, userId, accounts, counterparties);
+    const result = await submitExcelEntry(companyId, selectedStoreId, selectedDate, userId, accounts, counterparties);
 
     if (result.success) {
       // Trigger refresh of RecentTransactionHistory
@@ -350,7 +377,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
                     <TossSelector
                       value={selectedStoreId || ''}
                       options={stores.map(s => ({ value: s.store_id, label: s.store_name }))}
-                      onChange={(value) => onStoreSelect(value || null)}
+                      onChange={(value) => setSelectedStoreId(value || null)}
                       placeholder="Select store..."
                       searchable={true}
                       inline={false}
@@ -360,13 +387,16 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
                   </div>
                 </td>
               ) : null}
-              <td>
-                <input
-                  type="date"
-                  value={row.date}
-                  onChange={(e) => handleUpdateRowField(row.id, 'date', e.target.value)}
-                />
-              </td>
+              {index === 0 ? (
+                <td rowSpan={rows.length} className={styles.dateCell}>
+                  <input
+                    type="date"
+                    className={styles.dateInput}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
+                </td>
+              ) : null}
               <td className={styles.selectorCell}>
                 <TossSelector
                   ref={(el) => (accountInputRefs.current[row.id] = el)}
@@ -639,7 +669,11 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
       )}
 
       {/* Recent Transaction History */}
-      <RecentTransactionHistory companyId={companyId} storeId={selectedStoreId} refreshTrigger={refreshTrigger} />
+      <RecentTransactionHistory
+        companyId={companyId}
+        stores={stores}
+        refreshTrigger={refreshTrigger}
+      />
     </div>
   );
 };

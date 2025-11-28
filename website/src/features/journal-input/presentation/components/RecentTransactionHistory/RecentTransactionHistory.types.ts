@@ -2,8 +2,10 @@
  * RecentTransactionHistory Component Types
  */
 
+import type { Store } from '@/shared/components/selectors/StoreSelector/StoreSelector.types';
+
 export interface RecentTransactionHistoryProps {
   companyId: string;
-  storeId: string | null;
+  stores: Store[];
   refreshTrigger?: number;
 }

@@ -8,6 +8,7 @@ import type {
   CashLocation,
   Counterparty,
 } from '../../../domain/repositories/IJournalInputRepository';
+import type { Store } from '@/shared/components/selectors/StoreSelector/StoreSelector.types';
 
 export interface IconTabContentProps {
   journalEntry: JournalEntry;
@@ -15,7 +16,7 @@ export interface IconTabContentProps {
   cashLocations: CashLocation[];
   counterparties: Counterparty[];
   companyId: string;
-  selectedStoreId: string | null;
+  stores: Store[];
   submitting: boolean;
   refreshTrigger?: number;
   onAddTransaction: () => void;

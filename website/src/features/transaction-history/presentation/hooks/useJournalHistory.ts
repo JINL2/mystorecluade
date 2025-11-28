@@ -22,8 +22,8 @@ export const useJournalHistory = (companyId: string) => {
   const accounts = useTransactionHistoryStore((state) => state.accounts);
 
   // Filter state
-  const currentCreatedBy = useTransactionHistoryStore((state) => state.currentCreatedBy);
-  const currentAccountId = useTransactionHistoryStore((state) => state.currentAccountId);
+  const currentCreatedByIds = useTransactionHistoryStore((state) => state.currentCreatedByIds);
+  const currentAccountIds = useTransactionHistoryStore((state) => state.currentAccountIds);
   const currentStoreId = useTransactionHistoryStore((state) => state.currentStoreId);
   const currentStartDate = useTransactionHistoryStore((state) => state.currentStartDate);
   const currentEndDate = useTransactionHistoryStore((state) => state.currentEndDate);
@@ -53,8 +53,8 @@ export const useJournalHistory = (companyId: string) => {
     employees,
     employeesLoading,
     accounts,
-    currentCreatedBy,
-    currentAccountId,
+    currentCreatedByIds,
+    currentAccountIds,
     currentStoreId,
     currentStartDate,
     currentEndDate,

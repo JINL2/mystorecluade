@@ -36,9 +36,14 @@ export interface TossSelectorProps {
   placeholder?: string;
 
   /**
-   * Currently selected value
+   * Currently selected value (single select mode)
    */
-  value: string;
+  value?: string;
+
+  /**
+   * Currently selected values (multi select mode)
+   */
+  values?: string[];
 
   /**
    * Array of options to display
@@ -46,9 +51,20 @@ export interface TossSelectorProps {
   options: TossSelectorOption[];
 
   /**
-   * Callback when selection changes
+   * Callback when selection changes (single select mode)
    */
-  onChange: (value: string, option?: TossSelectorOption) => void;
+  onChange?: (value: string, option?: TossSelectorOption) => void;
+
+  /**
+   * Callback when selection changes (multi select mode)
+   */
+  onChangeMultiple?: (values: string[], options?: TossSelectorOption[]) => void;
+
+  /**
+   * Enable multi-select mode
+   * @default false
+   */
+  multiple?: boolean;
 
   /**
    * Callback when selection is completed (after dropdown closes)

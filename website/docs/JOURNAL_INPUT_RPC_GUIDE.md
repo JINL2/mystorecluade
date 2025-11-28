@@ -24,7 +24,7 @@
 
 ## Overview
 
-The `insert_journal_with_everything` RPC function handles:
+The `insert_journal_with_everything_utc` RPC function handles:
 - ✅ Basic journal entry creation
 - ✅ Cash location tracking (for cash-based accounts)
 - ✅ Counterparty relationships (for payable/receivable accounts)
@@ -40,12 +40,12 @@ The `insert_journal_with_everything` RPC function handles:
 ## RPC Function Signature
 
 ```sql
-insert_journal_with_everything(
+insert_journal_with_everything_utc(
   p_base_amount NUMERIC,              -- Total debit amount
   p_company_id UUID,                  -- Current company ID
   p_created_by UUID,                  -- User ID
   p_description TEXT,                 -- Journal description
-  p_entry_date TIMESTAMPTZ,           -- Entry date with timezone
+  p_entry_date_utc TIMESTAMPTZ,       -- Entry date with timezone (UTC)
   p_lines JSONB[],                    -- Array of transaction lines
   p_store_id UUID,                    -- Store ID (nullable)
   p_counterparty_id UUID,             -- Main counterparty ID (nullable)
@@ -61,7 +61,7 @@ insert_journal_with_everything(
 | `p_company_id` | UUID | ✅ Yes | Current company executing transaction |
 | `p_created_by` | UUID | ✅ Yes | User creating the journal entry |
 | `p_description` | TEXT | ✅ Yes | Human-readable description |
-| `p_entry_date` | TIMESTAMPTZ | ✅ Yes | Entry date in UTC with timezone |
+| `p_entry_date_utc` | TIMESTAMPTZ | ✅ Yes | Entry date in UTC with timezone |
 | `p_lines` | JSONB[] | ✅ Yes | Transaction lines with cash/debt objects |
 | `p_store_id` | UUID | ❌ No | Store ID (can be null for company-level) |
 | `p_counterparty_id` | UUID | ❌ No | First counterparty found in lines |
@@ -90,7 +90,7 @@ p_base_amount = transactionLines
 p_base_amount = 100,000 + 50,000 = 150,000
 ```
 
-### Rule 2: `p_entry_date` Format
+### Rule 2: `p_entry_date_utc` Format
 
 ```typescript
 // Convert date string to UTC timestamp
@@ -106,7 +106,7 @@ const dateWithTime = new Date(
 );
 
 // Use DateTimeUtils.toRpcFormat() for consistent timezone handling
-p_entry_date = DateTimeUtils.toRpcFormat(dateWithTime);
+p_entry_date_utc = DateTimeUtils.toRpcFormat(dateWithTime);
 ```
 
 ### Rule 3: `p_counterparty_id` Extraction
@@ -273,7 +273,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Office supplies purchase",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-expense-001",
@@ -333,7 +333,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Cash sale",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-cash-001",
@@ -400,7 +400,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Invoice to external customer",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-receivable-001",
@@ -479,7 +479,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Invoice to sister company",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-receivable-001",
@@ -561,7 +561,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Cash payment to sister company",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-expense-001",
@@ -659,7 +659,7 @@ if (line.counterpartyId) {
   p_company_id: "company-A-uuid",
   p_created_by: "user-001",
   p_description: "Split payment to suppliers",
-  p_entry_date: "2025-11-12T14:30:00Z",
+  p_entry_date_utc: "2025-11-12T14:30:00Z",
   p_lines: [
     {
       account_id: "acc-expense-001",
@@ -995,10 +995,10 @@ debt: {
 
 ## Summary Checklist
 
-Before calling `insert_journal_with_everything`, verify:
+Before calling `insert_journal_with_everything_utc`, verify:
 
 - [ ] `p_base_amount` = Sum of all debit amounts
-- [ ] `p_entry_date` = UTC timestamp with timezone
+- [ ] `p_entry_date_utc` = UTC timestamp with timezone
 - [ ] `p_lines` = Balanced array (total debits = total credits)
 - [ ] `p_lines[].cash.cash_location_id` = **My company's** cash location (if cash transaction)
 - [ ] `p_lines[].debt.counterparty_id` = Counterparty ID (if counterparty involved)

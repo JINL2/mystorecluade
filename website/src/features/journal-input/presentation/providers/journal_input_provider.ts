@@ -172,6 +172,16 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
     }
   },
 
+  // Load cash locations for a specific store (used by Excel tab)
+  loadCashLocations: async (storeId) => {
+    const state = get();
+    try {
+      return await repository.getCashLocations(state.companyId, storeId);
+    } catch (error) {
+      return [];
+    }
+  },
+
   // Reset
   reset: () => {
     const state = get();

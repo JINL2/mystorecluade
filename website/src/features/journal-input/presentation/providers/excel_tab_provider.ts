@@ -175,8 +175,13 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
   },
 
   // Actions - Submit
-  submitExcelEntry: async (companyId, selectedStoreId, userId, accounts, counterparties) => {
+  submitExcelEntry: async (companyId, selectedStoreId, selectedDate, userId, accounts, counterparties) => {
     const state = get();
+
+    // Validate date
+    if (!selectedDate) {
+      return { success: false, error: 'Date must be selected' };
+    }
 
     // Validate form
     const { isValid, error } = validateExcelForm(state.rows, accounts);
@@ -226,7 +231,7 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
           null, // interestRate
           null, // interestAccountId
           null, // interestDueDay
-          row.date, // issueDate
+          selectedDate, // issueDate (shared date field)
           null, // dueDate
           null, // debtDescription
           counterparty?.linkedCompanyId || null,
@@ -238,7 +243,7 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
       const journalEntry = new JournalEntry(
         companyId,
         selectedStoreId,
-        state.rows[0].date, // Use first row's date
+        selectedDate, // Use shared date field
         transactionLines
       );
 
@@ -307,11 +312,6 @@ function validateExcelForm(rows: ExcelRowData[], accounts: any[]) {
 
   // Check each row
   for (const row of rows) {
-    // Date must be filled
-    if (!row.date) {
-      return { isValid: false, error: 'All rows must have a date' };
-    }
-
     // Account must be selected
     if (!row.accountId) {
       return { isValid: false, error: 'All rows must have an account selected' };

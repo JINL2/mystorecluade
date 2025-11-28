@@ -28,12 +28,39 @@ const extractUniqueAccounts = (entries: JournalEntry[]): AccountInfo[] => {
     .sort((a, b) => a.accountName.localeCompare(b.accountName));
 };
 
+// Helper function to apply filters to entries (client-side filtering)
+const applyFilters = (
+  entries: JournalEntry[],
+  createdByIds: string[],
+  accountIds: string[]
+): JournalEntry[] => {
+  let filtered = entries;
+
+  // Filter by createdBy if any selected
+  if (createdByIds.length > 0) {
+    filtered = filtered.filter(entry => createdByIds.includes(entry.createdBy));
+  }
+
+  // Filter by account if any selected
+  if (accountIds.length > 0) {
+    filtered = filtered.filter(entry =>
+      entry.lines.some(line => accountIds.includes(line.accountId))
+    );
+  }
+
+  return filtered;
+};
+
 export const useTransactionHistoryStore = create<TransactionHistoryState>((set, get) => ({
   // Initial State
   journalEntries: [],
+  allJournalEntries: [],
   loading: false,
   error: null,
   hasSearched: false,
+
+  // Company ID (injected by useJournalHistory hook)
+  companyId: '',
 
   // Employee State
   employees: [],
@@ -46,24 +73,24 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
   currentStoreId: null,
   currentStartDate: null,
   currentEndDate: null,
-  currentCreatedBy: null,
-  currentAccountId: null,
+  currentCreatedByIds: [],
+  currentAccountIds: [],
 
   // Actions
-  searchJournalEntries: async (storeId, startDate, endDate, createdBy, accountId) => {
+  searchJournalEntries: async (storeId, startDate, endDate) => {
     const state = get();
 
     set({ loading: true, error: null, hasSearched: true });
 
     try {
-      // Get companyId from the current state or expect it to be set externally
-      // Note: companyId should be set when the store is initialized
-      const companyId = (state as any).companyId || '';
+      // Get companyId from the state (injected by useJournalHistory hook)
+      const companyId = state.companyId;
 
       if (!companyId) {
         set({
           error: 'No company selected',
           journalEntries: [],
+          allJournalEntries: [],
           loading: false
         });
         return;
@@ -81,6 +108,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
         set({
           error: validationErrors.map((e) => e.message).join(', '),
           journalEntries: [],
+          allJournalEntries: [],
           loading: false,
         });
         return;
@@ -91,53 +119,65 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
         storeId,
         startDate,
         endDate,
-        accountId,
-        createdBy
+        null,
+        null
       );
 
       if (!result.success) {
         set({
           error: result.error || 'Failed to load journal entries',
           journalEntries: [],
+          allJournalEntries: [],
           loading: false,
         });
         return;
       }
 
       const entries = result.data || [];
-      // Extract unique accounts only on initial search (no account filter)
-      const accounts = accountId ? get().accounts : extractUniqueAccounts(entries);
+      const accounts = extractUniqueAccounts(entries);
 
       set({
         journalEntries: entries,
+        allJournalEntries: entries,
         accounts,
         currentStoreId: storeId,
         currentStartDate: startDate,
         currentEndDate: endDate,
-        currentCreatedBy: createdBy ?? null,
-        currentAccountId: accountId ?? null,
+        currentCreatedByIds: [],
+        currentAccountIds: [],
         loading: false,
       });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'An unexpected error occurred',
         journalEntries: [],
+        allJournalEntries: [],
         loading: false,
       });
     }
   },
 
-  setCreatedByFilter: (createdBy) => {
-    set({ currentCreatedBy: createdBy });
+  setCreatedByFilter: (createdByIds) => {
+    const state = get();
+    const filtered = applyFilters(state.allJournalEntries, createdByIds, state.currentAccountIds);
+    set({
+      currentCreatedByIds: createdByIds,
+      journalEntries: filtered,
+    });
   },
 
-  setAccountFilter: (accountId) => {
-    set({ currentAccountId: accountId });
+  setAccountFilter: (accountIds) => {
+    const state = get();
+    const filtered = applyFilters(state.allJournalEntries, state.currentCreatedByIds, accountIds);
+    set({
+      currentAccountIds: accountIds,
+      journalEntries: filtered,
+    });
   },
 
   fetchEmployees: async () => {
     const state = get();
-    const companyId = (state as any).companyId || '';
+    const companyId = state.companyId;
 
     if (!companyId) {
       return;
@@ -162,14 +202,15 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
   clearSearch: () => {
     set({
       journalEntries: [],
+      allJournalEntries: [],
       hasSearched: false,
       error: null,
       accounts: [],
       currentStoreId: null,
       currentStartDate: null,
       currentEndDate: null,
-      currentCreatedBy: null,
-      currentAccountId: null,
+      currentCreatedByIds: [],
+      currentAccountIds: [],
     });
   },
 
@@ -178,19 +219,22 @@ export const useTransactionHistoryStore = create<TransactionHistoryState>((set, 
   },
 
   reset: () => {
+    const state = get();
     set({
       journalEntries: [],
+      allJournalEntries: [],
       loading: false,
       error: null,
       hasSearched: false,
+      companyId: state.companyId, // Preserve companyId on reset
       employees: [],
       employeesLoading: false,
       accounts: [],
       currentStoreId: null,
       currentStartDate: null,
       currentEndDate: null,
-      currentCreatedBy: null,
-      currentAccountId: null,
+      currentCreatedByIds: [],
+      currentAccountIds: [],
     });
   },
 }));

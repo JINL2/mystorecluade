@@ -4,6 +4,7 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   margin-bottom: 24px;
   overflow: visible;
   position: relative;
@@ -40,8 +41,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
 }
 
 .filterField {
@@ -83,16 +82,18 @@
   box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
 }
 
-.filterActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid #E9ECEF;
-}
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .filterRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 
-.filterActions button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  .filterContent {
+    padding: 16px;
+  }
+
+  .filterHeader {
+    padding: 16px;
+  }
 }

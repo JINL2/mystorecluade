@@ -75,6 +75,7 @@ export interface ExcelTabState {
   submitExcelEntry: (
     companyId: string,
     selectedStoreId: string | null,
+    selectedDate: string,
     userId: string,
     accounts: Account[],
     counterparties: Counterparty[]

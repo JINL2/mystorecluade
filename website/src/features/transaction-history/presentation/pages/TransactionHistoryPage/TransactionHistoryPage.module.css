@@ -39,6 +39,7 @@
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   min-height: 400px;
 }
 
@@ -86,6 +87,7 @@
 /* Table Styles */
 .tableWrapper {
   margin-top: 24px;
+  overflow-x: auto;
 }
 
 .tableHeader {
@@ -111,7 +113,6 @@
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -130,8 +131,8 @@
   letter-spacing: 0.5px;
 }
 
-.transactionTable th:nth-child(5),
-.transactionTable th:nth-child(6) {
+.transactionTable th:nth-child(6),
+.transactionTable th:nth-child(7) {
   text-align: right;
 }
 
@@ -212,7 +213,7 @@
 }
 
 .lineRow:hover {
-  background: #F1F3F5 !important;
+  background: #F8F9FA !important;
   border-left: 3px solid #0064FF !important;
 }
 
@@ -321,6 +322,31 @@
 
 .accountSelector [class*="tossSelectSearchInput"] {
   font-size: 11px;
+}
+
+/* Empty Table State */
+.emptyTableCell {
+  padding: 60px 20px !important;
+  text-align: center;
+}
+
+.emptyTableState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #ADB5BD;
+}
+
+.emptyTableState svg {
+  color: #0064FF;
+  opacity: 0.5;
+}
+
+.emptyTableState p {
+  margin: 0;
+  font-size: 14px;
+  color: #6C757D;
 }
 
 /* ⭐ STEP 3: Responsive padding media queries */

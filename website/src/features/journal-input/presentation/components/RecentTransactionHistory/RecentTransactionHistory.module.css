@@ -6,6 +6,7 @@
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   margin-top: 24px;
 }
 
@@ -53,17 +54,30 @@
 /* Table Styles */
 .tableWrapper {
   margin-top: 0;
+  overflow-x: auto;
 }
 
 .tableHeader {
   margin-bottom: 24px;
 }
 
+.tableHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.titleSection {
+  flex-shrink: 0;
+}
+
 .tableTitle {
   font-size: 20px;
   font-weight: 600;
   color: #212529;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 .tableSubtitle {
@@ -71,6 +85,50 @@
   font-weight: 400;
   color: #6C757D;
   margin: 0;
+}
+
+/* Filter Section - Same row as title */
+.filterSection {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dateInput {
+  padding: 8px 12px;
+  border: 1px solid #DEE2E6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #212529;
+  background: white;
+  min-width: 140px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dateInput:hover {
+  border-color: #ADB5BD;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #0064FF;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
 }
 
 .transactionTable {
@@ -97,9 +155,62 @@
   letter-spacing: 0.5px;
 }
 
-.transactionTable th:nth-child(5),
-.transactionTable th:nth-child(6) {
+.transactionTable th:nth-child(6),
+.transactionTable th:nth-child(7) {
   text-align: right;
+}
+
+/* Header with filter */
+.headerWithFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerWithFilter span {
+  white-space: nowrap;
+}
+
+.createdBySelector {
+  min-width: 120px;
+  max-width: 140px;
+}
+
+.createdBySelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.createdBySelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.createdBySelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
+}
+
+.accountSelector {
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.accountSelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.accountSelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.accountSelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
 }
 
 .transactionTable td {
@@ -110,11 +221,55 @@
   vertical-align: top;
 }
 
+/* Empty Table State */
+.emptyTableCell {
+  padding: 60px 20px !important;
+  text-align: center;
+}
+
+.emptyTableState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #ADB5BD;
+}
+
+.emptyTableState svg {
+  color: #0064FF;
+  opacity: 0.5;
+}
+
+.emptyTableState p {
+  margin: 0;
+  font-size: 14px;
+  color: #6C757D;
+}
+
 /* Journal Header Row */
 .journalHeader {
   background: #F0F6FF !important;
   font-weight: 700;
   border-bottom: 2px solid #0064FF !important;
+}
+
+/* Separator between transactions */
+.journalSeparator {
+  border-top: 12px solid #E9ECEF !important;
+}
+
+.journalSeparator td:first-child {
+  position: relative;
+}
+
+.journalSeparator td:first-child::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #E9ECEF;
 }
 
 .journalHeader td {
@@ -160,7 +315,7 @@
 }
 
 .lineRow:hover {
-  background: #F1F3F5 !important;
+  background: #F8F9FA !important;
   border-left: 3px solid #0064FF !important;
 }
 

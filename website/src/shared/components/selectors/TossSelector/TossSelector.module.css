@@ -290,6 +290,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .tossSelectOptionDescription {
@@ -328,6 +329,21 @@
   width: 16px;
   height: 16px;
   color: #FFFFFF;
+}
+
+/* Multi-select Checkbox */
+.tossSelectCheckbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-gray-400, #CED4DA);
+}
+
+.tossSelectOption.tossSelectOptionSelected .tossSelectCheckbox {
+  color: var(--toss-primary, #0064FF);
 }
 
 /* Empty State */
