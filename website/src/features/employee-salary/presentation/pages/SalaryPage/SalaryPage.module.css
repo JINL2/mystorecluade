@@ -794,3 +794,285 @@
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
+
+/* ==================== EXPORT MODAL ==================== */
+.exportModalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.exportModalContainer {
+  background: var(--toss-white);
+  border-radius: var(--radius-xl);
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.exportModalHeader {
+  background: #217346;
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.exportModalHeaderIcon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.exportModalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.exportModalBody {
+  padding: var(--space-5);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.exportModalMessage {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+/* Column Selection Section */
+.columnSelectionSection {
+  margin-bottom: var(--space-5);
+}
+
+.columnSelectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.columnSelectionTitle {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.selectAllButton {
+  font-size: var(--font-small);
+  color: var(--toss-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.selectAllButton:hover {
+  background: var(--toss-primary-surface);
+}
+
+.columnGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+@media (max-width: 500px) {
+  .columnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columnCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.columnCheckboxItem:hover {
+  background: var(--toss-gray-100);
+}
+
+.columnCheckboxItem.checked {
+  background: var(--toss-primary-surface);
+  border-color: var(--toss-primary);
+}
+
+.columnCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--toss-primary);
+  cursor: pointer;
+}
+
+.columnLabel {
+  font-size: var(--font-small);
+  color: var(--text-primary);
+  flex: 1;
+  user-select: none;
+}
+
+.columnCheckboxItem.checked .columnLabel {
+  color: var(--toss-primary);
+  font-weight: 500;
+}
+
+/* Export Scope Section */
+.exportScopeSection {
+  border-top: 1px solid var(--toss-gray-200);
+  padding-top: var(--space-4);
+}
+
+.exportScopeTitle {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.exportScopeOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.exportScopeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--toss-gray-200);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exportScopeOption:hover {
+  background: var(--toss-gray-100);
+  border-color: var(--toss-gray-300);
+}
+
+.exportScopeOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exportScopeIcon {
+  width: 40px;
+  height: 40px;
+  background: var(--toss-white);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-gray-600);
+}
+
+.exportScopeContent {
+  flex: 1;
+}
+
+.exportScopeLabel {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.exportScopeDescription {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+.exportScopeArrow {
+  color: var(--toss-gray-400);
+}
+
+/* Export Modal Footer */
+.exportModalFooter {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--toss-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.exportCancelButton {
+  padding: var(--space-3) var(--space-5);
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exportCancelButton:hover {
+  background: var(--toss-gray-200);
+}
+
+.exportCancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading Overlay */
+.exportModalLoading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}

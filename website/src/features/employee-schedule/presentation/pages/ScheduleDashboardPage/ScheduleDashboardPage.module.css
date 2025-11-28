@@ -1,19 +1,20 @@
 /**
  * ScheduleDashboardPage Component Styles
+ * Following DESIGN_SYSTEM.md - Toss Design System
  */
 
 /* Page Layout - Following DESIGN_SYSTEM.md Standard */
 .pageLayout {
   min-height: 100vh;
-  background: var(--color-gray-50);
-  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
+  background: var(--color-gray-50, #F8F9FA);
+  padding: 0 24px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .container {
-  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
-  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
+  padding: 24px 0;
+  max-width: 100%;
   width: 100%;
   position: relative;
 }
@@ -26,14 +27,14 @@
 .title {
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-gray-900, #212529);
   margin: 0 0 var(--space-2, 8px) 0;
   letter-spacing: -0.025em;
 }
 
 .subtitle {
   font-size: 16px;
-  color: var(--text-secondary, #666);
+  color: var(--color-gray-600, #6C757D);
   margin: 0;
 }
 
@@ -47,7 +48,7 @@
 
 .spinner {
   font-size: 18px;
-  color: var(--color-gray-600);
+  color: var(--color-gray-600, #6C757D);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -70,27 +71,27 @@
 }
 
 .overviewCard {
-  background: var(--toss-white, #ffffff);
-  border-radius: var(--radius-lg, 12px);
+  background: #FFFFFF;
+  border-radius: 12px;
   padding: var(--space-6, 24px);
-  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   gap: var(--space-4, 16px);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid var(--toss-border-light, #e5e7eb);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
 }
 
 .overviewCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .overviewIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--toss-primary, #3182f6);
+  color: #0064FF;
 }
 
 .overviewIcon svg {
@@ -106,14 +107,14 @@
 .overviewNumber {
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-gray-900, #212529);
   line-height: 1;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .overviewLabel {
   font-size: 14px;
-  color: var(--text-secondary, #666);
+  color: var(--color-gray-600, #6C757D);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -127,19 +128,19 @@
 }
 
 .storeCard {
-  background: var(--toss-white, #ffffff);
-  border-radius: var(--radius-lg, 12px);
+  background: #FFFFFF;
+  border-radius: 12px;
   padding: var(--space-6, 24px);
-  border: 1px solid var(--toss-border-light, #e5e7eb);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .storeCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: var(--toss-primary, #3182f6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #0064FF;
 }
 
 .storeHeader {
@@ -148,14 +149,14 @@
   gap: var(--space-3, 12px);
   margin-bottom: var(--space-5, 20px);
   padding-bottom: var(--space-4, 16px);
-  border-bottom: 1px solid var(--toss-border-light, #e5e7eb);
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
 }
 
 .storeIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--toss-primary, #3182f6);
+  color: #0064FF;
 }
 
 .storeIcon svg {
@@ -165,7 +166,7 @@
 .storeName {
   font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-gray-900, #212529);
   margin: 0;
 }
 
@@ -185,14 +186,14 @@
 .statNumber {
   font-size: 36px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-gray-900, #212529);
   line-height: 1;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .statLabel {
   font-size: 12px;
-  color: var(--text-secondary, #666);
+  color: var(--color-gray-600, #6C757D);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -200,13 +201,13 @@
 
 .storeScheduleSection {
   padding-top: var(--space-4, 16px);
-  border-top: 1px solid var(--toss-border-light, #e5e7eb);
+  border-top: 1px solid var(--color-gray-200, #E9ECEF);
 }
 
 .scheduleSectionTitle {
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-secondary, #666);
+  color: var(--color-gray-600, #6C757D);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 var(--space-3, 12px) 0;
@@ -223,25 +224,25 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-2, 8px);
-  background: var(--toss-surface-secondary, #f8f9fa);
-  border-radius: var(--radius-sm, 4px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 4px;
 }
 
 .shiftName {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-gray-900, #212529);
 }
 
 .shiftTime {
   font-size: 12px;
-  color: var(--text-secondary, #666);
+  color: var(--color-gray-600, #6C757D);
 }
 
 .noShifts {
   text-align: center;
   padding: var(--space-4, 16px);
-  color: var(--text-tertiary, #9ca3af);
+  color: var(--color-gray-500, #ADB5BD);
   font-size: 14px;
 }
 
@@ -249,22 +250,22 @@
 /* Wider screens - increase padding */
 @media (min-width: 1600px) {
   .pageLayout {
-    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+    padding: 0 48px;
   }
 }
 
 /* Extra wide screens - maximum padding with width constraint */
 @media (min-width: 2000px) {
   .pageLayout {
-    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
-    max-width: 1920px; /* ⭐ Cap width at 1920px */
+    padding: 0 96px;
+    max-width: 1920px;
   }
 }
 
 /* Mobile - reduce padding */
 @media (max-width: 768px) {
   .pageLayout {
-    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+    padding: 0 16px;
   }
 
   .title {

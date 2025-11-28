@@ -1,62 +1,64 @@
 /**
  * EmployeeSection Component Styles
+ * Following DESIGN_SYSTEM.md - Toss Design System
  */
 
 .employeeSection {
-  margin-top: var(--space-6);
-  background: white;
-  border-radius: var(--radius-large);
-  padding: var(--space-5);
-  border: 1px solid var(--toss-gray-200);
+  margin-top: var(--space-6, 24px);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: var(--space-5, 20px);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .sectionTitle {
-  font-size: var(--font-large);
+  font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 var(--space-4) 0;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 var(--space-4, 16px) 0;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-3, 12px);
 }
 
 .dragHint {
-  font-size: var(--font-small);
+  font-size: 13px;
   font-weight: 400;
-  color: var(--text-tertiary);
+  color: var(--color-gray-500, #ADB5BD);
 }
 
 .noEmployees {
-  padding: var(--space-8);
+  padding: var(--space-8, 32px);
   text-align: center;
-  color: var(--text-tertiary);
-  font-size: var(--font-medium);
+  color: var(--color-gray-500, #ADB5BD);
+  font-size: 14px;
 }
 
 .employeeGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-3, 12px);
 }
 
 .employeeCard {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--toss-gray-50);
-  border-radius: var(--radius-medium);
-  border: 1px solid var(--toss-gray-200);
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
   cursor: grab;
   transition: all 0.2s ease;
   user-select: none;
 }
 
 .employeeCard:hover {
-  background: var(--toss-blue-50);
-  border-color: var(--toss-blue-300);
+  background: #F0F6FF;
+  border-color: #4D94FF;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.1);
 }
 
 .employeeCard:active {
@@ -72,12 +74,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--toss-blue-100);
-  color: var(--toss-blue-600);
+  background: #F0F6FF;
+  color: #0064FF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-small);
+  font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -88,17 +90,17 @@
 }
 
 .employeeName {
-  font-size: var(--font-small);
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-gray-900, #212529);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .employeeRole {
-  font-size: var(--font-xsmall);
-  color: var(--text-tertiary);
+  font-size: 12px;
+  color: var(--color-gray-500, #ADB5BD);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

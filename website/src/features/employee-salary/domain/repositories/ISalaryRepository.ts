@@ -38,6 +38,7 @@ export interface ISalaryRepository {
    * @param storeId - Optional store filter
    * @param companyName - Company name for filename
    * @param storeName - Store name for filename
+   * @param selectedColumns - Optional array of column keys to include (all columns if not provided)
    * @returns SalaryExportResult with Excel blob
    */
   exportToExcel(
@@ -45,6 +46,7 @@ export interface ISalaryRepository {
     month: string,
     storeId?: string | null,
     companyName?: string,
-    storeName?: string
+    storeName?: string,
+    selectedColumns?: string[]
   ): Promise<SalaryExportResult>;
 }
