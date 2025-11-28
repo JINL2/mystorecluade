@@ -20,14 +20,15 @@ export interface ExportColumn {
   key: string;
   label: string;
   defaultChecked: boolean;
+  isImportant?: boolean; // Show star icon for important columns
 }
 
-// Available columns for export (only First Name, Last Name, User Name are default selected)
+// Always included columns (no checkbox, always exported)
+const ALWAYS_INCLUDED_COLUMNS = ['first_name', 'last_name', 'user_name'];
+
+// Optional columns for export (user can select/deselect)
 const EXPORT_COLUMNS: ExportColumn[] = [
   { key: 'user_id', label: 'User ID', defaultChecked: false },
-  { key: 'first_name', label: 'First Name', defaultChecked: true },
-  { key: 'last_name', label: 'Last Name', defaultChecked: true },
-  { key: 'user_name', label: 'User Name', defaultChecked: true },
   { key: 'user_email', label: 'Email', defaultChecked: false },
   { key: 'user_bank_name', label: 'Bank Name', defaultChecked: false },
   { key: 'user_account_number', label: 'Account Number', defaultChecked: false },
@@ -55,7 +56,7 @@ const EXPORT_COLUMNS: ExportColumn[] = [
   { key: 'salary_amount', label: 'Salary Amount', defaultChecked: false },
   { key: 'bonus_amount', label: 'Bonus', defaultChecked: false },
   { key: 'total_salary_pay', label: 'Total Pay', defaultChecked: false },
-  { key: 'total_pay_with_bonus', label: 'Total w/ Bonus', defaultChecked: false },
+  { key: 'total_pay_with_bonus', label: 'Total w/ Bonus ★', defaultChecked: false, isImportant: true },
   { key: 'is_approved', label: 'Approved', defaultChecked: false },
   { key: 'is_problem', label: 'Has Problem', defaultChecked: false },
   { key: 'problem_type', label: 'Problem Type', defaultChecked: false },
@@ -191,13 +192,10 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
 
   // Handle export with selected columns
   const handleExportWithColumns = (scope: 'store' | 'company') => {
-    if (selectedColumns.size === 0) {
-      return; // Don't export if no columns selected
-    }
-
     setShowExportModal(false);
     const companyName = currentCompany?.company_name || 'Company';
-    const columnsArray = Array.from(selectedColumns);
+    // Always include required columns + user selected columns
+    const columnsArray = [...ALWAYS_INCLUDED_COLUMNS, ...Array.from(selectedColumns)];
 
     if (scope === 'store') {
       const storeName = currentStore?.store_name || 'Store';
@@ -567,11 +565,26 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                     Select the columns to include in your Excel export
                   </p>
 
-                  {/* Column Selection */}
+                  {/* Always Included Columns */}
+                  <div className={styles.alwaysIncludedSection}>
+                    <div className={styles.alwaysIncludedTitle}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" />
+                      </svg>
+                      Always Included
+                    </div>
+                    <div className={styles.alwaysIncludedItems}>
+                      <span className={styles.alwaysIncludedItem}>First Name</span>
+                      <span className={styles.alwaysIncludedItem}>Last Name</span>
+                      <span className={styles.alwaysIncludedItem}>User Name</span>
+                    </div>
+                  </div>
+
+                  {/* Optional Column Selection */}
                   <div className={styles.columnSelectionSection}>
                     <div className={styles.columnSelectionHeader}>
                       <span className={styles.columnSelectionTitle}>
-                        Columns ({selectedColumns.size}/{EXPORT_COLUMNS.length})
+                        Optional Columns ({selectedColumns.size}/{EXPORT_COLUMNS.length})
                       </span>
                       <button
                         className={styles.selectAllButton}
@@ -586,7 +599,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                       {EXPORT_COLUMNS.map((col) => (
                         <label
                           key={col.key}
-                          className={`${styles.columnCheckboxItem} ${selectedColumns.has(col.key) ? styles.checked : ''}`}
+                          className={`${styles.columnCheckboxItem} ${selectedColumns.has(col.key) ? styles.checked : ''} ${col.isImportant ? styles.important : ''}`}
                         >
                           <input
                             type="checkbox"
@@ -609,7 +622,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                         <button
                           className={styles.exportScopeOption}
                           onClick={() => handleExportWithColumns('store')}
-                          disabled={exporting || selectedColumns.size === 0}
+                          disabled={exporting}
                           type="button"
                         >
                           <div className={styles.exportScopeIcon}>
@@ -635,7 +648,7 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                       <button
                         className={styles.exportScopeOption}
                         onClick={() => handleExportWithColumns('company')}
-                        disabled={exporting || selectedColumns.size === 0}
+                        disabled={exporting}
                         type="button"
                       >
                         <div className={styles.exportScopeIcon}>
@@ -656,12 +669,6 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                         </div>
                       </button>
                     </div>
-
-                    {selectedColumns.size === 0 && (
-                      <p style={{ color: '#FF5847', fontSize: '13px', marginTop: '8px' }}>
-                        Please select at least one column to export
-                      </p>
-                    )}
                   </div>
                 </div>
 
