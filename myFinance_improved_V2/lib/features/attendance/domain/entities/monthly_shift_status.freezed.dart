@@ -229,6 +229,9 @@ mixin _$DailyShift {
   String? get shiftType => throw _privateConstructorUsedError;
   String? get startTime => throw _privateConstructorUsedError;
   String? get endTime => throw _privateConstructorUsedError;
+  int get requiredEmployees => throw _privateConstructorUsedError;
+  int get pendingCount => throw _privateConstructorUsedError;
+  int get approvedCount => throw _privateConstructorUsedError;
   List<EmployeeStatus> get pendingEmployees =>
       throw _privateConstructorUsedError;
   List<EmployeeStatus> get approvedEmployees =>
@@ -253,6 +256,9 @@ abstract class $DailyShiftCopyWith<$Res> {
       String? shiftType,
       String? startTime,
       String? endTime,
+      int requiredEmployees,
+      int pendingCount,
+      int approvedCount,
       List<EmployeeStatus> pendingEmployees,
       List<EmployeeStatus> approvedEmployees});
 }
@@ -277,6 +283,9 @@ class _$DailyShiftCopyWithImpl<$Res, $Val extends DailyShift>
     Object? shiftType = freezed,
     Object? startTime = freezed,
     Object? endTime = freezed,
+    Object? requiredEmployees = null,
+    Object? pendingCount = null,
+    Object? approvedCount = null,
     Object? pendingEmployees = null,
     Object? approvedEmployees = null,
   }) {
@@ -301,6 +310,18 @@ class _$DailyShiftCopyWithImpl<$Res, $Val extends DailyShift>
           ? _value.endTime
           : endTime // ignore: cast_nullable_to_non_nullable
               as String?,
+      requiredEmployees: null == requiredEmployees
+          ? _value.requiredEmployees
+          : requiredEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      pendingCount: null == pendingCount
+          ? _value.pendingCount
+          : pendingCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      approvedCount: null == approvedCount
+          ? _value.approvedCount
+          : approvedCount // ignore: cast_nullable_to_non_nullable
+              as int,
       pendingEmployees: null == pendingEmployees
           ? _value.pendingEmployees
           : pendingEmployees // ignore: cast_nullable_to_non_nullable
@@ -327,6 +348,9 @@ abstract class _$$DailyShiftImplCopyWith<$Res>
       String? shiftType,
       String? startTime,
       String? endTime,
+      int requiredEmployees,
+      int pendingCount,
+      int approvedCount,
       List<EmployeeStatus> pendingEmployees,
       List<EmployeeStatus> approvedEmployees});
 }
@@ -349,6 +373,9 @@ class __$$DailyShiftImplCopyWithImpl<$Res>
     Object? shiftType = freezed,
     Object? startTime = freezed,
     Object? endTime = freezed,
+    Object? requiredEmployees = null,
+    Object? pendingCount = null,
+    Object? approvedCount = null,
     Object? pendingEmployees = null,
     Object? approvedEmployees = null,
   }) {
@@ -373,6 +400,18 @@ class __$$DailyShiftImplCopyWithImpl<$Res>
           ? _value.endTime
           : endTime // ignore: cast_nullable_to_non_nullable
               as String?,
+      requiredEmployees: null == requiredEmployees
+          ? _value.requiredEmployees
+          : requiredEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      pendingCount: null == pendingCount
+          ? _value.pendingCount
+          : pendingCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      approvedCount: null == approvedCount
+          ? _value.approvedCount
+          : approvedCount // ignore: cast_nullable_to_non_nullable
+              as int,
       pendingEmployees: null == pendingEmployees
           ? _value._pendingEmployees
           : pendingEmployees // ignore: cast_nullable_to_non_nullable
@@ -394,6 +433,9 @@ class _$DailyShiftImpl extends _DailyShift {
       this.shiftType,
       this.startTime,
       this.endTime,
+      this.requiredEmployees = 0,
+      this.pendingCount = 0,
+      this.approvedCount = 0,
       final List<EmployeeStatus> pendingEmployees = const [],
       final List<EmployeeStatus> approvedEmployees = const []})
       : _pendingEmployees = pendingEmployees,
@@ -410,6 +452,15 @@ class _$DailyShiftImpl extends _DailyShift {
   final String? startTime;
   @override
   final String? endTime;
+  @override
+  @JsonKey()
+  final int requiredEmployees;
+  @override
+  @JsonKey()
+  final int pendingCount;
+  @override
+  @JsonKey()
+  final int approvedCount;
   final List<EmployeeStatus> _pendingEmployees;
   @override
   @JsonKey()
@@ -432,7 +483,7 @@ class _$DailyShiftImpl extends _DailyShift {
 
   @override
   String toString() {
-    return 'DailyShift(shiftId: $shiftId, shiftName: $shiftName, shiftType: $shiftType, startTime: $startTime, endTime: $endTime, pendingEmployees: $pendingEmployees, approvedEmployees: $approvedEmployees)';
+    return 'DailyShift(shiftId: $shiftId, shiftName: $shiftName, shiftType: $shiftType, startTime: $startTime, endTime: $endTime, requiredEmployees: $requiredEmployees, pendingCount: $pendingCount, approvedCount: $approvedCount, pendingEmployees: $pendingEmployees, approvedEmployees: $approvedEmployees)';
   }
 
   @override
@@ -448,6 +499,12 @@ class _$DailyShiftImpl extends _DailyShift {
             (identical(other.startTime, startTime) ||
                 other.startTime == startTime) &&
             (identical(other.endTime, endTime) || other.endTime == endTime) &&
+            (identical(other.requiredEmployees, requiredEmployees) ||
+                other.requiredEmployees == requiredEmployees) &&
+            (identical(other.pendingCount, pendingCount) ||
+                other.pendingCount == pendingCount) &&
+            (identical(other.approvedCount, approvedCount) ||
+                other.approvedCount == approvedCount) &&
             const DeepCollectionEquality()
                 .equals(other._pendingEmployees, _pendingEmployees) &&
             const DeepCollectionEquality()
@@ -462,6 +519,9 @@ class _$DailyShiftImpl extends _DailyShift {
       shiftType,
       startTime,
       endTime,
+      requiredEmployees,
+      pendingCount,
+      approvedCount,
       const DeepCollectionEquality().hash(_pendingEmployees),
       const DeepCollectionEquality().hash(_approvedEmployees));
 
@@ -481,6 +541,9 @@ abstract class _DailyShift extends DailyShift {
       final String? shiftType,
       final String? startTime,
       final String? endTime,
+      final int requiredEmployees,
+      final int pendingCount,
+      final int approvedCount,
       final List<EmployeeStatus> pendingEmployees,
       final List<EmployeeStatus> approvedEmployees}) = _$DailyShiftImpl;
   const _DailyShift._() : super._();
@@ -495,6 +558,12 @@ abstract class _DailyShift extends DailyShift {
   String? get startTime;
   @override
   String? get endTime;
+  @override
+  int get requiredEmployees;
+  @override
+  int get pendingCount;
+  @override
+  int get approvedCount;
   @override
   List<EmployeeStatus> get pendingEmployees;
   @override

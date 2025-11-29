@@ -3,25 +3,35 @@ import 'package:intl/intl.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_text_styles.dart';
 
+/// Shift availability status for a specific date (for dots)
+enum ShiftAvailabilityStatus {
+  none, // No shifts on this date
+  available, // Has available slots (approvedCount < requiredEmployees) - blue dot
+  full, // No available slots (approvedCount >= requiredEmployees) - gray dot
+}
+
 /// WeekDatesPicker - 7 date circles for week selection with shift indicators
 ///
 /// Design Specs:
 /// - 7 columns (Mon-Sun) with date numbers
 /// - 32×32 circles for dates
-/// - Blue border for dates with shifts
 /// - Blue filled background for selected date
-/// - 4×4 blue dots under dates with shifts
+/// - Blue border for dates where user has approved shift
+/// - Blue dot: shift has available slots (future dates only)
+/// - Gray dot: shift is full (future dates only)
 class WeekDatesPicker extends StatelessWidget {
   final DateTime selectedDate;
   final DateTime weekStartDate; // Monday of the week
-  final Set<DateTime> datesWithShifts; // Dates that have available shifts
+  final Set<DateTime> datesWithUserApproved; // Dates where user has approved shift (blue border)
+  final Map<DateTime, ShiftAvailabilityStatus> shiftAvailabilityMap; // Shift availability per date (dots)
   final ValueChanged<DateTime> onDateSelected;
 
   const WeekDatesPicker({
     super.key,
     required this.selectedDate,
     required this.weekStartDate,
-    required this.datesWithShifts,
+    required this.datesWithUserApproved,
+    required this.shiftAvailabilityMap,
     required this.onDateSelected,
   });
 
@@ -37,15 +47,20 @@ class WeekDatesPicker extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(7, (index) {
           final date = weekStartDate.add(Duration(days: index));
+          final normalizedDate = DateTime(date.year, date.month, date.day);
           final dayName = DateFormat.E().format(date); // Mon, Tue, Wed, ...
           final isSelected = _isSameDay(date, selectedDate);
-          final hasShift = datesWithShifts.any((d) => _isSameDay(d, date));
+          final hasUserApproved =
+              datesWithUserApproved.any((DateTime d) => _isSameDay(d, date));
+          final availabilityStatus =
+              shiftAvailabilityMap[normalizedDate] ?? ShiftAvailabilityStatus.none;
 
           return _DateColumnWithDot(
             dayName: dayName,
             dayNumber: date.day,
             isSelected: isSelected,
-            hasShift: hasShift,
+            hasUserApproved: hasUserApproved,
+            availabilityStatus: availabilityStatus,
             onTap: () => onDateSelected(date),
           );
         }),
@@ -54,19 +69,21 @@ class WeekDatesPicker extends StatelessWidget {
   }
 }
 
-/// Internal widget: Date column with day name, circle, and dot
+/// Internal widget: Date column with day name, circle, and dot(s)
 class _DateColumnWithDot extends StatelessWidget {
   final String dayName;
   final int dayNumber;
   final bool isSelected;
-  final bool hasShift;
+  final bool hasUserApproved; // User has approved shift on this date (blue border)
+  final ShiftAvailabilityStatus availabilityStatus; // Shift availability (dots)
   final VoidCallback onTap;
 
   const _DateColumnWithDot({
     required this.dayName,
     required this.dayNumber,
     required this.isSelected,
-    required this.hasShift,
+    required this.hasUserApproved,
+    required this.availabilityStatus,
     required this.onTap,
   });
 
@@ -93,8 +110,10 @@ class _DateColumnWithDot extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : TossColors.transparent,
-                  border: hasShift && !isSelected
+                  color:
+                      isSelected ? TossColors.primary : TossColors.transparent,
+                  // Blue border if user has approved shift on this date (and not selected)
+                  border: hasUserApproved && !isSelected
                       ? Border.all(color: TossColors.primary, width: 1)
                       : null,
                   borderRadius: BorderRadius.circular(16),
@@ -110,21 +129,38 @@ class _DateColumnWithDot extends StatelessWidget {
               ),
               const SizedBox(height: 4),
 
-              // Shift indicator dot (4×4)
-              if (hasShift)
-                Container(
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                )
-              else
-                const SizedBox(width: 4, height: 4), // Placeholder for alignment
+              // Shift availability indicator dot
+              _buildAvailabilityDot(),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Build availability dot based on shift availability status
+  Widget _buildAvailabilityDot() {
+    switch (availabilityStatus) {
+      case ShiftAvailabilityStatus.available:
+        // Blue dot - has available slots
+        return _buildSingleDot(TossColors.primary);
+      case ShiftAvailabilityStatus.full:
+        // Gray dot - no available slots
+        return _buildSingleDot(TossColors.gray400);
+      case ShiftAvailabilityStatus.none:
+        // Placeholder for alignment
+        return const SizedBox(width: 4, height: 4);
+    }
+  }
+
+  /// Build a single 4x4 dot with given color
+  Widget _buildSingleDot(Color color) {
+    return Container(
+      width: 4,
+      height: 4,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }

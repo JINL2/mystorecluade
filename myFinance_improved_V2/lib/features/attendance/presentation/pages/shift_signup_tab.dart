@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../shared/widgets/toss/week_dates_picker.dart';
+import '../../../attendance/domain/entities/monthly_shift_status.dart';
 import '../../../attendance/domain/entities/shift_metadata.dart';
 import '../providers/attendance_providers.dart';
 import '../widgets/shift_signup/shift_signup_card.dart';
@@ -34,6 +36,9 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   String? selectedStoreId;
   List<ShiftMetadata>? shiftMetadata;
   bool isLoadingMetadata = false;
+
+  // Monthly shift status data for dates with shifts indicator
+  List<MonthlyShiftStatus>? monthlyShiftStatus;
 
   // Track which shifts the user has applied to
   Set<String> appliedShiftIds = {};
@@ -65,7 +70,64 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
 
     if (selectedStoreId != null) {
-      await _fetchShiftMetadata(selectedStoreId!);
+      await Future.wait([
+        _fetchShiftMetadata(selectedStoreId!),
+        _fetchMonthlyShiftStatus(),
+      ]);
+    }
+  }
+
+  Future<void> _fetchMonthlyShiftStatus() async {
+    final appState = ref.read(appStateProvider);
+    final storeId = appState.storeChoosen;
+    final companyId = appState.companyChoosen;
+
+    if (storeId.isEmpty || companyId.isEmpty) return;
+
+    try {
+      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
+
+      // Use the middle of the selected month to ensure we fetch the entire month's data
+      // RPC v3 uses requestTime to determine the month range
+      // Using mid-month (15th) ensures we get data for the entire month
+      // Format: "yyyy-MM-dd HH:mm:ss" in user's local time
+      final now = DateTime.now();
+      // Use the later of: current time or selected date (to fetch future month data)
+      final baseDate = selectedDate.isAfter(now) ? selectedDate : now;
+      // Use the 15th of the month to ensure full month coverage
+      final targetDate = DateTime(baseDate.year, baseDate.month, 15, 12, 0, 0);
+      final requestTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDate);
+
+      // Get user's local timezone from device
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      print('📅 Fetching monthly shift status: requestTime=$requestTime, timezone=$timezone');
+
+      final response = await getMonthlyShiftStatus(
+        storeId: storeId,
+        companyId: companyId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      // Debug: Print response data
+      print('📊 Monthly Shift Status fetched: ${response.length} days');
+      for (final day in response) {
+        print('  📅 ${day.requestDate}: ${day.shifts.length} shifts');
+        for (final shift in day.shifts) {
+          print('    - [${shift.shiftId}] ${shift.shiftName}: approved=${shift.approvedCount}/${shift.requiredEmployees}, pending=${shift.pendingCount}');
+          print('      approvedEmployees: ${shift.approvedEmployees.map((e) => e.userId).toList()}');
+          print('      pendingEmployees: ${shift.pendingEmployees.map((e) => e.userId).toList()}');
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          monthlyShiftStatus = response;
+        });
+      }
+    } catch (e) {
+      print('❌ Error fetching monthly shift status: $e');
     }
   }
 
@@ -83,10 +145,10 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
         timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
-      // Debug: Print shift times
+      // Debug: Print shift details including IDs
       print('📋 Shift Metadata fetched:');
       for (var shift in response) {
-        print('  ${shift.shiftName}: ${shift.startTime} - ${shift.endTime}');
+        print('  [${shift.shiftId}] ${shift.shiftName}: ${shift.startTime} - ${shift.endTime}');
       }
 
       if (mounted) {
@@ -126,18 +188,112 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     return activeShifts;
   }
 
-  // Mock: Get dates with available shifts (for blue dots)
-  // TODO: Replace with real data from monthly shift status
-  Set<DateTime> _getDatesWithShifts() {
-    final shifts = _getActiveShifts();
-    if (shifts.isEmpty) return {};
+  // Get dates where current user has approved shifts (for blue border)
+  Set<DateTime> _getDatesWithUserApproved() {
+    if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) {
+      return {};
+    }
 
-    // For demo: add shifts for 3 random days this week
-    return {
-      weekStartDate,
-      weekStartDate.add(const Duration(days: 2)),
-      weekStartDate.add(const Duration(days: 4)),
-    };
+    final appState = ref.read(appStateProvider);
+    final currentUserId = appState.userId;
+
+    if (currentUserId.isEmpty) {
+      return {};
+    }
+
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    final Set<DateTime> datesWithUserApproved = {};
+
+    for (final dayStatus in monthlyShiftStatus!) {
+      try {
+        final date = DateTime.parse(dayStatus.requestDate);
+        final normalizedDate = DateTime(date.year, date.month, date.day);
+        final weekEnd = weekStartDate.add(const Duration(days: 6));
+
+        // Only for dates from today onwards within the week
+        if (!date.isBefore(weekStartDate) &&
+            !date.isAfter(weekEnd) &&
+            !normalizedDate.isBefore(todayNormalized)) {
+          // Check if current user has any approved shift on this date
+          for (final shift in dayStatus.shifts) {
+            if (shift.approvedEmployees.any((emp) => emp.userId == currentUserId)) {
+              datesWithUserApproved.add(normalizedDate);
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        print('Error parsing date for user approved: ${dayStatus.requestDate}');
+      }
+    }
+
+    return datesWithUserApproved;
+  }
+
+  // Get shift availability status for each date (for dots)
+  // Blue dot: has available slots (approvedCount < requiredEmployees)
+  // Gray dot: full (approvedCount >= requiredEmployees)
+  // Only for dates from today onwards
+  //
+  // Logic:
+  // 1. If shiftMetadata exists, all future dates within the week have shifts available
+  // 2. Check monthlyShiftStatus for actual approved counts to determine if full
+  Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
+    // If no shift metadata, no shifts are defined for this store
+    if (shiftMetadata == null || shiftMetadata!.isEmpty) {
+      return {};
+    }
+
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
+
+    // Build a map of date -> MonthlyShiftStatus for quick lookup
+    final Map<String, MonthlyShiftStatus> statusByDate = {};
+    if (monthlyShiftStatus != null) {
+      for (final dayStatus in monthlyShiftStatus!) {
+        statusByDate[dayStatus.requestDate] = dayStatus;
+      }
+    }
+
+    // Iterate through all dates in the current week
+    for (int i = 0; i < 7; i++) {
+      final date = weekStartDate.add(Duration(days: i));
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+
+      // Only for dates from today onwards
+      if (normalizedDate.isBefore(todayNormalized)) {
+        continue;
+      }
+
+      // Format date to match monthlyShiftStatus format (yyyy-MM-dd)
+      final dateString =
+          '${normalizedDate.year}-${normalizedDate.month.toString().padLeft(2, '0')}-${normalizedDate.day.toString().padLeft(2, '0')}';
+
+      // Check if we have status data for this date
+      final dayStatus = statusByDate[dateString];
+
+      if (dayStatus != null && dayStatus.shifts.isNotEmpty) {
+        // We have actual data - check if any shift has available slots
+        bool hasAvailableSlots = false;
+        for (final shift in dayStatus.shifts) {
+          if (shift.hasAvailableSlots) {
+            hasAvailableSlots = true;
+            break;
+          }
+        }
+        availabilityMap[normalizedDate] = hasAvailableSlots
+            ? ShiftAvailabilityStatus.available
+            : ShiftAvailabilityStatus.full;
+      } else {
+        // No status data - shifts exist (from shiftMetadata) but no one has applied yet
+        // This means all slots are available (blue dot)
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+      }
+    }
+
+    return availabilityMap;
   }
 
   // Format week label (matches My Schedule tab logic)
@@ -173,6 +329,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       _currentWeekOffset--;
       selectedDate = weekStartDate; // Select Monday of new week
     });
+    // Always refetch to ensure we have the correct data for the new week
+    _fetchMonthlyShiftStatus();
   }
 
   void _goToCurrentWeek() {
@@ -180,6 +338,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       _currentWeekOffset = 0;
       selectedDate = DateTime.now();
     });
+    // Always refetch to ensure we have the correct data for the new week
+    _fetchMonthlyShiftStatus();
   }
 
   void _goToNextWeek() {
@@ -187,6 +347,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       _currentWeekOffset++;
       selectedDate = weekStartDate; // Select Monday of new week
     });
+    // Always refetch to ensure we have the correct data for the new week
+    _fetchMonthlyShiftStatus();
   }
 
   void _onDateSelected(DateTime date) {
@@ -195,105 +357,77 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     });
   }
 
-  // Determine shift status based on user's applied shifts
-  ShiftSignupStatus _getShiftStatus(ShiftMetadata shift, int index) {
-    final shiftId = shift.shiftId;
+  // Get DailyShift data for selected date and shift
+  DailyShift? _getDailyShiftData(String shiftId) {
+    if (monthlyShiftStatus == null) return null;
 
-    // Check if user has applied to this shift
-    if (appliedShiftIds.contains(shiftId)) {
+    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+    for (final dayStatus in monthlyShiftStatus!) {
+      if (dayStatus.requestDate == dateStr) {
+        for (final shift in dayStatus.shifts) {
+          if (shift.shiftId == shiftId) {
+            return shift;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // Determine shift status based on real data
+  ShiftSignupStatus _getShiftStatus(ShiftMetadata shift, int index) {
+    final appState = ref.read(appStateProvider);
+    final currentUserId = appState.userId;
+    final dailyShift = _getDailyShiftData(shift.shiftId);
+
+    if (dailyShift == null) {
+      // No data for this shift on selected date - available
+      return ShiftSignupStatus.available;
+    }
+
+    // Check if user is in approved employees
+    final isApproved = dailyShift.approvedEmployees.any((e) => e.userId == currentUserId);
+    if (isApproved) {
+      return ShiftSignupStatus.assigned;
+    }
+
+    // Check if user is in pending employees
+    final isPending = dailyShift.pendingEmployees.any((e) => e.userId == currentUserId);
+    if (isPending) {
       return ShiftSignupStatus.applied;
     }
 
-    // Check if user is on waitlist for this shift
-    if (waitlistedShiftIds.contains(shiftId)) {
-      return ShiftSignupStatus.onWaitlist;
+    // Check if shift is full (no available slots)
+    if (!dailyShift.hasAvailableSlots) {
+      return ShiftSignupStatus.waitlist;
     }
 
-    // Mock: Demo other variations for testing
-    // TODO: Replace with real data from backend
-    switch (index % 4) {
-      case 0:
-        return ShiftSignupStatus.available;
-      case 1:
-        return ShiftSignupStatus.available; // With appliedCount
-      case 2:
-        return ShiftSignupStatus.waitlist;
-      case 3:
-        return ShiftSignupStatus.assigned;
-      default:
-        return ShiftSignupStatus.available;
-    }
+    return ShiftSignupStatus.available;
   }
 
-  // Mock: Get applied count
-  int _getAppliedCount(int index) {
-    return index % 5 == 1 ? 1 : 0; // Only variation #2 has applied count
-  }
-
-  // Check if user applied to this shift
+  // Check if user applied to this shift (pending status)
   bool _getUserApplied(ShiftMetadata shift) {
-    return appliedShiftIds.contains(shift.shiftId);
+    final appState = ref.read(appStateProvider);
+    final currentUserId = appState.userId;
+    final dailyShift = _getDailyShiftData(shift.shiftId);
+
+    if (dailyShift == null) return false;
+
+    return dailyShift.pendingEmployees.any((e) => e.userId == currentUserId);
   }
 
-  // Mock: Get filled slots count
-  // TODO: Replace with real data from shift assignments
-  int _getFilledSlots(ShiftMetadata shift, int index) {
-    final total = shift.numberShift ?? 3;
-    // Variation #3 (waitlist) should be full
-    if (index % 5 == 2) {
-      return total; // Full
-    }
-    // Variation #5 (assigned) should be full
-    if (index % 5 == 4) {
-      return total; // Full
-    }
-    // Others partially filled
-    return (total * 0.3).round();
-  }
-
-  // Format time range and convert from UTC to local time
+  /// Format time range from "HH:mm:ss" to "HH:mm - HH:mm"
+  /// RPC returns local time, no conversion needed
   String _formatTimeRange(String startTime, String endTime) {
     try {
-      // Parse "HH:mm:ss" format
-      final startParts = startTime.split(':');
-      final endParts = endTime.split(':');
-
-      if (startParts.length >= 2 && endParts.length >= 2) {
-        // Create UTC DateTime objects
-        final now = DateTime.now();
-        final startUtc = DateTime.utc(
-          now.year,
-          now.month,
-          now.day,
-          int.parse(startParts[0]),
-          int.parse(startParts[1]),
-        );
-        final endUtc = DateTime.utc(
-          now.year,
-          now.month,
-          now.day,
-          int.parse(endParts[0]),
-          int.parse(endParts[1]),
-        );
-
-        // Convert to local time
-        final startLocal = startUtc.toLocal();
-        final endLocal = endUtc.toLocal();
-
-        // Format as HH:MM
-        final start = '${startLocal.hour.toString().padLeft(2, '0')}:${startLocal.minute.toString().padLeft(2, '0')}';
-        final end = '${endLocal.hour.toString().padLeft(2, '0')}:${endLocal.minute.toString().padLeft(2, '0')}';
-
-        return '$start - $end';
-      }
+      // Extract HH:mm from "HH:mm:ss" format
+      final start = startTime.length >= 5 ? startTime.substring(0, 5) : startTime;
+      final end = endTime.length >= 5 ? endTime.substring(0, 5) : endTime;
+      return '$start - $end';
     } catch (e) {
       print('Error formatting time range: $e');
+      return '$startTime - $endTime';
     }
-
-    // Fallback: just trim to HH:MM
-    final start = startTime.substring(0, 5);
-    final end = endTime.substring(0, 5);
-    return '$start - $end';
   }
 
   @override
@@ -305,7 +439,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     }
 
     final shifts = _getActiveShifts();
-    final datesWithShifts = _getDatesWithShifts();
+    final datesWithUserApproved = _getDatesWithUserApproved();
+    final shiftAvailabilityMap = _getShiftAvailabilityMap();
 
     return Container(
       color: TossColors.background,
@@ -332,7 +467,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
               child: WeekDatesPicker(
                 selectedDate: selectedDate,
                 weekStartDate: weekStartDate,
-                datesWithShifts: datesWithShifts,
+                datesWithUserApproved: datesWithUserApproved,
+                shiftAvailabilityMap: shiftAvailabilityMap,
                 onDateSelected: _onDateSelected,
               ),
             ),
@@ -375,11 +511,22 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final shift = shifts[index];
+                        final dailyShift = _getDailyShiftData(shift.shiftId);
                         final status = _getShiftStatus(shift, index);
-                        final filledSlots = _getFilledSlots(shift, index);
-                        final totalSlots = shift.numberShift ?? 3;
-                        final appliedCount = _getAppliedCount(index);
+                        final filledSlots = dailyShift?.approvedCount ?? 0;
+                        final totalSlots = dailyShift?.requiredEmployees ?? shift.numberShift ?? 1;
+                        final appliedCount = (dailyShift?.approvedCount ?? 0) + (dailyShift?.pendingCount ?? 0);
                         final userApplied = _getUserApplied(shift);
+
+                        // Get all employees' profile images (approved + pending)
+                        final allEmployees = [
+                          ...?dailyShift?.approvedEmployees,
+                          ...?dailyShift?.pendingEmployees,
+                        ];
+                        final assignedAvatars = allEmployees
+                            .where((e) => e.profileImage != null && e.profileImage!.isNotEmpty)
+                            .map((e) => e.profileImage!)
+                            .toList();
 
                         // Get store name from app state
                         final appState = ref.read(appStateProvider);
@@ -396,8 +543,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
                             totalSlots: totalSlots,
                             appliedCount: appliedCount,
                             userApplied: userApplied,
-                            assignedUserAvatars: (status == ShiftSignupStatus.assigned || appliedCount > 0 || userApplied)
-                                ? ['https://i.pravatar.cc/150?img=1', 'https://i.pravatar.cc/150?img=2']
+                            assignedUserAvatars: assignedAvatars.isNotEmpty
+                                ? assignedAvatars
                                 : null,
                             onApply: status == ShiftSignupStatus.available
                                 ? () => _handleApply(shift)
@@ -428,12 +575,57 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   }
 
   // Shift action handlers
-  void _handleApply(ShiftMetadata shift) {
-    print('Apply to shift: ${shift.shiftName}');
-    setState(() {
-      appliedShiftIds.add(shift.shiftId);
-    });
-    // TODO: Implement backend API call to apply for shift
+  Future<void> _handleApply(ShiftMetadata shift) async {
+    print('🟢 _handleApply called for shift: ${shift.shiftName}');
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+    final storeId = appState.storeChoosen;
+
+    print('🟢 userId: $userId, storeId: $storeId');
+
+    if (userId.isEmpty || storeId.isEmpty) {
+      print('❌ userId or storeId is empty, returning early');
+      return;
+    }
+
+    // Use user's device current time with selected date
+    final now = DateTime.now();
+    final requestDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+    final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    print('🟢 Calling insert_shift_request_v4:');
+    print('   - userId: $userId');
+    print('   - shiftId: ${shift.shiftId}');
+    print('   - storeId: $storeId');
+    print('   - requestTime: $requestTime');
+    print('   - timezone: $timezone');
+
+    try {
+      final registerShiftRequest = ref.read(registerShiftRequestProvider);
+      await registerShiftRequest(
+        userId: userId,
+        shiftId: shift.shiftId,
+        storeId: storeId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      print('✅ insert_shift_request_v4 succeeded');
+
+      // Refresh data after successful apply
+      await _fetchMonthlyShiftStatus();
+    } catch (e) {
+      print('❌ Error applying to shift: $e');
+    }
   }
 
   void _handleWaitlist(ShiftMetadata shift) {
@@ -452,12 +644,55 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
     // TODO: Implement backend API call to leave waitlist
   }
 
-  void _handleWithdraw(ShiftMetadata shift) {
-    print('Withdraw from shift: ${shift.shiftName}');
-    setState(() {
-      appliedShiftIds.remove(shift.shiftId);
-    });
-    // TODO: Implement backend API call to withdraw from shift
+  Future<void> _handleWithdraw(ShiftMetadata shift) async {
+    print('🔴 _handleWithdraw called for shift: ${shift.shiftName}');
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    print('🔴 userId: $userId');
+
+    if (userId.isEmpty) {
+      print('❌ userId is empty, returning early');
+      return;
+    }
+
+    // Use user's device current time with selected date
+    final now = DateTime.now();
+    final requestDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+    final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    print('🔴 Calling delete_shift_request_v2:');
+    print('   - userId: $userId');
+    print('   - shiftId: ${shift.shiftId}');
+    print('   - requestTime: $requestTime');
+    print('   - timezone: $timezone');
+    print('   - selectedDate: $selectedDate');
+
+    try {
+      final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
+      await deleteShiftRequest(
+        userId: userId,
+        shiftId: shift.shiftId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      print('✅ delete_shift_request_v2 succeeded');
+
+      // Refresh data after successful withdraw
+      await _fetchMonthlyShiftStatus();
+    } catch (e) {
+      print('❌ Error withdrawing from shift: $e');
+    }
   }
 
   void _handleShiftTap(ShiftMetadata shift) {
@@ -467,27 +702,37 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
   // Show applied users bottom sheet
   void _handleViewAppliedUsers(ShiftMetadata shift) {
-    // Mock data - replace with real data from backend
-    final mockAppliedUsers = [
-      {'id': '1', 'name': 'John Doe', 'avatar': 'https://i.pravatar.cc/150?img=1'},
-      {'id': '2', 'name': 'Jane Smith', 'avatar': 'https://i.pravatar.cc/150?img=2'},
-      {'id': '3', 'name': 'Mike Johnson', 'avatar': 'https://i.pravatar.cc/150?img=3'},
-      {'id': '4', 'name': 'Sarah Williams', 'avatar': 'https://i.pravatar.cc/150?img=4'},
-    ];
+    // Get real data from monthlyShiftStatus
+    final dailyShift = _getDailyShiftData(shift.shiftId);
+    final approvedEmployees = dailyShift?.approvedEmployees ?? [];
+    final pendingEmployees = dailyShift?.pendingEmployees ?? [];
 
-    final items = mockAppliedUsers.map((user) {
-      return TossSelectionItem.fromGeneric(
-        id: user['id'] as String,
-        title: user['name'] as String,
-        avatarUrl: user['avatar'] as String, // Pass avatar URL
-      );
-    }).toList();
+    // Combine approved and pending employees with status subtitle
+    final items = <TossSelectionItem>[
+      ...approvedEmployees.map((employee) {
+        return TossSelectionItem.fromGeneric(
+          id: employee.userId,
+          title: employee.userName,
+          subtitle: 'Assigned',
+          avatarUrl: employee.profileImage,
+        );
+      }),
+      ...pendingEmployees.map((employee) {
+        return TossSelectionItem.fromGeneric(
+          id: employee.userId,
+          title: employee.userName,
+          subtitle: 'Applied',
+          avatarUrl: employee.profileImage,
+        );
+      }),
+    ];
 
     TossSelectionBottomSheet.show<void>(
       context: context,
       title: 'Applied Users',
       items: items,
-      showSubtitle: false,
+      showSubtitle: true,
+      subtitlePosition: 'right', // Show status on right side of row
       borderBottomWidth: 0, // Remove divider lines
       onItemSelected: (item) {
         // Optional: Navigate to user profile or show more details

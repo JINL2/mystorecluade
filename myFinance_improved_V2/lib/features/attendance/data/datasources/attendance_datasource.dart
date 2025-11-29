@@ -348,9 +348,10 @@ class AttendanceDatasource {
 
   /// Get monthly shift status for manager view
   ///
-  /// Uses get_monthly_shift_status_manager_v2 RPC with local time + timezone offset
-  /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  /// Uses get_monthly_shift_status_manager_v3 RPC with local time + timezone
+  /// - p_request_time: Local time (e.g., "2024-11-15 10:30:25") - RPC calculates month range from this
+  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
+  /// - Returns 3 months of data starting from the month of p_request_time
   Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
@@ -358,8 +359,17 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
+      // Debug: Log RPC parameters
+      assert(() {
+        debugPrint('🔵 [getMonthlyShiftStatusManager] RPC params:');
+        debugPrint('  - storeId: $storeId');
+        debugPrint('  - requestTime: $requestTime');
+        debugPrint('  - timezone: $timezone');
+        return true;
+      }());
+
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v2',
+        'get_monthly_shift_status_manager_v3',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,
@@ -384,7 +394,7 @@ class AttendanceDatasource {
 
   /// Insert shift request
   ///
-  /// Uses insert_shift_request_v3 RPC with local time + timezone offset
+  /// Uses insert_shift_request_v4 RPC with local time + timezone
   /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<Map<String, dynamic>?> insertShiftRequest({
@@ -407,7 +417,7 @@ class AttendanceDatasource {
       }());
 
       final response = await _supabase.rpc<dynamic>(
-        'insert_shift_request_v3',
+        'insert_shift_request_v4',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
@@ -497,29 +507,29 @@ class AttendanceDatasource {
 
   /// Delete shift request
   ///
-  /// Uses delete_shift_request RPC function
-  /// Converts request_time to local date using timezone for filtering
+  /// Uses delete_shift_request_v2 RPC function
+  /// - p_request_time: Local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
+  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
+  /// - RPC extracts UTC date from request_time for matching
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestDate,
+    required String requestTime,
     required String timezone,
   }) async {
     try {
-      // Call RPC function
-      // Note: RPC expects request_time (TIMESTAMPTZ format with timezone offset)
-      // Convert requestDate string to DateTime, then to ISO 8601 with offset
-      // Example: "2025-11-26" → DateTime(2025, 11, 26) → "2025-11-26T00:00:00+00:00"
-      final dateParts = requestDate.split('-');
-      final requestDateTime = DateTime(
-        int.parse(dateParts[0]), // year
-        int.parse(dateParts[1]), // month
-        int.parse(dateParts[2]), // day
-      );
-      final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+      // Debug: Log RPC parameters
+      assert(() {
+        debugPrint('🔵 [deleteShiftRequest] RPC params:');
+        debugPrint('  - userId: $userId');
+        debugPrint('  - shiftId: $shiftId');
+        debugPrint('  - requestTime: $requestTime');
+        debugPrint('  - timezone: $timezone');
+        return true;
+      }());
 
       final response = await _supabase.rpc<dynamic>(
-        'delete_shift_request',
+        'delete_shift_request_v2',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,

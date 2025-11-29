@@ -144,13 +144,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestDate,
+    required String requestTime,
     required String timezone,
   }) async {
     return await _datasource.deleteShiftRequest(
       userId: userId,
       shiftId: shiftId,
-      requestDate: requestDate,
+      requestTime: requestTime,
       timezone: timezone,
     );
   }

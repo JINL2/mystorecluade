@@ -129,14 +129,16 @@ abstract class AttendanceRepository {
 
   /// Delete a shift request
   ///
+  /// Matches RPC: delete_shift_request_v2
+  ///
   /// [userId] - User ID
   /// [shiftId] - Shift ID
-  /// [requestDate] - Request date in format 'yyyy-MM-dd'
+  /// [requestTime] - Local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestDate,
+    required String requestTime,
     required String timezone,
   });
 

@@ -106,6 +106,9 @@ class TossSelectionBottomSheet extends StatefulWidget {
   /// Whether to show subtitle text
   final bool showSubtitle;
 
+  /// Position of subtitle: 'bottom' (under title) or 'right' (end of row)
+  final String subtitlePosition;
+
   /// 🆕 Font weight for selected items (default: w600, cash_ending: w700)
   final FontWeight selectedFontWeight;
 
@@ -134,6 +137,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     this.showSearch = false,
     this.defaultIcon,
     this.showSubtitle = true,
+    this.subtitlePosition = 'bottom',
     this.selectedFontWeight = FontWeight.w600,
     this.unselectedFontWeight = FontWeight.w400,
     this.unselectedIconColor = TossColors.gray600,
@@ -156,6 +160,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     bool showSearch = false,
     IconData? defaultIcon,
     bool showSubtitle = true,
+    String subtitlePosition = 'bottom',
     FontWeight selectedFontWeight = FontWeight.w600,
     FontWeight unselectedFontWeight = FontWeight.w400,
     Color unselectedIconColor = TossColors.gray600,
@@ -176,6 +181,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
         showSearch: showSearch,
         defaultIcon: defaultIcon,
         showSubtitle: showSubtitle,
+        subtitlePosition: subtitlePosition,
         selectedFontWeight: selectedFontWeight,
         unselectedFontWeight: unselectedFontWeight,
         unselectedIconColor: unselectedIconColor,
@@ -397,30 +403,63 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
 
             // Content
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    item.title,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: isSelected ? widget.selectedFontWeight : widget.unselectedFontWeight,
-                    ),
-                  ),
+              child: widget.subtitlePosition == 'right'
+                  // Subtitle on right: title left, subtitle right (badge style for 'Assigned')
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: isSelected ? widget.selectedFontWeight : widget.unselectedFontWeight,
+                            ),
+                          ),
+                        ),
+                        // Only show badge for 'Assigned' status, hide for 'Applied' and others
+                        if (widget.showSubtitle && item.subtitle != null && item.subtitle!.toLowerCase() == 'assigned')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: TossColors.gray100,
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Text(
+                              item.subtitle!,
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray600,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
+                    )
+                  // Subtitle on bottom (default): column layout
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Text(
+                          item.title,
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: isSelected ? widget.selectedFontWeight : widget.unselectedFontWeight,
+                          ),
+                        ),
 
-                  // Subtitle (if enabled and available)
-                  if (widget.showSubtitle && item.subtitle != null) ...[
-                    const SizedBox(height: TossSpacing.space1/2),
-                    Text(
-                      item.subtitle!,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
+                        // Subtitle (if enabled and available)
+                        if (widget.showSubtitle && item.subtitle != null) ...[
+                          const SizedBox(height: TossSpacing.space1/2),
+                          Text(
+                            item.subtitle!,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
-              ),
             ),
 
             // Selected indicator
