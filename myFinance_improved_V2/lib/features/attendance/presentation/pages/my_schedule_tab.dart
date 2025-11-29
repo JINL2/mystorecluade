@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
@@ -204,6 +205,21 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     }
   }
 
+  // Navigate to QR Scanner for check-in/check-out
+  // QR code contains store_id which will be used for update_shift_requests_v6 RPC
+  // Works regardless of whether user has a shift today (for night shift workers)
+  Future<void> _navigateToQRScanner() async {
+    final result = await context.push<Map<String, dynamic>>('/attendance/qr-scanner');
+
+    // If QR scan was successful, refresh the shift cards data
+    if (result != null && result['success'] == true) {
+      // Invalidate the provider to refresh data
+      final now = DateTime.now();
+      final yearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(yearMonth));
+    }
+  }
+
   // Extract shift type from shift_time (Morning/Evening based on start hour)
   String _extractShiftType(String shiftTime) {
     try {
@@ -248,12 +264,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: _findTodayShift(todayShiftCards),
-              onCheckIn: () {
-                // TODO: Implement check-in
-              },
-              onCheckOut: () {
-                // TODO: Implement check-out
-              },
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -262,6 +274,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -270,6 +284,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -323,12 +339,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: _findTodayShift(todayShiftCards),
-              onCheckIn: () {
-                // TODO: Implement check-in
-              },
-              onCheckOut: () {
-                // TODO: Implement check-out
-              },
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -337,6 +349,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -345,6 +359,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
               todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },

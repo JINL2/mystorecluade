@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../data/providers/attendance_data_providers.dart';
+// ✅ Clean Architecture: Import from Domain layer only
+import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/entities/base_currency.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/usecases/check_in_shift.dart';
@@ -22,10 +23,10 @@ import 'states/shift_overview_state.dart';
 // Re-export Repository Provider (for complex operations)
 // ========================================
 
-/// Re-export repository provider from data layer
+/// Re-export repository provider from Domain layer
 /// Use this ONLY for complex operations that combine multiple use cases
 /// Prefer individual use case providers for simple operations
-export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
+export '../../domain/providers/attendance_repository_provider.dart' show attendanceRepositoryProvider;
 
 // ========================================
 // Use Case Providers
