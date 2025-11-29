@@ -621,27 +621,69 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
       print('✅ insert_shift_request_v4 succeeded');
 
-      // Refresh data after successful apply
-      await _fetchMonthlyShiftStatus();
+      // Update local state instead of RPC refresh
+      _addCurrentUserToPending(shift.shiftId);
     } catch (e) {
       print('❌ Error applying to shift: $e');
     }
   }
 
-  void _handleWaitlist(ShiftMetadata shift) {
-    print('Join waitlist for shift: ${shift.shiftName}');
-    setState(() {
-      waitlistedShiftIds.add(shift.shiftId);
-    });
-    // TODO: Implement backend API call to join waitlist
+  Future<void> _handleWaitlist(ShiftMetadata shift) async {
+    print('🟡 _handleWaitlist called for shift: ${shift.shiftName}');
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+    final storeId = appState.storeChoosen;
+
+    print('🟡 userId: $userId, storeId: $storeId');
+
+    if (userId.isEmpty || storeId.isEmpty) {
+      print('❌ userId or storeId is empty, returning early');
+      return;
+    }
+
+    // Use user's device current time with selected date
+    final now = DateTime.now();
+    final requestDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+    final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    print('🟡 Calling insert_shift_request_v4 (waitlist):');
+    print('   - userId: $userId');
+    print('   - shiftId: ${shift.shiftId}');
+    print('   - storeId: $storeId');
+    print('   - requestTime: $requestTime');
+    print('   - timezone: $timezone');
+
+    try {
+      final registerShiftRequest = ref.read(registerShiftRequestProvider);
+      await registerShiftRequest(
+        userId: userId,
+        shiftId: shift.shiftId,
+        storeId: storeId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      print('✅ insert_shift_request_v4 (waitlist) succeeded');
+
+      // Update local state instead of RPC refresh
+      _addCurrentUserToPending(shift.shiftId);
+    } catch (e) {
+      print('❌ Error joining waitlist: $e');
+    }
   }
 
   void _handleLeaveWaitlist(ShiftMetadata shift) {
-    print('Leave waitlist for shift: ${shift.shiftName}');
-    setState(() {
-      waitlistedShiftIds.remove(shift.shiftId);
-    });
-    // TODO: Implement backend API call to leave waitlist
+    // Use same logic as withdraw since it's the same RPC
+    _handleWithdraw(shift);
   }
 
   Future<void> _handleWithdraw(ShiftMetadata shift) async {
@@ -688,11 +730,140 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
       print('✅ delete_shift_request_v2 succeeded');
 
-      // Refresh data after successful withdraw
-      await _fetchMonthlyShiftStatus();
+      // Update local state instead of RPC refresh
+      _removeCurrentUserFromPending(shift.shiftId);
     } catch (e) {
       print('❌ Error withdrawing from shift: $e');
     }
+  }
+
+  // Helper: Add current user to pending employees in local state
+  void _addCurrentUserToPending(String shiftId) {
+    if (monthlyShiftStatus == null) return;
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+    final userDisplayData = ref.read(userDisplayDataProvider);
+    final userName = '${userDisplayData['user_first_name'] ?? ''} ${userDisplayData['user_last_name'] ?? ''}'.trim();
+    final profileImage = userDisplayData['profile_image'] as String? ?? '';
+
+    // Create new EmployeeStatus for current user
+    final currentUserEmployee = EmployeeStatus(
+      userId: userId,
+      userName: userName.isEmpty ? 'You' : userName,
+      profileImage: profileImage.isNotEmpty ? profileImage : null,
+    );
+
+    // Find the date string for selected date
+    final dateString = DateTimeUtils.toDateOnly(selectedDate);
+
+    // Update monthlyShiftStatus
+    final updatedStatus = monthlyShiftStatus!.map((dayStatus) {
+      if (dayStatus.requestDate == dateString) {
+        // Update the specific shift
+        final updatedShifts = dayStatus.shifts.map((dailyShift) {
+          if (dailyShift.shiftId == shiftId) {
+            // Add user to pending employees
+            final updatedPendingEmployees = [...dailyShift.pendingEmployees, currentUserEmployee];
+            return dailyShift.copyWith(
+              pendingEmployees: updatedPendingEmployees,
+              pendingCount: dailyShift.pendingCount + 1,
+            );
+          }
+          return dailyShift;
+        }).toList();
+
+        return dayStatus.copyWith(
+          shifts: updatedShifts,
+          totalPending: dayStatus.totalPending + 1,
+        );
+      }
+      return dayStatus;
+    }).toList();
+
+    // If no existing day status for this date, create one
+    final hasDateStatus = updatedStatus.any((s) => s.requestDate == dateString);
+    if (!hasDateStatus) {
+      // Find shift metadata for this shift
+      final shiftMeta = shiftMetadata?.firstWhere(
+        (s) => s.shiftId == shiftId,
+        orElse: () => shiftMetadata!.first,
+      );
+
+      final newDayStatus = MonthlyShiftStatus(
+        requestDate: dateString,
+        totalPending: 1,
+        totalApproved: 0,
+        shifts: [
+          DailyShift(
+            shiftId: shiftId,
+            shiftName: shiftMeta?.shiftName,
+            requiredEmployees: shiftMeta?.numberShift ?? 1,
+            pendingCount: 1,
+            approvedCount: 0,
+            pendingEmployees: [currentUserEmployee],
+            approvedEmployees: [],
+          ),
+        ],
+      );
+      updatedStatus.add(newDayStatus);
+    }
+
+    setState(() {
+      monthlyShiftStatus = updatedStatus;
+    });
+
+    print('✅ Local state updated: added user to pending');
+  }
+
+  // Helper: Remove current user from pending employees in local state
+  // Note: Approved/Assigned users cannot withdraw - only pending users can
+  void _removeCurrentUserFromPending(String shiftId) {
+    if (monthlyShiftStatus == null) return;
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    // Find the date string for selected date
+    final dateString = DateTimeUtils.toDateOnly(selectedDate);
+
+    // Update monthlyShiftStatus
+    final updatedStatus = monthlyShiftStatus!.map((dayStatus) {
+      if (dayStatus.requestDate == dateString) {
+        int totalPendingRemoved = 0;
+
+        // Update the specific shift
+        final updatedShifts = dayStatus.shifts.map((dailyShift) {
+          if (dailyShift.shiftId == shiftId) {
+            // Remove user from pending employees only
+            // Approved/Assigned users cannot withdraw
+            final updatedPendingEmployees = dailyShift.pendingEmployees
+                .where((e) => e.userId != userId)
+                .toList();
+            final pendingRemovedCount = dailyShift.pendingEmployees.length - updatedPendingEmployees.length;
+            totalPendingRemoved += pendingRemovedCount;
+
+            return dailyShift.copyWith(
+              pendingEmployees: updatedPendingEmployees,
+              pendingCount: dailyShift.pendingCount - pendingRemovedCount,
+            );
+          }
+          return dailyShift;
+        }).toList();
+
+        return dayStatus.copyWith(
+          shifts: updatedShifts,
+          totalPending: dayStatus.totalPending - totalPendingRemoved,
+        );
+      }
+      return dayStatus;
+    }).toList();
+
+    setState(() {
+      monthlyShiftStatus = updatedStatus;
+    });
+
+    print('✅ Local state updated: removed user from pending');
   }
 
   void _handleShiftTap(ShiftMetadata shift) {
