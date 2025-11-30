@@ -46,20 +46,17 @@ class TimeTableDatasource {
 
   /// Fetch monthly shift status for manager from Supabase RPC
   ///
-  /// Uses get_monthly_shift_status_manager_v3 RPC with local time + timezone
-  /// - p_request_time: Local time (e.g., "2024-11-15 10:30:25") - RPC calculates month range from this
-  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
-  /// - Returns 3 months of data starting from the month of p_request_time
+  /// Uses get_monthly_shift_status_manager_v2 RPC with TIMESTAMPTZ and timezone parameters
+  /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<List<dynamic>> getMonthlyShiftStatus({
     required String requestTime,
     required String storeId,
     required String timezone,
   }) async {
     try {
-      print('🔵 [getMonthlyShiftStatus] RPC params: requestTime=$requestTime, storeId=$storeId, timezone=$timezone');
-
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v3',
+        'get_monthly_shift_status_manager_v2',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,

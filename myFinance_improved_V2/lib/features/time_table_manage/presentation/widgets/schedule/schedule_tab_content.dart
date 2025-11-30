@@ -127,8 +127,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           WeekDatesPicker(
             selectedDate: _selectedDate,
             weekStartDate: _currentWeekStart,
-            datesWithUserApproved: const {}, // Manager view - no user-specific status needed
-            shiftAvailabilityMap: _getShiftAvailabilityMap(),
+            datesWithShifts: _getDatesWithShifts(),
             onDateSelected: (date) {
               setState(() => _selectedDate = date);
               widget.onDateSelected(date);
@@ -226,16 +225,15 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     widget.onDateSelected(_selectedDate);
   }
 
-  /// Get shift availability map for the week (mock data - replace with real data)
-  /// Manager view shows all shifts as available (blue dot) for now
-  Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
+  /// Get dates with available shifts (mock data - replace with real data)
+  Set<DateTime> _getDatesWithShifts() {
     // TODO: Replace with real data from providers
     return {
-      _currentWeekStart.add(const Duration(days: 1)): ShiftAvailabilityStatus.available, // Tuesday
-      _currentWeekStart.add(const Duration(days: 2)): ShiftAvailabilityStatus.available, // Wednesday
-      _currentWeekStart.add(const Duration(days: 3)): ShiftAvailabilityStatus.available, // Thursday
-      _currentWeekStart.add(const Duration(days: 4)): ShiftAvailabilityStatus.available, // Friday
-      _currentWeekStart.add(const Duration(days: 5)): ShiftAvailabilityStatus.available, // Saturday
+      _currentWeekStart.add(const Duration(days: 1)), // Tuesday
+      _currentWeekStart.add(const Duration(days: 2)), // Wednesday
+      _currentWeekStart.add(const Duration(days: 3)), // Thursday
+      _currentWeekStart.add(const Duration(days: 4)), // Friday
+      _currentWeekStart.add(const Duration(days: 5)), // Saturday
     };
   }
 

@@ -8,45 +8,45 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../domain/entities/shift_card.dart';
-import '../../../../domain/entities/user_shift_stats.dart';
-import '../helpers/format_helpers.dart';
+import '../utils/attendance_formatters.dart';
+import '../utils/attendance_status_helper.dart';
 import '../widgets/attendance_row_widgets.dart';
 import 'report_issue_dialog.dart';
 
 /// Bottom sheet showing detailed shift activity
-///
-/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class ActivityDetailsSheet extends ConsumerWidget {
-  /// ✅ Clean Architecture: Use ShiftCard Entity directly
-  final ShiftCard shiftCard;
-  final SalaryInfo? salaryInfo;
+  final Map<String, dynamic> activity;
+  final Map<String, dynamic>? shiftOverviewData;
   final VoidCallback onReportSubmitted;
 
   const ActivityDetailsSheet({
     super.key,
-    required this.shiftCard,
-    this.salaryInfo,
+    required this.activity,
+    this.shiftOverviewData,
     required this.onReportSubmitted,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✅ Clean Architecture: Parse date from Entity
-    final dateStr = shiftCard.requestDate;
+    final cardData = activity['rawCard'] as Map<String, dynamic>?;
+    if (cardData == null) {
+      return const SizedBox.shrink();
+    }
+
+    final dateStr = (cardData['request_date'] ?? '').toString();
     final dateParts = dateStr.split('-');
     final date = dateParts.length == 3
         ? DateTime(
-            int.parse(dateParts[0]),
-            int.parse(dateParts[1]),
-            int.parse(dateParts[2]),
+            int.parse(dateParts[0].toString()),
+            int.parse(dateParts[1].toString()),
+            int.parse(dateParts[2].toString()),
           )
         : DateTime.now();
 
-    final currencySymbol = salaryInfo?.currencySymbol ?? 'VND';
-    final rawShiftTime = shiftCard.shiftTime;
-    final requestDate = shiftCard.requestDate;
-    String shiftTime = FormatHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+    final currencySymbol = (shiftOverviewData?['currency_symbol'] as String?) ?? 'VND';
+    final rawShiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
+    final requestDate = cardData['request_date']?.toString();
+    String shiftTime = AttendanceFormatters.formatShiftTime(rawShiftTime, requestDate: requestDate);
 
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
@@ -103,7 +103,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
                         title: 'Info',
                         isExpanded: isInfoExpanded,
                         onTap: () => setState(() => isInfoExpanded = !isInfoExpanded),
-                        child: _buildInfoSection(date, shiftTime),
+                        child: _buildInfoSection(date, shiftTime, cardData),
                       ),
 
                       const SizedBox(height: TossSpacing.space6),
@@ -113,18 +113,18 @@ class ActivityDetailsSheet extends ConsumerWidget {
                         title: 'Actual Attendance',
                         isExpanded: isActualAttendanceExpanded,
                         onTap: () => setState(() => isActualAttendanceExpanded = !isActualAttendanceExpanded),
-                        child: _buildActualAttendanceSection(currencySymbol),
+                        child: _buildActualAttendanceSection(cardData, currencySymbol),
                       ),
 
                       const SizedBox(height: TossSpacing.space6),
 
                       // Confirmed Attendance
-                      _buildConfirmedAttendance(),
+                      _buildConfirmedAttendance(cardData),
 
                       const SizedBox(height: TossSpacing.space4),
 
                       // Base Pay and Bonus
-                      _buildPaySection(currencySymbol),
+                      _buildPaySection(cardData, currencySymbol),
 
                       const SizedBox(height: TossSpacing.space6),
 
@@ -145,7 +145,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            '$currencySymbol${FormatHelpers.formatNumber(shiftCard.totalPayAmount)}',
+                            '$currencySymbol${AttendanceFormatters.formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
                             style: TossTextStyles.h2.copyWith(
                               color: TossColors.info,
                               fontWeight: FontWeight.w700,
@@ -157,11 +157,11 @@ class ActivityDetailsSheet extends ConsumerWidget {
                       const SizedBox(height: TossSpacing.space5),
 
                       // Reported status
-                      if (shiftCard.isReported)
-                        _buildReportedStatus(),
+                      if (cardData['is_reported'] == true)
+                        _buildReportedStatus(cardData),
 
                       // Report Issue Button
-                      _buildReportButton(context, ref),
+                      _buildReportButton(context, ref, cardData),
 
                       SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space5),
                     ],
@@ -216,11 +216,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoSection(DateTime date, String shiftTime) {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
-    final workStatus = _getWorkStatus();
-    final statusColor = _getWorkStatusColor();
-
+  Widget _buildInfoSection(DateTime date, String shiftTime, Map<String, dynamic> cardData) {
     return Column(
       children: [
         AttendanceRowWidgets.buildInfoRow(
@@ -238,22 +234,22 @@ class ActivityDetailsSheet extends ConsumerWidget {
               style: TossTextStyles.body.copyWith(color: TossColors.gray500),
             ),
             Text(
-              workStatus,
+              AttendanceFormatters.getWorkStatusFromCard(cardData),
               style: TossTextStyles.body.copyWith(
-                color: statusColor,
+                color: AttendanceStatusHelper.getWorkStatusColorFromCard(cardData),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
-        if (shiftCard.lateMinutes > 0) ...[
+        if ((cardData['is_late'] == true) || ((cardData['late_minutes'] as num?) ?? 0) > 0) ...[
           const SizedBox(height: TossSpacing.space4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Late', style: TossTextStyles.body.copyWith(color: TossColors.error)),
               Text(
-                '${shiftCard.lateMinutes.toInt()} minutes',
+                '${cardData['late_minutes'] ?? 0} minutes',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.error,
                   fontWeight: FontWeight.w600,
@@ -266,57 +262,55 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildActualAttendanceSection(String currencySymbol) {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
-    final requestDateStr = shiftCard.requestDate;
+  Widget _buildActualAttendanceSection(Map<String, dynamic> cardData, String currencySymbol) {
+    final requestDateStr = cardData['request_date'] as String?;
     return Column(
       children: [
         AttendanceRowWidgets.buildInfoRow(
           'Actual Check-in',
-          FormatHelpers.formatTime(
-            shiftCard.actualStartTime,
+          AttendanceFormatters.formatTime(
+            cardData['actual_start_time'],
             requestDate: requestDateStr,
           ),
         ),
         const SizedBox(height: TossSpacing.space3),
         AttendanceRowWidgets.buildInfoRow(
           'Actual Check-out',
-          FormatHelpers.formatTime(
-            shiftCard.actualEndTime,
+          AttendanceFormatters.formatTime(
+            cardData['actual_end_time'],
             requestDate: requestDateStr,
           ),
         ),
         const SizedBox(height: TossSpacing.space4),
         AttendanceRowWidgets.buildInfoRow(
           'Scheduled Hours',
-          '${shiftCard.scheduledHours} hours',
+          '${cardData['scheduled_hours'] ?? 0.0} hours',
         ),
         const SizedBox(height: TossSpacing.space3),
         AttendanceRowWidgets.buildInfoRow(
           'Paid Hours',
-          '${shiftCard.paidHours} hours',
+          '${cardData['paid_hours'] ?? 0} hours',
         ),
         const SizedBox(height: TossSpacing.space4),
         AttendanceRowWidgets.buildInfoRow(
           'Salary Type',
-          shiftCard.salaryType,
+          (cardData['salary_type'] ?? 'hourly').toString(),
         ),
         const SizedBox(height: TossSpacing.space3),
         AttendanceRowWidgets.buildInfoRow(
           'Salary per Hour',
-          '$currencySymbol${FormatHelpers.formatNumber(shiftCard.salaryAmount)}',
+          '$currencySymbol${AttendanceFormatters.formatNumber(cardData['salary_amount'] ?? 0)}',
         ),
       ],
     );
   }
 
-  Widget _buildConfirmedAttendance() {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
-    final requestDateStr = shiftCard.requestDate;
+  Widget _buildConfirmedAttendance(Map<String, dynamic> cardData) {
+    final requestDateStr = cardData['request_date'] as String?;
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.info.withValues(alpha: 0.05),
+        color: TossColors.info.withOpacity(0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
@@ -335,8 +329,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
             children: [
               Text('Check-in', style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500)),
               Text(
-                FormatHelpers.formatTime(
-                  shiftCard.confirmStartTime,
+                AttendanceFormatters.formatTime(
+                  cardData['confirm_start_time'],
                   requestDate: requestDateStr,
                 ),
                 style: TossTextStyles.body.copyWith(
@@ -352,8 +346,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
             children: [
               Text('Check-out', style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500)),
               Text(
-                FormatHelpers.formatTime(
-                  shiftCard.confirmEndTime,
+                AttendanceFormatters.formatTime(
+                  cardData['confirm_end_time'],
                   requestDate: requestDateStr,
                 ),
                 style: TossTextStyles.body.copyWith(
@@ -368,12 +362,11 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaySection(String currencySymbol) {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
+  Widget _buildPaySection(Map<String, dynamic> cardData, String currencySymbol) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.info.withValues(alpha: 0.05),
+        color: TossColors.info.withOpacity(0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
@@ -384,7 +377,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
             children: [
               Text('Base Pay', style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500)),
               Text(
-                '$currencySymbol${FormatHelpers.formatNumber(shiftCard.basePay)}',
+                '$currencySymbol${AttendanceFormatters.formatNumber(cardData['base_pay'] ?? 0)}',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
                   fontWeight: FontWeight.w600,
@@ -398,7 +391,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
             children: [
               Text('Bonus Amount', style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500)),
               Text(
-                '$currencySymbol${FormatHelpers.formatNumber(shiftCard.bonusAmount)}',
+                '$currencySymbol${AttendanceFormatters.formatNumber(cardData['bonus_amount'] ?? 0)}',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
                   fontWeight: FontWeight.w600,
@@ -411,17 +404,16 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildReportedStatus() {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
+  Widget _buildReportedStatus(Map<String, dynamic> cardData) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space5),
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
-          color: TossColors.warning.withValues(alpha: 0.06),
+          color: TossColors.warning.withOpacity(0.06),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
-            color: TossColors.warning.withValues(alpha: 0.15),
+            color: TossColors.warning.withOpacity(0.15),
             width: 1,
           ),
         ),
@@ -442,7 +434,7 @@ class ActivityDetailsSheet extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    shiftCard.isProblemSolved
+                    (cardData['is_problem_solved'] == true)
                         ? 'Your report has been resolved'
                         : 'Your report is being reviewed',
                     style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray600),
@@ -456,9 +448,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildReportButton(BuildContext context, WidgetRef ref) {
-    // ✅ Clean Architecture: Use ShiftCard Entity properties
-    final isDisabled = shiftCard.isReported || !shiftCard.isApproved;
+  Widget _buildReportButton(BuildContext context, WidgetRef ref, Map<String, dynamic> cardData) {
+    final isDisabled = (cardData['is_reported'] == true) || (cardData['is_approved'] != true);
 
     return Container(
       width: double.infinity,
@@ -477,8 +468,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
           onTap: isDisabled
               ? null
               : () async {
-                  final shiftRequestId = shiftCard.shiftRequestId;
-                  if (shiftRequestId.isEmpty) {
+                  final shiftRequestId = cardData['shift_request_id'];
+                  if (shiftRequestId == null) {
                     await showDialog<bool>(
                       context: context,
                       barrierDismissible: true,
@@ -493,13 +484,10 @@ class ActivityDetailsSheet extends ConsumerWidget {
 
                   HapticFeedback.selectionClick();
 
-                  // Convert ShiftCard to Map for backward compatibility with ReportIssueDialog
-                  final cardData = _shiftCardToMap();
-
                   await ReportIssueDialog.show(
                     context: context,
                     ref: ref,
-                    shiftRequestId: shiftRequestId,
+                    shiftRequestId: shiftRequestId as String,
                     cardData: cardData,
                     onSuccess: () {
                       context.pop(); // Close details sheet
@@ -532,55 +520,5 @@ class ActivityDetailsSheet extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// Helper method to get work status from ShiftCard
-  String _getWorkStatus() {
-    if (shiftCard.confirmEndTime != null && shiftCard.confirmEndTime!.isNotEmpty) {
-      return 'Completed';
-    } else if (shiftCard.confirmStartTime != null && shiftCard.confirmStartTime!.isNotEmpty) {
-      return 'Working';
-    } else if (shiftCard.isApproved) {
-      return 'Approved';
-    }
-    return 'Pending';
-  }
-
-  /// Helper method to get work status color
-  Color _getWorkStatusColor() {
-    if (shiftCard.confirmEndTime != null && shiftCard.confirmEndTime!.isNotEmpty) {
-      return TossColors.success;
-    } else if (shiftCard.confirmStartTime != null && shiftCard.confirmStartTime!.isNotEmpty) {
-      return TossColors.info;
-    } else if (shiftCard.isApproved) {
-      return TossColors.success;
-    }
-    return TossColors.warning;
-  }
-
-  /// Convert ShiftCard Entity to Map for backward compatibility
-  Map<String, dynamic> _shiftCardToMap() {
-    return {
-      'shift_request_id': shiftCard.shiftRequestId,
-      'request_date': shiftCard.requestDate,
-      'shift_name': shiftCard.shiftName,
-      'shift_time': shiftCard.shiftTime,
-      'is_approved': shiftCard.isApproved,
-      'is_reported': shiftCard.isReported,
-      'is_problem_solved': shiftCard.isProblemSolved,
-      'confirm_start_time': shiftCard.confirmStartTime,
-      'confirm_end_time': shiftCard.confirmEndTime,
-      'actual_start_time': shiftCard.actualStartTime,
-      'actual_end_time': shiftCard.actualEndTime,
-      'scheduled_hours': shiftCard.scheduledHours,
-      'paid_hours': shiftCard.paidHours,
-      'late_minutes': shiftCard.lateMinutes,
-      'overtime_minutes': shiftCard.overtimeMinutes,
-      'base_pay': shiftCard.basePay,
-      'bonus_amount': shiftCard.bonusAmount,
-      'total_pay_with_bonus': shiftCard.totalPayAmount,
-      'salary_amount': shiftCard.salaryAmount,
-      'salary_type': shiftCard.salaryType,
-    };
   }
 }

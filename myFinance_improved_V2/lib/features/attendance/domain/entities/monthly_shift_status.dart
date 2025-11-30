@@ -60,9 +60,6 @@ class DailyShift with _$DailyShift {
     String? shiftType,
     String? startTime,
     String? endTime,
-    @Default(0) int requiredEmployees,
-    @Default(0) int pendingCount,
-    @Default(0) int approvedCount,
     @Default([]) List<EmployeeStatus> pendingEmployees,
     @Default([]) List<EmployeeStatus> approvedEmployees,
   }) = _DailyShift;
@@ -72,13 +69,6 @@ class DailyShift with _$DailyShift {
 
   /// Has any employees
   bool get hasEmployees => totalEmployees > 0;
-
-  /// Check if shift has available slots
-  bool get hasAvailableSlots => approvedCount < requiredEmployees;
-
-  /// Available slots count
-  int get availableSlots =>
-      requiredEmployees > approvedCount ? requiredEmployees - approvedCount : 0;
 }
 
 /// Employee Status Entity

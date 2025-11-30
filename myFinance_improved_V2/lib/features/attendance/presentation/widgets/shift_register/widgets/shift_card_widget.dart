@@ -7,12 +7,10 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../domain/entities/shift_metadata.dart';
 
 /// Individual shift card widget
-/// ✅ Clean Architecture: Uses ShiftMetadata Entity instead of Map
 class ShiftCardWidget extends ConsumerWidget {
-  final ShiftMetadata shiftMetadata;
+  final Map<String, dynamic> shift;
   final DateTime selectedDate;
   final List<dynamic>? monthlyShiftStatus;
   final String? selectedShift;
@@ -20,7 +18,7 @@ class ShiftCardWidget extends ConsumerWidget {
 
   const ShiftCardWidget({
     super.key,
-    required this.shiftMetadata,
+    required this.shift,
     required this.selectedDate,
     required this.monthlyShiftStatus,
     required this.selectedShift,
@@ -39,20 +37,22 @@ class ShiftCardWidget extends ConsumerWidget {
     );
   }
 
-  /// Extract shift data from Entity
-  /// ✅ Clean Architecture: Uses Entity properties directly
   _ShiftData _extractShiftData() {
+    final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
+    final shiftIdStr = shiftId?.toString() ?? '';
+    final shiftName = shift['shift_name'] ?? shift['name'] ?? shift['shift_type'] ?? 'Shift ${shiftId ?? ""}';
+    final startTime = shift['start_time'] ?? shift['shift_start_time'] ?? shift['default_start_time'] ?? '--:--';
+    final endTime = shift['end_time'] ?? shift['shift_end_time'] ?? shift['default_end_time'] ?? '--:--';
+
     return _ShiftData(
-      id: shiftMetadata.shiftId,
-      name: shiftMetadata.shiftName,
-      startTime: shiftMetadata.startTime,
-      endTime: shiftMetadata.endTime,
-      rawId: shiftMetadata.shiftId,
+      id: shiftIdStr,
+      name: shiftName.toString(),
+      startTime: startTime.toString(),
+      endTime: endTime.toString(),
+      rawId: shiftId,
     );
   }
 
-  /// Extract employee data for this shift on selected date
-  /// ✅ Clean Architecture: Uses Entity shiftId for matching
   _EmployeeData _extractEmployeeData() {
     List<Map<String, dynamic>> pendingEmployees = [];
     List<Map<String, dynamic>> approvedEmployees = [];
@@ -65,8 +65,9 @@ class ShiftCardWidget extends ConsumerWidget {
           final shifts = dayData['shifts'] as List? ?? [];
 
           for (final shiftData in shifts) {
-            // Compare using Entity's shiftId
-            if (shiftData['shift_id'].toString() == shiftMetadata.shiftId) {
+            if (shiftData['shift_id'].toString() == shift['shift_id']?.toString() ||
+                shiftData['shift_id'].toString() == shift['id']?.toString() ||
+                shiftData['shift_id'].toString() == shift['store_shift_id']?.toString()) {
               if (shiftData['pending_employees'] != null) {
                 final pending = shiftData['pending_employees'] as List;
                 pendingEmployees = List<Map<String, dynamic>>.from(

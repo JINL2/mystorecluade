@@ -1,37 +1,38 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../../../core/utils/datetime_utils.dart';
-// ✅ Clean Architecture: Import from Domain layer only
-import '../../domain/entities/base_currency.dart';
+import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/entities/shift_card.dart';
-import '../../domain/entities/user_shift_stats.dart';
-import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
-import '../../domain/usecases/get_base_currency.dart';
 import '../../domain/usecases/get_monthly_shift_status.dart';
 import '../../domain/usecases/get_shift_metadata.dart';
+import '../../domain/usecases/get_shift_overview.dart';
 import '../../domain/usecases/get_user_shift_cards.dart';
-import '../../domain/usecases/get_user_shift_stats.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
 import '../../domain/usecases/update_shift_card_after_scan.dart';
+import 'states/shift_overview_state.dart';
 
 // ========================================
 // Re-export Repository Provider (for complex operations)
 // ========================================
 
-/// Re-export repository provider from Domain layer
+/// Re-export repository provider from data layer
 /// Use this ONLY for complex operations that combine multiple use cases
 /// Prefer individual use case providers for simple operations
-export '../../domain/providers/attendance_repository_provider.dart' show attendanceRepositoryProvider;
+export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
 
 // ========================================
 // Use Case Providers
 // ========================================
+
+/// Get shift overview use case provider
+final getShiftOverviewProvider = Provider<GetShiftOverview>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetShiftOverview(repository);
+});
 
 /// Check in shift use case provider
 final checkInShiftProvider = Provider<CheckInShift>((ref) {
@@ -80,21 +81,94 @@ final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref
   return UpdateShiftCardAfterScan();
 });
 
-/// Get base currency use case provider
-final getBaseCurrencyUseCaseProvider = Provider<GetBaseCurrency>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetBaseCurrency(repository);
-});
-
-/// Get user shift stats use case provider
-final getUserShiftStatsUseCaseProvider = Provider<GetUserShiftStats>((ref) {
-  final repository = ref.watch(attendanceRepositoryProvider);
-  return GetUserShiftStats(repository);
-});
-
 // ========================================
 // Presentation Layer Providers
 // ========================================
+
+/// Shift Overview Provider
+final shiftOverviewProvider =
+    StateNotifierProvider<ShiftOverviewNotifier, ShiftOverviewState>((ref) {
+  // Watch app state changes to refresh when company/store changes
+  ref.watch(appStateProvider);
+  return ShiftOverviewNotifier(ref);
+});
+
+class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
+  final Ref ref;
+
+  ShiftOverviewNotifier(this.ref) : super(ShiftOverviewState.initial()) {
+    // Fetch data when provider is created or when company/store changes
+    // Check if we have company and store selected before fetching
+    final appState = ref.read(appStateProvider);
+    if (appState.companyChoosen.isNotEmpty &&
+        appState.storeChoosen.isNotEmpty) {
+      fetchShiftOverview();
+    }
+  }
+
+  Future<void> fetchShiftOverview() async {
+    state = ShiftOverviewState.loading();
+
+    try {
+      final getShiftOverview = ref.read(getShiftOverviewProvider);
+      final authStateAsync = ref.read(authStateProvider);
+      final appState = ref.read(appStateProvider);
+
+      // Get user ID from auth state
+      final user = authStateAsync.value;
+      final userId = user?.id;
+
+      if (userId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'User not logged in',
+        );
+        return;
+      }
+
+      // Get company and store from app state
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
+      if (companyId.isEmpty || storeId.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Please select a company and store',
+        );
+        return;
+      }
+
+      // IMPORTANT: RPC functions require the LAST day of the month as p_request_time
+      final now = DateTime.now();
+      // Calculate the last day of the current month
+      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+      final requestTime =
+          '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')} 23:59:59';
+
+      final overview = await getShiftOverview(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
+      );
+
+      state = ShiftOverviewState(
+        overview: overview,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<void> refresh() async {
+    await fetchShiftOverview();
+  }
+}
 
 /// Provider for current shift status
 final currentShiftProvider =
@@ -113,15 +187,15 @@ final currentShiftProvider =
   }
 
   final now = DateTime.now();
-  final requestTime = DateTimeUtils.toLocalWithOffset(now);
-  final timezone = DateTimeUtils.getLocalTimezone();
+  final requestTime =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
   final shiftCards = await getUserShiftCards(
     requestTime: requestTime,
     userId: userId,
     companyId: companyId,
     storeId: storeId,
-    timezone: timezone,
+    timezone: 'Asia/Seoul', // TODO: Get from user settings
   );
 
   // Return the first shift that is currently active (checked in but not checked out)
@@ -145,102 +219,5 @@ final isWorkingProvider = Provider<bool>((ref) {
     },
     loading: () => false,
     error: (_, __) => false,
-  );
-});
-
-/// Provider for monthly shift cards (Week/Month view용)
-/// Parameter: String (년-월 형식, e.g., "2025-11")
-/// DateTime 대신 String을 사용하여 동일한 월에 대해 캐싱 및 리빌드 방지
-final monthlyShiftCardsProvider =
-    FutureProvider.family<List<ShiftCard>, String>((ref, yearMonth) async {
-  final getUserShiftCards = ref.read(getUserShiftCardsProvider);
-  final authStateAsync = ref.read(authStateProvider);
-  final appState = ref.read(appStateProvider);
-
-  final user = authStateAsync.value;
-  final userId = user?.id;
-  final companyId = appState.companyChoosen;
-  final storeId = appState.storeChoosen;
-
-  if (userId == null || companyId.isEmpty || storeId.isEmpty) {
-    return [];
-  }
-
-  // Parse year-month string (e.g., "2025-11")
-  final parts = yearMonth.split('-');
-  final year = int.parse(parts[0]);
-  final month = int.parse(parts[1]);
-
-  // Calculate the last day of the month for RPC
-  // Use toLocalWithOffset for proper timezone format (e.g., "2025-11-30T23:59:59+09:00")
-  final lastDayOfMonth = DateTime(year, month + 1, 0, 23, 59, 59);
-  final requestTime = DateTimeUtils.toLocalWithOffset(lastDayOfMonth);
-  final timezone = DateTimeUtils.getLocalTimezone();
-
-  final shiftCards = await getUserShiftCards(
-    requestTime: requestTime,
-    userId: userId,
-    companyId: companyId,
-    storeId: storeId,
-    timezone: timezone,
-  );
-
-  // ✅ Debug: Log loaded shift cards
-  assert(() {
-    debugPrint('📅 [monthlyShiftCardsProvider] Loaded ${shiftCards.length} cards for $yearMonth');
-    for (final card in shiftCards) {
-      debugPrint('  - ${card.requestDate}: ${card.shiftTime}');
-    }
-    return true;
-  }());
-
-  return shiftCards;
-});
-
-/// Provider for base currency (fetches company's base currency symbol)
-/// Used to display currency symbol in salary and payment sections
-final baseCurrencyProvider = FutureProvider<BaseCurrency?>((ref) async {
-  final getBaseCurrency = ref.read(getBaseCurrencyUseCaseProvider);
-  final appState = ref.read(appStateProvider);
-
-  final companyId = appState.companyChoosen;
-
-  if (companyId.isEmpty) {
-    return null;
-  }
-
-  try {
-    return await getBaseCurrency(companyId: companyId);
-  } catch (e) {
-    // Return null on error, UI can show default symbol
-    return null;
-  }
-});
-
-/// Provider for user shift stats (Stats tab data)
-/// Fetches salary info, period stats, and weekly payments from user_shift_stats RPC
-final userShiftStatsProvider = FutureProvider<UserShiftStats?>((ref) async {
-  final getUserShiftStats = ref.read(getUserShiftStatsUseCaseProvider);
-  final authStateAsync = ref.read(authStateProvider);
-  final appState = ref.read(appStateProvider);
-
-  final user = authStateAsync.value;
-  final userId = user?.id;
-  final companyId = appState.companyChoosen;
-  final storeId = appState.storeChoosen;
-
-  if (userId == null || companyId.isEmpty || storeId.isEmpty) {
-    return null;
-  }
-
-  final requestTime = DateTimeUtils.toLocalWithOffset(DateTime.now());
-  final timezone = DateTimeUtils.getLocalTimezone();
-
-  return await getUserShiftStats(
-    requestTime: requestTime,
-    userId: userId,
-    companyId: companyId,
-    storeId: storeId,
-    timezone: timezone,
   );
 });

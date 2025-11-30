@@ -6,14 +6,12 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../domain/entities/shift_metadata.dart';
 import 'shift_card_widget.dart';
 
 /// Widget showing list of available shifts for selected date
-/// ✅ Clean Architecture: Uses ShiftMetadata Entity instead of dynamic
 class ShiftDetailListWidget extends ConsumerWidget {
   final DateTime selectedDate;
-  final List<ShiftMetadata>? shiftMetadata;
+  final List<dynamic>? shiftMetadata;
   final List<dynamic>? monthlyShiftStatus;
   final String? selectedShift;
   final String? selectionMode;
@@ -35,7 +33,7 @@ class ShiftDetailListWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeShifts = _getActiveShifts();
+    final allStoreShifts = _getAllStoreShifts();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
@@ -49,8 +47,8 @@ class ShiftDetailListWidget extends ConsumerWidget {
             children: [
               if (isLoadingMetadata || isLoadingShiftStatus)
                 _buildLoadingState()
-              else if (activeShifts.isNotEmpty)
-                _buildShiftsList(activeShifts, ref)
+              else if (allStoreShifts.isNotEmpty)
+                _buildShiftsList(allStoreShifts, ref)
               else
                 _buildEmptyState(),
             ],
@@ -69,15 +67,14 @@ class ShiftDetailListWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildShiftsList(List<ShiftMetadata> activeShifts, WidgetRef ref) {
+  Widget _buildShiftsList(List<Map<String, dynamic>> allStoreShifts, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeader(),
         const SizedBox(height: TossSpacing.space2),
-        // ✅ Clean Architecture: Pass Entity directly to ShiftCardWidget
-        ...activeShifts.map((shift) => ShiftCardWidget(
-              shiftMetadata: shift,
+        ...allStoreShifts.map((shift) => ShiftCardWidget(
+              shift: shift,
               selectedDate: selectedDate,
               monthlyShiftStatus: monthlyShiftStatus,
               selectedShift: selectedShift,
@@ -175,13 +172,15 @@ class ShiftDetailListWidget extends ConsumerWidget {
     );
   }
 
-  /// Get active shifts from metadata
-  /// ✅ Clean Architecture: Returns Entity list directly
-  List<ShiftMetadata> _getActiveShifts() {
+  List<Map<String, dynamic>> _getAllStoreShifts() {
     if (shiftMetadata == null || shiftMetadata!.isEmpty) {
       return [];
     }
 
-    return shiftMetadata!.where((shift) => shift.isActive).toList();
+    return shiftMetadata!
+        .where((shift) => shift.isActive == true)
+        .map((shift) => shift.toJson())
+        .cast<Map<String, dynamic>>()
+        .toList();
   }
 }

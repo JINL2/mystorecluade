@@ -1,10 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
-import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../domain/entities/monthly_shift_status.dart';
 import '../../../../domain/entities/shift_metadata.dart';
 import '../../../providers/attendance_providers.dart';
@@ -42,10 +40,9 @@ class ShiftRegisterController {
 
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
-      final timezone = DateTimeUtils.getLocalTimezone();
       final response = await getShiftMetadata(
         storeId: storeId,
-        timezone: timezone,
+        timezone: 'Asia/Seoul',
       );
 
       setState(() {
@@ -53,10 +50,7 @@ class ShiftRegisterController {
         isLoadingMetadata = false;
       });
     } catch (e) {
-      assert(() {
-        debugPrint('❌ Error fetching shift metadata: $e');
-        return true;
-      }());
+      print('❌ Error fetching shift metadata: $e');
       setState(() {
         isLoadingMetadata = false;
         shiftMetadata = [];
@@ -77,13 +71,12 @@ class ShiftRegisterController {
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
         requestTime: requestTime,
-        timezone: timezone,
+        timezone: 'Asia/Seoul',
       );
 
       setState(() {
@@ -178,24 +171,16 @@ class ShiftRegisterController {
     await fetchMonthlyShiftStatus();
   }
 
-  /// Get all active store shifts as Entity list
-  /// ✅ Clean Architecture: Returns Entity instead of Map
-  List<ShiftMetadata> getActiveShifts() {
+  /// Get all active store shifts
+  List<Map<String, dynamic>> getAllStoreShifts() {
     if (shiftMetadata == null || shiftMetadata!.isEmpty) {
       return [];
     }
 
-    return shiftMetadata!.where((shift) => shift.isActive).toList();
-  }
-
-  /// Find shift metadata by ID
-  /// ✅ Clean Architecture: Returns Entity instead of Map
-  ShiftMetadata? findShiftById(String shiftId) {
-    final activeShifts = getActiveShifts();
-    for (final shift in activeShifts) {
-      if (shift.shiftId == shiftId) return shift;
-    }
-    return null;
+    return shiftMetadata!
+        .where((shift) => shift.isActive)
+        .map((shift) => shift.toJson())
+        .toList();
   }
 
   /// Optimistically update local shift status after registration
@@ -282,13 +267,13 @@ class ShiftRegisterController {
         totalPending: day.totalPending + 1,
       );
     } else {
-      // Create new shift - use Entity instead of Map
-      final shiftMeta = findShiftById(shiftId);
+      // Create new shift
+      final shiftMeta = _getShiftMetadata(shiftId);
       final newShift = DailyShift(
         shiftId: shiftId,
-        shiftName: shiftMeta?.shiftName ?? 'Unknown',
-        startTime: shiftMeta?.startTime ?? '00:00:00',
-        endTime: shiftMeta?.endTime ?? '00:00:00',
+        shiftName: (shiftMeta?['shift_name'] ?? shiftMeta?['name'] ?? 'Unknown') as String?,
+        startTime: (shiftMeta?['start_time'] ?? '00:00:00') as String?,
+        endTime: (shiftMeta?['end_time'] ?? '00:00:00') as String?,
         pendingEmployees: [newEmployee],
         approvedEmployees: [],
       );
@@ -314,13 +299,12 @@ class ShiftRegisterController {
       isApproved: false,
     );
 
-    // ✅ Clean Architecture: Use Entity instead of Map
-    final shiftMeta = findShiftById(shiftId);
+    final shiftMeta = _getShiftMetadata(shiftId);
     final newShift = DailyShift(
       shiftId: shiftId,
-      shiftName: shiftMeta?.shiftName ?? 'Unknown',
-      startTime: shiftMeta?.startTime ?? '00:00:00',
-      endTime: shiftMeta?.endTime ?? '00:00:00',
+      shiftName: (shiftMeta?['shift_name'] ?? shiftMeta?['name'] ?? 'Unknown') as String?,
+      startTime: (shiftMeta?['start_time'] ?? '00:00:00') as String?,
+      endTime: (shiftMeta?['end_time'] ?? '00:00:00') as String?,
       pendingEmployees: [newEmployee],
       approvedEmployees: [],
     );
@@ -333,6 +317,14 @@ class ShiftRegisterController {
     );
   }
 
+  Map<String, dynamic>? _getShiftMetadata(String shiftId) {
+    final allShifts = getAllStoreShifts();
+    for (final shift in allShifts) {
+      final id = (shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'])?.toString();
+      if (id == shiftId) return shift;
+    }
+    return null;
+  }
 
   /// Optimistically remove user from local shift status
   void removeFromLocalShiftStatusOptimistically({

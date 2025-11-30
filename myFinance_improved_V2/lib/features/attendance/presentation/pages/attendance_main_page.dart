@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
-import '../providers/attendance_providers.dart';
-import 'shift_requests_tab.dart';
+import 'shift_signup_tab.dart';
 import 'my_schedule_tab.dart';
 import 'stats_tab.dart';
 
@@ -16,43 +14,8 @@ import 'stats_tab.dart';
 /// - My Schedule: Week/Month view with shift list and calendar
 /// - Requests: Shift registration and management
 /// - Stats: Attendance statistics (placeholder)
-class AttendanceMainPage extends ConsumerStatefulWidget {
+class AttendanceMainPage extends StatelessWidget {
   const AttendanceMainPage({super.key});
-
-  @override
-  ConsumerState<AttendanceMainPage> createState() => _AttendanceMainPageState();
-}
-
-class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage> {
-  @override
-  void initState() {
-    super.initState();
-    // Refresh all data when page is entered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshAllData();
-    });
-  }
-
-  /// Invalidate all attendance-related providers to force data refresh
-  void _refreshAllData() {
-    // Invalidate Stats tab data
-    ref.invalidate(userShiftStatsProvider);
-    ref.invalidate(baseCurrencyProvider);
-
-    // Invalidate My Schedule tab data
-    final now = DateTime.now();
-    final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    ref.invalidate(monthlyShiftCardsProvider(currentYearMonth));
-
-    // Invalidate current shift status
-    ref.invalidate(currentShiftProvider);
-
-    // Debug log
-    assert(() {
-      debugPrint('🔄 [AttendanceMainPage] Refreshed all attendance data on page entry');
-      return true;
-    }());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +30,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage> {
           tabs: const ['My Schedule', 'Requests', 'Stats'],
           children: const [
             MyScheduleTab(),
-            ShiftRequestsTab(),
+            ShiftSignupTab(),
             StatsTab(),
           ],
         ),

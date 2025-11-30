@@ -5,9 +5,7 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../domain/entities/shift_card.dart';
-import '../../../../domain/entities/user_shift_stats.dart';
-import '../helpers/hero_section_helpers.dart';
+import '../utils/hero_section_helpers.dart';
 import 'hero_salary_card.dart';
 import 'hero_stat_card.dart';
 
@@ -17,15 +15,11 @@ import 'hero_stat_card.dart';
 /// - Monthly overview with stats grid (total shifts, hours, overtime, late deductions)
 /// - Estimated salary card
 /// - Loading, error, and empty states
-///
-/// ✅ Clean Architecture: Uses Domain Entities instead of Map<String, dynamic>
 class AttendanceHeroSection extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
-  /// ✅ Clean Architecture: Use UserShiftStats Entity instead of Map
-  final UserShiftStats? userShiftStats;
-  /// ✅ Clean Architecture: Use ShiftCard Entity list instead of Map list
-  final List<ShiftCard> shiftCards;
+  final Map<String, dynamic>? shiftOverviewData;
+  final List<Map<String, dynamic>> allShiftCardsData;
   final String? currentDisplayedMonth;
   final String shiftStatus;
   final Color Function(String) getStatusColor;
@@ -35,8 +29,8 @@ class AttendanceHeroSection extends StatelessWidget {
     super.key,
     required this.isLoading,
     this.errorMessage,
-    this.userShiftStats,
-    required this.shiftCards,
+    this.shiftOverviewData,
+    required this.allShiftCardsData,
     this.currentDisplayedMonth,
     required this.shiftStatus,
     required this.getStatusColor,
@@ -56,7 +50,7 @@ class AttendanceHeroSection extends StatelessWidget {
     }
 
     // If no data yet, show empty state
-    if (userShiftStats == null) {
+    if (shiftOverviewData == null) {
       return _buildEmptyState();
     }
 
@@ -121,28 +115,26 @@ class AttendanceHeroSection extends StatelessWidget {
   }
 
   Widget _buildContent() {
-    // ✅ Clean Architecture: Extract data from Entity instead of Map
-    final stats = userShiftStats!;
-    final monthStats = stats.thisMonth;
-    final salaryInfo = stats.salaryInfo;
+    // Parse data from the API response
+    final requestMonth = (shiftOverviewData!['request_month'] ?? '') as String;
+    final actualWorkHours = (shiftOverviewData!['actual_work_hours'] as num?)?.toDouble() ?? 0.0;
+    final estimatedSalary = (shiftOverviewData!['estimated_salary'] ?? '0') as String;
+    final currencySymbol = (shiftOverviewData!['currency_symbol'] ?? '₩') as String;
+    final salaryAmount = (shiftOverviewData!['salary_amount'] as num?)?.toDouble() ?? 0.0;
+    final lateDeductionTotal = shiftOverviewData!['late_deduction_total'] ?? 0;
+    final overtimeTotal = shiftOverviewData!['overtime_total'] ?? 0;
 
-    // Calculate totals from ShiftCard entities
-    final monthlyCards = HeroSectionHelpers.filterCardsByMonth(
-      shiftCards,
+    final totalShifts = HeroSectionHelpers.calculateTotalShifts(
+      allShiftCardsData,
       currentDisplayedMonth,
     );
-    final totalShifts = monthlyCards.length;
-    final actualWorkHours = monthStats.totalConfirmedHours;
-    final overtimeTotal = HeroSectionHelpers.calculateTotalOvertimeMinutes(monthlyCards);
-    final lateDeductionTotal = HeroSectionHelpers.calculateTotalLateMinutes(monthlyCards);
 
-    // ✅ Clean Architecture: Use Entity methods for business logic
-    final currencySymbol = salaryInfo.currencySymbol;
-    final estimatedSalary = salaryInfo.formatCurrency(monthStats.totalPayment);
-
-    final monthDisplay = HeroSectionHelpers.getMonthDisplay(currentDisplayedMonth ?? '');
-    // ✅ Clean Architecture: Overtime bonus calculation moved to Domain Entity
-    final overtimeBonus = salaryInfo.calculateOvertimeBonus(overtimeTotal);
+    final monthDisplay = HeroSectionHelpers.getMonthDisplay(requestMonth);
+    final overtimeBonus = HeroSectionHelpers.calculateOvertimeBonus(
+      overtimeTotal,
+      salaryAmount,
+      currencySymbol,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),

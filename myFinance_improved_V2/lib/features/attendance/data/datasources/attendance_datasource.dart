@@ -63,6 +63,72 @@ class AttendanceDatasource {
     return result;
   }
 
+  /// Fetch user shift overview for the month
+  ///
+  /// Uses user_shift_overview_v3 RPC with local time + timezone offset
+  Future<Map<String, dynamic>> getUserShiftOverview({
+    required String requestTime, // ISO 8601 with offset (e.g., "2024-11-15T10:30:25+07:00")
+    required String userId,
+    required String companyId,
+    required String storeId,
+    required String timezone, // User's local timezone (e.g., "Asia/Seoul")
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'user_shift_overview_v3', // Changed from v2 to v3
+        params: {
+          'p_request_time': requestTime,
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_timezone': timezone, // New: user's local timezone
+        },
+      );
+
+      if (response == null) {
+        // Return empty data structure
+        return {
+          'request_month': requestTime.substring(0, 7), // yyyy-MM from yyyy-MM-dd HH:mm:ss
+          'actual_work_days': 0,
+          'actual_work_hours': 0.0,
+          'estimated_salary': '0',
+          'currency_symbol': '₩',
+          'salary_amount': 0.0,
+          'salary_type': 'hourly',
+          'late_deduction_total': 0,
+          'overtime_total': 0,
+          'salary_stores': <Map<String, dynamic>>[],
+        };
+      }
+
+      // Return the first item if it's a list, otherwise return as is
+      if (response is List) {
+        if (response.isEmpty) {
+          return {
+            'request_month': requestTime.substring(0, 7),
+            'actual_work_days': 0,
+            'actual_work_hours': 0.0,
+            'estimated_salary': '0',
+            'currency_symbol': '₩',
+            'salary_amount': 0.0,
+            'salary_type': 'hourly',
+            'late_deduction_total': 0,
+            'overtime_total': 0,
+            'salary_stores': <Map<String, dynamic>>[],
+          };
+        }
+        final firstItem = response.first as Map<String, dynamic>;
+        return _processNestedData(firstItem);
+      }
+
+      final result = response as Map<String, dynamic>;
+      return _processNestedData(result);
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
+
   /// Update shift request (check-in or check-out) via QR scan
   ///
   /// Uses update_shift_requests_v6 RPC with local time + timezone offset
@@ -143,17 +209,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // ✅ Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [getUserShiftCards] RPC params:');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - userId: $userId');
-        debugPrint('  - companyId: $companyId');
-        debugPrint('  - storeId: $storeId');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
         'user_shift_cards_v3',
         params: {
@@ -169,13 +224,6 @@ class AttendanceDatasource {
         return [];
       }
 
-      // ✅ Debug: Log raw response
-      assert(() {
-        final count = response is List ? response.length : 'not a list';
-        debugPrint('🟢 [getUserShiftCards] Raw response count: $count');
-        return true;
-      }());
-
       // Convert UTC times to local time and return as list
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
@@ -189,19 +237,10 @@ class AttendanceDatasource {
               if (utcString.isNotEmpty) {
                 final localDateTime = DateTimeUtils.toLocal(utcString);
                 converted['request_date'] = DateTimeUtils.toDateOnly(localDateTime);
-                // ✅ Debug: Log conversion
-                assert(() {
-                  debugPrint('🔄 [getUserShiftCards] Converted: $utcString → ${converted['request_date']}');
-                  return true;
-                }());
               }
             } catch (e) {
               // If conversion fails, use request_time as-is
               converted['request_date'] = converted['request_time'];
-              assert(() {
-                debugPrint('⚠️ [getUserShiftCards] Conversion failed: $e');
-                return true;
-              }());
             }
           }
 
@@ -282,10 +321,9 @@ class AttendanceDatasource {
 
   /// Get monthly shift status for manager view
   ///
-  /// Uses get_monthly_shift_status_manager_v3 RPC with local time + timezone
-  /// - p_request_time: Local time (e.g., "2024-11-15 10:30:25") - RPC calculates month range from this
-  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
-  /// - Returns 3 months of data starting from the month of p_request_time
+  /// Uses get_monthly_shift_status_manager_v2 RPC with local time + timezone offset
+  /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
@@ -293,17 +331,8 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [getMonthlyShiftStatusManager] RPC params:');
-        debugPrint('  - storeId: $storeId');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v3',
+        'get_monthly_shift_status_manager_v2',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,
@@ -328,7 +357,7 @@ class AttendanceDatasource {
 
   /// Insert shift request
   ///
-  /// Uses insert_shift_request_v4 RPC with local time + timezone
+  /// Uses insert_shift_request_v3 RPC with local time + timezone offset
   /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<Map<String, dynamic>?> insertShiftRequest({
@@ -351,7 +380,7 @@ class AttendanceDatasource {
       }());
 
       final response = await _supabase.rpc<dynamic>(
-        'insert_shift_request_v4',
+        'insert_shift_request_v3',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
@@ -408,99 +437,31 @@ class AttendanceDatasource {
     }
   }
 
-  /// Get base currency for a company
-  ///
-  /// Uses get_base_currency RPC to fetch company's base currency settings
-  /// Returns the full response including base_currency and company_currencies
-  Future<Map<String, dynamic>> getBaseCurrency({
-    required String companyId,
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_base_currency',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
-
-      if (response == null) {
-        return {};
-      }
-
-      // Handle list response (RPC returns array)
-      if (response is List) {
-        if (response.isEmpty) return {};
-        return response.first as Map<String, dynamic>;
-      }
-
-      return response as Map<String, dynamic>;
-    } catch (e) {
-      throw AttendanceServerException(e.toString());
-    }
-  }
-
-  /// Get user shift stats
-  ///
-  /// Uses user_shift_stats RPC with local time + timezone
-  Future<Map<String, dynamic>> getUserShiftStats({
-    required String requestTime,
-    required String userId,
-    required String companyId,
-    required String storeId,
-    required String timezone,
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'user_shift_stats',
-        params: {
-          'p_request_time': requestTime,
-          'p_user_id': userId,
-          'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_timezone': timezone,
-        },
-      );
-
-      if (response == null) {
-        return {};
-      }
-
-      if (response is List) {
-        if (response.isEmpty) return {};
-        return response.first as Map<String, dynamic>;
-      }
-
-      return response as Map<String, dynamic>;
-    } catch (e) {
-      throw AttendanceServerException(e.toString());
-    }
-  }
-
   /// Delete shift request
   ///
-  /// Uses delete_shift_request_v2 RPC function
-  /// - p_request_time: Local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
-  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
-  /// - RPC extracts UTC date from request_time for matching
+  /// Uses delete_shift_request RPC function
+  /// Converts request_time to local date using timezone for filtering
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestTime,
+    required String requestDate,
     required String timezone,
   }) async {
     try {
-      // Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [deleteShiftRequest] RPC params:');
-        debugPrint('  - userId: $userId');
-        debugPrint('  - shiftId: $shiftId');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
+      // Call RPC function
+      // Note: RPC expects request_time (TIMESTAMPTZ format with timezone offset)
+      // Convert requestDate string to DateTime, then to ISO 8601 with offset
+      // Example: "2025-11-26" → DateTime(2025, 11, 26) → "2025-11-26T00:00:00+00:00"
+      final dateParts = requestDate.split('-');
+      final requestDateTime = DateTime(
+        int.parse(dateParts[0]), // year
+        int.parse(dateParts[1]), // month
+        int.parse(dateParts[2]), // day
+      );
+      final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
 
       final response = await _supabase.rpc<dynamic>(
-        'delete_shift_request_v2',
+        'delete_shift_request',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,

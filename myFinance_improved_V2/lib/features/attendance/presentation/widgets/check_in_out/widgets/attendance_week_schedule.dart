@@ -5,8 +5,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../domain/entities/shift_card.dart';
-import '../helpers/format_helpers.dart';
+import '../utils/attendance_formatters.dart';
 
 /// Weekly shift schedule widget
 ///
@@ -14,19 +13,16 @@ import '../helpers/format_helpers.dart';
 /// - 7-day week view centered on selected date
 /// - Date navigation with shift indicators
 /// - Calendar button to view full month
-///
-/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class AttendanceWeekSchedule extends StatelessWidget {
   final DateTime selectedDate;
-  /// ✅ Clean Architecture: Use ShiftCard Entity list instead of Map list
-  final List<ShiftCard> shiftCards;
+  final List<Map<String, dynamic>> allShiftCardsData;
   final Function(DateTime) onDateSelected;
   final VoidCallback onCalendarTap;
 
   const AttendanceWeekSchedule({
     super.key,
     required this.selectedDate,
-    required this.shiftCards,
+    required this.allShiftCardsData,
     required this.onDateSelected,
     required this.onCalendarTap,
   });
@@ -35,31 +31,31 @@ class AttendanceWeekSchedule extends StatelessWidget {
   Widget build(BuildContext context) {
     // Calculate centered week schedule based on selected date
     // Always show 7 days with selected date in the center (position 3)
-    final centeredWeekSchedule = <_WeekDayData>[];
+    final centeredWeekSchedule = <Map<String, dynamic>>[];
 
     // Start from 3 days before selected date
     for (int i = -3; i <= 3; i++) {
       final date = selectedDate.add(Duration(days: i));
       final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-      // ✅ Clean Architecture: Use ShiftCard Entity properties
-      final dayCards = shiftCards.where((card) => card.requestDate == dateStr).toList();
-      final hasData = dayCards.isNotEmpty;
+      // Check if this date has any shift data
+      final hasData = allShiftCardsData.any((card) => card['request_date'] == dateStr);
+      final dayCards = allShiftCardsData.where((card) => card['request_date'] == dateStr).toList();
 
-      // Check approval status using Entity properties
+      // Check approval status
       bool hasApprovedShift = false;
       bool hasNonApprovedShift = false;
       if (dayCards.isNotEmpty) {
-        hasApprovedShift = dayCards.any((card) => card.isApproved);
-        hasNonApprovedShift = dayCards.any((card) => !card.isApproved);
+        hasApprovedShift = dayCards.any((card) => card['is_approved'] == true);
+        hasNonApprovedShift = dayCards.any((card) => card['is_approved'] != true);
       }
 
-      centeredWeekSchedule.add(_WeekDayData(
-        date: date,
-        hasShift: hasData,
-        hasApprovedShift: hasApprovedShift,
-        hasNonApprovedShift: hasNonApprovedShift,
-      ));
+      centeredWeekSchedule.add({
+        'date': date,
+        'hasShift': hasData,
+        'hasApprovedShift': hasApprovedShift,
+        'hasNonApprovedShift': hasNonApprovedShift,
+      });
     }
 
     return Padding(
@@ -83,7 +79,7 @@ class AttendanceWeekSchedule extends StatelessWidget {
                   ),
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    '${FormatHelpers.getMonthName(selectedDate.month)} ${selectedDate.year}',
+                    '${AttendanceFormatters.getMonthName(selectedDate.month)} ${selectedDate.year}',
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),
@@ -140,9 +136,10 @@ class AttendanceWeekSchedule extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(centeredWeekSchedule.length, (index) {
                 final schedule = centeredWeekSchedule[index];
-                final date = schedule.date;
-                final hasShift = schedule.hasShift;
-                final hasApprovedShift = schedule.hasApprovedShift;
+                final date = schedule['date'] as DateTime;
+                final hasShift = schedule['hasShift'] as bool;
+                final hasApprovedShift = schedule['hasApprovedShift'] ?? false;
+                final hasNonApprovedShift = schedule['hasNonApprovedShift'] ?? false;
                 final isSelected = date.day == selectedDate.day &&
                     date.month == selectedDate.month &&
                     date.year == selectedDate.year;
@@ -182,7 +179,7 @@ class AttendanceWeekSchedule extends StatelessWidget {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: TossColors.primary.withValues(alpha: 0.3),
+                                  color: TossColors.primary.withOpacity(0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -220,7 +217,7 @@ class AttendanceWeekSchedule extends StatelessWidget {
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: hasApprovedShift
+                                color: (hasApprovedShift == true)
                                     ? (isSelected ? TossColors.surface : TossColors.success)
                                     : (isSelected ? TossColors.surface : TossColors.warning),
                                 shape: BoxShape.circle,
@@ -231,7 +228,7 @@ class AttendanceWeekSchedule extends StatelessWidget {
                               'off',
                               style: TossTextStyles.small.copyWith(
                                 color: isSelected
-                                    ? TossColors.surface.withValues(alpha: 0.8)
+                                    ? TossColors.surface.withOpacity(0.8)
                                     : TossColors.gray400,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -248,19 +245,4 @@ class AttendanceWeekSchedule extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Internal data class for week day information
-class _WeekDayData {
-  final DateTime date;
-  final bool hasShift;
-  final bool hasApprovedShift;
-  final bool hasNonApprovedShift;
-
-  const _WeekDayData({
-    required this.date,
-    required this.hasShift,
-    required this.hasApprovedShift,
-    required this.hasNonApprovedShift,
-  });
 }

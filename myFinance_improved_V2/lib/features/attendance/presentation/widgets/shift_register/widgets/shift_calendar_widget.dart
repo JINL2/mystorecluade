@@ -6,8 +6,8 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
-// ✅ Clean Architecture: Import only Domain entities (no Data Model imports)
 import '../../../../domain/entities/monthly_shift_status.dart';
+import '../../../../data/models/monthly_shift_status_model.dart';
 
 /// Calendar grid widget showing monthly view with shift status indicators
 class ShiftCalendarWidget extends ConsumerWidget {
@@ -68,8 +68,7 @@ class ShiftCalendarWidget extends ConsumerWidget {
           DateTime.now().day == date.day;
       final isWeekend = date.weekday >= 6;
       final hasShift = _hasShiftOnDate(date);
-      // ✅ Clean Architecture: Use Domain Entity directly instead of Map
-      final shiftStatus = _getShiftStatusForDate(date);
+      final shiftData = _getShiftForDate(date);
 
       // Get current user ID from app state
       final appState = ref.read(appStateProvider);
@@ -79,13 +78,15 @@ class ShiftCalendarWidget extends ConsumerWidget {
       bool userIsApproved = false;
       bool userIsPending = false;
 
-      // ✅ Use Domain Entity's typed properties directly
-      if (shiftStatus != null && currentUserId.isNotEmpty) {
-        // Check all shifts for this date using Entity's typed properties
-        for (final shift in shiftStatus.shifts) {
-          // Check approved employees using Entity's typed List<EmployeeStatus>
-          for (final employee in shift.approvedEmployees) {
-            if (employee.userId == currentUserId) {
+      if (shiftData != null && currentUserId.isNotEmpty) {
+        // Check all shifts for this date
+        final shifts = shiftData['shifts'] as List<dynamic>? ?? [];
+
+        for (var shift in shifts) {
+          // Check approved employees
+          final approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+          for (var employee in approvedEmployees) {
+            if (employee['user_id'] == currentUserId) {
               userIsApproved = true;
               break;
             }
@@ -93,8 +94,9 @@ class ShiftCalendarWidget extends ConsumerWidget {
 
           // Check pending employees if not already approved
           if (!userIsApproved) {
-            for (final employee in shift.pendingEmployees) {
-              if (employee.userId == currentUserId) {
+            final pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
+            for (var employee in pendingEmployees) {
+              if (employee['user_id'] == currentUserId) {
                 userIsPending = true;
                 break;
               }
@@ -186,23 +188,22 @@ class ShiftCalendarWidget extends ConsumerWidget {
 
     // Check if there are any shifts registered for this date (for any employee)
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    // ✅ Clean Architecture: Use Entity's typed properties instead of Map access
     return monthlyShiftStatus!.any((dayData) {
-      final status = dayData as MonthlyShiftStatus;
-      return status.requestDate == dateStr &&
-             (status.totalApproved > 0 || status.totalPending > 0);
+      return dayData['request_date'] == dateStr &&
+             (((dayData['total_approved'] ?? 0) as int) > 0 ||
+              ((dayData['total_pending'] ?? 0) as int) > 0);
     });
   }
 
-  /// ✅ Clean Architecture: Returns Domain Entity directly (no Data Model conversion)
-  MonthlyShiftStatus? _getShiftStatusForDate(DateTime date) {
+  Map<String, dynamic>? _getShiftForDate(DateTime date) {
     if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return null;
 
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
-      return monthlyShiftStatus!.firstWhere(
+      final result = monthlyShiftStatus!.firstWhere(
         (dayData) => (dayData as MonthlyShiftStatus).requestDate == dateStr,
       ) as MonthlyShiftStatus;
+      return MonthlyShiftStatusModel.fromEntity(result).toJson();
     } catch (e) {
       return null;
     }

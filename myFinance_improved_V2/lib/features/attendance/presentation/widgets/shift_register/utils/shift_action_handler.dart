@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
-import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -29,29 +28,46 @@ class ShiftActionHandler {
   });
 
   /// Handle shift registration
-  /// ✅ Clean Architecture: Uses Entity instead of Map
   Future<void> handleRegisterShift() async {
     if (controller.selectedShift == null) return;
 
     final scaffoldContext = context;
-    // Use Entity-based lookup
-    final selectedShiftEntity = controller.findShiftById(controller.selectedShift!);
+    final allStoreShifts = controller.getAllStoreShifts();
+    Map<String, dynamic>? selectedShiftDetail;
 
-    if (selectedShiftEntity == null) return;
+    // Find the selected shift details
+    for (final shift in allStoreShifts) {
+      final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
+      if (shiftId?.toString() == controller.selectedShift) {
+        selectedShiftDetail = shift;
+        break;
+      }
+    }
 
-    // Extract shift information from Entity
-    final shiftName = selectedShiftEntity.shiftName;
-    final startTime = selectedShiftEntity.startTime;
-    final endTime = selectedShiftEntity.endTime;
+    if (selectedShiftDetail == null) return;
+
+    // Extract shift information
+    final shiftName = selectedShiftDetail['shift_name'] ??
+        selectedShiftDetail['name'] ??
+        selectedShiftDetail['shift_type'] ??
+        'Shift';
+    final startTime = selectedShiftDetail['start_time'] ??
+        selectedShiftDetail['shift_start_time'] ??
+        selectedShiftDetail['default_start_time'] ??
+        '--:--';
+    final endTime = selectedShiftDetail['end_time'] ??
+        selectedShiftDetail['shift_end_time'] ??
+        selectedShiftDetail['default_end_time'] ??
+        '--:--';
 
     final dateStr = '${controller.selectedDate.year}-${controller.selectedDate.month.toString().padLeft(2, '0')}-${controller.selectedDate.day.toString().padLeft(2, '0')}';
     final displayDate = '${controller.selectedDate.day} ${ShiftRegisterFormatters.getMonthName(controller.selectedDate.month)} ${controller.selectedDate.year}';
 
     await _showRegistrationConfirmationDialog(
       scaffoldContext,
-      shiftName,
-      startTime,
-      endTime,
+      shiftName.toString(),
+      startTime.toString(),
+      endTime.toString(),
       displayDate,
       dateStr,
     );
@@ -231,13 +247,12 @@ class ShiftActionHandler {
 
     try {
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
-      final timezone = DateTimeUtils.getLocalTimezone();
       await registerShiftRequest(
         userId: user.id,
         shiftId: controller.selectedShift!,
         storeId: controller.selectedStoreId!,
         requestTime: '$dateStr 00:00:00',
-        timezone: timezone,
+        timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
       final appState = ref.read(appStateProvider);
@@ -369,31 +384,39 @@ class ShiftActionHandler {
   }
 
   /// Handle shift cancellation
-  /// ✅ Clean Architecture: Uses Entity for shift lookup
   Future<void> handleCancelShifts() async {
     if (controller.selectedShift == null) return;
 
-    final selectedShiftEntity = controller.findShiftById(controller.selectedShift!);
+    final allStoreShifts = controller.getAllStoreShifts();
     final userShiftData = controller.getUserShiftData(controller.selectedDate);
+    Map<String, dynamic>? selectedShiftDetail;
 
-    if (selectedShiftEntity == null || userShiftData == null) {
-      ShiftAlerts.showNotRegisteredAlert(context);
+    for (final shift in allStoreShifts) {
+      final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
+
+      if (shiftId?.toString() == controller.selectedShift) {
+        if (userShiftData != null) {
+          selectedShiftDetail = {
+            ...shift,
+            'shift_request_id': userShiftData['shift_request_id'],
+            'is_approved': userShiftData['is_approved'] ?? false,
+          };
+        }
+        break;
+      }
+    }
+
+    if (selectedShiftDetail == null) {
+      if (userShiftData == null) {
+        ShiftAlerts.showNotRegisteredAlert(context);
+      }
       return;
     }
 
-    final isApproved = userShiftData['is_approved'] as bool? ?? false;
-
-    if (isApproved) {
+    if (selectedShiftDetail['is_approved'] == true) {
       ShiftAlerts.showApprovedShiftAlert(context);
     } else {
-      // Build cancellation data using Entity + user data
-      final shiftToCancel = {
-        'shift_id': selectedShiftEntity.shiftId,
-        'shift_name': selectedShiftEntity.shiftName,
-        'shift_request_id': userShiftData['shift_request_id'],
-        'is_approved': isApproved,
-      };
-      await _showCancelConfirmationDialog([shiftToCancel]);
+      await _showCancelConfirmationDialog([selectedShiftDetail]);
     }
   }
 
@@ -428,25 +451,12 @@ class ShiftActionHandler {
         final dateStr = '${controller.selectedDate.year}-${controller.selectedDate.month.toString().padLeft(2, '0')}-${controller.selectedDate.day.toString().padLeft(2, '0')}';
 
         if (shiftId.isNotEmpty) {
-          // Build request time with timezone offset
-          final now = DateTime.now();
-          final requestDateTime = DateTime(
-            controller.selectedDate.year,
-            controller.selectedDate.month,
-            controller.selectedDate.day,
-            now.hour,
-            now.minute,
-            now.second,
-          );
-          final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-          final timezone = DateTimeUtils.getLocalTimezone();
-
           final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
           await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
-            requestTime: requestTime,
-            timezone: timezone,
+            requestDate: dateStr,
+            timezone: 'Asia/Seoul', // TODO: Get from user settings
           );
 
           controller.removeFromLocalShiftStatusOptimistically(

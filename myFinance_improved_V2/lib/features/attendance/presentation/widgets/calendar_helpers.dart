@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../domain/entities/shift_card.dart';
 
 /// Public helper class for calendar-related utilities
 /// Used by both AttendanceContent and CalendarBottomSheet
-///
-/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class CalendarHelpers {
   CalendarHelpers._(); // Private constructor to prevent instantiation
 
@@ -20,17 +17,14 @@ class CalendarHelpers {
     return months[month - 1];
   }
 
-  /// Build calendar grid with ShiftCard Entity support
-  ///
-  /// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map
   static Widget buildCalendarGrid(
     DateTime focusedDate,
     DateTime selectedDate,
     Function(DateTime) onDateSelected, [
-    List<ShiftCard>? shiftCards,
+    List<Map<String, dynamic>>? shiftCardsData,
   ]) {
-    // Use the passed shiftCards if available
-    final shiftsData = shiftCards ?? [];
+    // Use the passed shiftCardsData if available
+    final shiftsData = shiftCardsData ?? [];
 
     final firstDayOfMonth = DateTime(focusedDate.year, focusedDate.month, 1);
     final lastDayOfMonth = DateTime(focusedDate.year, focusedDate.month + 1, 0);
@@ -74,24 +68,32 @@ class CalendarHelpers {
           DateTime.now().day == date.day;
 
       // Check if this date has shift data
-      // ✅ Clean Architecture: Use ShiftCard Entity properties
       final dateStr =
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      final hasShift = shiftsData.any((card) => card.requestDate == dateStr);
+      final hasShift = shiftsData.any((shift) {
+        final shiftDate = shift['request_date']?.toString() ?? '';
+        return shiftDate == dateStr;
+      });
 
       // Get shift status if exists
       String? shiftStatus;
       if (hasShift) {
-        final dayShifts = shiftsData.where((card) => card.requestDate == dateStr).toList();
+        final dayShifts = shiftsData.where((shift) {
+          final shiftDate = shift['request_date']?.toString() ?? '';
+          return shiftDate == dateStr;
+        }).toList();
 
         if (dayShifts.isNotEmpty) {
-          final card = dayShifts.first;
+          final shift = dayShifts.first;
+          final approvalLevel = shift['approval_level']?.toString() ?? 'pending';
+          final isReported = shift['is_reported'] == true;
 
-          // ✅ Clean Architecture: Use ShiftCard Entity properties
-          if (card.isReported) {
+          if (isReported) {
             shiftStatus = 'reported';
-          } else if (card.isApproved) {
+          } else if (approvalLevel == 'approved') {
             shiftStatus = 'approved';
+          } else if (approvalLevel == 'rejected') {
+            shiftStatus = 'rejected';
           } else {
             shiftStatus = 'pending';
           }

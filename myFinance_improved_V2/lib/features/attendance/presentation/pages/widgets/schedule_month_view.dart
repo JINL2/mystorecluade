@@ -28,11 +28,14 @@ class ScheduleMonthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final monthName = DateFormat.MMMM().format(currentMonth);
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    // Month view: Calendar and shift list scroll together
-    return ListView(
+    // Calculate extra bottom padding to allow scrolling calendar to middle of screen
+    final extraBottomPadding = screenHeight * 0.5;
+
+    return Column(
       key: const ValueKey('month'),
-      padding: EdgeInsets.zero,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Month Navigation
         TossMonthNavigation(
@@ -55,6 +58,9 @@ class ScheduleMonthView extends StatelessWidget {
 
         // Filtered shift list
         ...dayShifts,
+
+        // Extra padding to allow scrolling calendar to middle of screen
+        SizedBox(height: extraBottomPadding),
       ],
     );
   }

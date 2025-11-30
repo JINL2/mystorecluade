@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+import 'package:myfinance_improved/features/attendance/data/datasources/attendance_datasource.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Salary Card - Shows user's monthly salary
 ///
@@ -185,32 +188,70 @@ class SalaryCard extends ConsumerWidget {
   }
 }
 
-/// Provider for fetching user's salary using userShiftStatsProvider
-///
-/// Reuses the existing userShiftStatsProvider from attendance feature
-/// which calls user_shift_stats RPC
+/// Provider for fetching user's salary using Attendance datasource
 final userSalaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final stats = await ref.watch(userShiftStatsProvider.future);
+  final appState = ref.watch(appStateProvider);
 
-  // Return default values if stats is null
-  if (stats == null) {
+  final userId = appState.userId;
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
+
+  if (userId.isEmpty || companyId.isEmpty || storeId.isEmpty) {
     return {
       'monthly_salary': 0.0,
       'currency_symbol': '\$',
       'salary_type': 'monthly',
-      'overtime_bonus': 0.0,
     };
   }
 
-  // Extract salary info from user_shift_stats RPC response
-  final salaryInfo = stats.salaryInfo;
-  final thisMonth = stats.thisMonth;
+  try {
+    // Use Attendance datasource to get salary info
+    final supabaseClient = Supabase.instance.client;
+    final datasource = AttendanceDatasource(supabaseClient);
 
-  return {
-    'monthly_salary': thisMonth.totalPayment,
-    'salary_amount': salaryInfo.salaryAmount,
-    'currency_symbol': salaryInfo.currencySymbol,
-    'salary_type': salaryInfo.salaryType,
-    'overtime_bonus': thisMonth.bonusPay,
-  };
+    // Get current time with timezone offset
+    final now = DateTime.now();
+    final requestTime = DateTimeUtils.toLocalWithOffset(now);
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    // Fetch shift overview which includes salary info
+    final overview = await datasource.getUserShiftOverview(
+      requestTime: requestTime,
+      userId: userId,
+      companyId: companyId,
+      storeId: storeId,
+      timezone: timezone,
+    );
+
+    print('💰 [SalaryCard] Overview data: $overview');
+
+    // Remove commas from estimated_salary string before parsing
+    final estimatedSalaryStr = overview['estimated_salary']?.toString().replaceAll(',', '') ?? '0';
+    final estimatedSalary = double.tryParse(estimatedSalaryStr) ?? 0.0;
+    final salaryAmount = overview['salary_amount'] as double? ?? 0.0;
+    final currencySymbol = overview['currency_symbol'] as String? ?? '\$';
+    final salaryType = overview['salary_type'] as String? ?? 'monthly';
+    final overtimeTotal = overview['overtime_total'] as int? ?? 0;
+
+    // Calculate overtime bonus - same formula as Attendance page
+    // overtime_total (minutes) * salary_amount (hourly rate) / 60
+    final overtimeBonus = (overtimeTotal * salaryAmount) / 60.0;
+
+    print('💰 [SalaryCard] Parsed - estimated: $estimatedSalary, overtime: $overtimeBonus, symbol: $currencySymbol');
+
+    return {
+      'monthly_salary': estimatedSalary,
+      'salary_amount': salaryAmount,
+      'currency_symbol': currencySymbol,
+      'salary_type': salaryType,
+      'overtime_bonus': overtimeBonus,
+    };
+  } catch (e) {
+    print('⚠️ Error fetching user salary: $e');
+    return {
+      'monthly_salary': 0.0,
+      'currency_symbol': '\$',
+      'salary_type': 'monthly',
+    };
+  }
 });
