@@ -4,31 +4,14 @@ import '../entities/check_in_result.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/shift_card.dart';
 import '../entities/shift_metadata.dart';
-import '../entities/shift_overview.dart';
 import '../entities/shift_request.dart';
+import '../entities/user_shift_stats.dart';
 
 /// Attendance Repository Interface
 ///
 /// Defines the contract for attendance data operations.
 /// Implementations should handle data source communication.
 abstract class AttendanceRepository {
-  /// Get user shift overview for a specific month
-  ///
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
-  /// [userId] - User ID
-  /// [companyId] - Company ID
-  /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
-  ///
-  /// Returns [ShiftOverview] with monthly statistics
-  Future<ShiftOverview> getUserShiftOverview({
-    required String requestTime,
-    required String userId,
-    required String companyId,
-    required String storeId,
-    required String timezone,
-  });
-
   /// Update shift request (check-in or check-out)
   ///
   /// Matches RPC: update_shift_requests_v6
@@ -50,7 +33,7 @@ abstract class AttendanceRepository {
 
   /// Get user shift cards for a month
   ///
-  /// Matches RPC: user_shift_cards_v3
+  /// Matches RPC: user_shift_cards_v4
   ///
   /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
   /// [userId] - User ID
@@ -58,7 +41,7 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of ShiftCard from user_shift_cards_v3 RPC
+  /// Returns list of ShiftCard from user_shift_cards_v4 RPC
   Future<List<ShiftCard>> getUserShiftCards({
     required String requestTime,
     required String userId,
@@ -142,36 +125,6 @@ abstract class AttendanceRepository {
     required String timezone,
   });
 
-  /// Get monthly shift status as raw JSON for UI display
-  ///
-  /// Matches RPC: get_monthly_shift_status_manager_v2
-  ///
-  /// Returns raw JSON preserving the nested structure:
-  /// ```json
-  /// [
-  ///   {
-  ///     "request_date": "2025-11-27",
-  ///     "shifts": [
-  ///       {
-  ///         "shift_id": "...",
-  ///         "shift_name": "...",
-  ///         "pending_employees": [...],
-  ///         "approved_employees": [...]
-  ///       }
-  ///     ]
-  ///   }
-  /// ]
-  /// ```
-  ///
-  /// Use this method when UI needs the full nested structure.
-  /// Use [getMonthlyShiftStatusManager] when entity conversion is needed.
-  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusRaw({
-    required String storeId,
-    required String companyId,
-    required String requestTime,
-    required String timezone,
-  });
-
   /// Get base currency for a company
   ///
   /// Matches RPC: get_base_currency
@@ -181,5 +134,24 @@ abstract class AttendanceRepository {
   /// Returns [BaseCurrency] with currency symbol and details
   Future<BaseCurrency> getBaseCurrency({
     required String companyId,
+  });
+
+  /// Get user shift statistics for Stats tab
+  ///
+  /// Matches RPC: user_shift_stats
+  ///
+  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [userId] - User ID
+  /// [companyId] - Company ID
+  /// [storeId] - Store ID
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  ///
+  /// Returns [UserShiftStats] with salary info, period stats, and weekly payments
+  Future<UserShiftStats> getUserShiftStats({
+    required String requestTime,
+    required String userId,
+    required String companyId,
+    required String storeId,
+    required String timezone,
   });
 }

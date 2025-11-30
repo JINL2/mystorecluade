@@ -5,16 +5,20 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../utils/attendance_formatters.dart';
+import '../../../../domain/entities/shift_card.dart';
+import '../helpers/format_helpers.dart';
 
 /// Bottom sheet showing all attendance history
+///
+/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class AllAttendanceHistorySheet extends StatelessWidget {
-  final List<Map<String, dynamic>> allShiftCardsData;
-  final void Function(Map<String, dynamic>) onActivityTap;
+  /// ✅ Clean Architecture: Use ShiftCard Entity list instead of Map list
+  final List<ShiftCard> shiftCards;
+  final void Function(ShiftCard) onActivityTap;
 
   const AllAttendanceHistorySheet({
     super.key,
-    required this.allShiftCardsData,
+    required this.shiftCards,
     required this.onActivityTap,
   });
 
@@ -90,7 +94,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                 horizontal: TossSpacing.space4,
                 vertical: TossSpacing.space3,
               ),
-              itemCount: allShiftCardsData.length,
+              itemCount: shiftCards.length,
               itemBuilder: (context, index) {
                 return _buildActivityCard(context, index);
               },
@@ -102,30 +106,31 @@ class AllAttendanceHistorySheet extends StatelessWidget {
   }
 
   Widget _buildActivityCard(BuildContext context, int index) {
-    final card = allShiftCardsData[index];
+    // ✅ Clean Architecture: Use ShiftCard Entity directly
+    final card = shiftCards[index];
 
-    // Parse date
-    final dateStr = (card['request_date'] ?? '').toString();
+    // Parse date from Entity
+    final dateStr = card.requestDate;
     final dateParts = dateStr.split('-');
     final date = dateParts.length == 3
         ? DateTime(
-            int.parse(dateParts[0].toString()),
-            int.parse(dateParts[1].toString()),
-            int.parse(dateParts[2].toString()),
+            int.parse(dateParts[0]),
+            int.parse(dateParts[1]),
+            int.parse(dateParts[2]),
           )
         : DateTime.now();
 
-    // Parse times
-    final actualStart = card['confirm_start_time'];
-    final actualEnd = card['confirm_end_time'];
+    // ✅ Clean Architecture: Use Entity properties
+    final actualStart = card.confirmStartTime;
+    final actualEnd = card.confirmEndTime;
     String checkInTime = '--:--';
     String checkOutTime = '--:--';
     String hoursWorked = '0h 0m';
 
-    if (actualStart != null && actualStart.toString().isNotEmpty) {
+    if (actualStart != null && actualStart.isNotEmpty) {
       try {
-        if (actualStart.toString().contains(':')) {
-          final timeParts = actualStart.toString().split(':');
+        if (actualStart.contains(':')) {
+          final timeParts = actualStart.split(':');
           if (timeParts.length >= 2) {
             checkInTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
           }
@@ -135,20 +140,20 @@ class AllAttendanceHistorySheet extends StatelessWidget {
       }
     }
 
-    if (actualEnd != null && actualEnd.toString().isNotEmpty) {
+    if (actualEnd != null && actualEnd.isNotEmpty) {
       try {
-        if (actualEnd.toString().contains(':')) {
-          final timeParts = actualEnd.toString().split(':');
+        if (actualEnd.contains(':')) {
+          final timeParts = actualEnd.split(':');
           if (timeParts.length >= 2) {
             checkOutTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
           }
         }
 
         // Calculate hours worked
-        if (actualStart != null && actualEnd != null) {
+        if (actualStart != null) {
           try {
-            final startParts = actualStart.toString().split(':');
-            final endParts = actualEnd.toString().split(':');
+            final startParts = actualStart.split(':');
+            final endParts = actualEnd.split(':');
             if (startParts.length >= 2 && endParts.length >= 2) {
               final startHour = int.parse(startParts[0]);
               final startMin = int.parse(startParts[1]);
@@ -171,26 +176,27 @@ class AllAttendanceHistorySheet extends StatelessWidget {
       }
     }
 
-    final isApproved = card['is_approved'] ?? false;
-    final isReported = card['is_reported'] ?? false;
-    final shiftName = card['shift_name'] ?? 'Shift';
-    final shiftTime = card['shift_time'] ?? '--:-- ~ --:--';
+    // ✅ Clean Architecture: Use Entity properties directly
+    final isApproved = card.isApproved;
+    final isReported = card.isReported;
+    final shiftName = card.shiftName ?? 'Shift';
+    final shiftTime = card.shiftTime;
 
     // Check if this is first item or if month changed
     bool showMonthHeader = false;
     String monthHeader = '';
     if (index == 0) {
       showMonthHeader = true;
-      monthHeader = '${AttendanceFormatters.getMonthName(date.month)} ${date.year}';
+      monthHeader = '${FormatHelpers.getMonthName(date.month)} ${date.year}';
     } else {
-      final prevCard = allShiftCardsData[index - 1];
-      final prevDateStr = (prevCard['request_date'] ?? '').toString();
+      final prevCard = shiftCards[index - 1];
+      final prevDateStr = prevCard.requestDate;
       final prevDateParts = prevDateStr.split('-');
       if (prevDateParts.length == 3) {
-        final prevMonth = int.parse(prevDateParts[1].toString());
+        final prevMonth = int.parse(prevDateParts[1]);
         if (prevMonth != date.month) {
           showMonthHeader = true;
-          monthHeader = '${AttendanceFormatters.getMonthName(date.month)} ${date.year}';
+          monthHeader = '${FormatHelpers.getMonthName(date.month)} ${date.year}';
         }
       }
     }
@@ -233,18 +239,9 @@ class AllAttendanceHistorySheet extends StatelessWidget {
             color: TossColors.transparent,
             child: InkWell(
               onTap: () {
-                final activity = {
-                  'date': date,
-                  'checkIn': checkInTime,
-                  'checkOut': checkOutTime,
-                  'hours': hoursWorked,
-                  'store': card['store_name'] ?? 'Store',
-                  'status': actualEnd != null ? 'completed' : 'in_progress',
-                  'isApproved': isApproved,
-                  'rawCard': card,
-                };
                 Navigator.pop(context);
-                onActivityTap(activity);
+                // ✅ Clean Architecture: Pass Entity directly
+                onActivityTap(card);
                 HapticFeedback.selectionClick();
               },
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -266,7 +263,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            AttendanceFormatters.getWeekdayShort(date.weekday),
+                            FormatHelpers.getWeekdayShort(date.weekday),
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray500,
                               fontSize: 10,
@@ -351,9 +348,9 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: (isApproved == true)
-                                    ? TossColors.success.withOpacity(0.1)
-                                    : TossColors.warning.withOpacity(0.1),
+                                color: isApproved
+                                    ? TossColors.success.withValues(alpha: 0.1)
+                                    : TossColors.warning.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                               ),
                               child: Row(
@@ -363,7 +360,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                                     width: 4,
                                     height: 4,
                                     decoration: BoxDecoration(
-                                      color: (isApproved == true)
+                                      color: isApproved
                                           ? TossColors.success
                                           : TossColors.warning,
                                       shape: BoxShape.circle,
@@ -371,9 +368,9 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    (isApproved == true) ? 'Approved' : 'Pending',
+                                    isApproved ? 'Approved' : 'Pending',
                                     style: TossTextStyles.caption.copyWith(
-                                      color: (isApproved == true)
+                                      color: isApproved
                                           ? TossColors.success
                                           : TossColors.warning,
                                       fontSize: 10,
@@ -384,7 +381,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                               ),
                             ),
                             // Reported status
-                            if (isReported == true) ...[
+                            if (isReported) ...[
                               const SizedBox(height: 4),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -392,7 +389,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: TossColors.error.withOpacity(0.1),
+                                  color: TossColors.error.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                 ),
                                 child: Row(

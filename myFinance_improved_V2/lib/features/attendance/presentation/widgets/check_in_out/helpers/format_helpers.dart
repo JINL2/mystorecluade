@@ -1,7 +1,62 @@
+import 'package:flutter/material.dart';
+
 import '../../../../../../core/utils/datetime_utils.dart';
+import '../../../../../../shared/themes/toss_colors.dart';
 
 /// Formatting helper functions for attendance UI
 class FormatHelpers {
+  /// Get work status text from card data
+  static String getWorkStatusFromCard(Map<String, dynamic> cardData) {
+    final isApproved = cardData['is_approved'] as bool? ?? false;
+    final actualStart = cardData['actual_start_time'];
+    final actualEnd = cardData['actual_end_time'];
+    final isLate = cardData['is_late'] as bool? ?? false;
+
+    if (!isApproved) {
+      return 'Pending';
+    }
+
+    if (actualStart == null && actualEnd == null) {
+      return 'Not Started';
+    }
+
+    if (actualStart != null && actualEnd == null) {
+      return isLate ? 'Working (Late)' : 'Working';
+    }
+
+    if (actualStart != null && actualEnd != null) {
+      return isLate ? 'Completed (Late)' : 'Completed';
+    }
+
+    return 'Unknown';
+  }
+
+  /// Get work status color from card data
+  static Color getWorkStatusColorFromCard(Map<String, dynamic> cardData) {
+    final isApproved = cardData['is_approved'] as bool? ?? false;
+    final actualStart = cardData['actual_start_time'];
+    final actualEnd = cardData['actual_end_time'];
+    final isLate = cardData['is_late'] as bool? ?? false;
+
+    if (!isApproved) {
+      return TossColors.warning;
+    }
+
+    if (actualStart == null && actualEnd == null) {
+      return TossColors.gray500;
+    }
+
+    if (actualStart != null && actualEnd == null) {
+      return isLate ? TossColors.warning : TossColors.info;
+    }
+
+    if (actualStart != null && actualEnd != null) {
+      return isLate ? TossColors.warning : TossColors.success;
+    }
+
+    return TossColors.gray500;
+  }
+
   /// Format number with thousand separators
   static String formatNumber(dynamic value) {
     if (value == null) return '0';
@@ -125,5 +180,25 @@ class FormatHelpers {
   static String getWeekdayShort(int weekday) {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days[weekday - 1];
+  }
+
+  /// Get month name from month number (1-12)
+  static String getMonthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    if (month < 1 || month > 12) return '';
+    return months[month - 1];
   }
 }

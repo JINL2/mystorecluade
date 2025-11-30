@@ -1,22 +1,22 @@
-import '../entities/shift_overview.dart';
+import '../entities/user_shift_stats.dart';
 import '../repositories/attendance_repository.dart';
 
-/// Get user shift overview for the month
+/// Get user shift statistics for Stats tab
 ///
-/// Matches RPC: user_shift_overview_v3
-class GetShiftOverview {
+/// Matches RPC: user_shift_stats
+class GetUserShiftStats {
   final AttendanceRepository _repository;
 
-  GetShiftOverview(this._repository);
+  GetUserShiftStats(this._repository);
 
-  Future<ShiftOverview> call({
+  Future<UserShiftStats> call({
     required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
     required String timezone,
   }) {
-    return _repository.getUserShiftOverview(
+    return _repository.getUserShiftStats(
       requestTime: requestTime,
       userId: userId,
       companyId: companyId,

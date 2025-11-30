@@ -5,7 +5,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../utils/attendance_helper_methods.dart';
+import '../helpers/format_helpers.dart';
 
 /// Show activity details dialog
 Future<void> showActivityDetailsDialog({
@@ -39,7 +39,7 @@ Future<void> showActivityDetailsDialog({
   // Parse shift time and convert from UTC to local time
   final rawShiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
   final requestDate = cardData['request_date']?.toString();
-  String shiftTime = AttendanceHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+  String shiftTime = FormatHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
 
   await showModalBottomSheet(
     context: context,
@@ -148,9 +148,9 @@ Future<void> showActivityDetailsDialog({
                                 ),
                               ),
                               Text(
-                                AttendanceHelpers.getWorkStatusFromCard(cardData),
+                                FormatHelpers.getWorkStatusFromCard(cardData),
                                 style: TossTextStyles.body.copyWith(
-                                  color: AttendanceHelpers.getWorkStatusColorFromCard(cardData),
+                                  color: FormatHelpers.getWorkStatusColorFromCard(cardData),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -217,9 +217,9 @@ Future<void> showActivityDetailsDialog({
                         if (isActualAttendanceExpanded) ...[
                           const SizedBox(height: TossSpacing.space3),
 
-                          _buildInfoRow('Actual Check-in', AttendanceHelpers.formatTime(cardData['actual_start_time'], requestDate: cardData['request_date']?.toString())),
+                          _buildInfoRow('Actual Check-in', FormatHelpers.formatTime(cardData['actual_start_time'], requestDate: cardData['request_date']?.toString())),
                           const SizedBox(height: TossSpacing.space3),
-                          _buildInfoRow('Actual Check-out', AttendanceHelpers.formatTime(cardData['actual_end_time'], requestDate: cardData['request_date']?.toString())),
+                          _buildInfoRow('Actual Check-out', FormatHelpers.formatTime(cardData['actual_end_time'], requestDate: cardData['request_date']?.toString())),
 
                           const SizedBox(height: TossSpacing.space4),
 
@@ -233,7 +233,7 @@ Future<void> showActivityDetailsDialog({
                           // Salary information
                           _buildInfoRow('Salary Type', (cardData['salary_type'] ?? 'hourly').toString()),
                           const SizedBox(height: TossSpacing.space3),
-                          _buildInfoRow('Salary per Hour', '$currency${AttendanceHelpers.formatNumber(cardData['salary_amount'] ?? 0)}'),
+                          _buildInfoRow('Salary per Hour', '$currency${FormatHelpers.formatNumber(cardData['salary_amount'] ?? 0)}'),
                         ],
 
                         const SizedBox(height: TossSpacing.space6),
@@ -266,7 +266,7 @@ Future<void> showActivityDetailsDialog({
                                     ),
                                   ),
                                   Text(
-                                    AttendanceHelpers.formatTime(cardData['confirm_start_time'], requestDate: cardData['request_date']?.toString()),
+                                    FormatHelpers.formatTime(cardData['confirm_start_time'], requestDate: cardData['request_date']?.toString()),
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w600,
@@ -285,7 +285,7 @@ Future<void> showActivityDetailsDialog({
                                     ),
                                   ),
                                   Text(
-                                    AttendanceHelpers.formatTime(cardData['confirm_end_time'], requestDate: cardData['request_date']?.toString()),
+                                    FormatHelpers.formatTime(cardData['confirm_end_time'], requestDate: cardData['request_date']?.toString()),
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w600,
@@ -319,7 +319,7 @@ Future<void> showActivityDetailsDialog({
                                     ),
                                   ),
                                   Text(
-                                    '$currency${AttendanceHelpers.formatNumber(cardData['base_pay'] ?? 0)}',
+                                    '$currency${FormatHelpers.formatNumber(cardData['base_pay'] ?? 0)}',
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w600,
@@ -338,7 +338,7 @@ Future<void> showActivityDetailsDialog({
                                     ),
                                   ),
                                   Text(
-                                    '$currency${AttendanceHelpers.formatNumber(cardData['bonus_amount'] ?? 0)}',
+                                    '$currency${FormatHelpers.formatNumber(cardData['bonus_amount'] ?? 0)}',
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w600,
@@ -372,7 +372,7 @@ Future<void> showActivityDetailsDialog({
                               ),
                             ),
                             Text(
-                              '$currency${AttendanceHelpers.formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
+                              '$currency${FormatHelpers.formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
                               style: TossTextStyles.h2.copyWith(
                                 color: TossColors.info,
                                 fontWeight: FontWeight.w700,

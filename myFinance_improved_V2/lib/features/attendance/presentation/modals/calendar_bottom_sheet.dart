@@ -5,14 +5,18 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../domain/entities/shift_card.dart';
 import '../widgets/calendar_helpers.dart';
 
 
-// Create a separate StatefulWidget for the calendar bottom sheet
+/// Calendar bottom sheet for date selection
+///
+/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class CalendarBottomSheet extends StatefulWidget {
   final DateTime initialSelectedDate;
   final DateTime initialFocusedDate;
-  final List<Map<String, dynamic>> allShiftCardsData;
+  /// ✅ Clean Architecture: Use ShiftCard Entity list instead of Map list
+  final List<ShiftCard> shiftCards;
   final Future<void> Function(DateTime) onFetchMonthData;
   final void Function(DateTime) onNavigateToDate;
   final VoidCallback parentSetState;
@@ -21,7 +25,7 @@ class CalendarBottomSheet extends StatefulWidget {
     super.key,
     required this.initialSelectedDate,
     required this.initialFocusedDate,
-    required this.allShiftCardsData,
+    required this.shiftCards,
     required this.onFetchMonthData,
     required this.onNavigateToDate,
     required this.parentSetState,
@@ -34,23 +38,23 @@ class CalendarBottomSheet extends StatefulWidget {
 class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
   late DateTime selectedDate;
   late DateTime focusedDate;
-  List<Map<String, dynamic>> localShiftData = [];
+  List<ShiftCard> localShiftData = [];
 
   @override
   void initState() {
     super.initState();
     selectedDate = widget.initialSelectedDate;
     focusedDate = widget.initialFocusedDate;
-    localShiftData = List<Map<String, dynamic>>.from(widget.allShiftCardsData);
+    localShiftData = List<ShiftCard>.from(widget.shiftCards);
   }
 
   @override
   void didUpdateWidget(CalendarBottomSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update local shift data when parent data changes
-    if (widget.allShiftCardsData != oldWidget.allShiftCardsData) {
+    if (widget.shiftCards != oldWidget.shiftCards) {
       setState(() {
-        localShiftData = List<Map<String, dynamic>>.from(widget.allShiftCardsData);
+        localShiftData = List<ShiftCard>.from(widget.shiftCards);
       });
     }
   }
@@ -60,10 +64,10 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
     setState(() {
       focusedDate = newDate;
     });
-    
+
     // Fetch data for the new month if not already loaded
     await widget.onFetchMonthData(newDate);
-    
+
     // Update parent state to reflect the new data
     widget.parentSetState();
   }
@@ -91,7 +95,7 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
               borderRadius: BorderRadius.circular(TossBorderRadius.full),
             ),
           ),
-          
+
           // Title
           Padding(
             padding: const EdgeInsets.all(TossSpacing.space5),
@@ -115,7 +119,7 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
               ],
             ),
           ),
-          
+
           // Calendar
           Expanded(
             child: Container(
@@ -125,7 +129,7 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.black.withOpacity(0.01),
+                    color: TossColors.black.withValues(alpha: 0.01),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -188,8 +192,9 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
                       ],
                     ),
                   ),
-                  
+
                   // Calendar Grid - Use widget's shift data which gets updated via props
+                  // ✅ Clean Architecture: Pass ShiftCard Entity list
                   Expanded(
                     child: CalendarHelpers.buildCalendarGrid(
                       focusedDate,
@@ -199,35 +204,30 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
                           selectedDate = date;
                         });
                         HapticFeedback.selectionClick();
-                        
-                        // Check if this is a new month
-                        final clickedMonthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
-                        final currentMonthKey = '${focusedDate.year}-${focusedDate.month.toString().padLeft(2, '0')}';
-                        
-                        
+
                         // Close the modal
                         Navigator.pop(context);
-                        
+
                         // Navigate to the date (this will check if month changed and fetch if needed)
                         widget.onNavigateToDate(date);
                       },
-                      widget.allShiftCardsData, // Use widget's data directly
+                      widget.shiftCards,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          
+
           // Selected Date Info
           Container(
             margin: const EdgeInsets.all(TossSpacing.space5),
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.05),
+              color: TossColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
-                color: TossColors.primary.withOpacity(0.2),
+                color: TossColors.primary.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -236,7 +236,7 @@ class _CalendarBottomSheetState extends State<CalendarBottomSheet> {
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.15),
+                      color: TossColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(

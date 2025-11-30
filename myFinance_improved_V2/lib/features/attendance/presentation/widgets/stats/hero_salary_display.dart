@@ -70,9 +70,9 @@ class HeroSalaryDisplay extends StatelessWidget {
         Row(
           children: [
             Icon(
-              LucideIcons.arrowUpRight,
+              isPositiveGrowth ? LucideIcons.arrowUpRight : LucideIcons.arrowDownRight,
               size: 16,
-              color: TossColors.primary,
+              color: isPositiveGrowth ? TossColors.primary : TossColors.loss,
             ),
             const SizedBox(width: TossSpacing.space1),
             Text(
@@ -80,7 +80,7 @@ class HeroSalaryDisplay extends StatelessWidget {
               style: TossTextStyles.body.copyWith(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: TossColors.primary,
+                color: isPositiveGrowth ? TossColors.primary : TossColors.loss,
               ),
             ),
           ],
