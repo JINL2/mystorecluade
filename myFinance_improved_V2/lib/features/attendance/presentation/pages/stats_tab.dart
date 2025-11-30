@@ -181,19 +181,6 @@ class _StatsTabState extends ConsumerState<StatsTab> {
                     'Attendance data is based on your check-in/out history.\nConfirmed attendance is approved by your manager.',
               ),
 
-              const SizedBox(height: 24),
-
-              // Report Issue Button
-              TossButton1.secondary(
-                text: 'Report an issue with this shift',
-                leadingIcon: const Icon(LucideIcons.alertCircle, size: 18),
-                fullWidth: true,
-                textColor: TossColors.gray600,
-                onPressed: () {
-                  // TODO: Implement report issue functionality
-                },
-              ),
-
               const SizedBox(height: 16),
             ],
           ),

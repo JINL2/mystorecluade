@@ -217,7 +217,8 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             ),
           ),
 
-          // Footer Action
+          // Footer Action - Report Button
+          // Blue (enabled) when isReported=false, Gray (disabled) when isReported=true
           Container(
             padding: const EdgeInsets.fromLTRB(
               16,
@@ -234,15 +235,23 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                 ),
               ),
             ),
-            child: TossButton1.secondary(
-              text: 'Report an issue with this shift',
-              leadingIcon: const Icon(Icons.error_outline, size: 18),
-              fullWidth: true,
-              textColor: TossColors.gray600,
-              onPressed: () {
-                // TODO: Implement report issue
-              },
-            ),
+            child: widget.shift.isReported
+                ? TossButton1.secondary(
+                    text: 'Report an issue with this shift',
+                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    fullWidth: true,
+                    textColor: TossColors.gray600,
+                    isEnabled: false,
+                    onPressed: null,
+                  )
+                : TossButton1.primary(
+                    text: 'Report an issue with this shift',
+                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    fullWidth: true,
+                    onPressed: () {
+                      // TODO: Implement report issue
+                    },
+                  ),
           ),
         ],
       ),
