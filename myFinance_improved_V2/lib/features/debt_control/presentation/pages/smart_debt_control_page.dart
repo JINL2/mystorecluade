@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../shared/themes/toss_animations.dart';
@@ -88,18 +89,19 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     final appState = ref.read(appStateProvider);
     if (appState.companyChoosen.isEmpty) return;
 
-    final entityId = _selectedViewpoint == 'store' &&
+    final storeId = _selectedViewpoint == 'store' &&
             appState.storeChoosen.isNotEmpty
         ? appState.storeChoosen
-        : appState.companyChoosen;
+        : null;
 
     final entityName = _selectedViewpoint == 'store'
         ? (appState.storeChoosen.isNotEmpty ? 'Store' : 'Company')
         : 'Company';
 
     await ref.read(perspectiveSummaryProvider.notifier).loadPerspectiveSummary(
+          companyId: appState.companyChoosen,
+          storeId: storeId,
           perspectiveType: _selectedViewpoint,
-          entityId: entityId,
           entityName: entityName,
         );
   }
@@ -144,16 +146,47 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     // Perspective Summary Card
-                    if (perspectiveSummary.hasValue &&
-                        perspectiveSummary.value != null)
-                      SliverToBoxAdapter(
-                        child: PerspectiveSummaryCard(
-                          summary: perspectiveSummary.value!,
-                          onTap: () {
-                            _loadPerspectiveSummary();
-                          },
+                    perspectiveSummary.when(
+                      data: (summary) {
+                        if (summary == null) {
+                          return const SliverToBoxAdapter(
+                            child: SizedBox.shrink(),
+                          );
+                        }
+                        return SliverToBoxAdapter(
+                          child: PerspectiveSummaryCard(
+                            summary: summary,
+                            onTap: () {
+                              _loadPerspectiveSummary();
+                            },
+                          ),
+                        );
+                      },
+                      loading: () => SliverToBoxAdapter(
+                        child: Container(
+                          margin: const EdgeInsets.all(TossSpacing.space4),
+                          height: 300,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                TossColors.gray200,
+                                TossColors.gray100,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius:
+                                BorderRadius.circular(TossBorderRadius.cardLarge),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
                         ),
                       ),
+                      error: (_, __) => const SliverToBoxAdapter(
+                        child: SizedBox.shrink(),
+                      ),
+                    ),
 
                     // Companies Section
                     SliverToBoxAdapter(
@@ -302,9 +335,17 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
           width: 1,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Row(
+      child: InkWell(
+        onTap: () {
+          // Navigate to debt detail page
+          context.push(
+            '/debtAccountSettings/${debt.counterpartyId}/${Uri.encodeComponent(debt.counterpartyName)}',
+          );
+        },
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          child: Row(
           children: [
             // Blue vertical bar on the left
             Container(
@@ -377,6 +418,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               ],
             ),
           ],
+          ),
         ),
       ),
     );

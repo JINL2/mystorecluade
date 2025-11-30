@@ -53,8 +53,9 @@ abstract class DebtRepository {
 
   /// Get perspective summary
   Future<PerspectiveSummary> getPerspectiveSummary({
+    required String companyId,
+    String? storeId,
     required String perspectiveType,
-    required String entityId,
     required String entityName,
   });
 

@@ -70,6 +70,9 @@ class MonthlyShiftStatusModel {
       shiftType: json['shift_type'] as String?,
       startTime: json['start_time'] as String?,
       endTime: json['end_time'] as String?,
+      requiredEmployees: json['required_employees'] as int? ?? 0,
+      pendingCount: json['pending_count'] as int? ?? 0,
+      approvedCount: json['approved_count'] as int? ?? 0,
       pendingEmployees: pendingEmployees,
       approvedEmployees: approvedEmployees,
     );
@@ -83,6 +86,9 @@ class MonthlyShiftStatusModel {
       'shift_type': shift.shiftType,
       'start_time': shift.startTime,
       'end_time': shift.endTime,
+      'required_employees': shift.requiredEmployees,
+      'pending_count': shift.pendingCount,
+      'approved_count': shift.approvedCount,
       'pending_employees': shift.pendingEmployees
           .map((e) => _employeeStatusToJson(e))
           .toList(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
@@ -9,8 +10,8 @@ import '../../domain/entities/shift_card.dart';
 import '../providers/attendance_providers.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
-import 'widgets/schedule_week_view.dart';
 import 'widgets/schedule_month_view.dart';
+import 'widgets/schedule_week_view.dart';
 
 export 'widgets/schedule_header.dart' show ViewMode;
 
@@ -39,53 +40,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   // Selection state (for Month view)
   DateTime _selectedDate = DateTime.now();
 
-  // Scroll controller for month view with max scroll limit
-  final ScrollController _monthScrollController = ScrollController();
-
   // GlobalKey to measure Today's shift card height
   final GlobalKey _todayShiftCardKey = GlobalKey();
-
-  // Maximum scroll offset (height of Today's Shift card + 12px spacing)
-  double? _maxScrollOffset;
-
-  @override
-  void initState() {
-    super.initState();
-    _monthScrollController.addListener(_limitScroll);
-
-    // Measure card height after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _calculateMaxScrollOffset();
-    });
-  }
-
-  @override
-  void dispose() {
-    _monthScrollController.removeListener(_limitScroll);
-    _monthScrollController.dispose();
-    super.dispose();
-  }
-
-  // Calculate max scroll offset based on actual card height
-  void _calculateMaxScrollOffset() {
-    final RenderBox? renderBox = _todayShiftCardKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      setState(() {
-        // Card height + 12px spacing below it
-        _maxScrollOffset = renderBox.size.height + 12;
-      });
-    }
-  }
-
-  // Limit scroll to prevent toggle buttons from going off-screen
-  void _limitScroll() {
-    if (_monthScrollController.hasClients && _maxScrollOffset != null) {
-      final offset = _monthScrollController.offset;
-      if (offset > _maxScrollOffset!) {
-        _monthScrollController.jumpTo(_maxScrollOffset!);
-      }
-    }
-  }
 
   // Computed properties
   DateTime get _currentWeek {
@@ -108,12 +64,6 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       start: DateTime(monday.year, monday.month, monday.day),
       end: DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59),
     );
-  }
-
-  int _getWeekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final daysSinceFirstDay = date.difference(firstDayOfYear).inDays;
-    return (daysSinceFirstDay / 7).ceil() + 1;
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -141,32 +91,39 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     setState(() => _selectedDate = date);
   }
 
-  // Find the closest upcoming shift across all dates
-  // This ensures both week and month views highlight the same shift
-  DateTime? _findClosestUpcomingShift() {
+  // Find today's shift from the shift cards list
+  ShiftCard? _findTodayShift(List<ShiftCard> shiftCards) {
     final now = DateTime.now();
-    DateTime? closestDate;
+    final today = DateTime(now.year, now.month, now.day);
 
-    // Check current week range
-    final weekRange = _weekRange;
-    for (int i = 0; i < 7; i++) {
-      final date = weekRange.start.add(Duration(days: i));
-      // Mock logic: shifts on even days (matching _buildMockWeekShifts)
-      if (i % 2 == 0 && date.isAfter(now)) {
-        if (closestDate == null || date.isBefore(closestDate)) {
-          closestDate = date;
-        }
+    for (final card in shiftCards) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) continue;
+
+      if (_isSameDay(cardDate, today)) {
+        return card;
       }
     }
+    return null;
+  }
 
-    // Also check current month for month view
-    final daysInMonth = _getDaysInMonth();
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_currentMonth.year, _currentMonth.month, day);
-      // Mock logic: shifts on weekdays (matching _buildMockShiftsInMonth)
-      if (date.weekday <= 5 && date.isAfter(now)) {
-        if (closestDate == null || date.isBefore(closestDate)) {
-          closestDate = date;
+  // Find the closest upcoming shift from actual data
+  DateTime? _findClosestUpcomingShift(List<ShiftCard> shiftCards) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    DateTime? closestDate;
+
+    for (final card in shiftCards) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) continue;
+
+      // Only consider future or today's shifts that haven't started
+      if (!cardDate.isBefore(today)) {
+        if (card.actualStartTime == null) {
+          // Shift hasn't started yet
+          if (closestDate == null || cardDate.isBefore(closestDate)) {
+            closestDate = cardDate;
+          }
         }
       }
     }
@@ -174,8 +131,131 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     return closestDate;
   }
 
-  int _getDaysInMonth() {
-    return DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+  // Parse request_date string to DateTime
+  DateTime? _parseRequestDate(String requestDate) {
+    try {
+      // Format: "2025-11-01" or "2025-11-01T00:00:00Z"
+      if (requestDate.contains('T')) {
+        return DateTime.parse(requestDate).toLocal();
+      }
+      final parts = requestDate.split('-');
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Determine ShiftCardStatus from ShiftCard data
+  ShiftCardStatus _determineStatus(ShiftCard card, DateTime cardDate) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Future shift (hasn't come yet)
+    if (cardDate.isAfter(today)) {
+      return ShiftCardStatus.upcoming;
+    }
+
+    // Past or today's shift
+    if (card.actualStartTime != null && card.actualEndTime != null) {
+      // Check-in and check-out completed
+      return card.isLate ? ShiftCardStatus.late : ShiftCardStatus.onTime;
+    }
+
+    if (card.actualStartTime != null && card.actualEndTime == null) {
+      // Currently working (checked in but not out)
+      return ShiftCardStatus.inProgress;
+    }
+
+    // Past date but no check-in
+    if (cardDate.isBefore(today)) {
+      return ShiftCardStatus.undone;
+    }
+
+    return ShiftCardStatus.upcoming;
+  }
+
+  // Format shift time for display (e.g., "14:00 ~ 18:00" -> "2:00 PM - 6:00 PM")
+  String _formatTimeRange(String shiftTime) {
+    try {
+      final parts = shiftTime.split('~').map((s) => s.trim()).toList();
+      if (parts.length != 2) return shiftTime;
+
+      final startTime = _formatTime(parts[0]);
+      final endTime = _formatTime(parts[1]);
+      return '$startTime - $endTime';
+    } catch (e) {
+      return shiftTime;
+    }
+  }
+
+  String _formatTime(String time24) {
+    try {
+      final parts = time24.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final hour12 = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      return '$hour12:${minute.toString().padLeft(2, '0')} $period';
+    } catch (e) {
+      return time24;
+    }
+  }
+
+  // Navigate to QR Scanner for check-in/check-out
+  // QR code contains store_id which will be used for update_shift_requests_v6 RPC
+  // Works regardless of whether user has a shift today (for night shift workers)
+  Future<void> _navigateToQRScanner() async {
+    final result = await context.push<Map<String, dynamic>>('/attendance/qr-scanner');
+
+    // If QR scan was successful, refresh the shift cards data
+    if (result != null && result['success'] == true) {
+      // Invalidate providers to refresh data for all relevant months
+      final now = DateTime.now();
+
+      // Refresh current month
+      final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(currentYearMonth));
+
+      // Also refresh the week view if applicable
+      if (_viewMode == ViewMode.week) {
+        final weekYearMonth = '${_currentWeek.year}-${_currentWeek.month.toString().padLeft(2, '0')}';
+        if (weekYearMonth != currentYearMonth) {
+          ref.invalidate(monthlyShiftCardsProvider(weekYearMonth));
+        }
+      }
+
+      // Refresh month view if applicable
+      if (_viewMode == ViewMode.month) {
+        final monthYearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+        if (monthYearMonth != currentYearMonth) {
+          ref.invalidate(monthlyShiftCardsProvider(monthYearMonth));
+        }
+      }
+
+      // Also invalidate previous month (for night shift edge cases)
+      final prevMonth = DateTime(now.year, now.month - 1, 1);
+      final prevYearMonth = '${prevMonth.year}-${prevMonth.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(prevYearMonth));
+    }
+  }
+
+  // Extract shift type from shift_time (Morning/Evening based on start hour)
+  String _extractShiftType(String shiftTime) {
+    try {
+      final parts = shiftTime.split('~').map((s) => s.trim()).toList();
+      if (parts.isEmpty) return 'Shift';
+
+      final startHour = int.parse(parts[0].split(':')[0]);
+      if (startHour < 12) return 'Morning';
+      if (startHour < 17) return 'Afternoon';
+      return 'Evening';
+    } catch (e) {
+      return 'Shift';
+    }
   }
 
   @override
@@ -187,175 +267,250 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
   Widget _buildWeekView() {
     final weekRange = _weekRange;
+    // Use year-month string key to prevent infinite rebuilds
+    final yearMonth = '${_currentWeek.year}-${_currentWeek.month.toString().padLeft(2, '0')}';
+    final shiftCardsAsync = ref.watch(monthlyShiftCardsProvider(yearMonth));
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Common Header (Today's Shift Card + Toggle)
-            ScheduleHeader(
+    // Also get today's month data for the header (in case current week is different month)
+    final now = DateTime.now();
+    final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Common Header (Today's Shift Card + Toggle) - Fixed
+          todayShiftCardsAsync.when(
+            data: (todayShiftCards) => ScheduleHeader(
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
-              onCheckIn: () {
-                // TODO: Implement check-in
-              },
-              onCheckOut: () {
-                // TODO: Implement check-out
-              },
+              todayShift: _findTodayShift(todayShiftCards),
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
             ),
-
-            // Week View
-            ScheduleWeekView(
-              currentWeek: _currentWeek,
-              weekOffset: _currentWeekOffset,
-              shifts: _buildMockWeekShifts(weekRange),
-              onNavigate: _navigateWeek,
+            loading: () => ScheduleHeader(
+              cardKey: _todayShiftCardKey,
+              viewMode: _viewMode,
+              todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
+              onViewModeChanged: (mode) {
+                setState(() => _viewMode = mode);
+              },
             ),
-          ],
-        ),
+            error: (_, __) => ScheduleHeader(
+              cardKey: _todayShiftCardKey,
+              viewMode: _viewMode,
+              todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
+              onViewModeChanged: (mode) {
+                setState(() => _viewMode = mode);
+              },
+            ),
+          ),
+
+          // Week View (contains scrollable shift list)
+          Expanded(
+            child: shiftCardsAsync.when(
+              data: (shiftCards) {
+                final result = _buildWeekShiftsWithIndex(weekRange, shiftCards);
+                return ScheduleWeekView(
+                  currentWeek: _currentWeek,
+                  weekOffset: _currentWeekOffset,
+                  shifts: result.shifts,
+                  closestUpcomingIndex: result.closestUpcomingIndex,
+                  onNavigate: _navigateWeek,
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, _) => Center(
+                child: Text('Error: $error'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMonthView() {
-    return SingleChildScrollView(
-      controller: _monthScrollController,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Common Header (Today's Shift Card + Toggle)
-            ScheduleHeader(
+    // Use year-month string key to prevent infinite rebuilds
+    final yearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+    final shiftCardsAsync = ref.watch(monthlyShiftCardsProvider(yearMonth));
+
+    // Also get today's month data for the header (in case current month is different)
+    final now = DateTime.now();
+    final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Common Header (Today's Shift Card + Toggle) - Fixed
+          todayShiftCardsAsync.when(
+            data: (todayShiftCards) => ScheduleHeader(
               cardKey: _todayShiftCardKey,
               viewMode: _viewMode,
-              onCheckIn: () {
-                // TODO: Implement check-in
-              },
-              onCheckOut: () {
-                // TODO: Implement check-out
-              },
+              todayShift: _findTodayShift(todayShiftCards),
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
             ),
-
-            // Month View
-            ScheduleMonthView(
-              currentMonth: _currentMonth,
-              selectedDate: _selectedDate,
-              monthOffset: _currentMonthOffset,
-              shiftsInMonth: _buildMockShiftsInMonth(),
-              dayShifts: _buildMockDayShifts(_selectedDate),
-              onNavigate: _navigateMonth,
-              onDateSelected: _handleDateSelected,
+            loading: () => ScheduleHeader(
+              cardKey: _todayShiftCardKey,
+              viewMode: _viewMode,
+              todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
+              onViewModeChanged: (mode) {
+                setState(() => _viewMode = mode);
+              },
             ),
-          ],
-        ),
+            error: (_, __) => ScheduleHeader(
+              cardKey: _todayShiftCardKey,
+              viewMode: _viewMode,
+              todayShift: null,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
+              onViewModeChanged: (mode) {
+                setState(() => _viewMode = mode);
+              },
+            ),
+          ),
+
+          // Month View (contains scrollable shift list)
+          Expanded(
+            child: shiftCardsAsync.when(
+              data: (shiftCards) => ScheduleMonthView(
+                currentMonth: _currentMonth,
+                selectedDate: _selectedDate,
+                monthOffset: _currentMonthOffset,
+                shiftsInMonth: _buildShiftsInMonth(shiftCards),
+                dayShifts: _buildDayShifts(_selectedDate, shiftCards),
+                onNavigate: _navigateMonth,
+                onDateSelected: _handleDateSelected,
+              ),
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, _) => Center(
+                child: Text('Error: $error'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Mock data builders (will be replaced with real data)
-  List<Widget> _buildMockWeekShifts(DateTimeRange weekRange) {
+  // Build week shifts from real data
+  // Returns (shifts, closestUpcomingIndex) for auto-scroll functionality
+  ({List<Widget> shifts, int? closestUpcomingIndex}) _buildWeekShiftsWithIndex(
+    DateTimeRange weekRange,
+    List<ShiftCard> shiftCards,
+  ) {
     final shifts = <Widget>[];
-    final now = DateTime.now();
-    final closestUpcomingDate = _findClosestUpcomingShift();
+    final closestUpcomingDate = _findClosestUpcomingShift(shiftCards);
+    int? closestUpcomingIndex;
 
-    // Build shift cards
-    for (int i = 0; i < 7; i++) {
-      final date = weekRange.start.add(Duration(days: i));
-      final dayName = DateFormat.E().format(date);
-      final dayNumber = date.day;
+    // Filter shifts within the week range
+    final weekShifts = shiftCards.where((card) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) return false;
+      return !cardDate.isBefore(weekRange.start) && !cardDate.isAfter(weekRange.end);
+    }).toList();
 
-      // Mock: Add shift for even days
-      if (i % 2 == 0) {
-        final shiftType = i % 4 == 0 ? 'Morning' : 'Evening';
-        final timeRange = i % 4 == 0 ? '9:00 AM - 5:00 PM' : '2:00 PM - 10:00 PM';
-        final isClosest = closestUpcomingDate != null && _isSameDay(date, closestUpcomingDate);
+    // Sort by date
+    weekShifts.sort((a, b) {
+      final dateA = _parseRequestDate(a.requestDate);
+      final dateB = _parseRequestDate(b.requestDate);
+      if (dateA == null || dateB == null) return 0;
+      return dateA.compareTo(dateB);
+    });
 
-        shifts.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: TossWeekShiftCard(
-              date: '$dayName $dayNumber',
-              shiftType: shiftType,
-              timeRange: timeRange,
-              status: date.isBefore(now)
-                  ? ShiftCardStatus.completed
-                  : ShiftCardStatus.onTime,
-              isClosestUpcoming: isClosest,
-              onTap: () {
-                ShiftDetailDialog.show(
-                  context,
-                  shiftDate: DateFormat('yyyy-MM-dd').format(date),
-                  shiftType: shiftType,
-                  shiftTime: i % 4 == 0 ? '09:00 – 17:00' : '14:00 – 22:00',
-                  shiftStatus: 'On-time',
-                );
-              },
-            ),
-          ),
-        );
+    for (int i = 0; i < weekShifts.length; i++) {
+      final card = weekShifts[i];
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) continue;
+
+      final dayName = DateFormat.E().format(cardDate);
+      final dayNumber = cardDate.day;
+      final shiftType = _extractShiftType(card.shiftTime);
+      final timeRange = _formatTimeRange(card.shiftTime);
+      final status = _determineStatus(card, cardDate);
+      final isClosest = closestUpcomingDate != null && _isSameDay(cardDate, closestUpcomingDate);
+
+      // Track the index of closest upcoming shift for auto-scroll
+      if (isClosest) {
+        closestUpcomingIndex = shifts.length; // Current index in the shifts list
       }
-    }
-    return shifts;
-  }
-
-  Map<DateTime, bool> _buildMockShiftsInMonth() {
-    final shifts = <DateTime, bool>{};
-    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_currentMonth.year, _currentMonth.month, day);
-      // Mock: Add shifts for weekdays (Mon-Fri)
-      if (date.weekday <= 5) {
-        shifts[date] = true;
-      }
-    }
-    return shifts;
-  }
-
-  List<Widget> _buildMockDayShifts(DateTime date) {
-    final shifts = <Widget>[];
-    final dayName = DateFormat.E().format(date);
-    final dayNumber = date.day;
-    final closestUpcomingDate = _findClosestUpcomingShift();
-
-    // Mock: Show 1-2 shifts for selected date if it has shifts
-    if (date.weekday <= 5) {
-      final isClosest = closestUpcomingDate != null && _isSameDay(date, closestUpcomingDate);
 
       shifts.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: TossWeekShiftCard(
             date: '$dayName $dayNumber',
-            shiftType: 'Morning',
-            timeRange: '9:00 AM - 5:00 PM',
-            status: date.isBefore(DateTime.now())
-                ? ShiftCardStatus.completed
-                : ShiftCardStatus.onTime,
+            shiftType: shiftType,
+            timeRange: timeRange,
+            status: status,
             isClosestUpcoming: isClosest,
             onTap: () {
               ShiftDetailDialog.show(
                 context,
-                shiftDate: DateFormat('yyyy-MM-dd').format(date),
-                shiftType: 'Morning',
-                shiftTime: '09:00 – 17:00',
-                shiftStatus: 'On-time',
+                shiftCard: card,
               );
             },
           ),
         ),
       );
-    } else {
-      // No shifts on weekends
+    }
+
+    return (shifts: shifts, closestUpcomingIndex: closestUpcomingIndex);
+  }
+
+  // Build shifts map for calendar display
+  Map<DateTime, bool> _buildShiftsInMonth(List<ShiftCard> shiftCards) {
+    final shifts = <DateTime, bool>{};
+
+    for (final card in shiftCards) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) continue;
+
+      // Only include shifts in the current month
+      if (cardDate.year == _currentMonth.year && cardDate.month == _currentMonth.month) {
+        final dateOnly = DateTime(cardDate.year, cardDate.month, cardDate.day);
+        shifts[dateOnly] = true;
+      }
+    }
+
+    return shifts;
+  }
+
+  // Build day shifts for selected date
+  List<Widget> _buildDayShifts(DateTime date, List<ShiftCard> shiftCards) {
+    final shifts = <Widget>[];
+    final closestUpcomingDate = _findClosestUpcomingShift(shiftCards);
+
+    // Filter shifts for the selected date
+    final dayShifts = shiftCards.where((card) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) return false;
+      return _isSameDay(cardDate, date);
+    }).toList();
+
+    if (dayShifts.isEmpty) {
       shifts.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
@@ -366,6 +521,38 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                 color: TossColors.gray500,
               ),
             ),
+          ),
+        ),
+      );
+      return shifts;
+    }
+
+    for (final card in dayShifts) {
+      final cardDate = _parseRequestDate(card.requestDate);
+      if (cardDate == null) continue;
+
+      final dayName = DateFormat.E().format(cardDate);
+      final dayNumber = cardDate.day;
+      final shiftType = _extractShiftType(card.shiftTime);
+      final timeRange = _formatTimeRange(card.shiftTime);
+      final status = _determineStatus(card, cardDate);
+      final isClosest = closestUpcomingDate != null && _isSameDay(cardDate, closestUpcomingDate);
+
+      shifts.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: TossWeekShiftCard(
+            date: '$dayName $dayNumber',
+            shiftType: shiftType,
+            timeRange: timeRange,
+            status: status,
+            isClosestUpcoming: isClosest,
+            onTap: () {
+              ShiftDetailDialog.show(
+                context,
+                shiftCard: card,
+              );
+            },
           ),
         ),
       );

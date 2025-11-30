@@ -125,57 +125,70 @@ class ShiftSignupCard extends StatelessWidget {
                   ),
 
                   // Applied/Assigned count or "You applied" text
+                  // Entire row is clickable to view applied users
                   if (userApplied) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        // Avatar stack for other applied users (if provided)
-                        if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                          _buildAvatarStack(assignedUserAvatars!),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          'You applied',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.gray600,
-                            fontSize: 12,
+                    GestureDetector(
+                      onTap: onViewAppliedUsers,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Avatar stack for other applied users (if provided)
+                          if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
+                            _buildAvatarStackWithoutGesture(assignedUserAvatars!),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            'You applied',
+                            style: TossTextStyles.labelSmall.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ] else if (appliedCount > 0 && status == ShiftSignupStatus.available) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        // Avatar stack for applied users (if provided)
-                        if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                          _buildAvatarStack(assignedUserAvatars!),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          '$appliedCount applied',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.gray600,
-                            fontSize: 12,
+                    GestureDetector(
+                      onTap: onViewAppliedUsers,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Avatar stack for applied users (if provided)
+                          if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
+                            _buildAvatarStackWithoutGesture(assignedUserAvatars!),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            '$appliedCount applied',
+                            style: TossTextStyles.labelSmall.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ] else if (status == ShiftSignupStatus.assigned && assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        // Avatar stack
-                        _buildAvatarStack(assignedUserAvatars!),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${assignedUserAvatars!.length} assigned',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.gray600,
-                            fontSize: 12,
+                    GestureDetector(
+                      onTap: onViewAppliedUsers,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Avatar stack
+                          _buildAvatarStackWithoutGesture(assignedUserAvatars!),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${assignedUserAvatars!.length} assigned',
+                            style: TossTextStyles.labelSmall.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ],
@@ -267,30 +280,27 @@ class ShiftSignupCard extends StatelessWidget {
     }
   }
 
-  /// Build clickable avatar stack
-  Widget _buildAvatarStack(List<String> avatars) {
-    return GestureDetector(
-      onTap: onViewAppliedUsers,
-      child: SizedBox(
-        height: 24,
-        width: (avatars.length * 18).toDouble() + 6,
-        child: Stack(
-          children: List.generate(
-            avatars.length.clamp(0, 4),
-            (index) => Positioned(
-              left: index * 18.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: TossColors.white, width: 1),
-                ),
-                child: CircleAvatar(
-                  radius: 12,
-                  backgroundColor: TossColors.gray200,
-                  backgroundImage: NetworkImage(avatars[index]),
-                  onBackgroundImageError: (_, __) {},
-                  child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
-                ),
+  /// Build avatar stack without gesture (used when parent row handles tap)
+  Widget _buildAvatarStackWithoutGesture(List<String> avatars) {
+    return SizedBox(
+      height: 24,
+      width: (avatars.length * 18).toDouble() + 6,
+      child: Stack(
+        children: List.generate(
+          avatars.length.clamp(0, 4),
+          (index) => Positioned(
+            left: index * 18.0,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: TossColors.white, width: 1),
+              ),
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: TossColors.gray200,
+                backgroundImage: NetworkImage(avatars[index]),
+                onBackgroundImageError: (_, __) {},
+                child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
               ),
             ),
           ),

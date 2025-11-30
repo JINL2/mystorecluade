@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
+import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -16,7 +18,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart
 /// - Confirmed attendance (manager-approved times)
 /// - Payment breakdown (base pay, bonus, total)
 /// - Report issue action
-class ShiftDetailPage extends StatefulWidget {
+class ShiftDetailPage extends ConsumerStatefulWidget {
   final ShiftCard shift;
 
   const ShiftDetailPage({
@@ -25,10 +27,10 @@ class ShiftDetailPage extends StatefulWidget {
   });
 
   @override
-  State<ShiftDetailPage> createState() => _ShiftDetailPageState();
+  ConsumerState<ShiftDetailPage> createState() => _ShiftDetailPageState();
 }
 
-class _ShiftDetailPageState extends State<ShiftDetailPage> {
+class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = false;
 
@@ -65,9 +67,12 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
     return '${h}h ${m}m';
   }
 
-  /// Format money with currency
-  String _formatMoney(double amount) {
-    return '\$${amount.toStringAsFixed(2)}';
+  /// Format money with currency symbol from baseCurrencyProvider
+  /// - Removes decimal places (.00)
+  /// - Adds thousand separators (40,000)
+  String _formatMoney(double amount, String currencySymbol) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    return '$currencySymbol${formatter.format(amount.round())}';
   }
 
   /// Get status text from shift
@@ -270,7 +275,7 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.shift.shiftTime,
+                  widget.shift.shiftName ?? 'Shift',
                   style: TossTextStyles.titleMedium.copyWith(
                     color: TossColors.gray900,
                     fontWeight: FontWeight.w600,
@@ -331,6 +336,14 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
 
   /// Builds payment summary card with all payment details
   Widget _buildPaymentSummaryCard() {
+    // Get currency symbol from provider
+    final baseCurrencyAsync = ref.watch(baseCurrencyProvider);
+    final currencySymbol = baseCurrencyAsync.when(
+      data: (currency) => currency?.symbol ?? '\$',
+      loading: () => '\$',
+      error: (_, __) => '\$',
+    );
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -345,8 +358,8 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
-            label: 'Hourly salary',
-            value: _formatMoney(widget.shift.salaryAmountValue),
+            label: widget.shift.salaryType == 'monthly' ? 'Monthly salary' : 'Hourly salary',
+            value: _formatMoney(widget.shift.salaryAmountValue, currencySymbol),
           ),
           const SizedBox(height: 12),
           Container(
@@ -356,17 +369,17 @@ class _ShiftDetailPageState extends State<ShiftDetailPage> {
           const SizedBox(height: 12),
           _buildInfoRow(
             label: 'Base pay',
-            value: _formatMoney(widget.shift.basePayAmount),
+            value: _formatMoney(widget.shift.basePayAmount, currencySymbol),
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
             label: 'Bonus pay',
-            value: _formatMoney(widget.shift.bonusAmount),
+            value: _formatMoney(widget.shift.bonusAmount, currencySymbol),
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
             label: 'Total payment',
-            value: _formatMoney(widget.shift.totalPayAmount),
+            value: _formatMoney(widget.shift.totalPayAmount, currencySymbol),
             labelStyle: TossTextStyles.titleMedium.copyWith(
               color: TossColors.gray900,
               fontWeight: FontWeight.w600,

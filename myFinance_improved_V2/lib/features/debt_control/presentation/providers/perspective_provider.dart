@@ -60,8 +60,9 @@ class PerspectiveSummaryNotifier extends AsyncNotifier<PerspectiveSummary?> {
 
   /// Load perspective summary
   Future<void> loadPerspectiveSummary({
+    required String companyId,
+    String? storeId,
     required String perspectiveType,
-    required String entityId,
     required String entityName,
   }) async {
     state = const AsyncValue.loading();
@@ -70,8 +71,9 @@ class PerspectiveSummaryNotifier extends AsyncNotifier<PerspectiveSummary?> {
       final repository = ref.read(debtRepositoryProvider);
 
       final summary = await repository.getPerspectiveSummary(
+        companyId: companyId,
+        storeId: storeId,
         perspectiveType: perspectiveType,
-        entityId: entityId,
         entityName: entityName,
       );
 
@@ -83,13 +85,15 @@ class PerspectiveSummaryNotifier extends AsyncNotifier<PerspectiveSummary?> {
 
   /// Refresh perspective summary
   Future<void> refresh({
+    required String companyId,
+    String? storeId,
     required String perspectiveType,
-    required String entityId,
     required String entityName,
   }) async {
     await loadPerspectiveSummary(
+      companyId: companyId,
+      storeId: storeId,
       perspectiveType: perspectiveType,
-      entityId: entityId,
       entityName: entityName,
     );
   }

@@ -2,7 +2,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Delete a shift request
 ///
-/// Direct database operation on shift_requests table
+/// Matches RPC: delete_shift_request_v2
 class DeleteShiftRequest {
   final AttendanceRepository _repository;
 
@@ -11,13 +11,13 @@ class DeleteShiftRequest {
   Future<void> call({
     required String userId,
     required String shiftId,
-    required String requestDate,
+    required String requestTime,
     required String timezone,
   }) {
     return _repository.deleteShiftRequest(
       userId: userId,
       shiftId: shiftId,
-      requestDate: requestDate,
+      requestTime: requestTime,
       timezone: timezone,
     );
   }
