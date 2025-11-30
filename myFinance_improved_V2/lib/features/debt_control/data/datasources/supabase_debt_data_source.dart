@@ -40,6 +40,13 @@ class SupabaseDebtDataSource {
     }
 
     try {
+      // Debug logging
+      print('🔍 [DebtDataSource] Calling RPC get_debt_control_data_v2');
+      print('   p_company_id: $companyId');
+      print('   p_store_id: $storeId');
+      print('   p_filter: $filter');
+      print('   perspective: $perspective');
+
       // Call v2 function and extract the appropriate perspective
       final response = await _client.rpc<Map<String, dynamic>>(
         'get_debt_control_data_v2',
@@ -51,14 +58,26 @@ class SupabaseDebtDataSource {
         },
       );
 
+      print('✅ [DebtDataSource] RPC call successful');
+      print('   Response keys: ${response.keys.toList()}');
+
       // Extract the appropriate perspective from v2 response
       final v2Data = response;
       final perspectiveData = perspective == 'store' && storeId != null
         ? v2Data['store']
         : v2Data['company'];
 
+      print('   Extracting perspective: ${perspective == 'store' && storeId != null ? 'store' : 'company'}');
+      print('   Perspective data null: ${perspectiveData == null}');
+
       if (perspectiveData == null) {
+        print('❌ [DebtDataSource] No data for selected perspective');
         throw Exception('No data for selected perspective');
+      }
+
+      if (perspectiveData is Map<String, dynamic>) {
+        final summary = perspectiveData['summary'] as Map<String, dynamic>?;
+        print('   Summary: receivable=${summary?['total_receivable']}, payable=${summary?['total_payable']}, counterparties=${summary?['counterparty_count']}');
       }
 
       // Cache the perspective data
@@ -70,7 +89,13 @@ class SupabaseDebtDataSource {
       _cachedFilter = filter;
 
       return _cachedData!;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log error for debugging
+      print('❌ [DebtDataSource] Error in _fetchAllDebtData:');
+      print('   Company: $companyId, Store: $storeId, Perspective: $perspective');
+      print('   Error: $e');
+      print('   StackTrace: $stackTrace');
+
       // Return empty structure if error
       return _getEmptyStructure(companyId, storeId, perspective, filter);
     }
@@ -327,13 +352,14 @@ class SupabaseDebtDataSource {
   }
 
   Future<PerspectiveSummaryDto> fetchPerspectiveSummary({
+    required String companyId,
+    String? storeId,
     required String perspectiveType,
-    required String entityId,
     required String entityName,
   }) async {
     final data = await _fetchAllDebtData(
-      companyId: entityId,
-      storeId: perspectiveType == 'store' ? entityId : null,
+      companyId: companyId,
+      storeId: storeId,
       perspective: perspectiveType,
       filter: 'all',
     );
@@ -343,7 +369,7 @@ class SupabaseDebtDataSource {
 
     return PerspectiveSummaryDto(
       perspectiveType: perspectiveType,
-      entityId: entityId,
+      entityId: storeId ?? companyId,
       entityName: entityName,
       totalReceivable: (summary['total_receivable'] as num?)?.toDouble() ?? 0.0,
       totalPayable: (summary['total_payable'] as num?)?.toDouble() ?? 0.0,

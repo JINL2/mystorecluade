@@ -213,10 +213,33 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
     // If QR scan was successful, refresh the shift cards data
     if (result != null && result['success'] == true) {
-      // Invalidate the provider to refresh data
+      // Invalidate providers to refresh data for all relevant months
       final now = DateTime.now();
-      final yearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-      ref.invalidate(monthlyShiftCardsProvider(yearMonth));
+
+      // Refresh current month
+      final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(currentYearMonth));
+
+      // Also refresh the week view if applicable
+      if (_viewMode == ViewMode.week) {
+        final weekYearMonth = '${_currentWeek.year}-${_currentWeek.month.toString().padLeft(2, '0')}';
+        if (weekYearMonth != currentYearMonth) {
+          ref.invalidate(monthlyShiftCardsProvider(weekYearMonth));
+        }
+      }
+
+      // Refresh month view if applicable
+      if (_viewMode == ViewMode.month) {
+        final monthYearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+        if (monthYearMonth != currentYearMonth) {
+          ref.invalidate(monthlyShiftCardsProvider(monthYearMonth));
+        }
+      }
+
+      // Also invalidate previous month (for night shift edge cases)
+      final prevMonth = DateTime(now.year, now.month - 1, 1);
+      final prevYearMonth = '${prevMonth.year}-${prevMonth.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(prevYearMonth));
     }
   }
 

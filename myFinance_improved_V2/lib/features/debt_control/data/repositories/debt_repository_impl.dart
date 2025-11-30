@@ -115,13 +115,15 @@ class DebtRepositoryImpl implements DebtRepository {
 
   @override
   Future<PerspectiveSummary> getPerspectiveSummary({
+    required String companyId,
+    String? storeId,
     required String perspectiveType,
-    required String entityId,
     required String entityName,
   }) async {
     final dto = await _dataSource.fetchPerspectiveSummary(
+      companyId: companyId,
+      storeId: storeId,
       perspectiveType: perspectiveType,
-      entityId: entityId,
       entityName: entityName,
     );
     return DebtControlMapper.perspectiveSummaryDtoToEntity(dto);

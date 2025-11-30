@@ -69,6 +69,9 @@ class AttendanceDatasource {
   /// - p_request_date parameter removed (date extracted from p_time in RPC)
   /// - p_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  ///
+  /// RPC returns: {'status': 'check_in'|'check_out'|'attend', 'time': '...'}
+  /// Maps to: {'action': 'check_in'|'check_out', 'timestamp': '...', ...}
   Future<Map<String, dynamic>?> updateShiftRequest({
     required String userId,
     required String storeId,
@@ -98,35 +101,74 @@ class AttendanceDatasource {
       }
 
       // Parse different possible response formats
-      Map<String, dynamic> result = {};
+      Map<String, dynamic> rawResult = {};
 
       if (response is List) {
         if (response.isEmpty) {
-          result = {'success': true, 'action': 'check_in'};
+          rawResult = {'status': 'check_in', 'time': timestamp};
         } else {
           // Take first item from list
           final firstItem = response.first;
           if (firstItem is Map<String, dynamic>) {
-            result = firstItem;
+            rawResult = firstItem;
           } else {
-            result = {'success': true, 'action': 'check_in', 'data': firstItem};
+            rawResult = {'status': 'check_in', 'time': timestamp};
           }
         }
       } else if (response is Map<String, dynamic>) {
-        result = response;
+        rawResult = response;
       } else if (response is bool) {
         // If RPC returns boolean, create appropriate response
-        result = {
-          'success': response,
-          'action': 'check_in',
+        rawResult = {
+          'status': 'check_in',
+          'time': timestamp,
         };
       } else {
-        result = {'success': true, 'action': 'check_in', 'data': response};
+        rawResult = {'status': 'check_in', 'time': timestamp};
       }
 
-      return result;
+      // Map RPC response fields to expected model fields
+      // RPC returns: {'status': 'attend'|'check_out', 'time': '...'}
+      // - 'attend' = check-in (출근)
+      // - 'check_out' = check-out (퇴근)
+      // Model expects: {'action': 'check_in'|'check_out', 'timestamp': '...', 'request_date': '...', ...}
+      final status = rawResult['status'] ?? 'attend';
+      final mappedResult = <String, dynamic>{
+        // Map 'attend' to 'check_in' for consistency
+        'action': status == 'attend' ? 'check_in' : status,
+        'timestamp': rawResult['time'] ?? timestamp,
+        'success': true,
+        // Extract date from timestamp for request_date field
+        'request_date': _extractDateFromTimestamp((rawResult['time'] ?? timestamp) as String),
+      };
+
+      // ✅ Debug: Log RPC response mapping
+      assert(() {
+        debugPrint('🔵 [updateShiftRequest] RPC response: $rawResult');
+        debugPrint('🔄 [updateShiftRequest] Mapped result: $mappedResult');
+        return true;
+      }());
+
+      return mappedResult;
     } catch (e) {
       throw AttendanceServerException(e.toString());
+    }
+  }
+
+  /// Extract date from timestamp string
+  /// Input: "2024-11-15T10:30:25+09:00"
+  /// Output: "2024-11-15"
+  String _extractDateFromTimestamp(String timestamp) {
+    try {
+      // Parse the timestamp and extract date only
+      final dateTime = DateTime.parse(timestamp);
+      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    } catch (e) {
+      // If parsing fails, try to extract manually
+      if (timestamp.contains('T')) {
+        return timestamp.split('T').first;
+      }
+      return timestamp;
     }
   }
 
