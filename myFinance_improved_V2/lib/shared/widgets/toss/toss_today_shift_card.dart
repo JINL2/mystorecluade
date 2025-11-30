@@ -92,6 +92,7 @@ class TossTodayShiftCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
         children: [
           Icon(
             Icons.calendar_today_outlined,
@@ -102,6 +103,7 @@ class TossTodayShiftCard extends StatelessWidget {
           Text(
             'No shift scheduled today',
             style: TossTextStyles.bodyLarge,
+            textAlign: TextAlign.center,
           ),
           SizedBox(height: TossSpacing.space1),
           Text(
