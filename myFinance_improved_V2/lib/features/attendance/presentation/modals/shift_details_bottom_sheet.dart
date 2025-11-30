@@ -7,7 +7,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../widgets/check_in_out/dialogs/report_issue_dialog.dart';
-import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
+import '../widgets/check_in_out/helpers/format_helpers.dart';
 
 /// Shows the shift details bottom sheet
 void showShiftDetailsBottomSheet({
@@ -150,9 +150,9 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                           ),
                         ),
                         Text(
-                          AttendanceHelpers.getWorkStatusFromCard(cardData),
+                          FormatHelpers.getWorkStatusFromCard(cardData),
                           style: TossTextStyles.body.copyWith(
-                            color: AttendanceHelpers.getWorkStatusColorFromCard(cardData),
+                            color: FormatHelpers.getWorkStatusColorFromCard(cardData),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -199,12 +199,12 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                     const SizedBox(height: TossSpacing.space3),
                     _buildInfoRow(
                       'Actual Check-in',
-                      AttendanceHelpers.formatTime(cardData['actual_start_time']?.toString()),
+                      FormatHelpers.formatTime(cardData['actual_start_time']?.toString()),
                     ),
                     const SizedBox(height: TossSpacing.space3),
                     _buildInfoRow(
                       'Actual Check-out',
-                      AttendanceHelpers.formatTime(cardData['actual_end_time']?.toString()),
+                      FormatHelpers.formatTime(cardData['actual_end_time']?.toString()),
                     ),
                     const SizedBox(height: TossSpacing.space4),
 
@@ -228,7 +228,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                     const SizedBox(height: TossSpacing.space3),
                     _buildInfoRow(
                       'Salary per Hour',
-                      '$currencySymbol${AttendanceHelpers.formatNumber(cardData['salary_amount'] ?? 0)}',
+                      '$currencySymbol${FormatHelpers.formatNumber(cardData['salary_amount'] ?? 0)}',
                     ),
                   ],
 
@@ -262,7 +262,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                               ),
                             ),
                             Text(
-                              AttendanceHelpers.formatTime(
+                              FormatHelpers.formatTime(
                                 cardData['confirm_start_time']?.toString(),
                               ),
                               style: TossTextStyles.body.copyWith(
@@ -283,7 +283,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                               ),
                             ),
                             Text(
-                              AttendanceHelpers.formatTime(
+                              FormatHelpers.formatTime(
                                 cardData['confirm_end_time']?.toString(),
                               ),
                               style: TossTextStyles.body.copyWith(
@@ -319,7 +319,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                               ),
                             ),
                             Text(
-                              '$currencySymbol${AttendanceHelpers.formatNumber(cardData['base_pay'] ?? 0)}',
+                              '$currencySymbol${FormatHelpers.formatNumber(cardData['base_pay'] ?? 0)}',
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray900,
                                 fontWeight: FontWeight.w600,
@@ -338,7 +338,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                               ),
                             ),
                             Text(
-                              '$currencySymbol${AttendanceHelpers.formatNumber(cardData['bonus_amount'] ?? 0)}',
+                              '$currencySymbol${FormatHelpers.formatNumber(cardData['bonus_amount'] ?? 0)}',
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray900,
                                 fontWeight: FontWeight.w600,
@@ -372,7 +372,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
                         ),
                       ),
                       Text(
-                        '$currencySymbol${AttendanceHelpers.formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
+                        '$currencySymbol${FormatHelpers.formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
                         style: TossTextStyles.h2.copyWith(
                           color: TossColors.info,
                           fontWeight: FontWeight.w700,
@@ -543,7 +543,7 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
 
                   // Show report issue dialog
                   if (mounted) {
-                    showReportIssueDialog(
+                    ReportIssueDialog.show(
                       context: context,
                       ref: widget.ref,
                       shiftRequestId: shiftRequestId.toString(),

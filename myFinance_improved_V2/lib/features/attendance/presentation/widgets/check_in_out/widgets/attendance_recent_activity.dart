@@ -6,7 +6,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../utils/attendance_formatters.dart';
+import '../helpers/format_helpers.dart';
 
 /// Recent activity widget displaying shift cards for selected date
 ///
@@ -68,9 +68,9 @@ class AttendanceRecentActivity extends StatelessWidget {
       final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
       final requestDate = card['request_date']?.toString();
 
-      // Use AttendanceFormatters to properly convert UTC to local time
-      String checkInTime = AttendanceFormatters.formatTime(actualStart, requestDate: requestDate);
-      String checkOutTime = AttendanceFormatters.formatTime(actualEnd, requestDate: requestDate);
+      // Use FormatHelpers to properly convert UTC to local time
+      String checkInTime = FormatHelpers.formatTime(actualStart, requestDate: requestDate);
+      String checkOutTime = FormatHelpers.formatTime(actualEnd, requestDate: requestDate);
       String hoursWorked = '0h 0m';
 
       // Calculate hours worked if we have both times
@@ -142,7 +142,7 @@ class AttendanceRecentActivity extends StatelessWidget {
 
       // Convert shift time from UTC to local time
       final rawShiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
-      final localShiftTime = AttendanceFormatters.formatShiftTime(rawShiftTime, requestDate: requestDate);
+      final localShiftTime = FormatHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
 
       return {
         'date': date,

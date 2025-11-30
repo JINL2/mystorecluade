@@ -1,6 +1,7 @@
 /// Shift Metadata Entity
 ///
 /// Represents shift configuration from store_shifts table.
+/// Pure domain entity - JSON serialization handled by Data layer (ShiftMetadataModel).
 class ShiftMetadata {
   final String shiftId;
   final String storeId;
@@ -24,36 +25,19 @@ class ShiftMetadata {
     this.shiftBonus,
   });
 
-  /// Create from JSON (from RPC: get_shift_metadata)
-  factory ShiftMetadata.fromJson(Map<String, dynamic> json) {
-    return ShiftMetadata(
-      shiftId: json['shift_id'] as String,
-      storeId: json['store_id'] as String,
-      shiftName: json['shift_name'] as String,
-      startTime: json['start_time'] as String,
-      endTime: json['end_time'] as String,
-      isActive: json['is_active'] as bool? ?? true,
-      numberShift: json['number_shift'] as int?,
-      isCanOvertime: json['is_can_overtime'] as bool? ?? false,
-      shiftBonus: (json['shift_bonus'] as num?)?.toDouble(),
-    );
-  }
-
-  /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'shift_id': shiftId,
-      'store_id': storeId,
-      'shift_name': shiftName,
-      'start_time': startTime,
-      'end_time': endTime,
-      'is_active': isActive,
-      'number_shift': numberShift,
-      'is_can_overtime': isCanOvertime,
-      'shift_bonus': shiftBonus,
-    };
-  }
+  /// Get formatted time range (e.g., "09:00 - 17:00")
+  String get timeRange => '$startTime - $endTime';
 
   @override
   String toString() => 'ShiftMetadata(id: $shiftId, name: $shiftName, $startTime-$endTime)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShiftMetadata &&
+          runtimeType == other.runtimeType &&
+          shiftId == other.shiftId;
+
+  @override
+  int get hashCode => shiftId.hashCode;
 }

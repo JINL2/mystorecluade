@@ -85,6 +85,7 @@ class TossTodayShiftCard extends StatelessWidget {
 
   Widget _buildEmptyState() {
     return Container(
+      width: double.infinity, // Full width to enable centering
       padding: EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         color: TossColors.white,
@@ -92,7 +93,7 @@ class TossTodayShiftCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             Icons.calendar_today_outlined,

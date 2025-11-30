@@ -63,72 +63,6 @@ class AttendanceDatasource {
     return result;
   }
 
-  /// Fetch user shift overview for the month
-  ///
-  /// Uses user_shift_overview_v3 RPC with local time + timezone offset
-  Future<Map<String, dynamic>> getUserShiftOverview({
-    required String requestTime, // ISO 8601 with offset (e.g., "2024-11-15T10:30:25+07:00")
-    required String userId,
-    required String companyId,
-    required String storeId,
-    required String timezone, // User's local timezone (e.g., "Asia/Seoul")
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'user_shift_overview_v3', // Changed from v2 to v3
-        params: {
-          'p_request_time': requestTime,
-          'p_user_id': userId,
-          'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_timezone': timezone, // New: user's local timezone
-        },
-      );
-
-      if (response == null) {
-        // Return empty data structure
-        return {
-          'request_month': requestTime.substring(0, 7), // yyyy-MM from yyyy-MM-dd HH:mm:ss
-          'actual_work_days': 0,
-          'actual_work_hours': 0.0,
-          'estimated_salary': '0',
-          'currency_symbol': '₩',
-          'salary_amount': 0.0,
-          'salary_type': 'hourly',
-          'late_deduction_total': 0,
-          'overtime_total': 0,
-          'salary_stores': <Map<String, dynamic>>[],
-        };
-      }
-
-      // Return the first item if it's a list, otherwise return as is
-      if (response is List) {
-        if (response.isEmpty) {
-          return {
-            'request_month': requestTime.substring(0, 7),
-            'actual_work_days': 0,
-            'actual_work_hours': 0.0,
-            'estimated_salary': '0',
-            'currency_symbol': '₩',
-            'salary_amount': 0.0,
-            'salary_type': 'hourly',
-            'late_deduction_total': 0,
-            'overtime_total': 0,
-            'salary_stores': <Map<String, dynamic>>[],
-          };
-        }
-        final firstItem = response.first as Map<String, dynamic>;
-        return _processNestedData(firstItem);
-      }
-
-      final result = response as Map<String, dynamic>;
-      return _processNestedData(result);
-    } catch (e) {
-      throw AttendanceServerException(e.toString());
-    }
-  }
-
-
   /// Update shift request (check-in or check-out) via QR scan
   ///
   /// Uses update_shift_requests_v6 RPC with local time + timezone offset
@@ -494,6 +428,43 @@ class AttendanceDatasource {
       }
 
       // Handle list response (RPC returns array)
+      if (response is List) {
+        if (response.isEmpty) return {};
+        return response.first as Map<String, dynamic>;
+      }
+
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
+  /// Get user shift stats
+  ///
+  /// Uses user_shift_stats RPC with local time + timezone
+  Future<Map<String, dynamic>> getUserShiftStats({
+    required String requestTime,
+    required String userId,
+    required String companyId,
+    required String storeId,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'user_shift_stats',
+        params: {
+          'p_request_time': requestTime,
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response == null) {
+        return {};
+      }
+
       if (response is List) {
         if (response.isEmpty) return {};
         return response.first as Map<String, dynamic>;

@@ -14,79 +14,44 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ShiftCard _$ShiftCardFromJson(Map<String, dynamic> json) {
-  return _ShiftCard.fromJson(json);
-}
-
 /// @nodoc
 mixin _$ShiftCard {
 // Basic info
-  @JsonKey(name: 'request_date')
   String get requestDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'shift_request_id')
   String get shiftRequestId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'shift_name')
   String? get shiftName =>
       throw _privateConstructorUsedError; // e.g., "Afternoon", "Morning"
-  @JsonKey(name: 'shift_time')
   String get shiftTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'store_name')
   String get storeName => throw _privateConstructorUsedError; // Schedule
-  @JsonKey(name: 'scheduled_hours')
   double get scheduledHours => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_approved')
   bool get isApproved =>
       throw _privateConstructorUsedError; // Actual times (nullable - might not be checked in/out yet)
-  @JsonKey(name: 'actual_start_time')
   String? get actualStartTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'actual_end_time')
   String? get actualEndTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'confirm_start_time')
   String? get confirmStartTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'confirm_end_time')
   String? get confirmEndTime =>
       throw _privateConstructorUsedError; // Work hours
-  @JsonKey(name: 'paid_hours')
   double get paidHours => throw _privateConstructorUsedError; // Late status
-  @JsonKey(name: 'is_late')
   bool get isLate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'late_minutes')
   num get lateMinutes => throw _privateConstructorUsedError;
-  @JsonKey(name: 'late_deducut_amount')
   double get lateDeducutAmount =>
       throw _privateConstructorUsedError; // Overtime
-  @JsonKey(name: 'is_extratime')
   bool get isExtratime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'overtime_minutes')
   num get overtimeMinutes =>
       throw _privateConstructorUsedError; // Pay (some are formatted strings with commas)
-  @JsonKey(name: 'base_pay')
   String get basePay => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bonus_amount')
   double get bonusAmount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'total_pay_with_bonus')
   String get totalPayWithBonus => throw _privateConstructorUsedError;
-  @JsonKey(name: 'salary_type')
   String get salaryType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'salary_amount')
   String get salaryAmount =>
       throw _privateConstructorUsedError; // Location validation
-  @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation => throw _privateConstructorUsedError;
-  @JsonKey(name: 'checkin_distance_from_store')
   double? get checkinDistanceFromStore => throw _privateConstructorUsedError;
-  @JsonKey(name: 'checkout_distance_from_store')
   double? get checkoutDistanceFromStore =>
       throw _privateConstructorUsedError; // Problem reporting
-  @JsonKey(name: 'is_reported')
   bool get isReported => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_problem')
   bool get isProblem => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_problem_solved')
   bool get isProblemSolved => throw _privateConstructorUsedError;
-
-  /// Serializes this ShiftCard to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of ShiftCard
   /// with the given fields replaced by the non-null parameter values.
@@ -101,36 +66,34 @@ abstract class $ShiftCardCopyWith<$Res> {
       _$ShiftCardCopyWithImpl<$Res, ShiftCard>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
-      @JsonKey(name: 'shift_request_id') String shiftRequestId,
-      @JsonKey(name: 'shift_name') String? shiftName,
-      @JsonKey(name: 'shift_time') String shiftTime,
-      @JsonKey(name: 'store_name') String storeName,
-      @JsonKey(name: 'scheduled_hours') double scheduledHours,
-      @JsonKey(name: 'is_approved') bool isApproved,
-      @JsonKey(name: 'actual_start_time') String? actualStartTime,
-      @JsonKey(name: 'actual_end_time') String? actualEndTime,
-      @JsonKey(name: 'confirm_start_time') String? confirmStartTime,
-      @JsonKey(name: 'confirm_end_time') String? confirmEndTime,
-      @JsonKey(name: 'paid_hours') double paidHours,
-      @JsonKey(name: 'is_late') bool isLate,
-      @JsonKey(name: 'late_minutes') num lateMinutes,
-      @JsonKey(name: 'late_deducut_amount') double lateDeducutAmount,
-      @JsonKey(name: 'is_extratime') bool isExtratime,
-      @JsonKey(name: 'overtime_minutes') num overtimeMinutes,
-      @JsonKey(name: 'base_pay') String basePay,
-      @JsonKey(name: 'bonus_amount') double bonusAmount,
-      @JsonKey(name: 'total_pay_with_bonus') String totalPayWithBonus,
-      @JsonKey(name: 'salary_type') String salaryType,
-      @JsonKey(name: 'salary_amount') String salaryAmount,
-      @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
-      @JsonKey(name: 'checkin_distance_from_store')
+      {String requestDate,
+      String shiftRequestId,
+      String? shiftName,
+      String shiftTime,
+      String storeName,
+      double scheduledHours,
+      bool isApproved,
+      String? actualStartTime,
+      String? actualEndTime,
+      String? confirmStartTime,
+      String? confirmEndTime,
+      double paidHours,
+      bool isLate,
+      num lateMinutes,
+      double lateDeducutAmount,
+      bool isExtratime,
+      num overtimeMinutes,
+      String basePay,
+      double bonusAmount,
+      String totalPayWithBonus,
+      String salaryType,
+      String salaryAmount,
+      bool? isValidCheckinLocation,
       double? checkinDistanceFromStore,
-      @JsonKey(name: 'checkout_distance_from_store')
       double? checkoutDistanceFromStore,
-      @JsonKey(name: 'is_reported') bool isReported,
-      @JsonKey(name: 'is_problem') bool isProblem,
-      @JsonKey(name: 'is_problem_solved') bool isProblemSolved});
+      bool isReported,
+      bool isProblem,
+      bool isProblemSolved});
 }
 
 /// @nodoc
@@ -303,36 +266,34 @@ abstract class _$$ShiftCardImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
-      @JsonKey(name: 'shift_request_id') String shiftRequestId,
-      @JsonKey(name: 'shift_name') String? shiftName,
-      @JsonKey(name: 'shift_time') String shiftTime,
-      @JsonKey(name: 'store_name') String storeName,
-      @JsonKey(name: 'scheduled_hours') double scheduledHours,
-      @JsonKey(name: 'is_approved') bool isApproved,
-      @JsonKey(name: 'actual_start_time') String? actualStartTime,
-      @JsonKey(name: 'actual_end_time') String? actualEndTime,
-      @JsonKey(name: 'confirm_start_time') String? confirmStartTime,
-      @JsonKey(name: 'confirm_end_time') String? confirmEndTime,
-      @JsonKey(name: 'paid_hours') double paidHours,
-      @JsonKey(name: 'is_late') bool isLate,
-      @JsonKey(name: 'late_minutes') num lateMinutes,
-      @JsonKey(name: 'late_deducut_amount') double lateDeducutAmount,
-      @JsonKey(name: 'is_extratime') bool isExtratime,
-      @JsonKey(name: 'overtime_minutes') num overtimeMinutes,
-      @JsonKey(name: 'base_pay') String basePay,
-      @JsonKey(name: 'bonus_amount') double bonusAmount,
-      @JsonKey(name: 'total_pay_with_bonus') String totalPayWithBonus,
-      @JsonKey(name: 'salary_type') String salaryType,
-      @JsonKey(name: 'salary_amount') String salaryAmount,
-      @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
-      @JsonKey(name: 'checkin_distance_from_store')
+      {String requestDate,
+      String shiftRequestId,
+      String? shiftName,
+      String shiftTime,
+      String storeName,
+      double scheduledHours,
+      bool isApproved,
+      String? actualStartTime,
+      String? actualEndTime,
+      String? confirmStartTime,
+      String? confirmEndTime,
+      double paidHours,
+      bool isLate,
+      num lateMinutes,
+      double lateDeducutAmount,
+      bool isExtratime,
+      num overtimeMinutes,
+      String basePay,
+      double bonusAmount,
+      String totalPayWithBonus,
+      String salaryType,
+      String salaryAmount,
+      bool? isValidCheckinLocation,
       double? checkinDistanceFromStore,
-      @JsonKey(name: 'checkout_distance_from_store')
       double? checkoutDistanceFromStore,
-      @JsonKey(name: 'is_reported') bool isReported,
-      @JsonKey(name: 'is_problem') bool isProblem,
-      @JsonKey(name: 'is_problem_solved') bool isProblemSolved});
+      bool isReported,
+      bool isProblem,
+      bool isProblemSolved});
 }
 
 /// @nodoc
@@ -495,137 +456,104 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ShiftCardImpl extends _ShiftCard {
   const _$ShiftCardImpl(
-      {@JsonKey(name: 'request_date') required this.requestDate,
-      @JsonKey(name: 'shift_request_id') required this.shiftRequestId,
-      @JsonKey(name: 'shift_name') this.shiftName,
-      @JsonKey(name: 'shift_time') required this.shiftTime,
-      @JsonKey(name: 'store_name') required this.storeName,
-      @JsonKey(name: 'scheduled_hours') required this.scheduledHours,
-      @JsonKey(name: 'is_approved') required this.isApproved,
-      @JsonKey(name: 'actual_start_time') this.actualStartTime,
-      @JsonKey(name: 'actual_end_time') this.actualEndTime,
-      @JsonKey(name: 'confirm_start_time') this.confirmStartTime,
-      @JsonKey(name: 'confirm_end_time') this.confirmEndTime,
-      @JsonKey(name: 'paid_hours') required this.paidHours,
-      @JsonKey(name: 'is_late') required this.isLate,
-      @JsonKey(name: 'late_minutes') required this.lateMinutes,
-      @JsonKey(name: 'late_deducut_amount') required this.lateDeducutAmount,
-      @JsonKey(name: 'is_extratime') required this.isExtratime,
-      @JsonKey(name: 'overtime_minutes') required this.overtimeMinutes,
-      @JsonKey(name: 'base_pay') required this.basePay,
-      @JsonKey(name: 'bonus_amount') required this.bonusAmount,
-      @JsonKey(name: 'total_pay_with_bonus') required this.totalPayWithBonus,
-      @JsonKey(name: 'salary_type') required this.salaryType,
-      @JsonKey(name: 'salary_amount') required this.salaryAmount,
-      @JsonKey(name: 'is_valid_checkin_location') this.isValidCheckinLocation,
-      @JsonKey(name: 'checkin_distance_from_store')
+      {required this.requestDate,
+      required this.shiftRequestId,
+      this.shiftName,
+      required this.shiftTime,
+      required this.storeName,
+      required this.scheduledHours,
+      required this.isApproved,
+      this.actualStartTime,
+      this.actualEndTime,
+      this.confirmStartTime,
+      this.confirmEndTime,
+      required this.paidHours,
+      required this.isLate,
+      required this.lateMinutes,
+      required this.lateDeducutAmount,
+      required this.isExtratime,
+      required this.overtimeMinutes,
+      required this.basePay,
+      required this.bonusAmount,
+      required this.totalPayWithBonus,
+      required this.salaryType,
+      required this.salaryAmount,
+      this.isValidCheckinLocation,
       this.checkinDistanceFromStore,
-      @JsonKey(name: 'checkout_distance_from_store')
       this.checkoutDistanceFromStore,
-      @JsonKey(name: 'is_reported') required this.isReported,
-      @JsonKey(name: 'is_problem') required this.isProblem,
-      @JsonKey(name: 'is_problem_solved') required this.isProblemSolved})
+      required this.isReported,
+      required this.isProblem,
+      required this.isProblemSolved})
       : super._();
-
-  factory _$ShiftCardImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ShiftCardImplFromJson(json);
 
 // Basic info
   @override
-  @JsonKey(name: 'request_date')
   final String requestDate;
   @override
-  @JsonKey(name: 'shift_request_id')
   final String shiftRequestId;
   @override
-  @JsonKey(name: 'shift_name')
   final String? shiftName;
 // e.g., "Afternoon", "Morning"
   @override
-  @JsonKey(name: 'shift_time')
   final String shiftTime;
   @override
-  @JsonKey(name: 'store_name')
   final String storeName;
 // Schedule
   @override
-  @JsonKey(name: 'scheduled_hours')
   final double scheduledHours;
   @override
-  @JsonKey(name: 'is_approved')
   final bool isApproved;
 // Actual times (nullable - might not be checked in/out yet)
   @override
-  @JsonKey(name: 'actual_start_time')
   final String? actualStartTime;
   @override
-  @JsonKey(name: 'actual_end_time')
   final String? actualEndTime;
   @override
-  @JsonKey(name: 'confirm_start_time')
   final String? confirmStartTime;
   @override
-  @JsonKey(name: 'confirm_end_time')
   final String? confirmEndTime;
 // Work hours
   @override
-  @JsonKey(name: 'paid_hours')
   final double paidHours;
 // Late status
   @override
-  @JsonKey(name: 'is_late')
   final bool isLate;
   @override
-  @JsonKey(name: 'late_minutes')
   final num lateMinutes;
   @override
-  @JsonKey(name: 'late_deducut_amount')
   final double lateDeducutAmount;
 // Overtime
   @override
-  @JsonKey(name: 'is_extratime')
   final bool isExtratime;
   @override
-  @JsonKey(name: 'overtime_minutes')
   final num overtimeMinutes;
 // Pay (some are formatted strings with commas)
   @override
-  @JsonKey(name: 'base_pay')
   final String basePay;
   @override
-  @JsonKey(name: 'bonus_amount')
   final double bonusAmount;
   @override
-  @JsonKey(name: 'total_pay_with_bonus')
   final String totalPayWithBonus;
   @override
-  @JsonKey(name: 'salary_type')
   final String salaryType;
   @override
-  @JsonKey(name: 'salary_amount')
   final String salaryAmount;
 // Location validation
   @override
-  @JsonKey(name: 'is_valid_checkin_location')
   final bool? isValidCheckinLocation;
   @override
-  @JsonKey(name: 'checkin_distance_from_store')
   final double? checkinDistanceFromStore;
   @override
-  @JsonKey(name: 'checkout_distance_from_store')
   final double? checkoutDistanceFromStore;
 // Problem reporting
   @override
-  @JsonKey(name: 'is_reported')
   final bool isReported;
   @override
-  @JsonKey(name: 'is_problem')
   final bool isProblem;
   @override
-  @JsonKey(name: 'is_problem_solved')
   final bool isProblemSolved;
 
   @override
@@ -696,7 +624,6 @@ class _$ShiftCardImpl extends _ShiftCard {
                 other.isProblemSolved == isProblemSolved));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -737,141 +664,97 @@ class _$ShiftCardImpl extends _ShiftCard {
   @pragma('vm:prefer-inline')
   _$$ShiftCardImplCopyWith<_$ShiftCardImpl> get copyWith =>
       __$$ShiftCardImplCopyWithImpl<_$ShiftCardImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ShiftCardImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _ShiftCard extends ShiftCard {
   const factory _ShiftCard(
-      {@JsonKey(name: 'request_date') required final String requestDate,
-      @JsonKey(name: 'shift_request_id') required final String shiftRequestId,
-      @JsonKey(name: 'shift_name') final String? shiftName,
-      @JsonKey(name: 'shift_time') required final String shiftTime,
-      @JsonKey(name: 'store_name') required final String storeName,
-      @JsonKey(name: 'scheduled_hours') required final double scheduledHours,
-      @JsonKey(name: 'is_approved') required final bool isApproved,
-      @JsonKey(name: 'actual_start_time') final String? actualStartTime,
-      @JsonKey(name: 'actual_end_time') final String? actualEndTime,
-      @JsonKey(name: 'confirm_start_time') final String? confirmStartTime,
-      @JsonKey(name: 'confirm_end_time') final String? confirmEndTime,
-      @JsonKey(name: 'paid_hours') required final double paidHours,
-      @JsonKey(name: 'is_late') required final bool isLate,
-      @JsonKey(name: 'late_minutes') required final num lateMinutes,
-      @JsonKey(name: 'late_deducut_amount')
+      {required final String requestDate,
+      required final String shiftRequestId,
+      final String? shiftName,
+      required final String shiftTime,
+      required final String storeName,
+      required final double scheduledHours,
+      required final bool isApproved,
+      final String? actualStartTime,
+      final String? actualEndTime,
+      final String? confirmStartTime,
+      final String? confirmEndTime,
+      required final double paidHours,
+      required final bool isLate,
+      required final num lateMinutes,
       required final double lateDeducutAmount,
-      @JsonKey(name: 'is_extratime') required final bool isExtratime,
-      @JsonKey(name: 'overtime_minutes') required final num overtimeMinutes,
-      @JsonKey(name: 'base_pay') required final String basePay,
-      @JsonKey(name: 'bonus_amount') required final double bonusAmount,
-      @JsonKey(name: 'total_pay_with_bonus')
+      required final bool isExtratime,
+      required final num overtimeMinutes,
+      required final String basePay,
+      required final double bonusAmount,
       required final String totalPayWithBonus,
-      @JsonKey(name: 'salary_type') required final String salaryType,
-      @JsonKey(name: 'salary_amount') required final String salaryAmount,
-      @JsonKey(name: 'is_valid_checkin_location')
+      required final String salaryType,
+      required final String salaryAmount,
       final bool? isValidCheckinLocation,
-      @JsonKey(name: 'checkin_distance_from_store')
       final double? checkinDistanceFromStore,
-      @JsonKey(name: 'checkout_distance_from_store')
       final double? checkoutDistanceFromStore,
-      @JsonKey(name: 'is_reported') required final bool isReported,
-      @JsonKey(name: 'is_problem') required final bool isProblem,
-      @JsonKey(name: 'is_problem_solved')
+      required final bool isReported,
+      required final bool isProblem,
       required final bool isProblemSolved}) = _$ShiftCardImpl;
   const _ShiftCard._() : super._();
 
-  factory _ShiftCard.fromJson(Map<String, dynamic> json) =
-      _$ShiftCardImpl.fromJson;
-
 // Basic info
   @override
-  @JsonKey(name: 'request_date')
   String get requestDate;
   @override
-  @JsonKey(name: 'shift_request_id')
   String get shiftRequestId;
   @override
-  @JsonKey(name: 'shift_name')
   String? get shiftName; // e.g., "Afternoon", "Morning"
   @override
-  @JsonKey(name: 'shift_time')
   String get shiftTime;
   @override
-  @JsonKey(name: 'store_name')
   String get storeName; // Schedule
   @override
-  @JsonKey(name: 'scheduled_hours')
   double get scheduledHours;
   @override
-  @JsonKey(name: 'is_approved')
   bool
       get isApproved; // Actual times (nullable - might not be checked in/out yet)
   @override
-  @JsonKey(name: 'actual_start_time')
   String? get actualStartTime;
   @override
-  @JsonKey(name: 'actual_end_time')
   String? get actualEndTime;
   @override
-  @JsonKey(name: 'confirm_start_time')
   String? get confirmStartTime;
   @override
-  @JsonKey(name: 'confirm_end_time')
   String? get confirmEndTime; // Work hours
   @override
-  @JsonKey(name: 'paid_hours')
   double get paidHours; // Late status
   @override
-  @JsonKey(name: 'is_late')
   bool get isLate;
   @override
-  @JsonKey(name: 'late_minutes')
   num get lateMinutes;
   @override
-  @JsonKey(name: 'late_deducut_amount')
   double get lateDeducutAmount; // Overtime
   @override
-  @JsonKey(name: 'is_extratime')
   bool get isExtratime;
   @override
-  @JsonKey(name: 'overtime_minutes')
   num get overtimeMinutes; // Pay (some are formatted strings with commas)
   @override
-  @JsonKey(name: 'base_pay')
   String get basePay;
   @override
-  @JsonKey(name: 'bonus_amount')
   double get bonusAmount;
   @override
-  @JsonKey(name: 'total_pay_with_bonus')
   String get totalPayWithBonus;
   @override
-  @JsonKey(name: 'salary_type')
   String get salaryType;
   @override
-  @JsonKey(name: 'salary_amount')
   String get salaryAmount; // Location validation
   @override
-  @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation;
   @override
-  @JsonKey(name: 'checkin_distance_from_store')
   double? get checkinDistanceFromStore;
   @override
-  @JsonKey(name: 'checkout_distance_from_store')
   double? get checkoutDistanceFromStore; // Problem reporting
   @override
-  @JsonKey(name: 'is_reported')
   bool get isReported;
   @override
-  @JsonKey(name: 'is_problem')
   bool get isProblem;
   @override
-  @JsonKey(name: 'is_problem_solved')
   bool get isProblemSolved;
 
   /// Create a copy of ShiftCard

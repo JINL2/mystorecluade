@@ -1,64 +1,62 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'shift_card.freezed.dart';
-part 'shift_card.g.dart';
 
-/// Shift Card Entity - from user_shift_cards_v3 RPC
-/// Represents a user's shift card with attendance details
+/// Shift Card Entity - from user_shift_cards_v4 RPC
+///
+/// Represents a user's shift card with attendance details.
+/// Pure domain entity - JSON serialization handled by Data layer (ShiftCardModel).
 @freezed
 class ShiftCard with _$ShiftCard {
   const ShiftCard._();
 
   const factory ShiftCard({
     // Basic info
-    @JsonKey(name: 'request_date') required String requestDate,
-    @JsonKey(name: 'shift_request_id') required String shiftRequestId,
-    @JsonKey(name: 'shift_name') String? shiftName, // e.g., "Afternoon", "Morning"
-    @JsonKey(name: 'shift_time') required String shiftTime,
-    @JsonKey(name: 'store_name') required String storeName,
+    required String requestDate,
+    required String shiftRequestId,
+    String? shiftName, // e.g., "Afternoon", "Morning"
+    required String shiftTime,
+    required String storeName,
 
     // Schedule
-    @JsonKey(name: 'scheduled_hours') required double scheduledHours,
-    @JsonKey(name: 'is_approved') required bool isApproved,
+    required double scheduledHours,
+    required bool isApproved,
 
     // Actual times (nullable - might not be checked in/out yet)
-    @JsonKey(name: 'actual_start_time') String? actualStartTime,
-    @JsonKey(name: 'actual_end_time') String? actualEndTime,
-    @JsonKey(name: 'confirm_start_time') String? confirmStartTime,
-    @JsonKey(name: 'confirm_end_time') String? confirmEndTime,
+    String? actualStartTime,
+    String? actualEndTime,
+    String? confirmStartTime,
+    String? confirmEndTime,
 
     // Work hours
-    @JsonKey(name: 'paid_hours') required double paidHours,
+    required double paidHours,
 
     // Late status
-    @JsonKey(name: 'is_late') required bool isLate,
-    @JsonKey(name: 'late_minutes') required num lateMinutes,
-    @JsonKey(name: 'late_deducut_amount') required double lateDeducutAmount,
+    required bool isLate,
+    required num lateMinutes,
+    required double lateDeducutAmount,
 
     // Overtime
-    @JsonKey(name: 'is_extratime') required bool isExtratime,
-    @JsonKey(name: 'overtime_minutes') required num overtimeMinutes,
+    required bool isExtratime,
+    required num overtimeMinutes,
 
     // Pay (some are formatted strings with commas)
-    @JsonKey(name: 'base_pay') required String basePay,
-    @JsonKey(name: 'bonus_amount') required double bonusAmount,
-    @JsonKey(name: 'total_pay_with_bonus') required String totalPayWithBonus,
-    @JsonKey(name: 'salary_type') required String salaryType,
-    @JsonKey(name: 'salary_amount') required String salaryAmount,
+    required String basePay,
+    required double bonusAmount,
+    required String totalPayWithBonus,
+    required String salaryType,
+    required String salaryAmount,
 
     // Location validation
-    @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
-    @JsonKey(name: 'checkin_distance_from_store') double? checkinDistanceFromStore,
-    @JsonKey(name: 'checkout_distance_from_store') double? checkoutDistanceFromStore,
+    bool? isValidCheckinLocation,
+    double? checkinDistanceFromStore,
+    double? checkoutDistanceFromStore,
 
     // Problem reporting
-    @JsonKey(name: 'is_reported') required bool isReported,
-    @JsonKey(name: 'is_problem') required bool isProblem,
-    @JsonKey(name: 'is_problem_solved') required bool isProblemSolved,
+    required bool isReported,
+    required bool isProblem,
+    required bool isProblemSolved,
   }) = _ShiftCard;
-
-  factory ShiftCard.fromJson(Map<String, dynamic> json) =>
-      _$ShiftCardFromJson(json);
 
   /// Check if user has checked in
   bool get isCheckedIn => actualStartTime != null || confirmStartTime != null;
