@@ -2,7 +2,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Report an issue with a shift
 ///
-/// Updates shift_requests table with report details
+/// Uses report_shift_request RPC to update shift_requests table
 class ReportShiftIssue {
   final AttendanceRepository _repository;
 
@@ -10,11 +10,15 @@ class ReportShiftIssue {
 
   Future<bool> call({
     required String shiftRequestId,
-    String? reportReason,
+    required String reportReason,
+    required String time,
+    required String timezone,
   }) {
     return _repository.reportShiftIssue(
       shiftRequestId: shiftRequestId,
       reportReason: reportReason,
+      time: time,
+      timezone: timezone,
     );
   }
 }

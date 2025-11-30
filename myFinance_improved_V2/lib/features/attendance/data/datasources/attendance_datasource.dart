@@ -260,29 +260,37 @@ class AttendanceDatasource {
 
   /// Report an issue with a shift
   ///
-  /// Updates shift_requests table with report details using new v2 columns
-  /// - is_reported_v2: boolean flag for reported status
-  /// - is_problem_solved_v2: boolean flag for problem resolution status
-  /// - report_time_utc: TIMESTAMPTZ with local time + timezone offset
-  /// - report_reason_v2: text field for report reason
+  /// Uses report_shift_request RPC with timezone-aware time handling
+  /// - p_shift_request_id: The shift request ID to report
+  /// - p_report_reason: The reason for reporting
+  /// - p_time: Local time string (e.g., "2024-11-15 10:30:25")
+  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
   Future<bool> reportShiftIssue({
     required String shiftRequestId,
-    String? reportReason,
+    required String reportReason,
+    required String time,
+    required String timezone,
   }) async {
     try {
-      // Get current time with timezone offset for TIMESTAMPTZ column
-      final now = DateTime.now();
-      final reportTimeWithOffset = DateTimeUtils.toLocalWithOffset(now);
+      final response = await _supabase.rpc<dynamic>(
+        'report_shift_request',
+        params: {
+          'p_shift_request_id': shiftRequestId,
+          'p_report_reason': reportReason,
+          'p_time': time,
+          'p_timezone': timezone,
+        },
+      );
 
-      // Update the shift_requests table with report details (v2 columns)
-      await _supabase.from('shift_requests').update({
-        'is_reported_v2': true,
-        'is_problem_solved_v2': false,
-        'report_time_utc': reportTimeWithOffset, // TIMESTAMPTZ with offset
-        'report_reason_v2': reportReason ?? '',
-      }).eq('shift_request_id', shiftRequestId);
+      if (response == null) {
+        return false;
+      }
 
-      return true;
+      final Map<String, dynamic> result = response is Map<String, dynamic>
+          ? response
+          : Map<String, dynamic>.from(response as Map);
+
+      return result['success'] == true;
     } catch (e) {
       return false;
     }
