@@ -7,11 +7,11 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
-import '../widgets/empty_state_screen.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
@@ -26,9 +26,19 @@ class Homepage extends ConsumerStatefulWidget {
 
 class _HomepageState extends ConsumerState<Homepage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isLoggingOut = false;
 
   @override
   Widget build(BuildContext context) {
+    // Show loading view during logout
+    if (_isLoggingOut) {
+      return const Scaffold(
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(
+          message: 'Logging out...',
+        ),
+      );
+    }
     // Watch user companies provider to ensure AppState is initialized
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
@@ -37,18 +47,24 @@ class _HomepageState extends ConsumerState<Homepage> {
       data: (userData) {
         // Check if userData is null or has no companies
         if (userData == null) {
-          return EmptyStateScreen(
-            errorMessage: 'You haven\'t created or joined any company yet.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
+          // Show loading - router will redirect to /onboarding/choose-role
+          return const Scaffold(
+            backgroundColor: TossColors.gray100,
+            body: Center(
+              child: CircularProgressIndicator(color: TossColors.primary),
+            ),
           );
         }
 
         // Check if user has any companies
         final companies = (userData['companies'] as List<dynamic>?) ?? [];
         if (companies.isEmpty) {
-          return EmptyStateScreen(
-            errorMessage: 'You haven\'t created or joined any company yet.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
+          // Show loading - router will redirect to /onboarding/choose-role
+          return const Scaffold(
+            backgroundColor: TossColors.gray100,
+            body: Center(
+              child: CircularProgressIndicator(color: TossColors.primary),
+            ),
           );
         }
 
@@ -61,19 +77,12 @@ class _HomepageState extends ConsumerState<Homepage> {
         ),
       ),
       error: (error, stack) {
-        // Check if it's a "no companies" error
-        final errorMessage = error.toString();
-        if (errorMessage.contains('No user companies data')) {
-          return EmptyStateScreen(
-            errorMessage: 'Unable to load your company information.',
-            onRetry: () => ref.invalidate(userCompaniesProvider),
-          );
-        }
-
-        // For other errors, show generic error screen with retry
-        return EmptyStateScreen(
-          errorMessage: 'Something went wrong: $errorMessage',
-          onRetry: () => ref.invalidate(userCompaniesProvider),
+        // Show loading - router will redirect appropriately
+        return const Scaffold(
+          backgroundColor: TossColors.gray100,
+          body: Center(
+            child: CircularProgressIndicator(color: TossColors.primary),
+          ),
         );
       },
     );
@@ -504,78 +513,48 @@ class _HomepageState extends ConsumerState<Homepage> {
     );
   }
 
-  /// Handle logout with enterprise-grade cleanup
+  /// Handle logout with smooth UX
   ///
-  /// Safe logout flow that prevents widget tree errors:
-  /// 1. Read all providers BEFORE starting logout
+  /// Improved logout flow:
+  /// 1. Show full-screen loading view immediately
   /// 2. Execute auth signOut (triggers GoRouter redirect)
-  /// 3. Let GoRouter handle navigation automatically
-  /// 4. NO manual pop() - let the menu close naturally during navigation
+  /// 3. Clear app state after auth logout
+  /// 4. Let GoRouter handle navigation to login page
   Future<void> _handleLogout() async {
     try {
       // ✅ Read all providers BEFORE logout starts
-      // This prevents "Cannot use ref after dispose" errors
       final authService = ref.read(authServiceProvider);
       final appStateNotifier = ref.read(appStateProvider.notifier);
 
       if (!mounted) return;
 
-      // ✅ Save ScaffoldMessenger reference BEFORE async operations
-      final messenger = ScaffoldMessenger.of(context);
+      // ✅ Show full-screen loading view
+      setState(() {
+        _isLoggingOut = true;
+      });
 
-      // Show loading indicator
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Text('Logging out...'),
-            ],
-          ),
-          backgroundColor: TossColors.primary,
-          duration: Duration(seconds: 2),
-        ),
-      );
-
-      // ✅ Small delay to show the loading message
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // ✅ Clear app state FIRST (before widget disposal)
-      // This must happen before authService.signOut() which triggers navigation
-      appStateNotifier.signOut();
-
-      // ✅ Execute auth logout
+      // ✅ Execute auth logout FIRST
       // This will:
       // 1. Clear session
       // 2. Sign out from Supabase
       // 3. Invalidate providers
       // 4. Trigger GoRouter redirect (auth state changes to null)
-      // 5. PopupMenu will close automatically during navigation
       await authService.signOut();
 
-      // Note: Widget is disposed here due to GoRouter redirect
-      // PopupMenu closes automatically, no manual pop() needed
-      // This prevents "You have popped the last page" error
-
-      // ✅ Use saved messenger reference (safe even after dispose)
-      if (mounted) {
-        messenger.hideCurrentSnackBar();
-      }
+      // ✅ Clear app state AFTER auth logout
+      // Navigation already triggered, this just cleans up memory
+      appStateNotifier.signOut();
 
       // GoRouter will automatically redirect to /auth/login
-      // No manual navigation needed!
+      // Loading view will be visible until navigation completes
 
     } catch (e) {
-      // ✅ Only show error if widget is still mounted
+      // ✅ Reset loading state on error
       if (mounted) {
+        setState(() {
+          _isLoggingOut = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: $e'),
