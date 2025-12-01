@@ -69,6 +69,8 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         ),
       );
 
+      print('✅ ManagerCards: Loaded ${data.approvedCards.length} approved, ${data.pendingCards.length} pending');
+
       final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
@@ -77,6 +79,7 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         isLoading: false,
       );
     } catch (e) {
+      print('❌ ManagerCards: Error loading data: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

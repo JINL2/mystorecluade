@@ -191,7 +191,7 @@ class QRCodeSection extends StatelessWidget {
       );
 
       if (context.mounted) {
-        final resultMap = result as Map<String, dynamic>;
+        final resultMap = Map<String, dynamic>.from(result as Map);
         final success = resultMap['isSuccess'] == true;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

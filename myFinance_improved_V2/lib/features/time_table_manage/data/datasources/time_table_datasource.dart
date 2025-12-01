@@ -46,20 +46,17 @@ class TimeTableDatasource {
 
   /// Fetch monthly shift status for manager from Supabase RPC
   ///
-  /// Uses get_monthly_shift_status_manager_v3 RPC with local time + timezone
-  /// - p_request_time: Local time (e.g., "2024-11-15 10:30:25") - RPC calculates month range from this
-  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
-  /// - Returns 3 months of data starting from the month of p_request_time
+  /// Uses get_monthly_shift_status_manager_v2 RPC with TIMESTAMPTZ and timezone parameters
+  /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   Future<List<dynamic>> getMonthlyShiftStatus({
     required String requestTime,
     required String storeId,
     required String timezone,
   }) async {
     try {
-      print('🔵 [getMonthlyShiftStatus] RPC params: requestTime=$requestTime, storeId=$storeId, timezone=$timezone');
-
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v3',
+        'get_monthly_shift_status_manager_v2',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,
@@ -264,31 +261,33 @@ class TimeTableDatasource {
     }
   }
 
-  /// Insert new schedule (assign employee to shift) using v2 RPC
+  /// Insert new schedule (assign employee to shift) using v3 RPC
   ///
-  /// Uses manager_shift_insert_schedule_v2 RPC with timezone support
-  /// - p_request_time is UTC timestamp (TIMESTAMPTZ)
-  /// - p_timezone is user's local timezone (e.g., "Asia/Seoul")
+  /// Uses manager_shift_insert_schedule_v3 RPC
+  /// - p_request_date is DATE type (yyyy-MM-dd format)
+  /// - No timezone parameter needed - RPC handles UTC conversion internally
   /// - Handles duplicate detection and overnight shifts
-  /// - Calculates start_time_utc and end_time_utc automatically
+  /// - Calculates start_time_utc and end_time_utc from store_shifts table
   Future<Map<String, dynamic>> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String requestDate,
     required String approvedBy,
-    required String timezone,
   }) async {
     try {
+      print('🔄 insertSchedule: Calling manager_shift_insert_schedule_v3');
+      print('   userId: $userId, shiftId: $shiftId, storeId: $storeId');
+      print('   requestDate: $requestDate, approvedBy: $approvedBy');
+
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_insert_schedule_v2',
+        'manager_shift_insert_schedule_v3',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
           'p_store_id': storeId,
-          'p_request_time': requestTime,
+          'p_request_date': requestDate,
           'p_approved_by': approvedBy,
-          'p_timezone': timezone,
         },
       );
 

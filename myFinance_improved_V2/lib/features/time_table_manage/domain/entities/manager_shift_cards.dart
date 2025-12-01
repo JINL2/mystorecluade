@@ -40,9 +40,9 @@ class ManagerShiftCards {
     return cards.where((card) => card.isPending).toList();
   }
 
-  /// Get cards with problems
+  /// Get cards with problems (unsolved problems only)
   List<ShiftCard> get problemCards {
-    return cards.where((card) => card.hasProblem).toList();
+    return cards.where((card) => card.hasProblem && !card.isProblemSolved).toList();
   }
 
   /// Get cards with bonus
