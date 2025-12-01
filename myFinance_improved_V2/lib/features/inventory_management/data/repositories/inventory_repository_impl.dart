@@ -101,7 +101,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     required String companyId,
     required String storeId,
     required String name,
-    required String sku,
+    String? sku,
     String? barcode,
     String? categoryId,
     String? brandId,
@@ -109,8 +109,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
-    String? imageUrl,
-    String? thumbnailUrl,
     List<String>? imageUrls,
   }) async {
     try {
@@ -126,8 +124,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
         costPrice: costPrice,
         sellingPrice: sellingPrice,
         initialQuantity: initialQuantity,
-        imageUrl: imageUrl,
-        thumbnailUrl: thumbnailUrl,
         imageUrls: imageUrls,
       );
       return model.toEntity();
@@ -145,9 +141,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     required String productId,
     required String companyId,
     required String storeId,
-    required String sku,
-    required String name,
-    String? barcode,
+    String? sku,
+    String? name,
     String? categoryId,
     String? brandId,
     String? unit,
@@ -155,10 +150,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     double? costPrice,
     double? salePrice,
     int? onHand,
-    int? minStock,
-    int? maxStock,
-    bool? isActive,
-    String? description,
+    String? flowType,
+    List<String>? imageUrls,
   }) async {
     try {
       final model = await _remoteDataSource.updateProduct(
@@ -167,7 +160,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
         storeId: storeId,
         sku: sku,
         name: name,
-        barcode: barcode,
         categoryId: categoryId,
         brandId: brandId,
         unit: unit,
@@ -175,10 +167,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
         costPrice: costPrice,
         salePrice: salePrice,
         onHand: onHand,
-        minStock: minStock,
-        maxStock: maxStock,
-        isActive: isActive,
-        description: description,
+        flowType: flowType,
+        imageUrls: imageUrls,
       );
       return model.toEntity();
     } catch (e) {

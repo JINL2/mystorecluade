@@ -3,6 +3,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
 import '../models/inventory_metadata_model.dart';
 import '../models/product_model.dart';
@@ -71,17 +72,18 @@ class InventoryRemoteDataSource {
     String? stockStatus,
   }) async {
     try {
-      // Build params - only use parameters supported by the RPC function
+      // Build params - use get_inventory_page_v2 with timezone support
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': page,
         'p_limit': limit,
         'p_search': search ?? '',
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('get_inventory_page', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v2', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -136,7 +138,7 @@ class InventoryRemoteDataSource {
     required String companyId,
     required String storeId,
     required String name,
-    required String sku,
+    String? sku,
     String? barcode,
     String? categoryId,
     String? brandId,
@@ -144,8 +146,6 @@ class InventoryRemoteDataSource {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
-    String? imageUrl,
-    String? thumbnailUrl,
     List<String>? imageUrls,
   }) async {
     try {
@@ -161,13 +161,13 @@ class InventoryRemoteDataSource {
         'p_cost_price': costPrice,
         'p_selling_price': sellingPrice,
         'p_initial_quantity': initialQuantity,
-        'p_image_url': imageUrl,
-        'p_thumbnail_url': thumbnailUrl,
         'p_image_urls': imageUrls,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_product', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_product_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -175,7 +175,7 @@ class InventoryRemoteDataSource {
       } else {
         final error = response['error'] as Map<String, dynamic>?;
         if (error?['code'] == 'DUPLICATE_SKU') {
-          throw DuplicateSKUException(sku: sku);
+          throw DuplicateSKUException(sku: sku ?? '');
         }
         throw InventoryRepositoryException(
           message: error?['message']?.toString() ?? 'Failed to create product',
@@ -202,9 +202,8 @@ class InventoryRemoteDataSource {
     required String productId,
     required String companyId,
     required String storeId,
-    required String sku,
-    required String name,
-    String? barcode,
+    String? sku,
+    String? name,
     String? categoryId,
     String? brandId,
     String? unit,
@@ -212,10 +211,8 @@ class InventoryRemoteDataSource {
     double? costPrice,
     double? salePrice,
     int? onHand,
-    int? minStock,
-    int? maxStock,
-    bool? isActive,
-    String? description,
+    String? flowType,
+    List<String>? imageUrls,
   }) async {
     try {
       final params = {
@@ -226,15 +223,19 @@ class InventoryRemoteDataSource {
         'p_product_name': name,
         'p_category_id': categoryId,
         'p_brand_id': brandId,
-        'p_unit': unit ?? 'piece',
-        'p_product_type': productType ?? 'commodity',
+        'p_unit': unit,
+        'p_product_type': productType,
         'p_cost_price': costPrice,
         'p_selling_price': salePrice,
         'p_new_quantity': onHand,
+        'p_flow_type': flowType,
+        'p_image_urls': imageUrls,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_edit_product', params: params)
+          .rpc<Map<String, dynamic>>('inventory_edit_product_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -270,19 +271,16 @@ class InventoryRemoteDataSource {
       final params = {
         'p_product_ids': productIds,
         'p_company_id': companyId,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
-      final response = await _client.rpc(
-        'inventory_delete_product',
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'inventory_delete_product_v2',
         params: params,
-      );
+      ).single();
 
-      if (response is Map && response['success'] == true) {
-        return true;
-      } else if (response is bool) {
-        return response;
-      }
-      return true; // Assume success if no error thrown
+      return response['success'] == true;
     } on PostgrestException catch (e) {
       throw InventoryConnectionException(
         message: 'Database error: ${e.message}',
@@ -308,10 +306,12 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_category_name': categoryName,
         'p_parent_category_id': parentCategoryId,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_category', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_category_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -347,10 +347,12 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_brand_name': brandName,
         'p_brand_code': brandCode,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_brand', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_brand_v2', params: params)
           .single();
 
       if (response['success'] == true) {
