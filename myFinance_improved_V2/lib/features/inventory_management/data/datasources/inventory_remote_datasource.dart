@@ -2,8 +2,11 @@
 // Handles all RPC calls to Supabase for inventory management
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
+import '../../domain/value_objects/image_file.dart';
 import '../models/inventory_metadata_model.dart';
 import '../models/product_model.dart';
 
@@ -71,17 +74,18 @@ class InventoryRemoteDataSource {
     String? stockStatus,
   }) async {
     try {
-      // Build params - only use parameters supported by the RPC function
+      // Build params - use get_inventory_page_v2 with timezone support
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': page,
         'p_limit': limit,
         'p_search': search ?? '',
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('get_inventory_page', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v2', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -131,46 +135,12 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Get single product details
-  Future<ProductModel?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  }) async {
-    try {
-      final response = await _client.rpc('get_product_details', params: {
-        'p_product_id': productId,
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-      },).single();
-
-      if (response['success'] == true) {
-        return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
-      }
-      return null;
-    } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') {
-        throw ProductNotFoundException(productId: productId);
-      }
-      throw InventoryConnectionException(
-        message: 'Database error: ${e.message}',
-        details: {'code': e.code, 'details': e.details},
-      );
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to fetch product: $e',
-        details: e,
-      );
-    }
-  }
-
   /// Create new product
   Future<ProductModel> createProduct({
     required String companyId,
     required String storeId,
     required String name,
-    required String sku,
+    String? sku,
     String? barcode,
     String? categoryId,
     String? brandId,
@@ -178,8 +148,6 @@ class InventoryRemoteDataSource {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
-    String? imageUrl,
-    String? thumbnailUrl,
     List<String>? imageUrls,
   }) async {
     try {
@@ -195,13 +163,13 @@ class InventoryRemoteDataSource {
         'p_cost_price': costPrice,
         'p_selling_price': sellingPrice,
         'p_initial_quantity': initialQuantity,
-        'p_image_url': imageUrl,
-        'p_thumbnail_url': thumbnailUrl,
         'p_image_urls': imageUrls,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_product', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_product_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -209,7 +177,7 @@ class InventoryRemoteDataSource {
       } else {
         final error = response['error'] as Map<String, dynamic>?;
         if (error?['code'] == 'DUPLICATE_SKU') {
-          throw DuplicateSKUException(sku: sku);
+          throw DuplicateSKUException(sku: sku ?? '');
         }
         throw InventoryRepositoryException(
           message: error?['message']?.toString() ?? 'Failed to create product',
@@ -231,14 +199,47 @@ class InventoryRemoteDataSource {
     }
   }
 
+  /// Check if product edit is valid (validates before actual update)
+  Future<EditValidationResult> checkEditProduct({
+    required String productId,
+    required String companyId,
+    String? sku,
+    String? productName,
+  }) async {
+    try {
+      final params = {
+        'p_product_id': productId,
+        'p_company_id': companyId,
+        'p_sku': sku,
+        'p_product_name': productName,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_check_edit', params: params)
+          .single();
+
+      return EditValidationResult.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to validate product edit: $e',
+        details: e,
+      );
+    }
+  }
+
   /// Update existing product
   Future<ProductModel> updateProduct({
     required String productId,
     required String companyId,
     required String storeId,
-    required String sku,
-    required String name,
-    String? barcode,
+    String? sku,
+    String? name,
     String? categoryId,
     String? brandId,
     String? unit,
@@ -246,10 +247,8 @@ class InventoryRemoteDataSource {
     double? costPrice,
     double? salePrice,
     int? onHand,
-    int? minStock,
-    int? maxStock,
-    bool? isActive,
-    String? description,
+    String? flowType,
+    List<String>? imageUrls,
   }) async {
     try {
       final params = {
@@ -260,15 +259,19 @@ class InventoryRemoteDataSource {
         'p_product_name': name,
         'p_category_id': categoryId,
         'p_brand_id': brandId,
-        'p_unit': unit ?? 'piece',
-        'p_product_type': productType ?? 'commodity',
+        'p_unit': unit,
+        'p_product_type': productType,
         'p_cost_price': costPrice,
         'p_selling_price': salePrice,
         'p_new_quantity': onHand,
+        'p_flow_type': flowType,
+        'p_image_urls': imageUrls,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_edit_product', params: params)
+          .rpc<Map<String, dynamic>>('inventory_edit_product_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -304,19 +307,16 @@ class InventoryRemoteDataSource {
       final params = {
         'p_product_ids': productIds,
         'p_company_id': companyId,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
-      final response = await _client.rpc(
-        'inventory_delete_product',
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'inventory_delete_product_v2',
         params: params,
-      );
+      ).single();
 
-      if (response is Map && response['success'] == true) {
-        return true;
-      } else if (response is bool) {
-        return response;
-      }
-      return true; // Assume success if no error thrown
+      return response['success'] == true;
     } on PostgrestException catch (e) {
       throw InventoryConnectionException(
         message: 'Database error: ${e.message}',
@@ -342,10 +342,12 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_category_name': categoryName,
         'p_parent_category_id': parentCategoryId,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_category', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_category_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -381,10 +383,12 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_brand_name': brandName,
         'p_brand_code': brandCode,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc('inventory_create_brand', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_brand_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -409,35 +413,87 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Update product stock
-  Future<bool> updateProductStock({
-    required String productId,
+  /// Upload product images to Supabase Storage
+  /// Returns list of public URLs for uploaded images
+  Future<List<String>> uploadProductImages({
     required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
+    required List<ImageFile> images,
   }) async {
-    try {
-      final response = await _client.rpc('update_product_stock', params: {
-        'p_product_id': productId,
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-        'p_new_stock': newStock,
-        'p_reason': reason ?? 'Manual adjustment',
-      },).single();
+    if (images.isEmpty) return [];
 
-      return response['success'] == true;
-    } on PostgrestException catch (e) {
-      throw InventoryConnectionException(
-        message: 'Database error: ${e.message}',
-        details: {'code': e.code, 'details': e.details},
+    final List<String> uploadedUrls = [];
+    const uuid = Uuid();
+    const bucketName = 'inventory_image';
+
+    try {
+      for (final image in images) {
+        // Generate unique filename with timestamp and UUID
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final uniqueId = uuid.v4().substring(0, 8);
+        final extension = image.path.split('.').last.toLowerCase();
+        final fileName = '${timestamp}_$uniqueId.$extension';
+
+        // Path: inventory_image/{company_id}/{filename}
+        final storagePath = '$companyId/$fileName';
+
+        // Read file bytes
+        final bytes = await image.readAsBytes();
+
+        // Determine correct MIME type (jpg -> jpeg for standard compliance)
+        final mimeType = _getMimeType(extension);
+
+        // Upload to Supabase Storage
+        await _client.storage.from(bucketName).uploadBinary(
+              storagePath,
+              bytes,
+              fileOptions: FileOptions(
+                contentType: mimeType,
+                upsert: false,
+              ),
+            );
+
+        // Get public URL
+        final publicUrl =
+            _client.storage.from(bucketName).getPublicUrl(storagePath);
+
+        uploadedUrls.add(publicUrl);
+      }
+
+      return uploadedUrls;
+    } on StorageException catch (e) {
+      throw InventoryRepositoryException(
+        message: 'Failed to upload images: ${e.message}',
+        code: e.statusCode,
+        details: e,
       );
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
-        message: 'Failed to update stock: $e',
+        message: 'Failed to upload images: $e',
         details: e,
       );
+    }
+  }
+
+  /// Get correct MIME type for image extension
+  /// Handles jpg -> jpeg conversion for standard compliance
+  String _getMimeType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
+      default:
+        return 'image/$extension';
     }
   }
 }
@@ -516,6 +572,76 @@ class CurrencyData {
       code: json['code'] as String?,
       name: json['name'] as String?,
       symbol: json['symbol'] as String?,
+    );
+  }
+}
+
+/// Edit Validation Result from inventory_check_edit RPC
+class EditValidationResult {
+  final bool success;
+  final String? message;
+  final EditValidationError? error;
+  final EditValidations validations;
+
+  EditValidationResult({
+    required this.success,
+    this.message,
+    this.error,
+    required this.validations,
+  });
+
+  factory EditValidationResult.fromJson(Map<String, dynamic> json) {
+    return EditValidationResult(
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String?,
+      error: json['error'] != null
+          ? EditValidationError.fromJson(json['error'] as Map<String, dynamic>)
+          : null,
+      validations: EditValidations.fromJson(
+        json['validations'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+}
+
+/// Error details from validation
+class EditValidationError {
+  final String code;
+  final String message;
+  final String? details;
+
+  EditValidationError({
+    required this.code,
+    required this.message,
+    this.details,
+  });
+
+  factory EditValidationError.fromJson(Map<String, dynamic> json) {
+    return EditValidationError(
+      code: json['code'] as String? ?? 'UNKNOWN_ERROR',
+      message: json['message'] as String? ?? 'Unknown error occurred',
+      details: json['details'] as String?,
+    );
+  }
+}
+
+/// Validation flags from check
+class EditValidations {
+  final bool productExists;
+  final bool nameAvailable;
+  final bool skuAvailable;
+
+  EditValidations({
+    required this.productExists,
+    required this.nameAvailable,
+    required this.skuAvailable,
+  });
+
+  factory EditValidations.fromJson(Map<String, dynamic> json) {
+    return EditValidations(
+      productExists: json['product_exists'] as bool? ?? false,
+      nameAvailable: json['name_available'] as bool? ?? true,
+      skuAvailable: json['sku_available'] as bool? ?? true,
     );
   }
 }

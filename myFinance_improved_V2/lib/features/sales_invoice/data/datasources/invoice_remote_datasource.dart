@@ -20,14 +20,15 @@ class InvoiceRemoteDataSource {
     try {
       final dateRange = filter.period.getDateRange();
 
-      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page', params: {
+      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page_v2', params: {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': filter.page,
         'p_limit': filter.limit,
         'p_search': filter.searchQuery,
-        'p_start_date': dateRange.startDate != null ? DateTimeUtils.toUtc(dateRange.startDate!) : null,
-        'p_end_date': dateRange.endDate != null ? DateTimeUtils.toUtc(dateRange.endDate!) : null,
+        'p_start_date': dateRange.startDate?.toIso8601String().split('T').first,
+        'p_end_date': dateRange.endDate?.toIso8601String().split('T').first,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       },);
 
       return InvoicePageResponseModel.fromJson(response);

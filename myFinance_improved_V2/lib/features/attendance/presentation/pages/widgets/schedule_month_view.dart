@@ -10,6 +10,7 @@ class ScheduleMonthView extends StatelessWidget {
   final DateTime selectedDate;
   final int monthOffset;
   final Map<DateTime, bool> shiftsInMonth;
+  final Set<DateTime> userApprovedDates; // Dates where user has approved shifts (blue border)
   final List<Widget> dayShifts;
   final ValueChanged<int> onNavigate;
   final ValueChanged<DateTime> onDateSelected;
@@ -20,6 +21,7 @@ class ScheduleMonthView extends StatelessWidget {
     required this.selectedDate,
     required this.monthOffset,
     required this.shiftsInMonth,
+    required this.userApprovedDates,
     required this.dayShifts,
     required this.onNavigate,
     required this.onDateSelected,
@@ -49,6 +51,7 @@ class ScheduleMonthView extends StatelessWidget {
           selectedDate: selectedDate,
           currentMonth: currentMonth,
           shiftsInMonth: shiftsInMonth,
+          userApprovedDates: userApprovedDates,
           onDateSelected: onDateSelected,
         ),
         const SizedBox(height: 12),

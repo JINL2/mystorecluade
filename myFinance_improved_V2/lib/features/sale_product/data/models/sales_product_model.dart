@@ -20,6 +20,41 @@ class SalesProductModel extends SalesProduct {
     required super.stockSettings,
   });
 
+  /// Parse images from various RPC response formats
+  static ProductImagesModel _parseImages(Map<String, dynamic> json) {
+    // Format 1: 'images' object with thumbnail, main_image, additional_images
+    if (json['images'] is Map) {
+      return ProductImagesModel.fromJson(json['images'] as Map<String, dynamic>);
+    }
+
+    // Format 2: 'image_urls' array from get_inventory_page_v2
+    if (json['image_urls'] is List) {
+      final urls = (json['image_urls'] as List).map((e) => e.toString()).toList();
+      return ProductImagesModel(
+        thumbnail: urls.isNotEmpty ? urls.first : null,
+        mainImage: urls.isNotEmpty ? urls.first : null,
+        additionalImages: urls.length > 1 ? urls.sublist(1) : [],
+      );
+    }
+
+    // Format 3: Direct 'image_url' or 'thumbnail' field
+    final imageUrl = json['image_url']?.toString() ?? json['thumbnail']?.toString();
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return ProductImagesModel(
+        thumbnail: imageUrl,
+        mainImage: imageUrl,
+        additionalImages: [],
+      );
+    }
+
+    // No images found
+    return const ProductImagesModel(
+      thumbnail: null,
+      mainImage: null,
+      additionalImages: [],
+    );
+  }
+
   factory SalesProductModel.fromJson(Map<String, dynamic> json) {
     // Handle both 'pricing' and 'price' fields from RPC response
     Map<String, dynamic> pricingData;
@@ -47,9 +82,7 @@ class SalesProductModel extends SalesProduct {
         json['total_stock_summary'] as Map<String, dynamic>? ??
         (json['stock'] is Map ? json['stock'] as Map<String, dynamic> : {}),
       ),
-      images: ProductImagesModel.fromJson(
-        json['images'] as Map<String, dynamic>? ?? {},
-      ),
+      images: _parseImages(json),
       status: ProductStatusModel.fromJson(
         json['status'] as Map<String, dynamic>? ?? {},
       ),

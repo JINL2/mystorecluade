@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_week_shift_card.dart';
+import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
+import '../../domain/entities/shift_metadata.dart';
 import '../providers/attendance_providers.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
@@ -42,6 +46,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
   // GlobalKey to measure Today's shift card height
   final GlobalKey _todayShiftCardKey = GlobalKey();
+
+  // Month view data state
+  List<MonthlyShiftStatus>? _monthlyShiftStatus;
+  List<ShiftMetadata>? _shiftMetadata;
+  bool _isLoadingMonthData = false;
+  String? _loadedMonthKey; // Track which month data is loaded for
 
   // Computed properties
   DateTime get _currentWeek {
@@ -84,6 +94,65 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       setState(() => _currentMonthOffset = 0);
     } else {
       setState(() => _currentMonthOffset += offset);
+    }
+    // Fetch new month data when navigating
+    _fetchMonthViewData();
+  }
+
+  /// Fetch shift metadata and monthly shift status for Month view calendar indicators
+  Future<void> _fetchMonthViewData() async {
+    final yearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+
+    // Skip if already loading or already loaded for this month
+    if (_isLoadingMonthData || _loadedMonthKey == yearMonth) {
+      return;
+    }
+
+    final appState = ref.read(appStateProvider);
+    final storeId = appState.storeChoosen;
+    final companyId = appState.companyChoosen;
+
+    if (storeId.isEmpty || companyId.isEmpty) return;
+
+    setState(() {
+      _isLoadingMonthData = true;
+    });
+
+    try {
+      // Fetch shift metadata
+      final getShiftMetadata = ref.read(getShiftMetadataProvider);
+      final timezone = DateTimeUtils.getLocalTimezone();
+      final metadata = await getShiftMetadata(
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      // Fetch monthly shift status
+      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
+      final targetDate = DateTime(_currentMonth.year, _currentMonth.month, 15, 12, 0, 0);
+      final requestTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDate);
+
+      final status = await getMonthlyShiftStatus(
+        storeId: storeId,
+        companyId: companyId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      if (mounted) {
+        setState(() {
+          _shiftMetadata = metadata;
+          _monthlyShiftStatus = status;
+          _loadedMonthKey = yearMonth;
+          _isLoadingMonthData = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingMonthData = false;
+        });
+      }
     }
   }
 
@@ -351,6 +420,14 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
     final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
 
+    // Trigger fetch of month view data if not already loaded
+    if (_loadedMonthKey != yearMonth && !_isLoadingMonthData) {
+      // Use addPostFrameCallback to avoid calling setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchMonthViewData();
+      });
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -398,6 +475,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                 selectedDate: _selectedDate,
                 monthOffset: _currentMonthOffset,
                 shiftsInMonth: _buildShiftsInMonth(shiftCards),
+                userApprovedDates: _buildUserApprovedDates(),
                 dayShifts: _buildDayShifts(_selectedDate, shiftCards),
                 onNavigate: _navigateMonth,
                 onDateSelected: _handleDateSelected,
@@ -480,22 +558,120 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     return (shifts: shifts, closestUpcomingIndex: closestUpcomingIndex);
   }
 
-  // Build shifts map for calendar display
+  /// Build shifts map for calendar display
+  /// Returns Map<DateTime, bool> where:
+  /// - true = has available slots (blue dot)
+  /// - false = all shifts full (gray dot)
+  /// - no entry = no shifts defined for that date (no dot)
   Map<DateTime, bool> _buildShiftsInMonth(List<ShiftCard> shiftCards) {
-    final shifts = <DateTime, bool>{};
+    // If no shift metadata, we can't show availability dots
+    if (_shiftMetadata == null || _shiftMetadata!.isEmpty) {
+      return {};
+    }
 
-    for (final card in shiftCards) {
-      final cardDate = _parseRequestDate(card.requestDate);
-      if (cardDate == null) continue;
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    final Map<DateTime, bool> shifts = {};
 
-      // Only include shifts in the current month
-      if (cardDate.year == _currentMonth.year && cardDate.month == _currentMonth.month) {
-        final dateOnly = DateTime(cardDate.year, cardDate.month, cardDate.day);
-        shifts[dateOnly] = true;
+    // Build a map of date -> MonthlyShiftStatus for quick lookup
+    final Map<String, MonthlyShiftStatus> statusByDate = {};
+    if (_monthlyShiftStatus != null) {
+      for (final dayStatus in _monthlyShiftStatus!) {
+        statusByDate[dayStatus.requestDate] = dayStatus;
+      }
+    }
+
+    // Get active shifts from metadata
+    final activeShifts = _shiftMetadata!.where((s) => s.isActive).toList();
+    if (activeShifts.isEmpty) return {};
+
+    // Get the number of days in the current month
+    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+
+    // Iterate through all dates in the current month
+    for (int day = 1; day <= daysInMonth; day++) {
+      final date = DateTime(_currentMonth.year, _currentMonth.month, day);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+
+      // Only show dots for dates from today onwards
+      if (normalizedDate.isBefore(todayNormalized)) {
+        continue;
+      }
+
+      // Format date to match monthlyShiftStatus format (yyyy-MM-dd)
+      final dateString =
+          '${normalizedDate.year}-${normalizedDate.month.toString().padLeft(2, '0')}-${normalizedDate.day.toString().padLeft(2, '0')}';
+
+      // Check if we have status data for this date
+      final dayStatus = statusByDate[dateString];
+
+      // Total active shifts from metadata
+      final totalShiftsFromMetadata = activeShifts.length;
+
+      if (dayStatus != null && dayStatus.shifts.isNotEmpty) {
+        // We have RPC data - but it may not include all shifts
+        // RPC only returns shifts that have at least one applicant
+        final shiftsInRpc = dayStatus.shifts.length;
+
+        // Shifts not in RPC response = no applicants = available
+        final shiftsNotInRpc = totalShiftsFromMetadata - shiftsInRpc;
+
+        // If there are shifts not in RPC, they are available
+        // If any shift in RPC has available slots, it's available
+        // Only gray if ALL shifts are full
+        final hasAvailableSlots = shiftsNotInRpc > 0 ||
+            dayStatus.shifts.any((s) => s.hasAvailableSlots);
+
+        shifts[normalizedDate] = hasAvailableSlots;
+      } else {
+        // No status data - shifts exist (from shiftMetadata) but no one has applied yet
+        // This means all slots are available (blue dot)
+        shifts[normalizedDate] = true;
       }
     }
 
     return shifts;
+  }
+
+  /// Build user approved dates set for calendar display (blue border)
+  /// Returns Set<DateTime> of dates where current user has approved shifts
+  Set<DateTime> _buildUserApprovedDates() {
+    if (_monthlyShiftStatus == null || _monthlyShiftStatus!.isEmpty) {
+      return {};
+    }
+
+    final appState = ref.read(appStateProvider);
+    final currentUserId = appState.userId;
+
+    if (currentUserId.isEmpty) return {};
+
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    final Set<DateTime> userApprovedDates = {};
+
+    for (final dayStatus in _monthlyShiftStatus!) {
+      try {
+        final date = DateTime.parse(dayStatus.requestDate);
+        final normalizedDate = DateTime(date.year, date.month, date.day);
+
+        // Only for dates from today onwards in the current month
+        if (normalizedDate.isBefore(todayNormalized)) continue;
+        if (normalizedDate.year != _currentMonth.year ||
+            normalizedDate.month != _currentMonth.month) continue;
+
+        // Check if current user has any approved shift on this date
+        for (final shift in dayStatus.shifts) {
+          if (shift.approvedEmployees.any((emp) => emp.userId == currentUserId)) {
+            userApprovedDates.add(normalizedDate);
+            break;
+          }
+        }
+      } catch (_) {
+        // Error parsing date
+      }
+    }
+
+    return userApprovedDates;
   }
 
   // Build day shifts for selected date

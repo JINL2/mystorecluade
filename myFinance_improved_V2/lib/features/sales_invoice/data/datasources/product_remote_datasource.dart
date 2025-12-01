@@ -105,7 +105,7 @@ class ProductRemoteDataSource {
   }) async {
     try {
       final response = await _client.rpc<Map<String, dynamic>?>(
-        'get_exchange_rates',
+        'get_exchange_rate_v2',
         params: {
           'p_company_id': companyId,
         },
@@ -138,20 +138,34 @@ class ProductRemoteDataSource {
     double? discountAmount,
     double? taxRate,
     String? notes,
+    String? cashLocationId,
+    String? customerId,
   }) async {
     try {
+      // Get user's local timezone (IANA format)
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      // Format local time as string for p_time parameter
+      final localTime = DateTime.now();
+      final localTimeStr = '${localTime.year}-${localTime.month.toString().padLeft(2, '0')}-${localTime.day.toString().padLeft(2, '0')} '
+          '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}:${localTime.second.toString().padLeft(2, '0')}';
+
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_create_invoice',
+        'inventory_create_invoice_v2',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
-          'p_user_id': userId,
-          'p_sale_date': DateTimeUtils.toUtc(saleDate),
+          'p_created_by': userId,
+          'p_sale_date': saleDate.toIso8601String(),
           'p_items': items.map((item) => item.toJson()).toList(),
           'p_payment_method': paymentMethod,
+          'p_time': localTimeStr,
+          'p_timezone': timezone,
           if (discountAmount != null) 'p_discount_amount': discountAmount,
           if (taxRate != null) 'p_tax_rate': taxRate,
           if (notes != null) 'p_notes': notes,
+          if (cashLocationId != null) 'p_cash_location_id': cashLocationId,
+          if (customerId != null) 'p_customer_id': customerId,
         },
       );
 

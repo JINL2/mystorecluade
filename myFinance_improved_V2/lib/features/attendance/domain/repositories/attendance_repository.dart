@@ -52,13 +52,19 @@ abstract class AttendanceRepository {
 
   /// Report an issue with a shift
   ///
+  /// Matches RPC: report_shift_request
+  ///
   /// [shiftRequestId] - Shift request ID
   /// [reportReason] - Reason for reporting
+  /// [time] - Local time string (e.g., "2024-11-15 10:30:25")
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
   /// Returns true if successful
   Future<bool> reportShiftIssue({
     required String shiftRequestId,
-    String? reportReason,
+    required String reportReason,
+    required String time,
+    required String timezone,
   });
 
   /// Get shift metadata for a store

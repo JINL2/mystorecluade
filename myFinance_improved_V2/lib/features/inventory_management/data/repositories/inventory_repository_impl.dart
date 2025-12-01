@@ -5,6 +5,7 @@ import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import '../../domain/value_objects/image_file.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../../domain/value_objects/sort_option.dart';
@@ -97,33 +98,11 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Product?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  }) async {
-    try {
-      final model = await _remoteDataSource.getProduct(
-        productId: productId,
-        companyId: companyId,
-        storeId: storeId,
-      );
-      return model?.toEntity();
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to get product: $e',
-        details: e,
-      );
-    }
-  }
-
-  @override
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
     required String name,
-    required String sku,
+    String? sku,
     String? barcode,
     String? categoryId,
     String? brandId,
@@ -131,8 +110,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
-    String? imageUrl,
-    String? thumbnailUrl,
     List<String>? imageUrls,
   }) async {
     try {
@@ -148,8 +125,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
         costPrice: costPrice,
         sellingPrice: sellingPrice,
         initialQuantity: initialQuantity,
-        imageUrl: imageUrl,
-        thumbnailUrl: thumbnailUrl,
         imageUrls: imageUrls,
       );
       return model.toEntity();
@@ -163,13 +138,44 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
+  Future<EditCheckResult> checkEditProduct({
+    required String productId,
+    required String companyId,
+    String? sku,
+    String? productName,
+  }) async {
+    try {
+      final result = await _remoteDataSource.checkEditProduct(
+        productId: productId,
+        companyId: companyId,
+        sku: sku,
+        productName: productName,
+      );
+
+      return EditCheckResult(
+        success: result.success,
+        errorCode: result.error?.code,
+        errorMessage: result.error?.message,
+        productExists: result.validations.productExists,
+        nameAvailable: result.validations.nameAvailable,
+        skuAvailable: result.validations.skuAvailable,
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to validate product edit: $e',
+        details: e,
+      );
+    }
+  }
+
+  @override
   Future<Product?> updateProduct({
     required String productId,
     required String companyId,
     required String storeId,
-    required String sku,
-    required String name,
-    String? barcode,
+    String? sku,
+    String? name,
     String? categoryId,
     String? brandId,
     String? unit,
@@ -177,10 +183,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     double? costPrice,
     double? salePrice,
     int? onHand,
-    int? minStock,
-    int? maxStock,
-    bool? isActive,
-    String? description,
+    String? flowType,
+    List<String>? imageUrls,
   }) async {
     try {
       final model = await _remoteDataSource.updateProduct(
@@ -189,7 +193,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
         storeId: storeId,
         sku: sku,
         name: name,
-        barcode: barcode,
         categoryId: categoryId,
         brandId: brandId,
         unit: unit,
@@ -197,10 +200,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
         costPrice: costPrice,
         salePrice: salePrice,
         onHand: onHand,
-        minStock: minStock,
-        maxStock: maxStock,
-        isActive: isActive,
-        description: description,
+        flowType: flowType,
+        imageUrls: imageUrls,
       );
       return model.toEntity();
     } catch (e) {
@@ -287,25 +288,19 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<bool> updateProductStock({
-    required String productId,
+  Future<List<String>> uploadProductImages({
     required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
+    required List<ImageFile> images,
   }) async {
     try {
-      return await _remoteDataSource.updateProductStock(
-        productId: productId,
+      return await _remoteDataSource.uploadProductImages(
         companyId: companyId,
-        storeId: storeId,
-        newStock: newStock,
-        reason: reason,
+        images: images,
       );
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
-        message: 'Failed to update product stock: $e',
+        message: 'Failed to upload images: $e',
         details: e,
       );
     }

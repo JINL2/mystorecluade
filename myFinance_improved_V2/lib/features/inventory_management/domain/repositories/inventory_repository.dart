@@ -3,6 +3,7 @@
 
 import '../entities/inventory_metadata.dart';
 import '../entities/product.dart';
+import '../value_objects/image_file.dart';
 import '../value_objects/pagination_params.dart';
 import '../value_objects/product_filter.dart';
 import '../value_objects/sort_option.dart';
@@ -23,19 +24,12 @@ abstract class InventoryRepository {
     SortOption? sortOption,
   });
 
-  /// Get single product details
-  Future<Product?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  });
-
   /// Create new product
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
     required String name,
-    required String sku,
+    String? sku,
     String? barcode,
     String? categoryId,
     String? brandId,
@@ -43,9 +37,15 @@ abstract class InventoryRepository {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
-    String? imageUrl,
-    String? thumbnailUrl,
     List<String>? imageUrls,
+  });
+
+  /// Check if product edit is valid before updating
+  Future<EditCheckResult> checkEditProduct({
+    required String productId,
+    required String companyId,
+    String? sku,
+    String? productName,
   });
 
   /// Update existing product
@@ -53,9 +53,8 @@ abstract class InventoryRepository {
     required String productId,
     required String companyId,
     required String storeId,
-    required String sku,
-    required String name,
-    String? barcode,
+    String? sku,
+    String? name,
     String? categoryId,
     String? brandId,
     String? unit,
@@ -63,10 +62,8 @@ abstract class InventoryRepository {
     double? costPrice,
     double? salePrice,
     int? onHand,
-    int? minStock,
-    int? maxStock,
-    bool? isActive,
-    String? description,
+    String? flowType,
+    List<String>? imageUrls,
   });
 
   /// Delete products
@@ -89,13 +86,11 @@ abstract class InventoryRepository {
     String? brandCode,
   });
 
-  /// Update product stock
-  Future<bool> updateProductStock({
-    required String productId,
+  /// Upload product images to storage
+  /// Returns list of public URLs for uploaded images
+  Future<List<String>> uploadProductImages({
     required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
+    required List<ImageFile> images,
   });
 }
 
@@ -109,5 +104,24 @@ class ProductPageResult {
     required this.products,
     required this.pagination,
     required this.currency,
+  });
+}
+
+/// Edit Check Result - validation result before product update
+class EditCheckResult {
+  final bool success;
+  final String? errorCode;
+  final String? errorMessage;
+  final bool productExists;
+  final bool nameAvailable;
+  final bool skuAvailable;
+
+  const EditCheckResult({
+    required this.success,
+    this.errorCode,
+    this.errorMessage,
+    required this.productExists,
+    required this.nameAvailable,
+    required this.skuAvailable,
   });
 }

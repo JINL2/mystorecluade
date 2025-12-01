@@ -517,6 +517,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               ],
             ),
           ],
+          ),
         ),
       ),
     );

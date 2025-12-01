@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -76,10 +77,15 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   }
 
   /// Get status text from shift
+  /// - Late: isLate == true
+  /// - On-time: isLate == false AND actualStartTime exists (checked in)
+  /// - Undone: everything else (not checked in yet)
   String _getStatusText() {
     if (widget.shift.isLate) return 'Late';
-    if (!widget.shift.isApproved) return 'Pending';
-    return 'On-time';
+    if (!widget.shift.isLate && widget.shift.actualStartTime != null) {
+      return 'On-time';
+    }
+    return 'Undone';
   }
 
   /// Get confirmed start time (use scheduled time from shift, not actual check-in)
@@ -112,6 +118,158 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
 
     // Priority 2: Fall back to confirm_end_time from database
     return widget.shift.confirmEndTime;
+  }
+
+  /// Submit report to server via RPC
+  Future<void> _submitReport(String reason) async {
+    final now = DateTime.now();
+    final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    final reportShiftIssue = ref.read(reportShiftIssueProvider);
+    final success = await reportShiftIssue(
+      shiftRequestId: widget.shift.shiftRequestId,
+      reportReason: reason,
+      time: time,
+      timezone: timezone,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Refresh shift cards data
+      final requestDate = DateTime.parse(widget.shift.requestDate);
+      final yearMonth =
+          '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
+      ref.invalidate(monthlyShiftCardsProvider(yearMonth));
+
+      // Show success message and close page
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Report submitted successfully'),
+          backgroundColor: TossColors.success,
+        ),
+      );
+      Navigator.pop(context);
+    } else {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to submit report. Please try again.'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+    }
+  }
+
+  /// Show report issue bottom sheet
+  void _showReportBottomSheet(BuildContext context) {
+    final TextEditingController reasonController = TextEditingController();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext bottomSheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 24,
+            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Text(
+                'Report Issue',
+                style: TossTextStyles.titleMedium.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please describe the problem with this shift',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.gray600,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Text Input
+              Container(
+                decoration: BoxDecoration(
+                  color: TossColors.gray50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: TossColors.gray200, width: 1),
+                ),
+                child: TextField(
+                  controller: reasonController,
+                  maxLines: 4,
+                  maxLength: 500,
+                  decoration: InputDecoration(
+                    hintText: 'Enter the reason for reporting this issue...',
+                    hintStyle: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.gray400,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    counterStyle: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: TossButton1.secondary(
+                      text: 'Cancel',
+                      fullWidth: true,
+                      onPressed: () => Navigator.pop(bottomSheetContext),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TossButton1.primary(
+                      text: 'OK',
+                      fullWidth: true,
+                      onPressed: () async {
+                        final reason = reasonController.text.trim();
+                        if (reason.isEmpty) {
+                          // Show validation message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter a reason'),
+                              backgroundColor: TossColors.error,
+                            ),
+                          );
+                          return;
+                        }
+                        Navigator.pop(bottomSheetContext);
+                        await _submitReport(reason);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -217,7 +375,8 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             ),
           ),
 
-          // Footer Action
+          // Footer Action - Report Button
+          // Blue (enabled) when isReported=false, Gray (disabled) when isReported=true
           Container(
             padding: const EdgeInsets.fromLTRB(
               16,
@@ -234,15 +393,21 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                 ),
               ),
             ),
-            child: TossButton1.secondary(
-              text: 'Report an issue with this shift',
-              leadingIcon: const Icon(Icons.error_outline, size: 18),
-              fullWidth: true,
-              textColor: TossColors.gray600,
-              onPressed: () {
-                // TODO: Implement report issue
-              },
-            ),
+            child: widget.shift.isReported
+                ? TossButton1.secondary(
+                    text: 'Report an issue with this shift',
+                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    fullWidth: true,
+                    textColor: TossColors.gray600,
+                    isEnabled: false,
+                    onPressed: null,
+                  )
+                : TossButton1.primary(
+                    text: 'Report an issue with this shift',
+                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    fullWidth: true,
+                    onPressed: () => _showReportBottomSheet(context),
+                  ),
           ),
         ],
       ),
@@ -310,12 +475,16 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
         textColor = TossColors.white;
         break;
       case 'late':
-        backgroundColor = TossColors.warning;
+        backgroundColor = TossColors.error;
         textColor = TossColors.white;
         break;
       case 'absent':
         backgroundColor = TossColors.error;
         textColor = TossColors.white;
+        break;
+      case 'undone':
+        backgroundColor = TossColors.gray200;
+        textColor = TossColors.gray600;
         break;
       default:
         backgroundColor = TossColors.gray100;

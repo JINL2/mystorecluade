@@ -4,14 +4,18 @@ class CreateShiftParams {
   final String shiftName;
   final String startTime;
   final String endTime;
-  final int shiftBonus;
+  final int? numberShift;
+  final bool? isCanOvertime;
+  final int? shiftBonus;
 
   const CreateShiftParams({
     required this.storeId,
     required this.shiftName,
     required this.startTime,
     required this.endTime,
-    required this.shiftBonus,
+    this.numberShift,
+    this.isCanOvertime,
+    this.shiftBonus,
   });
 }
 
@@ -21,6 +25,8 @@ class UpdateShiftParams {
   final String? shiftName;
   final String? startTime;
   final String? endTime;
+  final int? numberShift;
+  final bool? isCanOvertime;
   final int? shiftBonus;
 
   const UpdateShiftParams({
@@ -28,6 +34,8 @@ class UpdateShiftParams {
     this.shiftName,
     this.startTime,
     this.endTime,
+    this.numberShift,
+    this.isCanOvertime,
     this.shiftBonus,
   });
 }

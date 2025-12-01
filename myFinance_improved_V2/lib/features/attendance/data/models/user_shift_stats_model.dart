@@ -9,6 +9,7 @@ class UserShiftStatsModel {
   final PeriodStatsModel lastMonth;
   final PeriodStatsModel thisYear;
   final WeeklyPaymentsModel weeklyPayments;
+  final ReliabilityScoreModel reliabilityScore;
 
   UserShiftStatsModel({
     required this.salaryInfo,
@@ -18,6 +19,7 @@ class UserShiftStatsModel {
     required this.lastMonth,
     required this.thisYear,
     required this.weeklyPayments,
+    required this.reliabilityScore,
   });
 
   factory UserShiftStatsModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class UserShiftStatsModel {
       lastMonth: PeriodStatsModel.fromJson(json['last_month'] as Map<String, dynamic>),
       thisYear: PeriodStatsModel.fromJson(json['this_year'] as Map<String, dynamic>),
       weeklyPayments: WeeklyPaymentsModel.fromJson(json['weekly_payments'] as Map<String, dynamic>),
+      reliabilityScore: ReliabilityScoreModel.fromJson(json['reliability_score'] as Map<String, dynamic>? ?? {}),
     );
   }
 
@@ -41,6 +44,7 @@ class UserShiftStatsModel {
       lastMonth: lastMonth.toEntity(),
       thisYear: thisYear.toEntity(),
       weeklyPayments: weeklyPayments.toEntity(),
+      reliabilityScore: reliabilityScore.toEntity(),
     );
   }
 }
@@ -157,6 +161,78 @@ class WeeklyPaymentsModel {
       w3: w3,
       w4: w4,
       w5: w5,
+    );
+  }
+}
+
+class ReliabilityScoreModel {
+  final int totalApplications;
+  final int approvedShifts;
+  final int lateCount;
+  final double lateRate;
+  final double avgLateMinutes;
+  final double avgFillRateApplied;
+  final double applicationsScore;
+  final double lateRateScore;
+  final double lateMinutesScore;
+  final double fillRateScore;
+  final double reliability;
+  final double finalScore;
+  final String? periodStart;
+  final String? periodEnd;
+
+  ReliabilityScoreModel({
+    required this.totalApplications,
+    required this.approvedShifts,
+    required this.lateCount,
+    required this.lateRate,
+    required this.avgLateMinutes,
+    required this.avgFillRateApplied,
+    required this.applicationsScore,
+    required this.lateRateScore,
+    required this.lateMinutesScore,
+    required this.fillRateScore,
+    required this.reliability,
+    required this.finalScore,
+    this.periodStart,
+    this.periodEnd,
+  });
+
+  factory ReliabilityScoreModel.fromJson(Map<String, dynamic> json) {
+    return ReliabilityScoreModel(
+      totalApplications: (json['total_applications'] as num?)?.toInt() ?? 0,
+      approvedShifts: (json['approved_shifts'] as num?)?.toInt() ?? 0,
+      lateCount: (json['late_count'] as num?)?.toInt() ?? 0,
+      lateRate: (json['late_rate'] as num?)?.toDouble() ?? 0.0,
+      avgLateMinutes: (json['avg_late_minutes'] as num?)?.toDouble() ?? 0.0,
+      avgFillRateApplied: (json['avg_fill_rate_applied'] as num?)?.toDouble() ?? 0.0,
+      applicationsScore: (json['applications_score'] as num?)?.toDouble() ?? 0.0,
+      lateRateScore: (json['late_rate_score'] as num?)?.toDouble() ?? 0.0,
+      lateMinutesScore: (json['late_minutes_score'] as num?)?.toDouble() ?? 0.0,
+      fillRateScore: (json['fill_rate_score'] as num?)?.toDouble() ?? 0.0,
+      reliability: (json['reliability'] as num?)?.toDouble() ?? 0.0,
+      finalScore: (json['final_score'] as num?)?.toDouble() ?? 0.0,
+      periodStart: json['period_start'] as String?,
+      periodEnd: json['period_end'] as String?,
+    );
+  }
+
+  ReliabilityScore toEntity() {
+    return ReliabilityScore(
+      totalApplications: totalApplications,
+      approvedShifts: approvedShifts,
+      lateCount: lateCount,
+      lateRate: lateRate,
+      avgLateMinutes: avgLateMinutes,
+      avgFillRateApplied: avgFillRateApplied,
+      applicationsScore: applicationsScore,
+      lateRateScore: lateRateScore,
+      lateMinutesScore: lateMinutesScore,
+      fillRateScore: fillRateScore,
+      reliability: reliability,
+      finalScore: finalScore,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
     );
   }
 }

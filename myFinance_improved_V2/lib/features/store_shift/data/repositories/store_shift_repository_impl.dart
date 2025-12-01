@@ -30,17 +30,34 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     required String shiftName,
     required String startTime,
     required String endTime,
-    required int shiftBonus,
+    int? numberShift,
+    bool? isCanOvertime,
+    int? shiftBonus,
   }) async {
     final shiftData = await _dataSource.createShift(
       storeId: storeId,
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
+      numberShift: numberShift,
+      isCanOvertime: isCanOvertime,
       shiftBonus: shiftBonus,
     );
 
-    return StoreShiftModel.fromJson(shiftData).toEntity();
+    // RPC returns {success, message, shift_id}, not full shift data
+    // Create a minimal StoreShift with the returned shift_id
+    return StoreShift(
+      shiftId: shiftData['shift_id'] as String,
+      shiftName: shiftName,
+      startTime: startTime,
+      endTime: endTime,
+      shiftBonus: shiftBonus ?? 0,
+      isActive: true,
+      numberShift: numberShift ?? 1,
+      isCanOvertime: isCanOvertime ?? true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
   }
 
   @override
@@ -49,6 +66,8 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     String? shiftName,
     String? startTime,
     String? endTime,
+    int? numberShift,
+    bool? isCanOvertime,
     int? shiftBonus,
   }) async {
     final shiftData = await _dataSource.updateShift(
@@ -56,6 +75,8 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
+      numberShift: numberShift,
+      isCanOvertime: isCanOvertime,
       shiftBonus: shiftBonus,
     );
 

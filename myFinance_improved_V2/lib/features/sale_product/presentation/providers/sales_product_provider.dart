@@ -1,28 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/sales_product_remote_datasource.dart';
-import '../../data/repositories/sales_product_repository_impl.dart';
+import '../../di/sale_product_providers.dart';
 import '../../domain/repositories/sales_product_repository.dart';
 import '../../domain/value_objects/sort_option.dart';
 import 'states/sales_product_state.dart';
 
-/// Supabase client provider
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Remote data source provider
-final salesProductRemoteDataSourceProvider = Provider<SalesProductRemoteDataSource>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  return SalesProductRemoteDataSource(client);
-});
-
-/// Repository provider
-final salesProductRepositoryProvider = Provider<SalesProductRepository>((ref) {
-  final dataSource = ref.watch(salesProductRemoteDataSourceProvider);
-  return SalesProductRepositoryImpl(dataSource);
-});
+// Re-export repository provider for external use
+export '../../di/sale_product_providers.dart' show salesProductRepositoryProvider;
 
 /// Sales product state provider
 final salesProductProvider = StateNotifierProvider<SalesProductNotifier, SalesProductState>((ref) {

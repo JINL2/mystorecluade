@@ -22,7 +22,6 @@ class Product {
   final double salePrice;
   final double? compareAtPrice;
   final double? minPrice;
-  final double taxRate;
   final String currency;
 
   // Inventory
@@ -73,8 +72,7 @@ class Product {
     required this.salePrice,
     this.compareAtPrice,
     this.minPrice,
-    this.taxRate = 0.10,
-    this.currency = 'KRW',
+    this.currency = '',
     required this.onHand,
     int? available,
     this.reserved = 0,
@@ -156,7 +154,6 @@ class Product {
     double? salePrice,
     double? compareAtPrice,
     double? minPrice,
-    double? taxRate,
     String? currency,
     int? onHand,
     int? available,
@@ -201,7 +198,6 @@ class Product {
       salePrice: salePrice ?? this.salePrice,
       compareAtPrice: compareAtPrice ?? this.compareAtPrice,
       minPrice: minPrice ?? this.minPrice,
-      taxRate: taxRate ?? this.taxRate,
       currency: currency ?? this.currency,
       onHand: onHand ?? this.onHand,
       available: available ?? this.available,

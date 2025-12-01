@@ -18,7 +18,7 @@ class ProductDto {
   final String? brandName;
   final String? productType;
   final String? description;
-  final String? imageUrl;
+  final List<String> imageUrls;
   final bool isActive;
   final String? stockStatus;
   final int? quantityAvailable;
@@ -43,7 +43,7 @@ class ProductDto {
     this.brandName,
     this.productType,
     this.description,
-    this.imageUrl,
+    this.imageUrls = const [],
     this.isActive = true,
     this.stockStatus,
     this.quantityAvailable,
@@ -114,9 +114,9 @@ class ProductDto {
       brandName: json['brand_name'] as String?,
       productType: json['product_type'] as String?,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
-      isActive: (json['is_active'] ?? true) as bool,
-      stockStatus: json['stock_status'] as String?,
+      imageUrls: _parseImageUrls(json),
+      isActive: _parseIsActive(json),
+      stockStatus: _parseStockStatus(json),
       quantityAvailable: parsedQuantityAvailable,
       quantityReserved: parsedQuantityReserved,
       createdAt: json['created_at'] != null
@@ -147,7 +147,7 @@ class ProductDto {
       'brand_name': brandName,
       'product_type': productType,
       'description': description,
-      'image_url': imageUrl,
+      'image_urls': imageUrls,
       'is_active': isActive,
       'stock_status': stockStatus,
       'quantity_available': quantityAvailable,
@@ -155,5 +155,47 @@ class ProductDto {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
+  }
+
+  // Helper: Parse image_urls from RPC response
+  static List<String> _parseImageUrls(Map<String, dynamic> json) {
+    // Try image_urls (array from RPC)
+    if (json['image_urls'] != null && json['image_urls'] is List) {
+      return (json['image_urls'] as List)
+          .map((e) => e.toString())
+          .where((url) => url.isNotEmpty)
+          .toList();
+    }
+    // Fallback to single image_url
+    if (json['image_url'] != null && (json['image_url'] as String).isNotEmpty) {
+      return [json['image_url'] as String];
+    }
+    return [];
+  }
+
+  // Helper: Parse is_active from RPC response (handles status.is_active)
+  static bool _parseIsActive(Map<String, dynamic> json) {
+    // Try nested status.is_active first
+    if (json['status'] != null && json['status'] is Map) {
+      final statusMap = json['status'] as Map<String, dynamic>;
+      if (statusMap['is_active'] != null) {
+        return statusMap['is_active'] as bool;
+      }
+    }
+    // Fallback to top-level is_active
+    return (json['is_active'] ?? true) as bool;
+  }
+
+  // Helper: Parse stock_status from RPC response (handles status.stock_level)
+  static String? _parseStockStatus(Map<String, dynamic> json) {
+    // Try nested status.stock_level first
+    if (json['status'] != null && json['status'] is Map) {
+      final statusMap = json['status'] as Map<String, dynamic>;
+      if (statusMap['stock_level'] != null) {
+        return statusMap['stock_level'] as String;
+      }
+    }
+    // Fallback to top-level stock_status
+    return json['stock_status'] as String?;
   }
 }

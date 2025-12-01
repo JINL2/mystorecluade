@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_text_styles.dart';
 import '../../themes/toss_border_radius.dart';
-import '../../themes/toss_spacing.dart';
 
 /// TossMonthCalendar - Full month calendar grid with shift indicators
 ///
@@ -13,10 +12,12 @@ import '../../themes/toss_spacing.dart';
 /// - Cell: 24x24 date circle + 4x4 shift dot
 /// - Date states: Past, Today, Upcoming, Selected
 /// - Dot colors: Blue (shifts available to sign up), Gray (all shifts assigned)
+/// - Blue border: User has approved shift on that date
 class TossMonthCalendar extends StatelessWidget {
   final DateTime selectedDate;
   final DateTime currentMonth;
   final Map<DateTime, bool> shiftsInMonth; // true = shifts available (blue), false = all assigned (gray)
+  final Set<DateTime> userApprovedDates; // Dates where user has approved shifts (blue border)
   final ValueChanged<DateTime> onDateSelected;
 
   const TossMonthCalendar({
@@ -24,6 +25,7 @@ class TossMonthCalendar extends StatelessWidget {
     required this.selectedDate,
     required this.currentMonth,
     required this.shiftsInMonth,
+    this.userApprovedDates = const {}, // Default to empty set
     required this.onDateSelected,
   });
 
@@ -95,12 +97,14 @@ class TossMonthCalendar extends StatelessWidget {
               }
 
               final date = DateTime(currentMonth.year, currentMonth.month, dayNumber);
+              final normalizedDate = DateTime(date.year, date.month, date.day);
               final isToday = _isSameDay(date, today);
               final isPast = date.isBefore(DateTime(today.year, today.month, today.day));
               final isSelected = _isSameDay(date, selectedDate);
-              final shiftAvailability = shiftsInMonth[DateTime(date.year, date.month, date.day)];
+              final shiftAvailability = shiftsInMonth[normalizedDate];
               final hasShift = shiftAvailability != null;
               final shiftsAvailable = shiftAvailability == true; // true = available (blue), false = assigned (gray)
+              final hasUserApproved = userApprovedDates.any((d) => _isSameDay(d, date));
 
               return _CalendarDayCell(
                 date: date,
@@ -109,6 +113,7 @@ class TossMonthCalendar extends StatelessWidget {
                 isSelected: isSelected,
                 hasShift: hasShift,
                 shiftsAvailable: shiftsAvailable,
+                hasUserApproved: hasUserApproved,
                 onTap: () => onDateSelected(date),
               );
             },
@@ -124,6 +129,7 @@ class TossMonthCalendar extends StatelessWidget {
 /// Design Pattern: One component with multiple visual variants
 /// States: Past, Today, Upcoming, Selected
 /// Dot colors: Blue (shifts available), Gray (all assigned)
+/// Blue border: User has approved shift on that date
 class _CalendarDayCell extends StatelessWidget {
   final DateTime date;
   final bool isToday;
@@ -131,6 +137,7 @@ class _CalendarDayCell extends StatelessWidget {
   final bool isSelected;
   final bool hasShift;
   final bool shiftsAvailable; // true = shifts available (blue), false = all assigned (gray)
+  final bool hasUserApproved; // User has approved shift on this date (blue border)
   final VoidCallback? onTap;
 
   const _CalendarDayCell({
@@ -140,6 +147,7 @@ class _CalendarDayCell extends StatelessWidget {
     required this.isSelected,
     required this.hasShift,
     required this.shiftsAvailable,
+    required this.hasUserApproved,
     this.onTap,
   });
 
@@ -149,13 +157,21 @@ class _CalendarDayCell extends StatelessWidget {
   }
 
   BoxBorder? _getBorder() {
-    // Only show border if has shift or is selected
-    if (isSelected) return null; // No border when selected (has background)
-    if (!hasShift) return null; // No border if no shift
+    // No border when selected (has background)
+    if (isSelected) return null;
 
-    // Has shift - show colored border
-    if (isPast) return Border.all(color: TossColors.gray100, width: 1); // Past shift
-    return Border.all(color: TossColors.primary, width: 1); // Today or future shift
+    // Blue border if user has approved shift on this date (not past)
+    if (hasUserApproved && !isPast) {
+      return Border.all(color: TossColors.primary, width: 1);
+    }
+
+    // Gray border for past dates with user approved shift
+    if (hasUserApproved && isPast) {
+      return Border.all(color: TossColors.gray100, width: 1);
+    }
+
+    // No border for other dates
+    return null;
   }
 
   Color _getTextColor() {

@@ -260,6 +260,27 @@ class DateTimeUtils {
     return '$year-$month-${day}T$hour:$minute:$second$offsetString';
   }
 
+  /// Formats current local DateTime as 'yyyy-MM-dd HH:mm:ss' string
+  ///
+  /// This format is commonly required by Supabase RPC functions
+  /// that need local time with timezone parameter.
+  ///
+  /// Example:
+  /// ```dart
+  /// final localTime = DateTimeUtils.formatLocalTimestamp();
+  /// // "2025-01-15 14:30:25"
+  ///
+  /// await supabase.rpc('create_store_shift', {
+  ///   'p_time': localTime,
+  ///   'p_timezone': DateTimeUtils.getLocalTimezone(),
+  /// });
+  /// ```
+  static String formatLocalTimestamp([DateTime? dateTime]) {
+    final now = dateTime ?? DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  }
+
   /// Gets the user's local timezone in IANA format (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// This timezone string is used for RPC functions that need to handle timezone-aware calculations.

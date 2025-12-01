@@ -68,11 +68,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   @override
   Future<bool> reportShiftIssue({
     required String shiftRequestId,
-    String? reportReason,
+    required String reportReason,
+    required String time,
+    required String timezone,
   }) async {
     return await _datasource.reportShiftIssue(
       shiftRequestId: shiftRequestId,
       reportReason: reportReason,
+      time: time,
+      timezone: timezone,
     );
   }
 

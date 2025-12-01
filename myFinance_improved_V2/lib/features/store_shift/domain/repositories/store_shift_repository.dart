@@ -20,9 +20,11 @@ abstract class StoreShiftRepository {
   /// Parameters:
   /// - [storeId]: The ID of the store
   /// - [shiftName]: Name of the shift
-  /// - [startTime]: Start time in HH:mm format
-  /// - [endTime]: End time in HH:mm format
-  /// - [shiftBonus]: Bonus amount for this shift
+  /// - [startTime]: Start time in HH:mm format (local time)
+  /// - [endTime]: End time in HH:mm format (local time)
+  /// - [numberShift]: Required number of employees (optional, default: 1)
+  /// - [isCanOvertime]: Whether overtime is allowed (optional, default: true)
+  /// - [shiftBonus]: Bonus amount for this shift (optional, default: 0)
   ///
   /// Returns the created [StoreShift] entity
   /// Throws an exception if the operation fails
@@ -31,7 +33,9 @@ abstract class StoreShiftRepository {
     required String shiftName,
     required String startTime,
     required String endTime,
-    required int shiftBonus,
+    int? numberShift,
+    bool? isCanOvertime,
+    int? shiftBonus,
   });
 
   /// Update an existing shift
@@ -41,6 +45,8 @@ abstract class StoreShiftRepository {
   /// - [shiftName]: Updated name (optional)
   /// - [startTime]: Updated start time (optional)
   /// - [endTime]: Updated end time (optional)
+  /// - [numberShift]: Required number of employees (optional)
+  /// - [isCanOvertime]: Whether overtime is allowed (optional)
   /// - [shiftBonus]: Updated bonus amount (optional)
   ///
   /// Returns the updated [StoreShift] entity
@@ -50,6 +56,8 @@ abstract class StoreShiftRepository {
     String? shiftName,
     String? startTime,
     String? endTime,
+    int? numberShift,
+    bool? isCanOvertime,
     int? shiftBonus,
   });
 

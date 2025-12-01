@@ -14,33 +14,40 @@ class StoreShiftModel extends StoreShift {
     required super.endTime,
     required super.shiftBonus,
     required super.isActive,
+    super.numberShift = 1,
+    super.isCanOvertime = false,
     required super.createdAt,
     required super.updatedAt,
   });
 
   /// Create model from JSON (from Supabase response)
   ///
-  /// **중요:** DB의 timetz는 PostgreSQL이 클라이언트 타임존으로 자동 변환하여 반환합니다.
+  /// **중요:** RPC 'get_shift_metadata_v2_utc'의 반환값을 파싱합니다.
+  /// 반환 필드: shift_id, store_id, shift_name, start_time_utc, end_time_utc,
+  ///           number_shift, is_active, is_can_overtime
   factory StoreShiftModel.fromJson(Map<String, dynamic> json) {
     // Support both old (start_time) and new (start_time_utc) column names
     final startTimeValue = json['start_time_utc'] ?? json['start_time'];
     final endTimeValue = json['end_time_utc'] ?? json['end_time'];
 
     // Support both old (created_at) and new (created_at_utc) column names
-    // created_at is timestamptz (date+time), created_at_utc is timetz (time only)
-    // For display purposes, we use the legacy created_at/updated_at columns
+    // RPC may not return these fields, so fallback to current time
     final createdAtValue = json['created_at'] as String?;
     final updatedAtValue = json['updated_at'] as String?;
 
     return StoreShiftModel(
       shiftId: json['shift_id'] as String,
       shiftName: json['shift_name'] as String,
-      // Parse timetz format (e.g., "14:00:00+09:00")
+      // Parse timetz format (e.g., "14:00:00+07")
       startTime: _parseTimetzString(startTimeValue as String? ?? '00:00:00'),
       endTime: _parseTimetzString(endTimeValue as String? ?? '00:00:00'),
-      shiftBonus: json['shift_bonus'] as int,
+      // RPC may not return shift_bonus, default to 0
+      shiftBonus: (json['shift_bonus'] as int?) ?? 0,
       isActive: json['is_active'] as bool? ?? true,
-      // Convert UTC timestamps to local time (fallback to current time if null)
+      // RPC returns number_shift and is_can_overtime
+      numberShift: (json['number_shift'] as int?) ?? 1,
+      isCanOvertime: json['is_can_overtime'] as bool? ?? false,
+      // RPC may not return created_at/updated_at, fallback to current time
       createdAt: createdAtValue != null
           ? DateTimeUtils.toLocal(createdAtValue)
           : DateTime.now(),
@@ -85,6 +92,8 @@ class StoreShiftModel extends StoreShift {
       'end_time': endTime,
       'shift_bonus': shiftBonus,
       'is_active': isActive,
+      'number_shift': numberShift,
+      'is_can_overtime': isCanOvertime,
     };
   }
 
@@ -97,6 +106,8 @@ class StoreShiftModel extends StoreShift {
       endTime: endTime,
       shiftBonus: shiftBonus,
       isActive: isActive,
+      numberShift: numberShift,
+      isCanOvertime: isCanOvertime,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -111,6 +122,8 @@ class StoreShiftModel extends StoreShift {
       endTime: entity.endTime,
       shiftBonus: entity.shiftBonus,
       isActive: entity.isActive,
+      numberShift: entity.numberShift,
+      isCanOvertime: entity.isCanOvertime,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
