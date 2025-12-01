@@ -176,14 +176,18 @@ final createShiftProvider = Provider.autoDispose<
       required String shiftName,
       required String startTime,
       required String endTime,
-      required int shiftBonus,
+      int? numberShift,
+      bool? isCanOvertime,
+      int? shiftBonus,
     })>((ref) {
   return ({
     required String storeId,
     required String shiftName,
     required String startTime,
     required String endTime,
-    required int shiftBonus,
+    int? numberShift,
+    bool? isCanOvertime,
+    int? shiftBonus,
   }) async {
     final useCase = ref.read(createShiftUseCaseProvider);
     return await useCase(CreateShiftParams(
@@ -191,6 +195,8 @@ final createShiftProvider = Provider.autoDispose<
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
+      numberShift: numberShift,
+      isCanOvertime: isCanOvertime,
       shiftBonus: shiftBonus,
     ),);
   };
@@ -203,6 +209,8 @@ final updateShiftProvider = Provider.autoDispose<
       String? shiftName,
       String? startTime,
       String? endTime,
+      int? numberShift,
+      bool? isCanOvertime,
       int? shiftBonus,
     })>((ref) {
   return ({
@@ -210,6 +218,8 @@ final updateShiftProvider = Provider.autoDispose<
     String? shiftName,
     String? startTime,
     String? endTime,
+    int? numberShift,
+    bool? isCanOvertime,
     int? shiftBonus,
   }) async {
     final useCase = ref.read(updateShiftUseCaseProvider);
@@ -218,6 +228,8 @@ final updateShiftProvider = Provider.autoDispose<
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
+      numberShift: numberShift,
+      isCanOvertime: isCanOvertime,
       shiftBonus: shiftBonus,
     ),);
   };

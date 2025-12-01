@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../core/utils/number_formatter.dart';
@@ -28,6 +27,8 @@ void showEditShiftDialog(
   // Parse existing time strings to TimeOfDay
   TimeOfDay? selectedStartTime = _parseTimeString(shift.startTime);
   TimeOfDay? selectedEndTime = _parseTimeString(shift.endTime);
+  int numberShift = shift.numberShift;
+  bool isCanOvertime = shift.isCanOvertime;
 
   showModalBottomSheet<void>(
     context: context,
@@ -37,7 +38,7 @@ void showEditShiftDialog(
       builder: (context, setState) => GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Container(
-          height: MediaQuery.of(context).size.height * 0.8,
+          height: MediaQuery.of(context).size.height * 0.85,
           decoration: const BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.only(
@@ -78,6 +79,8 @@ void showEditShiftDialog(
                   child: _ShiftFormContent(
                     initialName: shift.shiftName,
                     initialBonus: shift.shiftBonus,
+                    initialNumberShift: numberShift,
+                    initialIsCanOvertime: isCanOvertime,
                     selectedStartTime: selectedStartTime,
                     selectedEndTime: selectedEndTime,
                     onStartTimeChanged: (time) {
@@ -86,13 +89,21 @@ void showEditShiftDialog(
                     onEndTimeChanged: (time) {
                       setState(() => selectedEndTime = time);
                     },
-                    onSave: (name, startTime, endTime, bonus) async {
+                    onNumberShiftChanged: (value) {
+                      setState(() => numberShift = value);
+                    },
+                    onIsCanOvertimeChanged: (value) {
+                      setState(() => isCanOvertime = value);
+                    },
+                    onSave: (name, startTime, endTime, bonus, numShift, canOvertime) async {
                       try {
                         await ref.read(updateShiftProvider)(
                           shiftId: shift.shiftId,
                           shiftName: name,
                           startTime: _formatTimeOfDay(startTime),
                           endTime: _formatTimeOfDay(endTime),
+                          numberShift: numShift,
+                          isCanOvertime: canOvertime,
                           shiftBonus: bonus,
                         );
                         if (context.mounted) {
@@ -200,13 +211,15 @@ void showAddShiftDialog(
                     onEndTimeChanged: (time) {
                       setState(() => selectedEndTime = time);
                     },
-                    onSave: (name, startTime, endTime, bonus) async {
+                    onSave: (name, startTime, endTime, bonus, numShift, canOvertime) async {
                       try {
                         await ref.read(createShiftProvider)(
                           storeId: storeId,
                           shiftName: name,
                           startTime: _formatTimeOfDay(startTime),
                           endTime: _formatTimeOfDay(endTime),
+                          numberShift: numShift,
+                          isCanOvertime: canOvertime,
                           shiftBonus: bonus,
                         );
                         if (context.mounted) {
@@ -308,20 +321,28 @@ void showDeleteShiftDialog(
 class _ShiftFormContent extends StatefulWidget {
   final String initialName;
   final int initialBonus;
+  final int initialNumberShift;
+  final bool initialIsCanOvertime;
   final TimeOfDay? selectedStartTime;
   final TimeOfDay? selectedEndTime;
   final void Function(TimeOfDay) onStartTimeChanged;
   final void Function(TimeOfDay) onEndTimeChanged;
-  final Future<void> Function(String name, TimeOfDay startTime, TimeOfDay endTime, int bonus) onSave;
+  final void Function(int)? onNumberShiftChanged;
+  final void Function(bool)? onIsCanOvertimeChanged;
+  final Future<void> Function(String name, TimeOfDay startTime, TimeOfDay endTime, int bonus, int numberShift, bool isCanOvertime) onSave;
   final String buttonText;
 
   const _ShiftFormContent({
     required this.initialName,
     required this.initialBonus,
+    this.initialNumberShift = 1,
+    this.initialIsCanOvertime = false,
     required this.selectedStartTime,
     required this.selectedEndTime,
     required this.onStartTimeChanged,
     required this.onEndTimeChanged,
+    this.onNumberShiftChanged,
+    this.onIsCanOvertimeChanged,
     required this.onSave,
     required this.buttonText,
   });
@@ -333,6 +354,9 @@ class _ShiftFormContent extends StatefulWidget {
 class _ShiftFormContentState extends State<_ShiftFormContent> {
   late TextEditingController _nameController;
   late TextEditingController _bonusController;
+  late TextEditingController _numberShiftController;
+  late int _numberShift;
+  late bool _isCanOvertime;
   bool _isSubmitting = false;
 
   @override
@@ -342,12 +366,18 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
     _bonusController = TextEditingController(
       text: widget.initialBonus == 0 ? '' : NumberFormatter.formatWithCommas(widget.initialBonus),
     );
+    _numberShiftController = TextEditingController(
+      text: widget.initialNumberShift.toString(),
+    );
+    _numberShift = widget.initialNumberShift;
+    _isCanOvertime = widget.initialIsCanOvertime;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _bonusController.dispose();
+    _numberShiftController.dispose();
     super.dispose();
   }
 
@@ -471,6 +501,148 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
           ),
         ),
 
+        const SizedBox(height: TossSpacing.space6),
+
+        // Shift Settings Section (Number of Employees & Overtime)
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          decoration: BoxDecoration(
+            color: TossColors.gray100,
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+            border: Border.all(
+              color: TossColors.gray200,
+              width: TossSpacing.space1 / 4,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    IconMapper.getIcon('users'),
+                    color: TossColors.gray700,
+                    size: TossSpacing.iconSM,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Text(
+                    'Shift Settings',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: TossSpacing.space4),
+
+              // Number of Employees
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Required Employees',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: TossSpacing.space1),
+                        Text(
+                          'Number of staff needed for this shift',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  // Stepper for number
+                  Row(
+                    children: [
+                      _buildStepperButton(
+                        icon: Icons.remove,
+                        onTap: () {
+                          if (_numberShift > 1) {
+                            setState(() => _numberShift--);
+                            widget.onNumberShiftChanged?.call(_numberShift);
+                          }
+                        },
+                        enabled: _numberShift > 1,
+                      ),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$_numberShift',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                      ),
+                      _buildStepperButton(
+                        icon: Icons.add,
+                        onTap: () {
+                          if (_numberShift < 99) {
+                            setState(() => _numberShift++);
+                            widget.onNumberShiftChanged?.call(_numberShift);
+                          }
+                        },
+                        enabled: _numberShift < 99,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+              const Divider(height: 1, color: TossColors.gray200),
+              const SizedBox(height: TossSpacing.space4),
+
+              // Allow Overtime Toggle
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Allow Overtime',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: TossSpacing.space1),
+                        Text(
+                          'Enable overtime work for this shift',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _isCanOvertime,
+                    onChanged: (value) {
+                      setState(() => _isCanOvertime = value);
+                      widget.onIsCanOvertimeChanged?.call(value);
+                    },
+                    activeTrackColor: TossColors.primary.withValues(alpha: 0.5),
+                    activeThumbColor: TossColors.primary,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: TossSpacing.space5),
 
         // Duration Display
@@ -560,6 +732,8 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
                 widget.selectedStartTime!,
                 widget.selectedEndTime!,
                 bonus,
+                _numberShift,
+                _isCanOvertime,
               );
 
               if (mounted) {
@@ -589,6 +763,30 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Helper: Build stepper button for number input
+  Widget _buildStepperButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool enabled,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: enabled ? TossColors.gray200 : TossColors.gray100,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Icon(
+          icon,
+          size: TossSpacing.iconSM,
+          color: enabled ? TossColors.gray700 : TossColors.gray400,
+        ),
+      ),
     );
   }
 }
@@ -628,25 +826,16 @@ TimeOfDay? _parseTimeString(String timeString) {
   return null;
 }
 
-/// Helper: Format TimeOfDay to "HH:mm+ZZ:ZZ" string with timezone offset
+/// Helper: Format TimeOfDay to "HH:mm" string (local time only)
 ///
-/// **중요:** 사용자가 선택한 로컬 시간을 타임존 정보와 함께 DB에 저장합니다.
-/// 예: 한국(UTC+9)에서 14:00 선택 → "14:00+09:00"로 저장
+/// **중요:** RPC 함수가 타임존을 별도 파라미터로 받으므로 시간만 전달합니다.
+/// 예: 7:00 AM 선택 → "07:00"
+/// RPC에서 p_timezone과 함께 UTC로 변환됩니다.
 String _formatTimeOfDay(TimeOfDay time) {
-  // Get local timezone offset
-  final now = DateTime.now();
-  final offset = now.timeZoneOffset;
-
-  // Format timezone offset as +HH:mm or -HH:mm
-  final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-  final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-  final offsetSign = offset.isNegative ? '-' : '+';
-
-  // Format time with timezone: HH:mm+ZZ:ZZ
   final hour = time.hour.toString().padLeft(2, '0');
   final minute = time.minute.toString().padLeft(2, '0');
 
-  return '$hour:$minute$offsetSign$offsetHours:$offsetMinutes';
+  return '$hour:$minute';
 }
 
 /// Helper: Calculate duration between start and end times
@@ -671,7 +860,7 @@ String _calculateDuration(TimeOfDay start, TimeOfDay end) {
 
 /// Show Operational Settings Dialog
 void showOperationalSettingsDialog(BuildContext context, Map<String, dynamic> store) {
-  TossBottomSheet.show(
+  TossBottomSheet.show<void>(
     context: context,
     title: 'Edit Operational Settings',
     content: _OperationalSettingsContent(store: store),

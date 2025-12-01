@@ -21,21 +21,26 @@ class StoreShiftDataSource {
 
   /// Fetch all shifts for a specific store
   ///
-  /// Uses direct table query on 'store_shifts'
-  /// Filters: store_id, is_active = true
-  /// Order: start_time_utc ascending
+  /// Uses RPC function 'get_shift_metadata_v2_utc'
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  /// - p_timezone: text (IANA timezone, e.g., 'Asia/Seoul')
   ///
-  /// Note: Fetches both legacy (created_at, updated_at) and new (created_at_utc, updated_at_utc) columns
+  /// Returns shifts with time converted to user's local timezone
   Future<List<Map<String, dynamic>>> getShiftsByStoreId(String storeId) async {
     try {
-      final response = await _client
-          .from('store_shifts')
-          .select('shift_id, shift_name, start_time_utc, end_time_utc, shift_bonus, is_active, created_at, updated_at, created_at_utc, updated_at_utc')
-          .eq('store_id', storeId)
-          .eq('is_active', true)
-          .order('start_time_utc', ascending: true);
+      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-      return List<Map<String, dynamic>>.from(response as List);
+      final response = await _client.rpc<List<dynamic>>(
+        'get_shift_metadata_v2_utc',
+        params: {
+          'p_store_id': storeId,
+          'p_timezone': timezone,
+        },
+      );
+
+      return List<Map<String, dynamic>>.from(response);
     } catch (e, stackTrace) {
       throw ShiftNotFoundException(
         'Failed to fetch shifts for store $storeId: $e',
@@ -46,42 +51,62 @@ class StoreShiftDataSource {
 
   /// Create a new shift
   ///
-  /// Uses INSERT on 'store_shifts' table
-  /// Stores all time data in *_utc columns (timetz type with timezone offset)
-  /// - start_time_utc, end_time_utc: HH:mm+ZZ:ZZ format
-  /// - created_at_utc, updated_at_utc: HH:mm:ss+ZZ:ZZ format
+  /// Uses RPC function 'create_store_shift'
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  /// - p_shift_name: text (required)
+  /// - p_start_time: text (local time, HH:mm format)
+  /// - p_end_time: text (local time, HH:mm format)
+  /// - p_number_shift: integer (optional, default: 1)
+  /// - p_is_can_overtime: boolean (optional, default: true)
+  /// - p_shift_bonus: numeric (optional, default: 0)
+  /// - p_time: text (local timestamp, 'yyyy-MM-dd HH:mm:ss')
+  /// - p_timezone: text (IANA timezone, e.g., 'Asia/Seoul')
   Future<Map<String, dynamic>> createShift({
     required String storeId,
     required String shiftName,
     required String startTime,
     required String endTime,
-    required int shiftBonus,
+    int? numberShift,
+    bool? isCanOvertime,
+    int? shiftBonus,
   }) async {
     try {
-      // Get current time with timezone offset (HH:mm:ss+ZZ:ZZ format)
+      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
       final now = DateTime.now();
-      final currentTime = _formatDateTimeWithTimezone(now);
+      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-      final insertData = {
-        'store_id': storeId,
-        'shift_name': shiftName,
-        // timetz columns with timezone
-        'start_time_utc': startTime,
-        'end_time_utc': endTime,
-        'created_at_utc': currentTime,
-        'updated_at_utc': currentTime,
-        'shift_bonus': shiftBonus,
-        'is_active': true,
-      };
+      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-      final response = await _client
-          .from('store_shifts')
-          .insert(insertData)
-          .select()
-          .single();
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'create_store_shift',
+        params: {
+          'p_store_id': storeId,
+          'p_shift_name': shiftName,
+          'p_start_time': startTime,
+          'p_end_time': endTime,
+          'p_number_shift': numberShift,
+          'p_is_can_overtime': isCanOvertime,
+          'p_shift_bonus': shiftBonus,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
+
+      // Check RPC response for success
+      if (response['success'] == false) {
+        throw ShiftCreationException(
+          response['message'] as String? ?? 'Unknown error',
+          StackTrace.current,
+        );
+      }
 
       return response;
     } catch (e, stackTrace) {
+      if (e is ShiftCreationException) rethrow;
+
       throw ShiftCreationException(
         'Failed to create shift: $e',
         stackTrace,
@@ -89,62 +114,63 @@ class StoreShiftDataSource {
     }
   }
 
-  /// Format DateTime to timetz format with timezone offset
-  /// Example: 2025-01-15 14:30:45 in UTC+9 -> "14:30:45+09:00"
-  String _formatDateTimeWithTimezone(DateTime dateTime) {
-    final offset = dateTime.timeZoneOffset;
-
-    // Format time part (HH:mm:ss)
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final second = dateTime.second.toString().padLeft(2, '0');
-
-    // Format timezone offset (+HH:mm or -HH:mm)
-    final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-    final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-    final offsetSign = offset.isNegative ? '-' : '+';
-
-    return '$hour:$minute:$second$offsetSign$offsetHours:$offsetMinutes';
-  }
-
   /// Update an existing shift
   ///
-  /// Uses UPDATE on 'store_shifts' table
-  /// Updates *_utc columns (timetz type with timezone offset)
-  /// Always updates updated_at_utc with current time (HH:mm:ss+ZZ:ZZ format)
+  /// Uses RPC function 'edit_store_shift'
+  /// Parameters:
+  /// - p_shift_id: uuid (required)
+  /// - p_shift_name: text (optional)
+  /// - p_start_time: text (local time, HH:mm format)
+  /// - p_end_time: text (local time, HH:mm format)
+  /// - p_number_shift: integer (optional, required employees)
+  /// - p_is_can_overtime: boolean (optional)
+  /// - p_shift_bonus: numeric (optional)
+  /// - p_time: text (local timestamp, 'yyyy-MM-dd HH:mm:ss')
+  /// - p_timezone: text (IANA timezone, e.g., 'Asia/Seoul')
   Future<Map<String, dynamic>> updateShift({
     required String shiftId,
     String? shiftName,
     String? startTime,
     String? endTime,
+    int? numberShift,
+    bool? isCanOvertime,
     int? shiftBonus,
   }) async {
     try {
-      final updateData = <String, dynamic>{};
-
-      if (shiftName != null) updateData['shift_name'] = shiftName;
-      if (startTime != null) updateData['start_time_utc'] = startTime;
-      if (endTime != null) updateData['end_time_utc'] = endTime;
-      if (shiftBonus != null) updateData['shift_bonus'] = shiftBonus;
-
-      if (updateData.isEmpty) {
-        throw const InvalidShiftDataException('No fields to update');
-      }
-
-      // Always update updated_at_utc with current time
+      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
       final now = DateTime.now();
-      updateData['updated_at_utc'] = _formatDateTimeWithTimezone(now);
+      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-      final response = await _client
-          .from('store_shifts')
-          .update(updateData)
-          .eq('shift_id', shiftId)
-          .select()
-          .single();
+      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'edit_store_shift',
+        params: {
+          'p_shift_id': shiftId,
+          'p_shift_name': shiftName,
+          'p_start_time': startTime,
+          'p_end_time': endTime,
+          'p_number_shift': numberShift,
+          'p_is_can_overtime': isCanOvertime,
+          'p_shift_bonus': shiftBonus,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
+
+      // Check RPC response for success
+      if (response['success'] == false) {
+        throw ShiftUpdateException(
+          response['message'] as String? ?? 'Unknown error',
+          StackTrace.current,
+        );
+      }
 
       return response;
     } catch (e, stackTrace) {
-      if (e is InvalidShiftDataException) rethrow;
+      if (e is ShiftUpdateException) rethrow;
 
       throw ShiftUpdateException(
         'Failed to update shift $shiftId: $e',

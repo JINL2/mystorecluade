@@ -15,6 +15,8 @@ class UpdateShift implements UseCase<StoreShift, UpdateShiftParams> {
       shiftName: params.shiftName,
       startTime: params.startTime,
       endTime: params.endTime,
+      numberShift: params.numberShift,
+      isCanOvertime: params.isCanOvertime,
       shiftBonus: params.shiftBonus,
     );
   }
