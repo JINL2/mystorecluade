@@ -611,7 +611,11 @@ class _ShiftFormContentState extends State<ShiftFormContent> {
                   widget.onIsCanOvertimeChanged?.call(value);
                 },
                 activeTrackColor: TossColors.primary.withValues(alpha: 0.5),
-                activeThumbColor: TossColors.primary,
+                thumbColor: WidgetStateProperty.resolveWith<Color>(
+                  (states) => states.contains(WidgetState.selected)
+                      ? TossColors.primary
+                      : TossColors.gray300,
+                ),
               ),
             ],
           ),
