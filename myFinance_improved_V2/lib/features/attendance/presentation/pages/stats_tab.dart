@@ -123,15 +123,6 @@ class _StatsTabState extends ConsumerState<StatsTab> {
           );
         }
 
-        // Debug log
-        assert(() {
-          debugPrint('📊 [StatsTab] Selected Period: $_selectedPeriod');
-          debugPrint('📊 [StatsTab] totalPayment: ${periodStats.totalPayment}');
-          debugPrint('📊 [StatsTab] changePercentage: ${periodStats.changePercentage}');
-          debugPrint('📊 [StatsTab] totalConfirmedHours: ${periodStats.totalConfirmedHours}');
-          return true;
-        }());
-
         final symbol = stats.salaryInfo.currencySymbol;
         final salaryType = stats.salaryInfo.salaryType;
         final salaryAmount = stats.salaryInfo.salaryAmount;

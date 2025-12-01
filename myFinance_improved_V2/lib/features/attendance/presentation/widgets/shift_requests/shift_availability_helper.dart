@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
@@ -103,33 +101,13 @@ class ShiftAvailabilityHelper {
       final activeShifts = shiftMetadata!.where((s) => s.isActive).toList();
       final totalShiftsFromMetadata = activeShifts.length;
 
-      // DEBUG: Log
-      debugPrint('=== [ShiftAvailabilityHelper] Date: $dateString ===');
-      debugPrint('  Total shifts from metadata: $totalShiftsFromMetadata');
-
       if (dayStatus != null && dayStatus.shifts.isNotEmpty) {
         // We have RPC data - but it may not include all shifts
         // RPC only returns shifts that have at least one applicant
         final shiftsInRpc = dayStatus.shifts.length;
-        debugPrint('  Shifts in RPC response: $shiftsInRpc');
-
-        // Count how many shifts from RPC are full
-        int fullShiftsCount = 0;
-        for (final shift in dayStatus.shifts) {
-          debugPrint('  Shift: ${shift.shiftName ?? shift.shiftId}');
-          debugPrint('    approvedCount: ${shift.approvedCount}');
-          debugPrint('    requiredEmployees: ${shift.requiredEmployees}');
-          debugPrint('    hasAvailableSlots: ${shift.hasAvailableSlots}');
-
-          if (!shift.hasAvailableSlots) {
-            fullShiftsCount++;
-          }
-        }
 
         // Shifts not in RPC response = no applicants = available
         final shiftsNotInRpc = totalShiftsFromMetadata - shiftsInRpc;
-        debugPrint('  Shifts not in RPC (no applicants, available): $shiftsNotInRpc');
-        debugPrint('  Full shifts in RPC: $fullShiftsCount');
 
         // If there are shifts not in RPC, they are available
         // If any shift in RPC has available slots, it's available
@@ -137,17 +115,12 @@ class ShiftAvailabilityHelper {
         final hasAvailableSlots = shiftsNotInRpc > 0 ||
             dayStatus.shifts.any((s) => s.hasAvailableSlots);
 
-        debugPrint('  => Final hasAvailableSlots: $hasAvailableSlots');
-        debugPrint('  => Status: ${hasAvailableSlots ? "BLUE (available)" : "GRAY (full)"}');
-
         availabilityMap[normalizedDate] = hasAvailableSlots
             ? ShiftAvailabilityStatus.available
             : ShiftAvailabilityStatus.full;
       } else {
         // No status data - shifts exist (from shiftMetadata) but no one has applied yet
         // This means all slots are available (blue dot)
-        debugPrint('  No RPC data - all $totalShiftsFromMetadata shifts available');
-        debugPrint('  => Status: BLUE (available)');
         availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
       }
     }

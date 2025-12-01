@@ -116,14 +116,18 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
+    required String time,
     required String timezone,
   }) async {
     final json = await _datasource.insertShiftRequest(
       userId: userId,
       shiftId: shiftId,
       storeId: storeId,
-      requestTime: requestTime,
+      startTime: startTime,
+      endTime: endTime,
+      time: time,
       timezone: timezone,
     );
     return json != null ? ShiftRequestModel.fromJson(json).toEntity() : null;
