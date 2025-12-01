@@ -23,13 +23,6 @@ abstract class InventoryRepository {
     SortOption? sortOption,
   });
 
-  /// Get single product details
-  Future<Product?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  });
-
   /// Create new product
   Future<Product?> createProduct({
     required String companyId,
@@ -89,14 +82,6 @@ abstract class InventoryRepository {
     String? brandCode,
   });
 
-  /// Update product stock
-  Future<bool> updateProductStock({
-    required String productId,
-    required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
-  });
 }
 
 /// Product Page Result

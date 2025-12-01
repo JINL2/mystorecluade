@@ -97,28 +97,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Product?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  }) async {
-    try {
-      final model = await _remoteDataSource.getProduct(
-        productId: productId,
-        companyId: companyId,
-        storeId: storeId,
-      );
-      return model?.toEntity();
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to get product: $e',
-        details: e,
-      );
-    }
-  }
-
-  @override
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
@@ -286,28 +264,4 @@ class InventoryRepositoryImpl implements InventoryRepository {
     }
   }
 
-  @override
-  Future<bool> updateProductStock({
-    required String productId,
-    required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
-  }) async {
-    try {
-      return await _remoteDataSource.updateProductStock(
-        productId: productId,
-        companyId: companyId,
-        storeId: storeId,
-        newStock: newStock,
-        reason: reason,
-      );
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to update product stock: $e',
-        details: e,
-      );
-    }
-  }
 }

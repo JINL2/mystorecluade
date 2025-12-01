@@ -72,12 +72,8 @@ class StoreShiftDataSource {
     int? shiftBonus,
   }) async {
     try {
-      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
-      final now = DateTime.now();
-      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-
-      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      // Get current local time and timezone using DateTimeUtils
+      final localTime = DateTimeUtils.formatLocalTimestamp();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
@@ -137,12 +133,8 @@ class StoreShiftDataSource {
     int? shiftBonus,
   }) async {
     try {
-      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
-      final now = DateTime.now();
-      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-
-      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      // Get current local time and timezone using DateTimeUtils
+      final localTime = DateTimeUtils.formatLocalTimestamp();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
@@ -257,12 +249,8 @@ class StoreShiftDataSource {
     int? allowedDistance,
   }) async {
     try {
-      // Get current local time formatted as 'yyyy-MM-dd HH:mm:ss'
-      final now = DateTime.now();
-      final localTime = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-
-      // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
+      // Get current local time and timezone using DateTimeUtils
+      final localTime = DateTimeUtils.formatLocalTimestamp();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(

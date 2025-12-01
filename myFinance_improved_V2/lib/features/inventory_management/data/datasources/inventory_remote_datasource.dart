@@ -131,40 +131,6 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Get single product details
-  Future<ProductModel?> getProduct({
-    required String productId,
-    required String companyId,
-    required String storeId,
-  }) async {
-    try {
-      final response = await _client.rpc('get_product_details', params: {
-        'p_product_id': productId,
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-      },).single();
-
-      if (response['success'] == true) {
-        return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
-      }
-      return null;
-    } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') {
-        throw ProductNotFoundException(productId: productId);
-      }
-      throw InventoryConnectionException(
-        message: 'Database error: ${e.message}',
-        details: {'code': e.code, 'details': e.details},
-      );
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to fetch product: $e',
-        details: e,
-      );
-    }
-  }
-
   /// Create new product
   Future<ProductModel> createProduct({
     required String companyId,
@@ -409,37 +375,6 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Update product stock
-  Future<bool> updateProductStock({
-    required String productId,
-    required String companyId,
-    required String storeId,
-    required int newStock,
-    String? reason,
-  }) async {
-    try {
-      final response = await _client.rpc('update_product_stock', params: {
-        'p_product_id': productId,
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-        'p_new_stock': newStock,
-        'p_reason': reason ?? 'Manual adjustment',
-      },).single();
-
-      return response['success'] == true;
-    } on PostgrestException catch (e) {
-      throw InventoryConnectionException(
-        message: 'Database error: ${e.message}',
-        details: {'code': e.code, 'details': e.details},
-      );
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw InventoryRepositoryException(
-        message: 'Failed to update stock: $e',
-        details: e,
-      );
-    }
-  }
 }
 
 /// Product Page Response Model
