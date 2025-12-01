@@ -147,7 +147,8 @@ class _StatsTabState extends ConsumerState<StatsTab> {
               PerformanceKpiCard(
                 ontimeRate: '${periodStats.onTimeRate.toStringAsFixed(0)}%',
                 completedShifts: '${periodStats.completeShifts} shifts',
-                reliabilityScore: '${stats.reliabilityScore.finalScore.toStringAsFixed(1)} / 100',
+                reliabilityScore: stats.reliabilityScore.finalScore.toStringAsFixed(1),
+                scoreBreakdown: stats.reliabilityScore.scoreBreakdown,
               ),
 
               const SizedBox(height: 20),

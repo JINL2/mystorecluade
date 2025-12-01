@@ -19,21 +19,21 @@ class StoreShiftDataSource {
 
   SupabaseClient get _client => _supabaseService.client;
 
-  /// Fetch all shifts for a specific store
+  /// Fetch all shifts for a specific store with employee count
   ///
-  /// Uses RPC function 'get_shift_metadata_v2_utc'
+  /// Uses RPC function 'get_shift_metadata_with_employee_count'
   /// Parameters:
   /// - p_store_id: uuid (required)
   /// - p_timezone: text (IANA timezone, e.g., 'Asia/Seoul')
   ///
-  /// Returns shifts with time converted to user's local timezone
+  /// Returns shifts with time converted to user's local timezone and employee count
   Future<List<Map<String, dynamic>>> getShiftsByStoreId(String storeId) async {
     try {
       // Get IANA timezone name (e.g., 'Asia/Seoul', 'Asia/Ho_Chi_Minh')
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<List<dynamic>>(
-        'get_shift_metadata_v2_utc',
+        'get_shift_metadata_with_employee_count',
         params: {
           'p_store_id': storeId,
           'p_timezone': timezone,

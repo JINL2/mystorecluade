@@ -16,6 +16,7 @@ class StoreShiftModel extends StoreShift {
     required super.isActive,
     super.numberShift = 1,
     super.isCanOvertime = false,
+    super.employeeCount = 0,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -47,6 +48,8 @@ class StoreShiftModel extends StoreShift {
       // RPC returns number_shift and is_can_overtime
       numberShift: (json['number_shift'] as int?) ?? 1,
       isCanOvertime: json['is_can_overtime'] as bool? ?? false,
+      // RPC returns employee_count if using get_shift_metadata_with_employee_count
+      employeeCount: (json['employee_count'] as int?) ?? 0,
       // RPC may not return created_at/updated_at, fallback to current time
       createdAt: createdAtValue != null
           ? DateTimeUtils.toLocal(createdAtValue)
@@ -108,6 +111,7 @@ class StoreShiftModel extends StoreShift {
       isActive: isActive,
       numberShift: numberShift,
       isCanOvertime: isCanOvertime,
+      employeeCount: employeeCount,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -124,6 +128,7 @@ class StoreShiftModel extends StoreShift {
       isActive: entity.isActive,
       numberShift: entity.numberShift,
       isCanOvertime: entity.isCanOvertime,
+      employeeCount: entity.employeeCount,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );

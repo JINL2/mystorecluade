@@ -82,11 +82,34 @@ class ShiftListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space1 / 2),
-                Text(
-                  '${shift.startTime} - ${shift.endTime}',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${shift.startTime} - ${shift.endTime}',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          LucideIcons.users,
+                          size: 12,
+                          color: TossColors.gray500,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          '${shift.numberShift}',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -1099,20 +1099,11 @@ abstract class _WeeklyPayments extends WeeklyPayments {
 
 /// @nodoc
 mixin _$ReliabilityScore {
-  int get totalApplications => throw _privateConstructorUsedError;
-  int get approvedShifts => throw _privateConstructorUsedError;
-  int get lateCount => throw _privateConstructorUsedError;
-  double get lateRate => throw _privateConstructorUsedError;
-  double get avgLateMinutes => throw _privateConstructorUsedError;
-  double get avgFillRateApplied => throw _privateConstructorUsedError;
-  double get applicationsScore => throw _privateConstructorUsedError;
-  double get lateRateScore => throw _privateConstructorUsedError;
-  double get lateMinutesScore => throw _privateConstructorUsedError;
-  double get fillRateScore => throw _privateConstructorUsedError;
-  double get reliability => throw _privateConstructorUsedError;
+  int get completedShifts => throw _privateConstructorUsedError;
+  double get onTimeRate => throw _privateConstructorUsedError;
   double get finalScore => throw _privateConstructorUsedError;
-  String? get periodStart => throw _privateConstructorUsedError;
-  String? get periodEnd => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get scoreBreakdown =>
+      throw _privateConstructorUsedError;
 
   /// Create a copy of ReliabilityScore
   /// with the given fields replaced by the non-null parameter values.
@@ -1128,20 +1119,10 @@ abstract class $ReliabilityScoreCopyWith<$Res> {
       _$ReliabilityScoreCopyWithImpl<$Res, ReliabilityScore>;
   @useResult
   $Res call(
-      {int totalApplications,
-      int approvedShifts,
-      int lateCount,
-      double lateRate,
-      double avgLateMinutes,
-      double avgFillRateApplied,
-      double applicationsScore,
-      double lateRateScore,
-      double lateMinutesScore,
-      double fillRateScore,
-      double reliability,
+      {int completedShifts,
+      double onTimeRate,
       double finalScore,
-      String? periodStart,
-      String? periodEnd});
+      Map<String, dynamic>? scoreBreakdown});
 }
 
 /// @nodoc
@@ -1159,78 +1140,28 @@ class _$ReliabilityScoreCopyWithImpl<$Res, $Val extends ReliabilityScore>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? totalApplications = null,
-    Object? approvedShifts = null,
-    Object? lateCount = null,
-    Object? lateRate = null,
-    Object? avgLateMinutes = null,
-    Object? avgFillRateApplied = null,
-    Object? applicationsScore = null,
-    Object? lateRateScore = null,
-    Object? lateMinutesScore = null,
-    Object? fillRateScore = null,
-    Object? reliability = null,
+    Object? completedShifts = null,
+    Object? onTimeRate = null,
     Object? finalScore = null,
-    Object? periodStart = freezed,
-    Object? periodEnd = freezed,
+    Object? scoreBreakdown = freezed,
   }) {
     return _then(_value.copyWith(
-      totalApplications: null == totalApplications
-          ? _value.totalApplications
-          : totalApplications // ignore: cast_nullable_to_non_nullable
+      completedShifts: null == completedShifts
+          ? _value.completedShifts
+          : completedShifts // ignore: cast_nullable_to_non_nullable
               as int,
-      approvedShifts: null == approvedShifts
-          ? _value.approvedShifts
-          : approvedShifts // ignore: cast_nullable_to_non_nullable
-              as int,
-      lateCount: null == lateCount
-          ? _value.lateCount
-          : lateCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      lateRate: null == lateRate
-          ? _value.lateRate
-          : lateRate // ignore: cast_nullable_to_non_nullable
-              as double,
-      avgLateMinutes: null == avgLateMinutes
-          ? _value.avgLateMinutes
-          : avgLateMinutes // ignore: cast_nullable_to_non_nullable
-              as double,
-      avgFillRateApplied: null == avgFillRateApplied
-          ? _value.avgFillRateApplied
-          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
-              as double,
-      applicationsScore: null == applicationsScore
-          ? _value.applicationsScore
-          : applicationsScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      lateRateScore: null == lateRateScore
-          ? _value.lateRateScore
-          : lateRateScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      lateMinutesScore: null == lateMinutesScore
-          ? _value.lateMinutesScore
-          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      fillRateScore: null == fillRateScore
-          ? _value.fillRateScore
-          : fillRateScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      reliability: null == reliability
-          ? _value.reliability
-          : reliability // ignore: cast_nullable_to_non_nullable
+      onTimeRate: null == onTimeRate
+          ? _value.onTimeRate
+          : onTimeRate // ignore: cast_nullable_to_non_nullable
               as double,
       finalScore: null == finalScore
           ? _value.finalScore
           : finalScore // ignore: cast_nullable_to_non_nullable
               as double,
-      periodStart: freezed == periodStart
-          ? _value.periodStart
-          : periodStart // ignore: cast_nullable_to_non_nullable
-              as String?,
-      periodEnd: freezed == periodEnd
-          ? _value.periodEnd
-          : periodEnd // ignore: cast_nullable_to_non_nullable
-              as String?,
+      scoreBreakdown: freezed == scoreBreakdown
+          ? _value.scoreBreakdown
+          : scoreBreakdown // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -1244,20 +1175,10 @@ abstract class _$$ReliabilityScoreImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int totalApplications,
-      int approvedShifts,
-      int lateCount,
-      double lateRate,
-      double avgLateMinutes,
-      double avgFillRateApplied,
-      double applicationsScore,
-      double lateRateScore,
-      double lateMinutesScore,
-      double fillRateScore,
-      double reliability,
+      {int completedShifts,
+      double onTimeRate,
       double finalScore,
-      String? periodStart,
-      String? periodEnd});
+      Map<String, dynamic>? scoreBreakdown});
 }
 
 /// @nodoc
@@ -1273,78 +1194,28 @@ class __$$ReliabilityScoreImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? totalApplications = null,
-    Object? approvedShifts = null,
-    Object? lateCount = null,
-    Object? lateRate = null,
-    Object? avgLateMinutes = null,
-    Object? avgFillRateApplied = null,
-    Object? applicationsScore = null,
-    Object? lateRateScore = null,
-    Object? lateMinutesScore = null,
-    Object? fillRateScore = null,
-    Object? reliability = null,
+    Object? completedShifts = null,
+    Object? onTimeRate = null,
     Object? finalScore = null,
-    Object? periodStart = freezed,
-    Object? periodEnd = freezed,
+    Object? scoreBreakdown = freezed,
   }) {
     return _then(_$ReliabilityScoreImpl(
-      totalApplications: null == totalApplications
-          ? _value.totalApplications
-          : totalApplications // ignore: cast_nullable_to_non_nullable
+      completedShifts: null == completedShifts
+          ? _value.completedShifts
+          : completedShifts // ignore: cast_nullable_to_non_nullable
               as int,
-      approvedShifts: null == approvedShifts
-          ? _value.approvedShifts
-          : approvedShifts // ignore: cast_nullable_to_non_nullable
-              as int,
-      lateCount: null == lateCount
-          ? _value.lateCount
-          : lateCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      lateRate: null == lateRate
-          ? _value.lateRate
-          : lateRate // ignore: cast_nullable_to_non_nullable
-              as double,
-      avgLateMinutes: null == avgLateMinutes
-          ? _value.avgLateMinutes
-          : avgLateMinutes // ignore: cast_nullable_to_non_nullable
-              as double,
-      avgFillRateApplied: null == avgFillRateApplied
-          ? _value.avgFillRateApplied
-          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
-              as double,
-      applicationsScore: null == applicationsScore
-          ? _value.applicationsScore
-          : applicationsScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      lateRateScore: null == lateRateScore
-          ? _value.lateRateScore
-          : lateRateScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      lateMinutesScore: null == lateMinutesScore
-          ? _value.lateMinutesScore
-          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      fillRateScore: null == fillRateScore
-          ? _value.fillRateScore
-          : fillRateScore // ignore: cast_nullable_to_non_nullable
-              as double,
-      reliability: null == reliability
-          ? _value.reliability
-          : reliability // ignore: cast_nullable_to_non_nullable
+      onTimeRate: null == onTimeRate
+          ? _value.onTimeRate
+          : onTimeRate // ignore: cast_nullable_to_non_nullable
               as double,
       finalScore: null == finalScore
           ? _value.finalScore
           : finalScore // ignore: cast_nullable_to_non_nullable
               as double,
-      periodStart: freezed == periodStart
-          ? _value.periodStart
-          : periodStart // ignore: cast_nullable_to_non_nullable
-              as String?,
-      periodEnd: freezed == periodEnd
-          ? _value.periodEnd
-          : periodEnd // ignore: cast_nullable_to_non_nullable
-              as String?,
+      scoreBreakdown: freezed == scoreBreakdown
+          ? _value._scoreBreakdown
+          : scoreBreakdown // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -1353,54 +1224,32 @@ class __$$ReliabilityScoreImplCopyWithImpl<$Res>
 
 class _$ReliabilityScoreImpl extends _ReliabilityScore {
   const _$ReliabilityScoreImpl(
-      {required this.totalApplications,
-      required this.approvedShifts,
-      required this.lateCount,
-      required this.lateRate,
-      required this.avgLateMinutes,
-      required this.avgFillRateApplied,
-      required this.applicationsScore,
-      required this.lateRateScore,
-      required this.lateMinutesScore,
-      required this.fillRateScore,
-      required this.reliability,
+      {required this.completedShifts,
+      required this.onTimeRate,
       required this.finalScore,
-      this.periodStart,
-      this.periodEnd})
-      : super._();
+      final Map<String, dynamic>? scoreBreakdown})
+      : _scoreBreakdown = scoreBreakdown,
+        super._();
 
   @override
-  final int totalApplications;
+  final int completedShifts;
   @override
-  final int approvedShifts;
-  @override
-  final int lateCount;
-  @override
-  final double lateRate;
-  @override
-  final double avgLateMinutes;
-  @override
-  final double avgFillRateApplied;
-  @override
-  final double applicationsScore;
-  @override
-  final double lateRateScore;
-  @override
-  final double lateMinutesScore;
-  @override
-  final double fillRateScore;
-  @override
-  final double reliability;
+  final double onTimeRate;
   @override
   final double finalScore;
+  final Map<String, dynamic>? _scoreBreakdown;
   @override
-  final String? periodStart;
-  @override
-  final String? periodEnd;
+  Map<String, dynamic>? get scoreBreakdown {
+    final value = _scoreBreakdown;
+    if (value == null) return null;
+    if (_scoreBreakdown is EqualUnmodifiableMapView) return _scoreBreakdown;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'ReliabilityScore(totalApplications: $totalApplications, approvedShifts: $approvedShifts, lateCount: $lateCount, lateRate: $lateRate, avgLateMinutes: $avgLateMinutes, avgFillRateApplied: $avgFillRateApplied, applicationsScore: $applicationsScore, lateRateScore: $lateRateScore, lateMinutesScore: $lateMinutesScore, fillRateScore: $fillRateScore, reliability: $reliability, finalScore: $finalScore, periodStart: $periodStart, periodEnd: $periodEnd)';
+    return 'ReliabilityScore(completedShifts: $completedShifts, onTimeRate: $onTimeRate, finalScore: $finalScore, scoreBreakdown: $scoreBreakdown)';
   }
 
   @override
@@ -1408,53 +1257,19 @@ class _$ReliabilityScoreImpl extends _ReliabilityScore {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ReliabilityScoreImpl &&
-            (identical(other.totalApplications, totalApplications) ||
-                other.totalApplications == totalApplications) &&
-            (identical(other.approvedShifts, approvedShifts) ||
-                other.approvedShifts == approvedShifts) &&
-            (identical(other.lateCount, lateCount) ||
-                other.lateCount == lateCount) &&
-            (identical(other.lateRate, lateRate) ||
-                other.lateRate == lateRate) &&
-            (identical(other.avgLateMinutes, avgLateMinutes) ||
-                other.avgLateMinutes == avgLateMinutes) &&
-            (identical(other.avgFillRateApplied, avgFillRateApplied) ||
-                other.avgFillRateApplied == avgFillRateApplied) &&
-            (identical(other.applicationsScore, applicationsScore) ||
-                other.applicationsScore == applicationsScore) &&
-            (identical(other.lateRateScore, lateRateScore) ||
-                other.lateRateScore == lateRateScore) &&
-            (identical(other.lateMinutesScore, lateMinutesScore) ||
-                other.lateMinutesScore == lateMinutesScore) &&
-            (identical(other.fillRateScore, fillRateScore) ||
-                other.fillRateScore == fillRateScore) &&
-            (identical(other.reliability, reliability) ||
-                other.reliability == reliability) &&
+            (identical(other.completedShifts, completedShifts) ||
+                other.completedShifts == completedShifts) &&
+            (identical(other.onTimeRate, onTimeRate) ||
+                other.onTimeRate == onTimeRate) &&
             (identical(other.finalScore, finalScore) ||
                 other.finalScore == finalScore) &&
-            (identical(other.periodStart, periodStart) ||
-                other.periodStart == periodStart) &&
-            (identical(other.periodEnd, periodEnd) ||
-                other.periodEnd == periodEnd));
+            const DeepCollectionEquality()
+                .equals(other._scoreBreakdown, _scoreBreakdown));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      totalApplications,
-      approvedShifts,
-      lateCount,
-      lateRate,
-      avgLateMinutes,
-      avgFillRateApplied,
-      applicationsScore,
-      lateRateScore,
-      lateMinutesScore,
-      fillRateScore,
-      reliability,
-      finalScore,
-      periodStart,
-      periodEnd);
+  int get hashCode => Object.hash(runtimeType, completedShifts, onTimeRate,
+      finalScore, const DeepCollectionEquality().hash(_scoreBreakdown));
 
   /// Create a copy of ReliabilityScore
   /// with the given fields replaced by the non-null parameter values.
@@ -1468,50 +1283,20 @@ class _$ReliabilityScoreImpl extends _ReliabilityScore {
 
 abstract class _ReliabilityScore extends ReliabilityScore {
   const factory _ReliabilityScore(
-      {required final int totalApplications,
-      required final int approvedShifts,
-      required final int lateCount,
-      required final double lateRate,
-      required final double avgLateMinutes,
-      required final double avgFillRateApplied,
-      required final double applicationsScore,
-      required final double lateRateScore,
-      required final double lateMinutesScore,
-      required final double fillRateScore,
-      required final double reliability,
+      {required final int completedShifts,
+      required final double onTimeRate,
       required final double finalScore,
-      final String? periodStart,
-      final String? periodEnd}) = _$ReliabilityScoreImpl;
+      final Map<String, dynamic>? scoreBreakdown}) = _$ReliabilityScoreImpl;
   const _ReliabilityScore._() : super._();
 
   @override
-  int get totalApplications;
+  int get completedShifts;
   @override
-  int get approvedShifts;
-  @override
-  int get lateCount;
-  @override
-  double get lateRate;
-  @override
-  double get avgLateMinutes;
-  @override
-  double get avgFillRateApplied;
-  @override
-  double get applicationsScore;
-  @override
-  double get lateRateScore;
-  @override
-  double get lateMinutesScore;
-  @override
-  double get fillRateScore;
-  @override
-  double get reliability;
+  double get onTimeRate;
   @override
   double get finalScore;
   @override
-  String? get periodStart;
-  @override
-  String? get periodEnd;
+  Map<String, dynamic>? get scoreBreakdown;
 
   /// Create a copy of ReliabilityScore
   /// with the given fields replaced by the non-null parameter values.
