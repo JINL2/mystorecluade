@@ -86,41 +86,65 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   void _showSortOptionsSheet() {
     final currentSort = ref.read(salesProductProvider).sortOption;
 
+    // Only show base options (Asc variants) - tap toggles between Asc/Desc
+    final baseOptions = [
+      SortOption.nameAsc,
+      SortOption.priceAsc,
+      SortOption.stockAsc,
+    ];
+
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
       isDismissible: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(TossBorderRadius.lg),
+      builder: (context) => SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: TossColors.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(TossBorderRadius.lg),
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sort Products',
-                style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sort Products',
+                  style: TossTextStyles.h4.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              ...SortOption.values.map((option) {
-                return ListTile(
-                  title: Text(option.displayName),
-                  selected: currentSort == option,
-                  onTap: () {
-                    ref.read(salesProductProvider.notifier).updateSort(option);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ],
+                const SizedBox(height: TossSpacing.space3),
+                ...baseOptions.map((option) {
+                  final isSelected = currentSort == option ||
+                      currentSort == option.toggled;
+                  return ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(option.displayName),
+                    selected: isSelected,
+                    trailing: isSelected
+                        ? Icon(
+                            currentSort.isAscending
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            size: 20,
+                          )
+                        : null,
+                    onTap: () {
+                      final newSort = isSelected ? currentSort.toggled : option;
+                      ref.read(salesProductProvider.notifier).updateSort(newSort);
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
+                const SizedBox(height: TossSpacing.space2),
+              ],
+            ),
           ),
         ),
       ),

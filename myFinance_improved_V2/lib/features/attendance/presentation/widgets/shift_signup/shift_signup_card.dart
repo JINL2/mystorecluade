@@ -65,20 +65,21 @@ class ShiftSignupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // All cards use white background
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          border: Border.all(color: TossColors.gray100, width: 1),
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Left side: Shift information
-            Expanded(
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        border: Border.all(color: TossColors.gray100, width: 1),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side: Shift information - tappable area for bottom sheet
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onViewAppliedUsers,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -124,100 +125,53 @@ class ShiftSignupCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Applied/Assigned count or "You applied" text
-                  // Entire row is clickable to view applied users
-                  if (userApplied) ...[
+                  // Always show applied count with avatars (if any applicants exist)
+                  // Show regardless of user's own application status
+                  if (appliedCount > 0 || (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty)) ...[
                     const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: onViewAppliedUsers,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Avatar stack for other applied users (if provided)
-                          if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                            _buildAvatarStackWithoutGesture(assignedUserAvatars!),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            'You applied',
-                            style: TossTextStyles.labelSmall.copyWith(
-                              color: TossColors.gray600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else if (appliedCount > 0 && status == ShiftSignupStatus.available) ...[
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: onViewAppliedUsers,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Avatar stack for applied users (if provided)
-                          if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                            _buildAvatarStackWithoutGesture(assignedUserAvatars!),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            '$appliedCount applied',
-                            style: TossTextStyles.labelSmall.copyWith(
-                              color: TossColors.gray600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else if (status == ShiftSignupStatus.assigned && assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: onViewAppliedUsers,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Avatar stack
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Avatar stack for applied users (always show if available)
+                        if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
                           _buildAvatarStackWithoutGesture(assignedUserAvatars!),
                           const SizedBox(width: 8),
-                          Text(
-                            '${assignedUserAvatars!.length} assigned',
-                            style: TossTextStyles.labelSmall.copyWith(
-                              color: TossColors.gray600,
-                              fontSize: 12,
-                            ),
-                          ),
                         ],
-                      ),
+                        Text(
+                          '$appliedCount applied',
+                          style: TossTextStyles.labelSmall.copyWith(
+                            color: TossColors.gray600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
               ),
             ),
+          ),
 
-            const SizedBox(width: 12),
+          const SizedBox(width: 12),
 
-            // Right side: Action button + slots count
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildActionButton(),
-                const SizedBox(height: 4),
-                Text(
-                  // Show "X applied" for available/waitlist shifts, "X assigned" for assigned shifts
-                  status == ShiftSignupStatus.assigned
-                      ? '$filledSlots/$totalSlots assigned'
-                      : '$appliedCount/$totalSlots applied',
-                  style: TossTextStyles.labelSmall.copyWith(
-                    color: TossColors.gray500,
-                    fontSize: 11,
-                  ),
+          // Right side: Action button + slots count (NOT tappable for bottom sheet)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildActionButton(),
+              const SizedBox(height: 4),
+              Text(
+                // Always show "X/Y assigned" - filledSlots = approved employees count
+                '$filledSlots/$totalSlots assigned',
+                style: TossTextStyles.labelSmall.copyWith(
+                  color: TossColors.gray500,
+                  fontSize: 11,
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

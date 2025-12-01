@@ -177,27 +177,48 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   }
 
   // Find the closest upcoming shift from actual data
-  DateTime? _findClosestUpcomingShift(List<ShiftCard> shiftCards) {
+  // Returns the specific ShiftCard (not just date) to handle multiple shifts on same day
+  ShiftCard? _findClosestUpcomingShift(List<ShiftCard> shiftCards) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    DateTime? closestDate;
+    ShiftCard? closestShift;
+    DateTime? closestDateTime;
 
     for (final card in shiftCards) {
       final cardDate = _parseRequestDate(card.requestDate);
       if (cardDate == null) continue;
 
-      // Only consider future or today's shifts that haven't started
+      // Only consider approved, future or today's shifts that haven't started
       if (!cardDate.isBefore(today)) {
-        if (card.actualStartTime == null) {
-          // Shift hasn't started yet
-          if (closestDate == null || cardDate.isBefore(closestDate)) {
-            closestDate = cardDate;
+        if (card.isApproved && card.actualStartTime == null) {
+          // Parse start time from shiftTime (format: "14:00 ~ 18:00")
+          final shiftStartDateTime = _parseShiftStartDateTime(cardDate, card.shiftTime);
+
+          if (closestDateTime == null || shiftStartDateTime.isBefore(closestDateTime)) {
+            closestDateTime = shiftStartDateTime;
+            closestShift = card;
           }
         }
       }
     }
 
-    return closestDate;
+    return closestShift;
+  }
+
+  // Parse shift start time and combine with date to get full DateTime
+  DateTime _parseShiftStartDateTime(DateTime date, String shiftTime) {
+    try {
+      final parts = shiftTime.split('~').map((s) => s.trim()).toList();
+      if (parts.isEmpty) return date;
+
+      final timeParts = parts[0].split(':');
+      final hour = int.parse(timeParts[0]);
+      final minute = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (e) {
+      return date;
+    }
   }
 
   // Parse request_date string to DateTime
@@ -500,7 +521,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     List<ShiftCard> shiftCards,
   ) {
     final shifts = <Widget>[];
-    final closestUpcomingDate = _findClosestUpcomingShift(shiftCards);
+    final closestUpcomingShift = _findClosestUpcomingShift(shiftCards);
     int? closestUpcomingIndex;
 
     // Filter shifts within the week range
@@ -510,12 +531,14 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       return !cardDate.isBefore(weekRange.start) && !cardDate.isAfter(weekRange.end);
     }).toList();
 
-    // Sort by date
+    // Sort by date and time
     weekShifts.sort((a, b) {
       final dateA = _parseRequestDate(a.requestDate);
       final dateB = _parseRequestDate(b.requestDate);
       if (dateA == null || dateB == null) return 0;
-      return dateA.compareTo(dateB);
+      final dateTimeA = _parseShiftStartDateTime(dateA, a.shiftTime);
+      final dateTimeB = _parseShiftStartDateTime(dateB, b.shiftTime);
+      return dateTimeA.compareTo(dateTimeB);
     });
 
     for (int i = 0; i < weekShifts.length; i++) {
@@ -528,7 +551,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       final shiftType = _extractShiftType(card.shiftTime);
       final timeRange = _formatTimeRange(card.shiftTime);
       final status = _determineStatus(card, cardDate);
-      final isClosest = closestUpcomingDate != null && _isSameDay(cardDate, closestUpcomingDate);
+      // Compare by ShiftCard identity (shiftRequestId) instead of just date
+      final isClosest = closestUpcomingShift != null && card.shiftRequestId == closestUpcomingShift.shiftRequestId;
 
       // Track the index of closest upcoming shift for auto-scroll
       if (isClosest) {
@@ -677,7 +701,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   // Build day shifts for selected date
   List<Widget> _buildDayShifts(DateTime date, List<ShiftCard> shiftCards) {
     final shifts = <Widget>[];
-    final closestUpcomingDate = _findClosestUpcomingShift(shiftCards);
+    final closestUpcomingShift = _findClosestUpcomingShift(shiftCards);
 
     // Filter shifts for the selected date
     final dayShifts = shiftCards.where((card) {
@@ -685,6 +709,15 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       if (cardDate == null) return false;
       return _isSameDay(cardDate, date);
     }).toList();
+
+    // Sort by start time
+    dayShifts.sort((a, b) {
+      final dateA = _parseRequestDate(a.requestDate) ?? DateTime.now();
+      final dateB = _parseRequestDate(b.requestDate) ?? DateTime.now();
+      final dateTimeA = _parseShiftStartDateTime(dateA, a.shiftTime);
+      final dateTimeB = _parseShiftStartDateTime(dateB, b.shiftTime);
+      return dateTimeA.compareTo(dateTimeB);
+    });
 
     if (dayShifts.isEmpty) {
       shifts.add(
@@ -712,7 +745,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       final shiftType = _extractShiftType(card.shiftTime);
       final timeRange = _formatTimeRange(card.shiftTime);
       final status = _determineStatus(card, cardDate);
-      final isClosest = closestUpcomingDate != null && _isSameDay(cardDate, closestUpcomingDate);
+      // Compare by ShiftCard identity (shiftRequestId) instead of just date
+      final isClosest = closestUpcomingShift != null && card.shiftRequestId == closestUpcomingShift.shiftRequestId;
 
       shifts.add(
         Padding(
