@@ -102,16 +102,17 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      // Convert selected date to UTC timestamp for requestTime
-      final requestTime = DateTime.now().toUtc().toIso8601String().substring(0, 19).replaceAll('T', ' ');
+      // v3 RPC uses p_request_date (DATE type) - just send yyyy-MM-dd format
+      // RPC internally combines this date with store_shifts UTC times
+      final selectedDate = state.selectedDate!;
+      final requestDate = DateTimeUtils.toDateOnly(selectedDate);
 
       await _repository.insertSchedule(
         userId: state.selectedEmployeeId!,
         shiftId: state.selectedShiftId!,
         storeId: _storeId,
-        requestTime: requestTime,
+        requestDate: requestDate,
         approvedBy: approvedBy,
-        timezone: _timezone,
       );
 
       state = state.copyWith(isSaving: false);
