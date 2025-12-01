@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,10 +9,19 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
-import '../../data/repositories/repository_providers.dart';
+import '../../data/adapters/xfile_image_adapter.dart';
 import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
+import '../providers/repository_providers.dart';
+import '../widgets/product_form/classification_section.dart';
+import '../widgets/product_form/dialogs/brand_creation_dialog.dart';
+import '../widgets/product_form/dialogs/category_creation_dialog.dart';
+import '../widgets/product_form/inventory_section.dart';
+import '../widgets/product_form/pricing_section.dart';
+import '../widgets/product_form/product_image_picker.dart';
+import '../widgets/product_form/product_info_section.dart';
+import '../widgets/product_form/product_status_section.dart';
 
 /// Edit Product Page - Edit existing product
 class EditProductPage extends ConsumerStatefulWidget {
@@ -110,30 +117,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   Future<void> _pickImages() async {
-    final ImagePicker picker = ImagePicker();
-    try {
-      final List<XFile> images = await picker.pickMultiImage(
-        maxWidth: 1920,
-        maxHeight: 1920,
-        imageQuality: 85,
-      );
-      if (images.isNotEmpty) {
-        setState(() {
-          _selectedImages.addAll(images);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Image Selection Failed',
-            message: 'Failed to pick images: $e',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
+    final images = await ProductImagePicker.pickImagesWithValidation(context);
+    if (images.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(images);
+      });
     }
   }
 
@@ -179,28 +167,79 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       final repository = ref.read(inventoryRepositoryProvider);
       final salePrice = double.tryParse(_salePriceController.text) ?? 0.0;
       final costPrice = double.tryParse(_costPriceController.text) ?? 0.0;
+      final productName = _nameController.text.trim();
+      final sku = _productNumberController.text.trim();
 
-      // TODO: Upload new images to storage and get URLs
-      // For now, keep existing URLs
+      // Step 1: Validate with inventory_check_edit RPC
+      final checkResult = await repository.checkEditProduct(
+        productId: widget.productId,
+        companyId: companyId,
+        sku: sku.isNotEmpty ? sku : null,
+        productName: productName.isNotEmpty ? productName : null,
+      );
 
+      if (!checkResult.success) {
+        if (mounted) {
+          String errorTitle = 'Validation Error';
+          String errorMessage = checkResult.errorMessage ?? 'Validation failed';
+
+          // Handle specific error codes
+          switch (checkResult.errorCode) {
+            case 'PRODUCT_NOT_FOUND':
+              errorTitle = 'Product Not Found';
+              errorMessage =
+                  'This product no longer exists or you do not have access.';
+              break;
+            case 'PRODUCT_NAME_DUPLICATE':
+              errorTitle = 'Duplicate Name';
+              errorMessage = 'A product with this name already exists.';
+              break;
+            case 'SKU_DUPLICATE':
+              errorTitle = 'Duplicate SKU';
+              errorMessage = 'A product with this SKU already exists.';
+              break;
+          }
+
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: errorTitle,
+              message: errorMessage,
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
+        return;
+      }
+
+      // Step 2: Upload new images to Supabase Storage (if any)
+      List<String> newImageUrls = [];
+      if (_selectedImages.isNotEmpty) {
+        // Convert XFile to ImageFile using adapter for Clean Architecture compliance
+        final imageFiles = XFileImageAdapter.fromXFiles(_selectedImages);
+        newImageUrls = await repository.uploadProductImages(
+          companyId: companyId,
+          images: imageFiles,
+        );
+      }
+
+      // Step 3: Combine existing URLs with newly uploaded URLs
+      final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+
+      // Step 4: Proceed with actual update (inventory_edit_product_v2)
       final product = await repository.updateProduct(
         productId: widget.productId,
         companyId: companyId,
         storeId: storeId,
-        name: _nameController.text.trim(),
-        sku: _productNumberController.text.trim(),
-        barcode: _barcodeController.text.trim().isEmpty
-            ? null
-            : _barcodeController.text.trim(),
+        name: productName,
+        sku: sku,
         categoryId: _selectedCategory?.id,
         brandId: _selectedBrand?.id,
         unit: _selectedUnit,
         costPrice: costPrice,
         salePrice: salePrice,
-        isActive: _isActive,
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
+        imageUrls: allImageUrls.isNotEmpty ? allImageUrls : null,
       );
 
       if (product != null && mounted) {
@@ -292,7 +331,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                 itemBuilder: (context, index) {
                   final category = metadata.categories[index];
                   return ListTile(
-                    leading: const Icon(Icons.help_outline, color: TossColors.gray400),
+                    leading: const Icon(Icons.help_outline,
+                        color: TossColors.gray400),
                     title: Text(category.name),
                     subtitle: Text('${category.productCount ?? 0} products'),
                     trailing: _selectedCategory?.id == category.id
@@ -317,7 +357,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   Future<void> _showAddCategoryDialog() async {
     return showDialog<void>(
       context: context,
-      builder: (BuildContext context) => _CategoryCreationDialog(
+      builder: (BuildContext context) => CategoryCreationDialog(
         onCategoryCreated: (Category category) {
           setState(() {
             _selectedCategory = category;
@@ -365,7 +405,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                 itemBuilder: (context, index) {
                   final brand = metadata.brands[index];
                   return ListTile(
-                    leading: const Icon(Icons.business_outlined, color: TossColors.gray400),
+                    leading: const Icon(Icons.business_outlined,
+                        color: TossColors.gray400),
                     title: Text(brand.name),
                     subtitle: Text('${brand.productCount ?? 0} products'),
                     trailing: _selectedBrand?.id == brand.id
@@ -390,7 +431,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   Future<void> _showAddBrandDialog() async {
     return showDialog<void>(
       context: context,
-      builder: (BuildContext context) => _BrandCreationDialog(
+      builder: (BuildContext context) => BrandCreationDialog(
         onBrandCreated: (Brand brand) {
           setState(() {
             _selectedBrand = brand;
@@ -405,12 +446,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         ? metadata.units
         : ['piece', 'kg', 'g', 'liter', 'ml', 'box', 'pack'];
 
-    final items = units.map((unit) =>
-      TossSelectionItem.fromGeneric(
-        id: unit,
-        title: unit,
-      ),
-    ).toList();
+    final items = units
+        .map(
+          (unit) => TossSelectionItem.fromGeneric(
+            id: unit,
+            title: unit,
+          ),
+        )
+        .toList();
 
     await TossSelectionBottomSheet.show<String>(
       context: context,
@@ -429,6 +472,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   @override
   Widget build(BuildContext context) {
     final metadataState = ref.watch(inventoryMetadataProvider);
+    final productsState = ref.watch(inventoryPageProvider);
+    final currencySymbol = productsState.currency?.symbol ?? '';
 
     if (_product == null) {
       return const TossScaffold(
@@ -484,1176 +529,73 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Product Status Toggle
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: TossColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.toggle_on_outlined, color: TossColors.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Product Status',
-                      style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const Spacer(),
-                    Switch(
-                      value: _isActive,
-                      onChanged: (value) {
-                        setState(() {
-                          _isActive = value;
-                        });
-                      },
-                      activeTrackColor: TossColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isActive ? 'Active' : 'Inactive',
-                      style: TossTextStyles.body.copyWith(
-                        color: _isActive ? TossColors.success : TossColors.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+              ProductStatusSection(
+                isActive: _isActive,
+                onChanged: (value) {
+                  setState(() {
+                    _isActive = value;
+                  });
+                },
               ),
               const SizedBox(height: 16),
 
-              // Add Photo Section
-              GestureDetector(
-                onTap: _pickImages,
-                child: Container(
-                  width: double.infinity,
-                  height: _existingImageUrls.isEmpty && _selectedImages.isEmpty ? 120 : 180,
-                  decoration: BoxDecoration(
-                    color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: TossColors.gray300),
-                  ),
-                  child: _existingImageUrls.isEmpty && _selectedImages.isEmpty
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.camera_alt_outlined,
-                              size: 40,
-                              color: TossColors.gray400,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Add Photo',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray500,
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.all(8),
-                          itemCount: _existingImageUrls.length + _selectedImages.length + 1,
-                          itemBuilder: (context, index) {
-                            // Add button
-                            if (index == _existingImageUrls.length + _selectedImages.length) {
-                              return GestureDetector(
-                                onTap: _pickImages,
-                                child: Container(
-                                  width: 140,
-                                  margin: const EdgeInsets.only(left: 8),
-                                  decoration: BoxDecoration(
-                                    color: TossColors.gray200,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add_photo_alternate_outlined,
-                                    color: TossColors.gray500,
-                                    size: 40,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            // Existing images
-                            if (index < _existingImageUrls.length) {
-                              return Stack(
-                                children: [
-                                  Container(
-                                    width: 140,
-                                    margin: const EdgeInsets.only(left: 8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      image: DecorationImage(
-                                        image: NetworkImage(_existingImageUrls[index]),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 12,
-                                    child: GestureDetector(
-                                      onTap: () => _removeExistingImage(index),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black54,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-
-                            // New images
-                            final newImageIndex = index - _existingImageUrls.length;
-                            return Stack(
-                              children: [
-                                Container(
-                                  width: 140,
-                                  margin: const EdgeInsets.only(left: 8),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: FileImage(File(_selectedImages[newImageIndex].path)),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 12,
-                                  child: GestureDetector(
-                                    onTap: () => _removeNewImage(newImageIndex),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.black54,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                ),
+              // Image Picker Section
+              ProductImagePicker(
+                selectedImages: _selectedImages,
+                existingImageUrls: _existingImageUrls,
+                onPickImages: _pickImages,
+                onRemoveNewImage: _removeNewImage,
+                onRemoveExistingImage: _removeExistingImage,
               ),
               const SizedBox(height: 24),
 
               // Product Information Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: TossColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.info_outline, color: TossColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Product Information',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Product name *',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Product name is required';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Enter product name',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.primary, width: 2),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.error, width: 2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Product number',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _productNumberController,
-                      decoration: InputDecoration(
-                        hintText: 'SKU',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Barcode (Optional)',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _barcodeController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter barcode',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Description (Optional)',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: 'Enter product description',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              ProductInfoSection(
+                nameController: _nameController,
+                productNumberController: _productNumberController,
+                barcodeController: _barcodeController,
+                descriptionController: _descriptionController,
+                showDescription: true,
               ),
               const SizedBox(height: 16),
 
               // Classification Section
               if (metadataState.metadata != null)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: TossColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.folder_outlined, color: TossColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Classification',
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('Category', style: TossTextStyles.body),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _selectedCategory?.name ?? 'Select product category',
-                              style: TossTextStyles.body.copyWith(
-                                color: _selectedCategory != null
-                                    ? TossColors.gray900
-                                    : TossColors.gray400,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chevron_right, color: TossColors.gray400),
-                          ],
-                        ),
-                        onTap: () => _showCategorySelector(metadataState.metadata!),
-                      ),
-                      const Divider(height: 1, color: TossColors.gray200),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('Brand', style: TossTextStyles.body),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _selectedBrand?.name ?? 'Choose brand',
-                              style: TossTextStyles.body.copyWith(
-                                color: _selectedBrand != null
-                                    ? TossColors.gray900
-                                    : TossColors.gray400,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chevron_right, color: TossColors.gray400),
-                          ],
-                        ),
-                        onTap: () => _showBrandSelector(metadataState.metadata!),
-                      ),
-                    ],
-                  ),
+                ClassificationSection(
+                  selectedCategory: _selectedCategory,
+                  selectedBrand: _selectedBrand,
+                  onCategoryTap: () =>
+                      _showCategorySelector(metadataState.metadata!),
+                  onBrandTap: () =>
+                      _showBrandSelector(metadataState.metadata!),
                 ),
               const SizedBox(height: 16),
 
               // Pricing Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: TossColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.attach_money, color: TossColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Pricing',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Sale price (₩)',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _salePriceController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Cost of goods (₩)',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _costPriceController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              PricingSection(
+                salePriceController: _salePriceController,
+                costPriceController: _costPriceController,
+                currencySymbol: currencySymbol,
               ),
-
               const SizedBox(height: 16),
 
               // Inventory Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: TossColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.inventory_2_outlined, color: TossColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Inventory',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'On-hand quantity',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _onHandController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.info_outline, size: 20, color: TossColors.gray400),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Current stock quantity available'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Weight (g)',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _weightController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: TossColors.gray300),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Unit Selection
-                    const Divider(height: 1, color: TossColors.gray200),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        'Unit',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _selectedUnit ?? 'piece',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.chevron_right,
-                            color: TossColors.gray400,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      onTap: () => _showUnitSelector(metadataState.metadata!),
-                    ),
-                  ],
-                ),
+              InventorySection(
+                onHandController: _onHandController,
+                weightController: _weightController,
+                selectedUnit: _selectedUnit,
+                onUnitTap: () {
+                  if (metadataState.metadata != null) {
+                    _showUnitSelector(metadataState.metadata!);
+                  }
+                },
               ),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 80), // Bottom padding
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-// Category Creation Dialog Widget
-class _CategoryCreationDialog extends ConsumerStatefulWidget {
-  final void Function(Category) onCategoryCreated;
-
-  const _CategoryCreationDialog({
-    required this.onCategoryCreated,
-  });
-
-  @override
-  ConsumerState<_CategoryCreationDialog> createState() =>
-      _CategoryCreationDialogState();
-}
-
-class _CategoryCreationDialogState
-    extends ConsumerState<_CategoryCreationDialog> {
-  final TextEditingController _nameController = TextEditingController();
-  Category? _selectedParentCategory;
-  bool _isCreating = false;
-  bool _isNameEmpty = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController.addListener(_onNameChanged);
-  }
-
-  @override
-  void dispose() {
-    _nameController.removeListener(_onNameChanged);
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  void _onNameChanged() {
-    final isEmpty = _nameController.text.trim().isEmpty;
-    if (isEmpty != _isNameEmpty) {
-      setState(() {
-        _isNameEmpty = isEmpty;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final metadataState = ref.watch(inventoryMetadataProvider);
-    final metadata = metadataState.metadata;
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      title: Text(
-        'Add Category',
-        style: TossTextStyles.h3.copyWith(
-          fontWeight: FontWeight.w700,
-          color: TossColors.gray900,
-        ),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category Name Field
-            Text(
-              'Category Name *',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'Enter category name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
-              autofocus: true,
-            ),
-            const SizedBox(height: 16),
-            // Parent Category Selection
-            Text(
-              'Parent Category (Optional)',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: _isCreating
-                  ? null
-                  : () async {
-                      if (metadata == null || metadata.categories.isEmpty) {
-                        return;
-                      }
-
-                      showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => Container(
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Parent Category',
-                                style: TossTextStyles.h3
-                                    .copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 16),
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: metadata.categories.length,
-                                  itemBuilder: (context, index) {
-                                    final category = metadata.categories[index];
-                                    return ListTile(
-                                      leading: const Icon(Icons.help_outline,
-                                          color: TossColors.gray400,),
-                                      title: Text(category.name),
-                                      subtitle: Text(
-                                          '${category.productCount ?? 0} products',),
-                                      trailing:
-                                          _selectedParentCategory?.id ==
-                                                  category.id
-                                              ? const Icon(Icons.check,
-                                                  color: TossColors.primary,)
-                                              : null,
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedParentCategory = category;
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: TossColors.gray300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _selectedParentCategory?.name ??
-                            'Select parent category (optional)',
-                        style: TossTextStyles.body.copyWith(
-                          color: _selectedParentCategory != null
-                              ? TossColors.gray900
-                              : TossColors.gray400,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: TossColors.gray400,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: _isCreating
-                    ? null
-                    : () {
-                        context.pop();
-                      },
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: (_isCreating || _isNameEmpty)
-                    ? null
-                    : () async {
-                        final name = _nameController.text.trim();
-
-                        setState(() {
-                          _isCreating = true;
-                        });
-
-                        try {
-                          final appState = ref.read(appStateProvider);
-                          final companyId = appState.companyChoosen as String?;
-
-                          if (companyId == null) {
-                            if (!context.mounted) return;
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => TossDialog.error(
-                                title: 'Validation Error',
-                                message: 'Company not selected',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                            setState(() {
-                              _isCreating = false;
-                            });
-                            return;
-                          }
-
-                          final repository =
-                              ref.read(inventoryRepositoryProvider);
-                          final category = await repository.createCategory(
-                            companyId: companyId,
-                            categoryName: name,
-                            parentCategoryId: _selectedParentCategory?.id,
-                          );
-
-                          if (category != null) {
-                            if (!context.mounted) return;
-
-                            // Refresh metadata
-                            ref
-                                .read(inventoryMetadataProvider.notifier)
-                                .refresh();
-
-                            // Notify parent
-                            widget.onCategoryCreated(category);
-
-                            // Close dialog
-                            context.pop();
-
-                            // Show success message
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => TossDialog.success(
-                                title: 'Category Created',
-                                message: 'Category "$name" created',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                          } else {
-                            if (!context.mounted) return;
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => TossDialog.error(
-                                title: 'Creation Failed',
-                                message: 'Failed to create category',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                            setState(() {
-                              _isCreating = false;
-                            });
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          await showDialog<bool>(
-                            context: context,
-                            barrierDismissible: true,
-                            builder: (context) => TossDialog.error(
-                              title: 'Error',
-                              message: 'Error: $e',
-                              primaryButtonText: 'OK',
-                            ),
-                          );
-                          setState(() {
-                            _isCreating = false;
-                          });
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray200
-                      : TossColors.primary,
-                  foregroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray900
-                      : Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isCreating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            TossColors.gray600,
-                          ),
-                        ),
-                      )
-                    : const Text('Create'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Brand Creation Dialog Widget
-class _BrandCreationDialog extends ConsumerStatefulWidget {
-  final void Function(Brand) onBrandCreated;
-
-  const _BrandCreationDialog({
-    required this.onBrandCreated,
-  });
-
-  @override
-  ConsumerState<_BrandCreationDialog> createState() =>
-      _BrandCreationDialogState();
-}
-
-class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _codeController = TextEditingController();
-  bool _isCreating = false;
-  bool _isNameEmpty = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController.addListener(_onNameChanged);
-  }
-
-  @override
-  void dispose() {
-    _nameController.removeListener(_onNameChanged);
-    _nameController.dispose();
-    _codeController.dispose();
-    super.dispose();
-  }
-
-  void _onNameChanged() {
-    final isEmpty = _nameController.text.trim().isEmpty;
-    if (isEmpty != _isNameEmpty) {
-      setState(() {
-        _isNameEmpty = isEmpty;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      title: Text(
-        'Add Brand',
-        style: TossTextStyles.h3.copyWith(
-          fontWeight: FontWeight.w700,
-          color: TossColors.gray900,
-        ),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Brand Name Field
-            Text(
-              'Brand name *',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'Enter brand name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
-              autofocus: true,
-            ),
-            const SizedBox(height: 16),
-            // Brand Code Field
-            Text(
-              'Brand code (optional)',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _codeController,
-              decoration: InputDecoration(
-                hintText: 'Enter brand code or leave empty for auto...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: _isCreating
-                    ? null
-                    : () {
-                        context.pop();
-                      },
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: (_isCreating || _isNameEmpty)
-                    ? null
-                    : () async {
-                        final name = _nameController.text.trim();
-                        final code = _codeController.text.trim();
-
-                        setState(() {
-                          _isCreating = true;
-                        });
-
-                        try {
-                          final appState = ref.read(appStateProvider);
-                          final companyId = appState.companyChoosen as String?;
-
-                          if (companyId == null) {
-                            if (!context.mounted) return;
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => TossDialog.error(
-                                title: 'Validation Error',
-                                message: 'Company not selected',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                            setState(() {
-                              _isCreating = false;
-                            });
-                            return;
-                          }
-
-                          final repository =
-                              ref.read(inventoryRepositoryProvider);
-                          final brand = await repository.createBrand(
-                            companyId: companyId,
-                            brandName: name,
-                            brandCode: code.isEmpty ? null : code,
-                          );
-
-                          if (brand != null) {
-                            if (!context.mounted) return;
-
-                            // Refresh metadata
-                            ref
-                                .read(inventoryMetadataProvider.notifier)
-                                .refresh();
-
-                            // Notify parent
-                            widget.onBrandCreated(brand);
-
-                            // Close dialog
-                            context.pop();
-
-                            // Show success message
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => TossDialog.success(
-                                title: 'Brand Created',
-                                message: 'Brand "$name" created',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                          } else {
-                            if (!context.mounted) return;
-                            await showDialog<bool>(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => TossDialog.error(
-                                title: 'Creation Failed',
-                                message: 'Failed to create brand',
-                                primaryButtonText: 'OK',
-                              ),
-                            );
-                            setState(() {
-                              _isCreating = false;
-                            });
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          await showDialog<bool>(
-                            context: context,
-                            barrierDismissible: true,
-                            builder: (context) => TossDialog.error(
-                              title: 'Error',
-                              message: 'Error: $e',
-                              primaryButtonText: 'OK',
-                            ),
-                          );
-                          setState(() {
-                            _isCreating = false;
-                          });
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray200
-                      : TossColors.primary,
-                  foregroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray900
-                      : Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isCreating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            TossColors.gray600,
-                          ),
-                        ),
-                      )
-                    : const Text('Create'),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

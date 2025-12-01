@@ -6,11 +6,11 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/repositories/repository_providers.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../../domain/value_objects/sort_option.dart';
+import 'repository_providers.dart';
 import 'states/inventory_metadata_state.dart';
 import 'states/inventory_page_state.dart';
 

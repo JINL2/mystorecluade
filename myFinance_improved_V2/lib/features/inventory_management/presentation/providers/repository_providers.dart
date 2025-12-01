@@ -1,15 +1,17 @@
 // Repository Providers: Inventory Management
-// Data Layer providers for dependency injection
+// Presentation Layer providers for dependency injection
+// Note: Moved from data/ to presentation/ for Clean Architecture compliance
+// Presentation should not directly import data layer implementations
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/supabase_service.dart';
+import '../../data/datasources/inventory_remote_datasource.dart';
+import '../../data/repositories/inventory_repository_impl.dart';
 import '../../domain/repositories/inventory_repository.dart';
-import '../datasources/inventory_remote_datasource.dart';
-import 'inventory_repository_impl.dart';
 
 // ============================================================================
-// Data Layer Providers
+// Repository Providers (DI Configuration)
 // ============================================================================
 
 /// Remote DataSource Provider
@@ -23,6 +25,7 @@ final inventoryRemoteDataSourceProvider = Provider<InventoryRemoteDataSource>(
 
 /// Repository Provider
 /// Provides the inventory repository implementation
+/// Note: Returns Domain interface type (InventoryRepository), not implementation
 final inventoryRepositoryProvider = Provider<InventoryRepository>(
   (ref) {
     final dataSource = ref.watch(inventoryRemoteDataSourceProvider);

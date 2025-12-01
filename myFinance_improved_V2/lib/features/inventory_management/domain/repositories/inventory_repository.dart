@@ -3,6 +3,7 @@
 
 import '../entities/inventory_metadata.dart';
 import '../entities/product.dart';
+import '../value_objects/image_file.dart';
 import '../value_objects/pagination_params.dart';
 import '../value_objects/product_filter.dart';
 import '../value_objects/sort_option.dart';
@@ -37,6 +38,14 @@ abstract class InventoryRepository {
     double? sellingPrice,
     int? initialQuantity,
     List<String>? imageUrls,
+  });
+
+  /// Check if product edit is valid before updating
+  Future<EditCheckResult> checkEditProduct({
+    required String productId,
+    required String companyId,
+    String? sku,
+    String? productName,
   });
 
   /// Update existing product
@@ -77,6 +86,12 @@ abstract class InventoryRepository {
     String? brandCode,
   });
 
+  /// Upload product images to storage
+  /// Returns list of public URLs for uploaded images
+  Future<List<String>> uploadProductImages({
+    required String companyId,
+    required List<ImageFile> images,
+  });
 }
 
 /// Product Page Result
@@ -89,5 +104,24 @@ class ProductPageResult {
     required this.products,
     required this.pagination,
     required this.currency,
+  });
+}
+
+/// Edit Check Result - validation result before product update
+class EditCheckResult {
+  final bool success;
+  final String? errorCode;
+  final String? errorMessage;
+  final bool productExists;
+  final bool nameAvailable;
+  final bool skuAvailable;
+
+  const EditCheckResult({
+    required this.success,
+    this.errorCode,
+    this.errorMessage,
+    required this.productExists,
+    required this.nameAvailable,
+    required this.skuAvailable,
   });
 }

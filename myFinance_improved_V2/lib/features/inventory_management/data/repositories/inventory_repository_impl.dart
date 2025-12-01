@@ -5,6 +5,7 @@ import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import '../../domain/value_objects/image_file.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../../domain/value_objects/sort_option.dart';
@@ -137,6 +138,38 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
+  Future<EditCheckResult> checkEditProduct({
+    required String productId,
+    required String companyId,
+    String? sku,
+    String? productName,
+  }) async {
+    try {
+      final result = await _remoteDataSource.checkEditProduct(
+        productId: productId,
+        companyId: companyId,
+        sku: sku,
+        productName: productName,
+      );
+
+      return EditCheckResult(
+        success: result.success,
+        errorCode: result.error?.code,
+        errorMessage: result.error?.message,
+        productExists: result.validations.productExists,
+        nameAvailable: result.validations.nameAvailable,
+        skuAvailable: result.validations.skuAvailable,
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to validate product edit: $e',
+        details: e,
+      );
+    }
+  }
+
+  @override
   Future<Product?> updateProduct({
     required String productId,
     required String companyId,
@@ -254,4 +287,22 @@ class InventoryRepositoryImpl implements InventoryRepository {
     }
   }
 
+  @override
+  Future<List<String>> uploadProductImages({
+    required String companyId,
+    required List<ImageFile> images,
+  }) async {
+    try {
+      return await _remoteDataSource.uploadProductImages(
+        companyId: companyId,
+        images: images,
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to upload images: $e',
+        details: e,
+      );
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../models/sales_product_model.dart';
 
 /// Remote data source for sales products
@@ -11,7 +12,7 @@ class SalesProductRemoteDataSource {
 
   /// Get inventory products for sales
   ///
-  /// Calls the `get_inventory_page` RPC function
+  /// Calls the `get_inventory_page_v2` RPC function
   Future<List<SalesProductModel>> getInventoryProducts({
     required String companyId,
     required String storeId,
@@ -25,10 +26,11 @@ class SalesProductRemoteDataSource {
       'p_page': page,
       'p_limit': limit,
       'p_search': search ?? '',
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_inventory_page',
+      'get_inventory_page_v2',
       params: params,
     ).single();
 

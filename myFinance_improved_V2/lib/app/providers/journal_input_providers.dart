@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/core/data/models/journal_entry_model.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Provider for the journal entry model
@@ -227,9 +227,8 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryMo
     try {
       final supabase = Supabase.instance.client;
       
-      // Use device's current time at the moment of submission
-      final currentDeviceTime = DateTime.now();
-      final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(currentDeviceTime);
+      // Use device's current time converted to UTC
+      final entryDate = DateTimeUtils.toUtc(DateTime.now());
       
       // Prepare journal lines
       final pLines = journalEntry.transactionLines.map((line) => line.toJson()).toList();
@@ -249,13 +248,13 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryMo
       
       // Call the journal RPC with properly formatted parameters
       await supabase.rpc(
-        'insert_journal_with_everything',
+        'insert_journal_with_everything_utc',
         params: {
           'p_base_amount': journalEntry.totalDebits,
           'p_company_id': companyId.isNotEmpty ? companyId : journalEntry.selectedCompanyId,
           'p_created_by': user.id,
           'p_description': journalEntry.overallDescription,
-          'p_entry_date': entryDate,
+          'p_entry_date_utc': entryDate,
           'p_lines': pLines,
           'p_counterparty_id': mainCounterpartyId,
           'p_if_cash_location_id': journalEntry.counterpartyCashLocationId,

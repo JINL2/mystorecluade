@@ -65,7 +65,7 @@ class _ProductListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = currency?.symbol ?? '₩';
+    final currencySymbol = currency?.symbol ?? '';
 
     return Card(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),

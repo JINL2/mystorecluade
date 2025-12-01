@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/services/inventory_service.dart';
-import '../models/cash_location_models.dart';
+import '../../data/repositories/repository_providers.dart';
+import '../../domain/entities/cash_location.dart';
+import '../../domain/repositories/product_repository.dart';
+import '../../domain/repositories/sales_journal_repository.dart';
 import '../models/invoice_models.dart';
 
 // State for managing payment method page
@@ -57,9 +59,10 @@ class PaymentMethodState {
 
 class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
   final Ref ref;
-  final InventoryService _inventoryService;
+  final ProductRepository _productRepository;
+  final SalesJournalRepository _salesJournalRepository;
 
-  PaymentMethodNotifier(this.ref, this._inventoryService) : super(PaymentMethodState());
+  PaymentMethodNotifier(this.ref, this._productRepository, this._salesJournalRepository) : super(PaymentMethodState());
 
   // Load currency data and cash locations
   Future<void> loadCurrencyData() async {
@@ -72,57 +75,55 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
         throw Exception('Company not selected. Please select a company first.');
       }
 
-      // Call RPC function to get base currency
-      final response = await _inventoryService.getBaseCurrency(
+      // Call repository to get currency data
+      final currencyResult = await _productRepository.getCurrencyData(
         companyId: appState.companyChoosen,
       );
 
-      if (response != null) {
-        // Parse currency response
-        BaseCurrencyResponse currencyResponse;
+      // Convert CurrencyDataResult to BaseCurrencyResponse for UI
+      final currencyResponse = BaseCurrencyResponse(
+        baseCurrency: PaymentCurrency(
+          currencyId: currencyResult.baseCurrency.currencyId,
+          currencyCode: currencyResult.baseCurrency.currencyCode,
+          currencyName: currencyResult.baseCurrency.currencyName,
+          symbol: currencyResult.baseCurrency.symbol,
+          flagEmoji: currencyResult.baseCurrency.flagEmoji,
+          exchangeRateToBase: currencyResult.baseCurrency.exchangeRateToBase,
+        ),
+        companyCurrencies: currencyResult.companyCurrencies
+            .map((c) => PaymentCurrency(
+                  currencyId: c.currencyId,
+                  currencyCode: c.currencyCode,
+                  currencyName: c.currencyName,
+                  symbol: c.symbol,
+                  flagEmoji: c.flagEmoji,
+                  exchangeRateToBase: c.exchangeRateToBase,
+                ))
+            .toList(),
+      );
 
-        // Check if response has success wrapper
-        if (response.containsKey('success') && response['success'] == true) {
-          currencyResponse = BaseCurrencyResponse.fromJson(response['data'] as Map<String, dynamic>? ?? {});
-        } else if (!response.containsKey('success')) {
-          // Direct data response
-          currencyResponse = BaseCurrencyResponse.fromJson(response);
-        } else {
-          final errorData = response['error'] as Map<String, dynamic>?;
-          throw Exception(errorData?['message'] ?? 'Failed to load currency data');
+      // Load cash locations using repository
+      List<CashLocation> cashLocations = [];
+
+      try {
+        // Get store ID from app state
+        final storeId = appState.storeChoosen;
+        if (storeId.isNotEmpty) {
+          // Repository returns domain entities directly
+          cashLocations = await _productRepository.getCashLocations(
+            companyId: appState.companyChoosen,
+            storeId: storeId,
+          );
         }
-
-        // Load cash locations using RPC call
-        List<CashLocation> cashLocations = [];
-
-        try {
-          // Get store ID from app state
-          final storeId = appState.storeChoosen;
-          if (storeId.isNotEmpty) {
-            final cashLocationsResponse = await _inventoryService.getCashLocations(
-              companyId: appState.companyChoosen,
-              storeId: storeId,
-            );
-
-            if (cashLocationsResponse != null) {
-              cashLocations = cashLocationsResponse
-                  .map((dynamic location) => CashLocation.fromJson(location as Map<String, dynamic>))
-                  .toList();
-            }
-          }
-        } catch (e) {
-          // Continue with empty list - currency data is still loaded
-        }
-
-        state = state.copyWith(
-          isLoading: false,
-          currencyResponse: currencyResponse,
-          cashLocations: cashLocations,
-        );
-
-      } else {
-        throw Exception('No response received from server');
+      } catch (e) {
+        // Continue with empty list - currency data is still loaded
       }
+
+      state = state.copyWith(
+        isLoading: false,
+        currencyResponse: currencyResponse,
+        cashLocations: cashLocations,
+      );
     } catch (e) {
       String errorMessage = 'Failed to load payment data';
 
@@ -209,12 +210,35 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
   Future<void> refresh() async {
     await loadCurrencyData();
   }
+
+  /// Create a journal entry for cash sales transaction
+  /// This is called after invoice creation to record the accounting entry
+  Future<void> createSalesJournalEntry({
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required double amount,
+    required String description,
+    required String lineDescription,
+    required String cashLocationId,
+  }) async {
+    await _salesJournalRepository.createSalesJournalEntry(
+      companyId: companyId,
+      storeId: storeId,
+      userId: userId,
+      amount: amount,
+      description: description,
+      lineDescription: lineDescription,
+      cashLocationId: cashLocationId,
+    );
+  }
 }
 
 // Provider for payment method state
 final paymentMethodProvider = StateNotifierProvider.autoDispose<PaymentMethodNotifier, PaymentMethodState>((ref) {
-  final inventoryService = InventoryService();
-  return PaymentMethodNotifier(ref, inventoryService);
+  final productRepository = ref.read(productRepositoryProvider);
+  final salesJournalRepository = ref.read(salesJournalRepositoryProvider);
+  return PaymentMethodNotifier(ref, productRepository, salesJournalRepository);
 });
 
 // Provider to auto-load currency data when company changes

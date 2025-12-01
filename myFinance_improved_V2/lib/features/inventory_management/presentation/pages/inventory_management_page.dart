@@ -396,7 +396,7 @@ class _InventoryManagementPageState
 
   Widget _buildProductListTile(Product product) {
     final pageState = ref.watch(inventoryPageProvider);
-    final currencySymbol = pageState.currency?.symbol ?? '₩';
+    final currencySymbol = pageState.currency?.symbol ?? '';
 
     return TossListTile(
       title: product.name,

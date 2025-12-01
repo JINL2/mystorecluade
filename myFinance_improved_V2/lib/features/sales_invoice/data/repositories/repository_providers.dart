@@ -11,10 +11,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/repositories/invoice_repository.dart';
 import '../../domain/repositories/product_repository.dart';
+import '../../domain/repositories/sales_journal_repository.dart';
 import '../datasources/invoice_remote_datasource.dart';
 import '../datasources/product_remote_datasource.dart';
 import 'invoice_repository_impl.dart';
 import 'product_repository_impl.dart';
+import 'sales_journal_repository_impl.dart';
 
 // ============================================================================
 // Internal Providers (Private - used only within this file)
@@ -57,4 +59,13 @@ final invoiceRepositoryProvider = Provider<InvoiceRepository>((ref) {
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
   final dataSource = ref.read(_productRemoteDataSourceProvider);
   return ProductRepositoryImpl(dataSource);
+});
+
+/// Sales journal repository provider
+///
+/// Provides SalesJournalRepositoryImpl implementation.
+/// Used for creating sales journal entries during payment processing.
+final salesJournalRepositoryProvider = Provider<SalesJournalRepository>((ref) {
+  final client = ref.read(_supabaseClientProvider);
+  return SalesJournalRepositoryImpl(client);
 });

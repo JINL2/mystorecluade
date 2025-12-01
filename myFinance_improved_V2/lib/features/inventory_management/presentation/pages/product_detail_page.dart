@@ -7,9 +7,9 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
+import '../providers/repository_providers.dart';
 
 /// Product Detail Page - Shows detailed product information
 class ProductDetailPage extends ConsumerWidget {
@@ -23,6 +23,7 @@ class ProductDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsState = ref.watch(inventoryPageProvider);
+    final currencySymbol = productsState.currency?.symbol ?? '';
 
     // Find product in the list
     final product = productsState.products.firstWhere(
@@ -74,12 +75,12 @@ class ProductDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
 
             // Pricing
-            _buildPricingSection(product),
+            _buildPricingSection(product, currencySymbol),
 
             const SizedBox(height: 8),
 
             // Inventory
-            _buildInventorySection(product),
+            _buildInventorySection(product, currencySymbol),
 
             const SizedBox(height: 80),
           ],
@@ -92,7 +93,7 @@ class ProductDetailPage extends ConsumerWidget {
     if (product.images.isEmpty) {
       return Container(
         width: double.infinity,
-        height: 300,
+        height: 200,
         color: TossColors.gray100,
         child: const Icon(
           Icons.inventory_2,
@@ -102,24 +103,39 @@ class ProductDetailPage extends ConsumerWidget {
       );
     }
 
-    return SizedBox(
-      height: 300,
-      child: PageView.builder(
-        itemCount: product.images.length,
-        itemBuilder: (context, index) {
-          return Image.network(
-            product.images[index],
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: TossColors.gray100,
-              child: const Icon(
-                Icons.inventory_2,
-                size: 100,
-                color: TossColors.gray400,
+    final imageCount = product.images.length.clamp(1, 3);
+
+    return Container(
+      height: 200,
+      color: TossColors.gray100,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(imageCount, (index) {
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: index == 0 ? 0 : 4,
+                right: index == imageCount - 1 ? 0 : 4,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  product.images[index],
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: TossColors.gray200,
+                    child: const Icon(
+                      Icons.inventory_2,
+                      size: 50,
+                      color: TossColors.gray400,
+                    ),
+                  ),
+                ),
               ),
             ),
           );
-        },
+        }),
       ),
     );
   }
@@ -204,7 +220,7 @@ class ProductDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPricingSection(Product product) {
+  Widget _buildPricingSection(Product product, String currencySymbol) {
     return Container(
       color: TossColors.surface,
       padding: const EdgeInsets.all(16),
@@ -222,19 +238,17 @@ class ProductDetailPage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoRow('Sale Price', '${product.currency} ${product.salePrice.toStringAsFixed(0)}'),
+          _buildInfoRow('Sale Price', '$currencySymbol${_formatCurrency(product.salePrice)}'),
           const SizedBox(height: 8),
-          _buildInfoRow('Cost Price', '${product.currency} ${product.costPrice.toStringAsFixed(0)}'),
+          _buildInfoRow('Cost Price', '$currencySymbol${_formatCurrency(product.costPrice)}'),
           const SizedBox(height: 8),
-          _buildInfoRow('Margin', '${product.currency} ${product.margin.toStringAsFixed(0)} (${product.marginPercentage.toStringAsFixed(1)}%)'),
-          const SizedBox(height: 8),
-          _buildInfoRow('Tax Rate', '${(product.taxRate * 100).toStringAsFixed(1)}%'),
+          _buildInfoRow('Margin', '$currencySymbol${_formatCurrency(product.margin)} (${product.marginPercentage.toStringAsFixed(1)}%)'),
         ],
       ),
     );
   }
 
-  Widget _buildInventorySection(Product product) {
+  Widget _buildInventorySection(Product product, String currencySymbol) {
     final stockStatus = product.getStockStatus();
     Color statusColor;
     switch (stockStatus) {
@@ -316,11 +330,18 @@ class ProductDetailPage extends ConsumerWidget {
             style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
-          _buildInfoRow('Inventory Value', '${product.currency} ${product.inventoryValue.toStringAsFixed(0)}'),
+          _buildInfoRow('Inventory Value', '$currencySymbol${_formatCurrency(product.inventoryValue)}'),
           const SizedBox(height: 8),
-          _buildInfoRow('Potential Revenue', '${product.currency} ${product.potentialRevenue.toStringAsFixed(0)}'),
+          _buildInfoRow('Potential Revenue', '$currencySymbol${_formatCurrency(product.potentialRevenue)}'),
         ],
       ),
+    );
+  }
+
+  String _formatCurrency(double value) {
+    return value.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
     );
   }
 

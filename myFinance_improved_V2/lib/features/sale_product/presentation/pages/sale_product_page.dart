@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 // Shared imports - UI components
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -13,20 +12,19 @@ import '../../../../shared/widgets/common/toss_error_view.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
-import '../../../../shared/widgets/toss/toss_list_tile.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
 
 // Feature imports
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import '../../../sales_invoice/presentation/pages/payment_method_page.dart';
 import '../../domain/entities/cart_item.dart';
-import '../../domain/entities/sales_product.dart';
 import '../../domain/value_objects/sort_option.dart';
 import '../providers/cart_provider.dart';
 import '../providers/sales_product_provider.dart';
 import '../providers/use_case_providers.dart';
+import '../widgets/cart/added_items_section.dart';
 import '../widgets/cart/cart_summary_bar.dart';
-import '../widgets/common/product_image_widget.dart';
+import '../widgets/list/selectable_product_tile.dart';
 
 class SaleProductPage extends ConsumerStatefulWidget {
   const SaleProductPage({super.key});
@@ -207,7 +205,11 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               child: Column(
                 children: [
                   // Added Items Section (shown when cart has items and search is not focused)
-                  if (cart.isNotEmpty && !_isSearchFocused) _buildAddedItemsSection(cart, currencySymbol),
+                  if (cart.isNotEmpty && !_isSearchFocused)
+                    AddedItemsSection(
+                      cartItems: cart,
+                      currencySymbol: currencySymbol,
+                    ),
 
                   // Only show sort control and product list when needed
                   if (shouldShowProductList) ...[
@@ -365,7 +367,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
                                 return Column(
                                   children: [
-                                    _buildProductListTile(product, cartItem, currencySymbol),
+                                    SelectableProductTile(
+                                      product: product,
+                                      cartItem: cartItem,
+                                      currencySymbol: currencySymbol,
+                                      onUnfocusSearch: () => _searchFocusNode.unfocus(),
+                                    ),
                                     if (index < displayProducts.length - 1)
                                       const Divider(
                                         height: 1,
@@ -424,318 +431,6 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               },
             )
           : null,
-    );
-  }
-
-  Widget _buildProductListTile(SalesProduct product, CartItem cartItem, String currencySymbol) {
-    final isSelected = cartItem.quantity > 0;
-    final formatter = NumberFormat('#,##0', 'en_US');
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected ? TossColors.success.withValues(alpha: 0.1) : Colors.transparent,
-        border: isSelected
-            ? Border.all(
-                color: TossColors.success,
-                width: 1.5,
-              )
-            : null,
-        borderRadius: isSelected ? BorderRadius.circular(TossBorderRadius.sm) : null,
-      ),
-      child: TossListTile(
-        title: product.productName,
-        subtitle: product.sku,
-        showDivider: false,
-        leading: ProductImageWidget(
-          imageUrl: product.images.mainImage,
-          size: 48,
-          fallbackIcon: Icons.inventory_2,
-        ),
-        trailing: SizedBox(
-          width: 150,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Price
-              Text(
-                '$currencySymbol${formatter.format(product.pricing.sellingPrice?.round() ?? 0)}',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space1),
-              // Stock info
-              Text(
-                'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
-                style: TossTextStyles.caption.copyWith(
-                  color: _getStockColor(product),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          _searchFocusNode.unfocus();
-
-          if (cartItem.quantity == 0) {
-            ref.read(cartProvider.notifier).addItem(product);
-          } else {
-            ref.read(cartProvider.notifier).updateQuantity(
-                  cartItem.id,
-                  cartItem.quantity + 1,
-                );
-          }
-        },
-      ),
-    );
-  }
-
-  Color _getStockColor(SalesProduct product) {
-    final stock = product.totalStockSummary.totalQuantityOnHand;
-    if (stock == 0) return TossColors.error;
-    if (stock <= 5) return TossColors.warning;
-    if (stock <= 20) return TossColors.info;
-    return TossColors.success;
-  }
-
-  Widget _buildAddedItemsSection(List<CartItem> cartItems, String currencySymbol) {
-    final totalAmount = ref.read(cartProvider.notifier).subtotal;
-    final totalItems = ref.read(cartProvider.notifier).totalItems;
-    final formatter = NumberFormat('#,##0', 'en_US');
-
-    return Container(
-      margin: const EdgeInsets.all(TossSpacing.space4),
-      child: TossWhiteCard(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(
-                  Icons.shopping_cart,
-                  color: TossColors.primary,
-                  size: TossSpacing.iconSM,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Text(
-                  'Added Items',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '$totalItems items',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: TossSpacing.space3),
-
-            // Cart Items List
-            ...cartItems.map((item) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-                padding: const EdgeInsets.all(TossSpacing.space3),
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                  border: Border.all(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Product Image
-                    ProductImageWidget(
-                      imageUrl: item.image,
-                      size: 40,
-                      fallbackIcon: Icons.inventory_2,
-                    ),
-
-                    const SizedBox(width: TossSpacing.space3),
-
-                    // Product Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: TossTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: TossColors.gray900,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: TossSpacing.space1),
-                          Text(
-                            item.sku,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                            ),
-                          ),
-                          const SizedBox(height: TossSpacing.space1),
-                          Row(
-                            children: [
-                              Text(
-                                '$currencySymbol${formatter.format(item.price.round())}',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                ' × ${item.quantity}',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray600,
-                                ),
-                              ),
-                              const SizedBox(width: TossSpacing.space2),
-                              Text(
-                                '$currencySymbol${formatter.format(item.subtotal.round())}',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Quantity Controls
-                    Container(
-                      decoration: BoxDecoration(
-                        color: TossColors.white,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                        border: Border.all(
-                          color: TossColors.primary.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          // Decrease Button
-                          InkWell(
-                            onTap: item.quantity > 0
-                                ? () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity - 1)
-                                : null,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(TossBorderRadius.sm),
-                              bottomLeft: Radius.circular(TossBorderRadius.sm),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.all(TossSpacing.space2),
-                              child: Icon(
-                                Icons.remove,
-                                size: 16,
-                                color: item.quantity > 0 ? TossColors.primary : TossColors.gray400,
-                              ),
-                            ),
-                          ),
-
-                          // Quantity Display
-                          Container(
-                            width: 40,
-                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-                            decoration: const BoxDecoration(
-                              border: Border.symmetric(
-                                vertical: BorderSide(
-                                  color: TossColors.gray200,
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              '${item.quantity}',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-
-                          // Increase Button
-                          InkWell(
-                            onTap: () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity + 1),
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(TossBorderRadius.sm),
-                              bottomRight: Radius.circular(TossBorderRadius.sm),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.all(TossSpacing.space2),
-                              child: const Icon(
-                                Icons.add,
-                                size: 16,
-                                color: TossColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Remove Button
-                    const SizedBox(width: TossSpacing.space2),
-                    InkWell(
-                      onTap: () => ref.read(cartProvider.notifier).removeItem(item.id),
-                      child: const Icon(
-                        Icons.close,
-                        size: 20,
-                        color: TossColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-
-            // Total Section
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  Text(
-                    '$currencySymbol${formatter.format(totalAmount.round())}',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
