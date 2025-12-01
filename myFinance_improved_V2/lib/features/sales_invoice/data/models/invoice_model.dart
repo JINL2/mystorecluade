@@ -37,7 +37,7 @@ class InvoiceModel {
     return InvoiceModel(
       invoiceId: json['invoice_id']?.toString() ?? '',
       invoiceNumber: json['invoice_number']?.toString() ?? '',
-      saleDate: DateTimeUtils.toLocal(json['sale_date'].toString()),
+      saleDate: DateTimeUtils.toLocalSafe(json['sale_date']?.toString()) ?? DateTime.now(),
       status: json['status']?.toString() ?? 'draft',
       customer: json['customer'] as Map<String, dynamic>?,
       store: json['store'] as Map<String, dynamic>,
@@ -45,7 +45,7 @@ class InvoiceModel {
       amounts: json['amounts'] as Map<String, dynamic>,
       itemsSummary: json['items_summary'] as Map<String, dynamic>,
       createdBy: json['created_by'] as Map<String, dynamic>?,
-      createdAt: DateTimeUtils.toLocal(json['created_at'].toString()),
+      createdAt: DateTimeUtils.toLocalSafe(json['created_at']?.toString()) ?? DateTime.now(),
     );
   }
 

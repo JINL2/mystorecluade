@@ -37,25 +37,28 @@ class SortOptionsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.lg),
-        ),
-      ),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Sort Products',
-            style: TossTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+    return SafeArea(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(TossBorderRadius.lg),
           ),
-          const SizedBox(height: TossSpacing.space4),
-          ..._buildSortOptions(context),
-        ],
+        ),
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sort Products',
+              style: TossTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            ..._buildSortOptions(context),
+            const SizedBox(height: TossSpacing.space2),
+          ],
+        ),
       ),
     );
   }
@@ -71,6 +74,9 @@ class SortOptionsBottomSheet extends StatelessWidget {
       final isSelected = _isOptionSelected(option);
 
       return ListTile(
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        contentPadding: EdgeInsets.zero,
         title: Text(option.displayName),
         selected: isSelected,
         trailing: isSelected
