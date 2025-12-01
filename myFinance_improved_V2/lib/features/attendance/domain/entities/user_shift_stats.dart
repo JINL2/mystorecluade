@@ -15,6 +15,7 @@ class UserShiftStats with _$UserShiftStats {
     required PeriodStats lastMonth,
     required PeriodStats thisYear,
     required WeeklyPayments weeklyPayments,
+    required ReliabilityScore reliabilityScore,
   }) = _UserShiftStats;
 }
 
@@ -115,4 +116,27 @@ class WeeklyPayments with _$WeeklyPayments {
 
   /// Convert to list for chart (oldest to newest: w5, w4, w3, w2, w1)
   List<double> toChartList() => [w5, w4, w3, w2, w1];
+}
+
+/// Reliability score from v_employee_statistics_score
+@freezed
+class ReliabilityScore with _$ReliabilityScore {
+  const ReliabilityScore._();
+
+  const factory ReliabilityScore({
+    required int totalApplications,
+    required int approvedShifts,
+    required int lateCount,
+    required double lateRate,
+    required double avgLateMinutes,
+    required double avgFillRateApplied,
+    required double applicationsScore,
+    required double lateRateScore,
+    required double lateMinutesScore,
+    required double fillRateScore,
+    required double reliability,
+    required double finalScore,
+    String? periodStart,
+    String? periodEnd,
+  }) = _ReliabilityScore;
 }

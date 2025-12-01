@@ -77,10 +77,15 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   }
 
   /// Get status text from shift
+  /// - Late: isLate == true
+  /// - On-time: isLate == false AND actualStartTime exists (checked in)
+  /// - Undone: everything else (not checked in yet)
   String _getStatusText() {
     if (widget.shift.isLate) return 'Late';
-    if (!widget.shift.isApproved) return 'Pending';
-    return 'On-time';
+    if (!widget.shift.isLate && widget.shift.actualStartTime != null) {
+      return 'On-time';
+    }
+    return 'Undone';
   }
 
   /// Get confirmed start time (use scheduled time from shift, not actual check-in)
@@ -470,12 +475,16 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
         textColor = TossColors.white;
         break;
       case 'late':
-        backgroundColor = TossColors.warning;
+        backgroundColor = TossColors.error;
         textColor = TossColors.white;
         break;
       case 'absent':
         backgroundColor = TossColors.error;
         textColor = TossColors.white;
+        break;
+      case 'undone':
+        backgroundColor = TossColors.gray200;
+        textColor = TossColors.gray600;
         break;
       default:
         backgroundColor = TossColors.gray100;

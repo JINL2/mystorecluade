@@ -23,6 +23,7 @@ mixin _$UserShiftStats {
   PeriodStats get lastMonth => throw _privateConstructorUsedError;
   PeriodStats get thisYear => throw _privateConstructorUsedError;
   WeeklyPayments get weeklyPayments => throw _privateConstructorUsedError;
+  ReliabilityScore get reliabilityScore => throw _privateConstructorUsedError;
 
   /// Create a copy of UserShiftStats
   /// with the given fields replaced by the non-null parameter values.
@@ -44,7 +45,8 @@ abstract class $UserShiftStatsCopyWith<$Res> {
       PeriodStats thisMonth,
       PeriodStats lastMonth,
       PeriodStats thisYear,
-      WeeklyPayments weeklyPayments});
+      WeeklyPayments weeklyPayments,
+      ReliabilityScore reliabilityScore});
 
   $SalaryInfoCopyWith<$Res> get salaryInfo;
   $PeriodStatsCopyWith<$Res> get today;
@@ -53,6 +55,7 @@ abstract class $UserShiftStatsCopyWith<$Res> {
   $PeriodStatsCopyWith<$Res> get lastMonth;
   $PeriodStatsCopyWith<$Res> get thisYear;
   $WeeklyPaymentsCopyWith<$Res> get weeklyPayments;
+  $ReliabilityScoreCopyWith<$Res> get reliabilityScore;
 }
 
 /// @nodoc
@@ -77,6 +80,7 @@ class _$UserShiftStatsCopyWithImpl<$Res, $Val extends UserShiftStats>
     Object? lastMonth = null,
     Object? thisYear = null,
     Object? weeklyPayments = null,
+    Object? reliabilityScore = null,
   }) {
     return _then(_value.copyWith(
       salaryInfo: null == salaryInfo
@@ -107,6 +111,10 @@ class _$UserShiftStatsCopyWithImpl<$Res, $Val extends UserShiftStats>
           ? _value.weeklyPayments
           : weeklyPayments // ignore: cast_nullable_to_non_nullable
               as WeeklyPayments,
+      reliabilityScore: null == reliabilityScore
+          ? _value.reliabilityScore
+          : reliabilityScore // ignore: cast_nullable_to_non_nullable
+              as ReliabilityScore,
     ) as $Val);
   }
 
@@ -179,6 +187,16 @@ class _$UserShiftStatsCopyWithImpl<$Res, $Val extends UserShiftStats>
       return _then(_value.copyWith(weeklyPayments: value) as $Val);
     });
   }
+
+  /// Create a copy of UserShiftStats
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReliabilityScoreCopyWith<$Res> get reliabilityScore {
+    return $ReliabilityScoreCopyWith<$Res>(_value.reliabilityScore, (value) {
+      return _then(_value.copyWith(reliabilityScore: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -196,7 +214,8 @@ abstract class _$$UserShiftStatsImplCopyWith<$Res>
       PeriodStats thisMonth,
       PeriodStats lastMonth,
       PeriodStats thisYear,
-      WeeklyPayments weeklyPayments});
+      WeeklyPayments weeklyPayments,
+      ReliabilityScore reliabilityScore});
 
   @override
   $SalaryInfoCopyWith<$Res> get salaryInfo;
@@ -212,6 +231,8 @@ abstract class _$$UserShiftStatsImplCopyWith<$Res>
   $PeriodStatsCopyWith<$Res> get thisYear;
   @override
   $WeeklyPaymentsCopyWith<$Res> get weeklyPayments;
+  @override
+  $ReliabilityScoreCopyWith<$Res> get reliabilityScore;
 }
 
 /// @nodoc
@@ -234,6 +255,7 @@ class __$$UserShiftStatsImplCopyWithImpl<$Res>
     Object? lastMonth = null,
     Object? thisYear = null,
     Object? weeklyPayments = null,
+    Object? reliabilityScore = null,
   }) {
     return _then(_$UserShiftStatsImpl(
       salaryInfo: null == salaryInfo
@@ -264,6 +286,10 @@ class __$$UserShiftStatsImplCopyWithImpl<$Res>
           ? _value.weeklyPayments
           : weeklyPayments // ignore: cast_nullable_to_non_nullable
               as WeeklyPayments,
+      reliabilityScore: null == reliabilityScore
+          ? _value.reliabilityScore
+          : reliabilityScore // ignore: cast_nullable_to_non_nullable
+              as ReliabilityScore,
     ));
   }
 }
@@ -278,7 +304,8 @@ class _$UserShiftStatsImpl extends _UserShiftStats {
       required this.thisMonth,
       required this.lastMonth,
       required this.thisYear,
-      required this.weeklyPayments})
+      required this.weeklyPayments,
+      required this.reliabilityScore})
       : super._();
 
   @override
@@ -295,10 +322,12 @@ class _$UserShiftStatsImpl extends _UserShiftStats {
   final PeriodStats thisYear;
   @override
   final WeeklyPayments weeklyPayments;
+  @override
+  final ReliabilityScore reliabilityScore;
 
   @override
   String toString() {
-    return 'UserShiftStats(salaryInfo: $salaryInfo, today: $today, thisWeek: $thisWeek, thisMonth: $thisMonth, lastMonth: $lastMonth, thisYear: $thisYear, weeklyPayments: $weeklyPayments)';
+    return 'UserShiftStats(salaryInfo: $salaryInfo, today: $today, thisWeek: $thisWeek, thisMonth: $thisMonth, lastMonth: $lastMonth, thisYear: $thisYear, weeklyPayments: $weeklyPayments, reliabilityScore: $reliabilityScore)';
   }
 
   @override
@@ -318,12 +347,14 @@ class _$UserShiftStatsImpl extends _UserShiftStats {
             (identical(other.thisYear, thisYear) ||
                 other.thisYear == thisYear) &&
             (identical(other.weeklyPayments, weeklyPayments) ||
-                other.weeklyPayments == weeklyPayments));
+                other.weeklyPayments == weeklyPayments) &&
+            (identical(other.reliabilityScore, reliabilityScore) ||
+                other.reliabilityScore == reliabilityScore));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, salaryInfo, today, thisWeek,
-      thisMonth, lastMonth, thisYear, weeklyPayments);
+      thisMonth, lastMonth, thisYear, weeklyPayments, reliabilityScore);
 
   /// Create a copy of UserShiftStats
   /// with the given fields replaced by the non-null parameter values.
@@ -343,7 +374,8 @@ abstract class _UserShiftStats extends UserShiftStats {
       required final PeriodStats thisMonth,
       required final PeriodStats lastMonth,
       required final PeriodStats thisYear,
-      required final WeeklyPayments weeklyPayments}) = _$UserShiftStatsImpl;
+      required final WeeklyPayments weeklyPayments,
+      required final ReliabilityScore reliabilityScore}) = _$UserShiftStatsImpl;
   const _UserShiftStats._() : super._();
 
   @override
@@ -360,6 +392,8 @@ abstract class _UserShiftStats extends UserShiftStats {
   PeriodStats get thisYear;
   @override
   WeeklyPayments get weeklyPayments;
+  @override
+  ReliabilityScore get reliabilityScore;
 
   /// Create a copy of UserShiftStats
   /// with the given fields replaced by the non-null parameter values.
@@ -1060,5 +1094,429 @@ abstract class _WeeklyPayments extends WeeklyPayments {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$WeeklyPaymentsImplCopyWith<_$WeeklyPaymentsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$ReliabilityScore {
+  int get totalApplications => throw _privateConstructorUsedError;
+  int get approvedShifts => throw _privateConstructorUsedError;
+  int get lateCount => throw _privateConstructorUsedError;
+  double get lateRate => throw _privateConstructorUsedError;
+  double get avgLateMinutes => throw _privateConstructorUsedError;
+  double get avgFillRateApplied => throw _privateConstructorUsedError;
+  double get applicationsScore => throw _privateConstructorUsedError;
+  double get lateRateScore => throw _privateConstructorUsedError;
+  double get lateMinutesScore => throw _privateConstructorUsedError;
+  double get fillRateScore => throw _privateConstructorUsedError;
+  double get reliability => throw _privateConstructorUsedError;
+  double get finalScore => throw _privateConstructorUsedError;
+  String? get periodStart => throw _privateConstructorUsedError;
+  String? get periodEnd => throw _privateConstructorUsedError;
+
+  /// Create a copy of ReliabilityScore
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ReliabilityScoreCopyWith<ReliabilityScore> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ReliabilityScoreCopyWith<$Res> {
+  factory $ReliabilityScoreCopyWith(
+          ReliabilityScore value, $Res Function(ReliabilityScore) then) =
+      _$ReliabilityScoreCopyWithImpl<$Res, ReliabilityScore>;
+  @useResult
+  $Res call(
+      {int totalApplications,
+      int approvedShifts,
+      int lateCount,
+      double lateRate,
+      double avgLateMinutes,
+      double avgFillRateApplied,
+      double applicationsScore,
+      double lateRateScore,
+      double lateMinutesScore,
+      double fillRateScore,
+      double reliability,
+      double finalScore,
+      String? periodStart,
+      String? periodEnd});
+}
+
+/// @nodoc
+class _$ReliabilityScoreCopyWithImpl<$Res, $Val extends ReliabilityScore>
+    implements $ReliabilityScoreCopyWith<$Res> {
+  _$ReliabilityScoreCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ReliabilityScore
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? totalApplications = null,
+    Object? approvedShifts = null,
+    Object? lateCount = null,
+    Object? lateRate = null,
+    Object? avgLateMinutes = null,
+    Object? avgFillRateApplied = null,
+    Object? applicationsScore = null,
+    Object? lateRateScore = null,
+    Object? lateMinutesScore = null,
+    Object? fillRateScore = null,
+    Object? reliability = null,
+    Object? finalScore = null,
+    Object? periodStart = freezed,
+    Object? periodEnd = freezed,
+  }) {
+    return _then(_value.copyWith(
+      totalApplications: null == totalApplications
+          ? _value.totalApplications
+          : totalApplications // ignore: cast_nullable_to_non_nullable
+              as int,
+      approvedShifts: null == approvedShifts
+          ? _value.approvedShifts
+          : approvedShifts // ignore: cast_nullable_to_non_nullable
+              as int,
+      lateCount: null == lateCount
+          ? _value.lateCount
+          : lateCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lateRate: null == lateRate
+          ? _value.lateRate
+          : lateRate // ignore: cast_nullable_to_non_nullable
+              as double,
+      avgLateMinutes: null == avgLateMinutes
+          ? _value.avgLateMinutes
+          : avgLateMinutes // ignore: cast_nullable_to_non_nullable
+              as double,
+      avgFillRateApplied: null == avgFillRateApplied
+          ? _value.avgFillRateApplied
+          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
+              as double,
+      applicationsScore: null == applicationsScore
+          ? _value.applicationsScore
+          : applicationsScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      lateRateScore: null == lateRateScore
+          ? _value.lateRateScore
+          : lateRateScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      lateMinutesScore: null == lateMinutesScore
+          ? _value.lateMinutesScore
+          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      fillRateScore: null == fillRateScore
+          ? _value.fillRateScore
+          : fillRateScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      reliability: null == reliability
+          ? _value.reliability
+          : reliability // ignore: cast_nullable_to_non_nullable
+              as double,
+      finalScore: null == finalScore
+          ? _value.finalScore
+          : finalScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      periodStart: freezed == periodStart
+          ? _value.periodStart
+          : periodStart // ignore: cast_nullable_to_non_nullable
+              as String?,
+      periodEnd: freezed == periodEnd
+          ? _value.periodEnd
+          : periodEnd // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ReliabilityScoreImplCopyWith<$Res>
+    implements $ReliabilityScoreCopyWith<$Res> {
+  factory _$$ReliabilityScoreImplCopyWith(_$ReliabilityScoreImpl value,
+          $Res Function(_$ReliabilityScoreImpl) then) =
+      __$$ReliabilityScoreImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {int totalApplications,
+      int approvedShifts,
+      int lateCount,
+      double lateRate,
+      double avgLateMinutes,
+      double avgFillRateApplied,
+      double applicationsScore,
+      double lateRateScore,
+      double lateMinutesScore,
+      double fillRateScore,
+      double reliability,
+      double finalScore,
+      String? periodStart,
+      String? periodEnd});
+}
+
+/// @nodoc
+class __$$ReliabilityScoreImplCopyWithImpl<$Res>
+    extends _$ReliabilityScoreCopyWithImpl<$Res, _$ReliabilityScoreImpl>
+    implements _$$ReliabilityScoreImplCopyWith<$Res> {
+  __$$ReliabilityScoreImplCopyWithImpl(_$ReliabilityScoreImpl _value,
+      $Res Function(_$ReliabilityScoreImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ReliabilityScore
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? totalApplications = null,
+    Object? approvedShifts = null,
+    Object? lateCount = null,
+    Object? lateRate = null,
+    Object? avgLateMinutes = null,
+    Object? avgFillRateApplied = null,
+    Object? applicationsScore = null,
+    Object? lateRateScore = null,
+    Object? lateMinutesScore = null,
+    Object? fillRateScore = null,
+    Object? reliability = null,
+    Object? finalScore = null,
+    Object? periodStart = freezed,
+    Object? periodEnd = freezed,
+  }) {
+    return _then(_$ReliabilityScoreImpl(
+      totalApplications: null == totalApplications
+          ? _value.totalApplications
+          : totalApplications // ignore: cast_nullable_to_non_nullable
+              as int,
+      approvedShifts: null == approvedShifts
+          ? _value.approvedShifts
+          : approvedShifts // ignore: cast_nullable_to_non_nullable
+              as int,
+      lateCount: null == lateCount
+          ? _value.lateCount
+          : lateCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lateRate: null == lateRate
+          ? _value.lateRate
+          : lateRate // ignore: cast_nullable_to_non_nullable
+              as double,
+      avgLateMinutes: null == avgLateMinutes
+          ? _value.avgLateMinutes
+          : avgLateMinutes // ignore: cast_nullable_to_non_nullable
+              as double,
+      avgFillRateApplied: null == avgFillRateApplied
+          ? _value.avgFillRateApplied
+          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
+              as double,
+      applicationsScore: null == applicationsScore
+          ? _value.applicationsScore
+          : applicationsScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      lateRateScore: null == lateRateScore
+          ? _value.lateRateScore
+          : lateRateScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      lateMinutesScore: null == lateMinutesScore
+          ? _value.lateMinutesScore
+          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      fillRateScore: null == fillRateScore
+          ? _value.fillRateScore
+          : fillRateScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      reliability: null == reliability
+          ? _value.reliability
+          : reliability // ignore: cast_nullable_to_non_nullable
+              as double,
+      finalScore: null == finalScore
+          ? _value.finalScore
+          : finalScore // ignore: cast_nullable_to_non_nullable
+              as double,
+      periodStart: freezed == periodStart
+          ? _value.periodStart
+          : periodStart // ignore: cast_nullable_to_non_nullable
+              as String?,
+      periodEnd: freezed == periodEnd
+          ? _value.periodEnd
+          : periodEnd // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ReliabilityScoreImpl extends _ReliabilityScore {
+  const _$ReliabilityScoreImpl(
+      {required this.totalApplications,
+      required this.approvedShifts,
+      required this.lateCount,
+      required this.lateRate,
+      required this.avgLateMinutes,
+      required this.avgFillRateApplied,
+      required this.applicationsScore,
+      required this.lateRateScore,
+      required this.lateMinutesScore,
+      required this.fillRateScore,
+      required this.reliability,
+      required this.finalScore,
+      this.periodStart,
+      this.periodEnd})
+      : super._();
+
+  @override
+  final int totalApplications;
+  @override
+  final int approvedShifts;
+  @override
+  final int lateCount;
+  @override
+  final double lateRate;
+  @override
+  final double avgLateMinutes;
+  @override
+  final double avgFillRateApplied;
+  @override
+  final double applicationsScore;
+  @override
+  final double lateRateScore;
+  @override
+  final double lateMinutesScore;
+  @override
+  final double fillRateScore;
+  @override
+  final double reliability;
+  @override
+  final double finalScore;
+  @override
+  final String? periodStart;
+  @override
+  final String? periodEnd;
+
+  @override
+  String toString() {
+    return 'ReliabilityScore(totalApplications: $totalApplications, approvedShifts: $approvedShifts, lateCount: $lateCount, lateRate: $lateRate, avgLateMinutes: $avgLateMinutes, avgFillRateApplied: $avgFillRateApplied, applicationsScore: $applicationsScore, lateRateScore: $lateRateScore, lateMinutesScore: $lateMinutesScore, fillRateScore: $fillRateScore, reliability: $reliability, finalScore: $finalScore, periodStart: $periodStart, periodEnd: $periodEnd)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ReliabilityScoreImpl &&
+            (identical(other.totalApplications, totalApplications) ||
+                other.totalApplications == totalApplications) &&
+            (identical(other.approvedShifts, approvedShifts) ||
+                other.approvedShifts == approvedShifts) &&
+            (identical(other.lateCount, lateCount) ||
+                other.lateCount == lateCount) &&
+            (identical(other.lateRate, lateRate) ||
+                other.lateRate == lateRate) &&
+            (identical(other.avgLateMinutes, avgLateMinutes) ||
+                other.avgLateMinutes == avgLateMinutes) &&
+            (identical(other.avgFillRateApplied, avgFillRateApplied) ||
+                other.avgFillRateApplied == avgFillRateApplied) &&
+            (identical(other.applicationsScore, applicationsScore) ||
+                other.applicationsScore == applicationsScore) &&
+            (identical(other.lateRateScore, lateRateScore) ||
+                other.lateRateScore == lateRateScore) &&
+            (identical(other.lateMinutesScore, lateMinutesScore) ||
+                other.lateMinutesScore == lateMinutesScore) &&
+            (identical(other.fillRateScore, fillRateScore) ||
+                other.fillRateScore == fillRateScore) &&
+            (identical(other.reliability, reliability) ||
+                other.reliability == reliability) &&
+            (identical(other.finalScore, finalScore) ||
+                other.finalScore == finalScore) &&
+            (identical(other.periodStart, periodStart) ||
+                other.periodStart == periodStart) &&
+            (identical(other.periodEnd, periodEnd) ||
+                other.periodEnd == periodEnd));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      totalApplications,
+      approvedShifts,
+      lateCount,
+      lateRate,
+      avgLateMinutes,
+      avgFillRateApplied,
+      applicationsScore,
+      lateRateScore,
+      lateMinutesScore,
+      fillRateScore,
+      reliability,
+      finalScore,
+      periodStart,
+      periodEnd);
+
+  /// Create a copy of ReliabilityScore
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ReliabilityScoreImplCopyWith<_$ReliabilityScoreImpl> get copyWith =>
+      __$$ReliabilityScoreImplCopyWithImpl<_$ReliabilityScoreImpl>(
+          this, _$identity);
+}
+
+abstract class _ReliabilityScore extends ReliabilityScore {
+  const factory _ReliabilityScore(
+      {required final int totalApplications,
+      required final int approvedShifts,
+      required final int lateCount,
+      required final double lateRate,
+      required final double avgLateMinutes,
+      required final double avgFillRateApplied,
+      required final double applicationsScore,
+      required final double lateRateScore,
+      required final double lateMinutesScore,
+      required final double fillRateScore,
+      required final double reliability,
+      required final double finalScore,
+      final String? periodStart,
+      final String? periodEnd}) = _$ReliabilityScoreImpl;
+  const _ReliabilityScore._() : super._();
+
+  @override
+  int get totalApplications;
+  @override
+  int get approvedShifts;
+  @override
+  int get lateCount;
+  @override
+  double get lateRate;
+  @override
+  double get avgLateMinutes;
+  @override
+  double get avgFillRateApplied;
+  @override
+  double get applicationsScore;
+  @override
+  double get lateRateScore;
+  @override
+  double get lateMinutesScore;
+  @override
+  double get fillRateScore;
+  @override
+  double get reliability;
+  @override
+  double get finalScore;
+  @override
+  String? get periodStart;
+  @override
+  String? get periodEnd;
+
+  /// Create a copy of ReliabilityScore
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ReliabilityScoreImplCopyWith<_$ReliabilityScoreImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
