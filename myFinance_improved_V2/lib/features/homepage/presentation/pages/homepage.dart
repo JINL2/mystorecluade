@@ -517,8 +517,8 @@ class _HomepageState extends ConsumerState<Homepage> {
   ///
   /// Improved logout flow:
   /// 1. Show full-screen loading view immediately
-  /// 2. Execute auth signOut (triggers GoRouter redirect)
-  /// 3. Clear app state after auth logout
+  /// 2. Clear app state BEFORE auth signOut (prevents "dispose" error)
+  /// 3. Execute auth signOut (triggers GoRouter redirect)
   /// 4. Let GoRouter handle navigation to login page
   Future<void> _handleLogout() async {
     try {
@@ -533,19 +533,18 @@ class _HomepageState extends ConsumerState<Homepage> {
         _isLoggingOut = true;
       });
 
-      // ✅ Execute auth logout FIRST
+      // ✅ Clear app state FIRST (before auth logout)
+      // This prevents "Bad state: Tried to use AppStateNotifier after dispose"
+      // because authService.signOut() will invalidate all providers
+      appStateNotifier.signOut();
+
+      // ✅ Execute auth logout AFTER clearing app state
       // This will:
       // 1. Clear session
       // 2. Sign out from Supabase
-      // 3. Invalidate providers
+      // 3. Invalidate providers (including appStateProvider)
       // 4. Trigger GoRouter redirect (auth state changes to null)
       await authService.signOut();
-
-      // ✅ Clear app state AFTER auth logout (only if still mounted)
-      // Navigation already triggered, this just cleans up memory
-      if (mounted) {
-        appStateNotifier.signOut();
-      }
 
       // GoRouter will automatically redirect to /auth/login
       // Loading view will be visible until navigation completes

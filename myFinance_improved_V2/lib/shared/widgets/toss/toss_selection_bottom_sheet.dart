@@ -361,7 +361,9 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
         child: Row(
           children: [
             // Avatar or Icon container
-            if (item.avatarUrl != null)
+            // Show avatar for user lists (when avatarUrl is provided, even if empty)
+            // Show icon for other selections (stores, companies, etc.)
+            if (item.avatarUrl != null || item.icon == null)
               // Show avatar
               Container(
                 width: TossSpacing.iconXL,
@@ -373,13 +375,19 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                     width: isSelected ? 2 : 1,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: TossSpacing.iconSM,
-                  backgroundColor: TossColors.gray200,
-                  backgroundImage: NetworkImage(item.avatarUrl!),
-                  onBackgroundImageError: (_, __) {},
-                  child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
-                ),
+                child: (item.avatarUrl?.isNotEmpty ?? false)
+                  ? CircleAvatar(
+                      radius: TossSpacing.iconSM,
+                      backgroundColor: TossColors.gray200,
+                      backgroundImage: NetworkImage(item.avatarUrl!),
+                      onBackgroundImageError: (_, __) {},
+                      child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
+                    )
+                  : CircleAvatar(
+                      radius: TossSpacing.iconSM,
+                      backgroundColor: TossColors.gray200,
+                      child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
+                    ),
               )
             else
               // Show icon container

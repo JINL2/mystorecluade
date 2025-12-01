@@ -249,13 +249,19 @@ class ShiftSignupCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: TossColors.white, width: 1),
               ),
-              child: CircleAvatar(
-                radius: 12,
-                backgroundColor: TossColors.gray200,
-                backgroundImage: NetworkImage(avatars[index]),
-                onBackgroundImageError: (_, __) {},
-                child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
-              ),
+              child: avatars[index].isNotEmpty
+                ? CircleAvatar(
+                    radius: 12,
+                    backgroundColor: TossColors.gray200,
+                    backgroundImage: NetworkImage(avatars[index]),
+                    onBackgroundImageError: (_, __) {},
+                    child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
+                  )
+                : CircleAvatar(
+                    radius: 12,
+                    backgroundColor: TossColors.gray200,
+                    child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
+                  ),
             ),
           ),
         ),
