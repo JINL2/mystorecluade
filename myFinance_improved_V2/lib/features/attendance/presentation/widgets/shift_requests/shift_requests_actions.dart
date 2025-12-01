@@ -164,7 +164,7 @@ class ShiftRequestsActions {
           id: employee.userId,
           title: employee.userName,
           subtitle: 'Assigned',
-          avatarUrl: employee.profileImage,
+          avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : '',
         );
       }),
       ...pendingEmployees.map((employee) {
@@ -172,7 +172,7 @@ class ShiftRequestsActions {
           id: employee.userId,
           title: employee.userName,
           subtitle: 'Applied',
-          avatarUrl: employee.profileImage,
+          avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : '',
         );
       }),
     ];

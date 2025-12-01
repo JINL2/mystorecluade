@@ -239,8 +239,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                           ...?dailyShift?.pendingEmployees,
                         ];
                         final assignedAvatars = allEmployees
-                            .where((e) => e.profileImage != null && e.profileImage!.isNotEmpty)
-                            .map((e) => e.profileImage!)
+                            .map((e) => (e.profileImage?.isNotEmpty ?? false) ? e.profileImage! : '')
                             .toList();
 
                         return Padding(
