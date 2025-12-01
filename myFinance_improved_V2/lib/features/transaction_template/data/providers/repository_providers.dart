@@ -1,23 +1,23 @@
-/// Domain Repository Providers - Dependency Injection for transaction_template module
+/// Repository Providers - Dependency Injection for transaction_template module
 ///
 /// Purpose: Repository providers for Clean Architecture compliance
 /// - Provides concrete implementations from Data layer
-/// - Presentation layer imports from Domain layer (this file)
-/// - Maintains Clean Architecture dependency rules
+/// - Presentation layer imports this file for repository instances
+/// - Maintains Clean Architecture dependency rules (Presentation → Data → Domain)
 ///
-/// Clean Architecture: DOMAIN LAYER - Dependency Injection
+/// Clean Architecture: DATA LAYER - Dependency Injection
 ///
 /// Usage: Import this file in Presentation layer
 library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
 
-import '../../data/cache/template_cache_repository.dart';
-import '../../data/datasources/template_data_source.dart';
-import '../../data/repositories/supabase_template_repository.dart';
-import '../../data/repositories/supabase_transaction_repository.dart';
-import '../repositories/template_repository.dart';
-import '../repositories/transaction_repository.dart';
+import '../../domain/repositories/template_repository.dart';
+import '../../domain/repositories/transaction_repository.dart';
+import '../cache/template_cache_repository.dart';
+import '../datasources/template_data_source.dart';
+import '../repositories/supabase_template_repository.dart';
+import '../repositories/supabase_transaction_repository.dart';
 
 /// Supabase service provider (Internal)
 final _supabaseServiceProvider = Provider<SupabaseService>((ref) {

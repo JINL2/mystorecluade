@@ -10,7 +10,7 @@
 library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
+import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/usecases/create_transaction_from_template_usecase.dart';
 
 /// Provider for CreateTransactionFromTemplateUseCase

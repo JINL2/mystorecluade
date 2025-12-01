@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
 
+import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/constants/permission_constants.dart';
 import '../../domain/entities/template_entity.dart';
 import '../../domain/enums/template_constants.dart';
-import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
 import '../../domain/repositories/template_repository.dart';
 import '../../domain/usecases/create_template_usecase.dart';
 import '../../domain/usecases/delete_template_usecase.dart';

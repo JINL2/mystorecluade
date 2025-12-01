@@ -78,6 +78,31 @@ class JournalEntryState with _$JournalEntryState {
            selectedCompanyId != null &&
            selectedCompanyId!.isNotEmpty;
   }
+
+  // =============================================================================
+  // Business Logic Methods (Delegated to Domain Entity methods)
+  // =============================================================================
+
+  /// Calculate suggested amount to balance the journal entry
+  double? getSuggestedAmountForBalance() {
+    final diff = difference;
+    return diff.abs() > 0.01 ? diff.abs() : null;
+  }
+
+  /// Suggest whether the next transaction should be debit or credit
+  bool suggestDebitOrCredit() {
+    if (totalDebits < totalCredits) return true;
+    if (totalCredits < totalDebits) return false;
+    return true;
+  }
+
+  /// Get all cash location IDs already used in transaction lines
+  Set<String> getUsedCashLocationIds() {
+    return transactionLines
+        .where((line) => line.categoryTag == 'cash' && line.cashLocationId != null)
+        .map((line) => line.cashLocationId!)
+        .toSet();
+  }
 }
 
 /// Transaction Line Creation State - UI state for adding/editing transaction lines

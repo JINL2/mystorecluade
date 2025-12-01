@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-// Use app-level providers (working implementation)
-import '../../../../app/providers/journal_input_providers.dart';
+// Use feature-level providers (Clean Architecture compliant)
+import '../providers/journal_input_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -199,9 +199,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     if (_selectedCounterpartyId == null) return;
 
     try {
-      final counterparties = await ref.read(journalCounterpartiesProvider.future);
+      final appState = ref.read(appStateProvider);
+      final counterparties = await ref.read(journalCounterpartiesProvider(appState.companyChoosen).future);
       final counterparty = counterparties.firstWhere(
-        (c) => c['counterparty_id'] == _selectedCounterpartyId,
+        (Map<String, dynamic> c) => c['counterparty_id'] == _selectedCounterpartyId,
         orElse: () => <String, dynamic>{},
       );
 
