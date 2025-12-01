@@ -836,12 +836,25 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       // Show error message
       if (!mounted) return;
 
+      final errorMessage = e.toString();
+      String title = 'Failed to Delete';
+      String message = 'Could not delete counter party';
+
+      // Parse error message for better UX
+      if (errorMessage.contains('unpaid debts')) {
+        title = 'Cannot Delete - Unpaid Debts';
+        message = 'Counter party "${counterParty.name}" has outstanding debts that need to be settled before deletion.\n\n'
+                  'Please clear all debts in the Debt Control section first.';
+      } else {
+        message = 'Could not delete "${counterParty.name}".\n\n$errorMessage';
+      }
+
       await showDialog(
         context: context,
         barrierDismissible: true,
         builder: (dialogContext) => TossDialog.error(
-          title: 'Failed to Delete',
-          message: 'Could not delete counter party: ${e.toString()}',
+          title: title,
+          message: message,
           primaryButtonText: 'OK',
           onPrimaryPressed: () {
             if (Navigator.canPop(dialogContext)) {

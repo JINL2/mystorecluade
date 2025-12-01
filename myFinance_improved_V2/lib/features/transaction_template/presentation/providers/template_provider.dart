@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
 
+import '../../domain/constants/permission_constants.dart';
 import '../../domain/entities/template_entity.dart';
 import '../../domain/enums/template_constants.dart';
 import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
@@ -473,9 +474,9 @@ final filteredTemplatesProvider = Provider<List<TransactionTemplate>>((ref) {
 /// 현재 사용자의 권한을 확인하여 Admin 권한 여부 반환
 /// Permission Provider - Check if user can delete templates (has admin access)
 ///
-/// Checks user role from appStateProvider:
-/// - Owner, Manager → true (can access Admin tab and delete any templates)
-/// - Other roles → false (can only access General tab and delete own templates)
+/// Checks user permissions from appStateProvider:
+/// - Has adminPermission UUID → true (can access Admin tab and delete any templates)
+/// - No adminPermission UUID → false (can only access General tab and delete own templates)
 final canDeleteTemplatesProvider = Provider<bool>((ref) {
   final appState = ref.watch(appStateProvider);
   final user = appState.user;
@@ -501,12 +502,15 @@ final canDeleteTemplatesProvider = Provider<bool>((ref) {
     return false;
   }
 
-  // Check user's role in this company
+  // Get user's permissions in this company
   final role = selectedCompany['role'] as Map<String, dynamic>? ?? {};
-  final roleName = role['role_name'] as String? ?? '';
+  final permissionsList = role['permissions'] as List<dynamic>? ?? [];
 
-  // Owner and Manager have admin permissions
-  final hasAdminPermission = roleName == 'Owner' || roleName == 'Manager';
+  // Convert to Set<String> for permission checking
+  final permissions = permissionsList.cast<String>().toSet();
+
+  // Check if user has admin permission UUID
+  final hasAdminPermission = PermissionChecker.hasAdminPermission(permissions);
 
   return hasAdminPermission;
 });

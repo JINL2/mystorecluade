@@ -1,4 +1,5 @@
 import '../entities/counter_party.dart';
+import '../entities/counter_party_deletion_validation.dart';
 import '../value_objects/counter_party_filter.dart';
 import '../value_objects/counter_party_type.dart';
 
@@ -38,6 +39,9 @@ abstract class CounterPartyRepository {
     bool isInternal = false,
     String? linkedCompanyId,
   });
+
+  /// Validate if counter party can be deleted
+  Future<CounterPartyDeletionValidation> validateDeletion(String counterpartyId);
 
   /// Soft delete a counter party
   Future<bool> deleteCounterParty(String counterpartyId);

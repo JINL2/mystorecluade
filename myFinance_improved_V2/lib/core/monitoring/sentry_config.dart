@@ -49,6 +49,17 @@ class SentryConfig {
 
   /// Filter sensitive data before sending to Sentry
   static SentryEvent? _beforeSend(SentryEvent event, Hint hint) {
+    // ✅ Ignore widget inspector errors (nested error reporting)
+    final exception = event.throwable;
+    if (exception is AssertionError) {
+      final message = exception.message?.toString() ?? '';
+      if (message.contains('Looking up a deactivated widget\'s ancestor is unsafe') ||
+          message.contains('_debugCheckStateIsActiveForAncestorLookup')) {
+        // This is a widget lifecycle error during error reporting - ignore it
+        return null;
+      }
+    }
+
     // ✅ Mask email addresses
     if (event.user?.email != null) {
       final email = event.user!.email!;

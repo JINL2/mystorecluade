@@ -118,6 +118,17 @@ class CounterPartyDataSource {
     return response;
   }
 
+  /// Validate if counter party can be deleted
+  /// Returns validation result with debt and transaction info
+  Future<Map<String, dynamic>> validateDeletion(String counterpartyId) async {
+    final response = await _client.rpc(
+      'can_delete_counterparty',
+      params: {'p_counterparty_id': counterpartyId},
+    );
+
+    return response as Map<String, dynamic>;
+  }
+
   /// Soft delete counter party
   Future<void> deleteCounterParty(String counterpartyId) async {
     await _client.from('counterparties').update({

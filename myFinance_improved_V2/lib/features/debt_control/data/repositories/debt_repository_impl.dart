@@ -1,7 +1,9 @@
 import '../../domain/entities/aging_analysis.dart';
 import '../../domain/entities/critical_alert.dart';
+import '../../domain/entities/debt_communication.dart';
 import '../../domain/entities/debt_overview.dart';
 import '../../domain/entities/kpi_metrics.dart';
+import '../../domain/entities/payment_plan.dart';
 import '../../domain/entities/perspective_summary.dart';
 import '../../domain/entities/prioritized_debt.dart';
 import '../../domain/repositories/debt_repository.dart';
@@ -140,41 +142,44 @@ class DebtRepositoryImpl implements DebtRepository {
   }
 
   @override
-  Future<List<dynamic>> getDebtCommunications(String debtId) async {
-    // TODO: Implement when communication entities are ready
-    return [];
+  Future<List<DebtCommunication>> getDebtCommunications(String debtId) async {
+    // TODO: Implement data source method
+    throw UnimplementedError('getDebtCommunications not yet implemented');
   }
 
   @override
-  Future<void> createDebtCommunication(dynamic communication) async {
-    // TODO: Implement when communication entities are ready
+  Future<void> createDebtCommunication(DebtCommunication communication) async {
+    // TODO: Implement data source method
+    throw UnimplementedError('createDebtCommunication not yet implemented');
   }
 
   @override
-  Future<List<dynamic>> getPaymentPlans(String debtId) async {
-    // TODO: Implement when payment plan entities are ready
-    return [];
+  Future<List<PaymentPlan>> getPaymentPlans(String debtId) async {
+    // TODO: Implement data source method
+    throw UnimplementedError('getPaymentPlans not yet implemented');
   }
 
   @override
-  Future<void> createPaymentPlan(dynamic paymentPlan) async {
-    // TODO: Implement when payment plan entities are ready
+  Future<void> createPaymentPlan(PaymentPlan paymentPlan) async {
+    // TODO: Implement data source method
+    throw UnimplementedError('createPaymentPlan not yet implemented');
   }
 
   @override
   Future<void> updatePaymentPlanStatus(String planId, String status) async {
-    // TODO: Implement when payment plan entities are ready
+    // TODO: Implement data source method
+    throw UnimplementedError('updatePaymentPlanStatus not yet implemented');
   }
 
   @override
-  Future<dynamic> getDebtAnalytics({
+  Future<DebtAnalytics> getDebtAnalytics({
     required String companyId,
     String? storeId,
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    // TODO: Implement when analytics entities are ready
-    return null;
+    // TODO: Implement data source method
+    throw UnimplementedError('getDebtAnalytics not yet implemented');
   }
 
   String _getViewpointDescription(String viewpoint) {

@@ -7,14 +7,15 @@ import '../exceptions/role_exceptions.dart';
 /// Encapsulates role name with validation rules:
 /// - Cannot be empty
 /// - Must be 2-50 characters
-/// - Cannot be reserved system names (Owner, Admin)
+/// - Cannot be reserved system name (Owner only)
 class RoleName {
   final String value;
 
   const RoleName._(this.value);
 
   /// Reserved role names that cannot be created by users
-  static const List<String> _reservedNames = ['owner', 'admin'];
+  /// Only 'owner' is reserved as it has special meaning in the system
+  static const List<String> _reservedNames = ['owner'];
 
   /// Create RoleName from string with validation
   factory RoleName.create(String name) {

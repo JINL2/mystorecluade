@@ -541,9 +541,11 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 4. Trigger GoRouter redirect (auth state changes to null)
       await authService.signOut();
 
-      // ✅ Clear app state AFTER auth logout
+      // ✅ Clear app state AFTER auth logout (only if still mounted)
       // Navigation already triggered, this just cleans up memory
-      appStateNotifier.signOut();
+      if (mounted) {
+        appStateNotifier.signOut();
+      }
 
       // GoRouter will automatically redirect to /auth/login
       // Loading view will be visible until navigation completes
