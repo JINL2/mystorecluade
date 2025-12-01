@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -142,13 +141,6 @@ class AttendanceDatasource {
         'request_date': _extractDateFromTimestamp((rawResult['time'] ?? timestamp) as String),
       };
 
-      // ✅ Debug: Log RPC response mapping
-      assert(() {
-        debugPrint('🔵 [updateShiftRequest] RPC response: $rawResult');
-        debugPrint('🔄 [updateShiftRequest] Mapped result: $mappedResult');
-        return true;
-      }());
-
       return mappedResult;
     } catch (e) {
       throw AttendanceServerException(e.toString());
@@ -185,17 +177,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // ✅ Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [getUserShiftCards] RPC params:');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - userId: $userId');
-        debugPrint('  - companyId: $companyId');
-        debugPrint('  - storeId: $storeId');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
         'user_shift_cards_v3',
         params: {
@@ -211,13 +192,6 @@ class AttendanceDatasource {
         return [];
       }
 
-      // ✅ Debug: Log raw response
-      assert(() {
-        final count = response is List ? response.length : 'not a list';
-        debugPrint('🟢 [getUserShiftCards] Raw response count: $count');
-        return true;
-      }());
-
       // Convert UTC times to local time and return as list
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
@@ -231,19 +205,10 @@ class AttendanceDatasource {
               if (utcString.isNotEmpty) {
                 final localDateTime = DateTimeUtils.toLocal(utcString);
                 converted['request_date'] = DateTimeUtils.toDateOnly(localDateTime);
-                // ✅ Debug: Log conversion
-                assert(() {
-                  debugPrint('🔄 [getUserShiftCards] Converted: $utcString → ${converted['request_date']}');
-                  return true;
-                }());
               }
-            } catch (e) {
+            } catch (_) {
               // If conversion fails, use request_time as-is
               converted['request_date'] = converted['request_time'];
-              assert(() {
-                debugPrint('⚠️ [getUserShiftCards] Conversion failed: $e');
-                return true;
-              }());
             }
           }
 
@@ -343,15 +308,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [getMonthlyShiftStatusManager] RPC params:');
-        debugPrint('  - storeId: $storeId');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
         'get_monthly_shift_status_manager_v3',
         params: {
@@ -378,44 +334,33 @@ class AttendanceDatasource {
 
   /// Insert shift request
   ///
-  /// Uses insert_shift_request_v4 RPC with local time + timezone
-  /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  /// Uses insert_shift_request_v5 RPC with local time + timezone
+  /// - p_start_time: Shift start time as local timestamp (e.g., "2024-12-01T09:00:00+07:00")
+  /// - p_end_time: Shift end time as local timestamp (e.g., "2024-12-01T17:00:00+07:00")
+  /// - p_time: Current local timestamp with timezone offset (e.g., "2024-12-01T09:07:00+07:00")
+  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   Future<Map<String, dynamic>?> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
+    required String time,
     required String timezone,
   }) async {
     try {
-      // ✅ Clean code: Debug logs wrapped in assert for development only
-      assert(() {
-        debugPrint('🔵 [insertShiftRequest] Calling RPC with params:');
-        debugPrint('  - userId: $userId');
-        debugPrint('  - shiftId: $shiftId');
-        debugPrint('  - storeId: $storeId');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
-        'insert_shift_request_v4',
+        'insert_shift_request_v5',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
           'p_store_id': storeId,
-          'p_request_time': requestTime,
+          'p_start_time': startTime,
+          'p_end_time': endTime,
+          'p_time': time,
           'p_timezone': timezone,
         },
       );
-
-      // ✅ Clean code: Debug logs wrapped in assert for development only
-      assert(() {
-        debugPrint('🟢 [insertShiftRequest] Raw RPC response: $response');
-        return true;
-      }());
 
       if (response == null) {
         return null;
@@ -539,16 +484,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Debug: Log RPC parameters
-      assert(() {
-        debugPrint('🔵 [deleteShiftRequest] RPC params:');
-        debugPrint('  - userId: $userId');
-        debugPrint('  - shiftId: $shiftId');
-        debugPrint('  - requestTime: $requestTime');
-        debugPrint('  - timezone: $timezone');
-        return true;
-      }());
-
       final response = await _supabase.rpc<dynamic>(
         'delete_shift_request_v2',
         params: {

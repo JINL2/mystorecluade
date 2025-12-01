@@ -99,12 +99,14 @@ abstract class AttendanceRepository {
 
   /// Insert a new shift request
   ///
-  /// Matches RPC: insert_shift_request_v3
+  /// Matches RPC: insert_shift_request_v5
   ///
   /// [userId] - User ID
   /// [shiftId] - Shift ID
   /// [storeId] - Store ID
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [startTime] - Shift start time as local timestamp (e.g., "2024-12-01T09:00:00+07:00")
+  /// [endTime] - Shift end time as local timestamp (e.g., "2024-12-01T17:00:00+07:00")
+  /// [time] - Current local timestamp with timezone offset (e.g., "2024-12-01T09:07:00+07:00")
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns created ShiftRequest
@@ -112,7 +114,9 @@ abstract class AttendanceRepository {
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
+    required String time,
     required String timezone,
   });
 

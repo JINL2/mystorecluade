@@ -83,20 +83,13 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
         timezone: 'Asia/Seoul', // TODO: Get from user settings
       );
 
-      // Debug: Print shift times
-      print('📋 Shift Metadata fetched:');
-      for (var shift in response) {
-        print('  ${shift.shiftName}: ${shift.startTime} - ${shift.endTime}');
-      }
-
       if (mounted) {
         setState(() {
           shiftMetadata = response;
           isLoadingMetadata = false;
         });
       }
-    } catch (e) {
-      print('❌ Error fetching shift metadata: $e');
+    } catch (_) {
       if (mounted) {
         setState(() {
           isLoadingMetadata = false;
@@ -109,21 +102,10 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   // Get active shifts for display
   List<ShiftMetadata> _getActiveShifts() {
     if (shiftMetadata == null) {
-      print('⚠️ shiftMetadata is null');
       return [];
     }
 
-    final activeShifts = shiftMetadata!.where((shift) => shift.isActive).toList();
-    print('📊 Active shifts count: ${activeShifts.length} / ${shiftMetadata!.length}');
-
-    if (activeShifts.isEmpty && shiftMetadata!.isNotEmpty) {
-      print('⚠️ No active shifts found. All shifts are inactive.');
-      for (var shift in shiftMetadata!) {
-        print('  - ${shift.shiftName}: isActive = ${shift.isActive}');
-      }
-    }
-
-    return activeShifts;
+    return shiftMetadata!.where((shift) => shift.isActive).toList();
   }
 
   // Mock: Get dates with available shifts (for blue dots)
@@ -286,8 +268,8 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
         return '$start - $end';
       }
-    } catch (e) {
-      print('Error formatting time range: $e');
+    } catch (_) {
+      // Fallback below
     }
 
     // Fallback: just trim to HH:MM
@@ -429,7 +411,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
 
   // Shift action handlers
   void _handleApply(ShiftMetadata shift) {
-    print('Apply to shift: ${shift.shiftName}');
     setState(() {
       appliedShiftIds.add(shift.shiftId);
     });
@@ -437,7 +418,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   }
 
   void _handleWaitlist(ShiftMetadata shift) {
-    print('Join waitlist for shift: ${shift.shiftName}');
     setState(() {
       waitlistedShiftIds.add(shift.shiftId);
     });
@@ -445,7 +425,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   }
 
   void _handleLeaveWaitlist(ShiftMetadata shift) {
-    print('Leave waitlist for shift: ${shift.shiftName}');
     setState(() {
       waitlistedShiftIds.remove(shift.shiftId);
     });
@@ -453,7 +432,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   }
 
   void _handleWithdraw(ShiftMetadata shift) {
-    print('Withdraw from shift: ${shift.shiftName}');
     setState(() {
       appliedShiftIds.remove(shift.shiftId);
     });
@@ -461,7 +439,6 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
   }
 
   void _handleShiftTap(ShiftMetadata shift) {
-    print('Tapped shift: ${shift.shiftName}');
     // TODO: Navigate to shift detail page
   }
 
@@ -479,7 +456,7 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       return TossSelectionItem.fromGeneric(
         id: user['id'] as String,
         title: user['name'] as String,
-        avatarUrl: user['avatar'] as String, // Pass avatar URL
+        avatarUrl: user['avatar'] as String,
       );
     }).toList();
 
@@ -488,10 +465,9 @@ class _ShiftSignupTabState extends ConsumerState<ShiftSignupTab>
       title: 'Applied Users',
       items: items,
       showSubtitle: false,
-      borderBottomWidth: 0, // Remove divider lines
-      onItemSelected: (item) {
+      borderBottomWidth: 0,
+      onItemSelected: (_) {
         // Optional: Navigate to user profile or show more details
-        print('Selected user: ${item.title}');
       },
     );
   }

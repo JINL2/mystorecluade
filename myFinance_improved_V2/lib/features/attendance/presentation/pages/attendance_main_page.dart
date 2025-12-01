@@ -46,12 +46,6 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage> {
 
     // Invalidate current shift status
     ref.invalidate(currentShiftProvider);
-
-    // Debug log
-    assert(() {
-      debugPrint('🔄 [AttendanceMainPage] Refreshed all attendance data on page entry');
-      return true;
-    }());
   }
 
   @override

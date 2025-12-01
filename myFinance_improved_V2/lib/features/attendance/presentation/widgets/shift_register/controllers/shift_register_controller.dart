@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,11 +51,7 @@ class ShiftRegisterController {
         shiftMetadata = response;
         isLoadingMetadata = false;
       });
-    } catch (e) {
-      assert(() {
-        debugPrint('❌ Error fetching shift metadata: $e');
-        return true;
-      }());
+    } catch (_) {
       setState(() {
         isLoadingMetadata = false;
         shiftMetadata = [];

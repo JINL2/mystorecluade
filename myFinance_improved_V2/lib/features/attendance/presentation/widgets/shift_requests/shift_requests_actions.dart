@@ -35,18 +35,36 @@ class ShiftRequestsActions {
 
     if (userId.isEmpty || storeId.isEmpty) return;
 
-    // Use user's device current time with selected date
-    final now = DateTime.now();
-    final requestDateTime = DateTime(
+    // Get user's device timezone
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    // Build start time: selectedDate + shift.startTime (HH:mm format)
+    // shift.startTime comes from RPC already in user's local time
+    final startTimeParts = shift.startTime.split(':');
+    final startDateTime = DateTime(
       selectedDate.year,
       selectedDate.month,
       selectedDate.day,
-      now.hour,
-      now.minute,
-      now.second,
+      int.parse(startTimeParts[0]),
+      int.parse(startTimeParts[1]),
     );
-    final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-    final timezone = DateTimeUtils.getLocalTimezone();
+    final startTime = DateTimeUtils.toLocalWithOffset(startDateTime);
+
+    // Build end time: selectedDate + shift.endTime (HH:mm format)
+    // shift.endTime comes from RPC already in user's local time
+    final endTimeParts = shift.endTime.split(':');
+    final endDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      int.parse(endTimeParts[0]),
+      int.parse(endTimeParts[1]),
+    );
+    final endTime = DateTimeUtils.toLocalWithOffset(endDateTime);
+
+    // Current time for p_time parameter
+    final now = DateTime.now();
+    final time = DateTimeUtils.toLocalWithOffset(now);
 
     try {
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
@@ -54,7 +72,9 @@ class ShiftRequestsActions {
         userId: userId,
         shiftId: shift.shiftId,
         storeId: storeId,
-        requestTime: requestTime,
+        startTime: startTime,
+        endTime: endTime,
+        time: time,
         timezone: timezone,
       );
 
@@ -73,18 +93,36 @@ class ShiftRequestsActions {
 
     if (userId.isEmpty || storeId.isEmpty) return;
 
-    // Use user's device current time with selected date
-    final now = DateTime.now();
-    final requestDateTime = DateTime(
+    // Get user's device timezone
+    final timezone = DateTimeUtils.getLocalTimezone();
+
+    // Build start time: selectedDate + shift.startTime (HH:mm format)
+    // shift.startTime comes from RPC already in user's local time
+    final startTimeParts = shift.startTime.split(':');
+    final startDateTime = DateTime(
       selectedDate.year,
       selectedDate.month,
       selectedDate.day,
-      now.hour,
-      now.minute,
-      now.second,
+      int.parse(startTimeParts[0]),
+      int.parse(startTimeParts[1]),
     );
-    final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-    final timezone = DateTimeUtils.getLocalTimezone();
+    final startTime = DateTimeUtils.toLocalWithOffset(startDateTime);
+
+    // Build end time: selectedDate + shift.endTime (HH:mm format)
+    // shift.endTime comes from RPC already in user's local time
+    final endTimeParts = shift.endTime.split(':');
+    final endDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      int.parse(endTimeParts[0]),
+      int.parse(endTimeParts[1]),
+    );
+    final endTime = DateTimeUtils.toLocalWithOffset(endDateTime);
+
+    // Current time for p_time parameter
+    final now = DateTime.now();
+    final time = DateTimeUtils.toLocalWithOffset(now);
 
     try {
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
@@ -92,7 +130,9 @@ class ShiftRequestsActions {
         userId: userId,
         shiftId: shift.shiftId,
         storeId: storeId,
-        requestTime: requestTime,
+        startTime: startTime,
+        endTime: endTime,
+        time: time,
         timezone: timezone,
       );
 

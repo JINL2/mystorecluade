@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
@@ -184,15 +183,6 @@ final monthlyShiftCardsProvider =
     storeId: storeId,
     timezone: timezone,
   );
-
-  // ✅ Debug: Log loaded shift cards
-  assert(() {
-    debugPrint('📅 [monthlyShiftCardsProvider] Loaded ${shiftCards.length} cards for $yearMonth');
-    for (final card in shiftCards) {
-      debugPrint('  - ${card.requestDate}: ${card.shiftTime}');
-    }
-    return true;
-  }());
 
   return shiftCards;
 });
