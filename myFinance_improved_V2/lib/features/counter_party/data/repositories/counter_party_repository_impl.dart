@@ -1,4 +1,5 @@
 import '../../domain/entities/counter_party.dart';
+import '../../domain/entities/counter_party_deletion_validation.dart';
 import '../../domain/repositories/counter_party_repository.dart';
 import '../../domain/value_objects/counter_party_filter.dart';
 import '../../domain/value_objects/counter_party_type.dart';
@@ -109,8 +110,34 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   }
 
   @override
+  Future<CounterPartyDeletionValidation> validateDeletion(
+    String counterpartyId,
+  ) async {
+    try {
+      final data = await _dataSource.validateDeletion(counterpartyId);
+      return CounterPartyDeletionValidation.fromJson(data);
+    } catch (e) {
+      throw Exception('Failed to validate counter party deletion: $e');
+    }
+  }
+
+  @override
   Future<bool> deleteCounterParty(String counterpartyId) async {
     try {
+      // Validate before deletion - only check for unpaid debts
+      final validation = await validateDeletion(counterpartyId);
+
+      if (!validation.canDelete) {
+        if (validation.hasUnpaidDebts) {
+          throw Exception(
+            'Cannot delete: Has ${validation.unpaidDebtCount} unpaid debts '
+            'totaling ${validation.unpaidDebtAmount}',
+          );
+        }
+        throw Exception('Cannot delete: ${validation.reason}');
+      }
+
+      // Soft delete - data remains but hidden from UI
       await _dataSource.deleteCounterParty(counterpartyId);
       return true;
     } catch (e) {

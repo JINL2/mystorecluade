@@ -15,7 +15,8 @@ final debtControlProvider =
 class DebtControlNotifier extends AsyncNotifier<DebtControlState> {
   @override
   Future<DebtControlState> build() async {
-    return const DebtControlState();
+    // Start with loading state to prevent showing empty state before data loads
+    return const DebtControlState(isLoadingDebts: true);
   }
 
   /// Load smart overview with AI-driven insights
@@ -108,14 +109,24 @@ class DebtControlNotifier extends AsyncNotifier<DebtControlState> {
         offset: offset,
       );
 
+      // Sort debts once: Internal companies first, then by absolute amount (descending)
+      final sortedDebts = List.of(debts)
+        ..sort((a, b) {
+          // First priority: Internal companies on top
+          if (a.isInternal && !b.isInternal) return -1;
+          if (!a.isInternal && b.isInternal) return 1;
+          // Second priority: Sort by absolute amount (descending)
+          return b.amount.abs().compareTo(a.amount.abs());
+        });
+
       state = AsyncValue.data(
         state.value?.copyWith(
-              debts: debts,
+              debts: sortedDebts,
               viewpoint: viewpoint,
               isLoadingDebts: false,
             ) ??
             DebtControlState(
-              debts: debts,
+              debts: sortedDebts,
               viewpoint: viewpoint,
               isLoadingDebts: false,
             ),

@@ -1,6 +1,8 @@
+import 'package:myfinance_improved/core/utils/app_logger.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/services/debt_risk_assessment_service.dart';
 import '../models/debt_control_dto.dart';
 
 /// Supabase implementation of DebtDataSource
@@ -9,92 +11,129 @@ import '../models/debt_control_dto.dart';
 /// with caching for better performance.
 class SupabaseDebtDataSource {
   final SupabaseClient _client;
+  final DebtRiskAssessmentService _riskService;
+  final AppLogger _logger = const AppLogger('DebtDataSource');
 
-  // Cache for fetched data
+  // Cache for fetched data (stores FULL response with store and company)
   Map<String, dynamic>? _cachedData;
   DateTime? _lastFetchTime;
   String? _cachedCompanyId;
   String? _cachedStoreId;
-  String? _cachedPerspective;
-  String? _cachedFilter;
 
-  SupabaseDebtDataSource({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseDebtDataSource({
+    SupabaseClient? client,
+    DebtRiskAssessmentService? riskService,
+  })  : _client = client ?? Supabase.instance.client,
+        _riskService = riskService ?? DebtRiskAssessmentService();
 
   /// Fetch all debt data from RPC function with caching
+  /// Note: Always fetches with filter='all' and caches the FULL response (store + company).
+  /// Client-side filtering and perspective extraction done after caching.
   Future<Map<String, dynamic>> _fetchAllDebtData({
     required String companyId,
     String? storeId,
     String perspective = 'company',
-    String filter = 'all',
+    String filter = 'all', // This parameter is kept for compatibility but always uses 'all'
   }) async {
     // Check cache validity (5 minutes)
+    // Cache key: companyId + storeId (filter and perspective are ignored)
+    // Note: Different cache for each store because store data is different
     if (_cachedData != null &&
         _cachedCompanyId == companyId &&
         _cachedStoreId == storeId &&
-        _cachedPerspective == perspective &&
-        _cachedFilter == filter &&
         _lastFetchTime != null &&
         DateTime.now().difference(_lastFetchTime!).inMinutes < 5) {
-      return _cachedData!;
+      // Extract the requested perspective from cached full response
+      final perspectiveData = perspective == 'store' && storeId != null
+        ? _cachedData!['store']
+        : _cachedData!['company'];
+
+      if (perspectiveData == null) {
+        throw Exception('No data for selected perspective in cache');
+      }
+
+      _logger.d('✅ Using cached data', {
+        'perspective': perspective,
+        'storeId': storeId,
+        'cacheAge': '${DateTime.now().difference(_lastFetchTime!).inSeconds}s',
+      });
+
+      return perspectiveData as Map<String, dynamic>;
     }
 
     try {
       // Debug logging
-      print('🔍 [DebtDataSource] Calling RPC get_debt_control_data_v2');
-      print('   p_company_id: $companyId');
-      print('   p_store_id: $storeId');
-      print('   p_filter: $filter');
-      print('   perspective: $perspective');
+      _logger.d('Calling RPC get_debt_control_data_v2', {
+        'companyId': companyId,
+        'storeId': storeId,
+        'filter': 'all', // Always fetch all data
+        'perspective': perspective,
+      });
 
-      // Call v2 function and extract the appropriate perspective
+      // Fetch with filter='all' to get complete dataset
+      // Pass storeId to get specific store detail when needed
+      // Client-side filtering will be applied in repository/provider
       final response = await _client.rpc<Map<String, dynamic>>(
         'get_debt_control_data_v2',
         params: {
           'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_filter': filter,
-          'p_show_all': false,
+          'p_store_id': storeId, // Pass storeId to get specific store data
+          'p_filter': 'all', // Always fetch all data
+          'p_show_all': true, // Show all counterparties including zero balance
         },
       );
 
-      print('✅ [DebtDataSource] RPC call successful');
-      print('   Response keys: ${response.keys.toList()}');
+      _logger.i('RPC call successful', {
+        'responseKeys': response.keys.toList(),
+      });
 
-      // Extract the appropriate perspective from v2 response
-      final v2Data = response;
+      // Cache the FULL response (contains both store and company data)
+      _cachedData = response;
+      _lastFetchTime = DateTime.now();
+      _cachedCompanyId = companyId;
+      _cachedStoreId = storeId;
+      // Don't cache perspective or filter - we have ALL data in cached response
+
+      // Extract the appropriate perspective from cached response
+      final v2Data = _cachedData!;
       final perspectiveData = perspective == 'store' && storeId != null
         ? v2Data['store']
         : v2Data['company'];
 
-      print('   Extracting perspective: ${perspective == 'store' && storeId != null ? 'store' : 'company'}');
-      print('   Perspective data null: ${perspectiveData == null}');
+      final extractedPerspective = perspective == 'store' && storeId != null ? 'store' : 'company';
+      _logger.d('Extracting perspective', {
+        'perspective': extractedPerspective,
+        'dataIsNull': perspectiveData == null,
+      });
 
       if (perspectiveData == null) {
-        print('❌ [DebtDataSource] No data for selected perspective');
+        _logger.w('No data for selected perspective');
         throw Exception('No data for selected perspective');
       }
 
       if (perspectiveData is Map<String, dynamic>) {
         final summary = perspectiveData['summary'] as Map<String, dynamic>?;
-        print('   Summary: receivable=${summary?['total_receivable']}, payable=${summary?['total_payable']}, counterparties=${summary?['counterparty_count']}');
+        _logger.d('Summary data', {
+          'receivable': summary?['total_receivable'],
+          'payable': summary?['total_payable'],
+          'counterparties': summary?['counterparty_count'],
+        });
       }
 
-      // Cache the perspective data
-      _cachedData = perspectiveData as Map<String, dynamic>;
-      _lastFetchTime = DateTime.now();
-      _cachedCompanyId = companyId;
-      _cachedStoreId = storeId;
-      _cachedPerspective = perspective;
-      _cachedFilter = filter;
-
-      return _cachedData!;
+      return perspectiveData as Map<String, dynamic>;
     } catch (e, stackTrace) {
       // Log error for debugging
-      print('❌ [DebtDataSource] Error in _fetchAllDebtData:');
-      print('   Company: $companyId, Store: $storeId, Perspective: $perspective');
-      print('   Error: $e');
-      print('   StackTrace: $stackTrace');
+      _logger.e(
+        'Error in _fetchAllDebtData',
+        error: e,
+        stackTrace: stackTrace,
+        params: {
+          'companyId': companyId,
+          'storeId': storeId,
+          'perspective': perspective,
+          'filter': filter,
+        },
+      );
 
       // Return empty structure if error
       return _getEmptyStructure(companyId, storeId, perspective, filter);
@@ -147,12 +186,15 @@ class SupabaseDebtDataSource {
     final summary = data['summary'] as Map<String, dynamic>;
     final records = data['records'] as List? ?? [];
 
-    // Calculate critical count
+    // Calculate critical count using domain service
     int criticalCount = 0;
     for (final record in records) {
-      final daysOutstanding = record['days_outstanding'] as num?;
-      if (daysOutstanding != null && daysOutstanding > 90) {
-        criticalCount++;
+      final daysOutstanding = (record['days_outstanding'] as num?)?.toInt();
+      if (daysOutstanding != null) {
+        final riskCategory = _riskService.assessRiskCategory(daysOutstanding);
+        if (riskCategory == 'critical') {
+          criticalCount++;
+        }
       }
     }
 
@@ -261,9 +303,10 @@ class SupabaseDebtDataSource {
       limit: 100,
     );
 
+    // Filter for risky debts (> 30 days overdue)
     final riskDebts = allDebts.where((d) => d.daysOverdue > 30).toList();
-    riskDebts.sort((a, b) => b.priorityScore.compareTo(a.priorityScore));
 
+    // Note: Sorting is handled in Repository/Presentation layer
     return riskDebts.take(limit).toList();
   }
 
@@ -285,6 +328,12 @@ class SupabaseDebtDataSource {
     final records = data['records'] as List? ?? [];
     final List<PrioritizedDebtDto> debts = [];
 
+    _logger.d('📋 Processing records', {
+      'totalRecords': records.length,
+      'filter': filter,
+      'viewpoint': viewpoint,
+    });
+
     for (final record in records) {
       final isInternal = record['is_internal'] as bool? ?? false;
 
@@ -294,21 +343,10 @@ class SupabaseDebtDataSource {
       final netAmount = (record['net_amount'] as num?)?.toDouble() ?? 0.0;
       final daysOutstanding = (record['days_outstanding'] as num?)?.toInt() ?? 0;
 
-      String riskCategory = 'current';
-      double priorityScore = 0.0;
-
-      if (daysOutstanding > 90) {
-        riskCategory = 'critical';
-        priorityScore = 90.0 + (daysOutstanding / 10);
-      } else if (daysOutstanding > 60) {
-        riskCategory = 'attention';
-        priorityScore = 60.0 + (daysOutstanding / 10);
-      } else if (daysOutstanding > 30) {
-        riskCategory = 'watch';
-        priorityScore = 30.0 + (daysOutstanding / 10);
-      } else {
-        priorityScore = daysOutstanding.toDouble();
-      }
+      // Use domain service for risk assessment
+      final riskCategory = _riskService.assessRiskCategory(daysOutstanding);
+      final priorityScore = _riskService.calculatePriorityScore(daysOutstanding, riskCategory);
+      final suggestedActions = _riskService.getSuggestedActions(riskCategory);
 
       debts.add(PrioritizedDebtDto(
         id: record['counterparty_id'] as String? ?? '',
@@ -321,14 +359,22 @@ class SupabaseDebtDataSource {
         daysOverdue: daysOutstanding,
         riskCategory: riskCategory,
         priorityScore: priorityScore,
-        suggestedActions: _getSuggestedActions(riskCategory),
+        suggestedActions: suggestedActions,
         transactionCount: (record['transaction_count'] as int?) ?? 0,
         linkedCompanyName: isInternal ? (record['linked_company_id'] as String?) : null,
         lastContactDate: DateTimeUtils.toLocalSafe(record['last_activity'] as String?),
       ),);
     }
 
-    debts.sort((a, b) => b.priorityScore.compareTo(a.priorityScore));
+    // Note: Sorting is now handled in the Presentation layer (Provider)
+    // This keeps Data layer pure and only responsible for data fetching
+
+    _logger.d('✅ Processed debts', {
+      'totalDebts': debts.length,
+      'afterFilter': debts.length,
+      'limit': limit,
+      'offset': offset,
+    });
 
     final start = offset;
     final end = (offset + limit).clamp(0, debts.length);
@@ -338,18 +384,6 @@ class SupabaseDebtDataSource {
     return debts.sublist(start, end);
   }
 
-  List<String> _getSuggestedActions(String riskCategory) {
-    switch (riskCategory) {
-      case 'critical':
-        return ['call', 'legal', 'payment_plan'];
-      case 'attention':
-        return ['call', 'email', 'payment_plan'];
-      case 'watch':
-        return ['email', 'reminder'];
-      default:
-        return ['monitor'];
-    }
-  }
 
   Future<PerspectiveSummaryDto> fetchPerspectiveSummary({
     required String companyId,
@@ -408,7 +442,5 @@ class SupabaseDebtDataSource {
     _lastFetchTime = null;
     _cachedCompanyId = null;
     _cachedStoreId = null;
-    _cachedPerspective = null;
-    _cachedFilter = null;
   }
 }

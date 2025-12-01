@@ -60,9 +60,10 @@ class RoleValidator {
     required String? currentRoleName,
   }) async {
     // Business rule: Cannot rename system roles
+    // Only 'owner' role is protected from renaming
     if (currentRoleName != null) {
       final normalizedCurrent = currentRoleName.toLowerCase();
-      if (normalizedCurrent == 'owner' || normalizedCurrent == 'admin') {
+      if (normalizedCurrent == 'owner') {
         throw RoleValidationException(
           'Cannot rename system role "$currentRoleName"',
         );
