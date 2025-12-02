@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../domain/entities/templates/financial_summary/financial_report.dart';
+import '../../../../domain/entities/report_detail.dart';
 
 /// Balance Sheet Overview with Visual Chart
 ///

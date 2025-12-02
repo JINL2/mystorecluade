@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../domain/entities/templates/financial_summary/financial_report.dart';
+import '../../../../domain/entities/report_detail.dart';
 import '../../../widgets/templates/financial_summary/account_changes_section.dart';
 import '../../../widgets/templates/financial_summary/red_flags_section.dart';
 import '../../../widgets/templates/financial_summary/ai_insights_section.dart';
