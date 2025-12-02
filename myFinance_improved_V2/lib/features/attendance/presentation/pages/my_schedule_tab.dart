@@ -47,11 +47,11 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   // GlobalKey to measure Today's shift card height
   final GlobalKey _todayShiftCardKey = GlobalKey();
 
-  // Month view data state
-  List<MonthlyShiftStatus>? _monthlyShiftStatus;
+  // Month view data state - Map-based caching for multiple months
+  final Map<String, List<MonthlyShiftStatus>> _monthlyShiftStatusCache = {};
+  final Set<String> _loadingMonths = {};
   List<ShiftMetadata>? _shiftMetadata;
-  bool _isLoadingMonthData = false;
-  String? _loadedMonthKey; // Track which month data is loaded for
+  bool _isLoadingMetadata = false;
 
   // Computed properties
   DateTime get _currentWeek {
@@ -84,12 +84,66 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     _fetchMonthViewData();
   }
 
-  /// Fetch shift metadata and monthly shift status for Month view calendar indicators
-  Future<void> _fetchMonthViewData() async {
-    final yearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+  /// Get month key in "YYYY-MM" format
+  String _getMonthKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+  }
 
-    // Skip if already loading or already loaded for this month
-    if (_isLoadingMonthData || _loadedMonthKey == yearMonth) {
+  /// Get combined monthly shift status from cache
+  List<MonthlyShiftStatus> _getMonthlyShiftStatusFromCache() {
+    final allData = <MonthlyShiftStatus>[];
+    for (final entry in _monthlyShiftStatusCache.entries) {
+      allData.addAll(entry.value);
+    }
+    return allData;
+  }
+
+  /// Fetch shift metadata (only once, doesn't change per month)
+  Future<void> _fetchShiftMetadataIfNeeded() async {
+    if (_shiftMetadata != null || _isLoadingMetadata) return;
+
+    final appState = ref.read(appStateProvider);
+    final storeId = appState.storeChoosen;
+
+    if (storeId.isEmpty) return;
+
+    _isLoadingMetadata = true;
+
+    try {
+      final getShiftMetadata = ref.read(getShiftMetadataProvider);
+      final timezone = DateTimeUtils.getLocalTimezone();
+      final metadata = await getShiftMetadata(
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      if (mounted) {
+        setState(() {
+          _shiftMetadata = metadata;
+          _isLoadingMetadata = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[MyScheduleTab] _fetchShiftMetadataIfNeeded ERROR: $e');
+      _isLoadingMetadata = false;
+    }
+  }
+
+  /// Fetch monthly shift status with caching
+  /// Only calls RPC if data for the month is not already cached
+  Future<void> _fetchMonthlyShiftStatusIfNeeded(DateTime date) async {
+    final monthKey = _getMonthKey(date);
+    debugPrint('[MyScheduleTab] _fetchMonthlyShiftStatusIfNeeded called for monthKey: $monthKey');
+
+    // Check if already cached
+    if (_monthlyShiftStatusCache.containsKey(monthKey)) {
+      debugPrint('[MyScheduleTab] Cache HIT for month: $monthKey');
+      return;
+    }
+
+    // Check if already loading
+    if (_loadingMonths.contains(monthKey)) {
+      debugPrint('[MyScheduleTab] Already loading month: $monthKey, skipping');
       return;
     }
 
@@ -99,46 +153,70 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
     if (storeId.isEmpty || companyId.isEmpty) return;
 
-    setState(() {
-      _isLoadingMonthData = true;
-    });
+    debugPrint('[MyScheduleTab] Cache MISS for month: $monthKey, calling RPC...');
+    _loadingMonths.add(monthKey);
 
     try {
-      // Fetch shift metadata
-      final getShiftMetadata = ref.read(getShiftMetadataProvider);
-      final timezone = DateTimeUtils.getLocalTimezone();
-      final metadata = await getShiftMetadata(
-        storeId: storeId,
-        timezone: timezone,
-      );
-
-      // Fetch monthly shift status
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
-      final targetDate = DateTime(_currentMonth.year, _currentMonth.month, 15, 12, 0, 0);
+      final timezone = DateTimeUtils.getLocalTimezone();
+      final targetDate = DateTime(date.year, date.month, 15, 12, 0, 0);
       final requestTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDate);
 
-      final status = await getMonthlyShiftStatus(
+      final result = await getMonthlyShiftStatus(
         storeId: storeId,
         companyId: companyId,
         requestTime: requestTime,
         timezone: timezone,
       );
 
+      debugPrint('[MyScheduleTab] RPC completed for month: $monthKey, got ${result.length} records');
+
       if (mounted) {
-        setState(() {
-          _shiftMetadata = metadata;
-          _monthlyShiftStatus = status;
-          _loadedMonthKey = yearMonth;
-          _isLoadingMonthData = false;
-        });
+        // Cache the result by month
+        final monthData = result.where((r) {
+          if (r.requestDate.length >= 7) {
+            return r.requestDate.substring(0, 7) == monthKey;
+          }
+          return false;
+        }).toList();
+
+        _monthlyShiftStatusCache[monthKey] = monthData;
+        debugPrint('[MyScheduleTab] Cached ${monthData.length} records for month: $monthKey');
+
+        // Also cache data for other months that came in the response
+        final otherMonths = <String, List<MonthlyShiftStatus>>{};
+        for (final r in result) {
+          if (r.requestDate.length >= 7) {
+            final rMonth = r.requestDate.substring(0, 7);
+            if (rMonth != monthKey && !_monthlyShiftStatusCache.containsKey(rMonth)) {
+              otherMonths.putIfAbsent(rMonth, () => []).add(r);
+            }
+          }
+        }
+        for (final entry in otherMonths.entries) {
+          _monthlyShiftStatusCache[entry.key] = entry.value;
+          debugPrint('[MyScheduleTab] Also cached ${entry.value.length} records for month: ${entry.key}');
+        }
+
+        setState(() {});
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingMonthData = false;
-        });
-      }
+      debugPrint('[MyScheduleTab] _fetchMonthlyShiftStatusIfNeeded ERROR: $e');
+    } finally {
+      _loadingMonths.remove(monthKey);
     }
+  }
+
+  /// Fetch shift metadata and monthly shift status for Month view calendar indicators
+  Future<void> _fetchMonthViewData() async {
+    final yearMonth = _getMonthKey(_currentMonth);
+    debugPrint('[MyScheduleTab] _fetchMonthViewData called for month: $yearMonth');
+
+    // Fetch metadata if not already loaded
+    await _fetchShiftMetadataIfNeeded();
+
+    // Fetch monthly shift status if not cached
+    await _fetchMonthlyShiftStatusIfNeeded(_currentMonth);
   }
 
   void _handleDateSelected(DateTime date) {
@@ -274,16 +352,19 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
   Widget _buildMonthView() {
     // Use year-month string key to prevent infinite rebuilds
-    final yearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
+    final yearMonth = _getMonthKey(_currentMonth);
     final shiftCardsAsync = ref.watch(monthlyShiftCardsProvider(yearMonth));
 
     // Also get today's month data for the header (in case current month is different)
     final now = DateTime.now();
-    final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final todayYearMonth = _getMonthKey(now);
     final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
 
-    // Trigger fetch of month view data if not already loaded
-    if (_loadedMonthKey != yearMonth && !_isLoadingMonthData) {
+    // Get monthly shift status from cache for calendar indicators
+    final monthlyShiftStatus = _getMonthlyShiftStatusFromCache();
+
+    // Trigger fetch of month view data if not already cached
+    if (!_monthlyShiftStatusCache.containsKey(yearMonth) && !_loadingMonths.contains(yearMonth)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _fetchMonthViewData();
       });
@@ -345,11 +426,11 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                 shiftsInMonth: ScheduleMonthBuilder.buildShiftsInMonth(
                   currentMonth: _currentMonth,
                   shiftMetadata: _shiftMetadata,
-                  monthlyShiftStatus: _monthlyShiftStatus,
+                  monthlyShiftStatus: monthlyShiftStatus,
                 ),
                 userApprovedDates: ScheduleMonthBuilder.buildUserApprovedDates(
                   currentMonth: _currentMonth,
-                  monthlyShiftStatus: _monthlyShiftStatus,
+                  monthlyShiftStatus: monthlyShiftStatus,
                   currentUserId: ref.read(appStateProvider).userId,
                 ),
                 dayShifts: ScheduleMonthBuilder.buildDayShifts(

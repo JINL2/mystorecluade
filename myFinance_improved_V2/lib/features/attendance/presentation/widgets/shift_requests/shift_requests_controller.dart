@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -73,14 +74,15 @@ class ShiftRequestsController {
     try {
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
 
-      // Use the middle of the selected month to ensure we fetch the entire month's data
-      final now = DateTime.now();
-      final baseDate = selectedDate.isAfter(now) ? selectedDate : now;
-      final targetDate = DateTime(baseDate.year, baseDate.month, 15, 12, 0, 0);
+      // Use the 15th of the selected month to fetch that month's data
+      // Important: Always use the selectedDate's month, not current date
+      final targetDate = DateTime(selectedDate.year, selectedDate.month, 15, 12, 0, 0);
       final requestTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDate);
 
       // Get user's local timezone from device
       final timezone = DateTimeUtils.getLocalTimezone();
+
+      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus: selectedDate=$selectedDate, requestTime=$requestTime');
 
       final response = await getMonthlyShiftStatus(
         storeId: storeId,
@@ -90,7 +92,8 @@ class ShiftRequestsController {
       );
 
       return response;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus ERROR: $e');
       return null;
     }
   }
