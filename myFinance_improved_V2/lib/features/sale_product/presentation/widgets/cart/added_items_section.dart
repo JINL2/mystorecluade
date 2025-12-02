@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -9,6 +8,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../domain/entities/cart_item.dart';
 import '../../providers/cart_provider.dart';
+import '../../utils/currency_formatter.dart';
 import '../common/product_image_widget.dart';
 
 /// Added items section widget - displays cart items with quantity controls
@@ -26,7 +26,6 @@ class AddedItemsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final totalAmount = ref.read(cartProvider.notifier).subtotal;
     final totalItems = ref.read(cartProvider.notifier).totalItems;
-    final formatter = NumberFormat('#,##0', 'en_US');
 
     return Container(
       margin: const EdgeInsets.all(TossSpacing.space4),
@@ -41,11 +40,11 @@ class AddedItemsSection extends ConsumerWidget {
             const SizedBox(height: TossSpacing.space3),
 
             // Cart Items List
-            ...cartItems.map((item) => _buildCartItemTile(ref, item, formatter)),
+            ...cartItems.map((item) => _buildCartItemTile(ref, item)),
 
             // Total Section
             const SizedBox(height: TossSpacing.space3),
-            _buildTotalSection(totalAmount, formatter),
+            _buildTotalSection(totalAmount),
           ],
         ),
       ),
@@ -79,7 +78,7 @@ class AddedItemsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildCartItemTile(WidgetRef ref, CartItem item, NumberFormat formatter) {
+  Widget _buildCartItemTile(WidgetRef ref, CartItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
@@ -104,7 +103,7 @@ class AddedItemsSection extends ConsumerWidget {
 
           // Product Info
           Expanded(
-            child: _buildProductInfo(item, formatter),
+            child: _buildProductInfo(item),
           ),
 
           // Quantity Controls
@@ -125,7 +124,7 @@ class AddedItemsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildProductInfo(CartItem item, NumberFormat formatter) {
+  Widget _buildProductInfo(CartItem item) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +148,7 @@ class AddedItemsSection extends ConsumerWidget {
         Row(
           children: [
             Text(
-              '$currencySymbol${formatter.format(item.price.round())}',
+              '$currencySymbol${CurrencyFormatter.currency.format(item.price.round())}',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.primary,
                 fontWeight: FontWeight.w600,
@@ -163,7 +162,7 @@ class AddedItemsSection extends ConsumerWidget {
             ),
             const SizedBox(width: TossSpacing.space2),
             Text(
-              '$currencySymbol${formatter.format(item.subtotal.round())}',
+              '$currencySymbol${CurrencyFormatter.currency.format(item.subtotal.round())}',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray900,
                 fontWeight: FontWeight.w600,
@@ -249,7 +248,7 @@ class AddedItemsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildTotalSection(double totalAmount, NumberFormat formatter) {
+  Widget _buildTotalSection(double totalAmount) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
@@ -267,7 +266,7 @@ class AddedItemsSection extends ConsumerWidget {
             ),
           ),
           Text(
-            '$currencySymbol${formatter.format(totalAmount.round())}',
+            '$currencySymbol${CurrencyFormatter.currency.format(totalAmount.round())}',
             style: TossTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.bold,
               color: TossColors.primary,

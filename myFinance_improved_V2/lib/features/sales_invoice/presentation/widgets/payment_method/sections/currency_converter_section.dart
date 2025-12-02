@@ -5,11 +5,12 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_white_card.dart';
+import '../../../../domain/entities/exchange_rate_data.dart' as entities;
 import '../helpers/payment_helpers.dart';
 
 /// Currency converter section widget
 class CurrencyConverterSection extends StatefulWidget {
-  final Map<String, dynamic> exchangeRateData;
+  final entities.ExchangeRateData? exchangeRateData;
   final double finalTotal;
 
   const CurrencyConverterSection({
@@ -28,14 +29,14 @@ class _CurrencyConverterSectionState extends State<CurrencyConverterSection> {
 
   @override
   Widget build(BuildContext context) {
-    final baseCurrency =
-        widget.exchangeRateData['base_currency'] as Map<String, dynamic>?;
-    final exchangeRates =
-        widget.exchangeRateData['exchange_rates'] as List? ?? [];
+    if (widget.exchangeRateData == null) return const SizedBox.shrink();
+
+    final baseCurrency = widget.exchangeRateData!.baseCurrency;
+    final exchangeRates = widget.exchangeRateData!.rates;
 
     // Filter out the base currency from the list
     final otherCurrencies = exchangeRates.where((rate) {
-      return rate['currency_code'] != baseCurrency?['currency_code'];
+      return rate.currencyCode != baseCurrency.currencyCode;
     }).toList();
 
     if (otherCurrencies.isEmpty) return const SizedBox.shrink();
@@ -77,13 +78,13 @@ class _CurrencyConverterSectionState extends State<CurrencyConverterSection> {
     );
   }
 
-  Widget _buildCurrencyButtons(List<dynamic> otherCurrencies) {
+  Widget _buildCurrencyButtons(List<entities.ExchangeRate> otherCurrencies) {
     return Wrap(
       spacing: TossSpacing.space2,
       runSpacing: TossSpacing.space2,
       children: otherCurrencies.map((rate) {
-        final currencyCode = rate['currency_code'] as String;
-        final symbol = rate['symbol'] as String;
+        final currencyCode = rate.currencyCode;
+        final symbol = rate.symbol;
         final isSelected = _selectedCurrencyCode == currencyCode;
 
         return InkWell(
@@ -133,19 +134,16 @@ class _CurrencyConverterSectionState extends State<CurrencyConverterSection> {
   }
 
   Widget _buildConvertedAmount(
-    Map<String, dynamic>? baseCurrency,
-    List<dynamic> otherCurrencies,
+    entities.Currency baseCurrency,
+    List<entities.ExchangeRate> otherCurrencies,
   ) {
-    final selectedRate = otherCurrencies.firstWhere(
-      (r) => r['currency_code'] == _selectedCurrencyCode,
-      orElse: () => {'symbol': ''},
-    );
+    final selectedRate = otherCurrencies.where((r) {
+      return r.currencyCode == _selectedCurrencyCode;
+    }).firstOrNull;
 
-    final convertedAmount = PaymentHelpers.convertToSelectedCurrency(
-      widget.finalTotal,
-      _selectedCurrencyCode!,
-      widget.exchangeRateData,
-    );
+    if (selectedRate == null) return const SizedBox.shrink();
+
+    final convertedAmount = widget.finalTotal / selectedRate.rate;
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
@@ -174,7 +172,7 @@ class _CurrencyConverterSectionState extends State<CurrencyConverterSection> {
               Row(
                 children: [
                   Text(
-                    '${baseCurrency?['symbol'] ?? ''} ${PaymentHelpers.formatNumber(widget.finalTotal.round())} ${baseCurrency?['currency_code'] ?? ''}',
+                    '${baseCurrency.symbol} ${PaymentHelpers.formatNumber(widget.finalTotal.round())} ${baseCurrency.currencyCode}',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray700,
                     ),
@@ -188,7 +186,7 @@ class _CurrencyConverterSectionState extends State<CurrencyConverterSection> {
                 ],
               ),
               Text(
-                '${selectedRate['symbol']} ${PaymentHelpers.formatNumber(convertedAmount.round())} $_selectedCurrencyCode',
+                '${selectedRate.symbol} ${PaymentHelpers.formatNumber(convertedAmount.round())} $_selectedCurrencyCode',
                 style: TossTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w700,
                   color: TossColors.primary,

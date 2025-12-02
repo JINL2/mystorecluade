@@ -8,6 +8,10 @@ abstract class SalesJournalRepository {
   /// Creates a double-entry journal:
   /// - Debit: Cash account (increase cash)
   /// - Credit: Sales revenue account (increase revenue)
+  ///
+  /// Parameters:
+  /// - [cashAccountId]: Account ID for cash (from Domain configuration)
+  /// - [salesAccountId]: Account ID for sales revenue (from Domain configuration)
   Future<void> createSalesJournalEntry({
     required String companyId,
     required String storeId,
@@ -16,5 +20,7 @@ abstract class SalesJournalRepository {
     required String description,
     required String lineDescription,
     required String cashLocationId,
+    required String cashAccountId,
+    required String salesAccountId,
   });
 }

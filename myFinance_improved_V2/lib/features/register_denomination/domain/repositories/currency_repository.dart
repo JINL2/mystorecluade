@@ -29,4 +29,7 @@ abstract class CurrencyRepository {
 
   /// Check if a currency has denominations
   Future<bool> hasDenominations(String companyId, String currencyId);
+
+  /// Check if the given currency is the base currency for the company
+  Future<bool> isBaseCurrency(String companyId, String currencyId);
 }

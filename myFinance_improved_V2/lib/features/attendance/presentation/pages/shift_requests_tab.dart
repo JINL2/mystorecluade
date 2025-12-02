@@ -117,9 +117,12 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   }
 
   void _updateMonthlyShiftStatus(List<MonthlyShiftStatus> status) {
+    print('🔶 [_updateMonthlyShiftStatus] CALLED - status count: ${status.length}');
     setState(() {
       monthlyShiftStatus = status;
+      print('🔶 [_updateMonthlyShiftStatus] setState() executed');
     });
+    print('✅ [_updateMonthlyShiftStatus] COMPLETE');
   }
 
   @override

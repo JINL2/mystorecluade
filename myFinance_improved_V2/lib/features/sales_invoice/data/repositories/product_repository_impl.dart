@@ -1,6 +1,8 @@
 import '../../domain/entities/cash_location.dart';
+import '../../domain/entities/exchange_rate_data.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_datasource.dart';
+import '../models/exchange_rate_data_model.dart';
 import '../models/payment_currency_model.dart';
 
 /// Product repository implementation
@@ -68,13 +70,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
     if (response == null) return null;
 
-    return ExchangeRateData(
-      baseCurrency: response['base_currency'] as Map<String, dynamic>,
-      exchangeRates: (response['exchange_rates'] as List?)
-              ?.map((e) => e as Map<String, dynamic>)
-              .toList() ??
-          [],
-    );
+    return ExchangeRateDataModel(response).toEntity();
   }
 
   @override

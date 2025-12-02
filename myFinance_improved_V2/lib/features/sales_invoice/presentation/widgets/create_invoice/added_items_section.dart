@@ -8,6 +8,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../domain/entities/sales_product.dart';
+import '../../../domain/value_objects/invoice_calculator.dart';
 import '../../providers/invoice_creation_provider.dart';
 
 /// Added items section widget for create invoice page
@@ -401,12 +402,7 @@ class AddedItemsSection extends ConsumerWidget {
     List<SalesProduct> selectedProducts,
     Map<String, int> quantities,
   ) {
-    double total = 0.0;
-    for (final product in selectedProducts) {
-      final quantity = quantities[product.productId] ?? 0;
-      final price = product.sellingPrice ?? 0.0;
-      total += price * quantity;
-    }
-    return total;
+    // Use Domain layer calculator for business logic
+    return InvoiceCalculator.calculateTotalAmount(selectedProducts, quantities);
   }
 }

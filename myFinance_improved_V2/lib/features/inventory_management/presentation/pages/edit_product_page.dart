@@ -4,16 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../di/inventory_providers.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
-import '../../data/adapters/xfile_image_adapter.dart';
 import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
+import '../adapters/xfile_image_adapter.dart';
 import '../providers/inventory_providers.dart';
-import '../providers/repository_providers.dart';
 import '../widgets/product_form/classification_section.dart';
 import '../widgets/product_form/dialogs/brand_creation_dialog.dart';
 import '../widgets/product_form/dialogs/category_creation_dialog.dart';

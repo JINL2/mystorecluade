@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/journal_input_providers.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../journal_input/presentation/providers/journal_input_providers.dart';
 
 class StoreSelector extends ConsumerStatefulWidget {
   final String? linkedCompanyId;

@@ -1,4 +1,5 @@
 import '../entities/cash_location.dart';
+import '../entities/exchange_rate_data.dart';
 import '../entities/payment_currency.dart';
 import '../entities/sales_product.dart';
 
@@ -103,16 +104,8 @@ class CurrencyDataResult {
   });
 }
 
-/// Exchange rate data
-class ExchangeRateData {
-  final Map<String, dynamic> baseCurrency;
-  final List<Map<String, dynamic>> exchangeRates;
-
-  const ExchangeRateData({
-    required this.baseCurrency,
-    required this.exchangeRates,
-  });
-}
+// ExchangeRateData moved to ../entities/exchange_rate_data.dart
+// Import it from there if needed
 
 /// Invoice item for creation
 class InvoiceItem {

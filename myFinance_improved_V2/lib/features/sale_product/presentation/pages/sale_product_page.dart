@@ -20,8 +20,8 @@ import '../../../sales_invoice/presentation/pages/payment_method_page.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../domain/value_objects/sort_option.dart';
 import '../providers/cart_provider.dart';
+import '../providers/filtered_products_provider.dart';
 import '../providers/sales_product_provider.dart';
-import '../providers/use_case_providers.dart';
 import '../widgets/cart/added_items_section.dart';
 import '../widgets/cart/cart_summary_bar.dart';
 import '../widgets/list/selectable_product_tile.dart';
@@ -186,13 +186,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       );
     }
 
-    // Filter and sort products
-    final filterUseCase = ref.read(filterProductsUseCaseProvider);
-    final displayProducts = filterUseCase.execute(
-      products: salesState.products,
-      searchQuery: _searchController.text,
-      sortOption: salesState.sortOption,
-    );
+    // Get filtered products (memoized - only recomputes when dependencies change)
+    final displayProducts = ref.watch(filteredProductsProvider);
 
     final shouldShowProductList = cart.isEmpty || _isSearchFocused;
 

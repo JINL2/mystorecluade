@@ -1,34 +1,16 @@
 // Repository Providers: Inventory Management
-// Presentation Layer providers for dependency injection
-// Note: Moved from data/ to presentation/ for Clean Architecture compliance
-// Presentation should not directly import data layer implementations
+// ⚠️ DEPRECATED: This file now re-exports from feature's di/ folder
+//
+// DI configuration has been moved to proper location:
+// - Old location: app/providers/inventory_di_providers.dart
+// - New location: features/inventory_management/di/inventory_providers.dart
+//
+// MIGRATION:
+// - Old: import '../providers/repository_providers.dart';
+// - New: import '../../di/inventory_providers.dart';
+//
+// This file re-exports the providers for backward compatibility
+// Will be removed in next major version
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/services/supabase_service.dart';
-import '../../data/datasources/inventory_remote_datasource.dart';
-import '../../data/repositories/inventory_repository_impl.dart';
-import '../../domain/repositories/inventory_repository.dart';
-
-// ============================================================================
-// Repository Providers (DI Configuration)
-// ============================================================================
-
-/// Remote DataSource Provider
-/// Creates the remote data source with Supabase client
-final inventoryRemoteDataSourceProvider = Provider<InventoryRemoteDataSource>(
-  (ref) {
-    final supabaseService = ref.watch(supabaseServiceProvider);
-    return InventoryRemoteDataSource(supabaseService.client);
-  },
-);
-
-/// Repository Provider
-/// Provides the inventory repository implementation
-/// Note: Returns Domain interface type (InventoryRepository), not implementation
-final inventoryRepositoryProvider = Provider<InventoryRepository>(
-  (ref) {
-    final dataSource = ref.watch(inventoryRemoteDataSourceProvider);
-    return InventoryRepositoryImpl(dataSource);
-  },
-);
+// Re-export from feature DI configuration
+export '../../di/inventory_providers.dart';

@@ -25,13 +25,46 @@ class QRScannerPage extends ConsumerStatefulWidget {
 }
 
 class _QRScannerPageState extends ConsumerState<QRScannerPage> {
-  MobileScannerController cameraController = MobileScannerController(
-    formats: [BarcodeFormat.qrCode],
-    returnImage: false,
-  );
+  late MobileScannerController cameraController;
   bool isProcessing = false;
   bool hasScanned = false; // Add flag to prevent multiple scans
   bool isShowingDialog = false; // Add flag to prevent multiple dialogs
+  bool isCameraInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    cameraController = MobileScannerController(
+      formats: [BarcodeFormat.qrCode],
+      returnImage: false,
+    );
+    // Start camera with error handling
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      await cameraController.start();
+      if (mounted) {
+        setState(() {
+          isCameraInitialized = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isCameraInitialized = false;
+        });
+        await _showErrorDialog(
+          'Failed to initialize camera.\n\n'
+          'Please check:\n'
+          '• Camera permissions are enabled\n'
+          '• Camera is not being used by another app\n\n'
+          'Error: ${e.toString()}'
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -132,31 +165,35 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         backgroundColor: TossColors.white,
         foregroundColor: TossColors.black,
       ),
-      body: Stack(
+      body: !isCameraInitialized
+          ? const Center(
+              child: TossLoadingView(),
+            )
+          : Stack(
         children: [
           MobileScanner(
             controller: cameraController,
             onDetect: (capture) async {
               // Prevent multiple scans
               if (isProcessing || hasScanned) return;
-              
+
               final List<Barcode> barcodes = capture.barcodes;
               if (barcodes.isEmpty) return;
-              
+
               final String? code = barcodes.first.rawValue;
               if (code == null || code.isEmpty) return;
-              
+
               setState(() {
                 isProcessing = true;
                 hasScanned = true; // Mark as scanned
               });
-              
+
               // Stop the camera to prevent further scans
               await cameraController.stop();
-              
+
               // Haptic feedback
               HapticFeedback.mediumImpact();
-              
+
               // Get current location
               final Position? position = await _getCurrentLocation();
               if (position == null) {
@@ -174,20 +211,20 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 return;
               }
               final userId = user.id;
-              
+
               try {
                 // QR code contains only the store_id (e.g., "d3dfa42c-9c18-46ed-8dbc-a6d67a2ab7ff")
                 final storeId = code.trim();
-                
+
                 // Validate store ID format (UUID)
                 final uuidRegex = RegExp(
                   r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
                 );
-                
+
                 if (!uuidRegex.hasMatch(storeId)) {
                   throw Exception('Invalid store ID format');
                 }
-                
+
                 // Get current date and time with user's device timezone
                 final now = DateTime.now();
                 // Use local time with timezone offset (e.g., "2024-11-15T10:30:25+09:00")

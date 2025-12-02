@@ -1,5 +1,6 @@
 import '../entities/cart_item.dart';
 import '../entities/sales_product.dart';
+import '../value_objects/stock_status.dart';
 import 'cart_validation_result.dart';
 
 /// Pure business rule validator for cart operations
@@ -52,8 +53,9 @@ class CartValidator {
       );
     }
 
-    // Warning for products with low stock
-    if (availableStock > 0 && availableStock <= 10) {
+    // Warning for products with low stock (using Domain business rule)
+    final stockStatus = StockStatus.fromQuantity(availableStock);
+    if (stockStatus == StockStatus.lowStock) {
       warnings.add('Low stock alert: Only $availableStock units available');
     }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -11,6 +10,8 @@ import '../../../../../shared/widgets/toss/toss_list_tile.dart';
 import '../../../domain/entities/cart_item.dart';
 import '../../../domain/entities/sales_product.dart';
 import '../../providers/cart_provider.dart';
+import '../../utils/currency_formatter.dart';
+import '../../utils/stock_color_helper.dart';
 import '../common/product_image_widget.dart';
 
 /// Selectable product tile widget - displays a product that can be added to cart
@@ -31,7 +32,6 @@ class SelectableProductTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSelected = cartItem.quantity > 0;
-    final formatter = NumberFormat('#,##0', 'en_US');
 
     return Container(
       decoration: BoxDecoration(
@@ -61,7 +61,7 @@ class SelectableProductTile extends ConsumerWidget {
             children: [
               // Price
               Text(
-                '$currencySymbol${formatter.format(product.pricing.sellingPrice?.round() ?? 0)}',
+                '$currencySymbol${CurrencyFormatter.currency.format(product.pricing.sellingPrice?.round() ?? 0)}',
                 style: TossTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w600,
                   color: TossColors.gray900,
@@ -72,7 +72,9 @@ class SelectableProductTile extends ConsumerWidget {
               Text(
                 'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
                 style: TossTextStyles.caption.copyWith(
-                  color: _getStockColor(),
+                  color: StockColorHelper.getStockColor(
+                    product.totalStockSummary.totalQuantityOnHand,
+                  ),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -94,13 +96,5 @@ class SelectableProductTile extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  Color _getStockColor() {
-    final stock = product.totalStockSummary.totalQuantityOnHand;
-    if (stock == 0) return TossColors.error;
-    if (stock <= 5) return TossColors.warning;
-    if (stock <= 20) return TossColors.info;
-    return TossColors.success;
   }
 }

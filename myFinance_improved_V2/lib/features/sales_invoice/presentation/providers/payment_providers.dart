@@ -1,68 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/cash_location.dart';
-import '../../domain/repositories/product_repository.dart';
-import '../../domain/repositories/sales_journal_repository.dart';
+import '../../domain/usecases/create_sales_journal_usecase.dart';
+import '../../domain/usecases/get_cash_locations_usecase.dart';
+import '../../domain/usecases/get_currency_data_usecase.dart';
 import '../models/invoice_models.dart';
-
-// State for managing payment method page
-class PaymentMethodState {
-  final bool isLoading;
-  final String? error;
-  final BaseCurrencyResponse? currencyResponse;
-  final List<CashLocation> cashLocations;
-  final CashLocation? selectedCashLocation;
-  final PaymentCurrency? selectedCurrency;
-  final Map<String, double> currencyAmounts; // Track amounts for each currency
-  final String? focusedCurrencyId; // Track which currency is being edited
-  final double discountAmount; // Discount amount in base currency
-
-  PaymentMethodState({
-    this.isLoading = false,
-    this.error,
-    this.currencyResponse,
-    this.cashLocations = const [],
-    this.selectedCashLocation,
-    this.selectedCurrency,
-    this.currencyAmounts = const {},
-    this.focusedCurrencyId,
-    this.discountAmount = 0.0,
-  });
-
-  PaymentMethodState copyWith({
-    bool? isLoading,
-    String? error,
-    BaseCurrencyResponse? currencyResponse,
-    List<CashLocation>? cashLocations,
-    CashLocation? selectedCashLocation,
-    PaymentCurrency? selectedCurrency,
-    Map<String, double>? currencyAmounts,
-    String? focusedCurrencyId,
-    bool clearFocusedCurrencyId = false,
-    double? discountAmount,
-  }) {
-    return PaymentMethodState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      currencyResponse: currencyResponse ?? this.currencyResponse,
-      cashLocations: cashLocations ?? this.cashLocations,
-      selectedCashLocation: selectedCashLocation ?? this.selectedCashLocation,
-      selectedCurrency: selectedCurrency ?? this.selectedCurrency,
-      currencyAmounts: currencyAmounts ?? this.currencyAmounts,
-      focusedCurrencyId: clearFocusedCurrencyId ? null : (focusedCurrencyId ?? this.focusedCurrencyId),
-      discountAmount: discountAmount ?? this.discountAmount,
-    );
-  }
-}
+import 'states/payment_method_state.dart';
+import 'usecase_providers.dart';
 
 class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
   final Ref ref;
-  final ProductRepository _productRepository;
-  final SalesJournalRepository _salesJournalRepository;
+  final GetCurrencyDataUseCase _getCurrencyDataUseCase;
+  final GetCashLocationsUseCase _getCashLocationsUseCase;
+  final CreateSalesJournalUseCase _createSalesJournalUseCase;
 
-  PaymentMethodNotifier(this.ref, this._productRepository, this._salesJournalRepository) : super(PaymentMethodState());
+  PaymentMethodNotifier(
+    this.ref,
+    this._getCurrencyDataUseCase,
+    this._getCashLocationsUseCase,
+    this._createSalesJournalUseCase,
+  ) : super(const PaymentMethodState());
 
   // Load currency data and cash locations
   Future<void> loadCurrencyData() async {
@@ -75,8 +33,8 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
         throw Exception('Company not selected. Please select a company first.');
       }
 
-      // Call repository to get currency data
-      final currencyResult = await _productRepository.getCurrencyData(
+      // Call UseCase to get currency data
+      final currencyResult = await _getCurrencyDataUseCase.execute(
         companyId: appState.companyChoosen,
       );
 
@@ -109,8 +67,8 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
         // Get store ID from app state
         final storeId = appState.storeChoosen;
         if (storeId.isNotEmpty) {
-          // Repository returns domain entities directly
-          cashLocations = await _productRepository.getCashLocations(
+          // UseCase returns domain entities directly
+          cashLocations = await _getCashLocationsUseCase.execute(
             companyId: appState.companyChoosen,
             storeId: storeId,
           );
@@ -168,10 +126,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
 
   // Set focused currency for input
   void setFocusedCurrency(String? currencyId) {
-    state = state.copyWith(
-      focusedCurrencyId: currencyId,
-      clearFocusedCurrencyId: currencyId == null,
-    );
+    state = state.copyWith(focusedCurrencyId: currencyId);
   }
 
   // Update discount amount
@@ -183,10 +138,9 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
   void selectCashLocation(CashLocation? location) {
     state = state.copyWith(
       selectedCashLocation: location,
-      // Clear currency selection when cash location changes
       selectedCurrency: null,
-      currencyAmounts: {},
-      clearFocusedCurrencyId: true,
+      currencyAmounts: const {},
+      focusedCurrencyId: null,
     );
   }
 
@@ -200,8 +154,8 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     state = state.copyWith(
       selectedCashLocation: null,
       selectedCurrency: null,
-      currencyAmounts: {},
-      clearFocusedCurrencyId: true,
+      currencyAmounts: const {},
+      focusedCurrencyId: null,
       discountAmount: 0.0,
     );
   }
@@ -222,7 +176,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     required String lineDescription,
     required String cashLocationId,
   }) async {
-    await _salesJournalRepository.createSalesJournalEntry(
+    await _createSalesJournalUseCase.execute(
       companyId: companyId,
       storeId: storeId,
       userId: userId,
@@ -236,9 +190,15 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
 
 // Provider for payment method state
 final paymentMethodProvider = StateNotifierProvider.autoDispose<PaymentMethodNotifier, PaymentMethodState>((ref) {
-  final productRepository = ref.read(productRepositoryProvider);
-  final salesJournalRepository = ref.read(salesJournalRepositoryProvider);
-  return PaymentMethodNotifier(ref, productRepository, salesJournalRepository);
+  final getCurrencyDataUseCase = ref.read(getCurrencyDataUseCaseProvider);
+  final getCashLocationsUseCase = ref.read(getCashLocationsUseCaseProvider);
+  final createSalesJournalUseCase = ref.read(createSalesJournalUseCaseProvider);
+  return PaymentMethodNotifier(
+    ref,
+    getCurrencyDataUseCase,
+    getCashLocationsUseCase,
+    createSalesJournalUseCase,
+  );
 });
 
 // Provider to auto-load currency data when company changes

@@ -2,16 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/sales_product.dart';
-import '../../domain/repositories/product_repository.dart';
-import 'product_providers.dart';
+import '../../domain/usecases/get_products_for_sales_usecase.dart';
 import 'states/invoice_creation_state.dart';
+import 'usecase_providers.dart';
 
 /// Invoice creation state notifier
 class InvoiceCreationNotifier extends StateNotifier<InvoiceCreationState> {
-  final ProductRepository _repository;
+  final GetProductsForSalesUseCase _getProductsUseCase;
   final Ref _ref;
 
-  InvoiceCreationNotifier(this._repository, this._ref) : super(const InvoiceCreationState());
+  InvoiceCreationNotifier(this._getProductsUseCase, this._ref) : super(const InvoiceCreationState());
 
   /// Load products
   Future<void> loadProducts() async {
@@ -32,7 +32,7 @@ class InvoiceCreationNotifier extends StateNotifier<InvoiceCreationState> {
         return;
       }
 
-      final result = await _repository.getProductsForSales(
+      final result = await _getProductsUseCase.execute(
         companyId: companyId,
         storeId: storeId,
       );
@@ -92,6 +92,6 @@ class InvoiceCreationNotifier extends StateNotifier<InvoiceCreationState> {
 
 /// Invoice creation provider
 final invoiceCreationProvider = StateNotifierProvider<InvoiceCreationNotifier, InvoiceCreationState>((ref) {
-  final repository = ref.watch(productRepositoryProvider);
-  return InvoiceCreationNotifier(repository, ref);
+  final getProductsUseCase = ref.watch(getProductsForSalesUseCaseProvider);
+  return InvoiceCreationNotifier(getProductsUseCase, ref);
 });

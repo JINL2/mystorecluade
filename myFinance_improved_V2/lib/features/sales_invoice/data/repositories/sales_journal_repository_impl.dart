@@ -5,12 +5,9 @@ import '../../domain/repositories/sales_journal_repository.dart';
 /// Sales Journal Repository Implementation
 ///
 /// Implements the SalesJournalRepository interface using Supabase RPC.
+/// Account IDs are now received from Domain layer via UseCase.
 class SalesJournalRepositoryImpl implements SalesJournalRepository {
   final SupabaseClient _client;
-
-  // Fixed account IDs for sales journal entries
-  static const _cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-  static const _salesRevenueAccountId = 'e45e7d41-7fda-43a1-ac55-9779f3e59697';
 
   SalesJournalRepositoryImpl(this._client);
 
@@ -23,11 +20,13 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     required String description,
     required String lineDescription,
     required String cashLocationId,
+    required String cashAccountId,
+    required String salesAccountId,
   }) async {
     // Prepare journal lines for cash sales
     final journalLines = [
       {
-        'account_id': _cashAccountId,
+        'account_id': cashAccountId,
         'description': lineDescription,
         'debit': amount,
         'credit': 0.0,
@@ -36,7 +35,7 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         },
       },
       {
-        'account_id': _salesRevenueAccountId,
+        'account_id': salesAccountId,
         'description': lineDescription,
         'debit': 0.0,
         'credit': amount,
