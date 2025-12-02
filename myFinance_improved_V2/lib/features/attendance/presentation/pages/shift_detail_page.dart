@@ -91,33 +91,27 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   /// Get confirmed start time (use scheduled time from shift, not actual check-in)
   /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedStartTime() {
-    // Priority 1: Parse from shift_time field (format: "09:00-18:00" or "Morning Shift")
-    final shiftTime = widget.shift.shiftTime;
-    if (shiftTime.contains('-')) {
-      final parts = shiftTime.split('-');
-      if (parts.isNotEmpty) {
-        return parts[0].trim(); // Return start time (e.g., "09:00")
-      }
+    // Priority 1: Parse from shiftStartTime field (format: "2025-06-01T09:00:00")
+    try {
+      final startDateTime = DateTime.parse(widget.shift.shiftStartTime);
+      return '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      // Priority 2: Fall back to confirm_start_time from database
+      return widget.shift.confirmStartTime;
     }
-
-    // Priority 2: Fall back to confirm_start_time from database
-    return widget.shift.confirmStartTime;
   }
 
   /// Get confirmed end time (use scheduled time from shift, not actual check-out)
   /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedEndTime() {
-    // Priority 1: Parse from shift_time field (format: "09:00-18:00" or "Morning Shift")
-    final shiftTime = widget.shift.shiftTime;
-    if (shiftTime.contains('-')) {
-      final parts = shiftTime.split('-');
-      if (parts.length > 1) {
-        return parts[1].trim(); // Return end time (e.g., "18:00")
-      }
+    // Priority 1: Parse from shiftEndTime field (format: "2025-06-01T18:00:00")
+    try {
+      final endDateTime = DateTime.parse(widget.shift.shiftEndTime);
+      return '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      // Priority 2: Fall back to confirm_end_time from database
+      return widget.shift.confirmEndTime;
     }
-
-    // Priority 2: Fall back to confirm_end_time from database
-    return widget.shift.confirmEndTime;
   }
 
   /// Submit report to server via RPC

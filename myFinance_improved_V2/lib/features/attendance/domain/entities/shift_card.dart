@@ -15,7 +15,8 @@ class ShiftCard with _$ShiftCard {
     required String requestDate,
     required String shiftRequestId,
     String? shiftName, // e.g., "Afternoon", "Morning"
-    required String shiftTime,
+    required String shiftStartTime, // e.g., "2025-06-01T14:00:00"
+    required String shiftEndTime, // e.g., "2025-06-01T18:00:00"
     required String storeName,
 
     // Schedule

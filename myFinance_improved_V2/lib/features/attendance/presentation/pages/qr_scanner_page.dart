@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -16,6 +17,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_providers.dart';
+import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
@@ -178,16 +180,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               try {
                 // QR code contains only the store_id (e.g., "d3dfa42c-9c18-46ed-8dbc-a6d67a2ab7ff")
                 final storeId = code.trim();
-                
+
                 // Validate store ID format (UUID)
                 final uuidRegex = RegExp(
                   r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
                 );
-                
+
                 if (!uuidRegex.hasMatch(storeId)) {
                   throw Exception('Invalid store ID format');
                 }
-                
+
                 // Get current date and time with user's device timezone
                 final now = DateTime.now();
                 // Use local time with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
@@ -195,14 +197,41 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Get user's device timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
                 final timezone = DateTimeUtils.getLocalTimezone();
 
+                // Get app state for company/store info
+                final appState = ref.read(appStateProvider);
+                final companyId = appState.companyChoosen;
+
+                // Fetch shift cards to find the closest shift's request ID
+                // RPC: user_shift_cards_v4
+                final getUserShiftCards = ref.read(getUserShiftCardsProvider);
+                final shiftCards = await getUserShiftCards(
+                  requestTime: currentTime,
+                  userId: userId,
+                  companyId: companyId,
+                  storeId: storeId,
+                  timezone: timezone,
+                );
+
+                // Find the closest shift's request ID
+                final shiftRequestId = AttendanceHelpers.findClosestShiftRequestId(
+                  shiftCards,
+                  now: now,
+                );
+
+                if (shiftRequestId == null) {
+                  throw Exception('No approved shift found for check-in/check-out');
+                }
+
                 // Submit attendance using check in use case
-                // RPC update_shift_requests_v6 requires:
+                // RPC update_shift_requests_v7 requires:
+                // - p_shift_request_id: from closest shift
                 // - p_time: local timestamp with timezone offset
                 // - p_timezone: user's local timezone
                 // - p_store_id: from QR code scan
                 final checkInShift = ref.read(checkInShiftProvider);
 
                 final result = await checkInShift(
+                  shiftRequestId: shiftRequestId,
                   userId: userId,
                   storeId: storeId,
                   timestamp: currentTime,

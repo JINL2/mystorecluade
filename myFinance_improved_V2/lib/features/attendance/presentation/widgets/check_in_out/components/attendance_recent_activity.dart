@@ -25,6 +25,23 @@ class AttendanceRecentActivity extends StatelessWidget {
     required this.onViewAllTap,
   });
 
+  /// Format shift time range from shiftStartTime and shiftEndTime
+  /// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
+  String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
+    try {
+      if (shiftStartTime.isEmpty || shiftEndTime.isEmpty) {
+        return '--:-- ~ --:--';
+      }
+      final startDateTime = DateTime.parse(shiftStartTime);
+      final endDateTime = DateTime.parse(shiftEndTime);
+      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+      return '$startStr ~ $endStr';
+    } catch (e) {
+      return '--:-- ~ --:--';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final recentActivities = _getRecentActivities();
@@ -142,9 +159,11 @@ class AttendanceRecentActivity extends StatelessWidget {
         }
       }
 
-      // Convert shift time from UTC to local time
-      final rawShiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
-      final localShiftTime = AttendanceHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+      // Format shift time from shift_start_time and shift_end_time
+      final localShiftTime = _formatShiftTimeRange(
+        card['shift_start_time']?.toString() ?? '',
+        card['shift_end_time']?.toString() ?? '',
+      );
 
       return {
         'date': date,

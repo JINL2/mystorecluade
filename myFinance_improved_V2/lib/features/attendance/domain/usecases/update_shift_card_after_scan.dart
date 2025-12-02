@@ -54,7 +54,8 @@ class UpdateShiftCardAfterScan {
     return ShiftCard(
       requestDate: scanResult.requestDate,
       shiftRequestId: scanResult.shiftRequestId,
-      shiftTime: scanResult.shiftTimeRange,
+      shiftStartTime: scanResult.shiftStartTime,
+      shiftEndTime: scanResult.shiftEndTime,
       storeName: scanResult.storeName,
       scheduledHours: 0.0,
       isApproved: true,

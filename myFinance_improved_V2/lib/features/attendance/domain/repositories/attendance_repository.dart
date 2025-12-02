@@ -14,8 +14,9 @@ import '../entities/user_shift_stats.dart';
 abstract class AttendanceRepository {
   /// Update shift request (check-in or check-out)
   ///
-  /// Matches RPC: update_shift_requests_v6
+  /// Matches RPC: update_shift_requests_v7
   ///
+  /// [shiftRequestId] - Shift request ID (from user_shift_cards_v4)
   /// [userId] - User ID
   /// [storeId] - Store ID
   /// [timestamp] - Current timestamp in UTC ISO 8601 format
@@ -24,6 +25,7 @@ abstract class AttendanceRepository {
   ///
   /// Returns CheckInResult entity with action details
   Future<CheckInResult> updateShiftRequest({
+    required String shiftRequestId,
     required String userId,
     required String storeId,
     required String timestamp,
@@ -35,13 +37,13 @@ abstract class AttendanceRepository {
   ///
   /// Matches RPC: user_shift_cards_v4
   ///
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestTime] - Local timestamp (e.g., "2025-12-15 10:00:00") - no timezone offset
   /// [userId] - User ID
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of ShiftCard from user_shift_cards_v4 RPC
+  /// Returns list of ShiftCard filtered by start_time_utc (actual shift date)
   Future<List<ShiftCard>> getUserShiftCards({
     required String requestTime,
     required String userId,
@@ -99,15 +101,15 @@ abstract class AttendanceRepository {
 
   /// Insert a new shift request
   ///
-  /// Matches RPC: insert_shift_request_v5
+  /// Matches RPC: insert_shift_request_v6
   ///
   /// [userId] - User ID
   /// [shiftId] - Shift ID
   /// [storeId] - Store ID
-  /// [startTime] - Shift start time as local timestamp (e.g., "2024-12-01T09:00:00+07:00")
-  /// [endTime] - Shift end time as local timestamp (e.g., "2024-12-01T17:00:00+07:00")
-  /// [time] - Current local timestamp with timezone offset (e.g., "2024-12-01T09:07:00+07:00")
+  /// [startTime] - Shift start time as local timestamp (e.g., "2025-12-06 09:00:00")
+  /// [endTime] - Shift end time as local timestamp (e.g., "2025-12-06 18:00:00")
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// NOTE: All timestamps must be WITHOUT timezone offset
   ///
   /// Returns created ShiftRequest
   Future<ShiftRequest?> insertShiftRequest({
@@ -116,22 +118,24 @@ abstract class AttendanceRepository {
     required String storeId,
     required String startTime,
     required String endTime,
-    required String time,
     required String timezone,
   });
 
   /// Delete a shift request
   ///
-  /// Matches RPC: delete_shift_request_v2
+  /// Matches RPC: delete_shift_request_v3
   ///
   /// [userId] - User ID
   /// [shiftId] - Shift ID
-  /// [requestTime] - Local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
+  /// [startTime] - Shift start time as local timestamp (e.g., "2025-12-06 09:00:00")
+  /// [endTime] - Shift end time as local timestamp (e.g., "2025-12-06 18:00:00")
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// NOTE: All timestamps must be WITHOUT timezone offset
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
     required String timezone,
   });
 

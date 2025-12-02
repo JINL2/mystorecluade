@@ -69,9 +69,11 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
           )
         : DateTime.now();
 
-    // Parse shift time
-    String shiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
-    shiftTime = shiftTime.replaceAll('~', ' ~ ');
+    // Parse shift time from shift_start_time and shift_end_time
+    String shiftTime = _formatShiftTimeRange(
+      cardData['shift_start_time']?.toString() ?? '',
+      cardData['shift_end_time']?.toString() ?? '',
+    );
 
     return Container(
       constraints: BoxConstraints(
@@ -447,6 +449,23 @@ class _ShiftDetailsBottomSheetState extends State<ShiftDetailsBottomSheet> {
         ],
       ),
     );
+  }
+
+  /// Format shift time range from shiftStartTime and shiftEndTime
+  /// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
+  String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
+    try {
+      if (shiftStartTime.isEmpty || shiftEndTime.isEmpty) {
+        return '--:-- ~ --:--';
+      }
+      final startDateTime = DateTime.parse(shiftStartTime);
+      final endDateTime = DateTime.parse(shiftEndTime);
+      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+      return '$startStr ~ $endStr';
+    } catch (e) {
+      return '--:-- ~ --:--';
+    }
   }
 
   Widget _buildExpandableHeader(

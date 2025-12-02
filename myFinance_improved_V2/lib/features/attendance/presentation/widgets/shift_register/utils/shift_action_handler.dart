@@ -232,11 +232,41 @@ class ShiftActionHandler {
     try {
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
+
+      // Get selected shift entity for start/end times
+      final selectedShiftEntity = controller.findShiftById(controller.selectedShift!);
+      if (selectedShiftEntity == null) return;
+
+      // Build start time: selectedDate + shift.startTime (HH:mm format)
+      // Format: "2025-12-06 09:00:00" (without timezone offset)
+      final startTimeParts = selectedShiftEntity.startTime.split(':');
+      final startDateTime = DateTime(
+        controller.selectedDate.year,
+        controller.selectedDate.month,
+        controller.selectedDate.day,
+        int.parse(startTimeParts[0]),
+        int.parse(startTimeParts[1]),
+      );
+      final startTime = DateTimeUtils.formatLocalTimestamp(startDateTime);
+
+      // Build end time: selectedDate + shift.endTime (HH:mm format)
+      // Format: "2025-12-06 18:00:00" (without timezone offset)
+      final endTimeParts = selectedShiftEntity.endTime.split(':');
+      final endDateTime = DateTime(
+        controller.selectedDate.year,
+        controller.selectedDate.month,
+        controller.selectedDate.day,
+        int.parse(endTimeParts[0]),
+        int.parse(endTimeParts[1]),
+      );
+      final endTime = DateTimeUtils.formatLocalTimestamp(endDateTime);
+
       await registerShiftRequest(
         userId: user.id,
         shiftId: controller.selectedShift!,
         storeId: controller.selectedStoreId!,
-        requestTime: '$dateStr 00:00:00',
+        startTime: startTime,
+        endTime: endTime,
         timezone: timezone,
       );
 
@@ -428,24 +458,42 @@ class ShiftActionHandler {
         final dateStr = '${controller.selectedDate.year}-${controller.selectedDate.month.toString().padLeft(2, '0')}-${controller.selectedDate.day.toString().padLeft(2, '0')}';
 
         if (shiftId.isNotEmpty) {
-          // Build request time with timezone offset
-          final now = DateTime.now();
-          final requestDateTime = DateTime(
+          final timezone = DateTimeUtils.getLocalTimezone();
+
+          // Get shift entity for start/end times
+          final shiftEntity = controller.findShiftById(shiftId);
+          if (shiftEntity == null) continue;
+
+          // Build start time: selectedDate + shift.startTime (HH:mm format)
+          // Format: "2025-12-06 09:00:00" (without timezone offset)
+          final startTimeParts = shiftEntity.startTime.split(':');
+          final startDateTime = DateTime(
             controller.selectedDate.year,
             controller.selectedDate.month,
             controller.selectedDate.day,
-            now.hour,
-            now.minute,
-            now.second,
+            int.parse(startTimeParts[0]),
+            int.parse(startTimeParts[1]),
           );
-          final requestTime = DateTimeUtils.toLocalWithOffset(requestDateTime);
-          final timezone = DateTimeUtils.getLocalTimezone();
+          final startTime = DateTimeUtils.formatLocalTimestamp(startDateTime);
+
+          // Build end time: selectedDate + shift.endTime (HH:mm format)
+          // Format: "2025-12-06 18:00:00" (without timezone offset)
+          final endTimeParts = shiftEntity.endTime.split(':');
+          final endDateTime = DateTime(
+            controller.selectedDate.year,
+            controller.selectedDate.month,
+            controller.selectedDate.day,
+            int.parse(endTimeParts[0]),
+            int.parse(endTimeParts[1]),
+          );
+          final endTime = DateTimeUtils.formatLocalTimestamp(endDateTime);
 
           final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
           await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
-            requestTime: requestTime,
+            startTime: startTime,
+            endTime: endTime,
             timezone: timezone,
           );
 

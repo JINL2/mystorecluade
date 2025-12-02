@@ -38,6 +38,9 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   bool isLoadingMetadata = false;
   List<MonthlyShiftStatus>? monthlyShiftStatus;
 
+  /// Track which shift is currently processing (loading)
+  String? _loadingShiftId;
+
   late ShiftRequestsController _controller;
 
   @override
@@ -120,6 +123,36 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
     setState(() {
       monthlyShiftStatus = status;
     });
+  }
+
+  /// Wrap action with loading state management
+  Future<void> _executeWithLoading(String shiftId, Future<void> Function() action) async {
+    print('[ShiftRequestsTab] _executeWithLoading called for shiftId: $shiftId');
+
+    if (_loadingShiftId != null) {
+      print('[ShiftRequestsTab] Already processing, skipping. Current _loadingShiftId: $_loadingShiftId');
+      return;
+    }
+
+    print('[ShiftRequestsTab] Setting loading state...');
+    setState(() {
+      _loadingShiftId = shiftId;
+    });
+
+    try {
+      print('[ShiftRequestsTab] Calling action...');
+      await action();
+      print('[ShiftRequestsTab] Action completed successfully');
+    } catch (e) {
+      print('[ShiftRequestsTab] Action error: $e');
+    } finally {
+      if (mounted) {
+        print('[ShiftRequestsTab] Clearing loading state');
+        setState(() {
+          _loadingShiftId = null;
+        });
+      }
+    }
   }
 
   @override
@@ -233,6 +266,19 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                         final appliedCount = (dailyShift?.approvedCount ?? 0) + (dailyShift?.pendingCount ?? 0);
                         final userApplied = statusHelper.getUserApplied(shift, selectedDate);
 
+                        // DEBUG: Log status for each shift
+                        print('[ShiftRequestsTab] === ShiftCard Build ===');
+                        print('[ShiftRequestsTab] shift.shiftName: ${shift.shiftName}');
+                        print('[ShiftRequestsTab] shift.shiftId: ${shift.shiftId}');
+                        print('[ShiftRequestsTab] status: $status');
+                        print('[ShiftRequestsTab] currentUserId: $currentUserId');
+                        print('[ShiftRequestsTab] dailyShift: ${dailyShift != null}');
+                        if (dailyShift != null) {
+                          print('[ShiftRequestsTab] approvedEmployees: ${dailyShift.approvedEmployees.map((e) => e.userId).toList()}');
+                          print('[ShiftRequestsTab] pendingEmployees: ${dailyShift.pendingEmployees.map((e) => e.userId).toList()}');
+                        }
+                        print('[ShiftRequestsTab] onWithdraw will be: ${status == ShiftSignupStatus.applied ? "SET" : "NULL"}');
+
                         // Get all employees' profile images (approved + pending)
                         final allEmployees = [
                           ...?dailyShift?.approvedEmployees,
@@ -241,6 +287,8 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                         final assignedAvatars = allEmployees
                             .map((e) => (e.profileImage?.isNotEmpty ?? false) ? e.profileImage! : '')
                             .toList();
+
+                        final isLoading = _loadingShiftId == shift.shiftId;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -254,17 +302,18 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                             appliedCount: appliedCount,
                             userApplied: userApplied,
                             assignedUserAvatars: assignedAvatars.isNotEmpty ? assignedAvatars : null,
+                            isLoading: isLoading,
                             onApply: status == ShiftSignupStatus.available
-                                ? () => actions.handleApply(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleApply(shift))
                                 : null,
                             onWaitlist: status == ShiftSignupStatus.waitlist
-                                ? () => actions.handleWaitlist(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleWaitlist(shift))
                                 : null,
                             onLeaveWaitlist: status == ShiftSignupStatus.onWaitlist
-                                ? () => actions.handleLeaveWaitlist(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleLeaveWaitlist(shift))
                                 : null,
                             onWithdraw: status == ShiftSignupStatus.applied
-                                ? () => actions.handleWithdraw(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleWithdraw(shift))
                                 : null,
                             onTap: () => actions.handleShiftTap(shift),
                             onViewAppliedUsers: (status == ShiftSignupStatus.assigned || appliedCount > 0 || userApplied)

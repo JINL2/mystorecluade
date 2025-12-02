@@ -7,6 +7,23 @@ import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../helpers/format_helpers.dart';
 
+/// Format shift time range from shiftStartTime and shiftEndTime
+/// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
+String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
+  try {
+    if (shiftStartTime.isEmpty || shiftEndTime.isEmpty) {
+      return '--:-- ~ --:--';
+    }
+    final startDateTime = DateTime.parse(shiftStartTime);
+    final endDateTime = DateTime.parse(shiftEndTime);
+    final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+    final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+    return '$startStr ~ $endStr';
+  } catch (e) {
+    return '--:-- ~ --:--';
+  }
+}
+
 /// Show activity details dialog
 Future<void> showActivityDetailsDialog({
   required BuildContext context,
@@ -36,10 +53,11 @@ Future<void> showActivityDetailsDialog({
   // Get currency symbol
   final currency = currencySymbol ?? 'VND';
 
-  // Parse shift time and convert from UTC to local time
-  final rawShiftTime = (cardData['shift_time'] ?? '09:00 ~ 17:00').toString();
-  final requestDate = cardData['request_date']?.toString();
-  String shiftTime = FormatHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+  // Format shift time from shift_start_time and shift_end_time
+  String shiftTime = _formatShiftTimeRange(
+    cardData['shift_start_time']?.toString() ?? '',
+    cardData['shift_end_time']?.toString() ?? '',
+  );
 
   await showModalBottomSheet(
     context: context,
