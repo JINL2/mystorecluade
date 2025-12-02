@@ -7,9 +7,9 @@ part 'monthly_shift_status_dto.g.dart';
 
 /// Monthly Shift Status DTO
 ///
-/// Maps exactly to get_monthly_shift_status_manager RPC response
+/// Maps exactly to get_monthly_shift_status_manager_v4 RPC response
 /// RPC returns TABLE with these columns:
-/// - request_date (date)
+/// - shift_date (date) - actual work date from start_time_utc
 /// - store_id (uuid)
 /// - total_required (integer)
 /// - total_approved (integer)
@@ -19,7 +19,8 @@ part 'monthly_shift_status_dto.g.dart';
 class MonthlyShiftStatusDto with _$MonthlyShiftStatusDto {
   const factory MonthlyShiftStatusDto({
     // RPC TABLE columns (exact names)
-    @JsonKey(name: 'request_date') required String requestDate,
+    // v4: shift_date (from start_time_utc) instead of request_date
+    @JsonKey(name: 'shift_date') required String shiftDate,
     @JsonKey(name: 'store_id') required String storeId,
     @JsonKey(name: 'total_required') @Default(0) int totalRequired,
     @JsonKey(name: 'total_approved') @Default(0) int totalApproved,

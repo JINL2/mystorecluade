@@ -29,32 +29,15 @@ class ShiftRequestsActions {
 
   /// Handle apply to shift
   Future<void> handleApply(ShiftMetadata shift) async {
-    print('[ShiftRequestsActions] === handleApply START ===');
-    print('[ShiftRequestsActions] shift.shiftId: ${shift.shiftId}');
-    print('[ShiftRequestsActions] shift.shiftName: ${shift.shiftName}');
-    print('[ShiftRequestsActions] shift.startTime: ${shift.startTime}');
-    print('[ShiftRequestsActions] shift.endTime: ${shift.endTime}');
-    print('[ShiftRequestsActions] selectedDate: $selectedDate');
-
     final appState = ref.read(appStateProvider);
     final userId = appState.userId;
     final storeId = appState.storeChoosen;
 
-    print('[ShiftRequestsActions] userId: $userId');
-    print('[ShiftRequestsActions] storeId: $storeId');
+    if (userId.isEmpty || storeId.isEmpty) return;
 
-    if (userId.isEmpty || storeId.isEmpty) {
-      print('[ShiftRequestsActions] ERROR: userId or storeId is empty!');
-      return;
-    }
-
-    // Get user's device timezone
     final timezone = DateTimeUtils.getLocalTimezone();
-    print('[ShiftRequestsActions] timezone: $timezone');
 
     // Build start time: selectedDate + shift.startTime (HH:mm format)
-    // shift.startTime comes from RPC already in user's local time
-    // Format: "2025-12-06 09:00:00" (without timezone offset)
     final startTimeParts = shift.startTime.split(':');
     final startDateTime = DateTime(
       selectedDate.year,
@@ -66,8 +49,6 @@ class ShiftRequestsActions {
     final startTime = DateTimeUtils.formatLocalTimestamp(startDateTime);
 
     // Build end time: selectedDate + shift.endTime (HH:mm format)
-    // shift.endTime comes from RPC already in user's local time
-    // Format: "2025-12-06 18:00:00" (without timezone offset)
     final endTimeParts = shift.endTime.split(':');
     final endDateTime = DateTime(
       selectedDate.year,
@@ -78,11 +59,7 @@ class ShiftRequestsActions {
     );
     final endTime = DateTimeUtils.formatLocalTimestamp(endDateTime);
 
-    print('[ShiftRequestsActions] RPC params - startTime: $startTime');
-    print('[ShiftRequestsActions] RPC params - endTime: $endTime');
-
     try {
-      print('[ShiftRequestsActions] Calling registerShiftRequest RPC...');
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
       await registerShiftRequest(
         userId: userId,
@@ -93,42 +70,23 @@ class ShiftRequestsActions {
         timezone: timezone,
       );
 
-      print('[ShiftRequestsActions] RPC SUCCESS - updating local state');
-      // Update local state instead of RPC refresh
       _addCurrentUserToPending(shift.shiftId);
-      print('[ShiftRequestsActions] === handleApply END (success) ===');
     } catch (e) {
-      print('[ShiftRequestsActions] RPC ERROR: $e');
-      print('[ShiftRequestsActions] === handleApply END (error) ===');
+      rethrow;
     }
   }
 
   /// Handle join waitlist
   Future<void> handleWaitlist(ShiftMetadata shift) async {
-    print('[ShiftRequestsActions] === handleWaitlist START ===');
-    print('[ShiftRequestsActions] shift.shiftId: ${shift.shiftId}');
-    print('[ShiftRequestsActions] shift.shiftName: ${shift.shiftName}');
-    print('[ShiftRequestsActions] selectedDate: $selectedDate');
-
     final appState = ref.read(appStateProvider);
     final userId = appState.userId;
     final storeId = appState.storeChoosen;
 
-    print('[ShiftRequestsActions] userId: $userId');
-    print('[ShiftRequestsActions] storeId: $storeId');
+    if (userId.isEmpty || storeId.isEmpty) return;
 
-    if (userId.isEmpty || storeId.isEmpty) {
-      print('[ShiftRequestsActions] ERROR: userId or storeId is empty!');
-      return;
-    }
-
-    // Get user's device timezone
     final timezone = DateTimeUtils.getLocalTimezone();
-    print('[ShiftRequestsActions] timezone: $timezone');
 
     // Build start time: selectedDate + shift.startTime (HH:mm format)
-    // shift.startTime comes from RPC already in user's local time
-    // Format: "2025-12-06 09:00:00" (without timezone offset)
     final startTimeParts = shift.startTime.split(':');
     final startDateTime = DateTime(
       selectedDate.year,
@@ -140,8 +98,6 @@ class ShiftRequestsActions {
     final startTime = DateTimeUtils.formatLocalTimestamp(startDateTime);
 
     // Build end time: selectedDate + shift.endTime (HH:mm format)
-    // shift.endTime comes from RPC already in user's local time
-    // Format: "2025-12-06 18:00:00" (without timezone offset)
     final endTimeParts = shift.endTime.split(':');
     final endDateTime = DateTime(
       selectedDate.year,
@@ -152,11 +108,7 @@ class ShiftRequestsActions {
     );
     final endTime = DateTimeUtils.formatLocalTimestamp(endDateTime);
 
-    print('[ShiftRequestsActions] RPC params - startTime: $startTime');
-    print('[ShiftRequestsActions] RPC params - endTime: $endTime');
-
     try {
-      print('[ShiftRequestsActions] Calling registerShiftRequest RPC (waitlist)...');
       final registerShiftRequest = ref.read(registerShiftRequestProvider);
       await registerShiftRequest(
         userId: userId,
@@ -167,49 +119,27 @@ class ShiftRequestsActions {
         timezone: timezone,
       );
 
-      print('[ShiftRequestsActions] RPC SUCCESS - updating local state');
-      // Update local state instead of RPC refresh
       _addCurrentUserToPending(shift.shiftId);
-      print('[ShiftRequestsActions] === handleWaitlist END (success) ===');
     } catch (e) {
-      print('[ShiftRequestsActions] RPC ERROR: $e');
-      print('[ShiftRequestsActions] === handleWaitlist END (error) ===');
+      rethrow;
     }
   }
 
   /// Handle leave waitlist
   Future<void> handleLeaveWaitlist(ShiftMetadata shift) async {
-    print('[ShiftRequestsActions] === handleLeaveWaitlist START ===');
-    // Use same logic as withdraw since it's the same RPC
     await handleWithdraw(shift);
-    print('[ShiftRequestsActions] === handleLeaveWaitlist END ===');
   }
 
   /// Handle withdraw from shift
   Future<void> handleWithdraw(ShiftMetadata shift) async {
-    print('[ShiftRequestsActions] === handleWithdraw START ===');
-    print('[ShiftRequestsActions] shift.shiftId: ${shift.shiftId}');
-    print('[ShiftRequestsActions] shift.shiftName: ${shift.shiftName}');
-    print('[ShiftRequestsActions] shift.startTime: ${shift.startTime}');
-    print('[ShiftRequestsActions] shift.endTime: ${shift.endTime}');
-    print('[ShiftRequestsActions] selectedDate: $selectedDate');
-
     final appState = ref.read(appStateProvider);
     final userId = appState.userId;
 
-    print('[ShiftRequestsActions] userId: $userId');
+    if (userId.isEmpty) return;
 
-    if (userId.isEmpty) {
-      print('[ShiftRequestsActions] ERROR: userId is empty!');
-      return;
-    }
-
-    // Get user's device timezone
     final timezone = DateTimeUtils.getLocalTimezone();
-    print('[ShiftRequestsActions] timezone: $timezone');
 
     // Build start time: selectedDate + shift.startTime (HH:mm format)
-    // Format: "2025-12-06 09:00:00" (without timezone offset)
     final startTimeParts = shift.startTime.split(':');
     final startDateTime = DateTime(
       selectedDate.year,
@@ -221,7 +151,6 @@ class ShiftRequestsActions {
     final startTime = DateTimeUtils.formatLocalTimestamp(startDateTime);
 
     // Build end time: selectedDate + shift.endTime (HH:mm format)
-    // Format: "2025-12-06 18:00:00" (without timezone offset)
     final endTimeParts = shift.endTime.split(':');
     final endDateTime = DateTime(
       selectedDate.year,
@@ -232,14 +161,7 @@ class ShiftRequestsActions {
     );
     final endTime = DateTimeUtils.formatLocalTimestamp(endDateTime);
 
-    print('[ShiftRequestsActions] RPC params - userId: $userId');
-    print('[ShiftRequestsActions] RPC params - shiftId: ${shift.shiftId}');
-    print('[ShiftRequestsActions] RPC params - startTime: $startTime');
-    print('[ShiftRequestsActions] RPC params - endTime: $endTime');
-    print('[ShiftRequestsActions] RPC params - timezone: $timezone');
-
     try {
-      print('[ShiftRequestsActions] Calling deleteShiftRequest RPC (delete_shift_request_v3)...');
       final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
       await deleteShiftRequest(
         userId: userId,
@@ -249,13 +171,9 @@ class ShiftRequestsActions {
         timezone: timezone,
       );
 
-      print('[ShiftRequestsActions] RPC SUCCESS - updating local state');
-      // Update local state instead of RPC refresh
       _removeCurrentUserFromPending(shift.shiftId);
-      print('[ShiftRequestsActions] === handleWithdraw END (success) ===');
     } catch (e) {
-      print('[ShiftRequestsActions] RPC ERROR: $e');
-      print('[ShiftRequestsActions] === handleWithdraw END (error) ===');
+      rethrow;
     }
   }
 

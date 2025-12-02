@@ -3,7 +3,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Get monthly shift status for manager view
 ///
-/// Matches RPC: get_monthly_shift_status_manager_v2
+/// Matches RPC: get_monthly_shift_status_manager_v4
 class GetMonthlyShiftStatus {
   final AttendanceRepository _repository;
 

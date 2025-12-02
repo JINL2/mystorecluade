@@ -137,61 +137,40 @@ class ScheduleShiftDataSection extends ConsumerWidget {
     return [];
   }
 
-  /// Format UTC time string to local time (HH:mm format)
+  /// Format time string to display format (HH:mm)
   ///
-  /// The database stores times in UTC format. This method converts them
-  /// to the user's local timezone for display.
-  String _formatShiftTime(String? utcTime) {
-    if (utcTime == null || utcTime.isEmpty || utcTime == '--:--') {
+  /// NOTE: RPC returns times already converted to local timezone via p_timezone parameter.
+  /// NO UTC conversion needed - times are already local!
+  String _formatShiftTime(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
       return '--:--';
     }
 
     try {
-      // 1. Full ISO 8601 format with timezone (e.g., "2024-01-01T09:00:00Z")
-      if (utcTime.contains('T') || utcTime.contains('Z')) {
-        final localTime = DateTimeUtils.toLocal(utcTime);
-        final formattedTime = DateTimeUtils.formatTimeOnly(localTime);
-        return formattedTime;
+      // 1. Full ISO 8601 format (e.g., "2024-01-01T09:00:00" or "2024-01-01T09:00:00Z")
+      if (timeStr.contains('T')) {
+        // Parse and format - times are already local from RPC
+        final cleanTime = timeStr.split('Z')[0].split('+')[0];
+        final dateTime = DateTime.parse(cleanTime);
+        return DateTimeUtils.formatTimeOnly(dateTime);
       }
 
       // 2. Time-only format (e.g., "09:00:00", "09:00")
-      // Remove any timezone info and normalize format
-      final cleanTime = utcTime.split('+')[0].split('Z')[0].trim();
+      // Already in local time from RPC, just format it
+      final cleanTime = timeStr.split('+')[0].split('Z')[0].trim();
+      final parts = cleanTime.split(':');
 
-      // Create a dummy UTC datetime for today with this time
-      final now = DateTime.now().toUtc();
-      final dateStr = DateTimeUtils.toDateOnly(now);
-
-      // Build full UTC datetime string
-      final fullUtcString = '${dateStr}T${cleanTime}Z';
-
-      // Convert to local and extract time only
-      final localTime = DateTimeUtils.toLocal(fullUtcString);
-      final formattedTime = DateTimeUtils.formatTimeOnly(localTime);
-
-      return formattedTime;
-    } catch (e) {
-      // Try one more fallback: parse as HH:mm format
-      try {
-        final parts = utcTime.split(':');
-        if (parts.length >= 2) {
-          final hour = int.parse(parts[0]);
-          final minute = int.parse(parts[1]);
-
-          // Create UTC datetime and convert to local
-          final now = DateTime.now().toUtc();
-          final utcDateTime = DateTime.utc(now.year, now.month, now.day, hour, minute);
-          final localDateTime = utcDateTime.toLocal();
-          final formattedTime = DateTimeUtils.formatTimeOnly(localDateTime);
-
-          return formattedTime;
-        }
-      } catch (e2) {
-        // Silently handle fallback failure
+      if (parts.length >= 2) {
+        final hour = parts[0].padLeft(2, '0');
+        final minute = parts[1].padLeft(2, '0');
+        return '$hour:$minute';
       }
 
+      // Fallback: return original
+      return timeStr;
+    } catch (e) {
       // Final fallback: return original
-      return utcTime;
+      return timeStr;
     }
   }
 

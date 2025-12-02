@@ -26,14 +26,16 @@ mixin _$ShiftMetadataDto {
   String get storeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_name')
   String get shiftName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_time')
+  @JsonKey(name: 'start_time_utc')
   String get startTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'end_time')
+  @JsonKey(name: 'end_time_utc')
   String get endTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'number_shift')
   int get numberShift => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_can_overtime')
+  bool get isCanOvertime => throw _privateConstructorUsedError;
 
   /// Serializes this ShiftMetadataDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,10 +57,11 @@ abstract class $ShiftMetadataDtoCopyWith<$Res> {
       {@JsonKey(name: 'shift_id') String shiftId,
       @JsonKey(name: 'store_id') String storeId,
       @JsonKey(name: 'shift_name') String shiftName,
-      @JsonKey(name: 'start_time') String startTime,
-      @JsonKey(name: 'end_time') String endTime,
+      @JsonKey(name: 'start_time_utc') String startTime,
+      @JsonKey(name: 'end_time_utc') String endTime,
       @JsonKey(name: 'number_shift') int numberShift,
-      @JsonKey(name: 'is_active') bool isActive});
+      @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'is_can_overtime') bool isCanOvertime});
 }
 
 /// @nodoc
@@ -83,6 +86,7 @@ class _$ShiftMetadataDtoCopyWithImpl<$Res, $Val extends ShiftMetadataDto>
     Object? endTime = null,
     Object? numberShift = null,
     Object? isActive = null,
+    Object? isCanOvertime = null,
   }) {
     return _then(_value.copyWith(
       shiftId: null == shiftId
@@ -113,6 +117,10 @@ class _$ShiftMetadataDtoCopyWithImpl<$Res, $Val extends ShiftMetadataDto>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isCanOvertime: null == isCanOvertime
+          ? _value.isCanOvertime
+          : isCanOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -129,10 +137,11 @@ abstract class _$$ShiftMetadataDtoImplCopyWith<$Res>
       {@JsonKey(name: 'shift_id') String shiftId,
       @JsonKey(name: 'store_id') String storeId,
       @JsonKey(name: 'shift_name') String shiftName,
-      @JsonKey(name: 'start_time') String startTime,
-      @JsonKey(name: 'end_time') String endTime,
+      @JsonKey(name: 'start_time_utc') String startTime,
+      @JsonKey(name: 'end_time_utc') String endTime,
       @JsonKey(name: 'number_shift') int numberShift,
-      @JsonKey(name: 'is_active') bool isActive});
+      @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'is_can_overtime') bool isCanOvertime});
 }
 
 /// @nodoc
@@ -155,6 +164,7 @@ class __$$ShiftMetadataDtoImplCopyWithImpl<$Res>
     Object? endTime = null,
     Object? numberShift = null,
     Object? isActive = null,
+    Object? isCanOvertime = null,
   }) {
     return _then(_$ShiftMetadataDtoImpl(
       shiftId: null == shiftId
@@ -185,6 +195,10 @@ class __$$ShiftMetadataDtoImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isCanOvertime: null == isCanOvertime
+          ? _value.isCanOvertime
+          : isCanOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -196,10 +210,11 @@ class _$ShiftMetadataDtoImpl implements _ShiftMetadataDto {
       {@JsonKey(name: 'shift_id') this.shiftId = '',
       @JsonKey(name: 'store_id') this.storeId = '',
       @JsonKey(name: 'shift_name') this.shiftName = '',
-      @JsonKey(name: 'start_time') this.startTime = '',
-      @JsonKey(name: 'end_time') this.endTime = '',
+      @JsonKey(name: 'start_time_utc') this.startTime = '',
+      @JsonKey(name: 'end_time_utc') this.endTime = '',
       @JsonKey(name: 'number_shift') this.numberShift = 0,
-      @JsonKey(name: 'is_active') this.isActive = true});
+      @JsonKey(name: 'is_active') this.isActive = true,
+      @JsonKey(name: 'is_can_overtime') this.isCanOvertime = false});
 
   factory _$ShiftMetadataDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$ShiftMetadataDtoImplFromJson(json);
@@ -214,10 +229,10 @@ class _$ShiftMetadataDtoImpl implements _ShiftMetadataDto {
   @JsonKey(name: 'shift_name')
   final String shiftName;
   @override
-  @JsonKey(name: 'start_time')
+  @JsonKey(name: 'start_time_utc')
   final String startTime;
   @override
-  @JsonKey(name: 'end_time')
+  @JsonKey(name: 'end_time_utc')
   final String endTime;
   @override
   @JsonKey(name: 'number_shift')
@@ -225,10 +240,13 @@ class _$ShiftMetadataDtoImpl implements _ShiftMetadataDto {
   @override
   @JsonKey(name: 'is_active')
   final bool isActive;
+  @override
+  @JsonKey(name: 'is_can_overtime')
+  final bool isCanOvertime;
 
   @override
   String toString() {
-    return 'ShiftMetadataDto(shiftId: $shiftId, storeId: $storeId, shiftName: $shiftName, startTime: $startTime, endTime: $endTime, numberShift: $numberShift, isActive: $isActive)';
+    return 'ShiftMetadataDto(shiftId: $shiftId, storeId: $storeId, shiftName: $shiftName, startTime: $startTime, endTime: $endTime, numberShift: $numberShift, isActive: $isActive, isCanOvertime: $isCanOvertime)';
   }
 
   @override
@@ -246,13 +264,15 @@ class _$ShiftMetadataDtoImpl implements _ShiftMetadataDto {
             (identical(other.numberShift, numberShift) ||
                 other.numberShift == numberShift) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.isCanOvertime, isCanOvertime) ||
+                other.isCanOvertime == isCanOvertime));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, shiftId, storeId, shiftName,
-      startTime, endTime, numberShift, isActive);
+      startTime, endTime, numberShift, isActive, isCanOvertime);
 
   /// Create a copy of ShiftMetadataDto
   /// with the given fields replaced by the non-null parameter values.
@@ -276,10 +296,11 @@ abstract class _ShiftMetadataDto implements ShiftMetadataDto {
           {@JsonKey(name: 'shift_id') final String shiftId,
           @JsonKey(name: 'store_id') final String storeId,
           @JsonKey(name: 'shift_name') final String shiftName,
-          @JsonKey(name: 'start_time') final String startTime,
-          @JsonKey(name: 'end_time') final String endTime,
+          @JsonKey(name: 'start_time_utc') final String startTime,
+          @JsonKey(name: 'end_time_utc') final String endTime,
           @JsonKey(name: 'number_shift') final int numberShift,
-          @JsonKey(name: 'is_active') final bool isActive}) =
+          @JsonKey(name: 'is_active') final bool isActive,
+          @JsonKey(name: 'is_can_overtime') final bool isCanOvertime}) =
       _$ShiftMetadataDtoImpl;
 
   factory _ShiftMetadataDto.fromJson(Map<String, dynamic> json) =
@@ -295,10 +316,10 @@ abstract class _ShiftMetadataDto implements ShiftMetadataDto {
   @JsonKey(name: 'shift_name')
   String get shiftName;
   @override
-  @JsonKey(name: 'start_time')
+  @JsonKey(name: 'start_time_utc')
   String get startTime;
   @override
-  @JsonKey(name: 'end_time')
+  @JsonKey(name: 'end_time_utc')
   String get endTime;
   @override
   @JsonKey(name: 'number_shift')
@@ -306,6 +327,9 @@ abstract class _ShiftMetadataDto implements ShiftMetadataDto {
   @override
   @JsonKey(name: 'is_active')
   bool get isActive;
+  @override
+  @JsonKey(name: 'is_can_overtime')
+  bool get isCanOvertime;
 
   /// Create a copy of ShiftMetadataDto
   /// with the given fields replaced by the non-null parameter values.

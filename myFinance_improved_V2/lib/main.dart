@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/monitoring/sentry_config.dart';
+import 'core/utils/datetime_utils.dart';
 import 'features/attendance/data/providers/attendance_data_providers.dart'
     as attendance_data;
 import 'features/attendance/domain/providers/attendance_repository_provider.dart'
@@ -23,6 +24,9 @@ Future<void> main() async {
 
   // Load environment variables
   await dotenv.load(fileName: '.env');
+
+  // Initialize timezone for accurate device timezone detection
+  await DateTimeUtils.initTimezone();
 
   // ✅ Initialize Sentry with error tracking
   await SentryConfig.init(() async {

@@ -71,7 +71,7 @@ abstract class AttendanceRepository {
 
   /// Get shift metadata for a store
   ///
-  /// Matches RPC: get_shift_metadata_v2
+  /// Matches RPC: get_shift_metadata_v2_utc
   ///
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
@@ -84,11 +84,11 @@ abstract class AttendanceRepository {
 
   /// Get monthly shift status for manager view
   ///
-  /// Matches RPC: get_monthly_shift_status_manager_v2
+  /// Matches RPC: get_monthly_shift_status_manager_v4
   ///
   /// [storeId] - Store ID
   /// [companyId] - Company ID
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestTime] - User's LOCAL timestamp in format 'yyyy-MM-dd HH:mm:ss' (no timezone)
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns list of shift status data for 3 months

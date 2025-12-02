@@ -12,11 +12,12 @@ extension MonthlyShiftStatusDtoMapper on MonthlyShiftStatusDto {
   /// Convert DTO to Domain Entity
   ///
   /// Note: RPC returns flat date records, we group by month
+  /// v4: Uses shift_date (from start_time_utc) instead of request_date
   MonthlyShiftStatus toEntity({required String month}) {
     // Create DailyShiftData for this date
     final dailyData = DailyShiftData(
-      date: requestDate,
-      shifts: shifts.map((s) => s.toEntity(requestDate)).toList(),
+      date: shiftDate,
+      shifts: shifts.map((s) => s.toEntity(shiftDate)).toList(),
     );
 
     return MonthlyShiftStatus(

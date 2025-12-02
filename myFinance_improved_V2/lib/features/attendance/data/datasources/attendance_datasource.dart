@@ -79,11 +79,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      print('[AttendanceDatasource] updateShiftRequest called');
-      print('[AttendanceDatasource] RPC: update_shift_requests_v7');
-      print('[AttendanceDatasource] params: shiftRequestId=$shiftRequestId, userId=$userId, storeId=$storeId, timestamp=$timestamp, timezone=$timezone');
-
-      // Call the RPC function
       final response = await _supabase.rpc<dynamic>(
         'update_shift_requests_v7',
         params: {
@@ -97,9 +92,6 @@ class AttendanceDatasource {
         },
       );
 
-      print('[AttendanceDatasource] RPC response: $response');
-
-      // If response is null, the RPC call itself failed
       if (response == null) {
         throw const AttendanceServerException(
             'RPC call failed - please check database function exists',
@@ -152,10 +144,8 @@ class AttendanceDatasource {
         mappedResult['chain_length'] = rawResult['chain_length'];
       }
 
-      print('[AttendanceDatasource] Mapped result: $mappedResult');
       return mappedResult;
     } catch (e) {
-      print('[AttendanceDatasource] Error: $e');
       throw AttendanceServerException(e.toString());
     }
   }
@@ -191,10 +181,6 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      print('[AttendanceDatasource] getUserShiftCards called');
-      print('[AttendanceDatasource] RPC: user_shift_cards_v4');
-      print('[AttendanceDatasource] params: requestTime=$requestTime, userId=$userId, storeId=$storeId, timezone=$timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'user_shift_cards_v4',
         params: {
@@ -206,10 +192,7 @@ class AttendanceDatasource {
         },
       );
 
-      print('[AttendanceDatasource] RPC response type: ${response.runtimeType}');
-
       if (response == null) {
-        print('[AttendanceDatasource] RPC returned null');
         return [];
       }
 
@@ -217,7 +200,6 @@ class AttendanceDatasource {
       if (response is Map<String, dynamic> && response['error'] == true) {
         final errorCode = response['error_code'] ?? 'UNKNOWN';
         final errorMessage = response['error_message'] ?? 'Unknown error';
-        print('[AttendanceDatasource] RPC error: $errorCode - $errorMessage');
         throw AttendanceServerException('$errorCode: $errorMessage');
       }
 
@@ -225,7 +207,6 @@ class AttendanceDatasource {
       // Map shift_date to request_date for backward compatibility with existing code
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
-        print('[AttendanceDatasource] RPC returned ${results.length} items');
 
         return results.map((item) {
           final converted = _processNestedData(item);
@@ -246,10 +227,8 @@ class AttendanceDatasource {
         }).toList();
       }
 
-      print('[AttendanceDatasource] Unexpected response format');
       return [];
     } catch (e) {
-      print('[AttendanceDatasource] Error: $e');
       throw AttendanceServerException(e.toString());
     }
   }
@@ -295,7 +274,7 @@ class AttendanceDatasource {
 
   /// Get shift metadata for a store
   ///
-  /// Uses get_shift_metadata_v2 RPC with timezone parameter
+  /// Uses get_shift_metadata_v2_utc RPC with timezone parameter
   /// - Returns shift times converted to user's local timezone
   Future<List<Map<String, dynamic>>> getShiftMetadata({
     required String storeId,
@@ -303,7 +282,7 @@ class AttendanceDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_shift_metadata_v2',
+        'get_shift_metadata_v2_utc',
         params: {
           'p_store_id': storeId,
           'p_timezone': timezone,

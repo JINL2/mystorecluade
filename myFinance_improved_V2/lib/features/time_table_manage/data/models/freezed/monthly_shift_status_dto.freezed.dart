@@ -22,8 +22,9 @@ MonthlyShiftStatusDto _$MonthlyShiftStatusDtoFromJson(
 /// @nodoc
 mixin _$MonthlyShiftStatusDto {
 // RPC TABLE columns (exact names)
-  @JsonKey(name: 'request_date')
-  String get requestDate => throw _privateConstructorUsedError;
+// v4: shift_date (from start_time_utc) instead of request_date
+  @JsonKey(name: 'shift_date')
+  String get shiftDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'store_id')
   String get storeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_required')
@@ -53,7 +54,7 @@ abstract class $MonthlyShiftStatusDtoCopyWith<$Res> {
       _$MonthlyShiftStatusDtoCopyWithImpl<$Res, MonthlyShiftStatusDto>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
+      {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'store_id') String storeId,
       @JsonKey(name: 'total_required') int totalRequired,
       @JsonKey(name: 'total_approved') int totalApproved,
@@ -77,7 +78,7 @@ class _$MonthlyShiftStatusDtoCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requestDate = null,
+    Object? shiftDate = null,
     Object? storeId = null,
     Object? totalRequired = null,
     Object? totalApproved = null,
@@ -85,9 +86,9 @@ class _$MonthlyShiftStatusDtoCopyWithImpl<$Res,
     Object? shifts = null,
   }) {
     return _then(_value.copyWith(
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
       storeId: null == storeId
           ? _value.storeId
@@ -123,7 +124,7 @@ abstract class _$$MonthlyShiftStatusDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
+      {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'store_id') String storeId,
       @JsonKey(name: 'total_required') int totalRequired,
       @JsonKey(name: 'total_approved') int totalApproved,
@@ -145,7 +146,7 @@ class __$$MonthlyShiftStatusDtoImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requestDate = null,
+    Object? shiftDate = null,
     Object? storeId = null,
     Object? totalRequired = null,
     Object? totalApproved = null,
@@ -153,9 +154,9 @@ class __$$MonthlyShiftStatusDtoImplCopyWithImpl<$Res>
     Object? shifts = null,
   }) {
     return _then(_$MonthlyShiftStatusDtoImpl(
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
       storeId: null == storeId
           ? _value.storeId
@@ -185,7 +186,7 @@ class __$$MonthlyShiftStatusDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
   const _$MonthlyShiftStatusDtoImpl(
-      {@JsonKey(name: 'request_date') required this.requestDate,
+      {@JsonKey(name: 'shift_date') required this.shiftDate,
       @JsonKey(name: 'store_id') required this.storeId,
       @JsonKey(name: 'total_required') this.totalRequired = 0,
       @JsonKey(name: 'total_approved') this.totalApproved = 0,
@@ -198,9 +199,10 @@ class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
       _$$MonthlyShiftStatusDtoImplFromJson(json);
 
 // RPC TABLE columns (exact names)
+// v4: shift_date (from start_time_utc) instead of request_date
   @override
-  @JsonKey(name: 'request_date')
-  final String requestDate;
+  @JsonKey(name: 'shift_date')
+  final String shiftDate;
   @override
   @JsonKey(name: 'store_id')
   final String storeId;
@@ -226,7 +228,7 @@ class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
 
   @override
   String toString() {
-    return 'MonthlyShiftStatusDto(requestDate: $requestDate, storeId: $storeId, totalRequired: $totalRequired, totalApproved: $totalApproved, totalPending: $totalPending, shifts: $shifts)';
+    return 'MonthlyShiftStatusDto(shiftDate: $shiftDate, storeId: $storeId, totalRequired: $totalRequired, totalApproved: $totalApproved, totalPending: $totalPending, shifts: $shifts)';
   }
 
   @override
@@ -234,8 +236,8 @@ class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$MonthlyShiftStatusDtoImpl &&
-            (identical(other.requestDate, requestDate) ||
-                other.requestDate == requestDate) &&
+            (identical(other.shiftDate, shiftDate) ||
+                other.shiftDate == shiftDate) &&
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.totalRequired, totalRequired) ||
                 other.totalRequired == totalRequired) &&
@@ -250,7 +252,7 @@ class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      requestDate,
+      shiftDate,
       storeId,
       totalRequired,
       totalApproved,
@@ -276,7 +278,7 @@ class _$MonthlyShiftStatusDtoImpl implements _MonthlyShiftStatusDto {
 
 abstract class _MonthlyShiftStatusDto implements MonthlyShiftStatusDto {
   const factory _MonthlyShiftStatusDto(
-          {@JsonKey(name: 'request_date') required final String requestDate,
+          {@JsonKey(name: 'shift_date') required final String shiftDate,
           @JsonKey(name: 'store_id') required final String storeId,
           @JsonKey(name: 'total_required') final int totalRequired,
           @JsonKey(name: 'total_approved') final int totalApproved,
@@ -288,9 +290,10 @@ abstract class _MonthlyShiftStatusDto implements MonthlyShiftStatusDto {
       _$MonthlyShiftStatusDtoImpl.fromJson;
 
 // RPC TABLE columns (exact names)
+// v4: shift_date (from start_time_utc) instead of request_date
   @override
-  @JsonKey(name: 'request_date')
-  String get requestDate;
+  @JsonKey(name: 'shift_date')
+  String get shiftDate;
   @override
   @JsonKey(name: 'store_id')
   String get storeId;

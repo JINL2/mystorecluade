@@ -10,21 +10,21 @@ extension CardInputResultDtoMapper on CardInputResultDto {
   /// Convert DTO to Domain Entity
   ///
   /// Time conversion logic:
-  /// - RPC returns times in HH:mm format (UTC)
-  /// - Combine with request_date to create full timestamp
-  /// - Convert from UTC to local time
+  /// - RPC returns times in HH:mm format already converted to local timezone
+  /// - Combine with shift_date (local date from start_time_utc AT TIMEZONE)
+  /// - NO UTC conversion needed - times are already local!
   CardInputResult toEntity() {
-    // Parse time strings (HH:mm) combining with request date
+    // Parse time strings (HH:mm) combining with shift date
+    // NOTE: RPC returns local times via p_timezone parameter
     DateTime parseTimeWithDate(String timeStr) {
-      if (timeStr.isEmpty || requestDate.isEmpty) {
+      if (timeStr.isEmpty || shiftDate.isEmpty) {
         return DateTime.now();
       }
 
       try {
-        // timeStr is in HH:mm format from RPC (UTC time)
-        // Combine with request date and mark as UTC
-        final utcDateTime = DateTime.parse('${requestDate}T$timeStr:00Z');
-        return utcDateTime.toLocal();
+        // timeStr is in HH:mm format from RPC (already local time)
+        // Combine with shift date (local date) - NO UTC conversion needed
+        return DateTime.parse('${shiftDate}T$timeStr:00');
       } catch (e) {
         return DateTime.now();
       }

@@ -15,6 +15,7 @@ class ShiftMetadataDtoMapper {
       endTime: dto.endTime,
       targetCount: dto.numberShift,
       isActive: dto.isActive,
+      isCanOvertime: dto.isCanOvertime,
     );
   }
 
@@ -41,6 +42,7 @@ class ShiftMetadataDtoMapper {
       endTime: item.endTime,
       numberShift: item.targetCount,
       isActive: item.isActive,
+      isCanOvertime: item.isCanOvertime,
     );
   }
 }

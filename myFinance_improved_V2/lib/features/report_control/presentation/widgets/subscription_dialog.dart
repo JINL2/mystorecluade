@@ -415,7 +415,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
               scheduleTime: _scheduleTime,
               scheduleDays: _scheduleDays.isEmpty ? null : _scheduleDays,
               monthlySendDay: _monthlySendDay,
-              timezone: ReportConstants.defaultTimezone,
+              timezone: DateTimeUtils.getLocalTimezone(),
               notificationChannels: ReportConstants.defaultNotificationChannels,
             );
 

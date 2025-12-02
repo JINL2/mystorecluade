@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../attendance/domain/entities/monthly_shift_status.dart';
@@ -127,27 +128,28 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
 
   /// Wrap action with loading state management
   Future<void> _executeWithLoading(String shiftId, Future<void> Function() action) async {
-    print('[ShiftRequestsTab] _executeWithLoading called for shiftId: $shiftId');
+    if (_loadingShiftId != null) return;
 
-    if (_loadingShiftId != null) {
-      print('[ShiftRequestsTab] Already processing, skipping. Current _loadingShiftId: $_loadingShiftId');
-      return;
-    }
-
-    print('[ShiftRequestsTab] Setting loading state...');
     setState(() {
       _loadingShiftId = shiftId;
     });
 
     try {
-      print('[ShiftRequestsTab] Calling action...');
       await action();
-      print('[ShiftRequestsTab] Action completed successfully');
     } catch (e) {
-      print('[ShiftRequestsTab] Action error: $e');
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: e.toString().replaceAll('Exception: ', ''),
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
-        print('[ShiftRequestsTab] Clearing loading state');
         setState(() {
           _loadingShiftId = null;
         });
@@ -265,19 +267,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                         final totalSlots = dailyShift?.requiredEmployees ?? shift.numberShift ?? 1;
                         final appliedCount = (dailyShift?.approvedCount ?? 0) + (dailyShift?.pendingCount ?? 0);
                         final userApplied = statusHelper.getUserApplied(shift, selectedDate);
-
-                        // DEBUG: Log status for each shift
-                        print('[ShiftRequestsTab] === ShiftCard Build ===');
-                        print('[ShiftRequestsTab] shift.shiftName: ${shift.shiftName}');
-                        print('[ShiftRequestsTab] shift.shiftId: ${shift.shiftId}');
-                        print('[ShiftRequestsTab] status: $status');
-                        print('[ShiftRequestsTab] currentUserId: $currentUserId');
-                        print('[ShiftRequestsTab] dailyShift: ${dailyShift != null}');
-                        if (dailyShift != null) {
-                          print('[ShiftRequestsTab] approvedEmployees: ${dailyShift.approvedEmployees.map((e) => e.userId).toList()}');
-                          print('[ShiftRequestsTab] pendingEmployees: ${dailyShift.pendingEmployees.map((e) => e.userId).toList()}');
-                        }
-                        print('[ShiftRequestsTab] onWithdraw will be: ${status == ShiftSignupStatus.applied ? "SET" : "NULL"}');
 
                         // Get all employees' profile images (approved + pending)
                         final allEmployees = [

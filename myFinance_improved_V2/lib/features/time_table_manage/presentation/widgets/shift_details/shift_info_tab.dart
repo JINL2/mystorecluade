@@ -177,7 +177,7 @@ class ShiftInfoTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      ShiftTimeFormatter.formatTime(card.confirmedStartTime?.toIso8601String(), card.requestDate),
+                                      ShiftTimeFormatter.formatTime(card.confirmedStartTime?.toIso8601String(), card.shiftDate),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: card.confirmedStartTime != null
@@ -208,7 +208,7 @@ class ShiftInfoTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      ShiftTimeFormatter.formatTime(card.confirmedEndTime?.toIso8601String(), card.requestDate),
+                                      ShiftTimeFormatter.formatTime(card.confirmedEndTime?.toIso8601String(), card.shiftDate),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: card.confirmedEndTime != null
@@ -365,13 +365,13 @@ class ShiftInfoTab extends StatelessWidget {
                           ShiftDetailRow(
                             label: 'Actual Check-in',
                             value: card.actualStartTime != null
-                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualStartTime?.toIso8601String(), card.requestDate)
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualStartTime?.toIso8601String(), card.shiftDate)
                               : 'Not checked in',
                           ),
                           ShiftDetailRow(
                             label: 'Actual Check-out',
                             value: card.actualEndTime != null
-                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualEndTime?.toIso8601String(), card.requestDate)
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualEndTime?.toIso8601String(), card.shiftDate)
                               : 'Not checked out',
                           ),
                         ],

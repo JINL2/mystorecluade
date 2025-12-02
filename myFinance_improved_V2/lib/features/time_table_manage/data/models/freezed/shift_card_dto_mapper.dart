@@ -1,4 +1,3 @@
-import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/employee_info.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
@@ -8,6 +7,7 @@ import 'shift_card_dto.dart';
 /// Extension to map ShiftCardDto → Domain Entity
 ///
 /// Separates DTO (data layer) from Entity (domain layer)
+/// v3: Uses shiftDate (from start_time_utc) instead of requestDate
 extension ShiftCardDtoMapper on ShiftCardDto {
   /// Convert DTO to Domain Entity
   ShiftCard toEntity() {
@@ -15,7 +15,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       shiftRequestId: shiftRequestId,
       employee: _mapEmployee(),
       shift: _mapShift(),
-      requestDate: requestDate,
+      shiftDate: shiftDate,
       isApproved: isApproved,
       hasProblem: isProblem,
       isProblemSolved: isProblemSolved,
@@ -62,7 +62,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       shiftId: '', // RPC doesn't return shift_id
       storeId: '', // RPC doesn't return store_id
       storeName: storeName,
-      shiftDate: requestDate,
+      shiftDate: shiftDate,
       planStartTime: _parseTime(shiftTime?.startTime) ?? now,
       planEndTime: _parseTime(shiftTime?.endTime) ?? now,
       targetCount: 0, // RPC doesn't return target_count
@@ -72,26 +72,34 @@ extension ShiftCardDtoMapper on ShiftCardDto {
   }
 
   /// Parse time string (HH:MM or HH:MM:SS) to DateTime
+  ///
+  /// NOTE: RPC returns times already converted to local timezone via p_timezone parameter.
+  /// DO NOT apply additional UTC-to-local conversion - times are already local!
   DateTime? _parseTime(String? timeStr) {
     if (timeStr == null || timeStr.isEmpty) return null;
 
     try {
-      // If full datetime
+      // If full datetime (ISO8601 format)
       if (timeStr.contains('T') || timeStr.length > 10) {
-        return DateTimeUtils.toLocal(timeStr);
+        // RPC returns local time, parse as-is without timezone conversion
+        final parsed = DateTime.parse(timeStr);
+        return parsed;
       }
 
-      // If time only (HH:MM or HH:MM:SS), combine with requestDate
+      // If time only (HH:MM or HH:MM:SS), combine with shiftDate
+      // RPC returns local time strings (e.g., "07:09" means 07:09 local time)
       final parts = timeStr.split(':');
       if (parts.length >= 2) {
         final hour = int.parse(parts[0]);
         final minute = int.parse(parts[1]);
         final second = parts.length >= 3 ? int.parse(parts[2]) : 0;
 
-        // Parse requestDate
-        final dateParts = requestDate.split('-');
+        // Parse shiftDate (already in local date format from RPC)
+        final dateParts = shiftDate.split('-');
         if (dateParts.length == 3) {
-          final utcDateTime = DateTime.utc(
+          // Create as local DateTime directly - NO UTC conversion needed
+          // RPC already converted times to local timezone
+          return DateTime(
             int.parse(dateParts[0]),
             int.parse(dateParts[1]),
             int.parse(dateParts[2]),
@@ -99,7 +107,6 @@ extension ShiftCardDtoMapper on ShiftCardDto {
             minute,
             second,
           );
-          return utcDateTime.toLocal();
         }
       }
 
@@ -111,6 +118,9 @@ extension ShiftCardDtoMapper on ShiftCardDto {
 }
 
 /// Extension to map TagDto → Tag Entity
+///
+/// NOTE: RPC returns times already converted to local timezone via p_timezone parameter.
+/// DO NOT apply additional UTC-to-local conversion - times are already local!
 extension TagDtoMapper on TagDto {
   Tag toEntity() {
     return Tag(
@@ -119,7 +129,7 @@ extension TagDtoMapper on TagDto {
       tagType: type ?? '',
       tagContent: content ?? '',
       createdAt: createdAt != null
-          ? DateTimeUtils.toLocal(createdAt!)
+          ? DateTime.parse(createdAt!) // Parse as-is, already local time from RPC
           : DateTime.now(),
       createdBy: createdBy ?? '',
     );

@@ -8,13 +8,15 @@ part 'shift_card_dto.g.dart';
 
 /// Shift Card DTO
 ///
-/// Maps exactly to manager_shift_get_cards RPC response
+/// Maps exactly to manager_shift_get_cards_v3 RPC response
+/// v3: Uses shift_date (from start_time_utc) instead of request_date
 /// RPC Field Names → Dart Properties (with @JsonKey)
 @freezed
 class ShiftCardDto with _$ShiftCardDto {
   const factory ShiftCardDto({
     // Core identification
-    @JsonKey(name: 'request_date') required String requestDate,
+    // v3: shift_date (actual work date from start_time_utc) instead of request_date
+    @JsonKey(name: 'shift_date') required String shiftDate,
     @JsonKey(name: 'shift_request_id') required String shiftRequestId,
 
     // User information

@@ -27,14 +27,14 @@ class ShiftMetadataModel {
     this.shiftBonus,
   });
 
-  /// Create from JSON (from RPC: get_shift_metadata_v2)
+  /// Create from JSON (from RPC: get_shift_metadata_v2_utc)
   factory ShiftMetadataModel.fromJson(Map<String, dynamic> json) {
     return ShiftMetadataModel(
       shiftId: json['shift_id'] as String,
       storeId: json['store_id'] as String,
       shiftName: json['shift_name'] as String,
-      startTime: json['start_time'] as String,
-      endTime: json['end_time'] as String,
+      startTime: json['start_time_utc'] as String,
+      endTime: json['end_time_utc'] as String,
       isActive: json['is_active'] as bool? ?? true,
       numberShift: json['number_shift'] as int?,
       isCanOvertime: json['is_can_overtime'] as bool? ?? false,

@@ -119,9 +119,15 @@ class ManageTabView extends ConsumerWidget {
     // First filter by selected date
     final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
 
+    // DEBUG: Log all card dates
+    print('🔍 ManageTab: selectedDateStr=$selectedDateStr');
+    print('🔍 ManageTab: All cards dates: ${monthData.cards.map((c) => c.shiftDate).toList()}');
+
     // Then apply status filter
     final filteredCards = monthData.filterByStatus(selectedFilter);
-    final filteredByDate = filteredCards.where((card) => card.requestDate == selectedDateStr).toList();
+    final filteredByDate = filteredCards.where((card) => card.shiftDate == selectedDateStr).toList();
+
+    print('🔍 ManageTab: filteredByDate count=${filteredByDate.length}');
 
     // Return ShiftCard entities directly
     return filteredByDate;
@@ -148,7 +154,7 @@ class ManageTabView extends ConsumerWidget {
 
       return {
         'shift_request_id': card.shiftRequestId,
-        'request_date': card.requestDate,
+        'shift_date': card.shiftDate,
         'is_approved': card.isApproved,
         'is_problem': card.hasProblem,
         'is_problem_solved': card.isProblemSolved,
@@ -200,19 +206,19 @@ class ManageTabView extends ConsumerWidget {
 
     if (monthData != null) {
       for (final card in monthData.cards) {
-        final requestDate = card.requestDate;
+        final shiftDate = card.shiftDate;
         final isProblem = card.hasProblem && !card.isProblemSolved;
         final isApproved = card.isApproved;
 
         // Priority: Problem > Pending > Approved
         if (isProblem) {
-          indicators[requestDate] = TossCalendarIndicatorType.problem;
-        } else if (!isApproved && !indicators.containsKey(requestDate)) {
+          indicators[shiftDate] = TossCalendarIndicatorType.problem;
+        } else if (!isApproved && !indicators.containsKey(shiftDate)) {
           // Only set pending if not already marked as problem
-          indicators[requestDate] = TossCalendarIndicatorType.pending;
-        } else if (isApproved && !indicators.containsKey(requestDate)) {
+          indicators[shiftDate] = TossCalendarIndicatorType.pending;
+        } else if (isApproved && !indicators.containsKey(shiftDate)) {
           // Only set approved if not already marked as problem or pending
-          indicators[requestDate] = TossCalendarIndicatorType.approved;
+          indicators[shiftDate] = TossCalendarIndicatorType.approved;
         }
       }
     }

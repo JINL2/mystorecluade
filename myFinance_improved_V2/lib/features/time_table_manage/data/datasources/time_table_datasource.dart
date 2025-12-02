@@ -13,7 +13,7 @@ class TimeTableDatasource {
 
   /// Fetch shift metadata from Supabase RPC
   ///
-  /// Uses get_shift_metadata_v2 RPC with timezone parameter
+  /// Uses get_shift_metadata_v2_utc RPC with timezone parameter
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
   /// - Returns shift times converted to local timezone
   Future<dynamic> getShiftMetadata({
@@ -22,7 +22,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_shift_metadata_v2',
+        'get_shift_metadata_v2_utc',
         params: {
           'p_store_id': storeId,
           'p_timezone': timezone,
@@ -46,9 +46,11 @@ class TimeTableDatasource {
 
   /// Fetch monthly shift status for manager from Supabase RPC
   ///
-  /// Uses get_monthly_shift_status_manager_v2 RPC with TIMESTAMPTZ and timezone parameters
-  /// - p_request_time must be UTC timestamp in "yyyy-MM-dd HH:mm:ss" format
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  /// Uses get_monthly_shift_status_manager_v4 RPC with timezone parameters
+  /// - p_request_time must be user's LOCAL timestamp in "yyyy-MM-dd HH:mm:ss" format
+  ///   (no timezone info, local time as-is)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// - Returns shift data based on actual work date (start_time_utc converted to timezone)
   Future<List<dynamic>> getMonthlyShiftStatus({
     required String requestTime,
     required String storeId,
@@ -56,7 +58,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v2',
+        'get_monthly_shift_status_manager_v4',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,
@@ -84,10 +86,11 @@ class TimeTableDatasource {
 
   /// Fetch manager overview data from Supabase RPC
   ///
-  /// Uses manager_shift_get_overview_v2 RPC with timezone parameter
-  /// - p_start_date and p_end_date are local dates (yyyy-MM-dd)
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
-  /// - RPC converts request_time to local timezone for date filtering
+  /// Uses manager_shift_get_overview_v3 RPC with timezone parameter
+  /// - p_start_date and p_end_date are user's local dates (yyyy-MM-dd)
+  /// - p_store_id is optional (NULL for all stores)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// - Filters by start_time_utc converted to timezone (actual work date)
   Future<Map<String, dynamic>> getManagerOverview({
     required String startDate,
     required String endDate,
@@ -97,7 +100,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_overview_v2',
+        'manager_shift_get_overview_v3',
         params: {
           'p_start_date': startDate,
           'p_end_date': endDate,
@@ -131,11 +134,12 @@ class TimeTableDatasource {
 
   /// Fetch manager shift cards from Supabase RPC
   ///
-  /// Uses manager_shift_get_cards_v2 RPC with timezone parameter
-  /// - p_start_date and p_end_date are local dates (yyyy-MM-dd)
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
-  /// - RPC converts request_time to local timezone for date filtering
-  /// - Uses is_problem_v2 and is_problem_solved_v2 columns
+  /// Uses manager_shift_get_cards_v3 RPC with timezone parameter
+  /// - p_start_date and p_end_date are user's local dates (yyyy-MM-dd)
+  /// - p_store_id is optional (NULL for all stores)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// - Filters by start_time_utc converted to timezone (actual work date)
+  /// - Uses v_shift_request view with is_problem_v2, is_problem_solved_v2 columns
   Future<Map<String, dynamic>> getManagerShiftCards({
     required String startDate,
     required String endDate,
@@ -144,8 +148,16 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
+      // DEBUG: Log RPC parameters
+      print('🔍 RPC CALL: manager_shift_get_cards_v3');
+      print('   p_start_date: $startDate');
+      print('   p_end_date: $endDate');
+      print('   p_store_id: $storeId');
+      print('   p_company_id: $companyId');
+      print('   p_timezone: $timezone');
+
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_cards_v2',
+        'manager_shift_get_cards_v3',
         params: {
           'p_start_date': startDate,
           'p_end_date': endDate,
@@ -179,13 +191,12 @@ class TimeTableDatasource {
     }
   }
 
-  /// Toggle shift request approval status using v2 RPC
+  /// Toggle shift request approval status using v3 RPC
   ///
-  /// Uses toggle_shift_approval_v2 RPC
-  /// - Toggles is_approved state (instead of setting it)
+  /// Uses toggle_shift_approval_v3 RPC
+  /// - Toggles is_approved state (TRUE ↔ FALSE)
   /// - Updates approved_by and updated_at_utc
-  /// - Updates start_time_utc and end_time_utc from store_shifts
-  /// - Handles overnight shifts correctly
+  /// - No longer recalculates start_time_utc/end_time_utc (already set by insert_shift_request_v6)
   /// - Returns void
   Future<void> toggleShiftApproval({
     required List<String> shiftRequestIds,
@@ -193,7 +204,7 @@ class TimeTableDatasource {
   }) async {
     try {
       await _supabase.rpc<dynamic>(
-        'toggle_shift_approval_v2',
+        'toggle_shift_approval_v3',
         params: {
           'p_shift_request_ids': shiftRequestIds,
           'p_user_id': userId,
@@ -261,33 +272,37 @@ class TimeTableDatasource {
     }
   }
 
-  /// Insert new schedule (assign employee to shift) using v3 RPC
+  /// Insert new schedule (assign employee to shift) using v4 RPC
   ///
-  /// Uses manager_shift_insert_schedule_v3 RPC
-  /// - p_request_date is DATE type (yyyy-MM-dd format)
-  /// - No timezone parameter needed - RPC handles UTC conversion internally
-  /// - Handles duplicate detection and overnight shifts
-  /// - Calculates start_time_utc and end_time_utc from store_shifts table
+  /// Uses manager_shift_insert_schedule_v4 RPC
+  /// - p_start_time and p_end_time are user's LOCAL timestamps (yyyy-MM-dd HH:mm:ss)
+  /// - p_timezone is required for converting local time to UTC
+  /// - Duplicate check based on (user_id, shift_id, start_time_utc, end_time_utc)
+  /// - No longer uses request_date or request_time columns
   Future<Map<String, dynamic>> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestDate,
+    required String startTime,
+    required String endTime,
     required String approvedBy,
+    required String timezone,
   }) async {
     try {
-      print('🔄 insertSchedule: Calling manager_shift_insert_schedule_v3');
+      print('🔄 insertSchedule: Calling manager_shift_insert_schedule_v4');
       print('   userId: $userId, shiftId: $shiftId, storeId: $storeId');
-      print('   requestDate: $requestDate, approvedBy: $approvedBy');
+      print('   startTime: $startTime, endTime: $endTime, timezone: $timezone');
 
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_insert_schedule_v3',
+        'manager_shift_insert_schedule_v4',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
           'p_store_id': storeId,
-          'p_request_date': requestDate,
+          'p_start_time': startTime,
+          'p_end_time': endTime,
           'p_approved_by': approvedBy,
+          'p_timezone': timezone,
         },
       );
 
@@ -307,16 +322,17 @@ class TimeTableDatasource {
     }
   }
 
-  /// Input card data (comprehensive shift update with tags) using v2 RPC
+  /// Input card data (comprehensive shift update with tags) using v3 RPC
   ///
-  /// Uses manager_shift_input_card_v2 RPC with timezone support
+  /// Uses manager_shift_input_card_v3 RPC with timezone support
+  /// - Date basis changed from request_time to start_time_utc (actual work date)
   /// - Uses v2/_utc columns (confirm_start_time_utc, confirm_end_time_utc, notice_tag_v2, is_late_v2, is_problem_solved_v2)
   /// - Supports night shifts (when end time < start time, adds 1 day to end time)
   /// - Auto-generates tags when is_late or is_problem_solved values change
   /// - Enriches tags with creator names from users table
   /// - Returns timezone-converted times using p_timezone parameter
+  /// - Returns shift_date instead of request_date in response
   /// - Validates minimum work time (30 min) and maximum work time (12 hours)
-  /// - Removes existing auto-generated manual_override tags before adding new ones
   /// - confirmStartTime/confirmEndTime can be null to keep existing values
   Future<Map<String, dynamic>> inputCard({
     required String managerId,
@@ -331,7 +347,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_input_card_v2',
+        'manager_shift_input_card_v3',
         params: {
           'p_manager_id': managerId,
           'p_shift_request_id': shiftRequestId,
@@ -457,9 +473,9 @@ class TimeTableDatasource {
     }
   }
 
-  /// Process bulk shift approval using toggle_shift_approval_v2
+  /// Process bulk shift approval using toggle_shift_approval_v3
   ///
-  /// Uses toggle_shift_approval_v2 RPC
+  /// Uses toggle_shift_approval_v3 RPC
   /// - Toggles approval state for multiple shift requests
   /// - Returns void, so we manually construct the result
   Future<Map<String, dynamic>> processBulkApproval({
@@ -473,9 +489,9 @@ class TimeTableDatasource {
         throw const TimeTableException('User not authenticated');
       }
 
-      // Call toggle_shift_approval_v2 (returns void)
+      // Call toggle_shift_approval_v3 (returns void)
       await _supabase.rpc<dynamic>(
-        'toggle_shift_approval_v2',
+        'toggle_shift_approval_v3',
         params: {
           'p_shift_request_ids': shiftRequestIds,
           'p_user_id': userId,

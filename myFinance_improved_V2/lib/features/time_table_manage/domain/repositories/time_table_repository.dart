@@ -15,7 +15,7 @@ import '../entities/shift_metadata.dart';
 abstract class TimeTableRepository {
   /// Get shift metadata for a store
   ///
-  /// Uses get_shift_metadata_v2 RPC with timezone support
+  /// Uses get_shift_metadata_v2_utc RPC with timezone support
   ///
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
@@ -39,14 +39,14 @@ abstract class TimeTableRepository {
 
   /// Get monthly shift status for manager view
   ///
-  /// Matches RPC: get_monthly_shift_status_manager_v2
+  /// Matches RPC: get_monthly_shift_status_manager_v4
   ///
-  /// [requestTime] - UTC timestamp in format 'yyyy-MM-dd HH:mm:ss'
+  /// [requestTime] - User's LOCAL timestamp in format 'yyyy-MM-dd HH:mm:ss' (no timezone)
   /// [companyId] - Company ID
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of [MonthlyShiftStatus] for 3 months
+  /// Returns list of [MonthlyShiftStatus] for 3 months based on actual work date
   Future<List<MonthlyShiftStatus>> getMonthlyShiftStatus({
     required String requestTime,
     required String companyId,
@@ -56,13 +56,13 @@ abstract class TimeTableRepository {
 
   /// Get manager overview data for a month
   ///
-  /// Uses manager_shift_get_overview_v2 RPC with timezone support
+  /// Uses manager_shift_get_overview_v3 RPC with timezone support
   ///
-  /// [startDate] - Start date in format 'yyyy-MM-dd' (local date)
-  /// [endDate] - End date in format 'yyyy-MM-dd' (local date)
+  /// [startDate] - Start date in format 'yyyy-MM-dd' (user's local date)
+  /// [endDate] - End date in format 'yyyy-MM-dd' (user's local date)
   /// [companyId] - Company ID
-  /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
+  /// [storeId] - Store ID (optional, NULL for all stores)
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns [ManagerOverview] with statistics
   Future<ManagerOverview> getManagerOverview({
@@ -75,13 +75,13 @@ abstract class TimeTableRepository {
 
   /// Get manager shift cards for employee view
   ///
-  /// Uses manager_shift_get_cards_v2 RPC with timezone support
+  /// Uses manager_shift_get_cards_v3 RPC with timezone support
   ///
-  /// [startDate] - Start date in format 'yyyy-MM-dd' (local date)
-  /// [endDate] - End date in format 'yyyy-MM-dd' (local date)
+  /// [startDate] - Start date in format 'yyyy-MM-dd' (user's local date)
+  /// [endDate] - End date in format 'yyyy-MM-dd' (user's local date)
   /// [companyId] - Company ID
-  /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
+  /// [storeId] - Store ID (optional, NULL for all stores)
+  /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns [ManagerShiftCards] entity with cards collection
   Future<ManagerShiftCards> getManagerShiftCards({
@@ -92,13 +92,12 @@ abstract class TimeTableRepository {
     required String timezone,
   });
 
-  /// Toggle shift request approval status using v2 RPC
+  /// Toggle shift request approval status using v3 RPC
   ///
-  /// Uses toggle_shift_approval_v2 RPC
-  /// - Toggles is_approved state for shift requests
+  /// Uses toggle_shift_approval_v3 RPC
+  /// - Toggles is_approved state (TRUE ↔ FALSE)
   /// - Updates approved_by and updated_at_utc
-  /// - Updates start_time_utc and end_time_utc from store_shifts
-  /// - Handles overnight shifts correctly
+  /// - No longer recalculates start_time_utc/end_time_utc (already set by insert_shift_request_v6)
   ///
   /// [shiftRequestIds] - List of shift request IDs to toggle
   /// [userId] - User ID performing the approval
@@ -161,27 +160,31 @@ abstract class TimeTableRepository {
     required String timezone,
   });
 
-  /// Insert new schedule (assign employee to shift) using v3 RPC
+  /// Insert new schedule (assign employee to shift) using v4 RPC
   ///
-  /// Uses manager_shift_insert_schedule_v3 RPC
-  /// - p_request_date is DATE type (yyyy-MM-dd format)
-  /// - No timezone parameter needed - RPC handles UTC conversion internally
-  /// - Handles duplicate detection and overnight shifts
-  /// - Calculates start_time_utc and end_time_utc from store_shifts table
+  /// Uses manager_shift_insert_schedule_v4 RPC
+  /// - p_start_time and p_end_time are user's LOCAL timestamps (yyyy-MM-dd HH:mm:ss)
+  /// - p_timezone is required for converting local time to UTC
+  /// - Duplicate check based on (user_id, shift_id, start_time_utc, end_time_utc)
+  /// - No longer uses request_date or request_time columns
   ///
   /// [userId] - Employee user ID
   /// [shiftId] - Shift ID
   /// [storeId] - Store ID
-  /// [requestDate] - Selected date from calendar in format 'yyyy-MM-dd'
+  /// [startTime] - Shift start time in user's local time (yyyy-MM-dd HH:mm:ss)
+  /// [endTime] - Shift end time in user's local time (yyyy-MM-dd HH:mm:ss)
   /// [approvedBy] - User ID of approver
+  /// [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
   ///
   /// Returns [OperationResult] indicating success or failure
   Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestDate,
+    required String startTime,
+    required String endTime,
     required String approvedBy,
+    required String timezone,
   });
 
   /// Process bulk shift approval
@@ -195,13 +198,15 @@ abstract class TimeTableRepository {
     required List<bool> approvalStates,
   });
 
-  /// Input card data (comprehensive shift update with tags) using v2 RPC
+  /// Input card data (comprehensive shift update with tags) using v3 RPC
   ///
-  /// Uses manager_shift_input_card_v2 RPC with timezone support
+  /// Uses manager_shift_input_card_v3 RPC with timezone support
+  /// - Uses start_time_utc as date basis (actual work date) instead of request_time
   /// - Uses v2/_utc columns for all time and status fields
   /// - Supports night shifts with automatic date adjustment
   /// - Auto-generates tags when status values change
   /// - Enriches tags with creator names
+  /// - Returns shift_date (from start_time_utc) instead of request_date
   ///
   /// [managerId] - Manager user ID performing the update
   /// [shiftRequestId] - Shift request ID to update

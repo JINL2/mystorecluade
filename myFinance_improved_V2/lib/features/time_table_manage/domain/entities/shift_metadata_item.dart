@@ -8,6 +8,7 @@ class ShiftMetadataItem {
   final String endTime; // HH:mm format or ISO string
   final int targetCount; // Required number of employees
   final bool isActive;
+  final bool isCanOvertime;
 
   const ShiftMetadataItem({
     required this.shiftId,
@@ -16,6 +17,7 @@ class ShiftMetadataItem {
     required this.endTime,
     required this.targetCount,
     required this.isActive,
+    this.isCanOvertime = false,
   });
 
   /// Check if this shift requires employees
@@ -32,6 +34,7 @@ class ShiftMetadataItem {
     String? endTime,
     int? targetCount,
     bool? isActive,
+    bool? isCanOvertime,
   }) {
     return ShiftMetadataItem(
       shiftId: shiftId ?? this.shiftId,
@@ -40,6 +43,7 @@ class ShiftMetadataItem {
       endTime: endTime ?? this.endTime,
       targetCount: targetCount ?? this.targetCount,
       isActive: isActive ?? this.isActive,
+      isCanOvertime: isCanOvertime ?? this.isCanOvertime,
     );
   }
 

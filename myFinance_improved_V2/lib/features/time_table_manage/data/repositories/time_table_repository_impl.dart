@@ -105,9 +105,10 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
           .toList();
 
       // Group by month and convert to entities
+      // v4: shiftDate (from start_time_utc) instead of requestDate
       final Map<String, List<MonthlyShiftStatusDto>> groupedByMonth = {};
       for (final dto in dtos) {
-        final month = dto.requestDate.substring(0, 7); // yyyy-MM
+        final month = dto.shiftDate.substring(0, 7); // yyyy-MM
         groupedByMonth.putIfAbsent(month, () => []).add(dto);
       }
 
@@ -191,6 +192,16 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
         timezone: timezone,
       );
+
+      // DEBUG: Log raw RPC response shift_dates
+      if (data['stores'] != null) {
+        final stores = data['stores'] as List;
+        for (final store in stores) {
+          final cards = store['cards'] as List? ?? [];
+          final dates = cards.map((c) => c['shift_date']).toList();
+          print('🔍 RPC Raw shift_dates: $dates');
+        }
+      }
 
       final dto = ManagerShiftCardsDto.fromJson(data);
       final entity = dto.toEntity(
@@ -335,16 +346,20 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required String userId,
     required String shiftId,
     required String storeId,
-    required String requestDate,
+    required String startTime,
+    required String endTime,
     required String approvedBy,
+    required String timezone,
   }) async {
     try {
       final data = await _datasource.insertSchedule(
         userId: userId,
         shiftId: shiftId,
         storeId: storeId,
-        requestDate: requestDate,
+        startTime: startTime,
+        endTime: endTime,
         approvedBy: approvedBy,
+        timezone: timezone,
       );
 
       // ✅ FREEZED: Direct DTO conversion

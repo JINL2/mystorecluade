@@ -9,7 +9,7 @@ part of 'monthly_shift_status_dto.dart';
 _$MonthlyShiftStatusDtoImpl _$$MonthlyShiftStatusDtoImplFromJson(
         Map<String, dynamic> json) =>
     _$MonthlyShiftStatusDtoImpl(
-      requestDate: json['request_date'] as String,
+      shiftDate: json['shift_date'] as String,
       storeId: json['store_id'] as String,
       totalRequired: (json['total_required'] as num?)?.toInt() ?? 0,
       totalApproved: (json['total_approved'] as num?)?.toInt() ?? 0,
@@ -24,7 +24,7 @@ _$MonthlyShiftStatusDtoImpl _$$MonthlyShiftStatusDtoImplFromJson(
 Map<String, dynamic> _$$MonthlyShiftStatusDtoImplToJson(
         _$MonthlyShiftStatusDtoImpl instance) =>
     <String, dynamic>{
-      'request_date': instance.requestDate,
+      'shift_date': instance.shiftDate,
       'store_id': instance.storeId,
       'total_required': instance.totalRequired,
       'total_approved': instance.totalApproved,

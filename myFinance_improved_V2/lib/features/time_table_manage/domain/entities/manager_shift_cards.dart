@@ -78,7 +78,7 @@ class ManagerShiftCards {
 
   /// Get cards for a specific date
   List<ShiftCard> getCardsByDate(String date) {
-    return cards.where((card) => card.requestDate == date).toList();
+    return cards.where((card) => card.shiftDate == date).toList();
   }
 
   /// Get cards for a specific employee
@@ -120,10 +120,10 @@ class ManagerShiftCards {
     final Map<String, List<ShiftCard>> grouped = {};
 
     for (final card in cards) {
-      if (!grouped.containsKey(card.requestDate)) {
-        grouped[card.requestDate] = [];
+      if (!grouped.containsKey(card.shiftDate)) {
+        grouped[card.shiftDate] = [];
       }
-      grouped[card.requestDate]!.add(card);
+      grouped[card.shiftDate]!.add(card);
     }
 
     return grouped;

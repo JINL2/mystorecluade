@@ -1,3 +1,4 @@
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 
 /// DateTime utility for consistent timezone handling across the app
@@ -19,6 +20,9 @@ import 'package:intl/intl.dart';
 /// final createdAt = DateTimeUtils.toLocal(data['created_at']);
 /// ```
 class DateTimeUtils {
+  /// Cached timezone from flutter_timezone package
+  /// Must call initTimezone() at app startup to initialize
+  static String? _cachedTimezone;
 
   /// Converts DateTime to UTC ISO8601 string for database storage
   ///
@@ -281,26 +285,56 @@ class DateTimeUtils {
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
   }
 
+  /// Initialize timezone from flutter_timezone package
+  ///
+  /// Must be called at app startup (e.g., in main.dart before runApp)
+  /// This caches the device's IANA timezone for synchronous access.
+  ///
+  /// Example:
+  /// ```dart
+  /// void main() async {
+  ///   WidgetsFlutterBinding.ensureInitialized();
+  ///   await DateTimeUtils.initTimezone();
+  ///   runApp(MyApp());
+  /// }
+  /// ```
+  static Future<void> initTimezone() async {
+    try {
+      _cachedTimezone = await FlutterTimezone.getLocalTimezone();
+      print('🌍 DateTimeUtils: Initialized timezone: $_cachedTimezone');
+    } catch (e) {
+      print('⚠️ DateTimeUtils: Failed to get timezone from flutter_timezone: $e');
+      _cachedTimezone = _getFallbackTimezone();
+    }
+  }
+
   /// Gets the user's local timezone in IANA format (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// This timezone string is used for RPC functions that need to handle timezone-aware calculations.
-  /// Since Dart doesn't provide direct access to IANA timezone names, we derive it from the offset.
-  ///
-  /// **Note**: This is a best-effort approximation. Multiple timezones can share the same offset.
-  /// For production, consider using platform-specific APIs or a timezone package.
+  /// Uses flutter_timezone package for accurate device timezone detection.
+  /// Falls back to offset-based approximation if not initialized.
   ///
   /// Example:
   /// ```dart
   /// final timezone = DateTimeUtils.getLocalTimezone();
-  /// // Korea (UTC+9): "Asia/Seoul"
-  /// // Vietnam (UTC+7): "Asia/Ho_Chi_Minh"
-  /// // UTC: "UTC"
+  /// // Korea: "Asia/Seoul"
+  /// // Vietnam: "Asia/Ho_Chi_Minh"
   ///
   /// await supabase.rpc('user_shift_overview_v3', {
   ///   'p_timezone': timezone,
   /// });
   /// ```
   static String getLocalTimezone() {
+    // Return cached timezone if available (from flutter_timezone)
+    if (_cachedTimezone != null && _cachedTimezone!.isNotEmpty) {
+      return _cachedTimezone!;
+    }
+
+    // Fallback to offset-based approximation
+    return _getFallbackTimezone();
+  }
+
+  /// Fallback timezone detection using offset mapping
+  static String _getFallbackTimezone() {
     final now = DateTime.now();
     final offset = now.timeZoneOffset;
 
@@ -327,7 +361,6 @@ class DateTimeUtils {
     }
 
     // Fallback: Map offset to most common timezone
-    // This is not perfect but works for most cases
     final hours = offset.inHours;
     final minutes = offset.inMinutes.remainder(60);
 

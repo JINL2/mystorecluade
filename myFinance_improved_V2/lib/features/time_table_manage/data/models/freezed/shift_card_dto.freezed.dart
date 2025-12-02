@@ -21,8 +21,9 @@ ShiftCardDto _$ShiftCardDtoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ShiftCardDto {
 // Core identification
-  @JsonKey(name: 'request_date')
-  String get requestDate => throw _privateConstructorUsedError;
+// v3: shift_date (actual work date from start_time_utc) instead of request_date
+  @JsonKey(name: 'shift_date')
+  String get shiftDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId =>
       throw _privateConstructorUsedError; // User information
@@ -115,7 +116,7 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       _$ShiftCardDtoCopyWithImpl<$Res, ShiftCardDto>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
+      {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
@@ -167,7 +168,7 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requestDate = null,
+    Object? shiftDate = null,
     Object? shiftRequestId = null,
     Object? userName = null,
     Object? profileImage = freezed,
@@ -201,9 +202,9 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
     Object? storeName = freezed,
   }) {
     return _then(_value.copyWith(
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
       shiftRequestId: null == shiftRequestId
           ? _value.shiftRequestId
@@ -342,7 +343,7 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'request_date') String requestDate,
+      {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
@@ -392,7 +393,7 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requestDate = null,
+    Object? shiftDate = null,
     Object? shiftRequestId = null,
     Object? userName = null,
     Object? profileImage = freezed,
@@ -426,9 +427,9 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
     Object? storeName = freezed,
   }) {
     return _then(_$ShiftCardDtoImpl(
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
       shiftRequestId: null == shiftRequestId
           ? _value.shiftRequestId
@@ -562,7 +563,7 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ShiftCardDtoImpl implements _ShiftCardDto {
   const _$ShiftCardDtoImpl(
-      {@JsonKey(name: 'request_date') required this.requestDate,
+      {@JsonKey(name: 'shift_date') required this.shiftDate,
       @JsonKey(name: 'shift_request_id') required this.shiftRequestId,
       @JsonKey(name: 'user_name') required this.userName,
       @JsonKey(name: 'profile_image') this.profileImage,
@@ -602,9 +603,10 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       _$$ShiftCardDtoImplFromJson(json);
 
 // Core identification
+// v3: shift_date (actual work date from start_time_utc) instead of request_date
   @override
-  @JsonKey(name: 'request_date')
-  final String requestDate;
+  @JsonKey(name: 'shift_date')
+  final String shiftDate;
   @override
   @JsonKey(name: 'shift_request_id')
   final String shiftRequestId;
@@ -720,7 +722,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
   @override
   String toString() {
-    return 'ShiftCardDto(requestDate: $requestDate, shiftRequestId: $shiftRequestId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
+    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
   }
 
   @override
@@ -728,8 +730,8 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ShiftCardDtoImpl &&
-            (identical(other.requestDate, requestDate) ||
-                other.requestDate == requestDate) &&
+            (identical(other.shiftDate, shiftDate) ||
+                other.shiftDate == shiftDate) &&
             (identical(other.shiftRequestId, shiftRequestId) ||
                 other.shiftRequestId == shiftRequestId) &&
             (identical(other.userName, userName) ||
@@ -799,7 +801,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        requestDate,
+        shiftDate,
         shiftRequestId,
         userName,
         profileImage,
@@ -851,7 +853,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
 abstract class _ShiftCardDto implements ShiftCardDto {
   const factory _ShiftCardDto(
-      {@JsonKey(name: 'request_date') required final String requestDate,
+      {@JsonKey(name: 'shift_date') required final String shiftDate,
       @JsonKey(name: 'shift_request_id') required final String shiftRequestId,
       @JsonKey(name: 'user_name') required final String userName,
       @JsonKey(name: 'profile_image') final String? profileImage,
@@ -895,9 +897,10 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       _$ShiftCardDtoImpl.fromJson;
 
 // Core identification
+// v3: shift_date (actual work date from start_time_utc) instead of request_date
   @override
-  @JsonKey(name: 'request_date')
-  String get requestDate;
+  @JsonKey(name: 'shift_date')
+  String get shiftDate;
   @override
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId; // User information
