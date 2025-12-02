@@ -8,7 +8,7 @@ part of 'shift_card_dto.dart';
 
 _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
     _$ShiftCardDtoImpl(
-      requestDate: json['request_date'] as String,
+      shiftDate: json['shift_date'] as String,
       shiftRequestId: json['shift_request_id'] as String,
       userName: json['user_name'] as String,
       profileImage: json['profile_image'] as String?,
@@ -50,7 +50,7 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
     <String, dynamic>{
-      'request_date': instance.requestDate,
+      'shift_date': instance.shiftDate,
       'shift_request_id': instance.shiftRequestId,
       'user_name': instance.userName,
       'profile_image': instance.profileImage,

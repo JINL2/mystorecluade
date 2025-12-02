@@ -4,7 +4,7 @@ part 'monthly_shift_status.freezed.dart';
 
 /// Monthly Shift Status Entity - Represents daily shift status
 ///
-/// Represents shift status for a specific date from RPC: get_monthly_shift_status_manager_v2
+/// Represents shift status for a specific date from RPC: get_monthly_shift_status_manager_v4
 /// Contains all shifts for a given day with their pending and approved employees.
 @freezed
 class MonthlyShiftStatus with _$MonthlyShiftStatus {

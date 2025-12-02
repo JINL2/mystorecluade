@@ -11,6 +11,7 @@ class ScheduleHeader extends StatelessWidget {
   final GlobalKey? cardKey;
   final ViewMode viewMode;
   final ShiftCard? todayShift; // Today's shift data
+  final ShiftCard? upcomingShift; // Closest upcoming shift (when no today shift)
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
   final ValueChanged<ViewMode> onViewModeChanged;
@@ -20,23 +21,46 @@ class ScheduleHeader extends StatelessWidget {
     this.cardKey,
     required this.viewMode,
     this.todayShift,
+    this.upcomingShift,
     this.onCheckIn,
     this.onCheckOut,
     required this.onViewModeChanged,
   });
 
+  /// Parse shift datetime from ISO format string (e.g., "2025-06-01T14:00:00")
+  DateTime? _parseShiftDateTime(String dateTimeStr) {
+    try {
+      if (dateTimeStr.contains('T')) {
+        return DateTime.parse(dateTimeStr);
+      }
+      if (dateTimeStr.contains(' ')) {
+        return DateTime.parse(dateTimeStr.replaceFirst(' ', 'T'));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Determine ShiftStatus from ShiftCard data
+  /// Uses shift_start_time/shift_end_time for date comparison (not request_date)
   ShiftStatus _determineStatus(ShiftCard? card) {
     if (card == null) return ShiftStatus.noShift;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final cardDate = _parseRequestDate(card.requestDate);
 
-    if (cardDate == null) return ShiftStatus.noShift;
+    // Parse start and end datetime for date comparison
+    final startDateTime = _parseShiftDateTime(card.shiftStartTime);
+    final endDateTime = _parseShiftDateTime(card.shiftEndTime);
 
-    // Future shift (hasn't come yet)
-    if (cardDate.isAfter(today)) {
+    if (startDateTime == null || endDateTime == null) return ShiftStatus.noShift;
+
+    final startDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+    final endDate = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
+
+    // Future shift (hasn't come yet) - both start and end are in the future
+    if (startDate.isAfter(today)) {
       return ShiftStatus.upcoming;
     }
 
@@ -52,35 +76,19 @@ class ScheduleHeader extends StatelessWidget {
       return ShiftStatus.onTime;
     }
 
-    // Past date but no check-in
-    if (cardDate.isBefore(today)) {
+    // Past date but no check-in (both start and end dates are before today)
+    if (endDate.isBefore(today)) {
       return ShiftStatus.undone;
     }
 
-    // Today's shift that hasn't checked in yet
+    // Today's shift that hasn't checked in yet (start or end date is today)
     return ShiftStatus.undone;
   }
 
-  /// Parse request_date string to DateTime
-  DateTime? _parseRequestDate(String requestDate) {
-    try {
-      if (requestDate.contains('T')) {
-        return DateTime.parse(requestDate).toLocal();
-      }
-      final parts = requestDate.split('-');
-      return DateTime(
-        int.parse(parts[0]),
-        int.parse(parts[1]),
-        int.parse(parts[2]),
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
   /// Format date to "Tue, 18 Jun 2025" format
-  String _formatDate(String requestDate) {
-    final date = _parseRequestDate(requestDate);
+  /// Uses shift_start_time instead of request_date
+  String _formatDate(String shiftStartTime) {
+    final date = _parseShiftDateTime(shiftStartTime);
     if (date == null) return 'Unknown date';
 
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -94,14 +102,28 @@ class ScheduleHeader extends StatelessWidget {
     return '$weekDay, ${date.day} $month ${date.year}';
   }
 
-  /// Format shift time (e.g., "14:00 ~ 18:00" -> "14:00 - 18:00")
-  String _formatTimeRange(String shiftTime) {
-    return shiftTime.replaceAll('~', '-').trim();
+  /// Format shift time from shiftStartTime and shiftEndTime
+  /// (e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 - 18:00")
+  String _formatTimeRange(String shiftStartTime, String shiftEndTime) {
+    try {
+      final startDateTime = DateTime.parse(shiftStartTime);
+      final endDateTime = DateTime.parse(shiftEndTime);
+
+      final startTimeStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endTimeStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+
+      return '$startTimeStr - $endTimeStr';
+    } catch (e) {
+      return '--:-- - --:--';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final status = _determineStatus(todayShift);
+    // Use todayShift if available, otherwise use upcomingShift
+    final displayShift = todayShift ?? upcomingShift;
+    final isUpcoming = todayShift == null && upcomingShift != null;
+    final status = _determineStatus(displayShift);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,11 +132,12 @@ class ScheduleHeader extends StatelessWidget {
         Container(
           key: cardKey,
           child: TossTodayShiftCard(
-            shiftType: todayShift?.shiftName ?? 'No Shift',
-            date: todayShift != null ? _formatDate(todayShift!.requestDate) : null,
-            timeRange: todayShift != null ? _formatTimeRange(todayShift!.shiftTime) : null,
-            location: todayShift?.storeName,
+            shiftType: displayShift?.shiftName ?? 'No Shift',
+            date: displayShift != null ? _formatDate(displayShift.shiftStartTime) : null,
+            timeRange: displayShift != null ? _formatTimeRange(displayShift.shiftStartTime, displayShift.shiftEndTime) : null,
+            location: displayShift?.storeName,
             status: status,
+            isUpcoming: isUpcoming,
             onCheckIn: onCheckIn ?? () {},
             onCheckOut: onCheckOut ?? () {},
           ),

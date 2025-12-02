@@ -105,6 +105,20 @@ class AllAttendanceHistorySheet extends StatelessWidget {
     );
   }
 
+  /// Format shift time range from shiftStartTime and shiftEndTime
+  /// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
+  String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
+    try {
+      final startDateTime = DateTime.parse(shiftStartTime);
+      final endDateTime = DateTime.parse(shiftEndTime);
+      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+      return '$startStr ~ $endStr';
+    } catch (e) {
+      return '--:-- ~ --:--';
+    }
+  }
+
   Widget _buildActivityCard(BuildContext context, int index) {
     // ✅ Clean Architecture: Use ShiftCard Entity directly
     final card = shiftCards[index];
@@ -180,7 +194,7 @@ class AllAttendanceHistorySheet extends StatelessWidget {
     final isApproved = card.isApproved;
     final isReported = card.isReported;
     final shiftName = card.shiftName ?? 'Shift';
-    final shiftTime = card.shiftTime;
+    final shiftTime = _formatShiftTimeRange(card.shiftStartTime, card.shiftEndTime);
 
     // Check if this is first item or if month changed
     bool showMonthHeader = false;

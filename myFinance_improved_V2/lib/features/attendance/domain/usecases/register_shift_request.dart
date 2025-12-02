@@ -3,7 +3,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Register a new shift request
 ///
-/// Matches RPC: insert_shift_request_v5
+/// Matches RPC: insert_shift_request_v6
 class RegisterShiftRequest {
   final AttendanceRepository _repository;
 
@@ -15,7 +15,6 @@ class RegisterShiftRequest {
     required String storeId,
     required String startTime,
     required String endTime,
-    required String time,
     required String timezone,
   }) {
     return _repository.insertShiftRequest(
@@ -24,7 +23,6 @@ class RegisterShiftRequest {
       storeId: storeId,
       startTime: startTime,
       endTime: endTime,
-      time: time,
       timezone: timezone,
     );
   }

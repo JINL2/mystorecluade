@@ -16,7 +16,8 @@ class MonthlyShiftStatusModel {
   /// Convert to Entity
   MonthlyShiftStatus toEntity() => _entity;
 
-  /// Create from JSON (from RPC: get_monthly_shift_status_manager_v2)
+  /// Create from JSON (from RPC: get_monthly_shift_status_manager_v4)
+  /// Supports both v3 (request_date) and v4 (shift_date) field names
   factory MonthlyShiftStatusModel.fromJson(Map<String, dynamic> json) {
     // Parse shifts
     final shiftsJson = json['shifts'] as List? ?? [];
@@ -24,9 +25,12 @@ class MonthlyShiftStatusModel {
         .map((e) => _parseDailyShift(e as Map<String, dynamic>))
         .toList();
 
+    // v4 uses 'shift_date', v3 uses 'request_date'
+    final dateValue = json['shift_date'] ?? json['request_date'];
+
     return MonthlyShiftStatusModel(
       MonthlyShiftStatus(
-        requestDate: json['request_date'] as String? ?? '',
+        requestDate: dateValue as String? ?? '',
         totalPending: json['total_pending'] as int? ?? 0,
         totalApproved: json['total_approved'] as int? ?? 0,
         shifts: shifts,

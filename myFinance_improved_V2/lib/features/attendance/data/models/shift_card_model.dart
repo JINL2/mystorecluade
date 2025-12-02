@@ -9,7 +9,8 @@ class ShiftCardModel {
   final String requestDate;
   final String shiftRequestId;
   final String? shiftName;
-  final String shiftTime;
+  final String shiftStartTime; // e.g., "2025-06-01T14:00:00"
+  final String shiftEndTime; // e.g., "2025-06-01T18:00:00"
   final String storeName;
 
   // Schedule
@@ -55,7 +56,8 @@ class ShiftCardModel {
     required this.requestDate,
     required this.shiftRequestId,
     this.shiftName,
-    required this.shiftTime,
+    required this.shiftStartTime,
+    required this.shiftEndTime,
     required this.storeName,
     required this.scheduledHours,
     required this.isApproved,
@@ -88,7 +90,8 @@ class ShiftCardModel {
       requestDate: json['request_date'] as String,
       shiftRequestId: json['shift_request_id'] as String,
       shiftName: json['shift_name'] as String?,
-      shiftTime: json['shift_time'] as String,
+      shiftStartTime: json['shift_start_time'] as String,
+      shiftEndTime: json['shift_end_time'] as String,
       storeName: json['store_name'] as String,
       scheduledHours: (json['scheduled_hours'] as num).toDouble(),
       isApproved: json['is_approved'] as bool,
@@ -124,7 +127,8 @@ class ShiftCardModel {
       requestDate: requestDate,
       shiftRequestId: shiftRequestId,
       shiftName: shiftName,
-      shiftTime: shiftTime,
+      shiftStartTime: shiftStartTime,
+      shiftEndTime: shiftEndTime,
       storeName: storeName,
       scheduledHours: scheduledHours,
       isApproved: isApproved,
@@ -158,7 +162,8 @@ class ShiftCardModel {
       requestDate: entity.requestDate,
       shiftRequestId: entity.shiftRequestId,
       shiftName: entity.shiftName,
-      shiftTime: entity.shiftTime,
+      shiftStartTime: entity.shiftStartTime,
+      shiftEndTime: entity.shiftEndTime,
       storeName: entity.storeName,
       scheduledHours: entity.scheduledHours,
       isApproved: entity.isApproved,
@@ -192,7 +197,8 @@ class ShiftCardModel {
       'request_date': requestDate,
       'shift_request_id': shiftRequestId,
       'shift_name': shiftName,
-      'shift_time': shiftTime,
+      'shift_start_time': shiftStartTime,
+      'shift_end_time': shiftEndTime,
       'store_name': storeName,
       'scheduled_hours': scheduledHours,
       'is_approved': isApproved,

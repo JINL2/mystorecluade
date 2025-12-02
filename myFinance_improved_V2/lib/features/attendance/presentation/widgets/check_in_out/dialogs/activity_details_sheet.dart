@@ -44,9 +44,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
         : DateTime.now();
 
     final currencySymbol = salaryInfo?.currencySymbol ?? 'VND';
-    final rawShiftTime = shiftCard.shiftTime;
-    final requestDate = shiftCard.requestDate;
-    String shiftTime = FormatHelpers.formatShiftTime(rawShiftTime, requestDate: requestDate);
+    // Format shift time from shiftStartTime and shiftEndTime
+    String shiftTime = _formatShiftTimeRange(shiftCard.shiftStartTime, shiftCard.shiftEndTime);
 
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
@@ -534,6 +533,20 @@ class ActivityDetailsSheet extends ConsumerWidget {
     );
   }
 
+  /// Format shift time range from shiftStartTime and shiftEndTime
+  /// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
+  String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
+    try {
+      final startDateTime = DateTime.parse(shiftStartTime);
+      final endDateTime = DateTime.parse(shiftEndTime);
+      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+      return '$startStr ~ $endStr';
+    } catch (e) {
+      return '--:-- ~ --:--';
+    }
+  }
+
   /// Helper method to get work status from ShiftCard
   String _getWorkStatus() {
     if (shiftCard.confirmEndTime != null && shiftCard.confirmEndTime!.isNotEmpty) {
@@ -564,7 +577,8 @@ class ActivityDetailsSheet extends ConsumerWidget {
       'shift_request_id': shiftCard.shiftRequestId,
       'request_date': shiftCard.requestDate,
       'shift_name': shiftCard.shiftName,
-      'shift_time': shiftCard.shiftTime,
+      'shift_start_time': shiftCard.shiftStartTime,
+      'shift_end_time': shiftCard.shiftEndTime,
       'is_approved': shiftCard.isApproved,
       'is_reported': shiftCard.isReported,
       'is_problem_solved': shiftCard.isProblemSolved,

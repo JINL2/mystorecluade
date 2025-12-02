@@ -6,7 +6,7 @@ part 'card_input_result_dto.freezed.dart';
 
 /// Card Input Result DTO
 ///
-/// Maps to RPC: manager_shift_input_card
+/// Maps to RPC: manager_shift_input_card_v3
 ///
 /// Returns the result of comprehensive shift update operation including:
 /// - Confirmed start/end times
@@ -42,8 +42,8 @@ class CardInputResultDto with _$CardInputResultDto {
     /// Optional success/error message
     @JsonKey(name: 'message') String? message,
 
-    /// Request date for time conversion (YYYY-MM-DD)
-    @JsonKey(name: 'request_date') @Default('') String requestDate,
+    /// Shift date based on start_time_utc (YYYY-MM-DD) - actual work date
+    @JsonKey(name: 'shift_date') @Default('') String shiftDate,
   }) = _CardInputResultDto;
 
   /// Custom fromJson to handle RPC's flat structure
@@ -58,7 +58,7 @@ class CardInputResultDto with _$CardInputResultDto {
     final isLate = json['is_late'] as bool? ?? false;
     final isProblemSolved = json['is_problem_solved'] as bool? ?? false;
     final message = json['message'] as String?;
-    final requestDate = json['request_date'] as String? ?? '';
+    final shiftDate = json['shift_date'] as String? ?? '';
 
     // Parse new tag if present
     final TagDto? newTag = json['new_tag'] != null
@@ -78,7 +78,7 @@ class CardInputResultDto with _$CardInputResultDto {
       newTag: newTag,
       shiftData: shiftData,
       message: message,
-      requestDate: requestDate,
+      shiftDate: shiftDate,
     );
   }
 }

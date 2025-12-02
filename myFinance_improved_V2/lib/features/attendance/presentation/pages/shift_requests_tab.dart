@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../attendance/domain/entities/monthly_shift_status.dart';
@@ -37,6 +38,9 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   List<ShiftMetadata>? shiftMetadata;
   bool isLoadingMetadata = false;
   List<MonthlyShiftStatus>? monthlyShiftStatus;
+
+  /// Track which shift is currently processing (loading)
+  String? _loadingShiftId;
 
   late ShiftRequestsController _controller;
 
@@ -117,12 +121,40 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   }
 
   void _updateMonthlyShiftStatus(List<MonthlyShiftStatus> status) {
-    print('🔶 [_updateMonthlyShiftStatus] CALLED - status count: ${status.length}');
     setState(() {
       monthlyShiftStatus = status;
-      print('🔶 [_updateMonthlyShiftStatus] setState() executed');
     });
-    print('✅ [_updateMonthlyShiftStatus] COMPLETE');
+  }
+
+  /// Wrap action with loading state management
+  Future<void> _executeWithLoading(String shiftId, Future<void> Function() action) async {
+    if (_loadingShiftId != null) return;
+
+    setState(() {
+      _loadingShiftId = shiftId;
+    });
+
+    try {
+      await action();
+    } catch (e) {
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: e.toString().replaceAll('Exception: ', ''),
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingShiftId = null;
+        });
+      }
+    }
   }
 
   @override
@@ -245,6 +277,8 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                             .map((e) => (e.profileImage?.isNotEmpty ?? false) ? e.profileImage! : '')
                             .toList();
 
+                        final isLoading = _loadingShiftId == shift.shiftId;
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: ShiftSignupCard(
@@ -257,17 +291,18 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                             appliedCount: appliedCount,
                             userApplied: userApplied,
                             assignedUserAvatars: assignedAvatars.isNotEmpty ? assignedAvatars : null,
+                            isLoading: isLoading,
                             onApply: status == ShiftSignupStatus.available
-                                ? () => actions.handleApply(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleApply(shift))
                                 : null,
                             onWaitlist: status == ShiftSignupStatus.waitlist
-                                ? () => actions.handleWaitlist(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleWaitlist(shift))
                                 : null,
                             onLeaveWaitlist: status == ShiftSignupStatus.onWaitlist
-                                ? () => actions.handleLeaveWaitlist(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleLeaveWaitlist(shift))
                                 : null,
                             onWithdraw: status == ShiftSignupStatus.applied
-                                ? () => actions.handleWithdraw(shift)
+                                ? () => _executeWithLoading(shift.shiftId, () => actions.handleWithdraw(shift))
                                 : null,
                             onTap: () => actions.handleShiftTap(shift),
                             onViewAppliedUsers: (status == ShiftSignupStatus.assigned || appliedCount > 0 || userApplied)

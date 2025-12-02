@@ -6,6 +6,7 @@ import 'tag.dart';
 ///
 /// Represents a comprehensive view of a shift assignment with all relevant
 /// information including employee, shift details, approval status, and tags.
+/// v3: Uses shiftDate (actual work date from start_time_utc) instead of requestDate
 class ShiftCard {
   /// The shift request ID
   final String shiftRequestId;
@@ -16,8 +17,9 @@ class ShiftCard {
   /// Shift information
   final Shift shift;
 
-  /// The date of the shift request (yyyy-MM-dd format)
-  final String requestDate;
+  /// The actual work date (yyyy-MM-dd format, from start_time_utc)
+  /// v3: Renamed from requestDate to shiftDate
+  final String shiftDate;
 
   /// Whether the shift is approved
   final bool isApproved;
@@ -101,7 +103,7 @@ class ShiftCard {
     required this.shiftRequestId,
     required this.employee,
     required this.shift,
-    required this.requestDate,
+    required this.shiftDate,
     required this.isApproved,
     required this.hasProblem,
     this.isProblemSolved = false,
@@ -194,7 +196,7 @@ class ShiftCard {
     String? shiftRequestId,
     EmployeeInfo? employee,
     Shift? shift,
-    String? requestDate,
+    String? shiftDate,
     bool? isApproved,
     bool? hasProblem,
     bool? isProblemSolved,
@@ -222,7 +224,7 @@ class ShiftCard {
       shiftRequestId: shiftRequestId ?? this.shiftRequestId,
       employee: employee ?? this.employee,
       shift: shift ?? this.shift,
-      requestDate: requestDate ?? this.requestDate,
+      shiftDate: shiftDate ?? this.shiftDate,
       isApproved: isApproved ?? this.isApproved,
       hasProblem: hasProblem ?? this.hasProblem,
       isProblemSolved: isProblemSolved ?? this.isProblemSolved,
@@ -250,6 +252,6 @@ class ShiftCard {
 
   @override
   String toString() {
-    return 'ShiftCard(id: $shiftRequestId, employee: ${employee.userName}, date: $requestDate, approved: $isApproved)';
+    return 'ShiftCard(id: $shiftRequestId, employee: ${employee.userName}, date: $shiftDate, approved: $isApproved)';
   }
 }

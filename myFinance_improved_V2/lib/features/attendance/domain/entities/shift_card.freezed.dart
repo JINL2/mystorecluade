@@ -21,7 +21,10 @@ mixin _$ShiftCard {
   String get shiftRequestId => throw _privateConstructorUsedError;
   String? get shiftName =>
       throw _privateConstructorUsedError; // e.g., "Afternoon", "Morning"
-  String get shiftTime => throw _privateConstructorUsedError;
+  String get shiftStartTime =>
+      throw _privateConstructorUsedError; // e.g., "2025-06-01T14:00:00"
+  String get shiftEndTime =>
+      throw _privateConstructorUsedError; // e.g., "2025-06-01T18:00:00"
   String get storeName => throw _privateConstructorUsedError; // Schedule
   double get scheduledHours => throw _privateConstructorUsedError;
   bool get isApproved =>
@@ -69,7 +72,8 @@ abstract class $ShiftCardCopyWith<$Res> {
       {String requestDate,
       String shiftRequestId,
       String? shiftName,
-      String shiftTime,
+      String shiftStartTime,
+      String shiftEndTime,
       String storeName,
       double scheduledHours,
       bool isApproved,
@@ -114,7 +118,8 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
     Object? requestDate = null,
     Object? shiftRequestId = null,
     Object? shiftName = freezed,
-    Object? shiftTime = null,
+    Object? shiftStartTime = null,
+    Object? shiftEndTime = null,
     Object? storeName = null,
     Object? scheduledHours = null,
     Object? isApproved = null,
@@ -153,9 +158,13 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
           ? _value.shiftName
           : shiftName // ignore: cast_nullable_to_non_nullable
               as String?,
-      shiftTime: null == shiftTime
-          ? _value.shiftTime
-          : shiftTime // ignore: cast_nullable_to_non_nullable
+      shiftStartTime: null == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      shiftEndTime: null == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
               as String,
       storeName: null == storeName
           ? _value.storeName
@@ -269,7 +278,8 @@ abstract class _$$ShiftCardImplCopyWith<$Res>
       {String requestDate,
       String shiftRequestId,
       String? shiftName,
-      String shiftTime,
+      String shiftStartTime,
+      String shiftEndTime,
       String storeName,
       double scheduledHours,
       bool isApproved,
@@ -312,7 +322,8 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
     Object? requestDate = null,
     Object? shiftRequestId = null,
     Object? shiftName = freezed,
-    Object? shiftTime = null,
+    Object? shiftStartTime = null,
+    Object? shiftEndTime = null,
     Object? storeName = null,
     Object? scheduledHours = null,
     Object? isApproved = null,
@@ -351,9 +362,13 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
           ? _value.shiftName
           : shiftName // ignore: cast_nullable_to_non_nullable
               as String?,
-      shiftTime: null == shiftTime
-          ? _value.shiftTime
-          : shiftTime // ignore: cast_nullable_to_non_nullable
+      shiftStartTime: null == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      shiftEndTime: null == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
               as String,
       storeName: null == storeName
           ? _value.storeName
@@ -462,7 +477,8 @@ class _$ShiftCardImpl extends _ShiftCard {
       {required this.requestDate,
       required this.shiftRequestId,
       this.shiftName,
-      required this.shiftTime,
+      required this.shiftStartTime,
+      required this.shiftEndTime,
       required this.storeName,
       required this.scheduledHours,
       required this.isApproved,
@@ -498,7 +514,11 @@ class _$ShiftCardImpl extends _ShiftCard {
   final String? shiftName;
 // e.g., "Afternoon", "Morning"
   @override
-  final String shiftTime;
+  final String shiftStartTime;
+// e.g., "2025-06-01T14:00:00"
+  @override
+  final String shiftEndTime;
+// e.g., "2025-06-01T18:00:00"
   @override
   final String storeName;
 // Schedule
@@ -558,7 +578,7 @@ class _$ShiftCardImpl extends _ShiftCard {
 
   @override
   String toString() {
-    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftName: $shiftName, shiftTime: $shiftTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, isLate: $isLate, lateMinutes: $lateMinutes, lateDeducutAmount: $lateDeducutAmount, isExtratime: $isExtratime, overtimeMinutes: $overtimeMinutes, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, isReported: $isReported, isProblem: $isProblem, isProblemSolved: $isProblemSolved)';
+    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftName: $shiftName, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, isLate: $isLate, lateMinutes: $lateMinutes, lateDeducutAmount: $lateDeducutAmount, isExtratime: $isExtratime, overtimeMinutes: $overtimeMinutes, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, isReported: $isReported, isProblem: $isProblem, isProblemSolved: $isProblemSolved)';
   }
 
   @override
@@ -572,8 +592,10 @@ class _$ShiftCardImpl extends _ShiftCard {
                 other.shiftRequestId == shiftRequestId) &&
             (identical(other.shiftName, shiftName) ||
                 other.shiftName == shiftName) &&
-            (identical(other.shiftTime, shiftTime) ||
-                other.shiftTime == shiftTime) &&
+            (identical(other.shiftStartTime, shiftStartTime) ||
+                other.shiftStartTime == shiftStartTime) &&
+            (identical(other.shiftEndTime, shiftEndTime) ||
+                other.shiftEndTime == shiftEndTime) &&
             (identical(other.storeName, storeName) ||
                 other.storeName == storeName) &&
             (identical(other.scheduledHours, scheduledHours) ||
@@ -630,7 +652,8 @@ class _$ShiftCardImpl extends _ShiftCard {
         requestDate,
         shiftRequestId,
         shiftName,
-        shiftTime,
+        shiftStartTime,
+        shiftEndTime,
         storeName,
         scheduledHours,
         isApproved,
@@ -671,7 +694,8 @@ abstract class _ShiftCard extends ShiftCard {
       {required final String requestDate,
       required final String shiftRequestId,
       final String? shiftName,
-      required final String shiftTime,
+      required final String shiftStartTime,
+      required final String shiftEndTime,
       required final String storeName,
       required final double scheduledHours,
       required final bool isApproved,
@@ -706,7 +730,9 @@ abstract class _ShiftCard extends ShiftCard {
   @override
   String? get shiftName; // e.g., "Afternoon", "Morning"
   @override
-  String get shiftTime;
+  String get shiftStartTime; // e.g., "2025-06-01T14:00:00"
+  @override
+  String get shiftEndTime; // e.g., "2025-06-01T18:00:00"
   @override
   String get storeName; // Schedule
   @override

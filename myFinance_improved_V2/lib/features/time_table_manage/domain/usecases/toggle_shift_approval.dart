@@ -1,13 +1,12 @@
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
 
-/// Toggle Shift Approval UseCase (v2)
+/// Toggle Shift Approval UseCase (v3)
 ///
-/// Uses toggle_shift_approval_v2 RPC
-/// - Toggles approval status for one or more shift requests
+/// Uses toggle_shift_approval_v3 RPC
+/// - Toggles approval status for one or more shift requests (TRUE ↔ FALSE)
 /// - Updates approved_by and updated_at_utc
-/// - Updates start_time_utc and end_time_utc from store_shifts
-/// - Handles overnight shifts correctly
+/// - No longer recalculates start_time_utc/end_time_utc (already set by insert_shift_request_v6)
 class ToggleShiftApproval
     implements UseCase<void, ToggleShiftApprovalParams> {
   final TimeTableRepository _repository;

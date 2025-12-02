@@ -181,7 +181,8 @@ class AttendanceHelpers {
     return ShiftCard(
       requestDate: map['request_date']?.toString() ?? '',
       shiftRequestId: map['shift_request_id']?.toString() ?? '',
-      shiftTime: map['shift_time']?.toString() ?? '',
+      shiftStartTime: map['shift_start_time']?.toString() ?? '',
+      shiftEndTime: map['shift_end_time']?.toString() ?? '',
       storeName: map['store_name']?.toString() ?? '',
       scheduledHours: (map['scheduled_hours'] as num?)?.toDouble() ?? 0.0,
       isApproved: map['is_approved'] as bool? ?? false,
@@ -231,5 +232,135 @@ class AttendanceHelpers {
       );
     }
     return value.toString();
+  }
+
+  /// Find the shift_request_id of the shift closest to current time
+  ///
+  /// Compares current device time with shift start/end times to find
+  /// the shift that is closest (past or future).
+  ///
+  /// [shiftCards] - List of ShiftCard entities from user_shift_cards_v4
+  /// [now] - Current DateTime (optional, defaults to DateTime.now())
+  ///
+  /// Returns the shift_request_id of the closest shift, or null if no shifts found
+  ///
+  /// Logic:
+  /// 1. Check if current time is within any shift (start_time <= now <= end_time) → select that shift
+  /// 2. Find the closest past shift (end_time < now) → compare with end_time
+  /// 3. Find the closest future shift (start_time > now) → compare with start_time
+  /// 4. Date validation: shift's start_date OR end_date must match current device date
+  /// 5. Return the shift with minimum distance that passes date validation
+  ///
+  /// Date validation example:
+  /// - Shift: 12/2 20:00 ~ 12/3 01:00
+  /// - Device time: 12/3 01:03 → ✅ Valid (12/3 matches end date)
+  /// - Device time: 12/4 10:00 → ❌ Invalid (neither 12/2 nor 12/3)
+  static String? findClosestShiftRequestId(
+    List<ShiftCard> shiftCards, {
+    DateTime? now,
+  }) {
+    if (shiftCards.isEmpty) return null;
+
+    final currentTime = now ?? DateTime.now();
+    final currentDate = DateTime(currentTime.year, currentTime.month, currentTime.day);
+
+    // Track closest past shift (end_time < currentTime)
+    String? closestPastShiftId;
+    int closestPastDistance = 999999999;
+    bool pastShiftDateValid = false;
+
+    // Track closest future shift (start_time > currentTime)
+    String? closestFutureShiftId;
+    int closestFutureDistance = 999999999;
+    bool futureShiftDateValid = false;
+
+    for (final card in shiftCards) {
+      // Skip if not approved
+      if (!card.isApproved) continue;
+
+      try {
+        // Parse shift start time from shiftStartTime
+        // Format: "2025-06-01T14:00:00"
+        final startDateTime = _parseShiftDateTime(card.shiftStartTime);
+        if (startDateTime == null) continue;
+
+        // Parse shift end time from shiftEndTime
+        // Format: "2025-06-01T18:00:00"
+        final endDateTime = _parseShiftDateTime(card.shiftEndTime);
+        if (endDateTime == null) continue;
+
+        // Extract dates (without time) for comparison
+        final startDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+        final endDate = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
+
+        // Check date validation
+        final isDateValid = (currentDate == startDate || currentDate == endDate);
+
+        // Case 1: Current time is within shift (start <= now <= end)
+        // This is rare (early checkout scenario) but should be prioritized
+        if (!currentTime.isBefore(startDateTime) && !currentTime.isAfter(endDateTime)) {
+          if (isDateValid) {
+            return card.shiftRequestId; // Immediately return - highest priority
+          }
+        }
+
+        // Case 2: Past shift (end_time < currentTime)
+        if (endDateTime.isBefore(currentTime)) {
+          final distance = currentTime.difference(endDateTime).inMinutes.abs();
+          if (distance < closestPastDistance) {
+            closestPastDistance = distance;
+            closestPastShiftId = card.shiftRequestId;
+            pastShiftDateValid = isDateValid;
+          }
+        }
+
+        // Case 3: Future shift (start_time > currentTime)
+        if (startDateTime.isAfter(currentTime)) {
+          final distance = startDateTime.difference(currentTime).inMinutes.abs();
+          if (distance < closestFutureDistance) {
+            closestFutureDistance = distance;
+            closestFutureShiftId = card.shiftRequestId;
+            futureShiftDateValid = isDateValid;
+          }
+        }
+      } catch (e) {
+        // Skip this card if parsing fails
+        continue;
+      }
+    }
+
+    // Compare closest past and future shifts (only if date is valid)
+    // Return the one with smaller distance
+    if (pastShiftDateValid && futureShiftDateValid) {
+      // Both are valid, compare distances
+      return closestPastDistance <= closestFutureDistance
+          ? closestPastShiftId
+          : closestFutureShiftId;
+    } else if (pastShiftDateValid) {
+      return closestPastShiftId;
+    } else if (futureShiftDateValid) {
+      return closestFutureShiftId;
+    }
+
+    // No valid shift found (date doesn't match)
+    return null;
+  }
+
+  /// Parse shift datetime from datetime string
+  /// Handles formats like "2025-06-01T14:00:00" or "2025-06-01 14:00:00"
+  static DateTime? _parseShiftDateTime(String dateTimeStr) {
+    try {
+      // Handle ISO format with 'T'
+      if (dateTimeStr.contains('T')) {
+        return DateTime.parse(dateTimeStr);
+      }
+      // Handle space-separated format
+      if (dateTimeStr.contains(' ')) {
+        return DateTime.parse(dateTimeStr.replaceFirst(' ', 'T'));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 }

@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/exceptions/attendance_exceptions.dart';
 
@@ -64,14 +63,15 @@ class AttendanceDatasource {
 
   /// Update shift request (check-in or check-out) via QR scan
   ///
-  /// Uses update_shift_requests_v6 RPC with local time + timezone offset
-  /// - p_request_date parameter removed (date extracted from p_time in RPC)
-  /// - p_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  /// Uses update_shift_requests_v7 RPC with shift_request_id
+  /// - p_shift_request_id: Target shift request UUID (required)
+  /// - p_time: Local timestamp without timezone offset (e.g., "2024-11-15 10:30:25")
+  /// - p_timezone: User's local timezone (e.g., "Asia/Ho_Chi_Minh")
   ///
-  /// RPC returns: {'status': 'check_in'|'check_out'|'attend', 'time': '...'}
+  /// RPC returns: {'status': 'attend'|'check_out'|'error', 'message': '...'}
   /// Maps to: {'action': 'check_in'|'check_out', 'timestamp': '...', ...}
   Future<Map<String, dynamic>?> updateShiftRequest({
+    required String shiftRequestId,
     required String userId,
     required String storeId,
     required String timestamp,
@@ -79,10 +79,10 @@ class AttendanceDatasource {
     required String timezone,
   }) async {
     try {
-      // Call the RPC function
       final response = await _supabase.rpc<dynamic>(
-        'update_shift_requests_v6',
+        'update_shift_requests_v7',
         params: {
+          'p_shift_request_id': shiftRequestId,
           'p_user_id': userId,
           'p_store_id': storeId,
           'p_time': timestamp,
@@ -92,54 +92,57 @@ class AttendanceDatasource {
         },
       );
 
-      // If response is null, the RPC call itself failed
       if (response == null) {
         throw const AttendanceServerException(
             'RPC call failed - please check database function exists',
         );
       }
 
-      // Parse different possible response formats
+      // Parse response
       Map<String, dynamic> rawResult = {};
 
       if (response is List) {
         if (response.isEmpty) {
-          rawResult = {'status': 'check_in', 'time': timestamp};
+          throw const AttendanceServerException('RPC returned empty response');
+        }
+        final firstItem = response.first;
+        if (firstItem is Map<String, dynamic>) {
+          rawResult = firstItem;
         } else {
-          // Take first item from list
-          final firstItem = response.first;
-          if (firstItem is Map<String, dynamic>) {
-            rawResult = firstItem;
-          } else {
-            rawResult = {'status': 'check_in', 'time': timestamp};
-          }
+          throw const AttendanceServerException('Invalid RPC response format');
         }
       } else if (response is Map<String, dynamic>) {
         rawResult = response;
-      } else if (response is bool) {
-        // If RPC returns boolean, create appropriate response
-        rawResult = {
-          'status': 'check_in',
-          'time': timestamp,
-        };
       } else {
-        rawResult = {'status': 'check_in', 'time': timestamp};
+        throw const AttendanceServerException('Invalid RPC response format');
+      }
+
+      // Check for error response from v7 RPC
+      final status = rawResult['status'] as String?;
+      if (status == 'error') {
+        final message = rawResult['message'] as String? ?? 'Unknown error';
+        throw AttendanceServerException(message);
       }
 
       // Map RPC response fields to expected model fields
-      // RPC returns: {'status': 'attend'|'check_out', 'time': '...'}
+      // v7 RPC returns: {'status': 'attend'|'check_out', 'message': '...', 'chain_length': ...}
       // - 'attend' = check-in (출근)
       // - 'check_out' = check-out (퇴근)
-      // Model expects: {'action': 'check_in'|'check_out', 'timestamp': '...', 'request_date': '...', ...}
-      final status = rawResult['status'] ?? 'attend';
       final mappedResult = <String, dynamic>{
         // Map 'attend' to 'check_in' for consistency
         'action': status == 'attend' ? 'check_in' : status,
-        'timestamp': rawResult['time'] ?? timestamp,
+        'timestamp': timestamp,
         'success': true,
+        'message': rawResult['message'],
+        'shift_request_id': shiftRequestId,
         // Extract date from timestamp for request_date field
-        'request_date': _extractDateFromTimestamp((rawResult['time'] ?? timestamp) as String),
+        'request_date': _extractDateFromTimestamp(timestamp),
       };
+
+      // Include chain_length if present (for continuous shift checkout)
+      if (rawResult.containsKey('chain_length')) {
+        mappedResult['chain_length'] = rawResult['chain_length'];
+      }
 
       return mappedResult;
     } catch (e) {
@@ -166,9 +169,10 @@ class AttendanceDatasource {
 
   /// Fetch user shift cards for the month
   ///
-  /// Uses user_shift_cards_v3 RPC with local time + timezone offset
-  /// - p_request_time must be local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+07:00")
-  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  /// Uses user_shift_cards_v4 RPC with local time + timezone
+  /// - p_request_time: Local timestamp (e.g., "2025-12-15 10:00:00") - no timezone offset
+  /// - p_timezone: User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  /// - Returns shift cards filtered by start_time_utc (actual shift date)
   Future<List<Map<String, dynamic>>> getUserShiftCards({
     required String requestTime,
     required String userId,
@@ -178,7 +182,7 @@ class AttendanceDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_cards_v3',
+        'user_shift_cards_v4',
         params: {
           'p_request_time': requestTime,
           'p_user_id': userId,
@@ -192,23 +196,30 @@ class AttendanceDatasource {
         return [];
       }
 
-      // Convert UTC times to local time and return as list
+      // Check for error response
+      if (response is Map<String, dynamic> && response['error'] == true) {
+        final errorCode = response['error_code'] ?? 'UNKNOWN';
+        final errorMessage = response['error_message'] ?? 'Unknown error';
+        throw AttendanceServerException('$errorCode: $errorMessage');
+      }
+
+      // v4 returns shift_date instead of request_date
+      // Map shift_date to request_date for backward compatibility with existing code
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
+
         return results.map((item) {
           final converted = _processNestedData(item);
 
-          // Convert request_time (UTC) to request_date (local date only)
-          if (converted.containsKey('request_time')) {
-            try {
-              final utcString = converted['request_time']?.toString() ?? '';
-              if (utcString.isNotEmpty) {
-                final localDateTime = DateTimeUtils.toLocal(utcString);
-                converted['request_date'] = DateTimeUtils.toDateOnly(localDateTime);
-              }
-            } catch (_) {
-              // If conversion fails, use request_time as-is
-              converted['request_date'] = converted['request_time'];
+          // Map shift_date to request_date for backward compatibility
+          if (converted.containsKey('shift_date')) {
+            final shiftDate = converted['shift_date']?.toString() ?? '';
+            // shift_date format: "2025-12-06T09:00:00" (local time)
+            // Extract date part for request_date
+            if (shiftDate.contains('T')) {
+              converted['request_date'] = shiftDate.split('T').first;
+            } else {
+              converted['request_date'] = shiftDate;
             }
           }
 
@@ -263,7 +274,7 @@ class AttendanceDatasource {
 
   /// Get shift metadata for a store
   ///
-  /// Uses get_shift_metadata_v2 RPC with timezone parameter
+  /// Uses get_shift_metadata_v2_utc RPC with timezone parameter
   /// - Returns shift times converted to user's local timezone
   Future<List<Map<String, dynamic>>> getShiftMetadata({
     required String storeId,
@@ -271,7 +282,7 @@ class AttendanceDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_shift_metadata_v2',
+        'get_shift_metadata_v2_utc',
         params: {
           'p_store_id': storeId,
           'p_timezone': timezone,
@@ -297,10 +308,11 @@ class AttendanceDatasource {
 
   /// Get monthly shift status for manager view
   ///
-  /// Uses get_monthly_shift_status_manager_v3 RPC with local time + timezone
+  /// Uses get_monthly_shift_status_manager_v4 RPC with local time + timezone
   /// - p_request_time: Local time (e.g., "2024-11-15 10:30:25") - RPC calculates month range from this
   /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
   /// - Returns 3 months of data starting from the month of p_request_time
+  /// - Filters by start_time_utc (actual shift date) instead of request_date
   Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
@@ -309,7 +321,7 @@ class AttendanceDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager_v3',
+        'get_monthly_shift_status_manager_v4',
         params: {
           'p_store_id': storeId,
           'p_request_time': requestTime,
@@ -334,30 +346,28 @@ class AttendanceDatasource {
 
   /// Insert shift request
   ///
-  /// Uses insert_shift_request_v5 RPC with local time + timezone
-  /// - p_start_time: Shift start time as local timestamp (e.g., "2024-12-01T09:00:00+07:00")
-  /// - p_end_time: Shift end time as local timestamp (e.g., "2024-12-01T17:00:00+07:00")
-  /// - p_time: Current local timestamp with timezone offset (e.g., "2024-12-01T09:07:00+07:00")
+  /// Uses insert_shift_request_v6 RPC with local time + timezone
+  /// - p_start_time: Shift start time as local timestamp (e.g., "2025-12-06 09:00:00")
+  /// - p_end_time: Shift end time as local timestamp (e.g., "2025-12-06 18:00:00")
   /// - p_timezone: User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// NOTE: All timestamps must be WITHOUT timezone offset
   Future<Map<String, dynamic>?> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,
     required String startTime,
     required String endTime,
-    required String time,
     required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'insert_shift_request_v5',
+        'insert_shift_request_v6',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
           'p_store_id': storeId,
           'p_start_time': startTime,
           'p_end_time': endTime,
-          'p_time': time,
           'p_timezone': timezone,
         },
       );
@@ -473,23 +483,26 @@ class AttendanceDatasource {
 
   /// Delete shift request
   ///
-  /// Uses delete_shift_request_v2 RPC function
-  /// - p_request_time: Local timestamp with timezone offset (e.g., "2024-11-15T10:30:25+09:00")
-  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul")
-  /// - RPC extracts UTC date from request_time for matching
+  /// Uses delete_shift_request_v3 RPC function
+  /// - p_start_time: Shift start time as local timestamp (e.g., "2025-12-06 09:00:00")
+  /// - p_end_time: Shift end time as local timestamp (e.g., "2025-12-06 18:00:00")
+  /// - p_timezone: User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
+  /// NOTE: All timestamps must be WITHOUT timezone offset
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
     required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'delete_shift_request_v2',
+        'delete_shift_request_v3',
         params: {
           'p_user_id': userId,
           'p_shift_id': shiftId,
-          'p_request_time': requestTime,
+          'p_start_time': startTime,
+          'p_end_time': endTime,
           'p_timezone': timezone,
         },
       );

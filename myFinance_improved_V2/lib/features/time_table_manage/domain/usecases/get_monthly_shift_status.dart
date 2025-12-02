@@ -5,7 +5,7 @@ import 'base_usecase.dart';
 /// Get Monthly Shift Status UseCase
 ///
 /// Retrieves monthly shift status for manager view.
-/// Matches RPC: get_monthly_shift_status_manager_v2
+/// Matches RPC: get_monthly_shift_status_manager_v4
 class GetMonthlyShiftStatus
     implements UseCase<List<MonthlyShiftStatus>, GetMonthlyShiftStatusParams> {
   final TimeTableRepository _repository;

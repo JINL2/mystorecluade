@@ -49,9 +49,9 @@ mixin _$CardInputResultDto {
   @JsonKey(name: 'message')
   String? get message => throw _privateConstructorUsedError;
 
-  /// Request date for time conversion (YYYY-MM-DD)
-  @JsonKey(name: 'request_date')
-  String get requestDate => throw _privateConstructorUsedError;
+  /// Shift date based on start_time_utc (YYYY-MM-DD) - actual work date
+  @JsonKey(name: 'shift_date')
+  String get shiftDate => throw _privateConstructorUsedError;
 
   /// Create a copy of CardInputResultDto
   /// with the given fields replaced by the non-null parameter values.
@@ -75,7 +75,7 @@ abstract class $CardInputResultDtoCopyWith<$Res> {
       @JsonKey(name: 'new_tag') TagDto? newTag,
       @JsonKey(name: 'shift_data') ShiftCardDto? shiftData,
       @JsonKey(name: 'message') String? message,
-      @JsonKey(name: 'request_date') String requestDate});
+      @JsonKey(name: 'shift_date') String shiftDate});
 
   $TagDtoCopyWith<$Res>? get newTag;
   $ShiftCardDtoCopyWith<$Res>? get shiftData;
@@ -104,7 +104,7 @@ class _$CardInputResultDtoCopyWithImpl<$Res, $Val extends CardInputResultDto>
     Object? newTag = freezed,
     Object? shiftData = freezed,
     Object? message = freezed,
-    Object? requestDate = null,
+    Object? shiftDate = null,
   }) {
     return _then(_value.copyWith(
       shiftRequestId: null == shiftRequestId
@@ -139,9 +139,9 @@ class _$CardInputResultDtoCopyWithImpl<$Res, $Val extends CardInputResultDto>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String?,
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -192,7 +192,7 @@ abstract class _$$CardInputResultDtoImplCopyWith<$Res>
       @JsonKey(name: 'new_tag') TagDto? newTag,
       @JsonKey(name: 'shift_data') ShiftCardDto? shiftData,
       @JsonKey(name: 'message') String? message,
-      @JsonKey(name: 'request_date') String requestDate});
+      @JsonKey(name: 'shift_date') String shiftDate});
 
   @override
   $TagDtoCopyWith<$Res>? get newTag;
@@ -221,7 +221,7 @@ class __$$CardInputResultDtoImplCopyWithImpl<$Res>
     Object? newTag = freezed,
     Object? shiftData = freezed,
     Object? message = freezed,
-    Object? requestDate = null,
+    Object? shiftDate = null,
   }) {
     return _then(_$CardInputResultDtoImpl(
       shiftRequestId: null == shiftRequestId
@@ -256,9 +256,9 @@ class __$$CardInputResultDtoImplCopyWithImpl<$Res>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String?,
-      requestDate: null == requestDate
-          ? _value.requestDate
-          : requestDate // ignore: cast_nullable_to_non_nullable
+      shiftDate: null == shiftDate
+          ? _value.shiftDate
+          : shiftDate // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -276,7 +276,7 @@ class _$CardInputResultDtoImpl implements _CardInputResultDto {
       @JsonKey(name: 'new_tag') this.newTag,
       @JsonKey(name: 'shift_data') this.shiftData,
       @JsonKey(name: 'message') this.message,
-      @JsonKey(name: 'request_date') this.requestDate = ''});
+      @JsonKey(name: 'shift_date') this.shiftDate = ''});
 
   /// Shift request ID that was updated
   @override
@@ -319,14 +319,14 @@ class _$CardInputResultDtoImpl implements _CardInputResultDto {
   @JsonKey(name: 'message')
   final String? message;
 
-  /// Request date for time conversion (YYYY-MM-DD)
+  /// Shift date based on start_time_utc (YYYY-MM-DD) - actual work date
   @override
-  @JsonKey(name: 'request_date')
-  final String requestDate;
+  @JsonKey(name: 'shift_date')
+  final String shiftDate;
 
   @override
   String toString() {
-    return 'CardInputResultDto(shiftRequestId: $shiftRequestId, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, isLate: $isLate, isProblemSolved: $isProblemSolved, newTag: $newTag, shiftData: $shiftData, message: $message, requestDate: $requestDate)';
+    return 'CardInputResultDto(shiftRequestId: $shiftRequestId, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, isLate: $isLate, isProblemSolved: $isProblemSolved, newTag: $newTag, shiftData: $shiftData, message: $message, shiftDate: $shiftDate)';
   }
 
   @override
@@ -347,8 +347,8 @@ class _$CardInputResultDtoImpl implements _CardInputResultDto {
             (identical(other.shiftData, shiftData) ||
                 other.shiftData == shiftData) &&
             (identical(other.message, message) || other.message == message) &&
-            (identical(other.requestDate, requestDate) ||
-                other.requestDate == requestDate));
+            (identical(other.shiftDate, shiftDate) ||
+                other.shiftDate == shiftDate));
   }
 
   @override
@@ -362,7 +362,7 @@ class _$CardInputResultDtoImpl implements _CardInputResultDto {
       newTag,
       shiftData,
       message,
-      requestDate);
+      shiftDate);
 
   /// Create a copy of CardInputResultDto
   /// with the given fields replaced by the non-null parameter values.
@@ -384,7 +384,7 @@ abstract class _CardInputResultDto implements CardInputResultDto {
           @JsonKey(name: 'new_tag') final TagDto? newTag,
           @JsonKey(name: 'shift_data') final ShiftCardDto? shiftData,
           @JsonKey(name: 'message') final String? message,
-          @JsonKey(name: 'request_date') final String requestDate}) =
+          @JsonKey(name: 'shift_date') final String shiftDate}) =
       _$CardInputResultDtoImpl;
 
   /// Shift request ID that was updated
@@ -428,10 +428,10 @@ abstract class _CardInputResultDto implements CardInputResultDto {
   @JsonKey(name: 'message')
   String? get message;
 
-  /// Request date for time conversion (YYYY-MM-DD)
+  /// Shift date based on start_time_utc (YYYY-MM-DD) - actual work date
   @override
-  @JsonKey(name: 'request_date')
-  String get requestDate;
+  @JsonKey(name: 'shift_date')
+  String get shiftDate;
 
   /// Create a copy of CardInputResultDto
   /// with the given fields replaced by the non-null parameter values.

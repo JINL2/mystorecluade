@@ -3,7 +3,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Get shift metadata for a store
 ///
-/// Matches RPC: get_shift_metadata_v2
+/// Matches RPC: get_shift_metadata_v2_utc
 class GetShiftMetadata {
   final AttendanceRepository _repository;
 

@@ -42,6 +42,7 @@ class ShiftSignupCard extends StatelessWidget {
   final VoidCallback? onWithdraw;
   final VoidCallback? onTap; // Tap entire card
   final VoidCallback? onViewAppliedUsers; // Tap avatar stack to view applied users
+  final bool isLoading; // Loading state to show spinner and disable button
 
   const ShiftSignupCard({
     super.key,
@@ -60,6 +61,7 @@ class ShiftSignupCard extends StatelessWidget {
     this.onWithdraw,
     this.onTap,
     this.onViewAppliedUsers,
+    this.isLoading = false,
   });
 
   @override
@@ -182,42 +184,39 @@ class ShiftSignupCard extends StatelessWidget {
         // Blue filled button: "+ Apply"
         return TossButton1.primary(
           text: 'Apply',
-          onPressed: onApply,
-          leadingIcon: const Icon(Icons.add, size: 16),
+          onPressed: isLoading ? null : onApply,
+          isLoading: isLoading,
+          leadingIcon: isLoading ? null : const Icon(Icons.add, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
         );
 
       case ShiftSignupStatus.applied:
         // Blue outline button: "- Withdraw"
-        // TossButton1 automatically adjusts padding for inset border effect
         return TossButton1.outlined(
           text: 'Withdraw',
-          onPressed: onWithdraw,
-          leadingIcon: const Icon(Icons.remove, size: 16),
+          onPressed: isLoading ? null : onWithdraw,
+          isLoading: isLoading,
+          leadingIcon: isLoading ? null : const Icon(Icons.remove, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
         );
 
       case ShiftSignupStatus.waitlist:
         // Gray filled button: "+ Waitlist"
         return TossButton1.secondary(
           text: 'Waitlist',
-          onPressed: onWaitlist,
-          leadingIcon: const Icon(Icons.add, size: 16),
+          onPressed: isLoading ? null : onWaitlist,
+          isLoading: isLoading,
+          leadingIcon: isLoading ? null : const Icon(Icons.add, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          // fontSize removed - uses default 14px from TossTextStyles.body
-          // fontWeight removed - uses default w600 from TossButton1
         );
 
       case ShiftSignupStatus.onWaitlist:
-        // Gray filled button: "- Leave" (same appearance as Assigned)
+        // Gray filled button: "- Leave"
         return TossButton1.secondary(
           text: 'Leave',
-          onPressed: onLeaveWaitlist,
-          leadingIcon: const Icon(Icons.remove, size: 16),
+          onPressed: isLoading ? null : onLeaveWaitlist,
+          isLoading: isLoading,
+          leadingIcon: isLoading ? null : const Icon(Icons.remove, size: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fontSize: 14,
         );
@@ -229,7 +228,6 @@ class ShiftSignupCard extends StatelessWidget {
           onPressed: null, // Disabled - non-interactive badge
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fontSize: 14,
-          // TossButton1 automatically handles disabled state styling
         );
     }
   }

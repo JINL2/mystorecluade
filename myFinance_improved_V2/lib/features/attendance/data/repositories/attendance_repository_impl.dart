@@ -27,6 +27,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   @override
   Future<CheckInResult> updateShiftRequest({
+    required String shiftRequestId,
     required String userId,
     required String storeId,
     required String timestamp,
@@ -34,6 +35,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String timezone,
   }) async {
     final json = await _datasource.updateShiftRequest(
+      shiftRequestId: shiftRequestId,
       userId: userId,
       storeId: storeId,
       timestamp: timestamp,
@@ -118,7 +120,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String storeId,
     required String startTime,
     required String endTime,
-    required String time,
     required String timezone,
   }) async {
     final json = await _datasource.insertShiftRequest(
@@ -127,7 +128,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       storeId: storeId,
       startTime: startTime,
       endTime: endTime,
-      time: time,
       timezone: timezone,
     );
     return json != null ? ShiftRequestModel.fromJson(json).toEntity() : null;
@@ -137,13 +137,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<void> deleteShiftRequest({
     required String userId,
     required String shiftId,
-    required String requestTime,
+    required String startTime,
+    required String endTime,
     required String timezone,
   }) async {
     return await _datasource.deleteShiftRequest(
       userId: userId,
       shiftId: shiftId,
-      requestTime: requestTime,
+      startTime: startTime,
+      endTime: endTime,
       timezone: timezone,
     );
   }
