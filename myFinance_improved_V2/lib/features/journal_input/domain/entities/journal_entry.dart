@@ -77,4 +77,33 @@ class JournalEntry with _$JournalEntry {
       counterpartyCashLocationId: null,
     );
   }
+
+  // =============================================================================
+  // Business Logic Methods (Moved from Presentation Layer)
+  // =============================================================================
+
+  /// Calculate suggested amount to balance the journal entry
+  /// Returns the absolute difference if entry is unbalanced, null if balanced
+  double? getSuggestedAmountForBalance() {
+    final diff = difference;
+    return diff.abs() > 0.01 ? diff.abs() : null;
+  }
+
+  /// Suggest whether the next transaction should be debit or credit
+  /// to balance the journal entry
+  /// Returns true for debit, false for credit
+  bool suggestDebitOrCredit() {
+    if (totalDebits < totalCredits) return true;  // Need more debits
+    if (totalCredits < totalDebits) return false; // Need more credits
+    return true; // Default to debit when balanced
+  }
+
+  /// Get all cash location IDs already used in transaction lines
+  /// Used to prevent duplicate cash location selection
+  Set<String> getUsedCashLocationIds() {
+    return transactionLines
+        .where((line) => line.categoryTag == 'cash' && line.cashLocationId != null)
+        .map((line) => line.cashLocationId!)
+        .toSet();
+  }
 }

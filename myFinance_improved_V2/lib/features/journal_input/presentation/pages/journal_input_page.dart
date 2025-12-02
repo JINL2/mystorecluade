@@ -89,9 +89,10 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   Future<void> _addTransactionLine([bool? isDebit]) async {
     final state = ref.read(journalEntryStateProvider);
 
-    final suggestedAmount = _calculateSuggestedAmount(state);
-    final defaultIsDebit = _determineDefaultIsDebit(state, isDebit);
-    final usedCashLocations = _getUsedCashLocations(state);
+    // Use Domain Entity business logic methods
+    final suggestedAmount = state.getSuggestedAmountForBalance();
+    final defaultIsDebit = isDebit ?? state.suggestDebitOrCredit();
+    final usedCashLocations = state.getUsedCashLocationIds();
 
     final result = await _showTransactionDialog(
       defaultIsDebit: defaultIsDebit,
@@ -102,33 +103,6 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     if (result != null) {
       _handleTransactionResult(result);
     }
-  }
-
-  /// Calculate suggested amount based on difference
-  double? _calculateSuggestedAmount(JournalEntryState state) {
-    final difference = state.difference;
-    return difference.abs() > 0.01 ? difference.abs() : null;
-  }
-
-  /// Determine default transaction type (debit/credit)
-  bool _determineDefaultIsDebit(JournalEntryState state, bool? isDebit) {
-    if (isDebit != null) return isDebit;
-
-    // Auto-determine based on which side needs balancing
-    final totalDebits = state.totalDebits;
-    final totalCredits = state.totalCredits;
-
-    if (totalDebits < totalCredits) return true;
-    if (totalCredits < totalDebits) return false;
-    return true; // Default to debit
-  }
-
-  /// Get cash locations already used in transaction lines
-  Set<String> _getUsedCashLocations(JournalEntryState state) {
-    return state.transactionLines
-        .where((line) => line.categoryTag == 'cash' && line.cashLocationId != null)
-        .map((line) => line.cashLocationId!)
-        .toSet();
   }
 
   /// Show transaction dialog
