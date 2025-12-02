@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../domain/entities/templates/financial_summary/financial_report.dart';
+import '../../../../domain/entities/report_detail.dart';
 
 /// Performance Cards Section
 ///

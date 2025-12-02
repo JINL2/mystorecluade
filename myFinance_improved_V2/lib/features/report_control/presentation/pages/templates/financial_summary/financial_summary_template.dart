@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../domain/entities/report_notification.dart';
-import '../../../../domain/entities/templates/financial_summary/financial_report.dart';
+import '../../../../domain/entities/report_detail.dart';
 import '../../../utils/report_parser.dart';
 import '../../../utils/template_registry.dart';
 import 'financial_summary_detail_page.dart';

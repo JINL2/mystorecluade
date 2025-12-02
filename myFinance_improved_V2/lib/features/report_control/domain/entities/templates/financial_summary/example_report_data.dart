@@ -1,6 +1,6 @@
 // lib/features/report_control/domain/entities/example_report_data.dart
 
-import 'report_detail.dart';
+import '../../report_detail.dart';
 
 /// Example report data for Daily Financial Summary
 ///
