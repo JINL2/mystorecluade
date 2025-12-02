@@ -2,19 +2,20 @@
 // Encapsulates pagination configuration
 
 class PaginationParams {
+  // Constants
+  static const int defaultPageNumber = 1;
+  static const int defaultPageSize = 10;
+
   final int page;
   final int limit;
 
   const PaginationParams({
-    required this.page,
-    required this.limit,
+    this.page = defaultPageNumber,
+    this.limit = defaultPageSize,
   });
 
   // Default pagination
-  static const PaginationParams defaultParams = PaginationParams(
-    page: 1,
-    limit: 10,
-  );
+  static const PaginationParams defaultParams = PaginationParams();
 
   // Calculate offset for database queries
   int get offset => (page - 1) * limit;
@@ -79,10 +80,15 @@ class PaginationResult {
     required int limit,
     required int total,
   }) {
-    final totalPages = (total / limit).ceil();
+    assert(limit > 0, 'Limit must be greater than 0');
+
+    // Fail-safe: use default limit if invalid
+    final safeLimit = limit > 0 ? limit : 10;
+    final totalPages = (total / safeLimit).ceil();
+
     return PaginationResult(
       page: page,
-      limit: limit,
+      limit: safeLimit,
       total: total,
       totalPages: totalPages > 0 ? totalPages : 1,
       hasNext: page < totalPages,

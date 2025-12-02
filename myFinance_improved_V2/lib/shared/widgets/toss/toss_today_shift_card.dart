@@ -34,7 +34,6 @@ class TossTodayShiftCard extends StatelessWidget {
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
   final bool isLoading;
-  final bool isUpcoming; // true = "Upcoming shift", false = "Today's shift"
 
   const TossTodayShiftCard({
     super.key,
@@ -46,7 +45,6 @@ class TossTodayShiftCard extends StatelessWidget {
     this.onCheckIn,
     this.onCheckOut,
     this.isLoading = false,
-    this.isUpcoming = false,
   });
 
   Color _getBadgeColor() {
@@ -123,12 +121,6 @@ class TossTodayShiftCard extends StatelessWidget {
 
   Widget _buildActionButton() {
     if (status == ShiftStatus.noShift) {
-      return const SizedBox.shrink();
-    }
-
-    // If it's an upcoming shift (not today), don't show Check-in button
-    // User can only check-in on the day of the shift
-    if (isUpcoming) {
       return const SizedBox.shrink();
     }
 
@@ -222,7 +214,7 @@ class TossTodayShiftCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isUpcoming ? 'Upcoming shift' : "Today's shift",
+                "Today's shift",
                 style: TossTextStyles.label.copyWith(
                   color: TossColors.gray600,
                 ),

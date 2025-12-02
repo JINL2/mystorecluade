@@ -21,9 +21,12 @@ import '../../../sale_product/domain/entities/sales_product.dart';
 import '../../../sale_product/presentation/providers/cart_provider.dart';
 import '../../../sale_product/presentation/providers/sales_product_provider.dart';
 // Feature imports - sales_invoice
+import '../../data/models/exchange_rate_data_model.dart';
+import '../../domain/entities/exchange_rate_data.dart' as entities;
 import '../../domain/repositories/product_repository.dart';
 import '../providers/payment_providers.dart';
 import '../providers/product_providers.dart';
+import '../providers/states/payment_method_state.dart';
 // Extracted widgets
 import '../widgets/payment_method/bottom_sheets/invoice_success_bottom_sheet.dart';
 import '../widgets/payment_method/payment_bottom_button.dart';
@@ -46,8 +49,8 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 }
 
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
-  // Exchange rate data
-  Map<String, dynamic>? _exchangeRateData;
+  // Exchange rate data (strongly typed)
+  entities.ExchangeRateData? _exchangeRateData;
 
   @override
   void initState() {
@@ -66,11 +69,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     if (companyId.isEmpty) return;
 
     try {
-      final exchangeRatesData =
+      final exchangeRatesJson =
           await ref.read(exchangeRatesProvider(companyId).future);
       if (mounted) {
         setState(() {
-          _exchangeRateData = exchangeRatesData;
+          if (exchangeRatesJson != null) {
+            _exchangeRateData = ExchangeRateDataModel(exchangeRatesJson).toEntity();
+          }
         });
       }
     } catch (e) {
@@ -347,8 +352,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     PaymentMethodState paymentState,
     String invoiceNumber,
   ) {
-    final baseCurrencyCode =
-        _exchangeRateData?['base_currency']?['currency_code'] ?? 'VND';
+    final baseCurrencyCode = _exchangeRateData?.baseCurrency.currencyCode ?? 'VND';
 
     String journalDescription = '';
 

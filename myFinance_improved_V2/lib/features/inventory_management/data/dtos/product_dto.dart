@@ -119,13 +119,30 @@ class ProductDto {
       stockStatus: _parseStockStatus(json),
       quantityAvailable: parsedQuantityAvailable,
       quantityReserved: parsedQuantityReserved,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
+      createdAt: _parseDateTime(json['created_at']),
+      updatedAt: _parseDateTime(json['updated_at']),
     );
+  }
+
+  // Helper: Parse DateTime with error handling
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    try {
+      if (value is String) {
+        return DateTime.parse(value);
+      }
+      if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      return null;
+    } catch (e) {
+      // Log parsing error in debug mode
+      assert(() {
+        print('⚠️ Failed to parse DateTime: $value, error: $e');
+        return true;
+      }());
+      return null;
+    }
   }
 
   // To JSON (for API requests)
@@ -159,18 +176,20 @@ class ProductDto {
 
   // Helper: Parse image_urls from RPC response
   static List<String> _parseImageUrls(Map<String, dynamic> json) {
-    // Try image_urls (array from RPC)
-    if (json['image_urls'] != null && json['image_urls'] is List) {
-      return (json['image_urls'] as List)
-          .map((e) => e.toString())
+    final imageUrls = json['image_urls'];
+    if (imageUrls is List) {
+      return imageUrls
+          .map((e) => e?.toString() ?? '')
           .where((url) => url.isNotEmpty)
           .toList();
     }
-    // Fallback to single image_url
-    if (json['image_url'] != null && (json['image_url'] as String).isNotEmpty) {
-      return [json['image_url'] as String];
+
+    final imageUrl = json['image_url'];
+    if (imageUrl is String && imageUrl.isNotEmpty) {
+      return [imageUrl];
     }
-    return [];
+
+    return const [];  // Use const for immutable empty list
   }
 
   // Helper: Parse is_active from RPC response (handles status.is_active)

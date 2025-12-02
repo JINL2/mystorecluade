@@ -5,6 +5,7 @@ import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/currency_repository.dart';
+import '../mappers/denomination_mapper.dart';
 
 class SupabaseCurrencyRepository implements CurrencyRepository {
   final SupabaseClient _client;
@@ -72,22 +73,14 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           .eq('is_deleted', false)  // Only fetch non-deleted denominations
           .inFilter('currency_id', currencyIds);
 
-      // Map denominations by currency_id
+      // Map denominations by currency_id using DenominationMapper
       final denominationMap = <String, List<Denomination>>{};
       for (final denom in denominations) {
         final currencyId = denom['currency_id'] as String;
         denominationMap[currencyId] ??= [];
-        denominationMap[currencyId]!.add(Denomination(
-          id: denom['denomination_id'] as String,
-          companyId: denom['company_id'] as String,
-          currencyId: currencyId,
-          value: (denom['value'] as num).toDouble(),
-          type: (denom['type'] as String? ?? 'bill') == 'coin' ? DenominationType.coin : DenominationType.bill,
-          displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
-          emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
-          isActive: true,
-          createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
-        ),);
+        denominationMap[currencyId]!.add(
+          DenominationMapper.fromJson(denom as Map<String, dynamic>),
+        );
       }
 
       // Build Currency objects
@@ -478,6 +471,25 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
       return denominations.isNotEmpty;
     } catch (e) {
       throw Exception('Failed to check denominations: $e');
+    }
+  }
+
+  @override
+  Future<bool> isBaseCurrency(String companyId, String currencyId) async {
+    try {
+      final companyResult = await _client
+          .from('companies')
+          .select('base_currency_id')
+          .eq('company_id', companyId)
+          .maybeSingle();
+
+      if (companyResult == null) return false;
+
+      final baseCurrencyId = companyResult['base_currency_id'] as String?;
+      return baseCurrencyId == currencyId;
+    } catch (e) {
+      // Log error but return false as default (safer to show Rate button if unsure)
+      return false;
     }
   }
 }

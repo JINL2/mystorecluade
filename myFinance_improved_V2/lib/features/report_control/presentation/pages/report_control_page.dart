@@ -13,8 +13,9 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../constants/report_strings.dart';
 import '../providers/report_provider.dart';
-import '../widgets/received_reports_tab.dart';
-import '../widgets/subscribe_reports_tab.dart';
+import '../utils/template_initializer.dart';
+import '../widgets/common/received_reports_tab.dart';
+import '../widgets/common/subscribe_reports_tab.dart';
 
 /// Report Control Page
 ///
@@ -48,6 +49,9 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
   @override
   void initState() {
     super.initState();
+
+    // Initialize report templates (once)
+    TemplateInitializer.initialize();
 
     // Generate AI Chat session ID
     _aiChatSessionId = const Uuid().v4();

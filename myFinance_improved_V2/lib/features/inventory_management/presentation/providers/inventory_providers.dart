@@ -6,11 +6,12 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../di/inventory_providers.dart';
+import '../../domain/constants/inventory_constants.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../../domain/value_objects/sort_option.dart';
-import 'repository_providers.dart';
 import 'states/inventory_metadata_state.dart';
 import 'states/inventory_page_state.dart';
 
@@ -186,7 +187,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
       final result = await repository.getProducts(
         companyId: companyId!,
         storeId: storeId!,
-        pagination: const PaginationParams(page: 1, limit: 10),
+        pagination: const PaginationParams(),  // Uses default page=1, limit=10
         filter: filter,
         sortOption: sortOption,
       );
@@ -239,7 +240,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
       final result = await repository.getProducts(
         companyId: companyId!,
         storeId: storeId!,
-        pagination: PaginationParams(page: nextPage, limit: 10),
+        pagination: PaginationParams(page: nextPage),  // limit uses default
         filter: filter,
         sortOption: sortOption,
       );
@@ -264,8 +265,8 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     state = state.copyWith(
       products: [],
       pagination: const PaginationResult(
-        page: 1,
-        limit: 10,
+        page: PaginationParams.defaultPageNumber,
+        limit: PaginationParams.defaultPageSize,
         total: 0,
         totalPages: 1,
         hasNext: false,
@@ -281,7 +282,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
       state = state.copyWith(searchQuery: query);
 
       _searchDebounceTimer?.cancel();
-      _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _searchDebounceTimer = Timer(InventoryConstants.searchDebounceDelay, () {
         refresh();
       });
     }

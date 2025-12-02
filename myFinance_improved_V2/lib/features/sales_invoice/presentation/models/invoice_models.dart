@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../sale_product/domain/entities/cart_item.dart';
+import '../../domain/value_objects/invoice_calculator.dart';
 
 // Invoice Model
 class SaleInvoice {
@@ -113,9 +115,14 @@ class SaleInvoice {
     );
   }
 
+  /// Calculate total using Domain layer business logic
   double calculateTotal() {
-    final discounted = subtotal - (subtotal * discountPercentage / 100) - discountAmount;
-    return discounted + taxAmount;
+    return InvoiceCalculator.calculateFinalTotal(
+      subtotal: subtotal,
+      discountPercentage: discountPercentage,
+      discountAmount: discountAmount,
+      taxAmount: taxAmount,
+    );
   }
 
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);

@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
+import '../../../../di/inventory_providers.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../domain/entities/inventory_metadata.dart';
 import '../../../providers/inventory_providers.dart';
-import '../../../providers/repository_providers.dart';
 
 /// Dialog for creating a new category
 class CategoryCreationDialog extends ConsumerStatefulWidget {

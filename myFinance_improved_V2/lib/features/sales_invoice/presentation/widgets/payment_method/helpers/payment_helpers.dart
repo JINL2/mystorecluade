@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
+import '../../../../domain/value_objects/currency_converter.dart';
 
 /// Helper class for payment method page utilities
 class PaymentHelpers {
@@ -40,6 +41,7 @@ class PaymentHelpers {
   }
 
   /// Convert amount to selected currency using exchange rate
+  /// Delegates to Domain layer CurrencyConverter for business logic
   static double convertToSelectedCurrency(
     double baseAmount,
     String targetCurrencyCode,
@@ -47,13 +49,15 @@ class PaymentHelpers {
   ) {
     if (exchangeRateData == null) return baseAmount;
 
-    final exchangeRates = exchangeRateData['exchange_rates'] as List? ?? [];
-    final targetRate = exchangeRates.firstWhere(
-      (rate) => rate['currency_code'] == targetCurrencyCode,
-      orElse: () => {'rate': 1.0},
+    final exchangeRates = exchangeRateData['exchange_rates'] as List<Map<String, dynamic>>? ?? [];
+    final rate = CurrencyConverter.findExchangeRate(
+      targetCurrencyCode: targetCurrencyCode,
+      exchangeRates: exchangeRates,
     );
 
-    final rate = (targetRate['rate'] as num).toDouble();
-    return rate > 0 ? baseAmount / rate : baseAmount;
+    return CurrencyConverter.convertToBase(
+      amount: baseAmount,
+      exchangeRateToBase: rate,
+    );
   }
 }

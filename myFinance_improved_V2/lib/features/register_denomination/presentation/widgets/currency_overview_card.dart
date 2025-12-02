@@ -549,22 +549,12 @@ class CurrencyOverviewCard extends ConsumerWidget {
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      
+
       if (companyId.isEmpty) return true; // Default to true if no company selected
-      
-      final supabase = ref.read(supabaseClientProvider);
-      
-      // Query companies table to get base_currency_id
-      final companyResult = await supabase
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .single();
-      
-      final baseCurrencyId = companyResult['base_currency_id'] as String?;
-      
-      // Return true if current currency is the base currency
-      return baseCurrencyId == currency.id;
+
+      // Use Domain Repository instead of direct Supabase access
+      final repository = ref.read(currencyRepositoryProvider);
+      return await repository.isBaseCurrency(companyId, currency.id);
     } catch (e) {
       debugPrint('Error checking base currency: $e');
       return true; // Default to true (hide Rate button) if there's an error
@@ -581,70 +571,69 @@ class CurrencyOverviewCard extends ConsumerWidget {
     );
   }
 
-  void _deleteCurrency(BuildContext context, WidgetRef ref) async {
+  Future<void> _deleteCurrency(BuildContext context, WidgetRef ref) async {
     // Haptic feedback for delete action
     HapticFeedback.lightImpact();
-    
+
     // Close dialog immediately for better UX
-    if (context.mounted) {
-      context.pop();
-    }
-    
+    if (!context.mounted) return;
+    context.pop();
+
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      
+
       if (companyId.isEmpty) {
         throw Exception('No company selected');
       }
-      
+
       // Remove the currency from company
       await ref.read(currencyOperationsProvider.notifier)
           .removeCompanyCurrency(currency.id);
-      
+
       // Show success message only after successful removal
-      if (context.mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.success(
-            title: 'Success',
-            message: '${currency.code} currency removed successfully!',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-      
+      if (!context.mounted) return;
+
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.success(
+          title: 'Success',
+          message: '${currency.code} currency removed successfully!',
+          primaryButtonText: 'OK',
+        ),
+      );
+
       // Success haptic feedback
       HapticFeedback.selectionClick();
-      
+
       // Refresh available currencies to add provider
       if (ref.exists(availableCurrenciesToAddProvider)) {
         ref.invalidate(availableCurrenciesToAddProvider);
       }
-      
+
     } catch (e) {
       // Error haptic feedback
       HapticFeedback.heavyImpact();
-      
+
       // Extract error message
       String errorMessage = e.toString();
       if (errorMessage.startsWith('Exception: ')) {
         errorMessage = errorMessage.substring(11);
       }
-      
-      if (context.mounted) {
-        // Show dialog for errors
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Error',
-            message: errorMessage,
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
+
+      if (!context.mounted) return;
+
+      // Show dialog for errors
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: errorMessage,
+          primaryButtonText: 'OK',
+        ),
+      );
     }
   }
 
