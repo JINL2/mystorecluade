@@ -254,8 +254,6 @@ class ShiftSignupCard extends StatelessWidget {
                     radius: 12,
                     backgroundColor: TossColors.gray200,
                     backgroundImage: NetworkImage(avatars[index]),
-                    onBackgroundImageError: (_, __) {},
-                    child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
                   )
                 : CircleAvatar(
                     radius: 12,

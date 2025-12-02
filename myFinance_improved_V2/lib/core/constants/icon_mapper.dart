@@ -49,6 +49,10 @@ class IconMapper {
       'boxes': LucideIcons.boxes,
       'boxesStacked': LucideIcons.boxes,
       'warehouse': LucideIcons.warehouse,
+      'qrCode': LucideIcons.qrCode,
+      'qr': LucideIcons.qrCode,
+      'barcode': LucideIcons.scanLine,
+      'scan': LucideIcons.scanLine,
 
       // Sales & Shopping
       'sale': LucideIcons.tag,
@@ -132,6 +136,8 @@ class IconMapper {
       'clockRotateLeft': LucideIcons.history,
       'clockRotateRegular': LucideIcons.history,
       'businessTime': LucideIcons.briefcase,
+      'stopwatch': LucideIcons.timer,
+      'timer': LucideIcons.timer,
 
       // Documents & Files
       'fileContract': LucideIcons.fileText,
@@ -214,6 +220,8 @@ class IconMapper {
       'exclamation': LucideIcons.alertCircle,
       'exclamationCircle': LucideIcons.alertCircle,
       'exclamationTriangle': LucideIcons.alertTriangle,
+      'circle': LucideIcons.circle,
+      'circleDot': LucideIcons.circleDot,
 
       // Other
       'handshake': LucideIcons.heartHandshake,

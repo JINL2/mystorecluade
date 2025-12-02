@@ -124,19 +124,9 @@ class ReliabilityScore with _$ReliabilityScore {
   const ReliabilityScore._();
 
   const factory ReliabilityScore({
-    required int totalApplications,
-    required int approvedShifts,
-    required int lateCount,
-    required double lateRate,
-    required double avgLateMinutes,
-    required double avgFillRateApplied,
-    required double applicationsScore,
-    required double lateRateScore,
-    required double lateMinutesScore,
-    required double fillRateScore,
-    required double reliability,
+    required int completedShifts,
+    required double onTimeRate,
     required double finalScore,
-    String? periodStart,
-    String? periodEnd,
+    Map<String, dynamic>? scoreBreakdown,
   }) = _ReliabilityScore;
 }

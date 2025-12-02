@@ -55,8 +55,8 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
       isActive: true,
       numberShift: numberShift ?? 1,
       isCanOvertime: isCanOvertime ?? true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
+      updatedAt: DateTime.now().toUtc(),
     );
   }
 
@@ -70,7 +70,7 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     bool? isCanOvertime,
     int? shiftBonus,
   }) async {
-    final shiftData = await _dataSource.updateShift(
+    await _dataSource.updateShift(
       shiftId: shiftId,
       shiftName: shiftName,
       startTime: startTime,
@@ -80,7 +80,22 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
       shiftBonus: shiftBonus,
     );
 
-    return StoreShiftModel.fromJson(shiftData).toEntity();
+    // RPC returns {success, message} only
+    // Return a StoreShift with the LOCAL time parameters that were sent
+    // The RPC already converted these to UTC and saved to the database
+    // When the UI refreshes (ref.invalidate), it will fetch the correct UTC times
+    return StoreShift(
+      shiftId: shiftId,
+      shiftName: shiftName ?? '',
+      startTime: startTime ?? '',  // Local time as sent by user
+      endTime: endTime ?? '',      // Local time as sent by user
+      shiftBonus: shiftBonus ?? 0,
+      isActive: true,
+      numberShift: numberShift ?? 1,
+      isCanOvertime: isCanOvertime ?? true,
+      createdAt: DateTime.now().toUtc(),
+      updatedAt: DateTime.now().toUtc(),
+    );
   }
 
   @override

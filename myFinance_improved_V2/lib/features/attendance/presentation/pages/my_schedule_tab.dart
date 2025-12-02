@@ -524,10 +524,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     final closestUpcomingShift = _findClosestUpcomingShift(shiftCards);
     int? closestUpcomingIndex;
 
-    // Filter shifts within the week range
+    // Filter shifts within the week range and approved only
     final weekShifts = shiftCards.where((card) {
       final cardDate = _parseRequestDate(card.requestDate);
       if (cardDate == null) return false;
+      // Only show approved shifts
+      if (!card.isApproved) return false;
       return !cardDate.isBefore(weekRange.start) && !cardDate.isAfter(weekRange.end);
     }).toList();
 
@@ -703,10 +705,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     final shifts = <Widget>[];
     final closestUpcomingShift = _findClosestUpcomingShift(shiftCards);
 
-    // Filter shifts for the selected date
+    // Filter shifts for the selected date and approved only
     final dayShifts = shiftCards.where((card) {
       final cardDate = _parseRequestDate(card.requestDate);
       if (cardDate == null) return false;
+      // Only show approved shifts
+      if (!card.isApproved) return false;
       return _isSameDay(cardDate, date);
     }).toList();
 

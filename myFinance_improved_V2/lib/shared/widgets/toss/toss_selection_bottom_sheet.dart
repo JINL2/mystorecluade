@@ -380,8 +380,6 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                       radius: TossSpacing.iconSM,
                       backgroundColor: TossColors.gray200,
                       backgroundImage: NetworkImage(item.avatarUrl!),
-                      onBackgroundImageError: (_, __) {},
-                      child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
                     )
                   : CircleAvatar(
                       radius: TossSpacing.iconSM,

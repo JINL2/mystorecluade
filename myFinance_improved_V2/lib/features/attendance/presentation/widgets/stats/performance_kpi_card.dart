@@ -4,18 +4,21 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
+import 'reliability_score_bottom_sheet.dart';
 
 /// Performance KPI card with 3 horizontal metrics
 class PerformanceKpiCard extends StatelessWidget {
   final String ontimeRate;
   final String completedShifts;
   final String reliabilityScore;
+  final Map<String, dynamic>? scoreBreakdown;
 
   const PerformanceKpiCard({
     super.key,
     required this.ontimeRate,
     required this.completedShifts,
     required this.reliabilityScore,
+    this.scoreBreakdown,
   });
 
   @override
@@ -86,12 +89,21 @@ class PerformanceKpiCard extends StatelessWidget {
                   value: reliabilityScore,
                   showInfoIcon: true,
                   alignRight: false,
+                  onInfoTap: () => _showScoreBreakdown(context),
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _showScoreBreakdown(BuildContext context) {
+    ReliabilityScoreBottomSheet.show(
+      context: context,
+      finalScore: double.tryParse(reliabilityScore) ?? 50.0,
+      scoreBreakdown: scoreBreakdown,
     );
   }
 }
@@ -101,12 +113,14 @@ class _KpiColumn extends StatelessWidget {
   final String value;
   final bool showInfoIcon;
   final bool alignRight;
+  final VoidCallback? onInfoTap;
 
   const _KpiColumn({
     required this.label,
     required this.value,
     this.showInfoIcon = false,
     this.alignRight = false,
+    this.onInfoTap,
   });
 
   @override
@@ -132,10 +146,13 @@ class _KpiColumn extends StatelessWidget {
             ),
             if (showInfoIcon) ...[
               const SizedBox(width: 4),
-              const Icon(
-                LucideIcons.info,
-                size: 16,
-                color: TossColors.gray600,
+              GestureDetector(
+                onTap: onInfoTap,
+                child: const Icon(
+                  LucideIcons.info,
+                  size: 16,
+                  color: TossColors.gray600,
+                ),
               ),
             ],
           ],

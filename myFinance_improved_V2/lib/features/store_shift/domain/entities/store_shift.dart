@@ -11,6 +11,7 @@ class StoreShift {
   final bool isActive;
   final int numberShift;       // Required number of employees for this shift
   final bool isCanOvertime;    // Whether overtime is allowed for this shift
+  final int employeeCount;     // Actual number of employees assigned to this shift
   final DateTime createdAt;  // Timestamp (stored as UTC in DB, converted to local)
   final DateTime updatedAt;  // Timestamp (stored as UTC in DB, converted to local)
 
@@ -23,6 +24,7 @@ class StoreShift {
     required this.isActive,
     this.numberShift = 1,
     this.isCanOvertime = false,
+    this.employeeCount = 0,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -37,6 +39,7 @@ class StoreShift {
     bool? isActive,
     int? numberShift,
     bool? isCanOvertime,
+    int? employeeCount,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -49,6 +52,7 @@ class StoreShift {
       isActive: isActive ?? this.isActive,
       numberShift: numberShift ?? this.numberShift,
       isCanOvertime: isCanOvertime ?? this.isCanOvertime,
+      employeeCount: employeeCount ?? this.employeeCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -67,6 +71,7 @@ class StoreShift {
         other.isActive == isActive &&
         other.numberShift == numberShift &&
         other.isCanOvertime == isCanOvertime &&
+        other.employeeCount == employeeCount &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -81,12 +86,13 @@ class StoreShift {
         isActive.hashCode ^
         numberShift.hashCode ^
         isCanOvertime.hashCode ^
+        employeeCount.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;
   }
 
   @override
   String toString() {
-    return 'StoreShift(shiftId: $shiftId, shiftName: $shiftName, startTime: $startTime, endTime: $endTime, shiftBonus: $shiftBonus, isActive: $isActive, numberShift: $numberShift, isCanOvertime: $isCanOvertime, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'StoreShift(shiftId: $shiftId, shiftName: $shiftName, startTime: $startTime, endTime: $endTime, shiftBonus: $shiftBonus, isActive: $isActive, numberShift: $numberShift, isCanOvertime: $isCanOvertime, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }

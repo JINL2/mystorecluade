@@ -166,73 +166,33 @@ class WeeklyPaymentsModel {
 }
 
 class ReliabilityScoreModel {
-  final int totalApplications;
-  final int approvedShifts;
-  final int lateCount;
-  final double lateRate;
-  final double avgLateMinutes;
-  final double avgFillRateApplied;
-  final double applicationsScore;
-  final double lateRateScore;
-  final double lateMinutesScore;
-  final double fillRateScore;
-  final double reliability;
+  final int completedShifts;
+  final double onTimeRate;
   final double finalScore;
-  final String? periodStart;
-  final String? periodEnd;
+  final Map<String, dynamic>? scoreBreakdown;
 
   ReliabilityScoreModel({
-    required this.totalApplications,
-    required this.approvedShifts,
-    required this.lateCount,
-    required this.lateRate,
-    required this.avgLateMinutes,
-    required this.avgFillRateApplied,
-    required this.applicationsScore,
-    required this.lateRateScore,
-    required this.lateMinutesScore,
-    required this.fillRateScore,
-    required this.reliability,
+    required this.completedShifts,
+    required this.onTimeRate,
     required this.finalScore,
-    this.periodStart,
-    this.periodEnd,
+    this.scoreBreakdown,
   });
 
   factory ReliabilityScoreModel.fromJson(Map<String, dynamic> json) {
     return ReliabilityScoreModel(
-      totalApplications: (json['total_applications'] as num?)?.toInt() ?? 0,
-      approvedShifts: (json['approved_shifts'] as num?)?.toInt() ?? 0,
-      lateCount: (json['late_count'] as num?)?.toInt() ?? 0,
-      lateRate: (json['late_rate'] as num?)?.toDouble() ?? 0.0,
-      avgLateMinutes: (json['avg_late_minutes'] as num?)?.toDouble() ?? 0.0,
-      avgFillRateApplied: (json['avg_fill_rate_applied'] as num?)?.toDouble() ?? 0.0,
-      applicationsScore: (json['applications_score'] as num?)?.toDouble() ?? 0.0,
-      lateRateScore: (json['late_rate_score'] as num?)?.toDouble() ?? 0.0,
-      lateMinutesScore: (json['late_minutes_score'] as num?)?.toDouble() ?? 0.0,
-      fillRateScore: (json['fill_rate_score'] as num?)?.toDouble() ?? 0.0,
-      reliability: (json['reliability'] as num?)?.toDouble() ?? 0.0,
-      finalScore: (json['final_score'] as num?)?.toDouble() ?? 0.0,
-      periodStart: json['period_start'] as String?,
-      periodEnd: json['period_end'] as String?,
+      completedShifts: (json['completed_shifts'] as num?)?.toInt() ?? 0,
+      onTimeRate: (json['on_time_rate'] as num?)?.toDouble() ?? 0.0,
+      finalScore: (json['final_score'] as num?)?.toDouble() ?? 50.0,
+      scoreBreakdown: json['score_breakdown'] as Map<String, dynamic>?,
     );
   }
 
   ReliabilityScore toEntity() {
     return ReliabilityScore(
-      totalApplications: totalApplications,
-      approvedShifts: approvedShifts,
-      lateCount: lateCount,
-      lateRate: lateRate,
-      avgLateMinutes: avgLateMinutes,
-      avgFillRateApplied: avgFillRateApplied,
-      applicationsScore: applicationsScore,
-      lateRateScore: lateRateScore,
-      lateMinutesScore: lateMinutesScore,
-      fillRateScore: fillRateScore,
-      reliability: reliability,
+      completedShifts: completedShifts,
+      onTimeRate: onTimeRate,
       finalScore: finalScore,
-      periodStart: periodStart,
-      periodEnd: periodEnd,
+      scoreBreakdown: scoreBreakdown,
     );
   }
 }
