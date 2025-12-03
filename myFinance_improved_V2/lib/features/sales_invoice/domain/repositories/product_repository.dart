@@ -31,6 +31,8 @@ abstract class ProductRepository {
     double? discountAmount,
     double? taxRate,
     String? notes,
+    String? cashLocationId,
+    String? customerId,
   });
 }
 

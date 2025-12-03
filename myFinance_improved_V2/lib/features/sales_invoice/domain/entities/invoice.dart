@@ -3,6 +3,22 @@ import 'customer.dart';
 import 'invoice_amounts.dart';
 import 'items_summary.dart';
 
+/// Cash location info for invoice
+class InvoiceCashLocation extends Equatable {
+  final String cashLocationId;
+  final String locationName;
+  final String locationType; // 'cash', 'bank', 'vault'
+
+  const InvoiceCashLocation({
+    required this.cashLocationId,
+    required this.locationName,
+    required this.locationType,
+  });
+
+  @override
+  List<Object?> get props => [cashLocationId, locationName, locationType];
+}
+
 /// Core Invoice entity representing a sales invoice
 class Invoice extends Equatable {
   final String invoiceId;
@@ -13,6 +29,7 @@ class Invoice extends Equatable {
   final String storeId;
   final String storeName;
   final String storeCode;
+  final InvoiceCashLocation? cashLocation;
   final String paymentMethod;
   final String paymentStatus;
   final InvoiceAmounts amounts;
@@ -31,6 +48,7 @@ class Invoice extends Equatable {
     required this.storeId,
     required this.storeName,
     required this.storeCode,
+    this.cashLocation,
     required this.paymentMethod,
     required this.paymentStatus,
     required this.amounts,
@@ -89,6 +107,7 @@ class Invoice extends Equatable {
         storeId,
         storeName,
         storeCode,
+        cashLocation,
         paymentMethod,
         paymentStatus,
         amounts,

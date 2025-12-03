@@ -430,12 +430,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               onDone: () {
                 // Navigate to payment method page with cart items
                 final cartItems = ref.read(cartProvider);
-                final products = salesState.products;
+                final cartNotifier = ref.read(cartProvider.notifier);
 
-                // Convert cart items to SalesProduct list
-                final selectedProductsList = cartItems.map((cartItem) {
-                  return products.firstWhere((p) => p.productId == cartItem.productId);
-                }).toList();
+                // Get SalesProducts directly from cart (stored when added)
+                final selectedProductsList = cartNotifier.cartProducts;
 
                 // Convert to the map format for quantities
                 final productQuantities = <String, int>{};

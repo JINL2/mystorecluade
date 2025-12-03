@@ -1,4 +1,3 @@
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/customer.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_amounts.dart';
@@ -12,6 +11,7 @@ class InvoiceModel {
   final String status;
   final Map<String, dynamic>? customer;
   final Map<String, dynamic> store;
+  final Map<String, dynamic>? cashLocation;
   final Map<String, dynamic> payment;
   final Map<String, dynamic> amounts;
   final Map<String, dynamic> itemsSummary;
@@ -25,6 +25,7 @@ class InvoiceModel {
     required this.status,
     this.customer,
     required this.store,
+    this.cashLocation,
     required this.payment,
     required this.amounts,
     required this.itemsSummary,
@@ -33,20 +34,34 @@ class InvoiceModel {
   });
 
   /// Create from JSON
+  /// Note: sale_date and created_at are already in local time from RPC
+  /// (converted via `AT TIME ZONE p_timezone` in get_invoice_page_v2)
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     return InvoiceModel(
       invoiceId: json['invoice_id']?.toString() ?? '',
       invoiceNumber: json['invoice_number']?.toString() ?? '',
-      saleDate: DateTimeUtils.toLocalSafe(json['sale_date']?.toString()) ?? DateTime.now(),
+      saleDate: _parseLocalDateTime(json['sale_date']?.toString()),
       status: json['status']?.toString() ?? 'draft',
       customer: json['customer'] as Map<String, dynamic>?,
       store: json['store'] as Map<String, dynamic>,
+      cashLocation: json['cash_location'] as Map<String, dynamic>?,
       payment: json['payment'] as Map<String, dynamic>,
       amounts: json['amounts'] as Map<String, dynamic>,
       itemsSummary: json['items_summary'] as Map<String, dynamic>,
       createdBy: json['created_by'] as Map<String, dynamic>?,
-      createdAt: DateTimeUtils.toLocalSafe(json['created_at']?.toString()) ?? DateTime.now(),
+      createdAt: _parseLocalDateTime(json['created_at']?.toString()),
     );
+  }
+
+  /// Parse datetime string that is already in local time (no UTC conversion needed)
+  static DateTime _parseLocalDateTime(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return DateTime.now();
+    try {
+      // RPC returns local time, just parse without timezone conversion
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
+    }
   }
 
   /// Convert to domain entity
@@ -60,6 +75,7 @@ class InvoiceModel {
       storeId: store['store_id']?.toString() ?? '',
       storeName: store['store_name']?.toString() ?? '',
       storeCode: store['store_code']?.toString() ?? '',
+      cashLocation: cashLocation != null ? _cashLocationFromJson(cashLocation!) : null,
       paymentMethod: payment['method']?.toString() ?? 'cash',
       paymentStatus: payment['status']?.toString() ?? 'pending',
       amounts: _amountsFromJson(amounts),
@@ -68,6 +84,15 @@ class InvoiceModel {
       createdByName: createdBy?['name']?.toString(),
       createdByEmail: createdBy?['email']?.toString(),
       createdAt: createdAt,
+    );
+  }
+
+  /// Convert cash location JSON to entity
+  InvoiceCashLocation _cashLocationFromJson(Map<String, dynamic> json) {
+    return InvoiceCashLocation(
+      cashLocationId: json['cash_location_id']?.toString() ?? '',
+      locationName: json['location_name']?.toString() ?? '',
+      locationType: json['location_type']?.toString() ?? 'cash',
     );
   }
 

@@ -23,4 +23,26 @@ abstract class SalesJournalRepository {
     required String cashAccountId,
     required String salesAccountId,
   });
+
+  /// Create a refund journal entry for refunded sales transaction
+  ///
+  /// Creates a double-entry journal (reverse of sales):
+  /// - Debit: Sales revenue account (decrease revenue)
+  /// - Credit: Cash account (decrease cash)
+  ///
+  /// Parameters:
+  /// - [salesAccountId]: Account ID for sales revenue (debit side)
+  /// - [cashAccountId]: Account ID for cash (credit side)
+  /// - [cashLocationId]: Optional cash location ID for the cash line
+  Future<void> createRefundJournalEntry({
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required double amount,
+    required String description,
+    required String lineDescription,
+    String? cashLocationId,
+    required String cashAccountId,
+    required String salesAccountId,
+  });
 }

@@ -11,7 +11,12 @@ import 'invoice_list_item.dart';
 
 /// Invoice list section grouped by date
 class InvoiceListSection extends ConsumerWidget {
-  const InvoiceListSection({super.key});
+  final void Function(Invoice invoice)? onRefundPressed;
+
+  const InvoiceListSection({
+    super.key,
+    this.onRefundPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,7 +121,10 @@ class InvoiceListSection extends ConsumerWidget {
 
               return Column(
                 children: [
-                  InvoiceListItem(invoice: invoice),
+                  InvoiceListItem(
+                    invoice: invoice,
+                    onRefundPressed: onRefundPressed,
+                  ),
                   if (!isLast)
                     const Divider(
                       height: 1,

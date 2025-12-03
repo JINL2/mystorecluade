@@ -21,6 +21,13 @@ abstract class InvoiceRepository {
     required String storeId,
     required InvoiceFilter filter,
   });
+
+  /// Refund invoice(s)
+  Future<RefundResult> refundInvoice({
+    required List<String> invoiceIds,
+    required String userId,
+    String? notes,
+  });
 }
 
 /// Invoice page result
@@ -113,3 +120,76 @@ class Currency {
   });
 }
 
+/// Refund result
+class RefundResult {
+  final bool success;
+  final int totalProcessed;
+  final int totalSucceeded;
+  final int totalFailed;
+  final double totalAmountRefunded;
+  final List<RefundItemResult> results;
+  final String? errorMessage;
+
+  const RefundResult({
+    required this.success,
+    this.totalProcessed = 0,
+    this.totalSucceeded = 0,
+    this.totalFailed = 0,
+    this.totalAmountRefunded = 0,
+    this.results = const [],
+    this.errorMessage,
+  });
+
+  factory RefundResult.fromJson(Map<String, dynamic> json) {
+    final resultsList = (json['results'] as List<dynamic>? ?? [])
+        .map((e) => RefundItemResult.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return RefundResult(
+      success: json['success'] as bool? ?? false,
+      totalProcessed: json['total_processed'] as int? ?? 0,
+      totalSucceeded: json['total_succeeded'] as int? ?? 0,
+      totalFailed: json['total_failed'] as int? ?? 0,
+      totalAmountRefunded: (json['total_amount_refunded'] as num?)?.toDouble() ?? 0,
+      results: resultsList,
+      errorMessage: json['message'] as String?,
+    );
+  }
+}
+
+/// Individual refund item result
+class RefundItemResult {
+  final bool success;
+  final String invoiceId;
+  final String? invoiceNumber;
+  final int itemsRefunded;
+  final double totalRefunded;
+  final String? error;
+  final List<String> warnings;
+
+  const RefundItemResult({
+    required this.success,
+    required this.invoiceId,
+    this.invoiceNumber,
+    this.itemsRefunded = 0,
+    this.totalRefunded = 0,
+    this.error,
+    this.warnings = const [],
+  });
+
+  factory RefundItemResult.fromJson(Map<String, dynamic> json) {
+    final warningsList = (json['warnings'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+
+    return RefundItemResult(
+      success: json['success'] as bool? ?? false,
+      invoiceId: json['invoice_id'] as String? ?? '',
+      invoiceNumber: json['invoice_number'] as String?,
+      itemsRefunded: json['items_refunded'] as int? ?? 0,
+      totalRefunded: (json['total_refunded'] as num?)?.toDouble() ?? 0,
+      error: json['error'] as String?,
+      warnings: warningsList,
+    );
+  }
+}

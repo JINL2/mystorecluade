@@ -22,19 +22,22 @@ import '../../domain/entities/invoice.dart';
 class InvoiceDetailModal extends StatelessWidget {
   final Invoice invoice;
   final String? currencySymbol;
+  final void Function(Invoice invoice)? onRefundPressed;
 
   const InvoiceDetailModal({
     super.key,
     required this.invoice,
     this.currencySymbol,
+    this.onRefundPressed,
   });
 
   /// Show invoice detail modal
   static void show(
     BuildContext context,
     Invoice invoice,
-    String? currencySymbol,
-  ) {
+    String? currencySymbol, {
+    void Function(Invoice invoice)? onRefundPressed,
+  }) {
     HapticFeedback.lightImpact();
 
     TossBottomSheet.showWithBuilder<void>(
@@ -43,6 +46,7 @@ class InvoiceDetailModal extends StatelessWidget {
       builder: (context) => InvoiceDetailModal(
         invoice: invoice,
         currencySymbol: currencySymbol,
+        onRefundPressed: onRefundPressed,
       ),
     );
   }
@@ -246,6 +250,170 @@ class InvoiceDetailModal extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+
+          // Refund Button (only for completed invoices)
+          if (invoice.isCompleted && onRefundPressed != null)
+            _buildRefundButton(context, currencyFormat, symbol),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRefundButton(
+    BuildContext context,
+    NumberFormat formatter,
+    String symbol,
+  ) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        TossSpacing.space3,
+        TossSpacing.space4,
+        TossSpacing.space3 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(
+          top: BorderSide(color: TossColors.gray100),
+        ),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            _showRefundConfirmation(context, formatter, symbol);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: TossColors.error,
+            foregroundColor: TossColors.white,
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.replay, size: 20),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'Refund',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRefundConfirmation(
+    BuildContext context,
+    NumberFormat formatter,
+    String symbol,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TossColors.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.replay,
+                color: TossColors.error,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            const Text('Refund Invoice'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to refund this invoice?',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Refund Amount',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    '$symbol${formatter.format(invoice.amounts.totalAmount)}',
+                    style: TossTextStyles.h3.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: TossColors.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'Invoice: ${invoice.invoiceNumber}',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext); // Close dialog
+              Navigator.pop(context); // Close bottom sheet
+              onRefundPressed?.call(invoice);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TossColors.error,
+              foregroundColor: TossColors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+            ),
+            child: const Text('Refund'),
           ),
         ],
       ),

@@ -12,10 +12,12 @@ import '../../providers/invoice_list_provider.dart';
 /// Individual invoice list item
 class InvoiceListItem extends ConsumerWidget {
   final Invoice invoice;
+  final void Function(Invoice invoice)? onRefundPressed;
 
   const InvoiceListItem({
     super.key,
     required this.invoice,
+    this.onRefundPressed,
   });
 
   static final _currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
@@ -26,7 +28,12 @@ class InvoiceListItem extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        InvoiceDetailModal.show(context, invoice, currency?.symbol);
+        InvoiceDetailModal.show(
+          context,
+          invoice,
+          currency?.symbol,
+          onRefundPressed: onRefundPressed,
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space4),

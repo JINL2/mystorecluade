@@ -71,6 +71,8 @@ class ProductRepositoryImpl implements ProductRepository {
     double? discountAmount,
     double? taxRate,
     String? notes,
+    String? cashLocationId,
+    String? customerId,
   }) async {
     final response = await _remoteDataSource.createInvoice(
       companyId: companyId,
@@ -82,6 +84,8 @@ class ProductRepositoryImpl implements ProductRepository {
       discountAmount: discountAmount,
       taxRate: taxRate,
       notes: notes,
+      cashLocationId: cashLocationId,
+      customerId: customerId,
     );
 
     return CreateInvoiceResult(

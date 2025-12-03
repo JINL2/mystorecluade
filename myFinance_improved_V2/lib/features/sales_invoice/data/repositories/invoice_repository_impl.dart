@@ -44,4 +44,18 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       filter: filter,
     );
   }
+
+  @override
+  Future<RefundResult> refundInvoice({
+    required List<String> invoiceIds,
+    required String userId,
+    String? notes,
+  }) async {
+    final response = await _remoteDataSource.refundInvoice(
+      invoiceIds: invoiceIds,
+      userId: userId,
+      notes: notes,
+    );
+    return RefundResult.fromJson(response);
+  }
 }

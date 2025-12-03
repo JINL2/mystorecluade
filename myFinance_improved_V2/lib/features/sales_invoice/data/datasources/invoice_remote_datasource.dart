@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -31,6 +32,16 @@ class InvoiceRemoteDataSource {
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       },);
 
+      // Debug: Log raw invoice data to check cash_location
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data != null && data['invoices'] != null) {
+        final invoices = data['invoices'] as List;
+        for (final invoice in invoices) {
+          final inv = invoice as Map<String, dynamic>;
+          debugPrint('📋 [Invoice] ${inv['invoice_number']} - cash_location: ${inv['cash_location']}');
+        }
+      }
+
       return InvoicePageResponseModel.fromJson(response);
     } on PostgrestException catch (e) {
       throw InvoiceNetworkException(
@@ -47,4 +58,43 @@ class InvoiceRemoteDataSource {
     }
   }
 
+  /// Refund invoice(s)
+  ///
+  /// Calls the `inventory_refund_invoice_v2` RPC function
+  Future<Map<String, dynamic>> refundInvoice({
+    required List<String> invoiceIds,
+    required String userId,
+    String? notes,
+  }) async {
+    try {
+      // Get current local time for refund date
+      final refundDateStr = DateTimeUtils.formatLocalTimestamp();
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'inventory_refund_invoice_v2',
+        params: {
+          'p_invoice_ids': invoiceIds,
+          'p_refund_date': refundDateStr,
+          'p_notes': notes,
+          'p_created_by': userId,
+          'p_timezone': timezone,
+        },
+      );
+
+      return response;
+    } on PostgrestException catch (e) {
+      throw InvoiceNetworkException(
+        'Failed to refund invoice: ${e.message}',
+        code: e.code,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is InvoiceException) rethrow;
+      throw InvoiceDataException(
+        'Failed to process refund: $e',
+        originalError: e,
+      );
+    }
+  }
 }

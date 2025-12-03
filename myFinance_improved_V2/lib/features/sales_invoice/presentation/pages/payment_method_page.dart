@@ -256,6 +256,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             : null,
         taxRate: 0.0,
         notes: notes,
+        cashLocationId: paymentState.selectedCashLocation?.id,
       );
 
       // Close loading dialog
