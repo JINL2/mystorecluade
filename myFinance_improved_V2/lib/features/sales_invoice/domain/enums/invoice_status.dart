@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-
 /// Invoice status enum
 ///
 /// Represents the lifecycle status of an invoice.
+/// Note: UI display properties (color, icon) are in presentation/extensions/invoice_status_extension.dart
 enum InvoiceStatus {
   completed('completed', 'Completed'),
   draft('draft', 'Draft'),
@@ -14,18 +12,6 @@ enum InvoiceStatus {
   final String value;
   final String displayName;
 
-  /// Get color for status
-  Color get color {
-    switch (this) {
-      case InvoiceStatus.completed:
-        return TossColors.success;
-      case InvoiceStatus.draft:
-        return TossColors.gray500;
-      case InvoiceStatus.cancelled:
-        return TossColors.error;
-    }
-  }
-
   /// Create InvoiceStatus from string value
   static InvoiceStatus fromString(String value) {
     return InvoiceStatus.values.firstWhere(
@@ -33,23 +19,12 @@ enum InvoiceStatus {
       orElse: () => InvoiceStatus.completed,
     );
   }
-
-  /// Get icon for status
-  IconData get icon {
-    switch (this) {
-      case InvoiceStatus.completed:
-        return Icons.check_circle;
-      case InvoiceStatus.draft:
-        return Icons.edit;
-      case InvoiceStatus.cancelled:
-        return Icons.cancel;
-    }
-  }
 }
 
 /// Payment status enum
 ///
 /// Represents the payment status of an invoice.
+/// Note: UI display properties (color, icon) are in presentation/extensions/invoice_status_extension.dart
 enum PaymentStatus {
   paid('paid', 'Paid'),
   pending('pending', 'Pending'),
@@ -61,39 +36,11 @@ enum PaymentStatus {
   final String value;
   final String displayName;
 
-  /// Get color for payment status
-  Color get color {
-    switch (this) {
-      case PaymentStatus.paid:
-        return TossColors.success;
-      case PaymentStatus.pending:
-        return TossColors.warning;
-      case PaymentStatus.partial:
-        return TossColors.primary;
-      case PaymentStatus.cancelled:
-        return TossColors.error;
-    }
-  }
-
   /// Create PaymentStatus from string value
   static PaymentStatus fromString(String value) {
     return PaymentStatus.values.firstWhere(
       (status) => status.value == value,
       orElse: () => PaymentStatus.pending,
     );
-  }
-
-  /// Get icon for payment status
-  IconData get icon {
-    switch (this) {
-      case PaymentStatus.paid:
-        return Icons.check_circle;
-      case PaymentStatus.pending:
-        return Icons.schedule;
-      case PaymentStatus.partial:
-        return Icons.payments;
-      case PaymentStatus.cancelled:
-        return Icons.cancel;
-    }
   }
 }

@@ -15,6 +15,7 @@ export interface InvoicePageParams {
   p_search: string | null;
   p_start_date: string;
   p_end_date: string;
+  p_timezone: string;
 }
 
 export interface InvoicePageResponse {
@@ -22,11 +23,40 @@ export interface InvoicePageResponse {
   data?: {
     invoices: any[];
     pagination: {
-      current_page: number;
+      page: number;
+      limit: number;
+      total: number;
       total_pages: number;
-      total_count: number;
       has_next: boolean;
       has_prev: boolean;
+    };
+    filters_applied: {
+      search: string | null;
+      store_id: string | null;
+      date_range: {
+        start_date: string;
+        end_date: string;
+      };
+      timezone: string;
+    };
+    summary: {
+      period_total: {
+        invoice_count: number;
+        total_amount: number;
+        total_cost: number;
+        profit: number;
+        avg_per_invoice: number;
+      };
+      by_status: {
+        completed: number;
+        draft: number;
+        cancelled: number;
+      };
+      by_payment: {
+        cash: number;
+        card: number;
+        transfer: number;
+      };
     };
     currency?: {
       code: string;
@@ -114,7 +144,8 @@ export class InvoiceDataSource {
     limit: number,
     search: string | null,
     startDate: string,
-    endDate: string
+    endDate: string,
+    timezone: string = 'Asia/Ho_Chi_Minh'
   ): Promise<InvoicePageResponse> {
     const supabase = supabaseService.getClient();
 
@@ -126,14 +157,19 @@ export class InvoiceDataSource {
       p_search: search,
       p_start_date: startDate,
       p_end_date: endDate,
+      p_timezone: timezone,
     };
 
-    const { data, error } = await supabase.rpc('get_invoice_page', rpcParams);
+    console.log('🔵 InvoiceDataSource.getInvoices - calling get_invoice_page_v2:', rpcParams);
+
+    const { data, error } = await supabase.rpc('get_invoice_page_v2' as any, rpcParams);
 
     if (error) {
       console.error('❌ Error fetching invoices:', error);
       throw new Error(error.message);
     }
+
+    console.log('🟢 InvoiceDataSource.getInvoices - response:', data);
 
     return data as InvoicePageResponse;
   }
@@ -150,7 +186,7 @@ export class InvoiceDataSource {
       throw new Error(error.message);
     }
 
-    return data as InvoiceDetailResponse;
+    return data as unknown as InvoiceDetailResponse;
   }
 
   async refundInvoice(
@@ -172,21 +208,35 @@ export class InvoiceDataSource {
       throw new Error(error.message);
     }
 
-    return data as RefundInvoiceResponse;
+    return data as unknown as RefundInvoiceResponse;
   }
 
   async refundInvoices(
     invoiceIds: string[],
     notes: string,
-    createdBy: string
+    createdBy: string,
+    timezone: string = 'Asia/Ho_Chi_Minh'
   ): Promise<BulkRefundInvoiceResponse> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('inventory_refund_invoice', {
+    // p_refund_date는 UTC 변환 없이 유저 디바이스의 로컬 시간으로 전송
+    // RPC에서 p_timezone을 사용하여 UTC로 변환함
+    const localDateTime = DateTimeUtils.toRpcFormat(new Date());
+
+    console.log('🔵 InvoiceDataSource.refundInvoices - calling inventory_refund_invoice_v2:', {
       p_invoice_ids: invoiceIds,
-      p_refund_date: DateTimeUtils.nowUtc(),
+      p_refund_date: localDateTime,
       p_notes: notes || null,
       p_created_by: createdBy,
+      p_timezone: timezone,
+    });
+
+    const { data, error } = await supabase.rpc('inventory_refund_invoice_v2' as any, {
+      p_invoice_ids: invoiceIds,
+      p_refund_date: localDateTime,
+      p_notes: notes || null,
+      p_created_by: createdBy,
+      p_timezone: timezone,
     });
 
     if (error) {
@@ -194,12 +244,17 @@ export class InvoiceDataSource {
       throw new Error(error.message);
     }
 
-    return data as BulkRefundInvoiceResponse;
+    console.log('🟢 InvoiceDataSource.refundInvoices - response:', data);
+
+    return data as unknown as BulkRefundInvoiceResponse;
   }
 
   /**
-   * Create refund journal entry
+   * Create refund journal entries
    * Following JOURNAL_INPUT_RPC_GUIDE.md for refund transactions
+   * Creates TWO journal entries:
+   * 1. Sales Revenue (Debit) / Cash (Credit) - refundAmount
+   * 2. Inventory (Debit) / COGS (Credit) - totalCost
    */
   async insertRefundJournalEntry(params: {
     companyId: string;
@@ -207,17 +262,20 @@ export class InvoiceDataSource {
     createdBy: string;
     invoiceNumber: string;
     refundAmount: number;
+    totalCost: number;
     cashLocationId: string | null;
-  }): Promise<{ success: boolean; journal_id?: string; error?: string }> {
+  }): Promise<{ success: boolean; journal_ids?: string[]; error?: string }> {
     const supabase = supabaseService.getClient();
+    const journalIds: string[] = [];
 
     try {
-      // Build journal lines following the guide
-      // Line 1: DEBIT Sales Revenue (reverse the sale)
-      // Line 2: CREDIT Cash (payment going out)
       // Use unified description format: "Invoice# Refund"
       const lineDescription = `${params.invoiceNumber} Refund`;
+      const entryDateUtc = DateTimeUtils.nowUtc();
 
+      // ========== JOURNAL ENTRY 1: Sales Revenue / Cash ==========
+      // Line 1: DEBIT Sales Revenue (reverse the sale)
+      // Line 2: CREDIT Cash (payment going out)
       const cashLine: any = {
         account_id: ACCOUNT_IDS.CASH,
         debit: '0',
@@ -232,54 +290,105 @@ export class InvoiceDataSource {
         };
       }
 
-      const lines = [
+      const salesCashLines = [
         {
           account_id: ACCOUNT_IDS.SALES_REVENUE,
           debit: params.refundAmount.toString(),
           credit: '0',
           description: lineDescription,
-          // NO cash object - this is revenue account
         },
         cashLine,
       ];
 
-      // Prepare RPC parameters following the guide
-      const rpcParams = {
+      const salesCashRpcParams = {
         p_base_amount: params.refundAmount,
         p_company_id: params.companyId,
         p_created_by: params.createdBy,
         p_description: `${params.invoiceNumber} refund`,
-        p_entry_date: DateTimeUtils.toRpcFormat(new Date()),
-        p_lines: lines,
+        p_entry_date_utc: entryDateUtc,
+        p_lines: salesCashLines,
         p_store_id: params.storeId,
-        // CRITICAL: These MUST be null for refunds
         p_counterparty_id: null,
         p_if_cash_location_id: null,
       };
 
-      console.log('🔵 Creating refund journal entry:', rpcParams);
+      console.log('🔵 Creating refund journal entry 1 (Sales/Cash):', salesCashRpcParams);
 
-      const { data, error } = await supabase.rpc('insert_journal_with_everything', rpcParams);
+      const { data: data1, error: error1 } = await supabase.rpc(
+        'insert_journal_with_everything_utc' as any,
+        salesCashRpcParams
+      );
 
-      if (error) {
-        console.error('❌ Error creating refund journal entry:', error);
+      if (error1) {
+        console.error('❌ Error creating refund journal entry 1 (Sales/Cash):', error1);
         return {
           success: false,
-          error: error.message,
+          error: error1.message,
         };
       }
 
-      console.log('✅ Refund journal entry created:', data);
+      console.log('✅ Refund journal entry 1 (Sales/Cash) created:', data1);
+      journalIds.push(data1);
+
+      // ========== JOURNAL ENTRY 2: Inventory / COGS ==========
+      // Line 1: DEBIT Inventory (inventory returned)
+      // Line 2: CREDIT COGS (reverse cost of goods sold)
+      const inventoryCOGSLines = [
+        {
+          account_id: ACCOUNT_IDS.INVENTORY,
+          debit: params.totalCost.toString(),
+          credit: '0',
+          description: lineDescription,
+        },
+        {
+          account_id: ACCOUNT_IDS.COGS,
+          debit: '0',
+          credit: params.totalCost.toString(),
+          description: lineDescription,
+        },
+      ];
+
+      const inventoryCOGSRpcParams = {
+        p_base_amount: params.totalCost,
+        p_company_id: params.companyId,
+        p_created_by: params.createdBy,
+        p_description: `${params.invoiceNumber} refund (inventory)`,
+        p_entry_date_utc: entryDateUtc,
+        p_lines: inventoryCOGSLines,
+        p_store_id: params.storeId,
+        p_counterparty_id: null,
+        p_if_cash_location_id: null,
+      };
+
+      console.log('🔵 Creating refund journal entry 2 (Inventory/COGS):', inventoryCOGSRpcParams);
+
+      const { data: data2, error: error2 } = await supabase.rpc(
+        'insert_journal_with_everything_utc' as any,
+        inventoryCOGSRpcParams
+      );
+
+      if (error2) {
+        console.error('❌ Error creating refund journal entry 2 (Inventory/COGS):', error2);
+        return {
+          success: false,
+          journal_ids: journalIds, // Return first journal ID even if second fails
+          error: error2.message,
+        };
+      }
+
+      console.log('✅ Refund journal entry 2 (Inventory/COGS) created:', data2);
+      journalIds.push(data2);
 
       return {
         success: true,
-        journal_id: data,
+        journal_ids: journalIds,
       };
     } catch (error) {
-      console.error('❌ Exception creating refund journal entry:', error);
+      console.error('❌ Exception creating refund journal entries:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create journal entry',
+        journal_ids: journalIds.length > 0 ? journalIds : undefined,
+        error: error instanceof Error ? error.message : 'Failed to create journal entries',
       };
     }
   }

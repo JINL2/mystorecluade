@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal/ConfirmModal';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { useInvoice } from '../../hooks/useInvoice';
 import { useRefundInvoice } from '../../hooks/useRefundInvoice';
@@ -19,7 +20,6 @@ import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { InvoiceHeader } from './components/InvoiceHeader';
 import { InvoiceTable } from './components/InvoiceTable';
 import { InvoicePagination } from './components/InvoicePagination';
-import { RefundModal } from './components/RefundModal';
 import type { InvoicePageProps } from './InvoicePage.types';
 import styles from './InvoicePage.module.css';
 
@@ -36,11 +36,13 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   // Selection state - following inventory page pattern
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
 
-  // Expanded invoice state - following inventory page pattern
+  // Expanded invoice state
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
-  // Refund modal state
-  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  // Refund confirmation modal state
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundTargetInvoiceId, setRefundTargetInvoiceId] = useState<string | null>(null);
+  const [refundProcessing, setRefundProcessing] = useState(false);
 
   // Get all state and actions from useInvoice hook (which wraps Zustand store)
   const {
@@ -58,9 +60,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     setSelectedStoreId: setInvoiceStoreId,
     changeDateRange,
     changePage,
-    fetchInvoiceDetail,
-    refundInvoice,
     refresh,
+    fetchInvoiceDetail,
   } = useInvoice(companyId);
 
   // Get refund hook for handling refund operations
@@ -84,18 +85,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   // Clear selections when store changes
   useEffect(() => {
     setSelectedInvoices(new Set());
-    setExpandedInvoiceId(null);
   }, [selectedStoreId]);
-
-  // Handle refund for expanded invoice - opens modal with single invoice
-  const handleRefund = (invoiceId: string) => {
-    const invoice = invoices.find(inv => inv.invoiceId === invoiceId);
-    if (!invoice) return;
-
-    // Set the single invoice as selected and open modal
-    setSelectedInvoices(new Set([invoiceId]));
-    setIsRefundModalOpen(true);
-  };
 
   // Get stores from current company
   const stores = currentCompany?.stores || [];
@@ -132,12 +122,15 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     }
   };
 
-  // Handle row click to expand/collapse
+  // Handle row click to expand/collapse and fetch detail
   const handleRowClick = (invoiceId: string) => {
-    const newExpandedId = expandedInvoiceId === invoiceId ? null : invoiceId;
-    setExpandedInvoiceId(newExpandedId);
-    if (newExpandedId) {
-      fetchInvoiceDetail(newExpandedId);
+    if (expandedInvoiceId === invoiceId) {
+      // Collapse if clicking the same row
+      setExpandedInvoiceId(null);
+    } else {
+      // Expand new row and fetch detail
+      setExpandedInvoiceId(invoiceId);
+      fetchInvoiceDetail(invoiceId);
     }
   };
 
@@ -147,80 +140,96 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     return invoice?.status === 'cancelled';
   });
 
-  // Get selected invoice info for the modal
-  const selectedInvoiceInfo = Array.from(selectedInvoices)
-    .map(invoiceId => {
-      const invoice = invoices.find(inv => inv.invoiceId === invoiceId);
-      if (!invoice) return null;
-      return {
-        invoiceNumber: invoice.invoiceNumber,
-        amount: invoice.totalAmount,
-        currencySymbol: invoice.currencySymbol,
-      };
-    })
-    .filter((info): info is { invoiceNumber: string; amount: number; currencySymbol: string } => info !== null);
-
-  // Handle opening refund modal
-  const handleOpenRefundModal = () => {
-    setIsRefundModalOpen(true);
-  };
-
-  // Handle closing refund modal
-  const handleCloseRefundModal = () => {
-    setIsRefundModalOpen(false);
-  };
-
-  // Handle refund confirmation from modal
-  const handleRefundConfirm = async (notes: string) => {
-    if (!currentUser?.user_id || !companyId) {
-      showError({
-        title: 'Refund Failed',
-        message: 'User information not available. Please log in again.'
-      });
-      return;
-    }
+  // Handle bulk refund from header
+  const handleBulkRefund = async () => {
+    if (!currentUser?.user_id || !companyId || selectedInvoices.size === 0) return;
 
     try {
       const invoiceIdsArray = Array.from(selectedInvoices);
-
-      // Use refund hook to handle refund + journal entry creation
       const result = await refundInvoicesWithJournal({
         invoiceIds: invoiceIdsArray,
-        notes,
+        notes: 'Bulk refund',
         companyId,
         userId: currentUser.user_id,
         invoices,
       });
 
-      setIsRefundModalOpen(false);
-
-      // Show appropriate message based on result
       if (result.success) {
         showSuccess({
-          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''} and created ${result.journalSuccessCount} journal ${result.journalSuccessCount > 1 ? 'entries' : 'entry'}. Total amount: ${invoices[0]?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
+          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}. Total amount: ${invoices[0]?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
           autoCloseDuration: 3000
         });
-      } else if (result.totalFailed === 0 && result.journalFailCount > 0) {
-        showError({
-          title: 'Partial Success',
-          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}, but ${result.journalFailCount} journal ${result.journalFailCount > 1 ? 'entries' : 'entry'} failed to create.`
-        });
+        setSelectedInvoices(new Set());
+        refresh();
       } else {
         showError({
-          title: 'Partial Refund',
-          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}, but ${result.totalFailed} failed. ${result.journalSuccessCount > 0 ? `Created ${result.journalSuccessCount} journal ${result.journalSuccessCount > 1 ? 'entries' : 'entry'}.` : ''}`
+          title: 'Refund Failed',
+          message: result.error || 'Failed to refund invoices'
         });
       }
-
-      setSelectedInvoices(new Set());
     } catch (error) {
-      setIsRefundModalOpen(false);
       showError({
         title: 'Refund Error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred'
       });
     }
   };
+
+  // Open refund confirmation modal
+  const handleSingleRefund = (invoiceId: string) => {
+    setRefundTargetInvoiceId(invoiceId);
+    setRefundModalOpen(true);
+  };
+
+  // Close refund modal
+  const handleCloseRefundModal = () => {
+    setRefundModalOpen(false);
+    setRefundTargetInvoiceId(null);
+  };
+
+  // Execute refund after confirmation
+  const handleConfirmRefund = async () => {
+    if (!currentUser?.user_id || !companyId || !refundTargetInvoiceId) return;
+
+    setRefundProcessing(true);
+    try {
+      const result = await refundInvoicesWithJournal({
+        invoiceIds: [refundTargetInvoiceId],
+        notes: 'Single refund',
+        companyId,
+        userId: currentUser.user_id,
+        invoices,
+      });
+
+      if (result.success) {
+        const refundedInvoice = invoices.find(inv => inv.invoiceId === refundTargetInvoiceId);
+        showSuccess({
+          message: `Successfully refunded invoice. Amount: ${refundedInvoice?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
+          autoCloseDuration: 3000
+        });
+        setExpandedInvoiceId(null);
+        handleCloseRefundModal();
+        refresh();
+      } else {
+        showError({
+          title: 'Refund Failed',
+          message: result.error || 'Failed to refund invoice'
+        });
+      }
+    } catch (error) {
+      showError({
+        title: 'Refund Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      setRefundProcessing(false);
+    }
+  };
+
+  // Get target invoice for modal display
+  const refundTargetInvoice = refundTargetInvoiceId
+    ? invoices.find(inv => inv.invoiceId === refundTargetInvoiceId)
+    : null;
 
   // Helper function to calculate date range (from DateFilterTabs logic)
   const calculateDateRange = (filter: string): { start: string; end: string } => {
@@ -362,22 +371,22 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
               onSearchChange={setLocalSearchQuery}
               selectedInvoicesCount={selectedInvoices.size}
               hasSelectedCancelledInvoice={hasSelectedCancelledInvoice}
-              onRefund={handleOpenRefundModal}
+              onRefund={handleBulkRefund}
             />
 
             {/* Invoice Table */}
             <InvoiceTable
               invoices={filteredInvoices}
               selectedInvoices={selectedInvoices}
+              localSearchQuery={localSearchQuery}
               expandedInvoiceId={expandedInvoiceId}
               invoiceDetail={invoiceDetail}
               detailLoading={detailLoading}
-              refunding={refunding}
-              localSearchQuery={localSearchQuery}
+              refundLoading={refunding}
               onToggleSelection={toggleInvoiceSelection}
               onSelectAll={selectAllInvoices}
               onRowClick={handleRowClick}
-              onRefund={handleRefund}
+              onRefund={handleSingleRefund}
             />
 
             {/* Pagination */}
@@ -398,18 +407,42 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
               isOpen={messageState.isOpen}
               onClose={closeMessage}
             />
-
-            {/* Refund Modal */}
-            <RefundModal
-              isOpen={isRefundModalOpen}
-              selectedInvoices={selectedInvoiceInfo}
-              onClose={handleCloseRefundModal}
-              onConfirm={handleRefundConfirm}
-              isRefunding={refunding}
-            />
           </div>
         </div>
       </div>
+
+      {/* Refund Confirmation Modal */}
+      <ConfirmModal
+        isOpen={refundModalOpen}
+        onClose={handleCloseRefundModal}
+        onConfirm={handleConfirmRefund}
+        variant="warning"
+        title="Confirm Refund"
+        message={`Are you sure you want to refund invoice ${refundTargetInvoice?.invoiceNumber || ''}? This action will reverse the sale and restore inventory.`}
+        confirmText="Refund"
+        cancelText="Cancel"
+        confirmButtonVariant="error"
+        isLoading={refundProcessing}
+        width="450px"
+        closeOnBackdropClick={true}
+      >
+        {refundTargetInvoice && (
+          <div style={{ padding: '16px 0', borderTop: '1px solid #E9ECEF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: '#6C757D', fontSize: '14px' }}>Total Amount</span>
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
+                {refundTargetInvoice.formatCurrency(refundTargetInvoice.totalAmount)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#6C757D', fontSize: '14px' }}>Total Cost</span>
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
+                {refundTargetInvoice.formatCurrency(refundTargetInvoice.totalCost)}
+              </span>
+            </div>
+          </div>
+        )}
+      </ConfirmModal>
     </>
   );
 };

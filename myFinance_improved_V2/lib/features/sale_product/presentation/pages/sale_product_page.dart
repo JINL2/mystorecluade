@@ -18,7 +18,7 @@ import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import '../../../sales_invoice/presentation/pages/payment_method_page.dart';
 import '../../domain/entities/cart_item.dart';
-import '../../domain/value_objects/sort_option.dart';
+import '../extensions/sort_option_extension.dart';
 import '../providers/cart_provider.dart';
 import '../providers/filtered_products_provider.dart';
 import '../providers/sales_product_provider.dart';

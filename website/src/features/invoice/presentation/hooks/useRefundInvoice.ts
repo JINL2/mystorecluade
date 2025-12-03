@@ -78,6 +78,7 @@ export const useRefundInvoice = () => {
             createdBy: userId,
             invoiceNumber: refundResult.invoice_number,
             refundAmount: refundAmount,
+            totalCost: invoice.totalCost,
             cashLocationId: invoice.cashLocationId,
           });
 
@@ -87,6 +88,7 @@ export const useRefundInvoice = () => {
             createdBy: userId,
             invoiceNumber: refundResult.invoice_number,
             refundAmount: refundAmount,
+            totalCost: invoice.totalCost,
             cashLocationId: invoice.cashLocationId,
           });
 

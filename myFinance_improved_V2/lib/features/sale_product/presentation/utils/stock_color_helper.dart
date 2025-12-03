@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../domain/value_objects/stock_status.dart';
+import '../extensions/stock_status_extension.dart';
 
 /// Stock color mapper utility
 ///
@@ -27,7 +28,7 @@ class StockColorHelper {
   }
 
   /// Get stock status text
-  /// Delegates to Domain layer
+  /// Uses Presentation extension for display name
   static String getStockStatus(int stock) {
     final status = StockStatus.fromQuantity(stock);
     return status.displayName;

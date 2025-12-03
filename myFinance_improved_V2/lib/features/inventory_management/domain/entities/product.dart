@@ -226,26 +226,12 @@ class Product {
   }
 }
 
-// Stock Status Enum
+/// Stock Status Enum
+/// Display names should be handled in Presentation layer via extension
 enum StockStatus {
-  outOfStock,  // 0 재고
+  outOfStock,  // 0 stock
   critical,    // 0-10% of reorder point
   low,         // 11-30% of reorder point
   normal,      // 31-80% of reorder point
-  excess;      // 81%+ of reorder point
-
-  String get displayName {
-    switch (this) {
-      case StockStatus.outOfStock:
-        return '품절';
-      case StockStatus.critical:
-        return '긴급';
-      case StockStatus.low:
-        return '부족';
-      case StockStatus.normal:
-        return '정상';
-      case StockStatus.excess:
-        return '과재고';
-    }
-  }
+  excess,      // 81%+ of reorder point
 }

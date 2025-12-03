@@ -36,9 +36,8 @@ class _InventoryManagementPageState
   final ScrollController _scrollController = ScrollController();
   Timer? _searchDebounceTimer;
 
-  // Sorting
+  // Sorting (client-side only, RPC does not support sorting)
   _SortOption? _currentSort; // null = database default order
-  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -468,52 +467,45 @@ class _InventoryManagementPageState
   String _getSortLabel() {
     if (_currentSort == null) return 'Name (A-Z)';
 
-    switch (_currentSort!) {
-      case _SortOption.nameAsc:
-      case _SortOption.nameDesc:
-        return _sortAscending ? 'Name (A-Z)' : 'Name (Z-A)';
-      case _SortOption.priceAsc:
-      case _SortOption.priceDesc:
-        return _sortAscending ? 'Price (Low to High)' : 'Price (High to Low)';
-      case _SortOption.stockAsc:
-      case _SortOption.stockDesc:
-        return _sortAscending ? 'Stock (Low to High)' : 'Stock (High to Low)';
-      case _SortOption.valueDesc:
+    final sort = _currentSort!;
+    final isAsc = sort.direction == _SortDirection.asc;
+
+    switch (sort.field) {
+      case _SortField.name:
+        return isAsc ? 'Name (A-Z)' : 'Name (Z-A)';
+      case _SortField.price:
+        return isAsc ? 'Price (Low to High)' : 'Price (High to Low)';
+      case _SortField.stock:
+        return isAsc ? 'Stock (Low to High)' : 'Stock (High to Low)';
+      case _SortField.value:
         return 'Value (High to Low)';
     }
   }
 
   List<Product> _applyLocalSort(List<Product> products) {
-    List<Product> sorted = List.from(products);
+    if (_currentSort == null) return products;
 
-    // Apply sorting only if sort option is selected
-    if (_currentSort != null) {
-      switch (_currentSort!) {
-        case _SortOption.nameAsc:
-        case _SortOption.nameDesc:
-          sorted.sort((a, b) => _sortAscending
-              ? a.name.compareTo(b.name)
-              : b.name.compareTo(a.name),);
-          break;
-        case _SortOption.priceAsc:
-        case _SortOption.priceDesc:
-          sorted.sort((a, b) => _sortAscending
-              ? a.salePrice.compareTo(b.salePrice)
-              : b.salePrice.compareTo(a.salePrice),);
-          break;
-        case _SortOption.stockAsc:
-        case _SortOption.stockDesc:
-          sorted.sort((a, b) => _sortAscending
-              ? a.onHand.compareTo(b.onHand)
-              : b.onHand.compareTo(a.onHand),);
-          break;
-        case _SortOption.valueDesc:
-          sorted.sort((a, b) =>
-              (b.onHand * b.salePrice).compareTo(a.onHand * a.salePrice),);
-          break;
-      }
+    final sorted = List<Product>.from(products);
+    final sort = _currentSort!;
+    final isAsc = sort.direction == _SortDirection.asc;
+
+    switch (sort.field) {
+      case _SortField.name:
+        sorted.sort((a, b) => isAsc
+            ? a.name.compareTo(b.name)
+            : b.name.compareTo(a.name),);
+      case _SortField.price:
+        sorted.sort((a, b) => isAsc
+            ? a.salePrice.compareTo(b.salePrice)
+            : b.salePrice.compareTo(a.salePrice),);
+      case _SortField.stock:
+        sorted.sort((a, b) => isAsc
+            ? a.onHand.compareTo(b.onHand)
+            : b.onHand.compareTo(a.onHand),);
+      case _SortField.value:
+        sorted.sort((a, b) =>
+            (b.onHand * b.salePrice).compareTo(a.onHand * a.salePrice),);
     }
-    // If _currentSort is null, keep database order (no sorting)
 
     return sorted;
   }
@@ -594,9 +586,6 @@ class _InventoryManagementPageState
             _currentSort = null;
           } else {
             _currentSort = option;
-            _sortAscending = option == _SortOption.nameAsc ||
-                option == _SortOption.priceAsc ||
-                option == _SortOption.stockAsc;
           }
         });
         Navigator.pop(context);
@@ -605,12 +594,31 @@ class _InventoryManagementPageState
   }
 }
 
-enum _SortOption {
-  nameAsc,
-  nameDesc,
-  priceAsc,
-  priceDesc,
-  stockAsc,
-  stockDesc,
-  valueDesc,
+/// Client-side sort options for inventory list
+/// Note: Server RPC does not support sorting, so this is handled locally
+enum _SortField { name, price, stock, value }
+
+enum _SortDirection { asc, desc }
+
+class _SortOption {
+  final _SortField field;
+  final _SortDirection direction;
+
+  const _SortOption(this.field, this.direction);
+
+  static const nameAsc = _SortOption(_SortField.name, _SortDirection.asc);
+  static const nameDesc = _SortOption(_SortField.name, _SortDirection.desc);
+  static const priceAsc = _SortOption(_SortField.price, _SortDirection.asc);
+  static const priceDesc = _SortOption(_SortField.price, _SortDirection.desc);
+  static const stockAsc = _SortOption(_SortField.stock, _SortDirection.asc);
+  static const stockDesc = _SortOption(_SortField.stock, _SortDirection.desc);
+  static const valueDesc = _SortOption(_SortField.value, _SortDirection.desc);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _SortOption && field == other.field && direction == other.direction;
+
+  @override
+  int get hashCode => field.hashCode ^ direction.hashCode;
 }

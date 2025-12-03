@@ -23,9 +23,10 @@ import '../../../sale_product/presentation/providers/cart_provider.dart';
 import '../../../sale_product/presentation/providers/sales_product_provider.dart';
 import '../../../sale_product/presentation/widgets/common/product_image_widget.dart';
 // Feature imports - sales_invoice
-import '../../data/models/exchange_rate_data_model.dart';
-import '../../domain/entities/exchange_rate_data.dart' as entities;
+import '../../domain/entities/exchange_rate_data.dart';
 import '../../domain/repositories/product_repository.dart';
+import '../extensions/cash_location_extension.dart';
+import '../helpers/exchange_rate_helper.dart';
 import '../providers/payment_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/states/payment_method_state.dart';
@@ -52,7 +53,7 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   // Exchange rate data (strongly typed)
-  entities.ExchangeRateData? _exchangeRateData;
+  ExchangeRateData? _exchangeRateData;
 
   @override
   void initState() {
@@ -75,9 +76,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           await ref.read(exchangeRatesProvider(companyId).future);
       if (mounted) {
         setState(() {
-          if (exchangeRatesJson != null) {
-            _exchangeRateData = ExchangeRateDataModel(exchangeRatesJson).toEntity();
-          }
+          _exchangeRateData = ExchangeRateHelper.fromJson(exchangeRatesJson);
         });
       }
     } catch (e) {
@@ -668,24 +667,27 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space5),
-          decoration: BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: TossColors.primary),
-              const SizedBox(height: TossSpacing.space3),
-              Text(
-                'Creating invoice...',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray700,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: TossColors.primary),
+                const SizedBox(height: TossSpacing.space3),
+                Text(
+                  'Creating invoice...',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

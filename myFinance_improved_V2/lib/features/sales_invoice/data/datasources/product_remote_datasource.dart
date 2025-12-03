@@ -171,7 +171,7 @@ class ProductRemoteDataSource {
     }
   }
 
-  /// Create invoice
+  /// Create invoice using inventory_create_invoice_v3
   Future<Map<String, dynamic>> createInvoice({
     required String companyId,
     required String storeId,
@@ -189,21 +189,19 @@ class ProductRemoteDataSource {
       // Get user's local timezone (IANA format)
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      // Format local time as string for p_time parameter
-      final localTime = DateTime.now();
-      final localTimeStr = '${localTime.year}-${localTime.month.toString().padLeft(2, '0')}-${localTime.day.toString().padLeft(2, '0')} '
-          '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}:${localTime.second.toString().padLeft(2, '0')}';
+      // Format sale_date as timestamptz with local timezone offset
+      // e.g., "2025-12-03T18:47:56+07:00"
+      final saleDateWithOffset = DateTimeUtils.toLocalWithOffset(saleDate);
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_create_invoice_v2',
+        'inventory_create_invoice_v3',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
           'p_created_by': userId,
-          'p_sale_date': saleDate.toIso8601String(),
+          'p_sale_date': saleDateWithOffset,
           'p_items': items.map((item) => item.toJson()).toList(),
           'p_payment_method': paymentMethod,
-          'p_time': localTimeStr,
           'p_timezone': timezone,
           if (discountAmount != null) 'p_discount_amount': discountAmount,
           if (taxRate != null) 'p_tax_rate': taxRate,
