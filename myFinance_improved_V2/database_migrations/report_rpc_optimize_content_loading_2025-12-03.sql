@@ -1,21 +1,24 @@
--- Migration: Fix UUID validation in report_get_user_received_reports
--- Date: 2025-11-24
--- Issue: Invalid subscription_id values like "test-cash-location-001" cause UUID conversion errors
+-- ============================================================================
+-- Migration: Optimize Report Content Loading
+-- Date: 2025-12-03
+-- Description:
+--   1. 목록 조회 시 content 제외 (가벼운 쿼리)
+--   2. 상세 조회용 RPC 추가 (session_id로 content만 가져오기)
+-- ============================================================================
 
--- Drop old function if exists
-DROP FUNCTION IF EXISTS public.report_get_user_received_reports(uuid, uuid, integer, integer);
-
--- Create updated function with UUID validation
+-- ============================================================================
+-- 1. 기존 RPC 수정: content 제외
+-- ============================================================================
 CREATE OR REPLACE FUNCTION public.report_get_user_received_reports(
   p_user_id uuid,
-  p_company_id uuid DEFAULT NULL,
+  p_company_id uuid DEFAULT NULL::uuid,
   p_limit integer DEFAULT 50,
   p_offset integer DEFAULT 0
 )
 RETURNS TABLE(
   notification_id uuid,
   title text,
-  body text,
+  body text,  -- body는 빈 문자열로 반환 (호환성 유지)
   is_read boolean,
   sent_at timestamp with time zone,
   created_at timestamp with time zone,
@@ -42,18 +45,17 @@ RETURNS TABLE(
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$
+AS $function$
 BEGIN
   RETURN QUERY
   SELECT
     n.id as notification_id,
     n.title,
-    COALESCE(rgs.content, n.body) as body,
+    ''::text as body,  -- ✅ content를 제외하고 빈 문자열 반환 (목록용)
     n.is_read,
     n.sent_at,
     n.created_at,
     (n.data->>'report_date')::date as report_date,
-    -- ✅ UUID 변환 실패 시 NULL 반환 (정규식으로 UUID 형식 검증)
     CASE
       WHEN n.data->>'session_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
       THEN (n.data->>'session_id')::uuid
@@ -116,9 +118,60 @@ BEGIN
   LIMIT p_limit
   OFFSET p_offset;
 END;
-$$;
+$function$;
 
--- Grant execute permission
-GRANT EXECUTE ON FUNCTION public.report_get_user_received_reports(uuid, uuid, integer, integer) TO authenticated;
+-- ============================================================================
+-- 2. 새 RPC 생성: session_id로 content 가져오기
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.report_get_session_content(
+  p_session_id uuid,
+  p_user_id uuid  -- 보안: 해당 유저만 접근 가능하도록
+)
+RETURNS TABLE(
+  session_id uuid,
+  template_id uuid,
+  template_code character varying,
+  report_date date,
+  content text,
+  status character varying,
+  error_message text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $function$
+BEGIN
+  -- 보안 체크: 해당 유저가 접근 권한이 있는지 확인
+  -- (notification을 통해 session에 접근 권한이 있는지 확인)
+  IF NOT EXISTS (
+    SELECT 1
+    FROM notifications n
+    WHERE n.user_id = p_user_id
+      AND n.category = 'report'
+      AND n.data->>'session_id' = p_session_id::text
+  ) THEN
+    RAISE EXCEPTION 'Access denied: User does not have permission to access this session';
+  END IF;
 
-COMMENT ON FUNCTION public.report_get_user_received_reports IS 'Get user received reports with UUID validation to handle invalid test data';
+  RETURN QUERY
+  SELECT
+    rgs.session_id,
+    rgs.template_id,
+    rt.template_code,
+    rgs.report_date,
+    rgs.content,
+    rgs.status,
+    rgs.error_message
+  FROM report_generation_sessions rgs
+  LEFT JOIN report_templates rt ON rt.template_id = rgs.template_id
+  WHERE rgs.session_id = p_session_id;
+END;
+$function$;
+
+-- ============================================================================
+-- 주석
+-- ============================================================================
+COMMENT ON FUNCTION public.report_get_user_received_reports IS
+'리포트 목록 조회용 - content를 제외하고 메타데이터만 반환 (성능 최적화)';
+
+COMMENT ON FUNCTION public.report_get_session_content IS
+'리포트 상세 조회용 - session_id로 content만 가져오기 (보안 체크 포함)';

@@ -1,6 +1,7 @@
 // lib/features/report_control/presentation/providers/report_notifier.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/report_repository.dart';
 import 'report_state.dart';
 
@@ -329,5 +330,31 @@ class ReportNotifier extends StateNotifier<ReportState> {
       startDate: null,
       endDate: null,
     );
+  }
+
+  /// Get session content by session_id
+  ///
+  /// 리포트 클릭 시 호출되어 content를 가져옴
+  Future<String> getSessionContent({
+    required String sessionId,
+  }) async {
+    // userId는 현재 로그인한 유저의 ID를 사용해야 함
+    // 이 부분은 AuthProvider나 다른 방법으로 가져와야 할 수 있습니다
+    // 임시로 여기서는 repository를 직접 호출
+    final userId = await _getUserId();
+
+    return await _repository.getSessionContent(
+      sessionId: sessionId,
+      userId: userId,
+    );
+  }
+
+  /// Get current user ID from Supabase Auth
+  Future<String> _getUserId() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+    return user.id;
   }
 }
