@@ -72,8 +72,9 @@ export class Invoice {
   }
 
   /**
-   * Get formatted date
+   * Get formatted date with time
    * Note: invoiceDate is already converted to local timezone in InvoiceModel
+   * Format: "2025. 10. 25. 14:30"
    */
   get formattedDate(): string {
     if (!this.invoiceDate) {
@@ -84,12 +85,21 @@ export class Invoice {
       // invoiceDate is already in local timezone, just parse and format
       const localDate = new Date(this.invoiceDate);
 
-      // Format using Korean locale: "2025. 10. 25."
-      return localDate.toLocaleDateString('ko-KR', {
+      // Format date part using Korean locale: "2025. 10. 25."
+      const datePart = localDate.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
       });
+
+      // Format time part: "14:30"
+      const timePart = localDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      return `${datePart} ${timePart}`;
     } catch (error) {
       console.error('Error formatting date:', this.invoiceDate, error);
       return 'Invalid Date';

@@ -28,14 +28,3 @@ class SalesProductState with _$SalesProductState {
   /// Check if more pages can be loaded
   bool get canLoadMore => hasNextPage && !isLoadingMore;
 }
-
-/// Cart State - UI state for shopping cart
-///
-/// Simple cart management without business logic.
-@freezed
-class CartState with _$CartState {
-  const factory CartState({
-    @Default(false) bool isProcessing,
-    String? errorMessage,
-  }) = _CartState;
-}

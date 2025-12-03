@@ -44,6 +44,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   const [refundTargetInvoiceId, setRefundTargetInvoiceId] = useState<string | null>(null);
   const [refundProcessing, setRefundProcessing] = useState(false);
 
+  // Bulk refund confirmation modal state
+  const [bulkRefundModalOpen, setBulkRefundModalOpen] = useState(false);
+
   // Get all state and actions from useInvoice hook (which wraps Zustand store)
   const {
     invoices,
@@ -57,6 +60,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     invoiceDetail,
     detailLoading,
     refunding,
+    refundInvoices,
     setSelectedStoreId: setInvoiceStoreId,
     changeDateRange,
     changePage,
@@ -65,7 +69,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   } = useInvoice(companyId);
 
   // Get refund hook for handling refund operations
-  const { refundInvoicesWithJournal } = useRefundInvoice();
+  const { refundInvoicesWithJournal } = useRefundInvoice(refundInvoices);
 
   // Sync App State's currentStore to Invoice provider on mount and when currentStore changes
   useEffect(() => {
@@ -140,9 +144,36 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
     return invoice?.status === 'cancelled';
   });
 
-  // Handle bulk refund from header
-  const handleBulkRefund = async () => {
+  // Open bulk refund confirmation modal
+  const handleBulkRefund = () => {
+    if (selectedInvoices.size === 0) return;
+    setBulkRefundModalOpen(true);
+  };
+
+  // Close bulk refund modal
+  const handleCloseBulkRefundModal = () => {
+    setBulkRefundModalOpen(false);
+  };
+
+  // Calculate selected invoices totals
+  const selectedInvoicesData = Array.from(selectedInvoices).map(id =>
+    invoices.find(inv => inv.invoiceId === id)
+  ).filter(Boolean);
+
+  const bulkRefundTotalAmount = selectedInvoicesData.reduce(
+    (sum, inv) => sum + (inv?.totalAmount || 0), 0
+  );
+  const bulkRefundTotalCost = selectedInvoicesData.reduce(
+    (sum, inv) => sum + (inv?.totalCost || 0), 0
+  );
+
+  // Execute bulk refund after confirmation
+  const handleConfirmBulkRefund = async () => {
     if (!currentUser?.user_id || !companyId || selectedInvoices.size === 0) return;
+
+    // Close modal first, then show loading overlay
+    handleCloseBulkRefundModal();
+    setRefundProcessing(true);
 
     try {
       const invoiceIdsArray = Array.from(selectedInvoices);
@@ -155,12 +186,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
       });
 
       if (result.success) {
+        await refresh(companyId);
         showSuccess({
           message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}. Total amount: ${invoices[0]?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
           autoCloseDuration: 3000
         });
         setSelectedInvoices(new Set());
-        refresh();
       } else {
         showError({
           title: 'Refund Failed',
@@ -172,6 +203,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
         title: 'Refund Error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred'
       });
+    } finally {
+      setRefundProcessing(false);
     }
   };
 
@@ -191,7 +224,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
   const handleConfirmRefund = async () => {
     if (!currentUser?.user_id || !companyId || !refundTargetInvoiceId) return;
 
+    // Close modal first, then show loading overlay
+    handleCloseRefundModal();
     setRefundProcessing(true);
+
     try {
       const result = await refundInvoicesWithJournal({
         invoiceIds: [refundTargetInvoiceId],
@@ -203,13 +239,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
 
       if (result.success) {
         const refundedInvoice = invoices.find(inv => inv.invoiceId === refundTargetInvoiceId);
+        await refresh(companyId);
         showSuccess({
           message: `Successfully refunded invoice. Amount: ${refundedInvoice?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
           autoCloseDuration: 3000
         });
         setExpandedInvoiceId(null);
-        handleCloseRefundModal();
-        refresh();
       } else {
         showError({
           title: 'Refund Failed',
@@ -443,6 +478,65 @@ export const InvoicePage: React.FC<InvoicePageProps> = () => {
           </div>
         )}
       </ConfirmModal>
+
+      {/* Bulk Refund Confirmation Modal */}
+      <ConfirmModal
+        isOpen={bulkRefundModalOpen}
+        onClose={handleCloseBulkRefundModal}
+        onConfirm={handleConfirmBulkRefund}
+        variant="warning"
+        title="Confirm Bulk Refund"
+        message={`Are you sure you want to refund ${selectedInvoices.size} invoice${selectedInvoices.size > 1 ? 's' : ''}? This action will reverse the sales and restore inventory.`}
+        confirmText="Refund All"
+        cancelText="Cancel"
+        confirmButtonVariant="error"
+        isLoading={refundProcessing}
+        width="450px"
+        closeOnBackdropClick={true}
+      >
+        {selectedInvoices.size > 0 && (
+          <div style={{ padding: '16px 0', borderTop: '1px solid #E9ECEF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: '#6C757D', fontSize: '14px' }}>Selected Invoices</span>
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
+                {selectedInvoices.size}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: '#6C757D', fontSize: '14px' }}>Total Refund Amount</span>
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#DC3545' }}>
+                {invoices[0]?.formatCurrency(bulkRefundTotalAmount) || bulkRefundTotalAmount}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#6C757D', fontSize: '14px' }}>Total Cost</span>
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
+                {invoices[0]?.formatCurrency(bulkRefundTotalCost) || bulkRefundTotalCost}
+              </span>
+            </div>
+          </div>
+        )}
+      </ConfirmModal>
+
+      {/* Refund Processing Overlay */}
+      {refundProcessing && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <LoadingAnimation size="large" />
+        </div>
+      )}
     </>
   );
 };

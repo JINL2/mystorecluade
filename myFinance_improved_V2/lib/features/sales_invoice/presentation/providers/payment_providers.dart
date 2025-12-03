@@ -100,30 +100,6 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     }
   }
 
-  // Update selected cash location
-  void updateCashLocation(CashLocation location) {
-    state = state.copyWith(selectedCashLocation: location);
-  }
-
-  // Update selected currency
-  void updateCurrency(PaymentCurrency currency) {
-    state = state.copyWith(
-      selectedCurrency: currency,
-      focusedCurrencyId: currency.currencyId,
-    );
-  }
-
-  // Update currency amount
-  void updateCurrencyAmount(String currencyId, double amount) {
-    final updatedAmounts = Map<String, double>.from(state.currencyAmounts);
-    if (amount > 0) {
-      updatedAmounts[currencyId] = amount;
-    } else {
-      updatedAmounts.remove(currencyId);
-    }
-    state = state.copyWith(currencyAmounts: updatedAmounts);
-  }
-
   // Set focused currency for input
   void setFocusedCurrency(String? currencyId) {
     state = state.copyWith(focusedCurrencyId: currencyId);
@@ -142,11 +118,6 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       currencyAmounts: const {},
       focusedCurrencyId: null,
     );
-  }
-
-  // Select a payment currency
-  void selectCurrency(PaymentCurrency? currency) {
-    state = state.copyWith(selectedCurrency: currency);
   }
 
   // Clear selections

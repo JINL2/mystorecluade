@@ -40,6 +40,8 @@ export const useInventory = () => {
   const isModalOpen = useInventoryStore((state) => state.isModalOpen);
   const selectedProductData = useInventoryStore((state) => state.selectedProductData);
   const isAddProductModalOpen = useInventoryStore((state) => state.isAddProductModalOpen);
+  const isDeleteConfirmModalOpen = useInventoryStore((state) => state.isDeleteConfirmModalOpen);
+  const productsToDelete = useInventoryStore((state) => state.productsToDelete);
 
   // Loading/Error State
   const loading = useInventoryStore((state) => state.loading);
@@ -72,6 +74,9 @@ export const useInventory = () => {
   const openAddProductModal = useInventoryStore((state) => state.openAddProductModal);
   const closeAddProductModal = useInventoryStore((state) => state.closeAddProductModal);
 
+  const openDeleteConfirmModal = useInventoryStore((state) => state.openDeleteConfirmModal);
+  const closeDeleteConfirmModal = useInventoryStore((state) => state.closeDeleteConfirmModal);
+
   const showNotification = useInventoryStore((state) => state.showNotification);
   const hideNotification = useInventoryStore((state) => state.hideNotification);
 
@@ -87,6 +92,7 @@ export const useInventory = () => {
   const updateProduct = useInventoryStore((state) => state.updateProduct);
   const importExcel = useInventoryStore((state) => state.importExcel);
   const moveProduct = useInventoryStore((state) => state.moveProduct);
+  const deleteProducts = useInventoryStore((state) => state.deleteProducts);
   const refresh = useInventoryStore((state) => state.refresh);
 
   // ============================================
@@ -109,6 +115,8 @@ export const useInventory = () => {
     isModalOpen,
     selectedProductData,
     isAddProductModalOpen,
+    isDeleteConfirmModalOpen,
+    productsToDelete,
     loading,
     error,
     notification,
@@ -130,6 +138,8 @@ export const useInventory = () => {
     closeModal,
     openAddProductModal,
     closeAddProductModal,
+    openDeleteConfirmModal,
+    closeDeleteConfirmModal,
     showNotification,
     hideNotification,
     setLoading,

@@ -38,8 +38,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               />
             </th>
             <th>Invoice #</th>
-            <th>Date</th>
-            <th>Customer</th>
+            <th style={{ textAlign: 'center' }}>Time</th>
             <th>Items</th>
             <th style={{ textAlign: 'center' }}>Payment</th>
             <th>Total</th>
@@ -49,7 +48,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
         <tbody>
           {invoices.length === 0 ? (
             <tr>
-              <td colSpan={8} className={styles.emptyStateCell}>
+              <td colSpan={7} className={styles.emptyStateCell}>
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ADB5BD" strokeWidth="1.5">
@@ -86,14 +85,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                     />
                   </td>
                   <td className={styles.invoiceNumber}>{invoice.invoiceNumber}</td>
-                  <td className={styles.invoiceDate}>{invoice.formattedDate}</td>
-                  <td className={styles.customerCell}>
-                    {invoice.customerName}
-                  </td>
-                  <td className={styles.itemsCell}>
-                    <div className={styles.itemCount}>{invoice.itemCount} items</div>
-                    <div className={styles.itemQty}>Qty: {invoice.totalQuantity}</div>
-                  </td>
+                  <td className={styles.invoiceDate} style={{ textAlign: 'center' }}>{invoice.formattedDate}</td>
+                  <td className={styles.itemsCell}>{invoice.itemCount} items</td>
                   <td className={styles.paymentCell}>
                     <span className={`${styles.paymentBadge} ${styles[invoice.paymentBadgeClass]}`}>
                       {invoice.paymentMethodDisplay}
@@ -112,7 +105,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 {/* Expanded Detail Row */}
                 {expandedInvoiceId === invoice.invoiceId && (
                   <tr className={styles.detailRow}>
-                    <td colSpan={8}>
+                    <td colSpan={7}>
                       <div className={styles.detailContent}>
                         {detailLoading ? (
                           <div className={styles.detailLoading}>

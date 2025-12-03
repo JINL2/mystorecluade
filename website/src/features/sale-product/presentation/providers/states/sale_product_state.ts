@@ -17,6 +17,7 @@ export interface SaleProductState {
   // Cart State
   cartItems: CartItem[];
   subtotal: number;
+  totalCost: number;
 
   // Discount State
   discountType: DiscountType;

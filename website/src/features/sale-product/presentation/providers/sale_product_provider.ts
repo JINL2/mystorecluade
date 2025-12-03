@@ -22,6 +22,7 @@ function calculateTotals(
   discountValue: number
 ) {
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const totalCost = items.reduce((sum, item) => sum + item.totalCost, 0);
 
   const discountAmount =
     discountType === 'percent'
@@ -30,7 +31,7 @@ function calculateTotals(
 
   const total = Math.max(0, subtotal - discountAmount);
 
-  return { subtotal, discountAmount, total };
+  return { subtotal, totalCost, discountAmount, total };
 }
 
 export const useSaleProductStore = create<SaleProductState>((set, get) => ({
@@ -39,6 +40,7 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
   // ============================================
   cartItems: [],
   subtotal: 0,
+  totalCost: 0,
   discountType: 'amount',
   discountValue: 0,
   discountAmount: 0,
@@ -76,6 +78,7 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
           product.sku,
           product.name,
           product.sellingPrice,
+          product.costPrice,
           1
         );
         newItems = [...state.cartItems, newItem];
@@ -146,6 +149,7 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
     set({
       cartItems: [],
       subtotal: 0,
+      totalCost: 0,
       discountAmount: 0,
       total: 0,
     });
@@ -300,6 +304,7 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
         set({
           cartItems: [],
           subtotal: 0,
+          totalCost: 0,
           discountType: 'amount',
           discountValue: 0,
           discountAmount: 0,
@@ -336,6 +341,7 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
     set({
       cartItems: [],
       subtotal: 0,
+      totalCost: 0,
       discountType: 'amount',
       discountValue: 0,
       discountAmount: 0,

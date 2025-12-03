@@ -24,6 +24,7 @@ import { AddProductModal } from '@/shared/components/modals/AddProductModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
 import { InventoryHeader } from '../../components/InventoryHeader';
 import { InventoryTableSection } from '../../components/InventoryTableSection';
@@ -51,6 +52,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     isModalOpen,
     selectedProductData,
     isAddProductModalOpen,
+    isDeleteConfirmModalOpen,
+    productsToDelete,
     loading,
     error,
     notification,
@@ -69,6 +72,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     closeModal,
     openAddProductModal,
     closeAddProductModal,
+    openDeleteConfirmModal,
+    closeDeleteConfirmModal,
     showNotification,
     hideNotification,
     loadBaseCurrency,
@@ -204,10 +209,12 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     inventory,
     filteredAndSortedInventory,
     currencySymbol,
+    selectedProducts,
     toggleProductSelection,
     clearSelection,
     openModal,
     openAddProductModal,
+    openDeleteConfirmModal,
     showNotification,
     statusStyles: {
       statusOutOfStock: styles.statusOutOfStock,
@@ -614,6 +621,100 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
 
       {/* Import Loading Overlay - Only LoadingAnimation */}
       {isImporting && <LoadingAnimation size="large" fullscreen={true} />}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteConfirmModalOpen}
+        onClose={closeDeleteConfirmModal}
+        onConfirm={() => {
+          // TODO: Implement actual delete RPC call
+          showNotification('info', 'Delete functionality will be implemented soon');
+          closeDeleteConfirmModal();
+        }}
+        variant="error"
+        title="Delete Products"
+        message={`Are you sure you want to delete ${productsToDelete.length} product${productsToDelete.length > 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonVariant="error"
+        width="550px"
+        zIndex={10000}
+      >
+        {/* Product List */}
+        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+          {productsToDelete.map((product, index) => (
+            <div
+              key={product.productId}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px',
+                borderBottom: index < productsToDelete.length - 1 ? '1px solid #f0f0f0' : 'none',
+                gap: '12px',
+              }}
+            >
+              {/* Product Image */}
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  backgroundColor: '#f5f5f5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {product.imageUrls && product.imageUrls.length > 0 ? (
+                  <img
+                    src={product.imageUrls[0]}
+                    alt={product.productName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ccc">
+                    <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5Z" />
+                  </svg>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#191f28',
+                    marginBottom: '4px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {product.productName}
+                </div>
+                <div style={{ fontSize: '12px', color: '#8b95a1' }}>
+                  SKU: {product.sku || 'N/A'} • Stock: {product.currentStock}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#191f28',
+                  flexShrink: 0,
+                }}
+              >
+                {currencySymbol}{product.unitPrice.toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ConfirmModal>
     </>
   );
 };

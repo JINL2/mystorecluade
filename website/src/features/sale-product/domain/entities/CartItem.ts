@@ -9,11 +9,16 @@ export class CartItem {
     public readonly sku: string,
     public readonly productName: string,
     public quantity: number,
-    public readonly unitPrice: number
+    public readonly unitPrice: number,
+    public readonly costPrice: number
   ) {}
 
   get totalPrice(): number {
     return this.quantity * this.unitPrice;
+  }
+
+  get totalCost(): number {
+    return this.quantity * this.costPrice;
   }
 
   incrementQuantity(): CartItem {
@@ -22,7 +27,8 @@ export class CartItem {
       this.sku,
       this.productName,
       this.quantity + 1,
-      this.unitPrice
+      this.unitPrice,
+      this.costPrice
     );
   }
 
@@ -35,7 +41,8 @@ export class CartItem {
       this.sku,
       this.productName,
       this.quantity - 1,
-      this.unitPrice
+      this.unitPrice,
+      this.costPrice
     );
   }
 
@@ -48,7 +55,8 @@ export class CartItem {
       this.sku,
       this.productName,
       newQuantity,
-      this.unitPrice
+      this.unitPrice,
+      this.costPrice
     );
   }
 
@@ -57,8 +65,9 @@ export class CartItem {
     sku: string,
     productName: string,
     unitPrice: number,
+    costPrice: number,
     quantity: number = 1
   ): CartItem {
-    return new CartItem(productId, sku, productName, quantity, unitPrice);
+    return new CartItem(productId, sku, productName, quantity, unitPrice, costPrice);
   }
 }

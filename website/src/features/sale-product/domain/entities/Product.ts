@@ -13,6 +13,7 @@ export class Product {
     public readonly unit: string,
     public readonly imageUrls: string[],
     public readonly sellingPrice: number,
+    public readonly costPrice: number,
     public readonly quantityAvailable: number
   ) {}
 
@@ -33,6 +34,7 @@ export class Product {
     unit: string;
     imageUrls: string[];
     sellingPrice: number;
+    costPrice: number;
     quantityAvailable: number;
   }): Product {
     return new Product(
@@ -44,6 +46,7 @@ export class Product {
       data.unit,
       data.imageUrls,
       data.sellingPrice,
+      data.costPrice,
       data.quantityAvailable
     );
   }
