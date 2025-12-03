@@ -7,7 +7,6 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/manager_overview.dart';
 import '../../../domain/usecases/get_manager_overview.dart';
 import '../states/time_table_state.dart';
@@ -110,9 +109,7 @@ final managerOverviewProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerOverviewUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  // Use user's timezone from appState, fallback to device timezone (not UTC)
-  final timezone = (appState.user['timezone'] as String?) ??
-      DateTimeUtils.getLocalTimezone();
+  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
 
   return ManagerOverviewNotifier(useCase, companyId, storeId, timezone);
 });

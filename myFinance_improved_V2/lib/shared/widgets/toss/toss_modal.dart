@@ -230,7 +230,7 @@ class _TossModalState extends State<TossModal>
                     padding: const EdgeInsets.only(top: TossSpacing.space1),
                     child: Text(
                       widget.subtitle!,
-                      style: TossTextStyles.bodySmall.copyWith(
+                      style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray600,
                       ),
                     ),

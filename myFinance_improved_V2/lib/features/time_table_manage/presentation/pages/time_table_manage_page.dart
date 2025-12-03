@@ -8,11 +8,13 @@ import 'package:uuid/uuid.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../../domain/entities/manager_overview.dart';
@@ -20,9 +22,11 @@ import '../../domain/entities/shift_card.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
-import '../widgets/common/animated_tab_bar.dart';
 import '../widgets/manage/manage_tab_view.dart';
+import '../widgets/overview/overview_tab.dart';
 import '../widgets/schedule/schedule_tab_content.dart';
+import '../widgets/timesheets/timesheets_tab.dart';
+import 'shift_stats_tab.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   final dynamic feature;
@@ -99,14 +103,18 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 0); // Changed to 4 tabs, default to Overview
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         HapticFeedback.selectionClick();
-        // Fetch overview data when switching to Manage tab
+        // Fetch overview data when switching to Overview tab
         if (_tabController.index == 0 && selectedStoreId != null) {
           fetchManagerOverview();
           fetchManagerCards();
+        }
+        // Fetch data when switching to Schedule tab
+        if (_tabController.index == 1 && selectedStoreId != null) {
+          fetchMonthlyShiftStatus();
         }
       }
     });
@@ -197,41 +205,35 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         child: Column(
           children: [
             // Tab Bar
-            AnimatedTabBar(
+            TossTabBar1(
               controller: _tabController,
-              tabs: const ['Manage', 'Schedule'],
+              tabs: const ['Overview', 'Schedule', 'Timesheets', 'Stats'],
             ),
             // Tab Content
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  ManageTabView(
-                    manageSelectedDate: manageSelectedDate,
-                    selectedFilter: selectedFilter,
-                    isLoadingOverview: isLoadingOverview,
-                    isLoadingCards: isLoadingCards,
-                    managerOverviewDataByMonth: managerOverviewDataByMonth,
-                    managerCardsDataByMonth: managerCardsDataByMonth,
-                    onFilterChanged: (filter) {
-                      setState(() {
-                        selectedFilter = filter;
-                      });
-                      fetchManagerCards();
+                  // Overview Tab - New Design
+                  OverviewTab(
+                    selectedStoreId: selectedStoreId,
+                    onStoreSelectorTap: () {
+                      final appState = ref.read(appStateProvider);
+                      final userData = appState.user;
+                      final companies = (userData['companies'] as List<dynamic>?) ?? [];
+                      Map<String, dynamic>? selectedCompany;
+                      if (companies.isNotEmpty) {
+                        try {
+                          selectedCompany = companies.firstWhere(
+                            (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
+                          ) as Map<String, dynamic>;
+                        } catch (e) {
+                          selectedCompany = companies.first as Map<String, dynamic>;
+                        }
+                      }
+                      final stores = (selectedCompany?['stores'] as List<dynamic>?) ?? [];
+                      _showStoreSelector(stores);
                     },
-                    onDateChanged: (date) async {
-                      setState(() {
-                        manageSelectedDate = date;
-                      });
-                      await fetchManagerOverview(forDate: date);
-                      await fetchManagerCards(forDate: date);
-                    },
-                    onMonthChanged: (month) async {
-                      await fetchManagerOverview(forDate: month);
-                      await fetchManagerCards(forDate: month);
-                    },
-                    onCardTap: _showShiftDetailsBottomSheet,
-                    getMonthName: _getMonthName,
                   ),
                   ScheduleTabContent(
                     selectedStoreId: selectedStoreId,
@@ -292,6 +294,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       _showStoreSelector(stores);
                     },
                   ),
+                  // Timesheets Tab
+                  const TimesheetsTab(),
+                  // Stats Tab
+                  const ShiftStatsTab(),
                 ],
               ),
             ),
@@ -336,10 +342,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   
   // ✅ Refactored: Use monthlyShiftStatusProvider
   Future<void> fetchMonthlyShiftStatus({DateTime? forDate, bool forceRefresh = false}) async {
-    if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) {
+      print('⚠️ [fetchMonthlyShiftStatus] No store ID selected');
+      return;
+    }
 
     // Use provided date or selected date
     final targetDate = forDate ?? selectedDate;
+    print('🔄 [fetchMonthlyShiftStatus] Loading month data for: ${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}, store: $selectedStoreId, forceRefresh: $forceRefresh');
 
     // Load data via Provider - Provider handles caching internally
     await ref.read(monthlyShiftStatusProvider(selectedStoreId!).notifier).loadMonth(
@@ -349,7 +359,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
     // Preload profile images after data is loaded
     final state = ref.read(monthlyShiftStatusProvider(selectedStoreId!));
+    print('✅ [fetchMonthlyShiftStatus] Loaded ${state.allMonthlyStatuses.length} monthly statuses');
     final allDailyShifts = state.allMonthlyStatuses.expand((status) => status.dailyShifts).toList();
+    print('   📊 Total daily shifts: ${allDailyShifts.length}');
     _preloadProfileImages(allDailyShifts);
   }
   

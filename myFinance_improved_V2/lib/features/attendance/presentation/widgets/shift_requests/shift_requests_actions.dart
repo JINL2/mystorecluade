@@ -212,7 +212,6 @@ class ShiftRequestsActions {
       title: 'Applied Users',
       items: items,
       showSubtitle: true,
-      subtitlePosition: 'right',
       borderBottomWidth: 0,
       onItemSelected: (item) {
         // Optional: Navigate to user profile or show more details

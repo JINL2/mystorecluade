@@ -48,7 +48,6 @@ class ManageTabView extends ConsumerWidget {
   String _getMonthlyStatValue(String statKey) {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final overview = managerOverviewDataByMonth[monthKey];
-    final cards = managerCardsDataByMonth[monthKey];
 
     if (overview == null) {
       return '0';
@@ -59,8 +58,7 @@ class ManageTabView extends ConsumerWidget {
       case 'total_requests':
         return overview.totalShifts.toString();
       case 'total_problems':
-        // Use client-side filtered problemCount (unsolved problems only)
-        return (cards?.problemCount ?? 0).toString();
+        return (overview.additionalStats['total_problems'] ?? 0).toString();
       case 'total_approved':
         return overview.totalApprovedRequests.toString();
       case 'total_pending':
@@ -90,7 +88,7 @@ class ManageTabView extends ConsumerWidget {
     bool hasProblem = false;
 
     for (final card in dateCards) {
-      if (card.hasProblem && !card.isProblemSolved) {
+      if (card.hasProblem) {
         hasProblem = true;
       }
 
@@ -119,15 +117,9 @@ class ManageTabView extends ConsumerWidget {
     // First filter by selected date
     final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
 
-    // DEBUG: Log all card dates
-    print('🔍 ManageTab: selectedDateStr=$selectedDateStr');
-    print('🔍 ManageTab: All cards dates: ${monthData.cards.map((c) => c.shiftDate).toList()}');
-
     // Then apply status filter
     final filteredCards = monthData.filterByStatus(selectedFilter);
     final filteredByDate = filteredCards.where((card) => card.shiftDate == selectedDateStr).toList();
-
-    print('🔍 ManageTab: filteredByDate count=${filteredByDate.length}');
 
     // Return ShiftCard entities directly
     return filteredByDate;
@@ -154,7 +146,7 @@ class ManageTabView extends ConsumerWidget {
 
       return {
         'shift_request_id': card.shiftRequestId,
-        'shift_date': card.shiftDate,
+        'request_date': card.shiftDate,
         'is_approved': card.isApproved,
         'is_problem': card.hasProblem,
         'is_problem_solved': card.isProblemSolved,
@@ -206,19 +198,19 @@ class ManageTabView extends ConsumerWidget {
 
     if (monthData != null) {
       for (final card in monthData.cards) {
-        final shiftDate = card.shiftDate;
-        final isProblem = card.hasProblem && !card.isProblemSolved;
+        final requestDate = card.shiftDate;
+        final isProblem = card.hasProblem;
         final isApproved = card.isApproved;
 
         // Priority: Problem > Pending > Approved
         if (isProblem) {
-          indicators[shiftDate] = TossCalendarIndicatorType.problem;
-        } else if (!isApproved && !indicators.containsKey(shiftDate)) {
+          indicators[requestDate] = TossCalendarIndicatorType.problem;
+        } else if (!isApproved && !indicators.containsKey(requestDate)) {
           // Only set pending if not already marked as problem
-          indicators[shiftDate] = TossCalendarIndicatorType.pending;
-        } else if (isApproved && !indicators.containsKey(shiftDate)) {
+          indicators[requestDate] = TossCalendarIndicatorType.pending;
+        } else if (isApproved && !indicators.containsKey(requestDate)) {
           // Only set approved if not already marked as problem or pending
-          indicators[shiftDate] = TossCalendarIndicatorType.approved;
+          indicators[requestDate] = TossCalendarIndicatorType.approved;
         }
       }
     }
@@ -262,292 +254,6 @@ class ManageTabView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Monthly Overview Section
-          Container(
-            margin: const EdgeInsets.all(TossSpacing.space5),
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            decoration: BoxDecoration(
-              color: TossColors.primarySurface,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  // Header
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$monthName ${manageSelectedDate.year}',
-                        style: TossTextStyles.h2.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Monthly Overview',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: TossSpacing.space5),
-                  // Stats Grid
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.45,
-                    mainAxisSpacing: TossSpacing.space3,
-                    crossAxisSpacing: TossSpacing.space3,
-                    children: [
-                      StatCardWidget(
-                        icon: Icons.calendar_today,
-                        iconColor: TossColors.primary,
-                        backgroundColor: TossColors.background,
-                        title: 'Total Request',
-                        value: _getMonthlyStatValue('total_requests'),
-                        subtitle: 'requests',
-                        onTap: () => onFilterChanged('all'),
-                        isSelected: selectedFilter == null || selectedFilter == 'all',
-                      ),
-                      StatCardWidget(
-                        icon: Icons.warning_amber_rounded,
-                        iconColor: TossColors.error,
-                        backgroundColor: TossColors.errorLight,
-                        title: 'Problem',
-                        value: _getMonthlyStatValue('total_problems'),
-                        subtitle: 'issues',
-                        onTap: () => onFilterChanged('problem'),
-                        isSelected: selectedFilter == 'problem',
-                      ),
-                      StatCardWidget(
-                        icon: Icons.check_circle,
-                        iconColor: TossColors.success,
-                        backgroundColor: TossColors.successLight,
-                        title: 'Total Approve',
-                        value: _getMonthlyStatValue('total_approved'),
-                        subtitle: 'approved',
-                        onTap: () => onFilterChanged('approved'),
-                        isSelected: selectedFilter == 'approved',
-                      ),
-                      StatCardWidget(
-                        icon: Icons.pending_actions,
-                        iconColor: TossColors.warning,
-                        backgroundColor: TossColors.warningLight,
-                        title: 'Pending',
-                        value: _getMonthlyStatValue('total_pending'),
-                        subtitle: 'pending',
-                        onTap: () => onFilterChanged('pending'),
-                        isSelected: selectedFilter == 'pending',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space5),
-
-          // This Week Schedule Section
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'This Week Schedule',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$monthName ${manageSelectedDate.year}',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // View Calendar Button
-                    InkWell(
-                      onTap: () async {
-                        HapticFeedback.selectionClick();
-                        await TossCalendarBottomSheet.show(
-                          context: context,
-                          initialDate: manageSelectedDate,
-                          displayMonth: manageSelectedDate,
-                          title: 'Select Date',
-                          dateIndicators: _buildDateIndicatorsForCalendar(),
-                          onDateSelected: (date) async {
-                            onDateChanged(date);
-                          },
-                          onMonthChanged: onMonthChanged,
-                          onGetIndicators: _buildDateIndicatorsForMonth,
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space3,
-                          vertical: TossSpacing.space2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_month,
-                              size: 18,
-                              color: TossColors.gray600,
-                            ),
-                            const SizedBox(width: TossSpacing.space1),
-                            Text(
-                              'View Calendar',
-                              style: TossTextStyles.bodySmall.copyWith(
-                                color: TossColors.gray600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: TossSpacing.space4),
-                // Week Days - 7 days with selected date in center
-                SizedBox(
-                  height: 100,
-                  child: Row(
-                    children: List.generate(7, (index) {
-                      final offset = index - 3;
-                      final date = manageSelectedDate.add(Duration(days: offset));
-                      final isSelected = index == 3;
-                      final today = DateTime.now();
-                      final isToday = date.day == today.day &&
-                          date.month == today.month &&
-                          date.year == today.year;
-
-                      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                      final dayName = dayNames[date.weekday % 7];
-
-                      final shiftStatus = _getDateShiftStatus(date);
-
-                      return Expanded(
-                        child: InkWell(
-                          onTap: () => onDateChanged(date),
-                          borderRadius: BorderRadius.circular(isSelected ? 20 : 12),
-                          child: Container(
-                            margin: EdgeInsets.symmetric(horizontal: index == 0 || index == 6 ? 0 : 2),
-                            decoration: BoxDecoration(
-                              color: isSelected ? TossColors.primary : TossColors.gray50,
-                              borderRadius: BorderRadius.circular(isSelected ? 20 : 12),
-                              border: isToday && !isSelected
-                                  ? Border.all(color: TossColors.primary.withValues(alpha: 0.3), width: 1)
-                                  : null,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  dayName,
-                                  style: TossTextStyles.caption.copyWith(
-                                    color: isSelected
-                                        ? TossColors.white.withValues(alpha: 0.8)
-                                        : TossColors.gray500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: TossSpacing.space2),
-                                Text(
-                                  '${date.day}',
-                                  style: TossTextStyles.h3.copyWith(
-                                    color: isSelected ? TossColors.white : TossColors.gray900,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: TossSpacing.space1),
-                                SizedBox(
-                                  height: 8,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (shiftStatus['hasProblem'] == true)
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                                          decoration: BoxDecoration(
-                                            color: isSelected ? TossColors.white : TossColors.error,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      if (shiftStatus['hasPending'] == true && shiftStatus['hasProblem'] != true)
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                                          decoration: BoxDecoration(
-                                            color: isSelected ? TossColors.white : TossColors.warning,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      if (shiftStatus['hasApproved'] == true && shiftStatus['hasProblem'] != true && shiftStatus['hasPending'] != true)
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                                          decoration: BoxDecoration(
-                                            color: isSelected ? TossColors.white : TossColors.success,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      if (shiftStatus['hasApproved'] != true && shiftStatus['hasPending'] != true && shiftStatus['hasProblem'] != true)
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? TossColors.white.withValues(alpha: 0.5)
-                                                : TossColors.gray300,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space5),
-
           // Shift Cards List
           if (isLoadingCards)
             Container(

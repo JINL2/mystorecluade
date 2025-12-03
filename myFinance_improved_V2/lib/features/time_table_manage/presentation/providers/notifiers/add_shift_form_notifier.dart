@@ -102,38 +102,28 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      // v4 RPC uses p_start_time and p_end_time (user's local timestamps)
-      // Combine selected date with shift start/end times
-      final selectedDate = state.selectedDate!;
-      final dateStr = DateTimeUtils.toDateOnly(selectedDate);
-
-      // Find selected shift to get start/end times
+      // Get the selected shift's start and end times
       final selectedShift = state.shifts.firstWhere(
-        (s) => s['shift_id'] == state.selectedShiftId,
+        (shift) => shift['shift_id'] == state.selectedShiftId,
       );
-      final shiftStartTime = selectedShift['start_time'] as String; // HH:mm
-      final shiftEndTime = selectedShift['end_time'] as String; // HH:mm
 
-      // Combine date with time: yyyy-MM-dd HH:mm:ss
-      final startTime = '$dateStr $shiftStartTime:00';
+      final startTime = selectedShift['start_time'] as String;
+      final endTime = selectedShift['end_time'] as String;
 
-      // Handle overnight shifts (end time < start time means next day)
-      String endTime;
-      if (shiftEndTime.compareTo(shiftStartTime) < 0) {
-        // Overnight shift - add 1 day to end date
-        final nextDate = selectedDate.add(const Duration(days: 1));
-        final nextDateStr = DateTimeUtils.toDateOnly(nextDate);
-        endTime = '$nextDateStr $shiftEndTime:00';
-      } else {
-        endTime = '$dateStr $shiftEndTime:00';
-      }
+      // Format selected date as "YYYY-MM-DD"
+      final selectedDate = state.selectedDate!;
+      final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+      // Combine date and time: "YYYY-MM-DD HH:mm"
+      final startTimeStr = '$dateStr $startTime';
+      final endTimeStr = '$dateStr $endTime';
 
       await _repository.insertSchedule(
         userId: state.selectedEmployeeId!,
         shiftId: state.selectedShiftId!,
         storeId: _storeId,
-        startTime: startTime,
-        endTime: endTime,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
         approvedBy: approvedBy,
         timezone: _timezone,
       );

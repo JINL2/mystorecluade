@@ -19,14 +19,14 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
   /// Create initial state from card data
   static ShiftDetailsFormState _createInitialState(ShiftCard card) {
     // Initialize with confirmed times - convert UTC to local time for display
-    final shiftDate = card.shiftDate;
+    final requestDate = card.shiftDate;
     final editedStartTime = ShiftTimeFormatter.formatTime(
       card.confirmedStartTime?.toIso8601String(),
-      shiftDate,
+      requestDate,
     );
     final editedEndTime = ShiftTimeFormatter.formatTime(
       card.confirmedEndTime?.toIso8601String(),
-      shiftDate,
+      requestDate,
     );
 
     // Initialize problem solved state

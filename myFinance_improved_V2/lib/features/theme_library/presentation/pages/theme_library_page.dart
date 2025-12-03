@@ -15,6 +15,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
 import 'package:myfinance_improved/shared/widgets/common/total_display_box.dart';
+import 'package:myfinance_improved/shared/widgets/common/avatar_stack_interact.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart' as toss_button;
@@ -825,6 +826,228 @@ class _ComponentsSectionState extends State<_ComponentsSection> {
               const EmployeeProfileAvatar(
                 name: 'Mike Chen',
                 size: 40,
+              ),
+            ],
+          ),
+        ),
+
+        // AvatarStackInteract
+        _ComponentShowcase(
+          name: 'AvatarStackInteract',
+          description: 'Interactive avatar stack with bottom sheet showing user list',
+          filename: 'avatar_stack_interact.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '3 Users:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const AvatarStackInteract(
+                users: [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                ],
+                title: 'Applied Users',
+                subtitle: 'Morning Shift - Downtown Store',
+                countTextFormat: '{count} applied',
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                '6 Users (+N indicator):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const AvatarStackInteract(
+                users: [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Manager',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Supervisor',
+                  ),
+                  AvatarUser(
+                    id: '4',
+                    name: 'Sarah Williams',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=44',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '5',
+                    name: 'David Brown',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+                    subtitle: 'Staff',
+                  ),
+                  AvatarUser(
+                    id: '6',
+                    name: 'Emily Davis',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=20',
+                    subtitle: 'Assistant Manager',
+                  ),
+                ],
+                title: 'Team Members',
+                subtitle: 'Click to view all team members',
+                countTextFormat: '{count} members',
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                '10 Users (large group):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const AvatarStackInteract(
+                users: [
+                  AvatarUser(id: '1', name: 'John Doe', avatarUrl: 'https://i.pravatar.cc/150?img=12', subtitle: 'Manager'),
+                  AvatarUser(id: '2', name: 'Jane Smith', avatarUrl: 'https://i.pravatar.cc/150?img=5', subtitle: 'Staff'),
+                  AvatarUser(id: '3', name: 'Mike Johnson', avatarUrl: 'https://i.pravatar.cc/150?img=33', subtitle: 'Supervisor'),
+                  AvatarUser(id: '4', name: 'Sarah Williams', avatarUrl: 'https://i.pravatar.cc/150?img=44', subtitle: 'Staff'),
+                  AvatarUser(id: '5', name: 'David Brown', avatarUrl: 'https://i.pravatar.cc/150?img=15', subtitle: 'Staff'),
+                  AvatarUser(id: '6', name: 'Emily Davis', avatarUrl: 'https://i.pravatar.cc/150?img=20', subtitle: 'Assistant Manager'),
+                  AvatarUser(id: '7', name: 'Chris Taylor', avatarUrl: 'https://i.pravatar.cc/150?img=51', subtitle: 'Staff'),
+                  AvatarUser(id: '8', name: 'Lisa Anderson', avatarUrl: 'https://i.pravatar.cc/150?img=47', subtitle: 'Staff'),
+                  AvatarUser(id: '9', name: 'Tom Martinez', avatarUrl: 'https://i.pravatar.cc/150?img=59', subtitle: 'Supervisor'),
+                  AvatarUser(id: '10', name: 'Amy White', avatarUrl: 'https://i.pravatar.cc/150?img=29', subtitle: 'Staff'),
+                ],
+                title: 'All Applicants',
+                subtitle: 'Showing all applicants for this shift',
+                countTextFormat: '{count} applicants',
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'With Action Buttons (Approve/Reject):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const AvatarStackInteract(
+                users: [
+                  AvatarUser(
+                    id: '1',
+                    name: 'John Doe',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+                    subtitle: 'Applied for Morning Shift',
+                    actionState: 'approve',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'Jane Smith',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+                    subtitle: 'Applied for Morning Shift',
+                    actionState: 'pending',
+                  ),
+                  AvatarUser(
+                    id: '3',
+                    name: 'Mike Johnson',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=33',
+                    subtitle: 'Applied for Morning Shift',
+                    actionState: 'reject',
+                  ),
+                ],
+                title: 'Pending Applications',
+                subtitle: 'Review and approve or reject applications',
+                countTextFormat: '{count} pending',
+                actionButtons: [
+                  UserActionButton(
+                    id: 'approve',
+                    label: 'Approve',
+                    icon: Icons.check,
+                    backgroundColor: TossColors.success,
+                    textColor: TossColors.white,
+                  ),
+                  UserActionButton(
+                    id: 'reject',
+                    label: 'Reject',
+                    icon: Icons.close,
+                    backgroundColor: TossColors.error,
+                    textColor: TossColors.white,
+                  ),
+                ],
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'With Custom Action Buttons (Add/Remove):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const AvatarStackInteract(
+                users: [
+                  AvatarUser(
+                    id: '1',
+                    name: 'Sarah Williams',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=44',
+                    subtitle: 'Team Leader',
+                    actionState: 'added',
+                  ),
+                  AvatarUser(
+                    id: '2',
+                    name: 'David Brown',
+                    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+                    subtitle: 'Senior Staff',
+                    actionState: 'pending',
+                  ),
+                ],
+                title: 'Team Members',
+                subtitle: 'Manage your team members',
+                countTextFormat: '{count} members',
+                actionButtons: [
+                  UserActionButton(
+                    id: 'added',
+                    label: 'Added',
+                    icon: Icons.check_circle,
+                    backgroundColor: TossColors.primary,
+                    textColor: TossColors.white,
+                  ),
+                  UserActionButton(
+                    id: 'remove',
+                    label: 'Remove',
+                    icon: Icons.remove_circle,
+                    backgroundColor: TossColors.gray300,
+                    textColor: TossColors.gray700,
+                  ),
+                ],
               ),
             ],
           ),

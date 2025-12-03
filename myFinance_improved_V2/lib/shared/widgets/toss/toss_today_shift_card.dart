@@ -34,7 +34,7 @@ class TossTodayShiftCard extends StatelessWidget {
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
   final bool isLoading;
-  final bool isUpcoming; // true = "Upcoming shift", false = "Today's shift"
+  final bool? isUpcoming;
 
   const TossTodayShiftCard({
     super.key,
@@ -46,7 +46,7 @@ class TossTodayShiftCard extends StatelessWidget {
     this.onCheckIn,
     this.onCheckOut,
     this.isLoading = false,
-    this.isUpcoming = false,
+    this.isUpcoming,
   });
 
   Color _getBadgeColor() {
@@ -81,13 +81,12 @@ class TossTodayShiftCard extends StatelessWidget {
       case ShiftStatus.completed:
         return 'Completed';
       case ShiftStatus.noShift:
-        return 'No-Shift';
+        return '';
     }
   }
 
   Widget _buildEmptyState() {
     return Container(
-      width: double.infinity, // Full width to enable centering
       padding: EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         color: TossColors.white,
@@ -95,7 +94,6 @@ class TossTodayShiftCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             Icons.calendar_today_outlined,
@@ -106,7 +104,6 @@ class TossTodayShiftCard extends StatelessWidget {
           Text(
             'No shift scheduled today',
             style: TossTextStyles.bodyLarge,
-            textAlign: TextAlign.center,
           ),
           SizedBox(height: TossSpacing.space1),
           Text(
@@ -126,34 +123,22 @@ class TossTodayShiftCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // If it's an upcoming shift (not today), don't show Check-in button
-    // User can only check-in on the day of the shift
-    if (isUpcoming) {
-      return const SizedBox.shrink();
-    }
-
     String buttonText;
     VoidCallback? onPressed;
 
     switch (status) {
       case ShiftStatus.upcoming:
-      case ShiftStatus.undone:
-        // Not checked in yet - show Check-in button
+      case ShiftStatus.onTime:
         buttonText = 'Check-in';
         onPressed = onCheckIn;
         break;
-      case ShiftStatus.onTime:
-        // Checked in but not checked out - show Check-out button
-        buttonText = 'Check-out';
-        onPressed = onCheckOut;
-        break;
       case ShiftStatus.inProgress:
-        // Legacy: kept for compatibility
         buttonText = 'Check-out';
         onPressed = onCheckOut;
         break;
       case ShiftStatus.completed:
       case ShiftStatus.late:
+      case ShiftStatus.undone:
         buttonText = 'View Details';
         onPressed = onCheckIn; // Reuse onCheckIn for view details
         break;
@@ -222,7 +207,7 @@ class TossTodayShiftCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isUpcoming ? 'Upcoming shift' : "Today's shift",
+                "Today's shift",
                 style: TossTextStyles.label.copyWith(
                   color: TossColors.gray600,
                 ),

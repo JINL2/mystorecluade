@@ -66,9 +66,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     // Initialize with confirmed times - convert UTC to local time for display
-    final shiftDate = widget.card.shiftDate;
-    editedStartTime = ShiftTimeFormatter.formatTime(widget.card.confirmedStartTime?.toIso8601String(), shiftDate);
-    editedEndTime = ShiftTimeFormatter.formatTime(widget.card.confirmedEndTime?.toIso8601String(), shiftDate);
+    final requestDate = widget.card.shiftDate;
+    editedStartTime = ShiftTimeFormatter.formatTime(widget.card.confirmedStartTime?.toIso8601String(), requestDate);
+    editedEndTime = ShiftTimeFormatter.formatTime(widget.card.confirmedEndTime?.toIso8601String(), requestDate);
     // Store original values
     originalStartTime = editedStartTime;
     originalEndTime = editedEndTime;

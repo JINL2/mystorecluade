@@ -28,7 +28,7 @@ class TossChip extends StatelessWidget {
       color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
@@ -36,14 +36,12 @@ class TossChip extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: isSelected
-                ? TossColors.primary.withOpacity(0.1)
-                : TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            border: Border.all(
-              color: isSelected
-                  ? TossColors.primary
-                  : TossColors.gray200,
-              width: isSelected ? TossSpacing.space0 + 1.5 : TossSpacing.space0 + 1,
+                ? TossColors.primary
+                : TossColors.transparent,
+            borderRadius: BorderRadius.circular(TossBorderRadius.full),
+            border: isSelected ? null : Border.all(
+              color: TossColors.gray300,
+              width: 1,
             ),
           ),
           child: Row(
@@ -54,7 +52,7 @@ class TossChip extends StatelessWidget {
                   icon,
                   size: TossSpacing.iconXS - 2,
                   color: isSelected
-                      ? TossColors.primary
+                      ? TossColors.white
                       : TossColors.gray600,
                 ),
                 const SizedBox(width: TossSpacing.space1),
@@ -63,32 +61,20 @@ class TossChip extends StatelessWidget {
                 label,
                 style: TossTextStyles.caption.copyWith(
                   color: isSelected
-                      ? TossColors.primary
+                      ? TossColors.white
                       : TossColors.gray700,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
-              if (showCount && count != null && count! > 0) ...[
-                const SizedBox(width: TossSpacing.space1),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space1,
-                    vertical: TossSpacing.space0 + 1,
-                  ),
-                  decoration: BoxDecoration(
+              if (showCount && count != null) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '$count',
+                  style: TossTextStyles.caption.copyWith(
                     color: isSelected
-                        ? TossColors.primary.withOpacity(0.2)
-                        : TossColors.gray100,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                  ),
-                  child: Text(
-                    '$count',
-                    style: TossTextStyles.caption.copyWith(
-                      color: isSelected
-                          ? TossColors.primary
-                          : TossColors.gray500,
-                      fontSize: TossSpacing.space2 + 2,
-                    ),
+                        ? TossColors.white
+                        : TossColors.gray500,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
               ],
@@ -104,7 +90,7 @@ class TossChip extends StatelessWidget {
   }
 }
 
-/// Group of Toss chips for filters
+/// Group of Toss chips for filters - styled as segmented control
 class TossChipGroup extends StatelessWidget {
   final List<TossChipItem> items;
   final String? selectedValue;
@@ -123,22 +109,59 @@ class TossChipGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: spacing,
-      runSpacing: runSpacing,
-      children: items.map((item) {
-        final isSelected = selectedValue == item.value;
-        return TossChip(
-          label: item.label,
-          isSelected: isSelected,
-          icon: item.icon,
-          showCount: item.count != null,
-          count: item.count,
-          onTap: () {
-            onChanged?.call(isSelected ? null : item.value);
-          },
-        );
-      }).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: items.asMap().entries.map((entry) {
+          final item = entry.value;
+          final isSelected = selectedValue == item.value;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                onChanged?.call(item.value);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space3,
+                  vertical: TossSpacing.space2,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? TossColors.primary : TossColors.transparent,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.label,
+                      style: TossTextStyles.caption.copyWith(
+                        color: isSelected ? TossColors.white : TossColors.gray700,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                    ),
+                    if (item.count != null) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '${item.count}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: isSelected ? TossColors.white : TossColors.gray500,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

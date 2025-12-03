@@ -7,7 +7,6 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../states/time_table_state.dart';
@@ -70,8 +69,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         ),
       );
 
-      print('✅ ManagerCards: Loaded ${data.approvedCards.length} approved, ${data.pendingCards.length} pending');
-
       final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
@@ -80,7 +77,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         isLoading: false,
       );
     } catch (e) {
-      print('❌ ManagerCards: Error loading data: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -116,9 +112,7 @@ final managerCardsProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  // Use user's timezone from appState, fallback to device timezone (not UTC)
-  final timezone = (appState.user['timezone'] as String?) ??
-      DateTimeUtils.getLocalTimezone();
+  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
 
   return ManagerShiftCardsNotifier(useCase, companyId, storeId, timezone);
 });
