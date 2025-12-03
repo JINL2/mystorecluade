@@ -23,11 +23,18 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     required String cashLocationId,
     required String cashAccountId,
     required String salesAccountId,
+    required String cogsAccountId,
+    required String inventoryAccountId,
+    required double totalCost,
   }) async {
-    // Prepare journal lines for cash sales
-    // Debit: Cash (increase cash)
+    final entryDateUtc = DateTimeUtils.toRpcFormat(DateTime.now());
+
+    // ============================================================
+    // RPC Call 1: Cash Sales Journal Entry
+    // Debit: Cash (increase cash asset)
     // Credit: Sales Revenue (increase revenue)
-    final journalLines = [
+    // ============================================================
+    final salesJournalLines = [
       {
         'account_id': cashAccountId,
         'description': lineDescription,
@@ -45,22 +52,57 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       },
     ];
 
-    // Prepare journal params
-    final journalParams = {
+    final salesJournalParams = {
       'p_base_amount': amount,
       'p_company_id': companyId,
       'p_created_by': userId,
       'p_description': description,
-      'p_entry_date_utc': DateTimeUtils.toRpcFormat(DateTime.now()),
-      'p_lines': journalLines,
+      'p_entry_date_utc': entryDateUtc,
+      'p_lines': salesJournalLines,
       'p_store_id': storeId,
     };
 
-    // Call journal RPC (response type varies, so we use dynamic)
     await _client.rpc<dynamic>(
       'insert_journal_with_everything_utc',
-      params: journalParams,
+      params: salesJournalParams,
     );
+
+    // ============================================================
+    // RPC Call 2: COGS Journal Entry (only if totalCost > 0)
+    // Debit: COGS (increase expense - cost of goods sold)
+    // Credit: Inventory (decrease asset - inventory reduced)
+    // ============================================================
+    if (totalCost > 0) {
+      final cogsJournalLines = [
+        {
+          'account_id': cogsAccountId,
+          'description': lineDescription,
+          'debit': totalCost.toString(),
+          'credit': '0',
+        },
+        {
+          'account_id': inventoryAccountId,
+          'description': lineDescription,
+          'debit': '0',
+          'credit': totalCost.toString(),
+        },
+      ];
+
+      final cogsJournalParams = {
+        'p_base_amount': totalCost,
+        'p_company_id': companyId,
+        'p_created_by': userId,
+        'p_description': 'COGS - $description',
+        'p_entry_date_utc': entryDateUtc,
+        'p_lines': cogsJournalLines,
+        'p_store_id': storeId,
+      };
+
+      await _client.rpc<dynamic>(
+        'insert_journal_with_everything_utc',
+        params: cogsJournalParams,
+      );
+    }
   }
 
   @override
@@ -74,10 +116,17 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     String? cashLocationId,
     required String cashAccountId,
     required String salesAccountId,
+    required String cogsAccountId,
+    required String inventoryAccountId,
+    required double totalCost,
   }) async {
-    // Prepare journal lines for refund (reverse of sales)
+    final entryDateUtc = DateTimeUtils.toRpcFormat(DateTime.now());
+
+    // ============================================================
+    // RPC Call 1: Sales Refund Journal Entry
     // Debit: Sales Revenue (decrease revenue)
     // Credit: Cash (decrease cash)
+    // ============================================================
 
     // Build cash line - conditionally include cash location if available
     final cashLine = <String, dynamic>{
@@ -94,7 +143,7 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       };
     }
 
-    final journalLines = [
+    final refundJournalLines = [
       {
         'account_id': salesAccountId,
         'description': lineDescription,
@@ -104,21 +153,56 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       cashLine,
     ];
 
-    // Prepare journal params
-    final journalParams = {
+    final refundJournalParams = {
       'p_base_amount': amount,
       'p_company_id': companyId,
       'p_created_by': userId,
       'p_description': description,
-      'p_entry_date_utc': DateTimeUtils.toRpcFormat(DateTime.now()),
-      'p_lines': journalLines,
+      'p_entry_date_utc': entryDateUtc,
+      'p_lines': refundJournalLines,
       'p_store_id': storeId,
     };
 
-    // Call journal RPC (response type varies, so we use dynamic)
     await _client.rpc<dynamic>(
       'insert_journal_with_everything_utc',
-      params: journalParams,
+      params: refundJournalParams,
     );
+
+    // ============================================================
+    // RPC Call 2: COGS Reversal Journal Entry (only if totalCost > 0)
+    // Debit: Inventory (increase asset - inventory restored)
+    // Credit: COGS (decrease expense - cost reversed)
+    // ============================================================
+    if (totalCost > 0) {
+      final cogsReversalLines = [
+        {
+          'account_id': inventoryAccountId,
+          'description': lineDescription,
+          'debit': totalCost.toString(),
+          'credit': '0',
+        },
+        {
+          'account_id': cogsAccountId,
+          'description': lineDescription,
+          'debit': '0',
+          'credit': totalCost.toString(),
+        },
+      ];
+
+      final cogsReversalParams = {
+        'p_base_amount': totalCost,
+        'p_company_id': companyId,
+        'p_created_by': userId,
+        'p_description': 'COGS Reversal - $description',
+        'p_entry_date_utc': entryDateUtc,
+        'p_lines': cogsReversalLines,
+        'p_store_id': storeId,
+      };
+
+      await _client.rpc<dynamic>(
+        'insert_journal_with_everything_utc',
+        params: cogsReversalParams,
+      );
+    }
   }
 }

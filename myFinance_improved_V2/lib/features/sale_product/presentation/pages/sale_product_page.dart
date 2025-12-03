@@ -22,7 +22,6 @@ import '../../domain/value_objects/sort_option.dart';
 import '../providers/cart_provider.dart';
 import '../providers/filtered_products_provider.dart';
 import '../providers/sales_product_provider.dart';
-import '../widgets/cart/added_items_section.dart';
 import '../widgets/cart/cart_summary_bar.dart';
 import '../widgets/list/selectable_product_tile.dart';
 import '../widgets/modals/sort_options_bottom_sheet.dart';
@@ -113,6 +112,63 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     );
   }
 
+  Future<bool> _onWillPop() async {
+    final cart = ref.read(cartProvider);
+    if (cart.isEmpty) {
+      return true;
+    }
+
+    final shouldDiscard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: TossColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Text(
+          'Discard Selection?',
+          style: TossTextStyles.h4.copyWith(
+            color: TossColors.gray900,
+          ),
+        ),
+        content: Text(
+          'You have items in your cart. Are you sure you want to discard your selection?',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Discard',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDiscard == true) {
+      ref.read(cartProvider.notifier).clearCart();
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final salesState = ref.watch(salesProductProvider);
@@ -151,17 +207,33 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     // Get filtered products (memoized - only recomputes when dependencies change)
     final displayProducts = ref.watch(filteredProductsProvider);
 
-    final shouldShowProductList = cart.isEmpty || _isSearchFocused;
-
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: AppBar(
-        title: Text('Sales', style: TossTextStyles.h3),
-        centerTitle: true,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: TossScaffold(
         backgroundColor: TossColors.gray100,
-        foregroundColor: TossColors.black,
-      ),
-      body: Column(
+        appBar: AppBar(
+          title: Text('Sales', style: TossTextStyles.h3),
+          centerTitle: true,
+          backgroundColor: TossColors.gray100,
+          foregroundColor: TossColors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              final shouldPop = await _onWillPop();
+              if (shouldPop && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+        body: Column(
         children: [
           // Search bar
           Container(
@@ -185,17 +257,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             child: CustomScrollView(
               controller: _scrollController,
               slivers: [
-                // Added Items Section (shown when cart has items and search is not focused)
-                if (cart.isNotEmpty && !_isSearchFocused)
-                  SliverToBoxAdapter(
-                    child: AddedItemsSection(
-                      cartItems: cart,
-                      currencySymbol: currencySymbol,
-                    ),
-                  ),
-
-                // Only show sort control and product list when needed
-                if (shouldShowProductList) ...[
+                  // Always show sort control and product list
                   // Sort Control
                   SliverToBoxAdapter(
                     child: Container(
@@ -382,7 +444,6 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                                   product: product,
                                   cartItem: cartItem,
                                   currencySymbol: currencySymbol,
-                                  onUnfocusSearch: () => _searchFocusNode.unfocus(),
                                 ),
                                 if (index < displayProducts.length - 1)
                                   const Divider(
@@ -410,7 +471,6 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                         ),
                       ),
                   ],
-                ],
 
                 // Bottom padding to prevent cart bar overlap
                 SliverToBoxAdapter(
@@ -453,6 +513,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               },
             )
           : null,
+      ),
     );
   }
 }

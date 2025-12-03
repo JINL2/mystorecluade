@@ -14,6 +14,8 @@ import 'states/invoice_list_state.dart';
 /// These are fixed account IDs for the refund journal entry
 const String _salesRevenueAccountId = 'e45e7d41-7fda-43a1-ac55-9779f3e59697';
 const String _cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
+const String _cogsAccountId = '90565fe4-5bfc-4c5e-8759-af9a64e98cae';
+const String _inventoryAccountId = '8babc1b3-47b4-4982-8f50-099ab9cdcaf9';
 
 /// Invoice list state notifier
 class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
@@ -155,6 +157,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     debugPrint('🔄 [Refund] Starting refund for invoice: ${invoice.invoiceNumber}');
     debugPrint('🔄 [Refund] Invoice ID: ${invoice.invoiceId}');
     debugPrint('🔄 [Refund] Total Amount: ${invoice.amounts.totalAmount}');
+    debugPrint('🔄 [Refund] Total Cost: ${invoice.amounts.totalCost}');
     debugPrint('🔄 [Refund] Cash Location: ${invoice.cashLocation?.cashLocationId ?? "NULL"}');
     debugPrint('🔄 [Refund] Cash Location Name: ${invoice.cashLocation?.locationName ?? "NULL"}');
 
@@ -203,6 +206,9 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       debugPrint('📤 [Refund] - cashLocationId: ${invoice.cashLocation?.cashLocationId ?? "NULL (will be excluded)"}');
       debugPrint('📤 [Refund] - cashAccountId: $_cashAccountId');
       debugPrint('📤 [Refund] - salesAccountId: $_salesRevenueAccountId');
+      debugPrint('📤 [Refund] - cogsAccountId: $_cogsAccountId');
+      debugPrint('📤 [Refund] - inventoryAccountId: $_inventoryAccountId');
+      debugPrint('📤 [Refund] - totalCost: ${invoice.amounts.totalCost}');
 
       try {
         final journalRepository = _ref.read(salesJournalRepositoryProvider);
@@ -217,8 +223,11 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
           cashLocationId: invoice.cashLocation?.cashLocationId,
           cashAccountId: _cashAccountId,
           salesAccountId: _salesRevenueAccountId,
+          cogsAccountId: _cogsAccountId,
+          inventoryAccountId: _inventoryAccountId,
+          totalCost: invoice.amounts.totalCost,
         );
-        debugPrint('✅ [Refund] Step 2: Journal entry created successfully');
+        debugPrint('✅ [Refund] Step 2: Journal entries created successfully (Refund + COGS Reversal)');
       } catch (e) {
         // Log journal entry error but don't fail the refund
         // The inventory refund was already successful

@@ -167,6 +167,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
 
   /// Create a journal entry for cash sales transaction
   /// This is called after invoice creation to record the accounting entry
+  /// Includes COGS (Cost of Goods Sold) entries for inventory tracking
   Future<void> createSalesJournalEntry({
     required String companyId,
     required String storeId,
@@ -175,6 +176,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     required String description,
     required String lineDescription,
     required String cashLocationId,
+    required double totalCost,
   }) async {
     await _createSalesJournalUseCase.execute(
       companyId: companyId,
@@ -184,6 +186,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       description: description,
       lineDescription: lineDescription,
       cashLocationId: cashLocationId,
+      totalCost: totalCost,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 // App-level providers
 import '../../../../app/providers/app_state_provider.dart';
@@ -20,6 +21,7 @@ import '../../../journal_input/presentation/providers/journal_input_providers.da
 import '../../../sale_product/domain/entities/sales_product.dart';
 import '../../../sale_product/presentation/providers/cart_provider.dart';
 import '../../../sale_product/presentation/providers/sales_product_provider.dart';
+import '../../../sale_product/presentation/widgets/common/product_image_widget.dart';
 // Feature imports - sales_invoice
 import '../../data/models/exchange_rate_data_model.dart';
 import '../../domain/entities/exchange_rate_data.dart' as entities;
@@ -129,6 +131,281 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     );
   }
 
+  void _showViewItemsBottomSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: TossColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TossBorderRadius.xl),
+        ),
+      ),
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: TossSpacing.space3),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: TossColors.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Text(
+                    'Selected Items',
+                    style: TossTextStyles.h4.copyWith(
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                    ),
+                    child: Text(
+                      '${_getTotalItemCount()} items',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: TossColors.gray200),
+            // Items list
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                itemCount: widget.selectedProducts.length,
+                separatorBuilder: (_, __) => const Divider(
+                  height: 1,
+                  color: TossColors.gray100,
+                  indent: TossSpacing.space4,
+                  endIndent: TossSpacing.space4,
+                ),
+                itemBuilder: (context, index) {
+                  final product = widget.selectedProducts[index];
+                  final quantity = widget.productQuantities[product.productId] ?? 0;
+                  final price = product.pricing.sellingPrice ?? 0;
+                  final subtotal = price * quantity;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space4,
+                      vertical: TossSpacing.space3,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Product Image
+                        ProductImageWidget(
+                          imageUrl: product.images.mainImage,
+                          size: 48,
+                          fallbackIcon: Icons.inventory_2,
+                        ),
+                        const SizedBox(width: TossSpacing.space3),
+                        // Product info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.productName,
+                                style: TossTextStyles.body.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.gray900,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: TossSpacing.space1),
+                              Text(
+                                product.sku,
+                                style: TossTextStyles.bodySmall.copyWith(
+                                  color: TossColors.gray500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space3),
+                        // Quantity and price
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space2,
+                                vertical: TossSpacing.space1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: TossColors.gray100,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Text(
+                                'x$quantity',
+                                style: TossTextStyles.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: TossColors.gray700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space1),
+                            Text(
+                              NumberFormat('#,###').format(subtotal.round()),
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Total Cost Summary
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              decoration: const BoxDecoration(
+                color: TossColors.gray50,
+                border: Border(
+                  top: BorderSide(color: TossColors.gray200, width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Cost',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                  Text(
+                    NumberFormat('#,###').format(_getTotalCost().round()),
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int _getTotalItemCount() {
+    int total = 0;
+    for (final quantity in widget.productQuantities.values) {
+      total += quantity;
+    }
+    return total;
+  }
+
+  double _getTotalCost() {
+    double totalCost = 0;
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      final cost = product.pricing.costPrice ?? 0;
+      totalCost += cost * quantity;
+    }
+    return totalCost;
+  }
+
+  Widget _buildViewItemsSection() {
+    return GestureDetector(
+      onTap: _showViewItemsBottomSheet,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: TossColors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.shopping_bag_outlined,
+              color: TossColors.primary,
+              size: 22,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Text(
+              'View Items',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: TossSpacing.space1,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Text(
+                '${_getTotalItemCount()}',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: TossColors.gray400,
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPaymentMethodSelection() {
     final paymentState = ref.watch(paymentMethodProvider);
     final discountAmount = paymentState.discountAmount;
@@ -141,6 +418,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // View Items Section
+          _buildViewItemsSection(),
+
+          const SizedBox(height: TossSpacing.space4),
+
           // Unified Discount and Total Section
           DiscountTotalSection(
             selectedProducts: widget.selectedProducts,
@@ -302,6 +584,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           invoiceNumber,
         );
 
+        // Calculate total cost for COGS entry
+        final totalCost = _getTotalCost();
+
         await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
               companyId: companyId,
               storeId: storeId,
@@ -310,6 +595,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               description: 'Cash sales - Invoice $invoiceNumber',
               lineDescription: journalDescription,
               cashLocationId: paymentState.selectedCashLocation!.id,
+              totalCost: totalCost,
             );
       }
     } catch (journalError) {
