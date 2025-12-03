@@ -2,6 +2,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../models/sales_product_model.dart';
 
+/// Response containing products and pagination info
+class SalesProductResponse {
+  final List<SalesProductModel> products;
+  final int totalCount;
+  final bool hasNextPage;
+
+  SalesProductResponse({
+    required this.products,
+    required this.totalCount,
+    required this.hasNextPage,
+  });
+}
+
 /// Remote data source for sales products
 ///
 /// Handles communication with Supabase RPC functions
@@ -13,11 +26,11 @@ class SalesProductRemoteDataSource {
   /// Get inventory products for sales
   ///
   /// Calls the `get_inventory_page_v2` RPC function
-  Future<List<SalesProductModel>> getInventoryProducts({
+  Future<SalesProductResponse> getInventoryProducts({
     required String companyId,
     required String storeId,
     required int page,
-    int limit = 100,
+    int limit = 10,
     String? search,
   }) async {
     final params = {
@@ -49,9 +62,20 @@ class SalesProductRemoteDataSource {
 
     // Extract products array
     final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
-
-    return productsJson
+    final products = productsJson
         .map((json) => SalesProductModel.fromJson(json as Map<String, dynamic>))
         .toList();
+
+    // Extract pagination info
+    final paginationJson = dataToProcess['pagination'] as Map<String, dynamic>? ?? {};
+    final totalCount = (paginationJson['total'] ?? 0) as int;
+    final totalPages = (paginationJson['total_pages'] ?? 1) as int;
+    final hasNextPage = page < totalPages;
+
+    return SalesProductResponse(
+      products: products,
+      totalCount: totalCount,
+      hasNextPage: hasNextPage,
+    );
   }
 }

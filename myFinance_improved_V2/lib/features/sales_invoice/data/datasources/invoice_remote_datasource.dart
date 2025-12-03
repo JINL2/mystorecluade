@@ -47,33 +47,4 @@ class InvoiceRemoteDataSource {
     }
   }
 
-  /// Refund invoice
-  Future<Map<String, dynamic>> refundInvoice({
-    required String invoiceId,
-    required String userId,
-  }) async {
-    try {
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'refund_invoice',
-        params: {
-          'p_invoice_id': invoiceId,
-          'p_user_id': userId,
-        },
-      );
-
-      return response;
-    } on PostgrestException catch (e) {
-      throw InvoiceNetworkException(
-        'Failed to refund invoice: ${e.message}',
-        code: e.code,
-        originalError: e,
-      );
-    } catch (e) {
-      if (e is InvoiceException) rethrow;
-      throw InvoiceDataException(
-        'Failed to process refund: $e',
-        originalError: e,
-      );
-    }
-  }
 }

@@ -1,29 +1,9 @@
-import '../entities/sales_product.dart';
-
 /// Invoice calculator for business logic calculations
 ///
 /// Contains all calculation logic related to invoices, prices, and totals.
 /// This ensures calculation logic is consistent across the application.
 class InvoiceCalculator {
   InvoiceCalculator._();
-
-  /// Calculate total amount from products and quantities
-  ///
-  /// Parameters:
-  /// - [products]: List of sales products
-  /// - [quantities]: Map of product ID to quantity
-  ///
-  /// Returns: Total amount (sum of price * quantity for all products)
-  static double calculateTotalAmount(
-    List<SalesProduct> products,
-    Map<String, int> quantities,
-  ) {
-    return products.fold(0.0, (total, product) {
-      final quantity = quantities[product.productId] ?? 0;
-      final price = product.sellingPrice ?? 0.0;
-      return total + (price * quantity);
-    });
-  }
 
   /// Calculate total with discount and tax
   ///

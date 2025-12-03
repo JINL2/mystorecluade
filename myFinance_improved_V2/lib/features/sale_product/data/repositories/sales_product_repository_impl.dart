@@ -1,4 +1,3 @@
-import '../../domain/entities/sales_product.dart';
 import '../../domain/repositories/sales_product_repository.dart';
 import '../datasources/sales_product_remote_datasource.dart';
 
@@ -9,14 +8,14 @@ class SalesProductRepositoryImpl implements SalesProductRepository {
   SalesProductRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<List<SalesProduct>> loadProducts({
+  Future<ProductLoadResult> loadProducts({
     required String companyId,
     required String storeId,
     int page = 1,
     int limit = 100,
     String? search,
   }) async {
-    final products = await _remoteDataSource.getInventoryProducts(
+    final response = await _remoteDataSource.getInventoryProducts(
       companyId: companyId,
       storeId: storeId,
       page: page,
@@ -24,11 +23,15 @@ class SalesProductRepositoryImpl implements SalesProductRepository {
       search: search,
     );
 
-    return products.map((model) => model.toEntity()).toList();
+    return ProductLoadResult(
+      products: response.products.map((model) => model.toEntity()).toList(),
+      totalCount: response.totalCount,
+      hasNextPage: response.hasNextPage,
+    );
   }
 
   @override
-  Future<List<SalesProduct>> refreshProducts({
+  Future<ProductLoadResult> refreshProducts({
     required String companyId,
     required String storeId,
   }) async {

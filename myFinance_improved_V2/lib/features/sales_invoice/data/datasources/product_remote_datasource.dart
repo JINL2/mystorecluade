@@ -4,7 +4,6 @@ import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/invoice_exceptions.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../models/cash_location_model.dart';
-import '../models/product_list_response_model.dart';
 
 /// Product remote data source for sales invoice
 class ProductRemoteDataSource {
@@ -12,48 +11,90 @@ class ProductRemoteDataSource {
 
   ProductRemoteDataSource(this._client);
 
-  /// Get products for sales
-  Future<ProductListResponseModel> getProductsForSales({
-    required String companyId,
-    required String storeId,
-  }) async {
-    try {
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'getInventoryProductListCompany',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
-
-      return ProductListResponseModel.fromJson(response);
-    } on PostgrestException catch (e) {
-      throw InvoiceNetworkException(
-        'Failed to load products: ${e.message}',
-        code: e.code,
-        originalError: e,
-      );
-    } catch (e) {
-      if (e is InvoiceException) rethrow;
-      throw InvoiceDataException(
-        'Failed to parse product data: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  /// Get currency data
+  /// Get currency data using table queries
   Future<Map<String, dynamic>> getCurrencyData({
     required String companyId,
   }) async {
     try {
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'get_currency_data',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
+      // 1. Get company's base currency ID
+      final companyResult = await _client
+          .from('companies')
+          .select('base_currency_id')
+          .eq('company_id', companyId)
+          .maybeSingle();
 
-      return response;
+      if (companyResult == null) {
+        throw InvoiceDataException(
+          'Company not found',
+          originalError: null,
+        );
+      }
+
+      final baseCurrencyId = companyResult['base_currency_id'] as String?;
+      if (baseCurrencyId == null || baseCurrencyId.isEmpty) {
+        throw InvoiceDataException(
+          'Base currency not configured for this company',
+          originalError: null,
+        );
+      }
+
+      // 2. Get base currency details from currency_types
+      final baseCurrencyResult = await _client
+          .from('currency_types')
+          .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
+          .eq('currency_id', baseCurrencyId)
+          .maybeSingle();
+
+      if (baseCurrencyResult == null) {
+        throw InvoiceDataException(
+          'Base currency type not found',
+          originalError: null,
+        );
+      }
+
+      // 3. Get company currencies (non-deleted)
+      final companyCurrencies = await _client
+          .from('company_currency')
+          .select('currency_id')
+          .eq('company_id', companyId)
+          .eq('is_deleted', false);
+
+      List<Map<String, dynamic>> companyCurrencyList = [];
+
+      if (companyCurrencies.isNotEmpty) {
+        final currencyIds = (companyCurrencies as List)
+            .map((cc) => cc['currency_id'] as String)
+            .toList();
+
+        // 4. Get currency details for company currencies
+        final currencyTypes = await _client
+            .from('currency_types')
+            .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
+            .inFilter('currency_id', currencyIds);
+
+        companyCurrencyList = (currencyTypes as List)
+            .map((ct) => {
+                  'currency_id': ct['currency_id'],
+                  'currency_code': ct['currency_code'],
+                  'currency_name': ct['currency_name'],
+                  'symbol': ct['symbol'],
+                  'flag_emoji': ct['flag_emoji'] ?? '🏳️',
+                  'exchange_rate_to_base': ct['currency_id'] == baseCurrencyId ? 1.0 : null,
+                })
+            .toList();
+      }
+
+      return {
+        'base_currency': {
+          'currency_id': baseCurrencyResult['currency_id'],
+          'currency_code': baseCurrencyResult['currency_code'],
+          'currency_name': baseCurrencyResult['currency_name'],
+          'symbol': baseCurrencyResult['symbol'],
+          'flag_emoji': baseCurrencyResult['flag_emoji'] ?? '🏳️',
+          'exchange_rate_to_base': 1.0,
+        },
+        'company_currencies': companyCurrencyList,
+      };
     } on PostgrestException catch (e) {
       throw InvoiceNetworkException(
         'Failed to load currency data: ${e.message}',
@@ -69,19 +110,22 @@ class ProductRemoteDataSource {
     }
   }
 
-  /// Get cash locations
+  /// Get cash locations using RPC
   Future<List<CashLocationModel>> getCashLocations({
     required String companyId,
     required String storeId,
   }) async {
     try {
-      final response = await _client
-          .from('cash_locations')
-          .select()
-          .eq('company_id', companyId)
-          .or('store_id.eq.$storeId,is_company_wide.eq.true');
+      final response = await _client.rpc<List<dynamic>>(
+        'get_cash_locations',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_location_type': null,
+        },
+      );
 
-      return (response as List)
+      return (response)
           .map((e) => CashLocationModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } on PostgrestException catch (e) {

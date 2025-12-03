@@ -19,11 +19,13 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   final Ref ref;
   final SalesProductRepository _repository;
 
+  static const int _defaultPageSize = 10;
+
   SalesProductNotifier(this.ref, this._repository) : super(const SalesProductState()) {
     loadProducts();
   }
 
-  /// Load products from repository
+  /// Load products from repository (initial load)
   Future<void> loadProducts({String? search}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -41,20 +43,22 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         return;
       }
 
-      final products = await _repository.loadProducts(
+      final result = await _repository.loadProducts(
         companyId: companyId,
         storeId: storeId,
         page: 1,
-        limit: 100,
+        limit: _defaultPageSize,
         search: search ?? state.searchQuery,
       );
 
       state = state.copyWith(
-        products: products,
+        products: result.products,
+        totalCount: result.totalCount,
         isLoading: false,
         searchQuery: search ?? state.searchQuery,
         currentPage: 1,
-        hasNextPage: false,
+        pageSize: _defaultPageSize,
+        hasNextPage: result.hasNextPage,
       );
     } catch (e) {
       state = state.copyWith(
@@ -65,9 +69,50 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
     }
   }
 
-  /// Search products
+  /// Load next page of products
+  Future<void> loadNextPage() async {
+    if (!state.canLoadMore || state.isLoadingMore) return;
+
+    state = state.copyWith(isLoadingMore: true);
+
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
+      if (companyId.isEmpty || storeId.isEmpty) {
+        state = state.copyWith(isLoadingMore: false);
+        return;
+      }
+
+      final nextPage = state.currentPage + 1;
+      final result = await _repository.loadProducts(
+        companyId: companyId,
+        storeId: storeId,
+        page: nextPage,
+        limit: _defaultPageSize,
+        search: state.searchQuery,
+      );
+
+      // Append new products to existing list
+      final allProducts = [...state.products, ...result.products];
+
+      state = state.copyWith(
+        products: allProducts,
+        isLoadingMore: false,
+        currentPage: nextPage,
+        hasNextPage: result.hasNextPage,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoadingMore: false);
+    }
+  }
+
+  /// Search products (reset pagination)
   void search(String query) {
     state = state.copyWith(searchQuery: query);
+    // Reload from page 1 when search query changes
+    loadProducts(search: query);
   }
 
   /// Update sort option
@@ -75,7 +120,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
     state = state.copyWith(sortOption: sortOption);
   }
 
-  /// Refresh products
+  /// Refresh products (reset to page 1)
   Future<void> refresh() async {
     state = state.copyWith(isRefreshing: true);
     await loadProducts();

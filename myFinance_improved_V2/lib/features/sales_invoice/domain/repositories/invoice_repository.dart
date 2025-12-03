@@ -15,12 +15,6 @@ abstract class InvoiceRepository {
     required String invoiceId,
   });
 
-  /// Refund an invoice
-  Future<RefundResult> refundInvoice({
-    required String invoiceId,
-    required String userId,
-  });
-
   /// Refresh invoice data
   Future<InvoicePageResult> refresh({
     required String companyId,
@@ -119,15 +113,3 @@ class Currency {
   });
 }
 
-/// Refund result
-class RefundResult {
-  final bool success;
-  final String? invoiceNumber;
-  final List<String>? warnings;
-
-  const RefundResult({
-    required this.success,
-    this.invoiceNumber,
-    this.warnings,
-  });
-}

@@ -33,25 +33,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @override
-  Future<RefundResult> refundInvoice({
-    required String invoiceId,
-    required String userId,
-  }) async {
-    final response = await _remoteDataSource.refundInvoice(
-      invoiceId: invoiceId,
-      userId: userId,
-    );
-
-    return RefundResult(
-      success: response['success'] as bool? ?? false,
-      invoiceNumber: response['invoice_number']?.toString(),
-      warnings: response['warnings'] != null
-          ? (response['warnings'] as List).map((e) => e.toString()).toList()
-          : null,
-    );
-  }
-
-  @override
   Future<InvoicePageResult> refresh({
     required String companyId,
     required String storeId,

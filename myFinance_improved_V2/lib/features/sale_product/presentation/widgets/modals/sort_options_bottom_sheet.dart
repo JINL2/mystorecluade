@@ -27,7 +27,7 @@ class SortOptionsBottomSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => SortOptionsBottomSheet(
         currentSort: currentSort,
         onSortChanged: onSortChanged,
@@ -37,56 +37,67 @@ class SortOptionsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(TossBorderRadius.lg),
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sort Products',
-              style: TossTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 48,
+            height: 4,
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
-            const SizedBox(height: TossSpacing.space3),
-            ..._buildSortOptions(context),
-            const SizedBox(height: TossSpacing.space2),
-          ],
-        ),
+          ),
+
+          // Title
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Text(
+              'Sort Products',
+              style: TossTextStyles.h3.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+
+          // Sort options
+          ..._buildSortOptions(context),
+
+          SizedBox(
+            height: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+          ),
+        ],
       ),
     );
   }
 
   List<Widget> _buildSortOptions(BuildContext context) {
     final options = [
-      SortOption.nameAsc,
-      SortOption.priceAsc,
-      SortOption.stockAsc,
+      (SortOption.nameAsc, Icons.sort_by_alpha_rounded),
+      (SortOption.priceAsc, Icons.attach_money_rounded),
+      (SortOption.stockAsc, Icons.inventory_2_outlined),
     ];
 
-    return options.map((option) {
+    return options.map((entry) {
+      final option = entry.$1;
+      final icon = entry.$2;
       final isSelected = _isOptionSelected(option);
 
-      return ListTile(
-        dense: true,
-        visualDensity: VisualDensity.compact,
-        contentPadding: EdgeInsets.zero,
-        title: Text(option.displayName),
-        selected: isSelected,
-        trailing: isSelected
-            ? Icon(
-                currentSort.isAscending
-                    ? Icons.arrow_upward
-                    : Icons.arrow_downward,
-                size: 20,
-              )
-            : null,
+      return _SortOptionItem(
+        title: option.displayName,
+        icon: icon,
+        isSelected: isSelected,
+        sortAscending: currentSort.isAscending,
         onTap: () {
           final newSort = isSelected ? option.toggled : option;
           onSortChanged(newSort);
@@ -101,5 +112,71 @@ class SortOptionsBottomSheet extends StatelessWidget {
         (currentSort == SortOption.nameDesc && option == SortOption.nameAsc) ||
         (currentSort == SortOption.priceDesc && option == SortOption.priceAsc) ||
         (currentSort == SortOption.stockDesc && option == SortOption.stockAsc);
+  }
+}
+
+class _SortOptionItem extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isSelected;
+  final bool sortAscending;
+  final VoidCallback onTap;
+
+  const _SortOptionItem({
+    required this.title,
+    required this.icon,
+    required this.isSelected,
+    required this.sortAscending,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? TossColors.primary : TossColors.gray600,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TossTextStyles.body.copyWith(
+                    color: isSelected ? TossColors.primary : TossColors.gray900,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (isSelected) ...[
+                Icon(
+                  sortAscending
+                      ? Icons.arrow_upward_rounded
+                      : Icons.arrow_downward_rounded,
+                  size: 16,
+                  color: TossColors.primary,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                const Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

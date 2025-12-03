@@ -1,16 +1,9 @@
 import '../entities/cash_location.dart';
 import '../entities/exchange_rate_data.dart';
 import '../entities/payment_currency.dart';
-import '../entities/sales_product.dart';
 
 /// Product repository interface for sales invoice
 abstract class ProductRepository {
-  /// Get all products for sales
-  Future<ProductListResult> getProductsForSales({
-    required String companyId,
-    required String storeId,
-  });
-
   /// Get currency data for payment
   Future<CurrencyDataResult> getCurrencyData({
     required String companyId,
@@ -38,58 +31,6 @@ abstract class ProductRepository {
     double? discountAmount,
     double? taxRate,
     String? notes,
-  });
-}
-
-/// Product list result
-class ProductListResult {
-  final List<SalesProduct> products;
-  final CompanyInfo company;
-  final ProductSummary summary;
-
-  const ProductListResult({
-    required this.products,
-    required this.company,
-    required this.summary,
-  });
-}
-
-/// Company info
-class CompanyInfo {
-  final String companyId;
-  final String companyName;
-  final Currency currency;
-
-  const CompanyInfo({
-    required this.companyId,
-    required this.companyName,
-    required this.currency,
-  });
-}
-
-/// Currency
-class Currency {
-  final String code;
-  final String name;
-  final String symbol;
-
-  const Currency({
-    required this.code,
-    required this.name,
-    required this.symbol,
-  });
-}
-
-/// Product summary
-class ProductSummary {
-  final int totalProducts;
-  final int activeProducts;
-  final double totalInventoryValue;
-
-  const ProductSummary({
-    required this.totalProducts,
-    required this.activeProducts,
-    required this.totalInventoryValue,
   });
 }
 

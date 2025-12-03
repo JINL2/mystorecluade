@@ -12,19 +12,6 @@ class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<ProductListResult> getProductsForSales({
-    required String companyId,
-    required String storeId,
-  }) async {
-    final response = await _remoteDataSource.getProductsForSales(
-      companyId: companyId,
-      storeId: storeId,
-    );
-
-    return response.toResult();
-  }
-
-  @override
   Future<CurrencyDataResult> getCurrencyData({
     required String companyId,
   }) async {
