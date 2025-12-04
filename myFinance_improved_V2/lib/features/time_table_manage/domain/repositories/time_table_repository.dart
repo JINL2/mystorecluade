@@ -5,6 +5,7 @@ import '../entities/manager_overview.dart';
 import '../entities/manager_shift_cards.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/operation_result.dart';
+import '../entities/reliability_score.dart';
 import '../entities/schedule_data.dart';
 import '../entities/shift_metadata.dart';
 
@@ -253,5 +254,25 @@ abstract class TimeTableRepository {
   Future<void> updateBonusAmount({
     required String shiftRequestId,
     required double bonusAmount,
+  });
+
+  /// Get reliability score data for stats tab
+  ///
+  /// Uses get_reliability_score RPC
+  /// - p_time must be user's LOCAL timestamp in "yyyy-MM-dd HH:mm:ss" format
+  ///   (no timezone conversion - send device local time as-is)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  ///
+  /// [companyId] - Company ID
+  /// [storeId] - Store ID
+  /// [time] - User's LOCAL timestamp (yyyy-MM-dd HH:mm:ss)
+  /// [timezone] - User's local timezone
+  ///
+  /// Returns [ReliabilityScore] with shift summary, understaffed shifts, and employees
+  Future<ReliabilityScore> getReliabilityScore({
+    required String companyId,
+    required String storeId,
+    required String time,
+    required String timezone,
   });
 }

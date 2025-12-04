@@ -5,6 +5,7 @@ import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/operation_result.dart';
+import '../../domain/entities/reliability_score.dart';
 import '../../domain/entities/schedule_data.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -25,6 +26,8 @@ import '../models/freezed/monthly_shift_status_dto.dart';
 import '../models/freezed/monthly_shift_status_dto_mapper.dart';
 import '../models/freezed/operation_result_dto.dart';
 import '../models/freezed/operation_result_dto_mapper.dart';
+import '../models/freezed/reliability_score_dto.dart';
+import '../models/freezed/reliability_score_dto_mapper.dart';
 import '../models/freezed/schedule_data_dto.dart';
 import '../models/freezed/schedule_data_dto_mapper.dart';
 import '../models/freezed/shift_metadata_dto.dart';
@@ -439,6 +442,33 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to update bonus: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<ReliabilityScore> getReliabilityScore({
+    required String companyId,
+    required String storeId,
+    required String time,
+    required String timezone,
+  }) async {
+    try {
+      final data = await _datasource.getReliabilityScore(
+        companyId: companyId,
+        storeId: storeId,
+        time: time,
+        timezone: timezone,
+      );
+
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = ReliabilityScoreDto.fromJson(data);
+      return dto.toEntity();
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to fetch reliability score: $e',
         originalError: e,
       );
     }

@@ -18,6 +18,7 @@ import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/shift_card.dart';
+import '../providers/state/reliability_score_provider.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
@@ -132,8 +133,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     // ✅ Always force refresh on page entry to ensure fresh data from RPC
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Invalidate shiftMetadataProvider to force fresh data on page entry
+        // Invalidate providers to force fresh data on page entry
         ref.invalidate(shiftMetadataProvider(selectedStoreId!));
+        ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
         // Fetch with forceRefresh to ensure fresh data from RPC
         fetchMonthlyShiftStatus(forceRefresh: true);
         // Also fetch overview data - force refresh to get latest data
@@ -257,7 +259,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
                   ),
                   // Stats Tab
-                  const ShiftStatsTab(),
+                  ShiftStatsTab(
+                    selectedStoreId: selectedStoreId,
+                    onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
+                  ),
                 ],
               ),
             ),
@@ -401,8 +406,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       storeName: storeName,
     );
 
-    // Invalidate shiftMetadataProvider to force fresh data
+    // Invalidate providers to force fresh data
     ref.invalidate(shiftMetadataProvider(newStoreId));
+    ref.invalidate(reliabilityScoreProvider(newStoreId));
 
     // Fetch data for the new store
     await fetchMonthlyShiftStatus(forceRefresh: true);

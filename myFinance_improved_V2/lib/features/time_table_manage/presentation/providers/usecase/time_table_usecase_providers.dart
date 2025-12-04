@@ -3,7 +3,7 @@
 /// This file contains all UseCase providers (Domain layer logic).
 /// Each provider creates a UseCase instance with injected Repository.
 ///
-/// Total: 12 UseCase Providers
+/// Total: 13 UseCase Providers
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +14,7 @@ import '../../../domain/usecases/delete_shift_tag.dart';
 import '../../../domain/usecases/get_manager_overview.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
+import '../../../domain/usecases/get_reliability_score.dart';
 import '../../../domain/usecases/get_schedule_data.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
 import '../../../domain/usecases/input_card.dart';
@@ -120,4 +121,14 @@ final addBonusUseCaseProvider = Provider<AddBonus>((ref) {
 final updateBonusAmountUseCaseProvider = Provider<UpdateBonusAmount>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return UpdateBonusAmount(repository);
+});
+
+// ============================================================================
+// Stats UseCases
+// ============================================================================
+
+/// Get Reliability Score UseCase Provider
+final getReliabilityScoreUseCaseProvider = Provider<GetReliabilityScore>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetReliabilityScore(repository);
 });

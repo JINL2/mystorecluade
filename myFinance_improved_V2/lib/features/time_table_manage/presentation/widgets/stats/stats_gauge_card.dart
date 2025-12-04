@@ -175,6 +175,9 @@ class _SemiCircleGaugePainter extends CustomPainter {
     required this.strokeWidth,
   });
 
+  // Clamp value to 0.0-1.0 range to prevent overflow
+  double get clampedValue => value.clamp(0.0, 1.0);
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height);
@@ -205,7 +208,7 @@ class _SemiCircleGaugePainter extends CustomPainter {
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       math.pi, // Start angle
-      math.pi * value, // Sweep angle based on value
+      math.pi * clampedValue, // Sweep angle based on clamped value (0.0-1.0)
       false,
       fgPaint,
     );

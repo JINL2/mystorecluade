@@ -1,4 +1,4 @@
-
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -535,6 +535,67 @@ class TimeTableDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to update bonus: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Get reliability score data for stats tab
+  ///
+  /// Uses get_reliability_score RPC
+  /// - p_time must be user's LOCAL timestamp in "yyyy-MM-dd HH:mm:ss" format
+  ///   (no timezone conversion - send device local time as-is)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "America/Los_Angeles")
+  /// - Returns shift_summary (today, yesterday, this_month, last_month, two_months_ago)
+  /// - Returns understaffed_shifts counts per period
+  /// - Returns employees with reliability scores
+  Future<Map<String, dynamic>> getReliabilityScore({
+    required String companyId,
+    required String storeId,
+    required String time,
+    required String timezone,
+  }) async {
+    try {
+      debugPrint('[getReliabilityScore] Calling RPC with:');
+      debugPrint('  p_company_id: $companyId');
+      debugPrint('  p_store_id: $storeId');
+      debugPrint('  p_time: $time');
+      debugPrint('  p_timezone: $timezone');
+
+      final response = await _supabase.rpc<dynamic>(
+        'get_reliability_score',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_time': time,
+          'p_timezone': timezone,
+        },
+      );
+
+      debugPrint('[getReliabilityScore] Response type: ${response.runtimeType}');
+      debugPrint('[getReliabilityScore] Response: $response');
+
+      if (response == null) {
+        debugPrint('[getReliabilityScore] Response is null, returning empty map');
+        return {};
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+
+      debugPrint('[getReliabilityScore] Unexpected response type, returning empty map');
+      return {};
+    } catch (e, stackTrace) {
+      debugPrint('[getReliabilityScore] Error: $e');
+      debugPrint('[getReliabilityScore] StackTrace: $stackTrace');
+      throw TimeTableException(
+        'Failed to fetch reliability score: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
