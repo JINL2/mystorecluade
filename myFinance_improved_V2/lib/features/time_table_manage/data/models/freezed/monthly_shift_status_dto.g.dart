@@ -38,6 +38,8 @@ _$ShiftWithEmployeesDtoImpl _$$ShiftWithEmployeesDtoImplFromJson(
       shiftId: json['shift_id'] as String,
       shiftName: json['shift_name'] as String?,
       requiredEmployees: (json['required_employees'] as num?)?.toInt() ?? 0,
+      shiftStartTime: json['shift_start_time'] as String?,
+      shiftEndTime: json['shift_end_time'] as String?,
       approvedCount: (json['approved_count'] as num?)?.toInt() ?? 0,
       pendingCount: (json['pending_count'] as num?)?.toInt() ?? 0,
       approvedEmployees: (json['approved_employees'] as List<dynamic>?)
@@ -56,6 +58,8 @@ Map<String, dynamic> _$$ShiftWithEmployeesDtoImplToJson(
       'shift_id': instance.shiftId,
       'shift_name': instance.shiftName,
       'required_employees': instance.requiredEmployees,
+      'shift_start_time': instance.shiftStartTime,
+      'shift_end_time': instance.shiftEndTime,
       'approved_count': instance.approvedCount,
       'pending_count': instance.pendingCount,
       'approved_employees': instance.approvedEmployees,

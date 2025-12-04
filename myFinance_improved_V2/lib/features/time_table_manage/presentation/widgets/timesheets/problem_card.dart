@@ -10,6 +10,7 @@ enum ProblemType {
   noCheckout,
   noCheckin,
   overtime,
+  late,
   understaffed,
 }
 
@@ -55,6 +56,8 @@ class ProblemCard extends StatelessWidget {
         return 'No check-in';
       case ProblemType.overtime:
         return 'OT';
+      case ProblemType.late:
+        return 'Late';
       case ProblemType.understaffed:
         return 'Understaffed';
     }
@@ -65,6 +68,7 @@ class ProblemCard extends StatelessWidget {
       case ProblemType.noCheckout:
       case ProblemType.noCheckin:
       case ProblemType.overtime:
+      case ProblemType.late:
         return BadgeStatus.error;
       case ProblemType.understaffed:
         return BadgeStatus.info;

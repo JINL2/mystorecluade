@@ -46,6 +46,10 @@ class ShiftWithEmployeesDto with _$ShiftWithEmployeesDto {
     @JsonKey(name: 'shift_name') String? shiftName,
     @JsonKey(name: 'required_employees') @Default(0) int requiredEmployees,
 
+    // Shift time range (from RPC: YYYY-MM-DD HH24:MI:SS format in user's timezone)
+    @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+    @JsonKey(name: 'shift_end_time') String? shiftEndTime,
+
     // Counts
     @JsonKey(name: 'approved_count') @Default(0) int approvedCount,
     @JsonKey(name: 'pending_count') @Default(0) int pendingCount,

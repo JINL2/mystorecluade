@@ -148,14 +148,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      // DEBUG: Log RPC parameters
-      print('🔍 RPC CALL: manager_shift_get_cards_v3');
-      print('   p_start_date: $startDate');
-      print('   p_end_date: $endDate');
-      print('   p_store_id: $storeId');
-      print('   p_company_id: $companyId');
-      print('   p_timezone: $timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_get_cards_v3',
         params: {
@@ -289,10 +281,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      print('🔄 insertSchedule: Calling manager_shift_insert_schedule_v4');
-      print('   userId: $userId, shiftId: $shiftId, storeId: $storeId');
-      print('   startTime: $startTime, endTime: $endTime, timezone: $timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_insert_schedule_v4',
         params: {
@@ -432,8 +420,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      print('🔍 Datasource: Calling manager_shift_get_schedule_v2 with storeId: $storeId, timezone: $timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_get_schedule_v2',
         params: {
@@ -442,29 +428,16 @@ class TimeTableDatasource {
         },
       );
 
-      print('🔍 Datasource: RPC response type: ${response.runtimeType}');
-      print('🔍 Datasource: RPC response: $response');
-
       if (response == null) {
-        print('⚠️ Datasource: Response is null');
         return {};
       }
 
       if (response is Map<String, dynamic>) {
-        print('✅ Datasource: Response is Map with keys: ${response.keys.toList()}');
-        if (response.containsKey('store_employees')) {
-          print('   - store_employees count: ${(response['store_employees'] as List?)?.length ?? 0}');
-        }
-        if (response.containsKey('store_shifts')) {
-          print('   - store_shifts count: ${(response['store_shifts'] as List?)?.length ?? 0}');
-        }
         return response;
       }
 
-      print('⚠️ Datasource: Response is not a Map, returning empty');
       return {};
     } catch (e, stackTrace) {
-      print('❌ Datasource: Error fetching schedule data: $e');
       throw TimeTableException(
         'Failed to fetch schedule data: $e',
         originalError: e,

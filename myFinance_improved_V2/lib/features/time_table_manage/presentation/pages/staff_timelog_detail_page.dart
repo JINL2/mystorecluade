@@ -42,29 +42,119 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = true; // Open by default for manager action
 
-  // Mock data - replace with actual data later
-  final String recordedCheckIn = '09:03:00';
-  final String recordedCheckOut = '17:05:00';
-  String confirmedCheckIn = '09:03:00';
-  String confirmedCheckOut = '17:00:00';
+  // State variables initialized from StaffTimeRecord
+  late String recordedCheckIn;
+  late String recordedCheckOut;
+  late String confirmedCheckIn;
+  late String confirmedCheckOut;
   bool isCheckInManuallyConfirmed = false;
   bool isCheckOutManuallyConfirmed = false;
-  final String? employeeIssueReport =
-      '"I arrived on time but had to wait outside because the store was still closed. Please adjust the check-in time for this shift."';
-  int bonusAmount = 0;
 
-  // Issue report approval state
+  // Issue report from RPC (is_reported, report_reason)
+  String? get employeeIssueReport => widget.staffRecord.isReported ? widget.staffRecord.reportReason : null;
+
+  // Bonus amount initialized from RPC
+  late int bonusAmount;
+
+  // Issue report approval state (based on is_problem_solved from RPC)
   String? issueReportStatus; // null, 'approved', 'rejected'
 
-  // Salary breakdown mock data
-  final String totalConfirmedTime = '120h 30m';
-  final String hourlySalary = '85,000₫';
-  final String basePay = '10,200,000₫';
-  final int basePayAmount = 10200000;
-  final String asOfDate = 'Aug/13';
+  // Salary breakdown from RPC
+  String get totalConfirmedTime {
+    final paidHour = widget.staffRecord.paidHour;
+    final hours = paidHour.floor();
+    final minutes = ((paidHour - hours) * 60).round();
+    return '${hours}h ${minutes}m';
+  }
+
+  String get hourlySalary {
+    final salaryAmount = widget.staffRecord.salaryAmount;
+    if (salaryAmount == null || salaryAmount.isEmpty) return '--';
+    // Try to format as number with comma
+    final amount = double.tryParse(salaryAmount);
+    if (amount != null) {
+      return '${NumberFormat('#,###').format(amount.toInt())}₫';
+    }
+    return '$salaryAmount₫';
+  }
+
+  String get basePay {
+    final basePayStr = widget.staffRecord.basePay;
+    if (basePayStr == null || basePayStr.isEmpty) {
+      // Calculate from paidHour * salaryAmount if not provided
+      final salaryAmountStr = widget.staffRecord.salaryAmount;
+      if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
+        final salaryAmount = double.tryParse(salaryAmountStr);
+        if (salaryAmount != null) {
+          final basePayCalc = (widget.staffRecord.paidHour * salaryAmount).toInt();
+          return '${NumberFormat('#,###').format(basePayCalc)}₫';
+        }
+      }
+      return '--';
+    }
+    final amount = double.tryParse(basePayStr);
+    if (amount != null) {
+      return '${NumberFormat('#,###').format(amount.toInt())}₫';
+    }
+    return '$basePayStr₫';
+  }
+
+  int get basePayAmount {
+    final basePayStr = widget.staffRecord.basePay;
+    if (basePayStr != null && basePayStr.isNotEmpty) {
+      final amount = double.tryParse(basePayStr);
+      if (amount != null) return amount.toInt();
+    }
+    // Calculate from paidHour * salaryAmount if not provided
+    final salaryAmountStr = widget.staffRecord.salaryAmount;
+    if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
+      final salaryAmount = double.tryParse(salaryAmountStr);
+      if (salaryAmount != null) {
+        return (widget.staffRecord.paidHour * salaryAmount).toInt();
+      }
+    }
+    return 0;
+  }
+
+  String get asOfDate {
+    // Parse shiftDate from widget and format as "Mon/DD"
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    try {
+      final date = DateTime.parse(widget.shiftDate);
+      return '${months[date.month - 1]}/${date.day}';
+    } catch (e) {
+      return widget.shiftDate;
+    }
+  }
 
   // Controllers
   final TextEditingController _bonusController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize from StaffTimeRecord real data
+    // Recorded: use actual_start, actual_end
+    recordedCheckIn = widget.staffRecord.actualStart ?? '--:--:--';
+    recordedCheckOut = widget.staffRecord.actualEnd ?? '--:--:--';
+
+    // Confirmed: use confirm_start_time, confirm_end_time
+    // If not available, fallback to recorded times
+    confirmedCheckIn = widget.staffRecord.confirmStartTime ?? recordedCheckIn;
+    confirmedCheckOut = widget.staffRecord.confirmEndTime ?? recordedCheckOut;
+
+    // Initialize bonus from RPC bonus_amount
+    bonusAmount = widget.staffRecord.bonusAmount.toInt();
+    if (bonusAmount > 0) {
+      _bonusController.text = NumberFormat('#,###').format(bonusAmount);
+    }
+
+    // Initialize issue report status based on is_problem_solved
+    // Note: Always show report content regardless of is_problem_solved
+    if (widget.staffRecord.isReported && widget.staffRecord.isProblemSolved) {
+      issueReportStatus = 'approved'; // Mark as already handled
+    }
+  }
 
   @override
   void dispose() {
@@ -103,8 +193,8 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
       title: 'Confirmed check-in',
       recordedTimeLabel: 'Recorded check-in',
       recordedTime: recordedCheckIn,
-      initialTime: parsedTime['time'],
-      initialSeconds: parsedTime['seconds'],
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -125,8 +215,8 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
       title: 'Confirmed check-out',
       recordedTimeLabel: 'Recorded check-out',
       recordedTime: recordedCheckOut,
-      initialTime: parsedTime['time'],
-      initialSeconds: parsedTime['seconds'],
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {

@@ -31,14 +31,10 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isLoadingData: true, error: null);
 
     try {
-      print('🔄 AddShiftForm: Loading schedule data for storeId: $_storeId, timezone: $_timezone');
-
       final scheduleData = await _repository.getScheduleData(
         storeId: _storeId,
         timezone: _timezone,
       );
-
-      print('📦 AddShiftForm: Got ${scheduleData.employees.length} employees, ${scheduleData.shifts.length} shifts');
 
       final employees = scheduleData.employees
           .map((emp) => {
@@ -58,16 +54,12 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
               },)
           .toList();
 
-      print('✅ AddShiftForm: Mapped ${employees.length} employees, ${shifts.length} shifts');
-
       state = state.copyWith(
         employees: employees,
         shifts: shifts,
         isLoadingData: false,
       );
-    } catch (e, stackTrace) {
-      print('❌ AddShiftForm: Error loading schedule data: $e');
-      print('❌ AddShiftForm: Stack trace: $stackTrace');
+    } catch (e) {
       state = state.copyWith(
         error: 'Error: ${e.toString()}',
         isLoadingData: false,

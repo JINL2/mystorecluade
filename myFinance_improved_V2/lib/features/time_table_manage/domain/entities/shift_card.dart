@@ -84,6 +84,18 @@ class ShiftCard {
   /// Salary amount (hourly rate or monthly salary)
   final String? salaryAmount;
 
+  /// Base pay for this shift
+  final String? basePay;
+
+  /// Total pay with bonus
+  final String? totalPayWithBonus;
+
+  /// Raw time strings from RPC (for display without conversion)
+  final String? actualStartRaw;
+  final String? actualEndRaw;
+  final String? confirmedStartRaw;
+  final String? confirmedEndRaw;
+
   /// List of tags associated with this shift card
   final List<Tag> tags;
 
@@ -125,6 +137,12 @@ class ShiftCard {
     this.checkoutDistanceFromStore,
     this.salaryType,
     this.salaryAmount,
+    this.basePay,
+    this.totalPayWithBonus,
+    this.actualStartRaw,
+    this.actualEndRaw,
+    this.confirmedStartRaw,
+    this.confirmedEndRaw,
     this.tags = const [],
     this.problemType,
     this.reportReason,
@@ -216,7 +234,17 @@ class ShiftCard {
     double? checkinDistanceFromStore,
     bool? isValidCheckoutLocation,
     double? checkoutDistanceFromStore,
+    String? salaryType,
+    String? salaryAmount,
+    String? basePay,
+    String? totalPayWithBonus,
+    String? actualStartRaw,
+    String? actualEndRaw,
+    String? confirmedStartRaw,
+    String? confirmedEndRaw,
     List<Tag>? tags,
+    String? problemType,
+    String? reportReason,
     DateTime? createdAt,
     DateTime? approvedAt,
   }) {
@@ -244,7 +272,17 @@ class ShiftCard {
       checkinDistanceFromStore: checkinDistanceFromStore ?? this.checkinDistanceFromStore,
       isValidCheckoutLocation: isValidCheckoutLocation ?? this.isValidCheckoutLocation,
       checkoutDistanceFromStore: checkoutDistanceFromStore ?? this.checkoutDistanceFromStore,
+      salaryType: salaryType ?? this.salaryType,
+      salaryAmount: salaryAmount ?? this.salaryAmount,
+      basePay: basePay ?? this.basePay,
+      totalPayWithBonus: totalPayWithBonus ?? this.totalPayWithBonus,
+      actualStartRaw: actualStartRaw ?? this.actualStartRaw,
+      actualEndRaw: actualEndRaw ?? this.actualEndRaw,
+      confirmedStartRaw: confirmedStartRaw ?? this.confirmedStartRaw,
+      confirmedEndRaw: confirmedEndRaw ?? this.confirmedEndRaw,
       tags: tags ?? this.tags,
+      problemType: problemType ?? this.problemType,
+      reportReason: reportReason ?? this.reportReason,
       createdAt: createdAt ?? this.createdAt,
       approvedAt: approvedAt ?? this.approvedAt,
     );

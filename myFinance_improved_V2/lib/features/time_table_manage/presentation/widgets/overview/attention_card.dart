@@ -11,6 +11,8 @@ enum AttentionType {
   late,
   understaffed,
   overtime,
+  problem,
+  reported,
 }
 
 /// Attention Item Data
@@ -116,6 +118,12 @@ class AttentionCard extends StatelessWidget {
       case AttentionType.overtime:
         status = BadgeStatus.error;
         label = 'Overtime';
+      case AttentionType.problem:
+        status = BadgeStatus.warning;
+        label = 'Problem';
+      case AttentionType.reported:
+        status = BadgeStatus.warning;
+        label = 'Reported';
     }
 
     return TossStatusBadge(

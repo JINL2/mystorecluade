@@ -16,6 +16,7 @@ import '../../providers/state/shift_metadata_provider.dart';
 import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
 import '../../../domain/entities/shift_card.dart';
+import '../../../domain/entities/shift_metadata_item.dart';
 import 'package:intl/intl.dart';
 
 /// Schedule Tab Content - Redesigned
@@ -35,6 +36,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
   final Future<void> Function() onApprovalSuccess;
   final Future<void> Function() fetchMonthlyShiftStatus;
   final VoidCallback onStoreSelectorTap;
+  final void Function(String storeId)? onStoreChanged;
 
   const ScheduleTabContent({
     super.key,
@@ -50,6 +52,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
     required this.onApprovalSuccess,
     required this.fetchMonthlyShiftStatus,
     required this.onStoreSelectorTap,
+    this.onStoreChanged,
   });
 
   @override
@@ -156,8 +159,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           WeekDatesPicker(
             selectedDate: _selectedDate,
             weekStartDate: _currentWeekStart,
-            datesWithUserApproved: _getDatesWithShifts(),
-            shiftAvailabilityMap: {},
+            datesWithUserApproved: {}, // Remove blue circle border
+            shiftAvailabilityMap: _getShiftAvailabilityMap(),
             onDateSelected: (date) {
               setState(() => _selectedDate = date);
               widget.onDateSelected(date);
@@ -309,8 +312,9 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
       value: widget.selectedStoreId,
       items: storeItems,
       onChanged: (newValue) {
-        if (newValue != null) {
-          widget.onStoreSelectorTap();
+        if (newValue != null && newValue != widget.selectedStoreId) {
+          // Notify parent of store change with the new store ID
+          widget.onStoreChanged?.call(newValue);
         }
       },
     );
@@ -406,35 +410,72 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     widget.onDateSelected(_selectedDate);
   }
 
-  /// Get dates with available shifts from real data
-  /// Shows ALL days in the week (since shifts are available every day)
-  Set<DateTime> _getDatesWithShifts() {
+  /// Get shift availability map for the week
+  ///
+  /// Logic:
+  /// - Blue dot: total_required > total_approved (understaffed)
+  /// - Gray dot: total_required <= total_approved (fully staffed)
+  Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
-    // Get shift metadata to check if store has active shifts
+    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
     final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
-    if (!metadataAsync.hasValue || metadataAsync.value == null) return {};
+    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
 
-    final metadata = metadataAsync.value!;
+    // Get shift metadata for total_required when no requests exist
+    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
+    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
 
-    // If no active shifts configured, show nothing
-    if (metadata.activeShifts.isEmpty) return {};
-
-    // Show all 7 days of the week (shifts are available every day)
-    final dateSet = <DateTime>{};
+    // Check each day of the week
     for (int i = 0; i < 7; i++) {
       final date = _currentWeekStart.add(Duration(days: i));
-      dateSet.add(DateTime(date.year, date.month, date.day));
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+
+      // Find daily shift data for this date
+      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
+          .expand((status) => status.dailyShifts)
+          .where((daily) => daily.date == dateStr)
+          .firstOrNull;
+
+      int totalRequired = 0;
+      int totalApproved = 0;
+
+      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
+        // Has request data - use it
+        for (final shiftWithReqs in dailyShiftData.shifts) {
+          totalRequired += shiftWithReqs.shift.targetCount;
+          totalApproved += shiftWithReqs.approvedRequests.length;
+        }
+      } else if (activeShifts.isNotEmpty) {
+        // No request data but has active shifts - use metadata
+        // All shifts are understaffed (0 approved, total_required from metadata)
+        for (final shiftMeta in activeShifts) {
+          totalRequired += shiftMeta.targetCount;
+        }
+        // totalApproved stays 0
+      } else {
+        // No shifts configured - no dot
+        continue;
+      }
+
+      // Determine availability status
+      if (totalRequired > totalApproved) {
+        // Understaffed - blue dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+      } else {
+        // Fully staffed - gray dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
+      }
     }
 
-    return dateSet;
+    return availabilityMap;
   }
 
   /// Get shifts for selected date from real data
   /// Uses monthlyShiftStatusProvider which has employee data
   List<ShiftData> _getShiftsForSelectedDate() {
     if (widget.selectedStoreId == null) {
-      print('⚠️ [ScheduleTab] No store ID selected');
       return [];
     }
 
@@ -443,13 +484,11 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
     // Return empty if metadata still loading
     if (!metadataAsync.hasValue || metadataAsync.value == null) {
-      print('⚠️ [ScheduleTab] Metadata not loaded yet');
       return [];
     }
 
     final metadata = metadataAsync.value!;
     final activeShifts = metadata.activeShifts;
-    print('📋 [ScheduleTab] Found ${activeShifts.length} active shifts');
 
     // Get monthly shift status (has employee requests data)
     final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
@@ -460,12 +499,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         .expand((status) => status.dailyShifts)
         .where((daily) => daily.date == selectedDateStr)
         .firstOrNull;
-
-    print('📊 [ScheduleTab] Monthly status for $selectedDateStr: ${dailyShiftData != null ? "has data" : "no data"}');
-
-    if (dailyShiftData != null) {
-      print('📅 [ScheduleTab] Found ${dailyShiftData.shifts.length} shifts with employee data');
-    }
 
     // Create ShiftData for ALL active shifts
     return activeShifts.map((shiftMeta) {
@@ -493,8 +526,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
                   ))
               .toList() ??
           [];
-
-      print('   🎯 ${shiftMeta.shiftName}: ${assignedEmployees.length} approved, ${applicants.length} pending');
 
       return ShiftData(
         id: shiftMeta.shiftId,

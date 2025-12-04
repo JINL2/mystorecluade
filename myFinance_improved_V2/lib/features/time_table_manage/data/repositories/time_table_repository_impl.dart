@@ -193,16 +193,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         timezone: timezone,
       );
 
-      // DEBUG: Log raw RPC response shift_dates
-      if (data['stores'] != null) {
-        final stores = data['stores'] as List;
-        for (final store in stores) {
-          final cards = store['cards'] as List? ?? [];
-          final dates = cards.map((c) => c['shift_date']).toList();
-          print('🔍 RPC Raw shift_dates: $dates');
-        }
-      }
-
       final dto = ManagerShiftCardsDto.fromJson(data);
       final entity = dto.toEntity(
         storeId: storeId,

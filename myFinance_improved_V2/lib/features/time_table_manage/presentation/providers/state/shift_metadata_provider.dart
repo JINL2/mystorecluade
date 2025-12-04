@@ -40,8 +40,6 @@ final shiftMetadataProvider =
   final appState = ref.watch(appStateProvider);
   final timezone = (appState.user['timezone'] as String?) ?? 'Asia/Ho_Chi_Minh';
 
-  print('🔍 [ShiftMetadata Provider] Using timezone: $timezone for store: $storeId');
-
   return await useCase(GetShiftMetadataParams(
     storeId: storeId,
     timezone: timezone,

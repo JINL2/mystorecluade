@@ -126,37 +126,21 @@ class ScheduleShiftDataSection extends ConsumerWidget {
   /// Get shifts with requests for a specific date using Provider
   List<ShiftWithRequests> _getEmployeeShiftsForDate(WidgetRef ref) {
     if (selectedStoreId == null || selectedStoreId!.isEmpty) {
-      print('❌ [ScheduleShiftData] No store ID selected');
       return [];
     }
 
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-    print('🔍 [ScheduleShiftData] Looking for date: $dateStr, store: $selectedStoreId');
 
     // Use ref.watch to rebuild when data changes
     final monthlyStatuses = ref.watch(monthlyShiftStatusProvider(selectedStoreId!)).allMonthlyStatuses;
-    print('📊 [ScheduleShiftData] Found ${monthlyStatuses.length} monthly statuses');
 
     for (var monthlyStatus in monthlyStatuses) {
-      print('📅 [ScheduleShiftData] Checking month: ${monthlyStatus.month}, daily shifts: ${monthlyStatus.dailyShifts.length}');
       final dailyData = monthlyStatus.findByDate(dateStr);
       if (dailyData != null) {
-        print('✅ [ScheduleShiftData] Found daily data with ${dailyData.shifts.length} shifts');
-        for (var shift in dailyData.shifts) {
-          print('   📌 ${shift.shift.shiftName}: ${shift.approvedRequests.length} approved, ${shift.pendingRequests.length} pending');
-          // Log employee details
-          for (var req in shift.approvedRequests) {
-            print('      ✓ APPROVED: ${req.employee.userName}');
-          }
-          for (var req in shift.pendingRequests) {
-            print('      ⏳ PENDING: ${req.employee.userName}');
-          }
-        }
         return dailyData.shifts;
       }
     }
 
-    print('⚠️ [ScheduleShiftData] No daily data found for $dateStr');
     return [];
   }
 

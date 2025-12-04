@@ -45,11 +45,9 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
 
     // Skip if already loaded (unless force refresh)
     if (!forceRefresh && state.dataByMonth.containsKey(monthKey)) {
-      print('📦 ManagerCards: Skipping load for $monthKey (already cached)');
       return;
     }
 
-    print('🔄 ManagerCards: Loading data for $monthKey (storeId: $_storeId, companyId: $_companyId)');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
