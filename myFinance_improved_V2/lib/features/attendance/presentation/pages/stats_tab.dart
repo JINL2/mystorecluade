@@ -146,8 +146,11 @@ class _StatsTabState extends ConsumerState<StatsTab> {
               // Performance KPI Card
               PerformanceKpiCard(
                 ontimeRate: '${periodStats.onTimeRate.toStringAsFixed(0)}%',
+                ontimeRateChange: '+1.5%', // TODO: Get from backend - format: "+1.5%" or "-0.2%"
                 completedShifts: '${periodStats.completeShifts} shifts',
+                completedShiftsChange: '+0.8%', // TODO: Get from backend - format: "+0.8%" or "-0.5%"
                 reliabilityScore: stats.reliabilityScore.finalScore.toStringAsFixed(1),
+                reliabilityScoreChange: '-0.2%', // TODO: Get from backend - format: "+2.1%" or "-0.2%"
                 scoreBreakdown: stats.reliabilityScore.scoreBreakdown,
               ),
 

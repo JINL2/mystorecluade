@@ -29,30 +29,40 @@ class HeroStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(
+          color: iconColor.withOpacity(0.15),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: iconColor,
-              ),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                label,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          // Icon with background
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: iconColor,
+            ),
           ),
-          const SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space3),
+          // Label
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          // Value with unit
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
@@ -68,7 +78,8 @@ class HeroStatCard extends StatelessWidget {
               Text(
                 unit,
                 style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray600,
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],

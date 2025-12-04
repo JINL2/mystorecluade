@@ -64,15 +64,7 @@ class SalaryBreakdownCard extends StatelessWidget {
             value: bonusPay,
           ),
 
-          // Total section
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: TossColors.gray100,
-            ),
-          ),
+          const SizedBox(height: 12),
 
           // Total payment
           _BreakdownRow(

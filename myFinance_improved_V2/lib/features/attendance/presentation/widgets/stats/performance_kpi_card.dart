@@ -11,6 +11,9 @@ class PerformanceKpiCard extends StatelessWidget {
   final String ontimeRate;
   final String completedShifts;
   final String reliabilityScore;
+  final String? ontimeRateChange;
+  final String? completedShiftsChange;
+  final String? reliabilityScoreChange;
   final Map<String, dynamic>? scoreBreakdown;
 
   const PerformanceKpiCard({
@@ -18,6 +21,9 @@ class PerformanceKpiCard extends StatelessWidget {
     required this.ontimeRate,
     required this.completedShifts,
     required this.reliabilityScore,
+    this.ontimeRateChange,
+    this.completedShiftsChange,
+    this.reliabilityScoreChange,
     this.scoreBreakdown,
   });
 
@@ -40,6 +46,7 @@ class PerformanceKpiCard extends StatelessWidget {
 
         // KPI Card
         TossWhiteCard(
+          showBorder: false,
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -51,6 +58,7 @@ class PerformanceKpiCard extends StatelessWidget {
                 child: _KpiColumn(
                   label: 'On-time Rate',
                   value: ontimeRate,
+                  changePercentage: ontimeRateChange,
                 ),
               ),
 
@@ -69,6 +77,7 @@ class PerformanceKpiCard extends StatelessWidget {
                 child: _KpiColumn(
                   label: 'Completed Shifts',
                   value: completedShifts,
+                  changePercentage: completedShiftsChange,
                 ),
               ),
 
@@ -87,6 +96,7 @@ class PerformanceKpiCard extends StatelessWidget {
                 child: _KpiColumn(
                   label: 'Reliability Score',
                   value: reliabilityScore,
+                  changePercentage: reliabilityScoreChange,
                   showInfoIcon: true,
                   alignRight: false,
                   onInfoTap: () => _showScoreBreakdown(context),
@@ -111,6 +121,7 @@ class PerformanceKpiCard extends StatelessWidget {
 class _KpiColumn extends StatelessWidget {
   final String label;
   final String value;
+  final String? changePercentage;
   final bool showInfoIcon;
   final bool alignRight;
   final VoidCallback? onInfoTap;
@@ -118,10 +129,30 @@ class _KpiColumn extends StatelessWidget {
   const _KpiColumn({
     required this.label,
     required this.value,
+    this.changePercentage,
     this.showInfoIcon = false,
     this.alignRight = false,
     this.onInfoTap,
   });
+
+  /// Determine if change is positive based on the string
+  bool get _isPositiveChange {
+    if (changePercentage == null) return false;
+    return changePercentage!.startsWith('+');
+  }
+
+  /// Determine if change is negative
+  bool get _isNegativeChange {
+    if (changePercentage == null) return false;
+    return changePercentage!.startsWith('-');
+  }
+
+  /// Get color for change percentage
+  Color get _changeColor {
+    if (_isPositiveChange) return TossColors.primary;
+    if (_isNegativeChange) return TossColors.error;
+    return TossColors.gray600;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,20 +189,34 @@ class _KpiColumn extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
 
-        // Value (respects alignRight)
-        SizedBox(
-          width: double.infinity,
-          child: Text(
-            value,
-            style: TossTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray900,
+        // Value with change percentage
+        Row(
+          mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              value,
+              style: TossTextStyles.bodyMedium.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: TossColors.gray900,
+              ),
             ),
-            textAlign: alignRight ? TextAlign.right : TextAlign.left,
-          ),
+            if (changePercentage != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                changePercentage!,
+                style: TossTextStyles.caption.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _changeColor,
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );

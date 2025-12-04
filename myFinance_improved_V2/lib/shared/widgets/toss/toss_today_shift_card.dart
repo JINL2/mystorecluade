@@ -132,23 +132,27 @@ class TossTodayShiftCard extends StatelessWidget {
     }
 
     String buttonText;
+    IconData buttonIcon;
     VoidCallback? onPressed;
 
     switch (status) {
       case ShiftStatus.upcoming:
       case ShiftStatus.onTime:
+      case ShiftStatus.undone:
         buttonText = 'Check-in';
+        buttonIcon = Icons.login;
         onPressed = onCheckIn;
         break;
       case ShiftStatus.inProgress:
         buttonText = 'Check-out';
+        buttonIcon = Icons.logout;
         onPressed = onCheckOut;
         break;
       case ShiftStatus.completed:
       case ShiftStatus.late:
-      case ShiftStatus.undone:
-        buttonText = 'View Details';
-        onPressed = onCheckIn; // Reuse onCheckIn for view details
+        buttonText = 'Check-in';
+        buttonIcon = Icons.login;
+        onPressed = onCheckIn;
         break;
       case ShiftStatus.noShift:
         return const SizedBox.shrink();
@@ -163,7 +167,7 @@ class TossTodayShiftCard extends StatelessWidget {
           backgroundColor: TossColors.primary,
           foregroundColor: TossColors.white,
           elevation: 0,
-          padding: EdgeInsets.zero, // Remove default padding to align with card edges
+          padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
@@ -180,8 +184,8 @@ class TossTodayShiftCard extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.login, size: 20),
-                  SizedBox(width: 8),
+                  Icon(buttonIcon, size: 20),
+                  SizedBox(width: TossSpacing.space2),
                   Text(
                     buttonText,
                     style: TossTextStyles.body.copyWith(
