@@ -82,6 +82,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     updateProduct,
     importExcel,
     moveProduct,
+    deleteProducts,
     refresh,
   } = useInventory();
 
@@ -626,10 +627,22 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
       <ConfirmModal
         isOpen={isDeleteConfirmModalOpen}
         onClose={closeDeleteConfirmModal}
-        onConfirm={() => {
-          // TODO: Implement actual delete RPC call
-          showNotification('info', 'Delete functionality will be implemented soon');
-          closeDeleteConfirmModal();
+        onConfirm={async () => {
+          const productIds = productsToDelete.map((p) => p.productId);
+          const result = await deleteProducts(productIds, companyId);
+
+          if (result.success) {
+            showNotification(
+              'success',
+              result.message || `Successfully deleted ${result.deletedCount || productIds.length} product${(result.deletedCount || productIds.length) > 1 ? 's' : ''}`
+            );
+            closeDeleteConfirmModal();
+            clearSelection();
+            // Refresh inventory to reflect changes
+            loadInventory(companyId, selectedStoreId, localSearchQuery);
+          } else {
+            showNotification('error', result.error || 'Failed to delete products');
+          }
         }}
         variant="error"
         title="Delete Products"

@@ -152,6 +152,7 @@ export const useInventory = () => {
     updateProduct,
     importExcel,
     moveProduct,
+    deleteProducts,
     refresh,
   };
 };
