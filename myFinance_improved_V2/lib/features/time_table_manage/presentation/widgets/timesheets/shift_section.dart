@@ -34,11 +34,13 @@ class ShiftTimelog {
 class ShiftSection extends StatefulWidget {
   final ShiftTimelog shift;
   final bool initiallyExpanded;
+  final VoidCallback? onDataChanged;
 
   const ShiftSection({
     super.key,
     required this.shift,
     this.initiallyExpanded = true,
+    this.onDataChanged,
   });
 
   @override
@@ -157,9 +159,9 @@ class _ShiftSectionState extends State<ShiftSection> {
                 final record = widget.shift.staffRecords[index];
                 return StaffTimelogCard(
                   record: record,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
+                  onTap: () async {
+                    final result = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute<bool>(
                         builder: (context) => StaffTimelogDetailPage(
                           staffRecord: record,
                           shiftName: widget.shift.shiftName,
@@ -168,6 +170,10 @@ class _ShiftSectionState extends State<ShiftSection> {
                         ),
                       ),
                     );
+                    // Notify parent to refresh data if save was successful
+                    if (result == true) {
+                      widget.onDataChanged?.call();
+                    }
                   },
                 );
               },

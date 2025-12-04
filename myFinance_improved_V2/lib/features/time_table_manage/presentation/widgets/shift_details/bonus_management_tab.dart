@@ -11,7 +11,8 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_card.dart';
-import '../../providers/time_table_providers.dart';
+import '../../../domain/usecases/update_bonus_amount.dart';
+import '../../providers/usecase/time_table_usecase_providers.dart';
 import 'bonus_confirmation_dialog.dart';
 
 class BonusManagementTab extends ConsumerStatefulWidget {
@@ -93,10 +94,12 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       // Get shift request ID from the card
       final shiftRequestId = widget.card.shiftRequestId;
 
-      // Use repository instead of direct Supabase call
-      await ref.read(timeTableRepositoryProvider).updateBonusAmount(
-        shiftRequestId: shiftRequestId,
-        bonusAmount: newBonus.toDouble(),
+      // Use UseCase instead of Repository directly (Clean Architecture)
+      await ref.read(updateBonusAmountUseCaseProvider).call(
+        UpdateBonusAmountParams(
+          shiftRequestId: shiftRequestId,
+          bonusAmount: newBonus.toDouble(),
+        ),
       );
 
       // Close loading dialog

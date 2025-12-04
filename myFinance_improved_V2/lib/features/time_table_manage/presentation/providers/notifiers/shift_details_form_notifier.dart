@@ -1,20 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/shift_card.dart';
-import '../../../domain/repositories/time_table_repository.dart';
+import '../../../domain/usecases/delete_shift_tag.dart';
+import '../../../domain/usecases/input_card.dart';
+import '../../../domain/usecases/update_bonus_amount.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import '../../../domain/value_objects/tag_input.dart';
 import '../states/shift_details_form_state.dart';
 
 /// Shift Details Form Notifier
 ///
-/// Manages the business logic for the Shift Details form
+/// Manages the business logic for the Shift Details form.
+/// Uses UseCases for Clean Architecture compliance.
 class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
-  final TimeTableRepository _repository;
+  final InputCard _inputCardUseCase;
+  final DeleteShiftTag _deleteShiftTagUseCase;
+  final UpdateBonusAmount _updateBonusAmountUseCase;
   final String _timezone;
 
-  ShiftDetailsFormNotifier(ShiftCard card, this._repository, this._timezone)
-      : super(_createInitialState(card));
+  ShiftDetailsFormNotifier(
+    ShiftCard card,
+    this._inputCardUseCase,
+    this._deleteShiftTagUseCase,
+    this._updateBonusAmountUseCase,
+    this._timezone,
+  ) : super(_createInitialState(card));
 
   /// Create initial state from card data
   static ShiftDetailsFormState _createInitialState(ShiftCard card) {
@@ -103,17 +113,19 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
         );
       }
 
-      // Call repository to update shift
-      await _repository.inputCard(
-        managerId: managerId,
-        shiftRequestId: state.card.shiftRequestId,
-        confirmStartTime: state.editedStartTime,
-        confirmEndTime: state.editedEndTime,
-        newTagContent: tagInput?.content,
-        newTagType: tagInput?.tagType,
-        isLate: false, // TODO: Calculate based on times
-        isProblemSolved: state.isProblemSolved,
-        timezone: _timezone,
+      // Use UseCase instead of Repository directly (Clean Architecture)
+      await _inputCardUseCase.call(
+        InputCardParams(
+          managerId: managerId,
+          shiftRequestId: state.card.shiftRequestId,
+          confirmStartTime: state.editedStartTime,
+          confirmEndTime: state.editedEndTime,
+          newTagContent: tagInput?.content,
+          newTagType: tagInput?.tagType,
+          isLate: false, // TODO: Calculate based on times
+          isProblemSolved: state.isProblemSolved,
+          timezone: _timezone,
+        ),
       );
 
       // Update original values after successful save
@@ -141,7 +153,10 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
     state = state.copyWith(isDeletingTag: true, error: null);
 
     try {
-      await _repository.deleteShiftTag(tagId: tagId, userId: userId);
+      // Use UseCase instead of Repository directly (Clean Architecture)
+      await _deleteShiftTagUseCase.call(
+        DeleteShiftTagParams(tagId: tagId, userId: userId),
+      );
 
       state = state.copyWith(isDeletingTag: false);
       return true;
@@ -161,9 +176,12 @@ class ShiftDetailsFormNotifier extends StateNotifier<ShiftDetailsFormState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      await _repository.updateBonusAmount(
-        shiftRequestId: state.card.shiftRequestId,
-        bonusAmount: bonusAmount,
+      // Use UseCase instead of Repository directly (Clean Architecture)
+      await _updateBonusAmountUseCase.call(
+        UpdateBonusAmountParams(
+          shiftRequestId: state.card.shiftRequestId,
+          bonusAmount: bonusAmount,
+        ),
       );
 
       state = state.copyWith(isSaving: false);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -8,6 +9,10 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
+import '../providers/usecase/time_table_usecase_providers.dart';
+import '../../domain/usecases/input_card_v4.dart';
 import '../widgets/timesheets/staff_timelog_card.dart';
 import '../widgets/timesheets/time_picker_bottom_sheet.dart';
 
@@ -20,7 +25,7 @@ import '../widgets/timesheets/time_picker_bottom_sheet.dart';
 /// - Issue report from employee (if exists)
 /// - Bonus section (optional one-time bonus)
 /// - Salary breakdown
-class StaffTimelogDetailPage extends StatefulWidget {
+class StaffTimelogDetailPage extends ConsumerStatefulWidget {
   final StaffTimeRecord staffRecord;
   final String shiftName;
   final String shiftDate;
@@ -35,12 +40,13 @@ class StaffTimelogDetailPage extends StatefulWidget {
   });
 
   @override
-  State<StaffTimelogDetailPage> createState() => _StaffTimelogDetailPageState();
+  ConsumerState<StaffTimelogDetailPage> createState() => _StaffTimelogDetailPageState();
 }
 
-class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
+class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = true; // Open by default for manager action
+  bool _isSaving = false; // Loading state for save button
 
   // State variables initialized from StaffTimeRecord
   late String recordedCheckIn;
@@ -50,6 +56,12 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
   bool isCheckInManuallyConfirmed = false;
   bool isCheckOutManuallyConfirmed = false;
 
+  // Initial values for change detection
+  late String _initialConfirmedCheckIn;
+  late String _initialConfirmedCheckOut;
+  late int _initialBonusAmount;
+  late String? _initialIssueReportStatus;
+
   // Issue report from RPC (is_reported, report_reason)
   String? get employeeIssueReport => widget.staffRecord.isReported ? widget.staffRecord.reportReason : null;
 
@@ -58,6 +70,56 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
 
   // Issue report approval state (based on is_problem_solved from RPC)
   String? issueReportStatus; // null, 'approved', 'rejected'
+
+  // Track if user has clicked to expand issue report buttons
+  // When false: show single button based on is_problem_solved
+  // When true: show both buttons for user to select
+  bool _showBothIssueButtons = false;
+
+  /// Check if confirm times are valid (not default placeholder values)
+  bool get _areConfirmTimesValid {
+    // Both confirm times must be set (not placeholder values)
+    final checkInValid = confirmedCheckIn != '--:--:--' && confirmedCheckIn.isNotEmpty;
+    final checkOutValid = confirmedCheckOut != '--:--:--' && confirmedCheckOut.isNotEmpty;
+    return checkInValid && checkOutValid;
+  }
+
+  /// Check if there are any changes from the initial values
+  bool get hasChanges {
+    // Check confirmed times changed
+    final checkInChanged = confirmedCheckIn != _initialConfirmedCheckIn;
+    final checkOutChanged = confirmedCheckOut != _initialConfirmedCheckOut;
+
+    // Check bonus amount changed
+    final bonusChanged = bonusAmount != _initialBonusAmount;
+
+    // Check issue report status changed (only if issue report exists AND user made a selection)
+    // - issueReportStatus == null means user hasn't made a selection yet → no change
+    // - issueReportStatus != null AND different from initial → change detected
+    final hasIssueReport = widget.staffRecord.isReported;
+    final issueStatusChanged = hasIssueReport &&
+        issueReportStatus != null &&
+        issueReportStatus != _initialIssueReportStatus;
+
+    debugPrint('[hasChanges] checkIn: $confirmedCheckIn vs $_initialConfirmedCheckIn = $checkInChanged');
+    debugPrint('[hasChanges] checkOut: $confirmedCheckOut vs $_initialConfirmedCheckOut = $checkOutChanged');
+    debugPrint('[hasChanges] bonus: $bonusAmount vs $_initialBonusAmount = $bonusChanged');
+    debugPrint('[hasChanges] issueStatus: $issueReportStatus vs $_initialIssueReportStatus (hasReport: $hasIssueReport) = $issueStatusChanged');
+    debugPrint('[hasChanges] confirmTimesValid: $_areConfirmTimesValid');
+
+    final hasAnyChange = checkInChanged || checkOutChanged || bonusChanged || issueStatusChanged;
+
+    // If confirm times were changed, they must be valid
+    // If only bonus or issue status changed, confirm times validation is not required
+    final timesChanged = checkInChanged || checkOutChanged;
+    if (timesChanged) {
+      // Times changed - must be valid
+      return hasAnyChange && _areConfirmTimesValid;
+    } else {
+      // Only bonus or issue status changed - allow save without time validation
+      return hasAnyChange;
+    }
+  }
 
   // Salary breakdown from RPC
   String get totalConfirmedTime {
@@ -134,14 +196,14 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
   void initState() {
     super.initState();
     // Initialize from StaffTimeRecord real data
-    // Recorded: use actual_start, actual_end
-    recordedCheckIn = widget.staffRecord.actualStart ?? '--:--:--';
-    recordedCheckOut = widget.staffRecord.actualEnd ?? '--:--:--';
+    // Recorded: use actual_start, actual_end (extract time only)
+    recordedCheckIn = _extractTimeFromString(widget.staffRecord.actualStart) ?? '--:--:--';
+    recordedCheckOut = _extractTimeFromString(widget.staffRecord.actualEnd) ?? '--:--:--';
 
     // Confirmed: use confirm_start_time, confirm_end_time
     // If not available, fallback to recorded times
-    confirmedCheckIn = widget.staffRecord.confirmStartTime ?? recordedCheckIn;
-    confirmedCheckOut = widget.staffRecord.confirmEndTime ?? recordedCheckOut;
+    confirmedCheckIn = _extractTimeFromString(widget.staffRecord.confirmStartTime) ?? recordedCheckIn;
+    confirmedCheckOut = _extractTimeFromString(widget.staffRecord.confirmEndTime) ?? recordedCheckOut;
 
     // Initialize bonus from RPC bonus_amount
     bonusAmount = widget.staffRecord.bonusAmount.toInt();
@@ -149,11 +211,22 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
       _bonusController.text = NumberFormat('#,###').format(bonusAmount);
     }
 
-    // Initialize issue report status based on is_problem_solved
-    // Note: Always show report content regardless of is_problem_solved
-    if (widget.staffRecord.isReported && widget.staffRecord.isProblemSolved) {
-      issueReportStatus = 'approved'; // Mark as already handled
+    // Initialize issue report status:
+    // - issueReportStatus starts as null (user hasn't made a selection yet)
+    // - _initialIssueReportStatus stores the RPC value for change detection
+    // - When user selects approve/reject, issueReportStatus gets set
+    // - Change is detected by comparing issueReportStatus with _initialIssueReportStatus
+    if (widget.staffRecord.isReported) {
+      // Store initial value from RPC for change detection
+      _initialIssueReportStatus = widget.staffRecord.isProblemSolved ? 'approved' : 'rejected';
+      // issueReportStatus stays null until user makes a selection
+      issueReportStatus = null;
     }
+
+    // Store initial values for change detection
+    _initialConfirmedCheckIn = confirmedCheckIn;
+    _initialConfirmedCheckOut = confirmedCheckOut;
+    _initialBonusAmount = bonusAmount;
   }
 
   @override
@@ -173,16 +246,55 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
     return '${NumberFormat('#,###').format(total)}₫';
   }
 
+  /// Extract time (HH:mm:ss) from various string formats
+  /// Handles:
+  /// - ISO 8601: "2025-12-07T14:00:00.000" → "14:00:00"
+  /// - Time only: "14:00:00" → "14:00:00"
+  /// - Returns null if input is null or invalid
+  String? _extractTimeFromString(String? input) {
+    if (input == null || input.isEmpty) return null;
+
+    // Check if it's ISO 8601 format (contains 'T')
+    if (input.contains('T')) {
+      try {
+        final dateTime = DateTime.parse(input);
+        final hour = dateTime.hour.toString().padLeft(2, '0');
+        final minute = dateTime.minute.toString().padLeft(2, '0');
+        final second = dateTime.second.toString().padLeft(2, '0');
+        return '$hour:$minute:$second';
+      } catch (e) {
+        debugPrint('[_extractTimeFromString] Error parsing ISO: $e');
+        return null;
+      }
+    }
+
+    // Already in time format (HH:mm:ss or HH:mm)
+    if (input.contains(':')) {
+      return input;
+    }
+
+    return null;
+  }
+
   /// Parse time string "HH:MM:SS" to TimeOfDay and seconds
+  /// Returns default time (00:00:00) if parsing fails (e.g., for placeholder "--:--:--")
   Map<String, dynamic> _parseTime(String timeString) {
-    final parts = timeString.split(':');
-    return {
-      'time': TimeOfDay(
-        hour: int.parse(parts[0]),
-        minute: int.parse(parts[1]),
-      ),
-      'seconds': parts.length > 2 ? int.parse(parts[2]) : 0,
-    };
+    try {
+      final parts = timeString.split(':');
+      if (parts.length < 2) {
+        return {'time': const TimeOfDay(hour: 0, minute: 0), 'seconds': 0};
+      }
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      final seconds = parts.length > 2 ? (int.tryParse(parts[2]) ?? 0) : 0;
+      return {
+        'time': TimeOfDay(hour: hour, minute: minute),
+        'seconds': seconds,
+      };
+    } catch (e) {
+      debugPrint('[_parseTime] Error parsing "$timeString": $e');
+      return {'time': const TimeOfDay(hour: 0, minute: 0), 'seconds': 0};
+    }
   }
 
   /// Show time picker for check-in
@@ -190,8 +302,8 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
     final parsedTime = _parseTime(confirmedCheckIn);
     final result = await TimePickerBottomSheet.show(
       context: context,
-      title: 'Confirmed check-in',
-      recordedTimeLabel: 'Recorded check-in',
+      title: 'Confirmed Check In',
+      recordedTimeLabel: 'Recorded check in',
       recordedTime: recordedCheckIn,
       initialTime: parsedTime['time'] as TimeOfDay,
       initialSeconds: parsedTime['seconds'] as int,
@@ -212,8 +324,8 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
     final parsedTime = _parseTime(confirmedCheckOut);
     final result = await TimePickerBottomSheet.show(
       context: context,
-      title: 'Confirmed check-out',
-      recordedTimeLabel: 'Recorded check-out',
+      title: 'Confirmed Check Out',
+      recordedTimeLabel: 'Recorded check out',
       recordedTime: recordedCheckOut,
       initialTime: parsedTime['time'] as TimeOfDay,
       initialSeconds: parsedTime['seconds'] as int,
@@ -226,6 +338,116 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
         confirmedCheckOut = time.toFormattedString(seconds: seconds);
         isCheckOutManuallyConfirmed = true; // Mark as confirmed
       });
+    }
+  }
+
+  /// Save and confirm shift using manager_shift_input_card_v4 RPC
+  ///
+  /// Sends local device time without conversion (as per RPC requirement)
+  Future<void> _saveAndConfirmShift() async {
+    // Validate shiftRequestId exists
+    final shiftRequestId = widget.staffRecord.shiftRequestId;
+    if (shiftRequestId == null || shiftRequestId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Missing shift request ID'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Get manager ID from app state (key is 'user_id', not 'id')
+    final appState = ref.read(appStateProvider);
+    final managerId = appState.user['user_id'] as String?;
+    if (managerId == null || managerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Manager ID not found'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      // Get usecase from provider
+      final inputCardV4UseCase = ref.read(inputCardV4UseCaseProvider);
+
+      // Get device timezone in IANA format (e.g., "Asia/Ho_Chi_Minh", "Asia/Seoul")
+      // RPC requires IANA timezone name, not abbreviation like "KST"
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      // Determine is_problem_solved value from issueReportStatus
+      // Only send if issue report exists and user made a selection
+      bool? isProblemSolved;
+      if (widget.staffRecord.isReported && issueReportStatus != null) {
+        isProblemSolved = issueReportStatus == 'approved';
+      }
+
+      // Create params - time values are already in local format (HH:mm:ss)
+      final params = InputCardV4Params(
+        managerId: managerId,
+        shiftRequestId: shiftRequestId,
+        confirmStartTime: confirmedCheckIn != '--:--:--' ? confirmedCheckIn : null,
+        confirmEndTime: confirmedCheckOut != '--:--:--' ? confirmedCheckOut : null,
+        isProblemSolved: isProblemSolved,
+        bonusAmount: bonusAmount.toDouble(),
+        timezone: timezone,
+      );
+
+      debugPrint('[SaveShift] Calling inputCardV4 with params:');
+      debugPrint('  shiftRequestId: $shiftRequestId');
+      debugPrint('  managerId: $managerId');
+      debugPrint('  confirmStartTime: ${params.confirmStartTime}');
+      debugPrint('  confirmEndTime: ${params.confirmEndTime}');
+      debugPrint('  isProblemSolved: $isProblemSolved');
+      debugPrint('  bonusAmount: $bonusAmount');
+      debugPrint('  timezone: $timezone');
+
+      // Execute RPC call
+      final result = await inputCardV4UseCase.call(params);
+
+      debugPrint('[SaveShift] Success: $result');
+      if (mounted) {
+        // Update local state to reflect saved values (no need for RPC refresh)
+        setState(() {
+          _initialConfirmedCheckIn = confirmedCheckIn;
+          _initialConfirmedCheckOut = confirmedCheckOut;
+          _initialBonusAmount = bonusAmount;
+          if (issueReportStatus != null) {
+            _initialIssueReportStatus = issueReportStatus;
+          }
+        });
+        // Close page and return success (no SnackBar)
+        Navigator.pop(context, true);
+      }
+    } on ArgumentError catch (e) {
+      debugPrint('[SaveShift] ArgumentError: ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[SaveShift] Exception: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -333,10 +555,10 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
             child: TossButton1.primary(
               text: 'Save & confirm shift',
               fullWidth: true,
-              onPressed: () {
-                // TODO: Implement save and confirm
-                Navigator.pop(context);
-              },
+              isLoading: _isSaving,
+              // Disable button when no changes from default values
+              isEnabled: hasChanges && !_isSaving,
+              onPressed: _saveAndConfirmShift,
             ),
           ),
         ],
@@ -509,7 +731,17 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
   }
 
   /// Builds issue report card (if employee reported an issue)
+  ///
+  /// Button logic:
+  /// - Initial state based on is_problem_solved from RPC:
+  ///   - is_problem_solved = true → Show "Approved" button only
+  ///   - is_problem_solved = false → Show "Reject explanation" button only
+  /// - When button is clicked → Show both buttons for user to select
+  /// - User's selection is stored in issueReportStatus for parameter submission
   Widget _buildIssueReportCard() {
+    // Determine initial button to show based on is_problem_solved
+    final isProblemSolved = widget.staffRecord.isProblemSolved;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -534,8 +766,35 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
             ),
           ),
           const SizedBox(height: 16),
-          // Show buttons based on status
-          if (issueReportStatus == null)
+
+          // Case 1: User hasn't clicked yet, show single button based on is_problem_solved
+          if (!_showBothIssueButtons && issueReportStatus == null) ...[
+            if (isProblemSolved)
+              // is_problem_solved = true → Show "Approved" button
+              TossButton1.outlined(
+                text: 'Approved',
+                fullWidth: true,
+                onPressed: () {
+                  setState(() {
+                    _showBothIssueButtons = true;
+                  });
+                },
+              )
+            else
+              // is_problem_solved = false → Show "Reject explanation" button
+              TossButton1.secondary(
+                text: 'Reject explanation',
+                fullWidth: true,
+                onPressed: () {
+                  setState(() {
+                    _showBothIssueButtons = true;
+                  });
+                },
+              ),
+          ],
+
+          // Case 2: User clicked to expand, show both buttons for selection
+          if (_showBothIssueButtons && issueReportStatus == null)
             Row(
               children: [
                 Expanded(
@@ -561,19 +820,32 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
                 ),
               ],
             ),
-          // Show rejected button (full width, disabled)
+
+          // Case 3: User has made a selection, show selected button
+          // Clicking the selected button allows changing selection (shows both buttons again)
           if (issueReportStatus == 'rejected')
             TossButton1.secondary(
               text: 'Rejected',
               fullWidth: true,
-              onPressed: null,
+              onPressed: () {
+                setState(() {
+                  // Reset to show both buttons for re-selection
+                  issueReportStatus = null;
+                  _showBothIssueButtons = true;
+                });
+              },
             ),
-          // Show approved button (full width, disabled)
           if (issueReportStatus == 'approved')
             TossButton1.outlined(
               text: 'Approved',
               fullWidth: true,
-              onPressed: null,
+              onPressed: () {
+                setState(() {
+                  // Reset to show both buttons for re-selection
+                  issueReportStatus = null;
+                  _showBothIssueButtons = true;
+                });
+              },
             ),
         ],
       ),

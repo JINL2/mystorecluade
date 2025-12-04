@@ -365,44 +365,69 @@ class TimeTableDatasource {
     }
   }
 
-  /// Get available employees for shift assignment using v2 RPC
+  /// Input card data (manager updates shift) using v4 RPC
   ///
-  /// Uses manager_shift_get_schedule_v2 RPC with timezone support
-  /// - Uses start_time_utc and end_time_utc columns from store_shifts
-  /// - Returns times converted to local timezone using p_timezone parameter
-  /// - Includes timezone information in response
-  /// - Returns empty arrays on error instead of throwing
-  Future<Map<String, dynamic>> getAvailableEmployees({
-    required String storeId,
-    required String shiftDate,
+  /// Uses manager_shift_input_card_v4 RPC
+  /// - Simplified parameters: confirm times, problem solved status, bonus amount
+  /// - Times must be in user's LOCAL timezone (HH:mm:ss format with timezone)
+  /// - RPC converts local times to UTC internally
+  /// - Returns simple success/error response
+  ///
+  /// Parameters:
+  /// - [managerId] - Manager user ID performing the update
+  /// - [shiftRequestId] - Shift request ID to update
+  /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
+  /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
+  /// - [isProblemSolved] - Problem solved status, null to keep existing
+  /// - [bonusAmount] - Bonus amount, null to keep existing
+  /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  Future<Map<String, dynamic>> inputCardV4({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isProblemSolved,
+    double? bonusAmount,
     required String timezone,
   }) async {
     try {
+      debugPrint('[inputCardV4] Calling RPC with:');
+      debugPrint('  managerId: $managerId');
+      debugPrint('  shiftRequestId: $shiftRequestId');
+      debugPrint('  confirmStartTime: $confirmStartTime');
+      debugPrint('  confirmEndTime: $confirmEndTime');
+      debugPrint('  isProblemSolved: $isProblemSolved');
+      debugPrint('  bonusAmount: $bonusAmount');
+      debugPrint('  timezone: $timezone');
+
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_schedule_v2',
+        'manager_shift_input_card_v4',
         params: {
-          'p_store_id': storeId,
+          'p_manager_id': managerId,
+          'p_shift_request_id': shiftRequestId,
+          'p_confirm_start_time': confirmStartTime,
+          'p_confirm_end_time': confirmEndTime,
+          'p_is_problem_solved': isProblemSolved,
+          'p_bonus_amount': bonusAmount,
           'p_timezone': timezone,
         },
       );
 
+      debugPrint('[inputCardV4] Response: $response');
+
       if (response == null) {
-        return {'employees': <dynamic>[], 'shifts': <dynamic>[]};
+        return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
       }
 
       if (response is Map<String, dynamic>) {
-        // manager_shift_get_schedule_v2 returns {store_employees: [], store_shifts: [], timezone: ""}
-        // Map to expected format {employees: [], shifts: []}
-        return {
-          'employees': response['store_employees'] ?? <dynamic>[],
-          'shifts': response['store_shifts'] ?? <dynamic>[],
-        };
+        return response;
       }
 
-      return {'employees': <dynamic>[], 'shifts': <dynamic>[]};
+      return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
     } catch (e, stackTrace) {
+      debugPrint('[inputCardV4] Error: $e');
       throw TimeTableException(
-        'Failed to fetch employee list: $e',
+        'Failed to input card v4: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -482,40 +507,6 @@ class TimeTableDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to process bulk approval: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Add bonus to shift
-  /// Note: manager_shift_add_bonus RPC doesn't exist, using direct DB update instead
-  Future<Map<String, dynamic>> addBonus({
-    required String shiftRequestId,
-    required double bonusAmount,
-    required String bonusReason,
-  }) async {
-    try {
-      // Update shift_requests table directly
-      await _supabase
-          .from('shift_requests')
-          .update({
-            'bonus_amount_v2': bonusAmount,
-          })
-          .eq('shift_request_id', shiftRequestId);
-
-      // Return success result in expected format
-      return {
-        'success': true,
-        'message': 'Bonus added successfully',
-        'data': {
-          'shift_request_id': shiftRequestId,
-          'bonus_amount_v2': bonusAmount,
-        },
-      };
-    } catch (e, stackTrace) {
-      throw TimeTableException(
-        'Failed to add bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

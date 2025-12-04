@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -9,10 +10,12 @@ import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../pages/attention_list_page.dart';
+import '../../pages/staff_timelog_detail_page.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
 import 'attention_card.dart';
 import 'shift_info_card.dart';
+import '../timesheets/staff_timelog_card.dart';
 
 /// Overview Tab
 ///
@@ -628,35 +631,73 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         final dateStr = _formatDate(shiftDate);
         final timeStr = _formatTimeRange(card.shift.planStartTime, card.shift.planEndTime);
 
-        // Late: is_late = true
-        if (card.isLate) {
-          items.add(AttentionItemData(
-            type: AttentionType.late,
+        // Common navigation data for staff items
+        AttentionItemData createStaffAttentionItem({
+          required AttentionType type,
+          required String subtext,
+        }) {
+          return AttentionItemData(
+            type: type,
             title: card.employee.userName,
             date: dateStr,
             time: timeStr,
+            subtext: subtext,
+            // Navigation data
+            staffId: card.employee.userId,
+            shiftRequestId: card.shiftRequestId,
+            clockIn: card.actualStartTime != null
+                ? '${card.actualStartTime!.hour.toString().padLeft(2, '0')}:${card.actualStartTime!.minute.toString().padLeft(2, '0')}'
+                : '--:--',
+            clockOut: card.actualEndTime != null
+                ? '${card.actualEndTime!.hour.toString().padLeft(2, '0')}:${card.actualEndTime!.minute.toString().padLeft(2, '0')}'
+                : '--:--',
+            isLate: card.isLate,
+            isOvertime: card.isOverTime,
+            isConfirmed: card.confirmedStartTime != null || card.confirmedEndTime != null,
+            actualStart: card.actualStartTime?.toIso8601String(),
+            actualEnd: card.actualEndTime?.toIso8601String(),
+            confirmStartTime: card.confirmedStartTime?.toIso8601String(),
+            confirmEndTime: card.confirmedEndTime?.toIso8601String(),
+            isReported: card.isReported,
+            reportReason: card.reportReason,
+            isProblemSolved: card.isProblemSolved,
+            bonusAmount: card.bonusAmount ?? 0.0,
+            salaryType: card.salaryType,
+            salaryAmount: card.salaryAmount,
+            basePay: card.basePay,
+            totalPayWithBonus: card.totalPayWithBonus,
+            paidHour: card.paidHour,
+            lateMinute: card.lateMinute,
+            overtimeMinute: card.overTimeMinute,
+            avatarUrl: card.employee.profileImage,
+            shiftDate: shiftDate,
+            shiftName: card.shift.shiftName,
+            shiftTimeRange: timeStr,
+            isShiftProblem: false,
+          );
+        }
+
+        // Late: is_late = true
+        if (card.isLate) {
+          items.add(createStaffAttentionItem(
+            type: AttentionType.late,
             subtext: '${card.lateMinute} mins late',
           ));
         }
 
-        // Problem: is_problem = true AND is_problem_solved = false
-        if (card.hasProblem && !card.isProblemSolved) {
-          items.add(AttentionItemData(
+        // Problem: is_problem = true AND is_problem_solved = false AND is_reported = false
+        // Skip if isReported is true (will be shown as Reported instead)
+        if (card.hasProblem && !card.isProblemSolved && !card.isReported) {
+          items.add(createStaffAttentionItem(
             type: AttentionType.problem,
-            title: card.employee.userName,
-            date: dateStr,
-            time: timeStr,
             subtext: card.problemType ?? 'Has problem',
           ));
         }
 
         // Reported: is_reported = true AND is_problem_solved = false
         if (card.isReported && !card.isProblemSolved) {
-          items.add(AttentionItemData(
+          items.add(createStaffAttentionItem(
             type: AttentionType.reported,
-            title: card.employee.userName,
-            date: dateStr,
-            time: timeStr,
             subtext: card.reportReason ?? 'Reported',
           ));
         }
@@ -668,11 +709,8 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           final overtimeStr = hours > 0
               ? (mins > 0 ? '$hours hrs $mins mins overtime' : '$hours hrs overtime')
               : '${card.overTimeMinute} mins overtime';
-          items.add(AttentionItemData(
+          items.add(createStaffAttentionItem(
             type: AttentionType.overtime,
-            title: card.employee.userName,
-            date: dateStr,
-            time: timeStr,
             subtext: overtimeStr,
           ));
         }
@@ -696,6 +734,11 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
                 date: _formatDate(shift.planStartTime),
                 time: _formatTimeRange(shift.planStartTime, shift.planEndTime),
                 subtext: '$totalApproved/$totalRequired assigned',
+                // Understaffed is shift-level problem, not staff-level
+                isShiftProblem: true,
+                shiftDate: shift.planStartTime,
+                shiftName: shift.shiftName,
+                shiftTimeRange: _formatTimeRange(shift.planStartTime, shift.planEndTime),
               ));
             }
           }
@@ -729,10 +772,81 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         itemCount: attentionItems.length,
         separatorBuilder: (context, index) => const SizedBox(width: TossSpacing.space3),
         itemBuilder: (context, index) {
-          return AttentionCard(item: attentionItems[index]);
+          final item = attentionItems[index];
+          return AttentionCard(
+            item: item,
+            onTap: () => _handleAttentionItemTap(item),
+          );
         },
       ),
     );
+  }
+
+  /// Handle attention item tap - navigate to detail page if it's a staff issue
+  Future<void> _handleAttentionItemTap(AttentionItemData item) async {
+    // Skip navigation for shift-level issues (understaffed)
+    if (item.isShiftProblem) {
+      // For understaffed shifts, we could navigate to schedule page instead
+      // For now, just return
+      return;
+    }
+
+    // For staff-level issues (late, overtime, problem, reported), navigate to detail page
+    if (item.shiftRequestId == null) return;
+
+    // Create StaffTimeRecord from AttentionItemData
+    final staffRecord = StaffTimeRecord(
+      staffId: item.staffId ?? '',
+      staffName: item.title,
+      avatarUrl: item.avatarUrl,
+      clockIn: item.clockIn ?? '--:--',
+      clockOut: item.clockOut ?? '--:--',
+      isLate: item.isLate,
+      isOvertime: item.isOvertime,
+      needsConfirm: !item.isConfirmed,
+      isConfirmed: item.isConfirmed,
+      shiftRequestId: item.shiftRequestId,
+      actualStart: item.actualStart,
+      actualEnd: item.actualEnd,
+      confirmStartTime: item.confirmStartTime,
+      confirmEndTime: item.confirmEndTime,
+      isReported: item.isReported,
+      reportReason: item.reportReason,
+      isProblemSolved: item.isProblemSolved,
+      bonusAmount: item.bonusAmount,
+      salaryType: item.salaryType,
+      salaryAmount: item.salaryAmount,
+      basePay: item.basePay,
+      totalPayWithBonus: item.totalPayWithBonus,
+      paidHour: item.paidHour,
+      lateMinute: item.lateMinute,
+      overtimeMinute: item.overtimeMinute,
+    );
+
+    // Format shift date for display
+    final shiftDateStr = item.shiftDate != null
+        ? DateFormat('EEE, d MMM yyyy').format(item.shiftDate!)
+        : item.date;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) => StaffTimelogDetailPage(
+          staffRecord: staffRecord,
+          shiftName: item.shiftName ?? 'Shift',
+          shiftDate: shiftDateStr,
+          shiftTimeRange: item.shiftTimeRange ?? item.time,
+        ),
+      ),
+    );
+
+    // If save was successful, force refresh the data
+    if (result == true && widget.selectedStoreId != null) {
+      ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+        month: DateTime.now(),
+        forceRefresh: true,
+      );
+      ref.invalidate(monthlyShiftStatusProvider(widget.selectedStoreId!));
+    }
   }
 
   /// Build store selector dropdown (same as Schedule tab)

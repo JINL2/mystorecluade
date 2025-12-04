@@ -17,6 +17,7 @@ import '../../../domain/entities/shift_card.dart';
 import 'problem_card.dart';
 import 'shift_section.dart';
 import 'staff_timelog_card.dart';
+import '../../pages/staff_timelog_detail_page.dart';
 
 /// Timesheets tab - Problems view for attendance tracking
 class TimesheetsTab extends ConsumerStatefulWidget {
@@ -59,12 +60,14 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
   }
 
   /// Load manager cards data for current selected date's month
-  void _loadMonthData() {
+  /// [forceRefresh] - If true, reload even if data is cached (use after save operations)
+  void _loadMonthData({bool forceRefresh = false}) {
     if (widget.selectedStoreId == null) return;
 
     // Load manager cards (for time details)
     ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
       month: _selectedDate,
+      forceRefresh: forceRefresh,
     );
 
     // Also invalidate shift metadata to ensure fresh data
@@ -192,6 +195,20 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     for (final card in allCards) {
       final shiftDate = DateTime.tryParse(card.shiftDate) ?? DateTime.now();
 
+      // Get clock in/out times for staff detail
+      final clockInRaw = card.actualStartRaw ?? card.confirmedStartRaw;
+      final clockOutRaw = card.actualEndRaw ?? card.confirmedEndRaw;
+      final clockInStr = _formatTimeFromString(clockInRaw);
+      final clockOutStr = _formatTimeFromString(clockOutRaw);
+
+      // Format shift time range from planStartTime/planEndTime (DateTime)
+      final shiftStartStr = '${card.shift.planStartTime.hour.toString().padLeft(2, '0')}:${card.shift.planStartTime.minute.toString().padLeft(2, '0')}';
+      final shiftEndStr = '${card.shift.planEndTime.hour.toString().padLeft(2, '0')}:${card.shift.planEndTime.minute.toString().padLeft(2, '0')}';
+      final shiftTimeRange = '$shiftStartStr - $shiftEndStr';
+
+      // Check confirmed status
+      final isConfirmed = card.confirmedStartRaw != null || card.confirmedEndRaw != null;
+
       // No check-out: actual_end_time == null AND confirmed_end_time == null
       if (card.actualEndTime == null && card.confirmedEndTime == null) {
         problems.add(AttendanceProblem(
@@ -200,7 +217,31 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           name: card.employee.userName,
           date: shiftDate,
           shiftName: card.shift.shiftName ?? 'Unknown',
+          timeRange: shiftTimeRange,
           avatarUrl: card.employee.profileImage,
+          // Staff-specific fields
+          staffId: card.employee.userId,
+          shiftRequestId: card.shiftRequestId,
+          clockIn: clockInStr,
+          clockOut: clockOutStr,
+          isLate: card.isLate,
+          isOvertime: card.isOverTime,
+          isConfirmed: isConfirmed,
+          actualStart: card.actualStartRaw,
+          actualEnd: card.actualEndRaw,
+          confirmStartTime: card.confirmedStartRaw,
+          confirmEndTime: card.confirmedEndRaw,
+          isReported: card.isReported,
+          reportReason: card.reportReason,
+          isProblemSolved: card.isProblemSolved,
+          bonusAmount: card.bonusAmount ?? 0.0,
+          salaryType: card.salaryType,
+          salaryAmount: card.salaryAmount,
+          basePay: card.basePay,
+          totalPayWithBonus: card.totalPayWithBonus,
+          paidHour: card.paidHour,
+          lateMinute: card.lateMinute,
+          overtimeMinute: card.overTimeMinute,
         ));
       }
 
@@ -212,7 +253,31 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           name: card.employee.userName,
           date: shiftDate,
           shiftName: card.shift.shiftName ?? 'Unknown',
+          timeRange: shiftTimeRange,
           avatarUrl: card.employee.profileImage,
+          // Staff-specific fields
+          staffId: card.employee.userId,
+          shiftRequestId: card.shiftRequestId,
+          clockIn: clockInStr,
+          clockOut: clockOutStr,
+          isLate: card.isLate,
+          isOvertime: card.isOverTime,
+          isConfirmed: isConfirmed,
+          actualStart: card.actualStartRaw,
+          actualEnd: card.actualEndRaw,
+          confirmStartTime: card.confirmedStartRaw,
+          confirmEndTime: card.confirmedEndRaw,
+          isReported: card.isReported,
+          reportReason: card.reportReason,
+          isProblemSolved: card.isProblemSolved,
+          bonusAmount: card.bonusAmount ?? 0.0,
+          salaryType: card.salaryType,
+          salaryAmount: card.salaryAmount,
+          basePay: card.basePay,
+          totalPayWithBonus: card.totalPayWithBonus,
+          paidHour: card.paidHour,
+          lateMinute: card.lateMinute,
+          overtimeMinute: card.overTimeMinute,
         ));
       }
 
@@ -224,7 +289,31 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           name: card.employee.userName,
           date: shiftDate,
           shiftName: card.shift.shiftName ?? 'Unknown',
+          timeRange: shiftTimeRange,
           avatarUrl: card.employee.profileImage,
+          // Staff-specific fields
+          staffId: card.employee.userId,
+          shiftRequestId: card.shiftRequestId,
+          clockIn: clockInStr,
+          clockOut: clockOutStr,
+          isLate: card.isLate,
+          isOvertime: card.isOverTime,
+          isConfirmed: isConfirmed,
+          actualStart: card.actualStartRaw,
+          actualEnd: card.actualEndRaw,
+          confirmStartTime: card.confirmedStartRaw,
+          confirmEndTime: card.confirmedEndRaw,
+          isReported: card.isReported,
+          reportReason: card.reportReason,
+          isProblemSolved: card.isProblemSolved,
+          bonusAmount: card.bonusAmount ?? 0.0,
+          salaryType: card.salaryType,
+          salaryAmount: card.salaryAmount,
+          basePay: card.basePay,
+          totalPayWithBonus: card.totalPayWithBonus,
+          paidHour: card.paidHour,
+          lateMinute: card.lateMinute,
+          overtimeMinute: card.overTimeMinute,
         ));
       }
     }
@@ -440,6 +529,8 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           isOvertime: isOverTime,
           needsConfirm: needsConfirm,
           isConfirmed: isConfirmed,
+          // shiftRequestId for RPC calls
+          shiftRequestId: req.shiftRequestId,
           // Use raw time strings from RPC directly (no conversion)
           actualStart: detailedCard?.actualStartRaw,
           actualEnd: detailedCard?.actualEndRaw,
@@ -598,15 +689,63 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                   final problem = filteredProblems[index];
                   return ProblemCard(
                     problem: problem,
-                    onTap: () {
-                      final oldMonth = _selectedDate.month;
-                      setState(() {
-                        _selectedDate = problem.date;
-                        _currentWeekStart = _getWeekStart(problem.date);
-                      });
-                      // Load new month data if month changed
-                      if (problem.date.month != oldMonth) {
-                        _loadMonthData();
+                    onTap: () async {
+                      // Staff problems navigate to detail page
+                      if (!problem.isShiftProblem && problem.staffId != null) {
+                        // Create StaffTimeRecord from problem data
+                        final staffRecord = StaffTimeRecord(
+                          staffId: problem.staffId!,
+                          staffName: problem.name,
+                          avatarUrl: problem.avatarUrl,
+                          clockIn: problem.clockIn ?? '--:--',
+                          clockOut: problem.clockOut ?? '--:--',
+                          isLate: problem.isLate,
+                          isOvertime: problem.isOvertime,
+                          needsConfirm: !problem.isConfirmed && (problem.isLate || problem.isOvertime),
+                          isConfirmed: problem.isConfirmed,
+                          shiftRequestId: problem.shiftRequestId,
+                          actualStart: problem.actualStart,
+                          actualEnd: problem.actualEnd,
+                          confirmStartTime: problem.confirmStartTime,
+                          confirmEndTime: problem.confirmEndTime,
+                          isReported: problem.isReported,
+                          reportReason: problem.reportReason,
+                          isProblemSolved: problem.isProblemSolved,
+                          bonusAmount: problem.bonusAmount,
+                          salaryType: problem.salaryType,
+                          salaryAmount: problem.salaryAmount,
+                          basePay: problem.basePay,
+                          totalPayWithBonus: problem.totalPayWithBonus,
+                          paidHour: problem.paidHour,
+                          lateMinute: problem.lateMinute,
+                          overtimeMinute: problem.overtimeMinute,
+                        );
+
+                        final result = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute<bool>(
+                            builder: (context) => StaffTimelogDetailPage(
+                              staffRecord: staffRecord,
+                              shiftName: problem.shiftName,
+                              shiftDate: DateFormat('EEE, d MMM yyyy').format(problem.date),
+                              shiftTimeRange: problem.timeRange ?? '--:-- - --:--',
+                            ),
+                          ),
+                        );
+                        // Refresh data if save was successful (force refresh to bypass cache)
+                        if (result == true) {
+                          _loadMonthData(forceRefresh: true);
+                        }
+                      } else {
+                        // Shift problems (understaffed) navigate to date
+                        final oldMonth = _selectedDate.month;
+                        setState(() {
+                          _selectedDate = problem.date;
+                          _currentWeekStart = _getWeekStart(problem.date);
+                        });
+                        // Load new month data if month changed
+                        if (problem.date.month != oldMonth) {
+                          _loadMonthData();
+                        }
                       }
                     },
                   );
@@ -687,6 +826,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                   return ShiftSection(
                     shift: shift,
                     initiallyExpanded: false, // All sections collapsed by default
+                    onDataChanged: () => _loadMonthData(forceRefresh: true),
                   );
                 },
               );

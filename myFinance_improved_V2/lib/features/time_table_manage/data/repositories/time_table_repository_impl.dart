@@ -1,4 +1,3 @@
-import '../../domain/entities/available_employees_data.dart';
 import '../../domain/entities/bulk_approval_result.dart';
 import '../../domain/entities/card_input_result.dart';
 import '../../domain/entities/manager_overview.dart';
@@ -12,8 +11,6 @@ import '../../domain/exceptions/time_table_exceptions.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../datasources/time_table_datasource.dart';
 // Freezed DTOs
-import '../models/freezed/available_employees_data_dto.dart';
-import '../models/freezed/available_employees_data_dto_mapper.dart';
 import '../models/freezed/bulk_approval_result_dto.dart';
 import '../models/freezed/bulk_approval_result_dto_mapper.dart';
 import '../models/freezed/card_input_result_dto.dart';
@@ -63,25 +60,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is ShiftMetadataException) rethrow;
       throw ShiftMetadataException(
         'Failed to fetch shift metadata: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<dynamic> getShiftMetadataRaw({
-    required String storeId,
-    required String timezone,
-  }) async {
-    try {
-      return await _datasource.getShiftMetadata(
-        storeId: storeId,
-        timezone: timezone,
-      );
-    } catch (e) {
-      if (e is ShiftMetadataException) rethrow;
-      throw ShiftMetadataException(
-        'Failed to fetch raw shift metadata: $e',
         originalError: e,
       );
     }
@@ -267,30 +245,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<AvailableEmployeesData> getAvailableEmployees({
-    required String storeId,
-    required String shiftDate,
-    required String timezone,
-  }) async {
-    try {
-      final data = await _datasource.getAvailableEmployees(
-        storeId: storeId,
-        shiftDate: shiftDate,
-        timezone: timezone,
-      );
-
-      final dto = AvailableEmployeesDataDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to fetch employee list: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<ScheduleData> getScheduleData({
     required String storeId,
     required String timezone,
@@ -404,31 +358,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<OperationResult> addBonus({
-    required String shiftRequestId,
-    required double bonusAmount,
-    required String bonusReason,
-  }) async {
-    try {
-      final data = await _datasource.addBonus(
-        shiftRequestId: shiftRequestId,
-        bonusAmount: bonusAmount,
-        bonusReason: bonusReason,
-      );
-
-      // ✅ FREEZED: Direct DTO conversion
-      final dto = OperationResultDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to add bonus: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<void> updateBonusAmount({
     required String shiftRequestId,
     required double bonusAmount,
@@ -442,6 +371,35 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to update bonus: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> inputCardV4({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isProblemSolved,
+    double? bonusAmount,
+    required String timezone,
+  }) async {
+    try {
+      return await _datasource.inputCardV4(
+        managerId: managerId,
+        shiftRequestId: shiftRequestId,
+        confirmStartTime: confirmStartTime,
+        confirmEndTime: confirmEndTime,
+        isProblemSolved: isProblemSolved,
+        bonusAmount: bonusAmount,
+        timezone: timezone,
+      );
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to input card v4: $e',
         originalError: e,
       );
     }

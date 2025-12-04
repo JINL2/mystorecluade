@@ -17,6 +17,7 @@ class StaffTimeRecord {
   final bool isConfirmed;
 
   // Additional fields from RPC (manager_shift_get_cards_v3)
+  final String? shiftRequestId; // shift_request_id - Required for RPC calls
   final String? actualStart; // actual_start - Recorded check-in
   final String? actualEnd; // actual_end - Recorded check-out
   final String? confirmStartTime; // confirm_start_time - Confirmed check-in
@@ -44,6 +45,7 @@ class StaffTimeRecord {
     this.needsConfirm = false,
     this.isConfirmed = false,
     // New fields
+    this.shiftRequestId,
     this.actualStart,
     this.actualEnd,
     this.confirmStartTime,

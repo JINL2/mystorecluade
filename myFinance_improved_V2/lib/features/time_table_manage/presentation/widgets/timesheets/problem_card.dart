@@ -25,6 +25,30 @@ class AttendanceProblem {
   final String? avatarUrl; // For staff problems
   final bool isShiftProblem; // True if understaffed, false if staff problem
 
+  // Staff-specific fields for navigation to detail page
+  final String? staffId;
+  final String? shiftRequestId; // Required for RPC calls (manager_shift_input_card_v4)
+  final String? clockIn;
+  final String? clockOut;
+  final bool isLate;
+  final bool isOvertime;
+  final bool isConfirmed;
+  final String? actualStart;
+  final String? actualEnd;
+  final String? confirmStartTime;
+  final String? confirmEndTime;
+  final bool isReported;
+  final String? reportReason;
+  final bool isProblemSolved;
+  final double bonusAmount;
+  final String? salaryType;
+  final String? salaryAmount;
+  final String? basePay;
+  final String? totalPayWithBonus;
+  final double paidHour;
+  final int lateMinute;
+  final int overtimeMinute;
+
   const AttendanceProblem({
     required this.id,
     required this.type,
@@ -34,6 +58,29 @@ class AttendanceProblem {
     this.timeRange,
     this.avatarUrl,
     this.isShiftProblem = false,
+    // Staff-specific fields
+    this.staffId,
+    this.shiftRequestId,
+    this.clockIn,
+    this.clockOut,
+    this.isLate = false,
+    this.isOvertime = false,
+    this.isConfirmed = false,
+    this.actualStart,
+    this.actualEnd,
+    this.confirmStartTime,
+    this.confirmEndTime,
+    this.isReported = false,
+    this.reportReason,
+    this.isProblemSolved = false,
+    this.bonusAmount = 0.0,
+    this.salaryType,
+    this.salaryAmount,
+    this.basePay,
+    this.totalPayWithBonus,
+    this.paidHour = 0.0,
+    this.lateMinute = 0,
+    this.overtimeMinute = 0,
   });
 }
 

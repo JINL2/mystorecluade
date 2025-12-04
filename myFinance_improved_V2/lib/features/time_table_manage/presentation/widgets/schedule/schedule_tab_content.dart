@@ -15,8 +15,8 @@ import '../../providers/state/manager_shift_cards_provider.dart';
 import '../../providers/state/shift_metadata_provider.dart';
 import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
-import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_metadata_item.dart';
+import '../../../domain/usecases/toggle_shift_approval.dart';
 import 'package:intl/intl.dart';
 
 /// Schedule Tab Content - Redesigned
@@ -260,14 +260,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         startTime: shift.startTime,
         endTime: shift.endTime,
         assignedEmployees: assignedEmployees,
-        selectedShiftRequests: ref.watch(selectedShiftRequestsProvider).selectedIds,
-        onEmployeeTap: (shiftRequestId, isApproved, actualRequestId) {
-          ref.read(selectedShiftRequestsProvider.notifier).toggleSelection(
-            shiftRequestId,
-            isApproved,
-            actualRequestId,
-          );
-        },
+        onApprove: (shiftRequestId) => _handleApprove(shiftRequestId),
+        onRemove: (shiftRequestId) => _handleRemove(shiftRequestId),
       );
     }).toList();
   }
@@ -380,6 +374,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Change week by number of days
   void _changeWeek(int days) {
+    final oldSelectedDate = _selectedDate;
     final newWeekStart = _currentWeekStart.add(Duration(days: days));
     final newSelectedDate = _selectedDate.add(Duration(days: days));
 
@@ -389,8 +384,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     });
 
     // Load new month data if month changed
-    if (_selectedDate.month != newSelectedDate.month ||
-        _selectedDate.year != newSelectedDate.year) {
+    if (oldSelectedDate.month != newSelectedDate.month ||
+        oldSelectedDate.year != newSelectedDate.year) {
       _loadMonthData();
     }
 
@@ -507,20 +502,20 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           .where((s) => s.shift.shiftId == shiftMeta.shiftId)
           .firstOrNull;
 
-      // Get approved employees
+      // Get approved employees - use shiftRequestId for approval/removal operations
       final assignedEmployees = shiftWithRequests?.approvedRequests
               .map((req) => Employee(
-                    id: req.employee.userId,
+                    id: req.shiftRequestId,
                     name: req.employee.userName,
                     avatarUrl: req.employee.profileImage ?? '',
                   ))
               .toList() ??
           [];
 
-      // Get pending employees (applicants)
+      // Get pending employees (applicants) - use shiftRequestId for approval operations
       final applicants = shiftWithRequests?.pendingRequests
               .map((req) => Employee(
-                    id: req.employee.userId,
+                    id: req.shiftRequestId,
                     name: req.employee.userName,
                     avatarUrl: req.employee.profileImage ?? '',
                   ))
@@ -558,42 +553,57 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     return timeString;
   }
 
-  /// Handle approve action
-  void _handleApprove(Employee employee) {
-    // TODO: Implement real approval logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} approved (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  /// Handle Approve button click
+  ///
+  /// Calls toggle_shift_approval_v3 RPC to approve a shift request.
+  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Returns true on success, false on failure.
+  Future<bool> _handleApprove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return false;
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    if (userId.isEmpty) return false;
+
+    try {
+      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await useCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
-  /// Handle overbook action
-  void _handleOverbook(Employee employee) {
-    // TODO: Implement real overbook logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} overbooked (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  /// Handle Remove button click from bottom sheet
+  ///
+  /// Calls toggle_shift_approval_v3 RPC to unapprove a shift request.
+  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Returns true on success, false on failure.
+  Future<bool> _handleRemove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return false;
 
-  /// Handle remove from shift action
-  void _handleRemove(Employee employee) {
-    // TODO: Implement real remove logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} removed (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.gray700,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    if (userId.isEmpty) return false;
+
+    try {
+      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await useCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
