@@ -96,88 +96,89 @@ class _TossSearchFieldState extends State<TossSearchField> {
   @override
   Widget build(BuildContext context) {
     final bool isFocused = _focusNode.hasFocus;
-    final Color backgroundColor = TossColors.white;
-    
-    return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      child: TextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        enabled: widget.enabled,
-        autofocus: widget.autofocus,
-        onSubmitted: widget.onSubmitted,
-        style: TossTextStyles.body,
-        decoration: InputDecoration(
-          hintText: widget.hintText,
-          hintStyle: TossTextStyles.body.copyWith(
-            color: TossColors.textTertiary,
+
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      enabled: widget.enabled,
+      autofocus: widget.autofocus,
+      onSubmitted: widget.onSubmitted,
+      style: TossTextStyles.bodyLarge.copyWith(
+        color: TossColors.gray900,
+      ),
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        hintStyle: TossTextStyles.bodyLarge.copyWith(
+          color: TossColors.gray500,
+        ),
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(
+                widget.prefixIcon,
+                color: isFocused ? TossColors.primary : TossColors.gray500,
+                size: TossSpacing.iconSM,
+              )
+            : Icon(
+                Icons.search_rounded,
+                color: isFocused ? TossColors.primary : TossColors.gray500,
+                size: TossSpacing.iconSM,
+              ),
+        suffixIcon: _showClearButton
+            ? IconButton(
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: TossColors.gray500,
+                  size: TossSpacing.iconSM,
+                ),
+                onPressed: _handleClear,
+              )
+            : widget.suffixIcon,
+        filled: true,
+        fillColor: TossColors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.gray300,
+            width: 1,
           ),
-          prefixIcon: widget.prefixIcon != null
-              ? Icon(
-                  widget.prefixIcon,
-                  color: isFocused ? TossColors.textSecondary : TossColors.textTertiary,
-                  size: 20,
-                )
-              : null,
-          suffixIcon: _showClearButton
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.clear,
-                    color: TossColors.textTertiary,
-                    size: 20,
-                  ),
-                  onPressed: _handleClear,
-                )
-              : widget.suffixIcon,
-          filled: true,
-          fillColor: backgroundColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: const BorderSide(
-              color: TossColors.gray100,
-              width: 1.5,
-            ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.gray300,
+            width: 1,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: const BorderSide(
-              color: TossColors.gray100,
-              width: 1.5,
-            ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.primary,
+            width: 2,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: const BorderSide(
-              color: TossColors.primary,
-              width: 1.5,
-            ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.error,
+            width: 1,
           ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: const BorderSide(
-              color: TossColors.error,
-              width: 1,
-            ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.error,
+            width: 2,
           ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: const BorderSide(
-              color: TossColors.error,
-              width: 2,
-            ),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: const BorderSide(
+            color: TossColors.gray300,
+            width: 1,
           ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide(
-              color: TossColors.primary.withOpacity(0.5),
-              width: 1.5,
-            ),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space4,
-            vertical: TossSpacing.space3,
-          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
         ),
       ),
     );

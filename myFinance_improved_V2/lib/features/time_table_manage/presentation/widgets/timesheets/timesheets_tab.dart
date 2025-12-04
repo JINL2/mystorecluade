@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -8,29 +9,54 @@ import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart
 import 'package:myfinance_improved/shared/widgets/toss/toss_chip.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_week_navigation.dart';
 import 'package:myfinance_improved/shared/widgets/toss/week_dates_picker.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../../../app/providers/app_state_provider.dart';
 import 'problem_card.dart';
 import 'shift_section.dart';
 import 'staff_timelog_card.dart';
 
 /// Timesheets tab - Problems view for attendance tracking
-class TimesheetsTab extends StatefulWidget {
+class TimesheetsTab extends ConsumerStatefulWidget {
   const TimesheetsTab({super.key});
 
   @override
-  State<TimesheetsTab> createState() => _TimesheetsTabState();
+  ConsumerState<TimesheetsTab> createState() => _TimesheetsTabState();
 }
 
-class _TimesheetsTabState extends State<TimesheetsTab> {
+class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
   String? selectedFilter = 'today'; // 'today', 'this_week', 'this_month'
   DateTime _selectedDate = DateTime.now();
   late DateTime _currentWeekStart;
-  String selectedStore = 'test1';
+  String? selectedStoreId;
+  String selectedStoreName = 'Select Store';
 
   @override
   void initState() {
     super.initState();
     _currentWeekStart = _getWeekStart(_selectedDate);
+
+    // Initialize from app state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = ref.read(appStateProvider);
+      if (appState.storeChoosen.isNotEmpty) {
+        setState(() {
+          selectedStoreId = appState.storeChoosen;
+          // Get store name from user data
+          final userData = appState.user;
+          final companies = (userData['companies'] as List<dynamic>?) ?? [];
+          for (var company in companies) {
+            final stores = ((company as Map<String, dynamic>)['stores'] as List<dynamic>?) ?? [];
+            for (var store in stores) {
+              final storeMap = store as Map<String, dynamic>;
+              if (storeMap['store_id'] == selectedStoreId) {
+                selectedStoreName = storeMap['store_name']?.toString() ?? 'Select Store';
+                break;
+              }
+            }
+          }
+        });
+      }
+    });
   }
 
   /// Get Monday of the week for a given date
@@ -339,187 +365,238 @@ class _TimesheetsTabState extends State<TimesheetsTab> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space2,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Store selector
-          Text(
-            'Store',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
           const SizedBox(height: TossSpacing.space2),
-          InkWell(
-            onTap: () {
-              // TODO: Show store selector
-            },
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space2 + 2,
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(color: TossColors.gray200),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    selectedStore,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+
+          // Store selector section (with padding)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Store',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                InkWell(
+                  onTap: () async {
+                    // Get stores from app state
+                    final appState = ref.read(appStateProvider);
+                    final userData = appState.user;
+                    final companies = (userData['companies'] as List<dynamic>?) ?? [];
+                    Map<String, dynamic>? selectedCompany;
+                    if (companies.isNotEmpty) {
+                      try {
+                        selectedCompany = companies.firstWhere(
+                          (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
+                        ) as Map<String, dynamic>;
+                      } catch (e) {
+                        selectedCompany = companies.first as Map<String, dynamic>;
+                      }
+                    }
+                    final stores = (selectedCompany?['stores'] as List<dynamic>?) ?? [];
+
+                    // Show store selector
+                    final selectedStore = await TossStoreSelector.show(
+                      context: context,
+                      stores: stores,
+                      selectedStoreId: selectedStoreId,
+                      title: 'Select Store',
+                    );
+
+                    if (selectedStore != null) {
+                      setState(() {
+                        selectedStoreId = selectedStore['store_id'] as String?;
+                        selectedStoreName = selectedStore['store_name'] as String? ?? 'Select Store';
+                      });
+
+                      // Update app state
+                      ref.read(appStateProvider.notifier).selectStore(
+                        selectedStore['store_id'] as String,
+                        storeName: selectedStore['store_name'] as String?,
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space3,
+                      vertical: TossSpacing.space2 + 2,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: TossColors.gray200),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          selectedStoreName,
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: TossColors.gray600,
+                        ),
+                      ],
                     ),
                   ),
-                  Icon(
-                    Icons.keyboard_arrow_down,
-                    color: TossColors.gray600,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
           const SizedBox(height: TossSpacing.space4),
 
-          // Gray divider after store selector
+          // Gray divider (full width)
           const GrayDividerSpace(),
 
           const SizedBox(height: TossSpacing.space4),
 
-          // "Problems" Section Header
-          Text(
-            'Problems',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Filter Chips
-          TossChipGroup(
-            items: [
-              TossChipItem(
-                value: 'today',
-                label: 'Today',
-                count: _getProblemCount('today'),
-              ),
-              TossChipItem(
-                value: 'this_week',
-                label: 'This week',
-                count: _getProblemCount('this_week'),
-              ),
-              TossChipItem(
-                value: 'this_month',
-                label: 'This month',
-                count: _getProblemCount('this_month'),
-              ),
-            ],
-            selectedValue: selectedFilter,
-            onChanged: (value) {
-              setState(() {
-                selectedFilter = value;
-              });
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Problems List
-          if (_filteredProblems.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(TossSpacing.space8),
-              child: TossEmptyView(
-                title: 'No problems found',
-                description: 'All attendance records look good!',
-              ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: _filteredProblems.length,
-              itemBuilder: (context, index) {
-                final problem = _filteredProblems[index];
-                return ProblemCard(
-                  problem: problem,
-                  onTap: () {
+          // Problems section (with padding)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Problems',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                TossChipGroup(
+                  items: [
+                    TossChipItem(
+                      value: 'today',
+                      label: 'Today',
+                      count: _getProblemCount('today'),
+                    ),
+                    TossChipItem(
+                      value: 'this_week',
+                      label: 'This week',
+                      count: _getProblemCount('this_week'),
+                    ),
+                    TossChipItem(
+                      value: 'this_month',
+                      label: 'This month',
+                      count: _getProblemCount('this_month'),
+                    ),
+                  ],
+                  selectedValue: selectedFilter,
+                  onChanged: (value) {
                     setState(() {
-                      _selectedDate = problem.date;
+                      selectedFilter = value;
                     });
                   },
-                );
-              },
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                if (_filteredProblems.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(TossSpacing.space8),
+                    child: TossEmptyView(
+                      title: 'No problems found',
+                      description: 'All attendance records look good!',
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: _filteredProblems.length,
+                    itemBuilder: (context, index) {
+                      final problem = _filteredProblems[index];
+                      return ProblemCard(
+                        problem: problem,
+                        onTap: () {
+                          setState(() {
+                            _selectedDate = problem.date;
+                          });
+                        },
+                      );
+                    },
+                  ),
+              ],
             ),
+          ),
 
           const SizedBox(height: TossSpacing.space4),
 
-          // Gray divider before week navigation
+          // Gray divider (full width)
           const GrayDividerSpace(),
 
           const SizedBox(height: TossSpacing.space4),
 
-          // Week Navigation
-          TossWeekNavigation(
-            weekLabel: _getWeekLabel(),
-            dateRange: _formatWeekRange(),
-            onPrevWeek: () => _changeWeek(-7),
-            onCurrentWeek: _jumpToToday,
-            onNextWeek: () => _changeWeek(7),
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Week Dates Picker
-          WeekDatesPicker(
-            selectedDate: _selectedDate,
-            weekStartDate: _currentWeekStart,
-            datesWithUserApproved: {},
-            shiftAvailabilityMap: {},
-            onDateSelected: (date) {
-              setState(() => _selectedDate = date);
-            },
+          // Week navigation section (with padding)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TossWeekNavigation(
+                  weekLabel: _getWeekLabel(),
+                  dateRange: _formatWeekRange(),
+                  onPrevWeek: () => _changeWeek(-7),
+                  onCurrentWeek: _jumpToToday,
+                  onNextWeek: () => _changeWeek(7),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                WeekDatesPicker(
+                  selectedDate: _selectedDate,
+                  weekStartDate: _currentWeekStart,
+                  datesWithUserApproved: {},
+                  shiftAvailabilityMap: {},
+                  onDateSelected: (date) {
+                    setState(() => _selectedDate = date);
+                  },
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: TossSpacing.space4),
 
-          const SizedBox(height: 16),
-
-          // Timelogs section header
-          Text(
-            'Timelogs for ${_formatSelectedDate(_selectedDate)}',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
+          // Timelogs section (with padding)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Timelogs for ${_formatSelectedDate(_selectedDate)}',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: _mockShifts.length,
+                  itemBuilder: (context, index) {
+                    final shift = _mockShifts[index];
+                    return ShiftSection(
+                      shift: shift,
+                      initiallyExpanded: false,
+                    );
+                  },
+                ),
+              ],
             ),
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Shift sections
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: _mockShifts.length,
-            itemBuilder: (context, index) {
-              final shift = _mockShifts[index];
-              return ShiftSection(
-                shift: shift,
-                initiallyExpanded: false, // All sections collapsed by default
-              );
-            },
           ),
 
           const SizedBox(height: TossSpacing.space4),

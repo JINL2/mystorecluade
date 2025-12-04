@@ -33,67 +33,104 @@ class SelectableProductTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isSelected = cartItem.quantity > 0;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected ? TossColors.success.withValues(alpha: 0.1) : Colors.transparent,
-        border: isSelected
-            ? Border.all(
-                color: TossColors.success,
-                width: 1.5,
-              )
-            : null,
-        borderRadius: isSelected ? BorderRadius.circular(TossBorderRadius.sm) : null,
-      ),
-      child: TossListTile(
-        title: product.productName,
-        subtitle: product.sku,
-        showDivider: false,
-        leading: ProductImageWidget(
-          imageUrl: product.images.mainImage,
-          size: 48,
-          fallbackIcon: Icons.inventory_2,
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onUnfocusSearch?.call();
+
+        if (cartItem.quantity == 0) {
+          ref.read(cartProvider.notifier).addItem(product);
+        } else {
+          ref.read(cartProvider.notifier).updateQuantity(
+                cartItem.id,
+                cartItem.quantity + 1,
+              );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.success.withValues(alpha: 0.05) : TossColors.transparent,
         ),
-        trailing: SizedBox(
-          width: 150,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Price
-              Text(
-                '$currencySymbol${CurrencyFormatter.currency.format(product.pricing.sellingPrice?.round() ?? 0)}',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space1),
-              // Stock info
-              Text(
-                'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
-                style: TossTextStyles.caption.copyWith(
-                  color: StockColorHelper.getStockColor(
-                    product.totalStockSummary.totalQuantityOnHand,
+        child: Row(
+          children: [
+            // Product Image
+            ProductImageWidget(
+              imageUrl: product.images.mainImage,
+              size: 48,
+              fallbackIcon: Icons.inventory_2,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+
+            // Product Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.productName,
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  fontWeight: FontWeight.w600,
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    product.sku,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+
+            // Price and Stock
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$currencySymbol${CurrencyFormatter.currency.format(product.pricing.sellingPrice?.round() ?? 0)}',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: StockColorHelper.getStockColor(
+                      product.totalStockSummary.totalQuantityOnHand,
+                    ),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+
+            // Selection Indicator
+            if (isSelected) ...[
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space1),
+                decoration: const BoxDecoration(
+                  color: TossColors.success,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 16,
+                  color: TossColors.white,
                 ),
               ),
             ],
-          ),
+          ],
         ),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onUnfocusSearch?.call();
-
-          if (cartItem.quantity == 0) {
-            ref.read(cartProvider.notifier).addItem(product);
-          } else {
-            ref.read(cartProvider.notifier).updateQuantity(
-                  cartItem.id,
-                  cartItem.quantity + 1,
-                );
-          }
-        },
       ),
     );
   }

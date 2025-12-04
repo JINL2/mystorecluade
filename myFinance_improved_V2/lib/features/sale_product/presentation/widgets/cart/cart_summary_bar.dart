@@ -27,21 +27,14 @@ class CartSummaryBar extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        border: const Border(
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(
           top: BorderSide(
             color: TossColors.gray200,
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
@@ -52,41 +45,47 @@ class CartSummaryBar extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Items in Cart',
+                          style: TossTextStyles.labelLarge.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: TossSpacing.space1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TossColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          ),
+                          child: Text(
+                            '$itemCount',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space1),
                     Text(
-                      'Items in Cart',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                      '$currencySymbol${formatter.format(subtotal.round())}',
+                      style: TossTextStyles.h3.copyWith(
+                        fontWeight: FontWeight.w700,
                         color: TossColors.gray900,
                       ),
                     ),
-                    const SizedBox(width: TossSpacing.space2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                        vertical: TossSpacing.space1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TossColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      ),
-                      child: Text(
-                        '$itemCount',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                   ],
-                ),
-                Text(
-                  '$currencySymbol${formatter.format(subtotal.round())}',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
                 ),
               ],
             ),
@@ -96,20 +95,24 @@ class CartSummaryBar extends StatelessWidget {
             Row(
               children: [
                 // Reset Button
-                SizedBox(
-                  width: 100,
+                Expanded(
+                  flex: 2,
                   child: OutlinedButton(
                     onPressed: onReset,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                      side: const BorderSide(color: TossColors.gray300),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                      side: const BorderSide(
+                        color: TossColors.gray300,
+                        width: 1,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
+                      backgroundColor: TossColors.white,
                     ),
                     child: Text(
                       'Reset',
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.gray700,
                         fontWeight: FontWeight.w600,
                       ),
@@ -120,11 +123,13 @@ class CartSummaryBar extends StatelessWidget {
 
                 // Continue Button
                 Expanded(
+                  flex: 3,
                   child: ElevatedButton(
                     onPressed: onDone,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                      foregroundColor: TossColors.white,
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
@@ -132,7 +137,7 @@ class CartSummaryBar extends StatelessWidget {
                     ),
                     child: Text(
                       'Continue to Invoice',
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.white,
                         fontWeight: FontWeight.w600,
                       ),

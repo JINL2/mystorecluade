@@ -154,23 +154,31 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     final shouldShowProductList = cart.isEmpty || _isSearchFocused;
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: AppBar(
-        title: Text('Sales', style: TossTextStyles.h3),
+        title: Text(
+          'Sales',
+          style: TossTextStyles.h3.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: TossColors.gray100,
-        foregroundColor: TossColors.black,
+        backgroundColor: TossColors.white,
+        foregroundColor: TossColors.gray900,
+        elevation: 0,
+        surfaceTintColor: TossColors.transparent,
       ),
       body: Column(
         children: [
           // Search bar
           Container(
-            color: TossColors.gray100,
+            color: TossColors.white,
             padding: const EdgeInsets.fromLTRB(
               TossSpacing.space4,
-              TossSpacing.space2,
+              TossSpacing.space3,
               TossSpacing.space4,
-              TossSpacing.space2,
+              TossSpacing.space3,
             ),
             child: TossSearchField(
               controller: _searchController,
@@ -178,6 +186,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               hintText: 'Search products...',
               onChanged: _onSearchChanged,
             ),
+          ),
+          // Divider after search
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: TossColors.gray200,
           ),
 
           // Scrollable content with infinite scroll
@@ -199,53 +213,49 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                   // Sort Control
                   SliverToBoxAdapter(
                     child: Container(
-                      margin: const EdgeInsets.fromLTRB(
-                        TossSpacing.space4,
-                        TossSpacing.space3,
-                        TossSpacing.space4,
-                        TossSpacing.space2,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space4,
+                        vertical: TossSpacing.space3,
                       ),
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.lightImpact();
                           _showSortOptionsSheet();
                         },
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space3,
-                            vertical: TossSpacing.space2,
+                            horizontal: TossSpacing.space4,
+                            vertical: TossSpacing.space3,
                           ),
                           decoration: BoxDecoration(
-                            color: TossColors.surface,
+                            color: TossColors.white,
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            boxShadow: [
-                              BoxShadow(
-                                color: TossColors.black.withValues(alpha: 0.02),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
+                            border: Border.all(
+                              color: TossColors.gray300,
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             children: [
                               const Icon(
                                 Icons.sort_rounded,
-                                size: 22,
+                                size: TossSpacing.iconSM,
                                 color: TossColors.gray600,
                               ),
                               const SizedBox(width: TossSpacing.space2),
                               Expanded(
                                 child: Text(
                                   salesState.sortOption.displayName,
-                                  style: TossTextStyles.labelLarge.copyWith(
-                                    color: TossColors.gray700,
+                                  style: TossTextStyles.bodyLarge.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: TossSpacing.space1),
                               const Icon(
                                 Icons.keyboard_arrow_down_rounded,
-                                size: 20,
+                                size: TossSpacing.iconSM,
                                 color: TossColors.gray500,
                               ),
                             ],
@@ -258,22 +268,31 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                   // Products Content
                   if (displayProducts.isEmpty)
                     SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.3,
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        padding: const EdgeInsets.all(TossSpacing.space6),
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.shopping_cart_outlined,
                                 size: 64,
-                                color: TossColors.gray400,
+                                color: TossColors.gray300,
                               ),
-                              const SizedBox(height: TossSpacing.space3),
+                              const SizedBox(height: TossSpacing.space4),
                               Text(
                                 'No products found',
-                                style: TossTextStyles.bodyLarge.copyWith(
+                                style: TossTextStyles.h4.copyWith(
                                   color: TossColors.gray600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: TossSpacing.space2),
+                              Text(
+                                'Try adjusting your search or filters',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray500,
                                 ),
                               ),
                             ],
@@ -287,57 +306,56 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(
                           TossSpacing.space4,
-                          TossSpacing.space2,
-                          TossSpacing.space4,
                           0,
+                          TossSpacing.space4,
+                          TossSpacing.space3,
                         ),
-                        child: TossWhiteCard(
-                          padding: EdgeInsets.zero,
-                          child: Container(
-                            padding: const EdgeInsets.all(TossSpacing.space4),
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: TossColors.gray100,
-                                  width: 1,
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(TossBorderRadius.lg),
+                            topRight: Radius.circular(TossBorderRadius.lg),
+                          ),
+                          border: Border.all(
+                            color: TossColors.gray200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.shopping_cart_rounded,
+                              color: TossColors.primary,
+                              size: TossSpacing.iconSM,
+                            ),
+                            const SizedBox(width: TossSpacing.space2),
+                            Text(
+                              'Select Products',
+                              style: TossTextStyles.h4.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space3,
+                                vertical: TossSpacing.space1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: TossColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Text(
+                                '${salesState.totalCount} available',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.shopping_cart_rounded,
-                                  color: TossColors.primary,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: TossSpacing.space2),
-                                Text(
-                                  'Select Products',
-                                  style: TossTextStyles.h4.copyWith(
-                                    color: TossColors.gray900,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: TossSpacing.space2,
-                                    vertical: TossSpacing.space1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: TossColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                                  ),
-                                  child: Text(
-                                    '${salesState.totalCount} available',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          ],
                         ),
                       ),
                     ),
@@ -360,38 +378,33 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                             ),
                           );
 
+                          final isLastItem = index == displayProducts.length - 1;
+
                           return Container(
-                            margin: const EdgeInsets.fromLTRB(
+                            margin: EdgeInsets.fromLTRB(
                               TossSpacing.space4,
                               0,
                               TossSpacing.space4,
-                              0,
+                              isLastItem ? TossSpacing.space3 : 0,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.surface,
-                              borderRadius: index == displayProducts.length - 1
+                              color: TossColors.white,
+                              border: Border.all(
+                                color: TossColors.gray200,
+                                width: 1,
+                              ),
+                              borderRadius: isLastItem
                                   ? const BorderRadius.only(
                                       bottomLeft: Radius.circular(TossBorderRadius.lg),
                                       bottomRight: Radius.circular(TossBorderRadius.lg),
                                     )
                                   : null,
                             ),
-                            child: Column(
-                              children: [
-                                SelectableProductTile(
-                                  product: product,
-                                  cartItem: cartItem,
-                                  currencySymbol: currencySymbol,
-                                  onUnfocusSearch: () => _searchFocusNode.unfocus(),
-                                ),
-                                if (index < displayProducts.length - 1)
-                                  const Divider(
-                                    height: 1,
-                                    color: TossColors.gray100,
-                                    indent: TossSpacing.space4,
-                                    endIndent: TossSpacing.space4,
-                                  ),
-                              ],
+                            child: SelectableProductTile(
+                              product: product,
+                              cartItem: cartItem,
+                              currencySymbol: currencySymbol,
+                              onUnfocusSearch: () => _searchFocusNode.unfocus(),
                             ),
                           );
                         },

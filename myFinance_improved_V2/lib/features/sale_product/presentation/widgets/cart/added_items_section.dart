@@ -62,16 +62,27 @@ class AddedItemsSection extends ConsumerWidget {
         const SizedBox(width: TossSpacing.space2),
         Text(
           'Added Items',
-          style: TossTextStyles.bodyLarge.copyWith(
+          style: TossTextStyles.h4.copyWith(
             color: TossColors.gray900,
             fontWeight: FontWeight.w600,
           ),
         ),
         const Spacer(),
-        Text(
-          '$totalItems items',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space1,
+          ),
+          decoration: BoxDecoration(
+            color: TossColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          ),
+          child: Text(
+            '$totalItems items',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -80,13 +91,13 @@ class AddedItemsSection extends ConsumerWidget {
 
   Widget _buildCartItemTile(WidgetRef ref, CartItem item) {
     return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.1),
+          color: TossColors.gray200,
           width: 1,
         ),
       ),
@@ -95,7 +106,7 @@ class AddedItemsSection extends ConsumerWidget {
           // Product Image
           ProductImageWidget(
             imageUrl: item.image,
-            size: 40,
+            size: 48,
             fallbackIcon: Icons.inventory_2,
           ),
 
@@ -106,17 +117,23 @@ class AddedItemsSection extends ConsumerWidget {
             child: _buildProductInfo(item),
           ),
 
+          const SizedBox(width: TossSpacing.space3),
+
           // Quantity Controls
           _buildQuantityControls(ref, item),
 
           // Remove Button
-          const SizedBox(width: TossSpacing.space2),
+          const SizedBox(width: TossSpacing.space3),
           InkWell(
             onTap: () => ref.read(cartProvider.notifier).removeItem(item.id),
-            child: const Icon(
-              Icons.close,
-              size: 20,
-              color: TossColors.error,
+            borderRadius: BorderRadius.circular(TossBorderRadius.full),
+            child: Container(
+              padding: const EdgeInsets.all(TossSpacing.space1),
+              child: const Icon(
+                Icons.close_rounded,
+                size: TossSpacing.iconSM,
+                color: TossColors.error,
+              ),
             ),
           ),
         ],
@@ -127,10 +144,11 @@ class AddedItemsSection extends ConsumerWidget {
   Widget _buildProductInfo(CartItem item) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           item.name,
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.bodyLarge.copyWith(
             fontWeight: FontWeight.w600,
             color: TossColors.gray900,
           ),
@@ -141,31 +159,32 @@ class AddedItemsSection extends ConsumerWidget {
         Text(
           item.sku,
           style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
+            color: TossColors.gray500,
           ),
         ),
-        const SizedBox(height: TossSpacing.space1),
+        const SizedBox(height: TossSpacing.space2),
         Row(
           children: [
             Text(
               '$currencySymbol${CurrencyFormatter.currency.format(item.price.round())}',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w700,
               ),
             ),
             Text(
               ' × ${item.quantity}',
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray600,
+                fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
             Text(
-              '$currencySymbol${CurrencyFormatter.currency.format(item.subtotal.round())}',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+              '= $currencySymbol${CurrencyFormatter.currency.format(item.subtotal.round())}',
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -178,37 +197,41 @@ class AddedItemsSection extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.2),
+          color: TossColors.gray300,
           width: 1,
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Decrease Button
           InkWell(
-            onTap: item.quantity > 0
+            onTap: item.quantity > 1
                 ? () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity - 1)
                 : null,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(TossBorderRadius.sm),
-              bottomLeft: Radius.circular(TossBorderRadius.sm),
+              topLeft: Radius.circular(TossBorderRadius.md),
+              bottomLeft: Radius.circular(TossBorderRadius.md),
             ),
             child: Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               child: Icon(
-                Icons.remove,
-                size: 16,
-                color: item.quantity > 0 ? TossColors.primary : TossColors.gray400,
+                Icons.remove_rounded,
+                size: TossSpacing.iconSM,
+                color: item.quantity > 1 ? TossColors.gray700 : TossColors.gray400,
               ),
             ),
           ),
 
           // Quantity Display
           Container(
-            width: 40,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            constraints: const BoxConstraints(minWidth: 44),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: TossSpacing.space2,
+            ),
             decoration: const BoxDecoration(
               border: Border.symmetric(
                 vertical: BorderSide(
@@ -219,9 +242,9 @@ class AddedItemsSection extends ConsumerWidget {
             ),
             child: Text(
               '${item.quantity}',
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),
@@ -231,14 +254,14 @@ class AddedItemsSection extends ConsumerWidget {
           InkWell(
             onTap: () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity + 1),
             borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(TossBorderRadius.sm),
-              bottomRight: Radius.circular(TossBorderRadius.sm),
+              topRight: Radius.circular(TossBorderRadius.md),
+              bottomRight: Radius.circular(TossBorderRadius.md),
             ),
             child: Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               child: const Icon(
-                Icons.add,
-                size: 16,
+                Icons.add_rounded,
+                size: TossSpacing.iconSM,
                 color: TossColors.primary,
               ),
             ),
@@ -250,25 +273,29 @@ class AddedItemsSection extends ConsumerWidget {
 
   Widget _buildTotalSection(double totalAmount) {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: TossColors.gray300,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Total',
-            style: TossTextStyles.bodyLarge.copyWith(
+            'Subtotal',
+            style: TossTextStyles.h4.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray900,
             ),
           ),
           Text(
             '$currencySymbol${CurrencyFormatter.currency.format(totalAmount.round())}',
-            style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.bold,
+            style: TossTextStyles.h3.copyWith(
+              fontWeight: FontWeight.w700,
               color: TossColors.primary,
             ),
           ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../../app/providers/app_state_provider.dart';
 
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
@@ -11,16 +14,45 @@ import '../widgets/stats/stats_metric_row.dart';
 ///
 /// This is the 4th tab in the Shift Management screen.
 /// Shows store health metrics, gauges, and reliability leaderboard.
-class ShiftStatsTab extends StatefulWidget {
+class ShiftStatsTab extends ConsumerStatefulWidget {
   const ShiftStatsTab({super.key});
 
   @override
-  State<ShiftStatsTab> createState() => _ShiftStatsTabState();
+  ConsumerState<ShiftStatsTab> createState() => _ShiftStatsTabState();
 }
 
-class _ShiftStatsTabState extends State<ShiftStatsTab> {
-  String selectedStore = 'Downtown Store';
+class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
+  String? selectedStoreId;
+  String selectedStoreName = 'Select Store';
   String selectedPeriod = 'This Month';
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize from app state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = ref.read(appStateProvider);
+      if (appState.storeChoosen.isNotEmpty) {
+        setState(() {
+          selectedStoreId = appState.storeChoosen;
+          // Get store name from user data
+          final userData = appState.user;
+          final companies = (userData['companies'] as List<dynamic>?) ?? [];
+          for (var company in companies) {
+            final stores = ((company as Map<String, dynamic>)['stores'] as List<dynamic>?) ?? [];
+            for (var store in stores) {
+              final storeMap = store as Map<String, dynamic>;
+              if (storeMap['store_id'] == selectedStoreId) {
+                selectedStoreName = storeMap['store_name']?.toString() ?? 'Select Store';
+                break;
+              }
+            }
+          }
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +80,43 @@ class _ShiftStatsTabState extends State<ShiftStatsTab> {
                 ),
                 const SizedBox(height: TossSpacing.space2),
                 InkWell(
-                  onTap: () {
-                    // TODO: Show store selector
+                  onTap: () async {
+                    // Get stores from app state
+                    final appState = ref.read(appStateProvider);
+                    final userData = appState.user;
+                    final companies = (userData['companies'] as List<dynamic>?) ?? [];
+                    Map<String, dynamic>? selectedCompany;
+                    if (companies.isNotEmpty) {
+                      try {
+                        selectedCompany = companies.firstWhere(
+                          (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
+                        ) as Map<String, dynamic>;
+                      } catch (e) {
+                        selectedCompany = companies.first as Map<String, dynamic>;
+                      }
+                    }
+                    final stores = (selectedCompany?['stores'] as List<dynamic>?) ?? [];
+
+                    // Show store selector
+                    final selectedStore = await TossStoreSelector.show(
+                      context: context,
+                      stores: stores,
+                      selectedStoreId: selectedStoreId,
+                      title: 'Select Store',
+                    );
+
+                    if (selectedStore != null) {
+                      setState(() {
+                        selectedStoreId = selectedStore['store_id'] as String?;
+                        selectedStoreName = selectedStore['store_name'] as String? ?? 'Select Store';
+                      });
+
+                      // Update app state
+                      ref.read(appStateProvider.notifier).selectStore(
+                        selectedStore['store_id'] as String,
+                        storeName: selectedStore['store_name'] as String?,
+                      );
+                    }
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   child: Container(
@@ -65,7 +132,7 @@ class _ShiftStatsTabState extends State<ShiftStatsTab> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          selectedStore,
+                          selectedStoreName,
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray900,
                             fontWeight: FontWeight.w600,

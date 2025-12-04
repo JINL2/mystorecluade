@@ -92,28 +92,36 @@ class TossTodayShiftCard extends StatelessWidget {
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            color: TossColors.gray400,
-            size: 48,
-          ),
-          SizedBox(height: TossSpacing.space2),
-          Text(
-            'No shift scheduled today',
-            style: TossTextStyles.bodyLarge,
-          ),
-          SizedBox(height: TossSpacing.space1),
-          Text(
-            'Enjoy your day off!',
-            style: TossTextStyles.label.copyWith(
-              color: TossColors.gray500,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              color: TossColors.gray400,
+              size: 48,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            SizedBox(height: TossSpacing.space2),
+            Text(
+              'You have no shift',
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: TossSpacing.space1),
+            Text(
+              'Go to shift sign up',
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
