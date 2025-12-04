@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -391,15 +390,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      debugPrint('[inputCardV4] Calling RPC with:');
-      debugPrint('  managerId: $managerId');
-      debugPrint('  shiftRequestId: $shiftRequestId');
-      debugPrint('  confirmStartTime: $confirmStartTime');
-      debugPrint('  confirmEndTime: $confirmEndTime');
-      debugPrint('  isProblemSolved: $isProblemSolved');
-      debugPrint('  bonusAmount: $bonusAmount');
-      debugPrint('  timezone: $timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_input_card_v4',
         params: {
@@ -413,8 +403,6 @@ class TimeTableDatasource {
         },
       );
 
-      debugPrint('[inputCardV4] Response: $response');
-
       if (response == null) {
         return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
       }
@@ -425,7 +413,6 @@ class TimeTableDatasource {
 
       return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
     } catch (e, stackTrace) {
-      debugPrint('[inputCardV4] Error: $e');
       throw TimeTableException(
         'Failed to input card v4: $e',
         originalError: e,
@@ -548,12 +535,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      debugPrint('[getReliabilityScore] Calling RPC with:');
-      debugPrint('  p_company_id: $companyId');
-      debugPrint('  p_store_id: $storeId');
-      debugPrint('  p_time: $time');
-      debugPrint('  p_timezone: $timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'get_reliability_score',
         params: {
@@ -564,11 +545,7 @@ class TimeTableDatasource {
         },
       );
 
-      debugPrint('[getReliabilityScore] Response type: ${response.runtimeType}');
-      debugPrint('[getReliabilityScore] Response: $response');
-
       if (response == null) {
-        debugPrint('[getReliabilityScore] Response is null, returning empty map');
         return {};
       }
 
@@ -580,11 +557,8 @@ class TimeTableDatasource {
         return Map<String, dynamic>.from(response);
       }
 
-      debugPrint('[getReliabilityScore] Unexpected response type, returning empty map');
       return {};
     } catch (e, stackTrace) {
-      debugPrint('[getReliabilityScore] Error: $e');
-      debugPrint('[getReliabilityScore] StackTrace: $stackTrace');
       throw TimeTableException(
         'Failed to fetch reliability score: $e',
         originalError: e,

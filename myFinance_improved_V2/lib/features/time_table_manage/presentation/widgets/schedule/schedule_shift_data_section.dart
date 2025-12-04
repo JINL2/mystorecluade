@@ -219,7 +219,6 @@ class ScheduleShiftDataSection extends ConsumerWidget {
       final userId = ref.read(appStateProvider).userId;
 
       if (userId.isEmpty) {
-        debugPrint('⚠️ [RemoveApproved] User not found');
         return;
       }
 
@@ -232,16 +231,13 @@ class ScheduleShiftDataSection extends ConsumerWidget {
         ),
       );
 
-      debugPrint('✅ [RemoveApproved] Employee removed: $shiftRequestId');
-
       // Refresh shift data to show updated state
       if (selectedStoreId != null && selectedStoreId!.isNotEmpty) {
         // Invalidate the cache to force refresh
         ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
-        debugPrint('🔄 [RemoveApproved] Cache invalidated for store: $selectedStoreId');
       }
     } catch (e) {
-      debugPrint('❌ [RemoveApproved] Error: $e');
+      // Silent fail - error handling can be added if needed
     }
   }
 }
