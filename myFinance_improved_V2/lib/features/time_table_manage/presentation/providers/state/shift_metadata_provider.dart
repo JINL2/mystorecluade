@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
 import '../usecase/time_table_usecase_providers.dart';
@@ -37,8 +37,8 @@ final shiftMetadataProvider =
   }
 
   final useCase = ref.watch(getShiftMetadataUseCaseProvider);
-  final appState = ref.watch(appStateProvider);
-  final timezone = (appState.user['timezone'] as String?) ?? 'Asia/Ho_Chi_Minh';
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
 
   return await useCase(GetShiftMetadataParams(
     storeId: storeId,

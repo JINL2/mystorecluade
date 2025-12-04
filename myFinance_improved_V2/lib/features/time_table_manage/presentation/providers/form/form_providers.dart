@@ -7,7 +7,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../di/dependency_injection.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../notifiers/add_shift_form_notifier.dart';
@@ -34,8 +34,8 @@ final addShiftFormProvider = StateNotifierProvider.family<
     AddShiftFormState,
     String>((ref, storeId) {
   final repository = ref.watch(timeTableRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
   return AddShiftFormNotifier(repository, storeId, timezone);
 });
 
@@ -58,7 +58,7 @@ final shiftDetailsFormProvider = StateNotifierProvider.family<
     ShiftDetailsFormState,
     ShiftCard>((ref, card) {
   final repository = ref.watch(timeTableRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
   return ShiftDetailsFormNotifier(card, repository, timezone);
 });

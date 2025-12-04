@@ -395,13 +395,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       cardsByRequestId[card.shiftRequestId] = card;
     }
 
-    // Debug: Log manager cards data
-    debugPrint('[Timesheets] selectedDate: $selectedDateStr');
-    debugPrint('[Timesheets] allApprovedCards count: ${allApprovedCards.length}');
-    for (final card in allApprovedCards) {
-      debugPrint('[Timesheets] Card: ${card.shiftRequestId}, actualStartRaw: ${card.actualStartRaw}, actualEndRaw: ${card.actualEndRaw}');
-    }
-
     // 4. Build ShiftTimelog for ALL active shifts
     return activeShifts.map((shiftMeta) {
       // Find shift with requests for this shift ID
@@ -417,25 +410,10 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         // Get detailed card info by matching shiftRequestId
         final detailedCard = cardsByRequestId[req.shiftRequestId];
 
-        // Debug: Log matching
-        debugPrint('[Timesheets] Looking for shiftRequestId: ${req.shiftRequestId}');
-        debugPrint('[Timesheets] Found detailedCard: ${detailedCard != null}');
-        if (detailedCard != null) {
-          debugPrint('[Timesheets] detailedCard.actualStartRaw: ${detailedCard.actualStartRaw}');
-          debugPrint('[Timesheets] detailedCard.actualEndRaw: ${detailedCard.actualEndRaw}');
-          debugPrint('[Timesheets] detailedCard.confirmedStartRaw: ${detailedCard.confirmedStartRaw}');
-          debugPrint('[Timesheets] detailedCard.confirmedEndRaw: ${detailedCard.confirmedEndRaw}');
-          // Also log DateTime versions to compare
-          debugPrint('[Timesheets] detailedCard.actualStartTime: ${detailedCard.actualStartTime}');
-          debugPrint('[Timesheets] detailedCard.actualEndTime: ${detailedCard.actualEndTime}');
-        }
-
         // Use raw time strings from RPC (no DateTime conversion)
         // Clock in: actual_start_raw -> confirmed_start_raw
         final clockInRaw = detailedCard?.actualStartRaw ?? detailedCard?.confirmedStartRaw;
-        debugPrint('[Timesheets] clockInRaw: $clockInRaw');
         final clockInStr = _formatTimeFromString(clockInRaw);
-        debugPrint('[Timesheets] clockInStr: $clockInStr');
 
         // Clock out: actual_end_raw -> confirmed_end_raw
         final clockOutRaw = detailedCard?.actualEndRaw ?? detailedCard?.confirmedEndRaw;
