@@ -148,7 +148,10 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
     
     // Create a key to access the form state
     final GlobalKey<_TemplateUsageBottomSheetState> formKey = GlobalKey();
-    
+
+    // Track button state for loading indicator
+    final buttonStateNotifier = ValueNotifier<bool>(false);
+
     // Use TossTextFieldKeyboardModal with action buttons
     return TossTextFieldKeyboardModal.show(
       context: context,
@@ -161,30 +164,48 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
       // Keep the original action buttons for the modal
       actionButtons: [
         Expanded(
-          child: TossSecondaryButton(
-            text: 'Cancel',
-            fullWidth: true,
-            onPressed: () {
-              context.pop();
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossSecondaryButton(
+                text: 'Cancel',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () {
+                  context.pop();
+                },
+              );
             },
           ),
         ),
         Expanded(
           flex: 2,
-          child: TossPrimaryButton(
-            text: 'Create Transaction',
-            fullWidth: true,
-            onPressed: () async {
-              // Get the form state and submit
-              final state = formKey.currentState;
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossPrimaryButton(
+                text: isSubmitting ? 'Creating...' : 'Create Transaction',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () async {
+                  // Get the form state and submit
+                  final state = formKey.currentState;
 
-              if (state != null) {
-                final isValid = state._isFormValid;
+                  if (state != null) {
+                    // 🔒 Check if already submitting
+                    if (state.isSubmitting) return;
 
-                if (isValid) {
-                  await state._handleSubmit();
-                }
-              }
+                    final isValid = state._isFormValid;
+
+                    if (isValid) {
+                      // Update button state
+                      buttonStateNotifier.value = true;
+                      await state._handleSubmit();
+                      buttonStateNotifier.value = false;
+                    }
+                  }
+                },
+              );
             },
           ),
         ),

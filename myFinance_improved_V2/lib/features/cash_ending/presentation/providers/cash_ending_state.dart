@@ -42,11 +42,32 @@ class CashEndingState with _$CashEndingState {
     /// Selected cash location ID
     String? selectedCashLocationId,
 
+    /// Journal amount for selected cash location (from RPC)
+    /// Used to compare with user's counted amount (Real) before submit
+    double? cashLocationJournalAmount,
+
+    /// Loading state for fetching journal amount
+    @Default(false) bool isLoadingJournalAmount,
+
     /// Selected bank location ID
     String? selectedBankLocationId,
 
+    /// Journal amount for selected bank location (from RPC)
+    /// Used to compare with user's input amount (Real) before submit
+    double? bankLocationJournalAmount,
+
+    /// Loading state for fetching bank journal amount
+    @Default(false) bool isLoadingBankJournalAmount,
+
     /// Selected vault location ID
     String? selectedVaultLocationId,
+
+    /// Journal amount for selected vault location (from RPC)
+    /// Used to compare with user's counted amount (Real) before submit
+    double? vaultLocationJournalAmount,
+
+    /// Loading state for fetching vault journal amount
+    @Default(false) bool isLoadingVaultJournalAmount,
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Currency Selection State

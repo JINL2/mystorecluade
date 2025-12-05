@@ -35,6 +35,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = false;
 
+  // 🔒 Prevent double submission
+  bool _isSubmittingReport = false;
+
   /// Format date from "2025-11-24" to "Mon, 24 Nov 2025"
   String _formatDate(String dateStr) {
     try {
@@ -116,151 +119,182 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
 
   /// Submit report to server via RPC
   Future<void> _submitReport(String reason) async {
-    final now = DateTime.now();
-    final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    final timezone = DateTimeUtils.getLocalTimezone();
+    // 🔒 Prevent double submission
+    if (_isSubmittingReport) return;
 
-    final reportShiftIssue = ref.read(reportShiftIssueProvider);
-    final success = await reportShiftIssue(
-      shiftRequestId: widget.shift.shiftRequestId,
-      reportReason: reason,
-      time: time,
-      timezone: timezone,
-    );
+    setState(() {
+      _isSubmittingReport = true;
+    });
 
-    if (!mounted) return;
+    try {
+      final now = DateTime.now();
+      final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-    if (success) {
-      // Refresh shift cards data
-      final requestDate = DateTime.parse(widget.shift.requestDate);
-      final yearMonth =
-          '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
-      ref.invalidate(monthlyShiftCardsProvider(yearMonth));
-
-      // Show success message and close page
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report submitted successfully'),
-          backgroundColor: TossColors.success,
-        ),
+      final reportShiftIssue = ref.read(reportShiftIssueProvider);
+      final success = await reportShiftIssue(
+        shiftRequestId: widget.shift.shiftRequestId,
+        reportReason: reason,
+        time: time,
+        timezone: timezone,
       );
-      Navigator.pop(context);
-    } else {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to submit report. Please try again.'),
-          backgroundColor: TossColors.error,
-        ),
-      );
+
+      if (!mounted) return;
+
+      if (success) {
+        // Refresh shift cards data
+        final requestDate = DateTime.parse(widget.shift.requestDate);
+        final yearMonth =
+            '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
+        ref.invalidate(monthlyShiftCardsProvider(yearMonth));
+
+        // Show success message and close page
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Report submitted successfully'),
+            backgroundColor: TossColors.success,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to submit report. Please try again.'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingReport = false;
+        });
+      }
     }
   }
 
   /// Show report issue bottom sheet
   void _showReportBottomSheet(BuildContext context) {
     final TextEditingController reasonController = TextEditingController();
+    bool isSubmitting = false;
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
       backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext bottomSheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 24,
-            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Report Issue',
-                style: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w700,
-                ),
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 24,
+                bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Please describe the problem with this shift',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Text Input
-              Container(
-                decoration: BoxDecoration(
-                  color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: TossColors.gray200, width: 1),
-                ),
-                child: TextField(
-                  controller: reasonController,
-                  maxLines: 4,
-                  maxLength: 500,
-                  decoration: InputDecoration(
-                    hintText: 'Enter the reason for reporting this issue...',
-                    hintStyle: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray400,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                    counterStyle: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Action Buttons
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TossButton1.secondary(
-                      text: 'Cancel',
-                      fullWidth: true,
-                      onPressed: () => Navigator.pop(bottomSheetContext),
+                  // Header
+                  Text(
+                    'Report Issue',
+                    style: TossTextStyles.titleMedium.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TossButton1.primary(
-                      text: 'OK',
-                      fullWidth: true,
-                      onPressed: () async {
-                        final reason = reasonController.text.trim();
-                        if (reason.isEmpty) {
-                          // Show validation message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a reason'),
-                              backgroundColor: TossColors.error,
-                            ),
-                          );
-                          return;
-                        }
-                        Navigator.pop(bottomSheetContext);
-                        await _submitReport(reason);
-                      },
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please describe the problem with this shift',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.gray600,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Text Input
+                  Container(
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: TossColors.gray200, width: 1),
+                    ),
+                    child: TextField(
+                      controller: reasonController,
+                      maxLines: 4,
+                      maxLength: 500,
+                      enabled: !isSubmitting,
+                      decoration: InputDecoration(
+                        hintText: 'Enter the reason for reporting this issue...',
+                        hintStyle: TossTextStyles.bodyLarge.copyWith(
+                          color: TossColors.gray400,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(16),
+                        counterStyle: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TossButton1.secondary(
+                          text: 'Cancel',
+                          fullWidth: true,
+                          isEnabled: !isSubmitting,
+                          onPressed: isSubmitting ? null : () => Navigator.pop(bottomSheetContext),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TossButton1.primary(
+                          text: isSubmitting ? 'Submitting...' : 'OK',
+                          fullWidth: true,
+                          isEnabled: !isSubmitting,
+                          onPressed: isSubmitting ? null : () async {
+                            final reason = reasonController.text.trim();
+                            if (reason.isEmpty) {
+                              // Show validation message
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter a reason'),
+                                  backgroundColor: TossColors.error,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // 🔒 Show loading state in bottom sheet
+                            setBottomSheetState(() {
+                              isSubmitting = true;
+                            });
+
+                            // Close bottom sheet first, then submit
+                            Navigator.pop(bottomSheetContext);
+                            await _submitReport(reason);
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

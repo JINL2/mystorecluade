@@ -55,12 +55,14 @@ class DailyAttendanceDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Overview (미니멀 - 한 줄)
-            _OverviewSection(
-              reportDate: notification.reportDate,
-              heroStats: report.heroStats,
-              aiSummary: report.aiSummary,
-            ),
-            SizedBox(height: TossSpacing.marginLG),
+            if (report.heroStats != null)
+              _OverviewSection(
+                reportDate: notification.reportDate,
+                heroStats: report.heroStats!,
+                aiSummary: report.aiSummary,
+              ),
+            if (report.heroStats != null)
+              SizedBox(height: TossSpacing.marginLG),
 
             // 2. Store Performance (매장별 현황 - 큰 스코프)
             _StorePerformanceSection(stores: report.stores),

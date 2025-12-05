@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
@@ -520,6 +521,11 @@ class _VaultTabState extends ConsumerState<VaultTab> {
               currencySymbol: state.baseCurrencySymbol,
               label: 'Grand total ${state.baseCurrency?.currencyCode ?? ""}',
               isBaseCurrency: true,
+              journalAmount: state.vaultLocationJournalAmount,
+              isLoadingJournal: state.isLoadingVaultJournalAmount,
+              onHistoryTap: state.selectedVaultLocationId != null
+                  ? () => _navigateToAccountDetail(state, grandTotal)
+                  : null,
             );
           },
         ),
@@ -951,6 +957,38 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       userId: userId,
       recordDate: now,
       currencyRecounts: currencyRecounts,
+    );
+  }
+
+  /// Navigate to AccountDetailPage for transaction history
+  void _navigateToAccountDetail(CashEndingState state, double grandTotal) {
+    if (state.selectedVaultLocationId == null) return;
+
+    // Find the selected location
+    final selectedLocation = state.vaultLocations.firstWhere(
+      (loc) => loc.locationId == state.selectedVaultLocationId,
+      orElse: () => state.vaultLocations.first,
+    );
+
+    // Calculate difference
+    final journalAmount = state.vaultLocationJournalAmount ?? 0.0;
+    final difference = grandTotal - journalAmount;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AccountDetailPage(
+          locationId: state.selectedVaultLocationId,
+          accountName: selectedLocation.locationName,
+          locationType: 'vault',
+          balance: journalAmount.toInt(),
+          errors: difference.toInt().abs(),
+          totalJournal: journalAmount.toInt(),
+          totalReal: grandTotal.toInt(),
+          cashDifference: difference.toInt(),
+          currencySymbol: state.baseCurrencySymbol,
+        ),
+      ),
     );
   }
 }

@@ -42,11 +42,32 @@ mixin _$CashEndingState {
   /// Selected cash location ID
   String? get selectedCashLocationId => throw _privateConstructorUsedError;
 
+  /// Journal amount for selected cash location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  double? get cashLocationJournalAmount => throw _privateConstructorUsedError;
+
+  /// Loading state for fetching journal amount
+  bool get isLoadingJournalAmount => throw _privateConstructorUsedError;
+
   /// Selected bank location ID
   String? get selectedBankLocationId => throw _privateConstructorUsedError;
 
+  /// Journal amount for selected bank location (from RPC)
+  /// Used to compare with user's input amount (Real) before submit
+  double? get bankLocationJournalAmount => throw _privateConstructorUsedError;
+
+  /// Loading state for fetching bank journal amount
+  bool get isLoadingBankJournalAmount => throw _privateConstructorUsedError;
+
   /// Selected vault location ID
-  String? get selectedVaultLocationId =>
+  String? get selectedVaultLocationId => throw _privateConstructorUsedError;
+
+  /// Journal amount for selected vault location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  double? get vaultLocationJournalAmount => throw _privateConstructorUsedError;
+
+  /// Loading state for fetching vault journal amount
+  bool get isLoadingVaultJournalAmount =>
       throw _privateConstructorUsedError; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -124,8 +145,14 @@ abstract class $CashEndingStateCopyWith<$Res> {
       int resetInputsCounter,
       String? selectedStoreId,
       String? selectedCashLocationId,
+      double? cashLocationJournalAmount,
+      bool isLoadingJournalAmount,
       String? selectedBankLocationId,
+      double? bankLocationJournalAmount,
+      bool isLoadingBankJournalAmount,
       String? selectedVaultLocationId,
+      double? vaultLocationJournalAmount,
+      bool isLoadingVaultJournalAmount,
       List<String> selectedCashCurrencyIds,
       String? selectedBankCurrencyId,
       List<String> selectedVaultCurrencyIds,
@@ -168,8 +195,14 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
     Object? resetInputsCounter = null,
     Object? selectedStoreId = freezed,
     Object? selectedCashLocationId = freezed,
+    Object? cashLocationJournalAmount = freezed,
+    Object? isLoadingJournalAmount = null,
     Object? selectedBankLocationId = freezed,
+    Object? bankLocationJournalAmount = freezed,
+    Object? isLoadingBankJournalAmount = null,
     Object? selectedVaultLocationId = freezed,
+    Object? vaultLocationJournalAmount = freezed,
+    Object? isLoadingVaultJournalAmount = null,
     Object? selectedCashCurrencyIds = null,
     Object? selectedBankCurrencyId = freezed,
     Object? selectedVaultCurrencyIds = null,
@@ -216,14 +249,38 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
           ? _value.selectedCashLocationId
           : selectedCashLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      cashLocationJournalAmount: freezed == cashLocationJournalAmount
+          ? _value.cashLocationJournalAmount
+          : cashLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingJournalAmount: null == isLoadingJournalAmount
+          ? _value.isLoadingJournalAmount
+          : isLoadingJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedBankLocationId: freezed == selectedBankLocationId
           ? _value.selectedBankLocationId
           : selectedBankLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      bankLocationJournalAmount: freezed == bankLocationJournalAmount
+          ? _value.bankLocationJournalAmount
+          : bankLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingBankJournalAmount: null == isLoadingBankJournalAmount
+          ? _value.isLoadingBankJournalAmount
+          : isLoadingBankJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedVaultLocationId: freezed == selectedVaultLocationId
           ? _value.selectedVaultLocationId
           : selectedVaultLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      vaultLocationJournalAmount: freezed == vaultLocationJournalAmount
+          ? _value.vaultLocationJournalAmount
+          : vaultLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingVaultJournalAmount: null == isLoadingVaultJournalAmount
+          ? _value.isLoadingVaultJournalAmount
+          : isLoadingVaultJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedCashCurrencyIds: null == selectedCashCurrencyIds
           ? _value.selectedCashCurrencyIds
           : selectedCashCurrencyIds // ignore: cast_nullable_to_non_nullable
@@ -322,8 +379,14 @@ abstract class _$$CashEndingStateImplCopyWith<$Res>
       int resetInputsCounter,
       String? selectedStoreId,
       String? selectedCashLocationId,
+      double? cashLocationJournalAmount,
+      bool isLoadingJournalAmount,
       String? selectedBankLocationId,
+      double? bankLocationJournalAmount,
+      bool isLoadingBankJournalAmount,
       String? selectedVaultLocationId,
+      double? vaultLocationJournalAmount,
+      bool isLoadingVaultJournalAmount,
       List<String> selectedCashCurrencyIds,
       String? selectedBankCurrencyId,
       List<String> selectedVaultCurrencyIds,
@@ -365,8 +428,14 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
     Object? resetInputsCounter = null,
     Object? selectedStoreId = freezed,
     Object? selectedCashLocationId = freezed,
+    Object? cashLocationJournalAmount = freezed,
+    Object? isLoadingJournalAmount = null,
     Object? selectedBankLocationId = freezed,
+    Object? bankLocationJournalAmount = freezed,
+    Object? isLoadingBankJournalAmount = null,
     Object? selectedVaultLocationId = freezed,
+    Object? vaultLocationJournalAmount = freezed,
+    Object? isLoadingVaultJournalAmount = null,
     Object? selectedCashCurrencyIds = null,
     Object? selectedBankCurrencyId = freezed,
     Object? selectedVaultCurrencyIds = null,
@@ -413,14 +482,38 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
           ? _value.selectedCashLocationId
           : selectedCashLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      cashLocationJournalAmount: freezed == cashLocationJournalAmount
+          ? _value.cashLocationJournalAmount
+          : cashLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingJournalAmount: null == isLoadingJournalAmount
+          ? _value.isLoadingJournalAmount
+          : isLoadingJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedBankLocationId: freezed == selectedBankLocationId
           ? _value.selectedBankLocationId
           : selectedBankLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      bankLocationJournalAmount: freezed == bankLocationJournalAmount
+          ? _value.bankLocationJournalAmount
+          : bankLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingBankJournalAmount: null == isLoadingBankJournalAmount
+          ? _value.isLoadingBankJournalAmount
+          : isLoadingBankJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedVaultLocationId: freezed == selectedVaultLocationId
           ? _value.selectedVaultLocationId
           : selectedVaultLocationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      vaultLocationJournalAmount: freezed == vaultLocationJournalAmount
+          ? _value.vaultLocationJournalAmount
+          : vaultLocationJournalAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      isLoadingVaultJournalAmount: null == isLoadingVaultJournalAmount
+          ? _value.isLoadingVaultJournalAmount
+          : isLoadingVaultJournalAmount // ignore: cast_nullable_to_non_nullable
+              as bool,
       selectedCashCurrencyIds: null == selectedCashCurrencyIds
           ? _value._selectedCashCurrencyIds
           : selectedCashCurrencyIds // ignore: cast_nullable_to_non_nullable
@@ -500,8 +593,14 @@ class _$CashEndingStateImpl extends _CashEndingState {
       this.resetInputsCounter = 0,
       this.selectedStoreId,
       this.selectedCashLocationId,
+      this.cashLocationJournalAmount,
+      this.isLoadingJournalAmount = false,
       this.selectedBankLocationId,
+      this.bankLocationJournalAmount,
+      this.isLoadingBankJournalAmount = false,
       this.selectedVaultLocationId,
+      this.vaultLocationJournalAmount,
+      this.isLoadingVaultJournalAmount = false,
       final List<String> selectedCashCurrencyIds = const [],
       this.selectedBankCurrencyId,
       final List<String> selectedVaultCurrencyIds = const [],
@@ -564,13 +663,43 @@ class _$CashEndingStateImpl extends _CashEndingState {
   @override
   final String? selectedCashLocationId;
 
+  /// Journal amount for selected cash location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  @override
+  final double? cashLocationJournalAmount;
+
+  /// Loading state for fetching journal amount
+  @override
+  @JsonKey()
+  final bool isLoadingJournalAmount;
+
   /// Selected bank location ID
   @override
   final String? selectedBankLocationId;
 
+  /// Journal amount for selected bank location (from RPC)
+  /// Used to compare with user's input amount (Real) before submit
+  @override
+  final double? bankLocationJournalAmount;
+
+  /// Loading state for fetching bank journal amount
+  @override
+  @JsonKey()
+  final bool isLoadingBankJournalAmount;
+
   /// Selected vault location ID
   @override
   final String? selectedVaultLocationId;
+
+  /// Journal amount for selected vault location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  @override
+  final double? vaultLocationJournalAmount;
+
+  /// Loading state for fetching vault journal amount
+  @override
+  @JsonKey()
+  final bool isLoadingVaultJournalAmount;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -723,7 +852,7 @@ class _$CashEndingStateImpl extends _CashEndingState {
 
   @override
   String toString() {
-    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage, resetInputsCounter: $resetInputsCounter, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, selectedBankLocationId: $selectedBankLocationId, selectedVaultLocationId: $selectedVaultLocationId, selectedCashCurrencyIds: $selectedCashCurrencyIds, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyIds: $selectedVaultCurrencyIds, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, baseCurrency: $baseCurrency, recentCashEndings: $recentCashEndings, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies, isLoadingRecentEndings: $isLoadingRecentEndings)';
+    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage, resetInputsCounter: $resetInputsCounter, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, cashLocationJournalAmount: $cashLocationJournalAmount, isLoadingJournalAmount: $isLoadingJournalAmount, selectedBankLocationId: $selectedBankLocationId, bankLocationJournalAmount: $bankLocationJournalAmount, isLoadingBankJournalAmount: $isLoadingBankJournalAmount, selectedVaultLocationId: $selectedVaultLocationId, vaultLocationJournalAmount: $vaultLocationJournalAmount, isLoadingVaultJournalAmount: $isLoadingVaultJournalAmount, selectedCashCurrencyIds: $selectedCashCurrencyIds, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyIds: $selectedVaultCurrencyIds, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, baseCurrency: $baseCurrency, recentCashEndings: $recentCashEndings, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies, isLoadingRecentEndings: $isLoadingRecentEndings)';
   }
 
   @override
@@ -745,11 +874,25 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 other.selectedStoreId == selectedStoreId) &&
             (identical(other.selectedCashLocationId, selectedCashLocationId) ||
                 other.selectedCashLocationId == selectedCashLocationId) &&
+            (identical(other.cashLocationJournalAmount, cashLocationJournalAmount) ||
+                other.cashLocationJournalAmount == cashLocationJournalAmount) &&
+            (identical(other.isLoadingJournalAmount, isLoadingJournalAmount) ||
+                other.isLoadingJournalAmount == isLoadingJournalAmount) &&
             (identical(other.selectedBankLocationId, selectedBankLocationId) ||
                 other.selectedBankLocationId == selectedBankLocationId) &&
-            (identical(
-                    other.selectedVaultLocationId, selectedVaultLocationId) ||
+            (identical(other.bankLocationJournalAmount, bankLocationJournalAmount) ||
+                other.bankLocationJournalAmount == bankLocationJournalAmount) &&
+            (identical(other.isLoadingBankJournalAmount, isLoadingBankJournalAmount) ||
+                other.isLoadingBankJournalAmount ==
+                    isLoadingBankJournalAmount) &&
+            (identical(other.selectedVaultLocationId, selectedVaultLocationId) ||
                 other.selectedVaultLocationId == selectedVaultLocationId) &&
+            (identical(other.vaultLocationJournalAmount, vaultLocationJournalAmount) ||
+                other.vaultLocationJournalAmount ==
+                    vaultLocationJournalAmount) &&
+            (identical(other.isLoadingVaultJournalAmount, isLoadingVaultJournalAmount) ||
+                other.isLoadingVaultJournalAmount ==
+                    isLoadingVaultJournalAmount) &&
             const DeepCollectionEquality().equals(
                 other._selectedCashCurrencyIds, _selectedCashCurrencyIds) &&
             (identical(other.selectedBankCurrencyId, selectedBankCurrencyId) ||
@@ -769,19 +912,12 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 other.baseCurrency == baseCurrency) &&
             const DeepCollectionEquality()
                 .equals(other._recentCashEndings, _recentCashEndings) &&
-            (identical(other.isLoadingStores, isLoadingStores) ||
-                other.isLoadingStores == isLoadingStores) &&
-            (identical(other.isLoadingCashLocations, isLoadingCashLocations) ||
-                other.isLoadingCashLocations == isLoadingCashLocations) &&
-            (identical(other.isLoadingBankLocations, isLoadingBankLocations) ||
-                other.isLoadingBankLocations == isLoadingBankLocations) &&
-            (identical(
-                    other.isLoadingVaultLocations, isLoadingVaultLocations) ||
-                other.isLoadingVaultLocations == isLoadingVaultLocations) &&
-            (identical(other.isLoadingCurrencies, isLoadingCurrencies) ||
-                other.isLoadingCurrencies == isLoadingCurrencies) &&
-            (identical(other.isLoadingRecentEndings, isLoadingRecentEndings) ||
-                other.isLoadingRecentEndings == isLoadingRecentEndings));
+            (identical(other.isLoadingStores, isLoadingStores) || other.isLoadingStores == isLoadingStores) &&
+            (identical(other.isLoadingCashLocations, isLoadingCashLocations) || other.isLoadingCashLocations == isLoadingCashLocations) &&
+            (identical(other.isLoadingBankLocations, isLoadingBankLocations) || other.isLoadingBankLocations == isLoadingBankLocations) &&
+            (identical(other.isLoadingVaultLocations, isLoadingVaultLocations) || other.isLoadingVaultLocations == isLoadingVaultLocations) &&
+            (identical(other.isLoadingCurrencies, isLoadingCurrencies) || other.isLoadingCurrencies == isLoadingCurrencies) &&
+            (identical(other.isLoadingRecentEndings, isLoadingRecentEndings) || other.isLoadingRecentEndings == isLoadingRecentEndings));
   }
 
   @override
@@ -794,8 +930,14 @@ class _$CashEndingStateImpl extends _CashEndingState {
         resetInputsCounter,
         selectedStoreId,
         selectedCashLocationId,
+        cashLocationJournalAmount,
+        isLoadingJournalAmount,
         selectedBankLocationId,
+        bankLocationJournalAmount,
+        isLoadingBankJournalAmount,
         selectedVaultLocationId,
+        vaultLocationJournalAmount,
+        isLoadingVaultJournalAmount,
         const DeepCollectionEquality().hash(_selectedCashCurrencyIds),
         selectedBankCurrencyId,
         const DeepCollectionEquality().hash(_selectedVaultCurrencyIds),
@@ -833,8 +975,14 @@ abstract class _CashEndingState extends CashEndingState {
       final int resetInputsCounter,
       final String? selectedStoreId,
       final String? selectedCashLocationId,
+      final double? cashLocationJournalAmount,
+      final bool isLoadingJournalAmount,
       final String? selectedBankLocationId,
+      final double? bankLocationJournalAmount,
+      final bool isLoadingBankJournalAmount,
       final String? selectedVaultLocationId,
+      final double? vaultLocationJournalAmount,
+      final bool isLoadingVaultJournalAmount,
       final List<String> selectedCashCurrencyIds,
       final String? selectedBankCurrencyId,
       final List<String> selectedVaultCurrencyIds,
@@ -885,14 +1033,41 @@ abstract class _CashEndingState extends CashEndingState {
   @override
   String? get selectedCashLocationId;
 
+  /// Journal amount for selected cash location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  @override
+  double? get cashLocationJournalAmount;
+
+  /// Loading state for fetching journal amount
+  @override
+  bool get isLoadingJournalAmount;
+
   /// Selected bank location ID
   @override
   String? get selectedBankLocationId;
 
+  /// Journal amount for selected bank location (from RPC)
+  /// Used to compare with user's input amount (Real) before submit
+  @override
+  double? get bankLocationJournalAmount;
+
+  /// Loading state for fetching bank journal amount
+  @override
+  bool get isLoadingBankJournalAmount;
+
   /// Selected vault location ID
   @override
-  String?
-      get selectedVaultLocationId; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  String? get selectedVaultLocationId;
+
+  /// Journal amount for selected vault location (from RPC)
+  /// Used to compare with user's counted amount (Real) before submit
+  @override
+  double? get vaultLocationJournalAmount;
+
+  /// Loading state for fetching vault journal amount
+  @override
+  bool
+      get isLoadingVaultJournalAmount; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Currency Selection State
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /// Selected currency IDs for cash tab (multiple currencies can be selected)
