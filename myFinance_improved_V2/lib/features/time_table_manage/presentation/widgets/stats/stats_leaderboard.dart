@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 /// Data model for leaderboard employee
 class LeaderboardEmployee {
@@ -11,7 +11,7 @@ class LeaderboardEmployee {
   final String subtitle;
   final String? avatarUrl;
   final int score;
-  final double change;
+  final double? change; // Optional - only shown if RPC provides historical data
   final bool isPositive;
 
   const LeaderboardEmployee({
@@ -20,7 +20,7 @@ class LeaderboardEmployee {
     required this.subtitle,
     this.avatarUrl,
     required this.score,
-    required this.change,
+    this.change, // Optional
     required this.isPositive,
   });
 }
@@ -33,13 +33,15 @@ class LeaderboardEmployee {
 class StatsLeaderboard extends StatefulWidget {
   final List<LeaderboardEmployee> topReliabilityList;
   final List<LeaderboardEmployee> needsAttentionList;
-  final VoidCallback onSeeAllTap;
+  final List<LeaderboardEmployee> allEmployeesList; // Full list for "See all"
+  final VoidCallback? onSeeAllTap; // Optional callback for custom handling
 
   const StatsLeaderboard({
     super.key,
     required this.topReliabilityList,
     required this.needsAttentionList,
-    required this.onSeeAllTap,
+    required this.allEmployeesList,
+    this.onSeeAllTap,
   });
 
   @override
@@ -69,10 +71,12 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
         const SizedBox(height: TossSpacing.space5),
 
         // Employee list
-        ...currentList.map((employee) => _LeaderboardRow(
-              employee: employee,
-              isNeedsAttention: selectedTab == 1,
-            )),
+        ...currentList.map(
+          (employee) => _LeaderboardRow(
+            employee: employee,
+            isNeedsAttention: selectedTab == 1,
+          ),
+        ),
 
         // See all button
         _buildSeeAllButton(),
@@ -113,7 +117,14 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
       children: [
         const Divider(height: 1, color: TossColors.gray200),
         GestureDetector(
-          onTap: widget.onSeeAllTap,
+          onTap: () {
+            // Use custom callback if provided, otherwise show bottom sheet
+            if (widget.onSeeAllTap != null) {
+              widget.onSeeAllTap!();
+            } else {
+              _showAllEmployeesBottomSheet();
+            }
+          },
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
@@ -128,6 +139,22 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAllEmployeesBottomSheet() {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: TossColors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _AllEmployeesBottomSheet(
+        employees: widget.allEmployeesList,
+        initialTab: selectedTab,
+      ),
     );
   }
 }
@@ -234,7 +261,7 @@ class _LeaderboardRow extends StatelessWidget {
             ),
           ),
 
-          // Score and change
+          // Score and change (if available)
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -244,18 +271,174 @@ class _LeaderboardRow extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${employee.isPositive ? '+' : ''}${employee.change}',
-                style: TossTextStyles.caption.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: employee.isPositive ? TossColors.primary : TossColors.error,
+              // Only show change if RPC provides historical data
+              if (employee.change != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '${employee.isPositive ? '+' : ''}${employee.change}',
+                  style: TossTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: employee.isPositive ? TossColors.primary : TossColors.error,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Bottom sheet showing all employees sorted by reliability
+class _AllEmployeesBottomSheet extends StatefulWidget {
+  final List<LeaderboardEmployee> employees;
+  final int initialTab; // 0 = Top reliability (descending), 1 = Needs attention (ascending)
+
+  const _AllEmployeesBottomSheet({
+    required this.employees,
+    required this.initialTab,
+  });
+
+  @override
+  State<_AllEmployeesBottomSheet> createState() => _AllEmployeesBottomSheetState();
+}
+
+class _AllEmployeesBottomSheetState extends State<_AllEmployeesBottomSheet> {
+  late int selectedTab;
+  late List<LeaderboardEmployee> sortedEmployees;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedTab = widget.initialTab;
+    _sortEmployees();
+  }
+
+  void _sortEmployees() {
+    sortedEmployees = List.from(widget.employees);
+    if (selectedTab == 0) {
+      // Top reliability: highest score first (descending)
+      sortedEmployees.sort((a, b) => b.score.compareTo(a.score));
+    } else {
+      // Needs attention: lowest score first (ascending)
+      sortedEmployees.sort((a, b) => a.score.compareTo(b.score));
+    }
+    // Update rank based on sorted position
+    sortedEmployees = sortedEmployees.asMap().entries.map((entry) {
+      return LeaderboardEmployee(
+        rank: entry.key + 1,
+        name: entry.value.name,
+        subtitle: entry.value.subtitle,
+        avatarUrl: entry.value.avatarUrl,
+        score: entry.value.score,
+        change: entry.value.change,
+        isPositive: selectedTab == 0,
+      );
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Title
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space2,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'All Employees',
+                    style: TossTextStyles.titleMedium,
+                  ),
+                  Text(
+                    '${sortedEmployees.length} employees',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Tabs
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: TossColors.gray200),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _LeaderboardTab(
+                        title: 'Top reliability',
+                        isActive: selectedTab == 0,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            selectedTab = 0;
+                            _sortEmployees();
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: _LeaderboardTab(
+                        title: 'Needs attention',
+                        isActive: selectedTab == 1,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            selectedTab = 1;
+                            _sortEmployees();
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            // Employee list
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                itemCount: sortedEmployees.length,
+                itemBuilder: (context, index) {
+                  return _LeaderboardRow(
+                    employee: sortedEmployees[index],
+                    isNeedsAttention: selectedTab == 1,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

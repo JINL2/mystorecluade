@@ -1,19 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../domain/repositories/time_table_repository.dart';
+import '../../../domain/usecases/get_schedule_data.dart';
+import '../../../domain/usecases/insert_schedule.dart';
 import '../states/add_shift_form_state.dart';
 
 /// Add Shift Form Notifier
 ///
-/// Manages the business logic for the Add Shift form
+/// Manages the business logic for the Add Shift form.
+/// Uses UseCases for Clean Architecture compliance.
 class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
-  final TimeTableRepository _repository;
+  final GetScheduleData _getScheduleDataUseCase;
+  final InsertSchedule _insertScheduleUseCase;
   final String _storeId;
   final String _timezone;
 
-  AddShiftFormNotifier(this._repository, this._storeId, this._timezone)
-      : super(const AddShiftFormState()) {
+  AddShiftFormNotifier(
+    this._getScheduleDataUseCase,
+    this._insertScheduleUseCase,
+    this._storeId,
+    this._timezone,
+  ) : super(const AddShiftFormState()) {
     // Load data on initialization
     loadScheduleData();
   }
@@ -31,14 +38,13 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isLoadingData: true, error: null);
 
     try {
-      print('🔄 AddShiftForm: Loading schedule data for storeId: $_storeId, timezone: $_timezone');
-
-      final scheduleData = await _repository.getScheduleData(
-        storeId: _storeId,
-        timezone: _timezone,
+      // Use UseCase instead of Repository directly
+      final scheduleData = await _getScheduleDataUseCase.call(
+        GetScheduleDataParams(
+          storeId: _storeId,
+          timezone: _timezone,
+        ),
       );
-
-      print('📦 AddShiftForm: Got ${scheduleData.employees.length} employees, ${scheduleData.shifts.length} shifts');
 
       final employees = scheduleData.employees
           .map((emp) => {
@@ -58,16 +64,12 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
               },)
           .toList();
 
-      print('✅ AddShiftForm: Mapped ${employees.length} employees, ${shifts.length} shifts');
-
       state = state.copyWith(
         employees: employees,
         shifts: shifts,
         isLoadingData: false,
       );
-    } catch (e, stackTrace) {
-      print('❌ AddShiftForm: Error loading schedule data: $e');
-      print('❌ AddShiftForm: Stack trace: $stackTrace');
+    } catch (e) {
       state = state.copyWith(
         error: 'Error: ${e.toString()}',
         isLoadingData: false,
@@ -118,14 +120,17 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
       final startTimeStr = '$dateStr $startTime';
       final endTimeStr = '$dateStr $endTime';
 
-      await _repository.insertSchedule(
-        userId: state.selectedEmployeeId!,
-        shiftId: state.selectedShiftId!,
-        storeId: _storeId,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        approvedBy: approvedBy,
-        timezone: _timezone,
+      // Use UseCase instead of Repository directly
+      await _insertScheduleUseCase.call(
+        InsertScheduleParams(
+          userId: state.selectedEmployeeId!,
+          shiftId: state.selectedShiftId!,
+          storeId: _storeId,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          approvedBy: approvedBy,
+          timezone: _timezone,
+        ),
       );
 
       state = state.copyWith(isSaving: false);

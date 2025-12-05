@@ -59,6 +59,7 @@ export const useSaleProducts = (companyId: string | undefined, storeId: string |
         category_name: product.categoryName,
         unit: product.unit,
         image_urls: product.imageUrls,
+        cost_price: product.costPrice,
         selling_price: product.sellingPrice,
         quantity_available: product.quantityAvailable,
       }));

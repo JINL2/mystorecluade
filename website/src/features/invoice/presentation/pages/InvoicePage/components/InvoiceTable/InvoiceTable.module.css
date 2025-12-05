@@ -270,6 +270,226 @@
   max-width: 400px;
 }
 
+/* Expanded Panel Styles */
+.expandedPanel {
+  padding: 24px;
+}
+
+.expandedPanelGrid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+}
+
+.productListSection {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  padding: 16px;
+  margin: 0;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.productTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.productTable thead tr th {
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  background: #FAFBFC;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.productTable thead tr th:first-child {
+  padding-left: 24px !important;
+}
+
+.productTable thead tr th:last-child {
+  padding-right: 24px !important;
+}
+
+.productTable tbody tr td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #212529;
+  border-bottom: 1px solid #F8F9FA;
+  text-align: center;
+}
+
+.productTable tbody tr td:first-child {
+  padding-left: 24px !important;
+}
+
+.productTable tbody tr td:last-child {
+  padding-right: 24px !important;
+}
+
+.productTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.productTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.productName {
+  font-weight: 500;
+}
+
+.productSku {
+  font-size: 11px;
+  color: #6C757D;
+  margin-top: 2px;
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoCard {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+  padding: 16px;
+}
+
+.infoCardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-size: 13px;
+  color: #6C757D;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: #212529;
+}
+
+.infoValueHighlight {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0064FF;
+}
+
+.cashLocationType {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.cashLocationType.cash {
+  background: #d4edda;
+  color: #155724;
+}
+
+.cashLocationType.bank {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.totalRow {
+  border-top: 2px solid #E9ECEF;
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+.profitPositive {
+  color: #155724;
+}
+
+.profitNegative {
+  color: #721c24;
+}
+
+/* Refund Button */
+.refundButton {
+  width: 100%;
+  padding: 12px 24px;
+  background: #DC3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.refundButton:hover:not(:disabled) {
+  background: #C82333;
+}
+
+.refundButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.refundButtonDisabled {
+  background: #ADB5BD;
+  cursor: not-allowed;
+}
+
+.refundButtonDisabled:hover {
+  background: #ADB5BD;
+}
+
+.detailLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 24px;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .expandedPanelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .invoiceTable {
     -webkit-overflow-scrolling: touch;
@@ -277,5 +497,10 @@
 
   .invoiceTable table {
     min-width: 700px;
+  }
+
+  .productTable {
+    display: block;
+    overflow-x: auto;
   }
 }

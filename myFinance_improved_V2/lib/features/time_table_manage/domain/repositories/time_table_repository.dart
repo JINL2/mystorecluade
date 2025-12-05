@@ -1,10 +1,10 @@
-import '../entities/available_employees_data.dart';
 import '../entities/bulk_approval_result.dart';
 import '../entities/card_input_result.dart';
 import '../entities/manager_overview.dart';
 import '../entities/manager_shift_cards.dart';
 import '../entities/monthly_shift_status.dart';
 import '../entities/operation_result.dart';
+import '../entities/reliability_score.dart';
 import '../entities/schedule_data.dart';
 import '../entities/shift_metadata.dart';
 
@@ -22,17 +22,6 @@ abstract class TimeTableRepository {
   ///
   /// Returns [ShiftMetadata] with available tags and settings
   Future<ShiftMetadata> getShiftMetadata({
-    required String storeId,
-    required String timezone,
-  });
-
-  /// Get raw shift metadata for UI display
-  ///
-  /// [storeId] - Store ID
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
-  ///
-  /// Returns dynamic list directly from RPC for backward compatibility
-  Future<dynamic> getShiftMetadataRaw({
     required String storeId,
     required String timezone,
   });
@@ -128,23 +117,6 @@ abstract class TimeTableRepository {
     required String userId,
   });
 
-  /// Get available employees for shift assignment using v2 RPC
-  ///
-  /// Uses manager_shift_get_schedule_v2 RPC with timezone support
-  /// - Returns shift times converted to local timezone
-  /// - Uses start_time_utc and end_time_utc columns
-  ///
-  /// [storeId] - Store ID
-  /// [shiftDate] - Shift date in format 'yyyy-MM-dd'
-  /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
-  ///
-  /// Returns [AvailableEmployeesData] with employees list and existing shifts
-  Future<AvailableEmployeesData> getAvailableEmployees({
-    required String storeId,
-    required String shiftDate,
-    required String timezone,
-  });
-
   /// Get schedule data (employees and shifts) for a store using v2 RPC
   ///
   /// Uses manager_shift_get_schedule_v2 RPC with timezone support
@@ -231,19 +203,6 @@ abstract class TimeTableRepository {
     required String timezone,
   });
 
-  /// Add bonus to shift
-  ///
-  /// [shiftRequestId] - Shift request ID
-  /// [bonusAmount] - Bonus amount
-  /// [bonusReason] - Bonus reason
-  ///
-  /// Returns [OperationResult] indicating success or failure
-  Future<OperationResult> addBonus({
-    required String shiftRequestId,
-    required double bonusAmount,
-    required String bonusReason,
-  });
-
   /// Update bonus amount for shift request
   ///
   /// [shiftRequestId] - Shift request ID
@@ -253,5 +212,51 @@ abstract class TimeTableRepository {
   Future<void> updateBonusAmount({
     required String shiftRequestId,
     required double bonusAmount,
+  });
+
+  /// Input card data (manager updates shift) using v4 RPC
+  ///
+  /// Uses manager_shift_input_card_v4 RPC
+  /// - Simplified parameters: confirm times, problem solved status, bonus amount
+  /// - Times must be in user's LOCAL timezone (HH:mm:ss format)
+  /// - RPC converts local times to UTC internally
+  ///
+  /// [managerId] - Manager user ID performing the update
+  /// [shiftRequestId] - Shift request ID to update
+  /// [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
+  /// [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
+  /// [isProblemSolved] - Problem solved status, null to keep existing
+  /// [bonusAmount] - Bonus amount, null to keep existing
+  /// [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  ///
+  /// Returns Map with success status and optional error info
+  Future<Map<String, dynamic>> inputCardV4({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isProblemSolved,
+    double? bonusAmount,
+    required String timezone,
+  });
+
+  /// Get reliability score data for stats tab
+  ///
+  /// Uses get_reliability_score RPC
+  /// - p_time must be user's LOCAL timestamp in "yyyy-MM-dd HH:mm:ss" format
+  ///   (no timezone conversion - send device local time as-is)
+  /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul")
+  ///
+  /// [companyId] - Company ID
+  /// [storeId] - Store ID
+  /// [time] - User's LOCAL timestamp (yyyy-MM-dd HH:mm:ss)
+  /// [timezone] - User's local timezone
+  ///
+  /// Returns [ReliabilityScore] with shift summary, understaffed shifts, and employees
+  Future<ReliabilityScore> getReliabilityScore({
+    required String companyId,
+    required String storeId,
+    required String time,
+    required String timezone,
   });
 }

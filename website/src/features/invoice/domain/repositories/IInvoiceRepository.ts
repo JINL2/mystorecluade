@@ -120,5 +120,5 @@ export interface IInvoiceRepository {
   /**
    * Refund multiple invoices
    */
-  refundInvoices(invoiceIds: string[], notes: string, createdBy: string): Promise<BulkRefundResult>;
+  refundInvoices(invoiceIds: string[], notes: string, createdBy: string, timezone?: string): Promise<BulkRefundResult>;
 }

@@ -3,7 +3,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../domain/value_objects/sort_option.dart';
+import '../../extensions/sort_option_extension.dart';
 
 /// Sort options bottom sheet
 ///

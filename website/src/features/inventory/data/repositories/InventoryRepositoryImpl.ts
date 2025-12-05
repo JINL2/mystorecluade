@@ -217,4 +217,36 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
       };
     }
   }
+
+  async deleteProducts(
+    productIds: string[],
+    companyId: string
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    deletedCount?: number;
+    error?: string;
+  }> {
+    try {
+      const result = await this.dataSource.deleteProducts(productIds, companyId);
+
+      if (result.success) {
+        return {
+          success: true,
+          message: result.message,
+          deletedCount: result.data?.successfully_deleted || 0,
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || 'Failed to delete products',
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete products',
+      };
+    }
+  }
 }

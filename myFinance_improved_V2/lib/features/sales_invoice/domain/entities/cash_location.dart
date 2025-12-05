@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Cash location entity for payment method
+/// Note: displayName/displayType are in presentation/extensions/cash_location_extension.dart
 class CashLocation extends Equatable {
   final String id;
   final String name;
@@ -22,30 +23,7 @@ class CashLocation extends Equatable {
     this.bankName,
   });
 
-  /// Helper getters for UI display
-  String get displayName {
-    if (type == 'bank' && bankName != null) {
-      return '$name - $bankName';
-    }
-    return name;
-  }
-
-  String get displayType {
-    switch (type) {
-      case 'bank':
-        return 'Bank';
-      case 'cash':
-        return 'Cash';
-      case 'vault':
-        return 'Vault';
-      default:
-        // Capitalize first letter for unknown types
-        return type.isNotEmpty
-            ? '${type[0].toUpperCase()}${type.substring(1)}'
-            : 'Unknown';
-    }
-  }
-
+  /// Business logic helpers
   bool get isBank => type == 'bank';
   bool get isCash => type == 'cash';
   bool get isVault => type == 'vault';

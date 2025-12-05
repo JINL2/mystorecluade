@@ -5,7 +5,6 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_time_picker.dart';
-import '../../../domain/value_objects/shift_time_formatter.dart';
 
 /// Confirmed Times Editor
 ///
@@ -40,6 +39,12 @@ class ConfirmedTimesEditor extends StatelessWidget {
       return null;
     }
     return null;
+  }
+
+  /// Format TimeOfDay to HH:mm string
+  /// Local helper to avoid Domain layer Flutter dependency
+  String _formatTimeOfDay(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -89,7 +94,7 @@ class ConfirmedTimesEditor extends StatelessWidget {
                   placeholder: '--:--',
                   use24HourFormat: false,
                   onTimeChanged: (TimeOfDay time) {
-                    onStartTimeChanged(ShiftTimeFormatter.formatTimeOfDay(time));
+                    onStartTimeChanged(_formatTimeOfDay(time));
                   },
                 ),
               ),
@@ -113,7 +118,7 @@ class ConfirmedTimesEditor extends StatelessWidget {
                   placeholder: '--:--',
                   use24HourFormat: false,
                   onTimeChanged: (TimeOfDay time) {
-                    onEndTimeChanged(ShiftTimeFormatter.formatTimeOfDay(time));
+                    onEndTimeChanged(_formatTimeOfDay(time));
                   },
                 ),
               ),

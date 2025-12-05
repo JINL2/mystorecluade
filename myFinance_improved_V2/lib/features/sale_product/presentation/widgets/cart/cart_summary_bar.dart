@@ -131,7 +131,7 @@ class CartSummaryBar extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: Text(
-                      'Continue to Invoice',
+                      'Pay',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.white,
                         fontWeight: FontWeight.w600,

@@ -37,6 +37,13 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       checkoutDistanceFromStore: checkoutDistanceFromStore,
       salaryType: salaryType,
       salaryAmount: salaryAmount,
+      basePay: basePay,
+      totalPayWithBonus: totalPayWithBonus,
+      // Store raw time strings from RPC for display without conversion
+      actualStartRaw: actualStart,
+      actualEndRaw: actualEnd,
+      confirmedStartRaw: confirmStartTime,
+      confirmedEndRaw: confirmEndTime,
       tags: noticeTags.map((tag) => tag.toEntity()).toList(),
       problemType: problemType,
       reportReason: reportReason,

@@ -23,6 +23,10 @@ export class SaleInvoice {
     return this.items.reduce((sum, item) => sum + item.totalPrice, 0);
   }
 
+  get totalCost(): number {
+    return this.items.reduce((sum, item) => sum + item.totalCost, 0);
+  }
+
   get discountAmount(): number {
     if (this.discountType === 'percent') {
       return (this.subtotal * this.discountValue) / 100;

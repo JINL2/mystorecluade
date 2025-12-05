@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../states/time_table_state.dart';
@@ -45,11 +46,9 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
 
     // Skip if already loaded (unless force refresh)
     if (!forceRefresh && state.dataByMonth.containsKey(monthKey)) {
-      print('📦 ManagerCards: Skipping load for $monthKey (already cached)');
       return;
     }
 
-    print('🔄 ManagerCards: Loading data for $monthKey (storeId: $_storeId, companyId: $_companyId)');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -112,7 +111,8 @@ final managerCardsProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
 
   return ManagerShiftCardsNotifier(useCase, companyId, storeId, timezone);
 });

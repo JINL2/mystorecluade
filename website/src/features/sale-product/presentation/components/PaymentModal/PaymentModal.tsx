@@ -25,6 +25,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const {
     cartItems,
     subtotal,
+    totalCost,
     discountType,
     discountValue,
     discountAmount,
@@ -133,7 +134,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       <div className={styles.modalOverlay} onClick={closePaymentModal}>
         <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
-            <h2>Receipt</h2>
+            <h2>Payment</h2>
             <button className={styles.closeBtn} onClick={closePaymentModal}>
               ✕
             </button>
@@ -155,6 +156,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <span className={styles.price}>
                       {currencySymbol}
                       {item.totalPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className={styles.productCost}>
+                    <span className={styles.costLabel}>Cost:</span>
+                    <span className={styles.costValue}>
+                      {currencySymbol}
+                      {item.totalCost.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -208,8 +216,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
             {discountAmount > 0 && (
               <div className={styles.discountAmount}>
-                Discount: -{currencySymbol}
-                {discountAmount.toLocaleString()}
+                {discountType === 'amount' ? (
+                  // Amount 입력 시 → 퍼센트 표시
+                  <>
+                    Discount: -
+                    {subtotal > 0
+                      ? ((discountAmount / subtotal) * 100).toFixed(1)
+                      : '0'}
+                    %
+                  </>
+                ) : (
+                  // Percent 입력 시 → 금액 표시
+                  <>
+                    Discount: -{currencySymbol}
+                    {discountAmount.toLocaleString()}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -221,6 +243,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <span className={styles.totalValue}>
                 {currencySymbol}
                 {total.toLocaleString()}
+              </span>
+            </div>
+            <div className={styles.totalRow}>
+              <span className={styles.costLabel}>Total Cost:</span>
+              <span className={styles.costValue}>
+                {currencySymbol}
+                {totalCost.toLocaleString()}
               </span>
             </div>
           </div>
@@ -311,7 +340,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       <ErrorMessage
         variant="success"
         title="Success"
-        message={`Invoice created successfully! Invoice ID: ${successInvoiceId}`}
+        message="Invoice created successfully!"
         isOpen={showSuccessMessage}
         onClose={handleSuccessClose}
         confirmText="OK"

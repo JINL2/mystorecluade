@@ -33,6 +33,18 @@ export const ACCOUNT_IDS = {
    * Used to record gains/losses from foreign currency translation
    */
   EXCHANGE_RATE_DIFFERENCE: '80b311db-f548-46e3-9854-67c5ff6766e8',
+
+  /**
+   * Inventory Account
+   * Used for recording inventory assets and refund inventory returns
+   */
+  INVENTORY: '8babc1b3-47b4-4982-8f50-099ab9cdcaf9',
+
+  /**
+   * Cost of Goods Sold (COGS) Account
+   * Used for recording cost of goods sold and refund reversals
+   */
+  COGS: '90565fe4-5bfc-4c5e-8759-af9a64e98cae',
 } as const;
 
 /**
@@ -67,6 +79,18 @@ export const ACCOUNT_METADATA = {
     code: '8020',
     category: 'Income/Expense',
     description: 'Account for foreign currency translation differences',
+  },
+  [ACCOUNT_IDS.INVENTORY]: {
+    name: 'Inventory',
+    code: '1200',
+    category: 'Asset',
+    description: 'Account for inventory assets and refund returns',
+  },
+  [ACCOUNT_IDS.COGS]: {
+    name: 'Cost of Goods Sold',
+    code: '5010',
+    category: 'Expense',
+    description: 'Account for cost of goods sold',
   },
 } as const;
 

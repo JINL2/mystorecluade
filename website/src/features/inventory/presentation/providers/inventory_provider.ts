@@ -50,6 +50,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   isModalOpen: false,
   selectedProductData: null,
   isAddProductModalOpen: false,
+  isDeleteConfirmModalOpen: false,
+  productsToDelete: [],
 
   loading: true,
   error: null,
@@ -138,6 +140,18 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   openAddProductModal: () => set({ isAddProductModalOpen: true }),
 
   closeAddProductModal: () => set({ isAddProductModalOpen: false }),
+
+  openDeleteConfirmModal: (products) =>
+    set({
+      isDeleteConfirmModalOpen: true,
+      productsToDelete: products,
+    }),
+
+  closeDeleteConfirmModal: () =>
+    set({
+      isDeleteConfirmModalOpen: false,
+      productsToDelete: [],
+    }),
 
   showNotification: (variant, message) =>
     set({
@@ -375,6 +389,22 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         await get().loadInventory(companyId, fromStoreId, get().searchQuery);
       }
 
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
+      };
+    }
+  },
+
+  /**
+   * Delete products (soft delete)
+   * Calls RPC to delete products
+   */
+  deleteProducts: async (productIds, companyId) => {
+    try {
+      const result = await repository.deleteProducts(productIds, companyId);
       return result;
     } catch (err) {
       return {

@@ -38,11 +38,15 @@ export class InventoryDataSource {
       return { products: [] };
     }
 
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const rpcParams: any = {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
       p_limit: limit,
+      p_timezone: userTimezone,
     };
 
     // Add search parameter if search term exists
@@ -50,9 +54,8 @@ export class InventoryDataSource {
       rpcParams.p_search = search.trim();
     }
 
-    // RPC 'get_inventory_page' should return products ordered by created_at DESC (newest first)
-    // If ordering is incorrect, check the database function definition
-    const { data, error } = await supabase.rpc('get_inventory_page', rpcParams);
+    // RPC 'get_inventory_page_v2' returns products with UTC columns converted to user timezone
+    const { data, error } = await supabase.rpc('get_inventory_page_v2', rpcParams);
 
     if (error) {
       throw new Error(error.message);
@@ -82,11 +85,16 @@ export class InventoryDataSource {
   ): Promise<{ success: boolean; error?: string }> {
     const supabase = supabaseService.getClient();
 
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     // Build params - only include fields that changed or are always required
     const params: any = {
       p_product_id: productId,
       p_company_id: companyId,
       p_store_id: storeId,
+      p_updated_at: new Date().toISOString(),
+      p_timezone: userTimezone,
     };
 
     // Only include product name if it changed
@@ -133,7 +141,7 @@ export class InventoryDataSource {
       params.p_image_urls = productData.imageUrls || null;
     }
 
-    const { data, error } = await supabase.rpc('inventory_edit_product', params);
+    const { data, error } = await supabase.rpc('inventory_edit_product_v3', params);
 
     if (error) {
       return {
@@ -187,11 +195,16 @@ export class InventoryDataSource {
   ): Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('inventory_import_excel', {
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const { data, error } = await supabase.rpc('inventory_import_excel_v3', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_user_id: userId,
       p_products: products,
+      p_time: new Date().toISOString(),
+      p_timezone: userTimezone,
     });
 
     if (error) {
@@ -212,7 +225,7 @@ export class InventoryDataSource {
 
     return {
       success: false,
-      error: 'Invalid response format from inventory_import_excel',
+      error: 'Invalid response format from inventory_import_excel_v3',
     };
   }
 
@@ -275,12 +288,15 @@ export class InventoryDataSource {
     productId: string,
     quantity: number,
     notes: string,
-    time: string,
+    _time: string, // Unused - we use current time with timezone
     updatedBy: string
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('inventory_move_product', {
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const { data, error } = await supabase.rpc('inventory_move_product_v2', {
       p_company_id: companyId,
       p_from_store_id: fromStoreId,
       p_to_store_id: toStoreId,
@@ -291,8 +307,9 @@ export class InventoryDataSource {
         },
       ],
       p_notes: notes || null,
-      p_time: time,
+      p_time: new Date().toISOString(),
       p_updated_by: updatedBy,
+      p_timezone: userTimezone,
     });
 
     if (error) {
@@ -358,11 +375,15 @@ export class InventoryDataSource {
       return { products: [] };
     }
 
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const rpcParams: any = {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: 1,
       p_limit: 10000, // High limit to get all products
+      p_timezone: userTimezone,
     };
 
     // Add search parameter if search term exists
@@ -370,7 +391,7 @@ export class InventoryDataSource {
       rpcParams.p_search = search.trim();
     }
 
-    const { data, error } = await supabase.rpc('get_inventory_page', rpcParams);
+    const { data, error } = await supabase.rpc('get_inventory_page_v2', rpcParams);
 
     if (error) {
       throw new Error(error.message);
@@ -389,5 +410,69 @@ export class InventoryDataSource {
 
     // Fallback
     throw new Error('Invalid response format from get_inventory_page');
+  }
+
+  /**
+   * Delete products (soft delete)
+   * Uses inventory_delete_product_v3 RPC
+   */
+  async deleteProducts(
+    productIds: string[],
+    companyId: string
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    data?: {
+      total_requested: number;
+      successfully_deleted: number;
+      already_deleted: number;
+      not_found: number;
+      results: any[];
+    };
+    error?: string;
+    code?: string;
+  }> {
+    const supabase = supabaseService.getClient();
+
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const { data, error } = await supabase.rpc('inventory_delete_product_v3', {
+      p_product_ids: productIds,
+      p_company_id: companyId,
+      p_time: new Date().toISOString(),
+      p_timezone: userTimezone,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+        code: 'RPC_ERROR',
+      };
+    }
+
+    // Handle success wrapper response
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as {
+        success: boolean;
+        message?: string;
+        data?: {
+          total_requested: number;
+          successfully_deleted: number;
+          already_deleted: number;
+          not_found: number;
+          results: any[];
+        };
+        error?: string;
+        code?: string;
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Invalid response format from inventory_delete_product_v3',
+      code: 'INVALID_RESPONSE',
+    };
   }
 }

@@ -16,6 +16,24 @@ class StaffTimeRecord {
   final bool needsConfirm;
   final bool isConfirmed;
 
+  // Additional fields from RPC (manager_shift_get_cards_v3)
+  final String? shiftRequestId; // shift_request_id - Required for RPC calls
+  final String? actualStart; // actual_start - Recorded check-in
+  final String? actualEnd; // actual_end - Recorded check-out
+  final String? confirmStartTime; // confirm_start_time - Confirmed check-in
+  final String? confirmEndTime; // confirm_end_time - Confirmed check-out
+  final bool isReported; // is_reported - Issue report exists
+  final String? reportReason; // report_reason - Issue report content
+  final bool isProblemSolved; // is_problem_solved
+  final double bonusAmount; // bonus_amount - Default bonus
+  final String? salaryType; // salary_type - 'hourly' or 'monthly'
+  final String? salaryAmount; // salary_amount - Hourly rate
+  final String? basePay; // base_pay
+  final String? totalPayWithBonus; // total_pay_with_bonus
+  final double paidHour; // paid_hour
+  final int lateMinute; // late_minute
+  final int overtimeMinute; // over_time_minute
+
   const StaffTimeRecord({
     required this.staffId,
     required this.staffName,
@@ -26,6 +44,23 @@ class StaffTimeRecord {
     this.isOvertime = false,
     this.needsConfirm = false,
     this.isConfirmed = false,
+    // New fields
+    this.shiftRequestId,
+    this.actualStart,
+    this.actualEnd,
+    this.confirmStartTime,
+    this.confirmEndTime,
+    this.isReported = false,
+    this.reportReason,
+    this.isProblemSolved = false,
+    this.bonusAmount = 0.0,
+    this.salaryType,
+    this.salaryAmount,
+    this.basePay,
+    this.totalPayWithBonus,
+    this.paidHour = 0.0,
+    this.lateMinute = 0,
+    this.overtimeMinute = 0,
   });
 }
 
@@ -83,13 +118,11 @@ class StaffTimelogCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      // Start time (colored if late)
+                      // Start time (red if late)
                       Text(
                         record.clockIn,
                         style: TossTextStyles.caption.copyWith(
-                          color: record.isLate
-                              ? (record.isConfirmed ? TossColors.primary : TossColors.error)
-                              : TossColors.gray600,
+                          color: record.isLate ? TossColors.error : TossColors.gray600,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -100,13 +133,11 @@ class StaffTimelogCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      // End time (colored if OT)
+                      // End time (blue if OT)
                       Text(
                         record.clockOut,
                         style: TossTextStyles.caption.copyWith(
-                          color: record.isOvertime
-                              ? (record.isConfirmed ? TossColors.primary : TossColors.error)
-                              : TossColors.gray600,
+                          color: record.isOvertime ? TossColors.primary : TossColors.gray600,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

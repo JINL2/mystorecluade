@@ -19,9 +19,10 @@ class ScheduleShiftCard extends StatefulWidget {
   final String startTime;
   final String endTime;
   final List<Map<String, dynamic>> assignedEmployees;
-  final Set<String> selectedShiftRequests;
-  final void Function(String shiftRequestId, bool isApproved, String shiftRequestIdFromData) onEmployeeTap;
-  final Future<void> Function(String shiftRequestId)? onRemoveApproved;
+  /// Called when Approve button is clicked. Returns true on RPC success.
+  final Future<bool> Function(String shiftRequestId) onApprove;
+  /// Called when Remove button is clicked in bottom sheet. Returns true on RPC success.
+  final Future<bool> Function(String shiftRequestId) onRemove;
 
   const ScheduleShiftCard({
     super.key,
@@ -30,9 +31,8 @@ class ScheduleShiftCard extends StatefulWidget {
     required this.startTime,
     required this.endTime,
     required this.assignedEmployees,
-    required this.selectedShiftRequests,
-    required this.onEmployeeTap,
-    this.onRemoveApproved,
+    required this.onApprove,
+    required this.onRemove,
   });
 
   @override
@@ -41,12 +41,20 @@ class ScheduleShiftCard extends StatefulWidget {
 
 class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
   late bool _isExpanded;
+  // Track loading state per shift_request_id
+  final Set<String> _loadingRequests = {};
+  // Local copy of employees for state management
+  late List<Map<String, dynamic>> _localEmployees;
 
   @override
   void initState() {
     super.initState();
+    // Initialize local copy
+    _localEmployees = List<Map<String, dynamic>>.from(
+      widget.assignedEmployees.map((e) => Map<String, dynamic>.from(e)),
+    );
     // Only expand if there are pending applicants
-    final pendingEmployees = widget.assignedEmployees
+    final pendingEmployees = _localEmployees
         .where((e) => e['is_approved'] == false)
         .toList();
     _isExpanded = pendingEmployees.isNotEmpty;
@@ -55,10 +63,12 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
   @override
   void didUpdateWidget(ScheduleShiftCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset expansion state when shift changes OR when assigned employees change
-    if (oldWidget.shiftId != widget.shiftId ||
-        oldWidget.assignedEmployees.length != widget.assignedEmployees.length) {
-      final pendingEmployees = widget.assignedEmployees
+    // Reset local state when shift changes OR when assigned employees change significantly
+    if (oldWidget.shiftId != widget.shiftId) {
+      _localEmployees = List<Map<String, dynamic>>.from(
+        widget.assignedEmployees.map((e) => Map<String, dynamic>.from(e)),
+      );
+      final pendingEmployees = _localEmployees
           .where((e) => e['is_approved'] == false)
           .toList();
       setState(() {
@@ -69,10 +79,11 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
 
   @override
   Widget build(BuildContext context) {
-    final pendingEmployees = widget.assignedEmployees
+    // Use local state for employees
+    final pendingEmployees = _localEmployees
         .where((e) => e['is_approved'] == false)
         .toList();
-    final approvedEmployees = widget.assignedEmployees
+    final approvedEmployees = _localEmployees
         .where((e) => e['is_approved'] == true)
         .toList();
 
@@ -169,15 +180,13 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
                           id: 'remove',
                           label: 'Remove',
                           icon: Icons.close,
-                          backgroundColor: TossColors.error,
-                          textColor: TossColors.white,
+                          backgroundColor: TossColors.gray200,
+                          textColor: TossColors.gray700,
                         ),
                       ],
                       onActionTap: (user, actionId) async {
-                        if (widget.onRemoveApproved != null) {
-                          HapticFeedback.selectionClick();
-                          // Call the removal handler with shift request ID
-                          await widget.onRemoveApproved!(user.id);
+                        if (actionId == 'remove') {
+                          await _handleRemove(user.id);
                         }
                       },
                     ),
@@ -267,10 +276,11 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
     );
   }
 
+  /// Build applicant row - only shows Approve button (for pending employees)
   Widget _buildApplicantRow(Map<String, dynamic> employee) {
     final userName = employee['user_name'] as String? ?? 'Unknown';
     final shiftRequestId = employee['shift_request_id'] as String? ?? '';
-    final isSelected = widget.selectedShiftRequests.contains('${widget.shiftId}_$userName');
+    final isLoading = _loadingRequests.contains(shiftRequestId);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space2),
@@ -287,37 +297,102 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
               ),
             ),
           ),
-          // Approve/Assigned button
-          if (isSelected)
-            TossButton1.secondary(
-              text: 'Assigned',
-              leadingIcon: const Icon(Icons.check, size: 16),
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                widget.onEmployeeTap('${widget.shiftId}_$userName', false, shiftRequestId);
-              },
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space2,
-              ),
-              fontSize: 13,
-            )
-          else
-            TossButton1.primary(
-              text: 'Approve',
-              leadingIcon: const Icon(Icons.check, size: 16),
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                widget.onEmployeeTap('${widget.shiftId}_$userName', false, shiftRequestId);
-              },
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space2,
-              ),
-              fontSize: 13,
+          // Only Approve button - no Assigned button
+          TossButton1.primary(
+            text: 'Approve',
+            leadingIcon: isLoading ? null : const Icon(Icons.check, size: 16),
+            isLoading: isLoading,
+            onPressed: isLoading ? null : () => _handleApprove(shiftRequestId),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space2,
             ),
+            fontSize: 13,
+          ),
         ],
       ),
     );
+  }
+
+  /// Handle Approve button click
+  /// Calls RPC and updates local state on success
+  Future<void> _handleApprove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return;
+
+    HapticFeedback.selectionClick();
+
+    // Set loading state
+    setState(() {
+      _loadingRequests.add(shiftRequestId);
+    });
+
+    try {
+      // Call the RPC through the callback
+      final success = await widget.onApprove(shiftRequestId);
+
+      if (success && mounted) {
+        // Update local state - change is_approved to true
+        setState(() {
+          final index = _localEmployees.indexWhere(
+            (e) => e['shift_request_id'] == shiftRequestId,
+          );
+          if (index != -1) {
+            _localEmployees[index]['is_approved'] = true;
+          }
+        });
+        HapticFeedback.mediumImpact();
+      }
+    } finally {
+      // Clear loading state
+      if (mounted) {
+        setState(() {
+          _loadingRequests.remove(shiftRequestId);
+        });
+      }
+    }
+  }
+
+  /// Handle Remove button click from bottom sheet
+  /// Calls RPC and updates local state on success
+  Future<void> _handleRemove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return;
+
+    HapticFeedback.selectionClick();
+
+    // Set loading state
+    setState(() {
+      _loadingRequests.add(shiftRequestId);
+    });
+
+    try {
+      // Call the RPC through the callback
+      final success = await widget.onRemove(shiftRequestId);
+
+      if (success && mounted) {
+        // Update local state - change is_approved to false
+        setState(() {
+          final index = _localEmployees.indexWhere(
+            (e) => e['shift_request_id'] == shiftRequestId,
+          );
+          if (index != -1) {
+            _localEmployees[index]['is_approved'] = false;
+          }
+          // Auto-expand to show the returned applicant
+          _isExpanded = true;
+        });
+        HapticFeedback.mediumImpact();
+        // Close bottom sheet if open
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      }
+    } finally {
+      // Clear loading state
+      if (mounted) {
+        setState(() {
+          _loadingRequests.remove(shiftRequestId);
+        });
+      }
+    }
   }
 }

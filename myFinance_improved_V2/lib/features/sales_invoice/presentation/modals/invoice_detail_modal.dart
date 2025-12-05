@@ -478,6 +478,27 @@ class InvoiceDetailModal extends StatelessWidget {
                       color: TossColors.primary,
                     ),
                   ),
+                  // Total Cost (if available)
+                  if (invoice.amounts.totalCost > 0) ...[
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      children: [
+                        Text(
+                          'Cost: ',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                        Text(
+                          '$symbol${formatter.format(invoice.amounts.totalCost)}',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
               Container(

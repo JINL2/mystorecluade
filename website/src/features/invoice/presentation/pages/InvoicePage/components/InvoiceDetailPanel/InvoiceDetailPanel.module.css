@@ -108,6 +108,15 @@
   padding-left: 24px;
 }
 
+/* Right align numeric columns (Qty, Unit Price, Unit Cost, Discount, Total) */
+.itemsTable th:nth-child(3),
+.itemsTable th:nth-child(4),
+.itemsTable th:nth-child(5),
+.itemsTable th:nth-child(6),
+.itemsTable th:nth-child(7) {
+  text-align: right;
+}
+
 .itemsTable td {
   padding: 12px;
   font-size: 13px;
@@ -117,6 +126,15 @@
 
 .itemsTable td:first-child {
   padding-left: 24px;
+}
+
+/* Right align numeric columns (Qty, Unit Price, Unit Cost, Discount, Total) */
+.itemsTable td:nth-child(3),
+.itemsTable td:nth-child(4),
+.itemsTable td:nth-child(5),
+.itemsTable td:nth-child(6),
+.itemsTable td:nth-child(7) {
+  text-align: right;
 }
 
 .itemsTable tbody tr:last-child td {

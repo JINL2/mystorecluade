@@ -61,34 +61,30 @@ class TimePickerBottomSheet extends StatefulWidget {
 class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
   late FixedExtentScrollController _hourController;
   late FixedExtentScrollController _minuteController;
-  late FixedExtentScrollController _secondController;
 
   int _selectedHour = 0;
   int _selectedMinute = 0;
-  int _selectedSecond = 0;
 
   @override
   void initState() {
     super.initState();
     _selectedHour = widget.initialTime.hour;
     _selectedMinute = widget.initialTime.minute;
-    _selectedSecond = widget.initialSeconds;
 
     _hourController = FixedExtentScrollController(initialItem: _selectedHour);
     _minuteController = FixedExtentScrollController(initialItem: _selectedMinute);
-    _secondController = FixedExtentScrollController(initialItem: _selectedSecond);
   }
 
   @override
   void dispose() {
     _hourController.dispose();
     _minuteController.dispose();
-    _secondController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
@@ -105,6 +101,9 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
           // Footer
           _buildFooter(),
+
+          // Safe area bottom padding
+          SizedBox(height: bottomPadding),
         ],
       ),
     );
@@ -113,25 +112,30 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
   Widget _buildHeader() {
     return Container(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: TossColors.gray100)),
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
         children: [
-          Text(
-            widget.title,
-            style: TossTextStyles.titleMedium.copyWith(
-              color: TossColors.gray900,
+          // Left spacer to balance the close button
+          const SizedBox(width: 40),
+          // Title centered
+          Expanded(
+            child: Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+              ),
             ),
           ),
-          Positioned(
-            right: -8,
-            child: IconButton(
-              icon: const Icon(Icons.close, size: 20, color: TossColors.gray900),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+          // Close button on the right
+          IconButton(
+            icon: const Icon(Icons.close, size: 20, color: TossColors.gray900),
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),
@@ -190,7 +194,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
             ),
           ),
 
-          // Time Columns
+          // Time Columns (Hours and Minutes only)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -209,15 +213,6 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                 itemCount: 60,
                 selectedValue: _selectedMinute,
                 onChanged: (value) => setState(() => _selectedMinute = value),
-              ),
-              const SizedBox(width: TossSpacing.space4),
-
-              // Seconds
-              _buildTimeColumn(
-                controller: _secondController,
-                itemCount: 60,
-                selectedValue: _selectedSecond,
-                onChanged: (value) => setState(() => _selectedSecond = value),
               ),
             ],
           ),
@@ -288,7 +283,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                   hour: _selectedHour,
                   minute: _selectedMinute,
                 );
-                widget.onConfirm(selectedTime, _selectedSecond);
+                widget.onConfirm(selectedTime, 0); // seconds fixed to 0
               },
             ),
           ),
@@ -298,12 +293,12 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
   }
 }
 
-// Extension to format TimeOfDay with seconds
+// Extension to format TimeOfDay as HH:mm:ss (seconds always 00)
 extension TimeOfDayExtension on TimeOfDay {
   String toFormattedString({int seconds = 0}) {
     final hourStr = hour.toString().padLeft(2, '0');
     final minuteStr = minute.toString().padLeft(2, '0');
-    final secondStr = seconds.toString().padLeft(2, '0');
-    return '$hourStr:$minuteStr:$secondStr';
+    // Always use 00 for seconds
+    return '$hourStr:$minuteStr:00';
   }
 }

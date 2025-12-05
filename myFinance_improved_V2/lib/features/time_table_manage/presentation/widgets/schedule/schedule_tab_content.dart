@@ -15,7 +15,8 @@ import '../../providers/state/manager_shift_cards_provider.dart';
 import '../../providers/state/shift_metadata_provider.dart';
 import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
-import '../../../domain/entities/shift_card.dart';
+import '../../../domain/entities/shift_metadata_item.dart';
+import '../../../domain/usecases/toggle_shift_approval.dart';
 import 'package:intl/intl.dart';
 
 /// Schedule Tab Content - Redesigned
@@ -35,6 +36,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
   final Future<void> Function() onApprovalSuccess;
   final Future<void> Function() fetchMonthlyShiftStatus;
   final VoidCallback onStoreSelectorTap;
+  final void Function(String storeId)? onStoreChanged;
 
   const ScheduleTabContent({
     super.key,
@@ -50,6 +52,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
     required this.onApprovalSuccess,
     required this.fetchMonthlyShiftStatus,
     required this.onStoreSelectorTap,
+    this.onStoreChanged,
   });
 
   @override
@@ -156,8 +159,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           WeekDatesPicker(
             selectedDate: _selectedDate,
             weekStartDate: _currentWeekStart,
-            datesWithUserApproved: _getDatesWithShifts(),
-            shiftAvailabilityMap: {},
+            datesWithUserApproved: {}, // Remove blue circle border
+            shiftAvailabilityMap: _getShiftAvailabilityMap(),
             onDateSelected: (date) {
               setState(() => _selectedDate = date);
               widget.onDateSelected(date);
@@ -257,14 +260,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         startTime: shift.startTime,
         endTime: shift.endTime,
         assignedEmployees: assignedEmployees,
-        selectedShiftRequests: ref.watch(selectedShiftRequestsProvider).selectedIds,
-        onEmployeeTap: (shiftRequestId, isApproved, actualRequestId) {
-          ref.read(selectedShiftRequestsProvider.notifier).toggleSelection(
-            shiftRequestId,
-            isApproved,
-            actualRequestId,
-          );
-        },
+        onApprove: (shiftRequestId) => _handleApprove(shiftRequestId),
+        onRemove: (shiftRequestId) => _handleRemove(shiftRequestId),
       );
     }).toList();
   }
@@ -309,8 +306,9 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
       value: widget.selectedStoreId,
       items: storeItems,
       onChanged: (newValue) {
-        if (newValue != null) {
-          widget.onStoreSelectorTap();
+        if (newValue != null && newValue != widget.selectedStoreId) {
+          // Notify parent of store change with the new store ID
+          widget.onStoreChanged?.call(newValue);
         }
       },
     );
@@ -376,6 +374,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Change week by number of days
   void _changeWeek(int days) {
+    final oldSelectedDate = _selectedDate;
     final newWeekStart = _currentWeekStart.add(Duration(days: days));
     final newSelectedDate = _selectedDate.add(Duration(days: days));
 
@@ -385,8 +384,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     });
 
     // Load new month data if month changed
-    if (_selectedDate.month != newSelectedDate.month ||
-        _selectedDate.year != newSelectedDate.year) {
+    if (oldSelectedDate.month != newSelectedDate.month ||
+        oldSelectedDate.year != newSelectedDate.year) {
       _loadMonthData();
     }
 
@@ -406,35 +405,72 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     widget.onDateSelected(_selectedDate);
   }
 
-  /// Get dates with available shifts from real data
-  /// Shows ALL days in the week (since shifts are available every day)
-  Set<DateTime> _getDatesWithShifts() {
+  /// Get shift availability map for the week
+  ///
+  /// Logic:
+  /// - Blue dot: total_required > total_approved (understaffed)
+  /// - Gray dot: total_required <= total_approved (fully staffed)
+  Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
-    // Get shift metadata to check if store has active shifts
+    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
     final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
-    if (!metadataAsync.hasValue || metadataAsync.value == null) return {};
+    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
 
-    final metadata = metadataAsync.value!;
+    // Get shift metadata for total_required when no requests exist
+    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
+    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
 
-    // If no active shifts configured, show nothing
-    if (metadata.activeShifts.isEmpty) return {};
-
-    // Show all 7 days of the week (shifts are available every day)
-    final dateSet = <DateTime>{};
+    // Check each day of the week
     for (int i = 0; i < 7; i++) {
       final date = _currentWeekStart.add(Duration(days: i));
-      dateSet.add(DateTime(date.year, date.month, date.day));
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+
+      // Find daily shift data for this date
+      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
+          .expand((status) => status.dailyShifts)
+          .where((daily) => daily.date == dateStr)
+          .firstOrNull;
+
+      int totalRequired = 0;
+      int totalApproved = 0;
+
+      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
+        // Has request data - use it
+        for (final shiftWithReqs in dailyShiftData.shifts) {
+          totalRequired += shiftWithReqs.shift.targetCount;
+          totalApproved += shiftWithReqs.approvedRequests.length;
+        }
+      } else if (activeShifts.isNotEmpty) {
+        // No request data but has active shifts - use metadata
+        // All shifts are understaffed (0 approved, total_required from metadata)
+        for (final shiftMeta in activeShifts) {
+          totalRequired += shiftMeta.targetCount;
+        }
+        // totalApproved stays 0
+      } else {
+        // No shifts configured - no dot
+        continue;
+      }
+
+      // Determine availability status
+      if (totalRequired > totalApproved) {
+        // Understaffed - blue dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+      } else {
+        // Fully staffed - gray dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
+      }
     }
 
-    return dateSet;
+    return availabilityMap;
   }
 
   /// Get shifts for selected date from real data
   /// Uses monthlyShiftStatusProvider which has employee data
   List<ShiftData> _getShiftsForSelectedDate() {
     if (widget.selectedStoreId == null) {
-      print('⚠️ [ScheduleTab] No store ID selected');
       return [];
     }
 
@@ -443,13 +479,11 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
     // Return empty if metadata still loading
     if (!metadataAsync.hasValue || metadataAsync.value == null) {
-      print('⚠️ [ScheduleTab] Metadata not loaded yet');
       return [];
     }
 
     final metadata = metadataAsync.value!;
     final activeShifts = metadata.activeShifts;
-    print('📋 [ScheduleTab] Found ${activeShifts.length} active shifts');
 
     // Get monthly shift status (has employee requests data)
     final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
@@ -461,12 +495,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         .where((daily) => daily.date == selectedDateStr)
         .firstOrNull;
 
-    print('📊 [ScheduleTab] Monthly status for $selectedDateStr: ${dailyShiftData != null ? "has data" : "no data"}');
-
-    if (dailyShiftData != null) {
-      print('📅 [ScheduleTab] Found ${dailyShiftData.shifts.length} shifts with employee data');
-    }
-
     // Create ShiftData for ALL active shifts
     return activeShifts.map((shiftMeta) {
       // Find shift with requests for this shift ID
@@ -474,27 +502,25 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           .where((s) => s.shift.shiftId == shiftMeta.shiftId)
           .firstOrNull;
 
-      // Get approved employees
+      // Get approved employees - use shiftRequestId for approval/removal operations
       final assignedEmployees = shiftWithRequests?.approvedRequests
               .map((req) => Employee(
-                    id: req.employee.userId,
+                    id: req.shiftRequestId,
                     name: req.employee.userName,
                     avatarUrl: req.employee.profileImage ?? '',
                   ))
               .toList() ??
           [];
 
-      // Get pending employees (applicants)
+      // Get pending employees (applicants) - use shiftRequestId for approval operations
       final applicants = shiftWithRequests?.pendingRequests
               .map((req) => Employee(
-                    id: req.employee.userId,
+                    id: req.shiftRequestId,
                     name: req.employee.userName,
                     avatarUrl: req.employee.profileImage ?? '',
                   ))
               .toList() ??
           [];
-
-      print('   🎯 ${shiftMeta.shiftName}: ${assignedEmployees.length} approved, ${applicants.length} pending');
 
       return ShiftData(
         id: shiftMeta.shiftId,
@@ -527,42 +553,57 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     return timeString;
   }
 
-  /// Handle approve action
-  void _handleApprove(Employee employee) {
-    // TODO: Implement real approval logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} approved (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  /// Handle Approve button click
+  ///
+  /// Calls toggle_shift_approval_v3 RPC to approve a shift request.
+  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Returns true on success, false on failure.
+  Future<bool> _handleApprove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return false;
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    if (userId.isEmpty) return false;
+
+    try {
+      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await useCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
-  /// Handle overbook action
-  void _handleOverbook(Employee employee) {
-    // TODO: Implement real overbook logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} overbooked (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  /// Handle Remove button click from bottom sheet
+  ///
+  /// Calls toggle_shift_approval_v3 RPC to unapprove a shift request.
+  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Returns true on success, false on failure.
+  Future<bool> _handleRemove(String shiftRequestId) async {
+    if (shiftRequestId.isEmpty) return false;
 
-  /// Handle remove from shift action
-  void _handleRemove(Employee employee) {
-    // TODO: Implement real remove logic with backend API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✓ ${employee.name} removed (API integration needed)'),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: TossColors.gray700,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+
+    if (userId.isEmpty) return false;
+
+    try {
+      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await useCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

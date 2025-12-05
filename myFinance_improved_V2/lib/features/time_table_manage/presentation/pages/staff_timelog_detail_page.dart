@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
+
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/usecases/input_card_v4.dart';
+import '../providers/usecase/time_table_usecase_providers.dart';
 import '../widgets/timesheets/staff_timelog_card.dart';
 import '../widgets/timesheets/time_picker_bottom_sheet.dart';
+import 'staff_timelog_detail/utils/timelog_helpers.dart';
+import 'staff_timelog_detail/widgets/widgets.dart';
 
 /// Staff Timelog Detail Page - Manager view to confirm/edit staff attendance
 ///
@@ -20,7 +24,7 @@ import '../widgets/timesheets/time_picker_bottom_sheet.dart';
 /// - Issue report from employee (if exists)
 /// - Bonus section (optional one-time bonus)
 /// - Salary breakdown
-class StaffTimelogDetailPage extends StatefulWidget {
+class StaffTimelogDetailPage extends ConsumerStatefulWidget {
   final StaffTimeRecord staffRecord;
   final String shiftName;
   final String shiftDate;
@@ -35,36 +39,164 @@ class StaffTimelogDetailPage extends StatefulWidget {
   });
 
   @override
-  State<StaffTimelogDetailPage> createState() => _StaffTimelogDetailPageState();
+  ConsumerState<StaffTimelogDetailPage> createState() => _StaffTimelogDetailPageState();
 }
 
-class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
+class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage> {
   bool _recordedAttendanceExpanded = false;
-  bool _confirmedAttendanceExpanded = true; // Open by default for manager action
+  bool _confirmedAttendanceExpanded = true;
+  bool _isSaving = false;
 
-  // Mock data - replace with actual data later
-  final String recordedCheckIn = '09:03:00';
-  final String recordedCheckOut = '17:05:00';
-  String confirmedCheckIn = '09:03:00';
-  String confirmedCheckOut = '17:00:00';
+  // State variables initialized from StaffTimeRecord
+  late String recordedCheckIn;
+  late String recordedCheckOut;
+  late String confirmedCheckIn;
+  late String confirmedCheckOut;
   bool isCheckInManuallyConfirmed = false;
   bool isCheckOutManuallyConfirmed = false;
-  final String? employeeIssueReport =
-      '"I arrived on time but had to wait outside because the store was still closed. Please adjust the check-in time for this shift."';
-  int bonusAmount = 0;
+
+  // Initial values for change detection
+  late String _initialConfirmedCheckIn;
+  late String _initialConfirmedCheckOut;
+  late int _initialBonusAmount;
+  late String? _initialIssueReportStatus;
+
+  // Issue report from RPC
+  String? get employeeIssueReport => widget.staffRecord.isReported ? widget.staffRecord.reportReason : null;
+
+  // Bonus amount initialized from RPC
+  late int bonusAmount;
 
   // Issue report approval state
-  String? issueReportStatus; // null, 'approved', 'rejected'
-
-  // Salary breakdown mock data
-  final String totalConfirmedTime = '120h 30m';
-  final String hourlySalary = '85,000₫';
-  final String basePay = '10,200,000₫';
-  final int basePayAmount = 10200000;
-  final String asOfDate = 'Aug/13';
+  String? issueReportStatus;
+  bool _showBothIssueButtons = false;
 
   // Controllers
   final TextEditingController _bonusController = TextEditingController();
+
+  // ============================================================================
+  // Computed Properties
+  // ============================================================================
+
+  bool get _areConfirmTimesValid {
+    final checkInValid = confirmedCheckIn != '--:--:--' && confirmedCheckIn.isNotEmpty;
+    final checkOutValid = confirmedCheckOut != '--:--:--' && confirmedCheckOut.isNotEmpty;
+    return checkInValid && checkOutValid;
+  }
+
+  bool get hasChanges {
+    final checkInChanged = confirmedCheckIn != _initialConfirmedCheckIn;
+    final checkOutChanged = confirmedCheckOut != _initialConfirmedCheckOut;
+    final bonusChanged = bonusAmount != _initialBonusAmount;
+    final hasIssueReport = widget.staffRecord.isReported;
+    final issueStatusChanged = hasIssueReport &&
+        issueReportStatus != null &&
+        issueReportStatus != _initialIssueReportStatus;
+
+    final hasAnyChange = checkInChanged || checkOutChanged || bonusChanged || issueStatusChanged;
+    final timesChanged = checkInChanged || checkOutChanged;
+
+    if (timesChanged) {
+      return hasAnyChange && _areConfirmTimesValid;
+    }
+    return hasAnyChange;
+  }
+
+  bool get _isFullyConfirmed {
+    bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
+    bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
+    return checkInConfirmed && checkOutConfirmed;
+  }
+
+  // Salary computed properties
+  String get totalConfirmedTime => TimelogHelpers.formatHoursMinutes(widget.staffRecord.paidHour);
+
+  String get hourlySalary {
+    final salaryAmount = widget.staffRecord.salaryAmount;
+    if (salaryAmount == null || salaryAmount.isEmpty) return '--';
+    final amount = double.tryParse(salaryAmount);
+    if (amount != null) {
+      return '${NumberFormat('#,###').format(amount.toInt())}₫';
+    }
+    return '$salaryAmount₫';
+  }
+
+  String get basePay {
+    final basePayStr = widget.staffRecord.basePay;
+    if (basePayStr == null || basePayStr.isEmpty) {
+      final salaryAmountStr = widget.staffRecord.salaryAmount;
+      if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
+        final salaryAmount = double.tryParse(salaryAmountStr);
+        if (salaryAmount != null) {
+          final basePayCalc = (widget.staffRecord.paidHour * salaryAmount).toInt();
+          return '${NumberFormat('#,###').format(basePayCalc)}₫';
+        }
+      }
+      return '--';
+    }
+    final amount = double.tryParse(basePayStr);
+    if (amount != null) {
+      return '${NumberFormat('#,###').format(amount.toInt())}₫';
+    }
+    return '$basePayStr₫';
+  }
+
+  int get basePayAmount {
+    final basePayStr = widget.staffRecord.basePay;
+    if (basePayStr != null && basePayStr.isNotEmpty) {
+      final amount = double.tryParse(basePayStr);
+      if (amount != null) return amount.toInt();
+    }
+    final salaryAmountStr = widget.staffRecord.salaryAmount;
+    if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
+      final salaryAmount = double.tryParse(salaryAmountStr);
+      if (salaryAmount != null) {
+        return (widget.staffRecord.paidHour * salaryAmount).toInt();
+      }
+    }
+    return 0;
+  }
+
+  String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
+  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount)}₫';
+  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount)}₫';
+
+  // ============================================================================
+  // Lifecycle
+  // ============================================================================
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeState();
+  }
+
+  void _initializeState() {
+    // Recorded times
+    recordedCheckIn = TimelogHelpers.extractTimeFromString(widget.staffRecord.actualStart) ?? '--:--:--';
+    recordedCheckOut = TimelogHelpers.extractTimeFromString(widget.staffRecord.actualEnd) ?? '--:--:--';
+
+    // Confirmed times
+    confirmedCheckIn = TimelogHelpers.extractTimeFromString(widget.staffRecord.confirmStartTime) ?? recordedCheckIn;
+    confirmedCheckOut = TimelogHelpers.extractTimeFromString(widget.staffRecord.confirmEndTime) ?? recordedCheckOut;
+
+    // Bonus
+    bonusAmount = widget.staffRecord.bonusAmount.toInt();
+    if (bonusAmount > 0) {
+      _bonusController.text = NumberFormat('#,###').format(bonusAmount);
+    }
+
+    // Issue report status
+    if (widget.staffRecord.isReported) {
+      _initialIssueReportStatus = widget.staffRecord.isProblemSolved ? 'approved' : 'rejected';
+      issueReportStatus = null;
+    }
+
+    // Store initial values for change detection
+    _initialConfirmedCheckIn = confirmedCheckIn;
+    _initialConfirmedCheckOut = confirmedCheckOut;
+    _initialBonusAmount = bonusAmount;
+  }
 
   @override
   void dispose() {
@@ -72,39 +204,19 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
     super.dispose();
   }
 
-  /// Calculate bonus pay from bonus amount
-  String get bonusPay {
-    return '${NumberFormat('#,###').format(bonusAmount)}₫';
-  }
+  // ============================================================================
+  // Time Picker Methods
+  // ============================================================================
 
-  /// Calculate total payment
-  String get totalPayment {
-    final total = basePayAmount + bonusAmount;
-    return '${NumberFormat('#,###').format(total)}₫';
-  }
-
-  /// Parse time string "HH:MM:SS" to TimeOfDay and seconds
-  Map<String, dynamic> _parseTime(String timeString) {
-    final parts = timeString.split(':');
-    return {
-      'time': TimeOfDay(
-        hour: int.parse(parts[0]),
-        minute: int.parse(parts[1]),
-      ),
-      'seconds': parts.length > 2 ? int.parse(parts[2]) : 0,
-    };
-  }
-
-  /// Show time picker for check-in
   Future<void> _showTimePickerForCheckIn() async {
-    final parsedTime = _parseTime(confirmedCheckIn);
+    final parsedTime = TimelogHelpers.parseTime(confirmedCheckIn);
     final result = await TimePickerBottomSheet.show(
       context: context,
-      title: 'Confirmed check-in',
-      recordedTimeLabel: 'Recorded check-in',
+      title: 'Confirmed Check In',
+      recordedTimeLabel: 'Recorded check in',
       recordedTime: recordedCheckIn,
-      initialTime: parsedTime['time'],
-      initialSeconds: parsedTime['seconds'],
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -112,21 +224,20 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
         final time = result['time'] as TimeOfDay;
         final seconds = result['seconds'] as int;
         confirmedCheckIn = time.toFormattedString(seconds: seconds);
-        isCheckInManuallyConfirmed = true; // Mark as confirmed
+        isCheckInManuallyConfirmed = true;
       });
     }
   }
 
-  /// Show time picker for check-out
   Future<void> _showTimePickerForCheckOut() async {
-    final parsedTime = _parseTime(confirmedCheckOut);
+    final parsedTime = TimelogHelpers.parseTime(confirmedCheckOut);
     final result = await TimePickerBottomSheet.show(
       context: context,
-      title: 'Confirmed check-out',
-      recordedTimeLabel: 'Recorded check-out',
+      title: 'Confirmed Check Out',
+      recordedTimeLabel: 'Recorded check out',
       recordedTime: recordedCheckOut,
-      initialTime: parsedTime['time'],
-      initialSeconds: parsedTime['seconds'],
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -134,34 +245,87 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
         final time = result['time'] as TimeOfDay;
         final seconds = result['seconds'] as int;
         confirmedCheckOut = time.toFormattedString(seconds: seconds);
-        isCheckOutManuallyConfirmed = true; // Mark as confirmed
+        isCheckOutManuallyConfirmed = true;
       });
     }
   }
+
+  // ============================================================================
+  // Save Action
+  // ============================================================================
+
+  Future<void> _saveAndConfirmShift() async {
+    final shiftRequestId = widget.staffRecord.shiftRequestId;
+    if (shiftRequestId == null || shiftRequestId.isEmpty) {
+      _showError('Error: Missing shift request ID');
+      return;
+    }
+
+    final appState = ref.read(appStateProvider);
+    final managerId = appState.user['user_id'] as String?;
+    if (managerId == null || managerId.isEmpty) {
+      _showError('Error: Manager ID not found');
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final inputCardV4UseCase = ref.read(inputCardV4UseCaseProvider);
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      bool? isProblemSolved;
+      if (widget.staffRecord.isReported && issueReportStatus != null) {
+        isProblemSolved = issueReportStatus == 'approved';
+      }
+
+      final params = InputCardV4Params(
+        managerId: managerId,
+        shiftRequestId: shiftRequestId,
+        confirmStartTime: confirmedCheckIn != '--:--:--' ? confirmedCheckIn : null,
+        confirmEndTime: confirmedCheckOut != '--:--:--' ? confirmedCheckOut : null,
+        isProblemSolved: isProblemSolved,
+        bonusAmount: bonusAmount.toDouble(),
+        timezone: timezone,
+      );
+
+      await inputCardV4UseCase.call(params);
+
+      if (mounted) {
+        setState(() {
+          _initialConfirmedCheckIn = confirmedCheckIn;
+          _initialConfirmedCheckOut = confirmedCheckOut;
+          _initialBonusAmount = bonusAmount;
+          if (issueReportStatus != null) {
+            _initialIssueReportStatus = issueReportStatus;
+          }
+        });
+        Navigator.pop(context, true);
+      }
+    } on ArgumentError catch (e) {
+      if (mounted) _showError('Error: ${e.message}');
+    } catch (e) {
+      if (mounted) _showError('Error: $e');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: TossColors.error),
+    );
+  }
+
+  // ============================================================================
+  // Build
+  // ============================================================================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TossColors.white,
-      appBar: AppBar(
-        backgroundColor: TossColors.white,
-        elevation: 0,
-        surfaceTintColor: TossColors.white,
-        title: Text(
-          'Shift Details Management',
-          style: TossTextStyles.titleMedium.copyWith(
-            color: TossColors.gray900,
-          ),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: TossColors.gray900),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: Column(
         children: [
           Expanded(
@@ -170,585 +334,134 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Shift Info Card
-                  _buildShiftInfoCard(),
-                  const SizedBox(height: 16),
-
-                  // Recorded Attendance Card
-                  TossExpandableCard(
-                    title: 'Recorded attendance',
-                    isExpanded: _recordedAttendanceExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _recordedAttendanceExpanded = !_recordedAttendanceExpanded;
-                      });
-                    },
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoRow(
-                          label: 'Recorded check-in',
-                          value: recordedCheckIn,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildInfoRow(
-                          label: 'Recorded check-out',
-                          value: recordedCheckOut,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Based on check-in/out device logs.',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                      ],
-                    ),
+                  ShiftInfoCard(
+                    shiftDate: widget.shiftDate,
+                    shiftName: widget.shiftName,
+                    shiftTimeRange: widget.shiftTimeRange,
+                    isLate: widget.staffRecord.isLate,
+                    isOvertime: widget.staffRecord.isOvertime,
                   ),
                   const SizedBox(height: 16),
-
-                  // Confirmed Attendance Card (with edit capability)
-                  _buildConfirmedAttendanceCard(),
+                  _buildRecordedAttendanceCard(),
                   const SizedBox(height: 16),
-
-                  // Issue Report Section (if exists)
+                  ConfirmedAttendanceCard(
+                    isExpanded: _confirmedAttendanceExpanded,
+                    onToggle: () => setState(() => _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded),
+                    isFullyConfirmed: _isFullyConfirmed,
+                    confirmedCheckIn: confirmedCheckIn,
+                    confirmedCheckOut: confirmedCheckOut,
+                    checkInNeedsConfirm: widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
+                    checkOutNeedsConfirm: widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
+                    isCheckInConfirmed: isCheckInManuallyConfirmed,
+                    isCheckOutConfirmed: isCheckOutManuallyConfirmed,
+                    onEditCheckIn: _showTimePickerForCheckIn,
+                    onEditCheckOut: _showTimePickerForCheckOut,
+                  ),
+                  const SizedBox(height: 16),
                   if (employeeIssueReport != null) ...[
-                    _buildIssueReportCard(),
+                    IssueReportCard(
+                      issueReport: employeeIssueReport!,
+                      isProblemSolved: widget.staffRecord.isProblemSolved,
+                      showBothButtons: _showBothIssueButtons,
+                      issueReportStatus: issueReportStatus,
+                      onExpandButtons: () => setState(() => _showBothIssueButtons = true),
+                      onApprove: () => setState(() => issueReportStatus = 'approved'),
+                      onReject: () => setState(() => issueReportStatus = 'rejected'),
+                      onResetSelection: () => setState(() {
+                        issueReportStatus = null;
+                        _showBothIssueButtons = true;
+                      }),
+                    ),
                     const SizedBox(height: 16),
                   ],
-
-                  // Bonus Section
-                  _buildBonusSection(),
+                  BonusSection(
+                    controller: _bonusController,
+                    onBonusChanged: (amount) => setState(() => bonusAmount = amount),
+                  ),
                   const SizedBox(height: 16),
-
-                  // Salary Breakdown Card
-                  _buildSalaryBreakdownCard(),
+                  SalaryBreakdownCard(
+                    asOfDate: asOfDate,
+                    totalConfirmedTime: totalConfirmedTime,
+                    hourlySalary: hourlySalary,
+                    basePay: basePay,
+                    bonusPay: bonusPay,
+                    totalPayment: totalPayment,
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Fixed Bottom Button
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              border: Border(
-                top: BorderSide(
-                  color: TossColors.gray100,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: TossButton1.primary(
-              text: 'Save & confirm shift',
-              fullWidth: true,
-              onPressed: () {
-                // TODO: Implement save and confirm
-                Navigator.pop(context);
-              },
-            ),
-          ),
+          _buildBottomButton(),
         ],
       ),
     );
   }
 
-  /// Builds shift info card - reused structure from shift_detail_page
-  Widget _buildShiftInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: TossColors.white,
+      elevation: 0,
+      surfaceTintColor: TossColors.white,
+      title: Text(
+        'Shift Details Management',
+        style: TossTextStyles.titleMedium.copyWith(color: TossColors.gray900),
       ),
-      child: Column(
+      centerTitle: true,
+      automaticallyImplyLeading: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.close, color: TossColors.gray900),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordedAttendanceCard() {
+    return TossExpandableCard(
+      title: 'Recorded attendance',
+      isExpanded: _recordedAttendanceExpanded,
+      onToggle: () => setState(() => _recordedAttendanceExpanded = !_recordedAttendanceExpanded),
+      content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.shiftDate,
-                      style: TossTextStyles.label.copyWith(
-                        color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.shiftName,
-                      style: TossTextStyles.titleMedium.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.shiftTimeRange,
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.gray600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Status Badge
-              if (widget.staffRecord.isLate || widget.staffRecord.isOvertime)
-                TossBadge(
-                  label: widget.staffRecord.isLate ? 'Late' : 'OT',
-                  backgroundColor: TossColors.error,
-                  textColor: TossColors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space2,
-                    vertical: TossSpacing.space1,
-                  ),
-                  borderRadius: 12,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Check if both check-in and check-out are confirmed
-  bool get _isFullyConfirmed {
-    bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
-    bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
-    return checkInConfirmed && checkOutConfirmed;
-  }
-
-  /// Builds confirmed attendance card with edit capability
-  Widget _buildConfirmedAttendanceCard() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Custom Header with Badge
-          InkWell(
-            onTap: () {
-              setState(() {
-                _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded;
-              });
-            },
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(TossBorderRadius.lg),
-              bottom: _confirmedAttendanceExpanded ? Radius.zero : Radius.circular(TossBorderRadius.lg),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              child: Row(
-                children: [
-                  Text(
-                    'Confirmed attendance',
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isFullyConfirmed ? '• Confirmed' : '• Need confirm',
-                    style: TossTextStyles.caption.copyWith(
-                      color: _isFullyConfirmed ? TossColors.gray500 : TossColors.error,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    _confirmedAttendanceExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: TossColors.gray600,
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          if (_confirmedAttendanceExpanded) ...[
-            Container(
-              height: 1,
-              color: TossColors.gray100,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildEditableTimeRow(
-                    label: 'Confirmed check-in',
-                    value: confirmedCheckIn,
-                    needsConfirm: widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
-                    isConfirmed: isCheckInManuallyConfirmed,
-                    onEdit: () => _showTimePickerForCheckIn(),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildEditableTimeRow(
-                    label: 'Confirmed check-out',
-                    value: confirmedCheckOut,
-                    needsConfirm: widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
-                    isConfirmed: isCheckOutManuallyConfirmed,
-                    onEdit: () => _showTimePickerForCheckOut(),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'These times are used for salary calculations.',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// Builds issue report card (if employee reported an issue)
-  Widget _buildIssueReportCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Issue report from employee',
-            style: TossTextStyles.bodyMedium.copyWith(
-              color: TossColors.gray900,
-            ),
-          ),
+          _buildInfoRow(label: 'Recorded check-in', value: recordedCheckIn),
+          const SizedBox(height: 12),
+          _buildInfoRow(label: 'Recorded check-out', value: recordedCheckOut),
           const SizedBox(height: 12),
           Text(
-            employeeIssueReport!,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray700,
-              height: 1.5,
-            ),
+            'Based on check-in/out device logs.',
+            style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
           ),
-          const SizedBox(height: 16),
-          // Show buttons based on status
-          if (issueReportStatus == null)
-            Row(
-              children: [
-                Expanded(
-                  child: TossButton1.secondary(
-                    text: 'Reject explanation',
-                    onPressed: () {
-                      setState(() {
-                        issueReportStatus = 'rejected';
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TossButton1.outlined(
-                    text: 'Approve explanation',
-                    onPressed: () {
-                      setState(() {
-                        issueReportStatus = 'approved';
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          // Show rejected button (full width, disabled)
-          if (issueReportStatus == 'rejected')
-            TossButton1.secondary(
-              text: 'Rejected',
-              fullWidth: true,
-              onPressed: null,
-            ),
-          // Show approved button (full width, disabled)
-          if (issueReportStatus == 'approved')
-            TossButton1.outlined(
-              text: 'Approved',
-              fullWidth: true,
-              onPressed: null,
-            ),
         ],
       ),
     );
   }
 
-  /// Builds bonus section
-  Widget _buildBonusSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Bonus for this shift (₫)',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Stack(
-          children: [
-            // Show "0" when field is empty
-            if (_bonusController.text.isEmpty)
-              Positioned.fill(
-                child: Center(
-                  child: IgnorePointer(
-                    child: Text(
-                      '0',
-                      style: TossTextStyles.h2.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            TextField(
-              controller: _bonusController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w700,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                TextInputFormatter.withFunction((oldValue, newValue) {
-                  // Auto-format with commas
-                  if (newValue.text.isEmpty) return newValue;
-                  final number = int.tryParse(newValue.text.replaceAll(',', ''));
-                  if (number == null) return oldValue;
-                  final formatted = NumberFormat('#,###').format(number);
-                  return TextEditingValue(
-                    text: formatted,
-                    selection: TextSelection.collapsed(offset: formatted.length),
-                  );
-                }),
-              ],
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: BorderSide(color: TossColors.gray100, width: 1),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: BorderSide(color: TossColors.gray100, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: BorderSide(color: TossColors.gray100, width: 1),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                isDense: true,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  bonusAmount = int.tryParse(value.replaceAll(',', '')) ?? 0;
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Optional one-time bonus approved by manager.',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds salary breakdown card - reused structure from shift_detail_page
-  Widget _buildSalaryBreakdownCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Salary breakdown this shift',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'As of $asOfDate',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray100, width: 1),
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-          child: Column(
-            children: [
-              _buildInfoRow(
-                label: 'Total confirmed time',
-                value: totalConfirmedTime,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Hourly salary',
-                value: hourlySalary,
-              ),
-              const SizedBox(height: 12),
-              Container(
-                height: 1,
-                color: TossColors.gray100,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Base pay',
-                value: basePay,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Bonus pay',
-                value: bonusPay,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Total payment',
-                value: totalPayment,
-                labelStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
-                valueStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds info row with label and value - reused from shift_detail_page
-  Widget _buildInfoRow({
-    required String label,
-    required String value,
-    TextStyle? labelStyle,
-    TextStyle? valueStyle,
-  }) {
+  Widget _buildInfoRow({required String label, required String value}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: labelStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-        ),
-        Text(
-          value,
-          style: valueStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
+        Text(label, style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600)),
+        Text(value, style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray900, fontWeight: FontWeight.w600)),
       ],
     );
   }
 
-  /// Builds editable time row with colored text and edit button
-  Widget _buildEditableTimeRow({
-    required String label,
-    required String value,
-    required bool needsConfirm,
-    required VoidCallback onEdit,
-    bool isConfirmed = false,
-  }) {
-    // Determine color: red if needs confirm, blue if confirmed, black otherwise
-    Color timeColor;
-    if (needsConfirm) {
-      timeColor = TossColors.error; // Red
-    } else if (isConfirmed) {
-      timeColor = TossColors.primary; // Blue
-    } else {
-      timeColor = TossColors.gray900; // Black
-    }
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      value,
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: timeColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (isConfirmed) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        'Confirmed',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: onEdit,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      size: 16,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+  Widget _buildBottomButton() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(top: BorderSide(color: TossColors.gray100, width: 1)),
+      ),
+      child: TossButton1.primary(
+        text: 'Save & confirm shift',
+        fullWidth: true,
+        isLoading: _isSaving,
+        isEnabled: hasChanges && !_isSaving,
+        onPressed: _saveAndConfirmShift,
+      ),
     );
   }
 }

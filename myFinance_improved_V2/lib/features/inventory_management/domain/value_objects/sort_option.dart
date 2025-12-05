@@ -1,5 +1,6 @@
 // Value Object: Sort Option
 // Encapsulates product sorting criteria
+// Note: Display names should be handled in Presentation layer via extensions
 
 class SortOption {
   final SortField field;
@@ -52,12 +53,6 @@ class SortOption {
     direction: SortDirection.desc,
   );
 
-  String get displayLabel {
-    final fieldLabel = field.displayName;
-    final directionLabel = direction.displayName;
-    return '$fieldLabel ($directionLabel)';
-  }
-
   SortOption toggleDirection() {
     return SortOption(
       field: field,
@@ -80,25 +75,14 @@ class SortOption {
   int get hashCode => field.hashCode ^ direction.hashCode;
 }
 
+/// Sort field options for product listing
 enum SortField {
   name,
   price,
   stock,
   createdAt;
 
-  String get displayName {
-    switch (this) {
-      case SortField.name:
-        return '이름';
-      case SortField.price:
-        return '가격';
-      case SortField.stock:
-        return '재고';
-      case SortField.createdAt:
-        return '등록일';
-    }
-  }
-
+  /// Database field name for RPC queries
   String get dbFieldName {
     switch (this) {
       case SortField.name:
@@ -113,19 +97,12 @@ enum SortField {
   }
 }
 
+/// Sort direction options
 enum SortDirection {
   asc,
   desc;
 
-  String get displayName {
-    switch (this) {
-      case SortDirection.asc:
-        return '오름차순';
-      case SortDirection.desc:
-        return '내림차순';
-    }
-  }
-
+  /// Database value for RPC queries
   String get dbValue {
     switch (this) {
       case SortDirection.asc:

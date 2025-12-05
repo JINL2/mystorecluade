@@ -7,13 +7,13 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../app/providers/app_state_provider.dart';
-import '../../../di/dependency_injection.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../notifiers/add_shift_form_notifier.dart';
 import '../notifiers/shift_details_form_notifier.dart';
 import '../states/add_shift_form_state.dart';
 import '../states/shift_details_form_state.dart';
+import '../usecase/time_table_usecase_providers.dart';
 
 // ============================================================================
 // Add Shift Form Provider
@@ -33,10 +33,17 @@ final addShiftFormProvider = StateNotifierProvider.family<
     AddShiftFormNotifier,
     AddShiftFormState,
     String>((ref, storeId) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
-  return AddShiftFormNotifier(repository, storeId, timezone);
+  // Use UseCases instead of Repository directly (Clean Architecture)
+  final getScheduleDataUseCase = ref.watch(getScheduleDataUseCaseProvider);
+  final insertScheduleUseCase = ref.watch(insertScheduleUseCaseProvider);
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
+  return AddShiftFormNotifier(
+    getScheduleDataUseCase,
+    insertScheduleUseCase,
+    storeId,
+    timezone,
+  );
 });
 
 // ============================================================================
@@ -57,8 +64,17 @@ final shiftDetailsFormProvider = StateNotifierProvider.family<
     ShiftDetailsFormNotifier,
     ShiftDetailsFormState,
     ShiftCard>((ref, card) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final timezone = (appState.user['timezone'] as String?) ?? 'UTC';
-  return ShiftDetailsFormNotifier(card, repository, timezone);
+  // Use UseCases instead of Repository directly (Clean Architecture)
+  final inputCardUseCase = ref.watch(inputCardUseCaseProvider);
+  final deleteShiftTagUseCase = ref.watch(deleteShiftTagUseCaseProvider);
+  final updateBonusAmountUseCase = ref.watch(updateBonusAmountUseCaseProvider);
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
+  return ShiftDetailsFormNotifier(
+    card,
+    inputCardUseCase,
+    deleteShiftTagUseCase,
+    updateBonusAmountUseCase,
+    timezone,
+  );
 });

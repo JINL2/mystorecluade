@@ -331,7 +331,12 @@ mixin _$ShiftWithEmployeesDto {
   @JsonKey(name: 'shift_name')
   String? get shiftName => throw _privateConstructorUsedError;
   @JsonKey(name: 'required_employees')
-  int get requiredEmployees => throw _privateConstructorUsedError; // Counts
+  int get requiredEmployees =>
+      throw _privateConstructorUsedError; // Shift time range (from RPC: YYYY-MM-DD HH24:MI:SS format in user's timezone)
+  @JsonKey(name: 'shift_start_time')
+  String? get shiftStartTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'shift_end_time')
+  String? get shiftEndTime => throw _privateConstructorUsedError; // Counts
   @JsonKey(name: 'approved_count')
   int get approvedCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'pending_count')
@@ -364,6 +369,8 @@ abstract class $ShiftWithEmployeesDtoCopyWith<$Res> {
       {@JsonKey(name: 'shift_id') String shiftId,
       @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'required_employees') int requiredEmployees,
+      @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+      @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'approved_count') int approvedCount,
       @JsonKey(name: 'pending_count') int pendingCount,
       @JsonKey(name: 'approved_employees')
@@ -391,6 +398,8 @@ class _$ShiftWithEmployeesDtoCopyWithImpl<$Res,
     Object? shiftId = null,
     Object? shiftName = freezed,
     Object? requiredEmployees = null,
+    Object? shiftStartTime = freezed,
+    Object? shiftEndTime = freezed,
     Object? approvedCount = null,
     Object? pendingCount = null,
     Object? approvedEmployees = null,
@@ -409,6 +418,14 @@ class _$ShiftWithEmployeesDtoCopyWithImpl<$Res,
           ? _value.requiredEmployees
           : requiredEmployees // ignore: cast_nullable_to_non_nullable
               as int,
+      shiftStartTime: freezed == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftEndTime: freezed == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
+              as String?,
       approvedCount: null == approvedCount
           ? _value.approvedCount
           : approvedCount // ignore: cast_nullable_to_non_nullable
@@ -442,6 +459,8 @@ abstract class _$$ShiftWithEmployeesDtoImplCopyWith<$Res>
       {@JsonKey(name: 'shift_id') String shiftId,
       @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'required_employees') int requiredEmployees,
+      @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+      @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'approved_count') int approvedCount,
       @JsonKey(name: 'pending_count') int pendingCount,
       @JsonKey(name: 'approved_employees')
@@ -467,6 +486,8 @@ class __$$ShiftWithEmployeesDtoImplCopyWithImpl<$Res>
     Object? shiftId = null,
     Object? shiftName = freezed,
     Object? requiredEmployees = null,
+    Object? shiftStartTime = freezed,
+    Object? shiftEndTime = freezed,
     Object? approvedCount = null,
     Object? pendingCount = null,
     Object? approvedEmployees = null,
@@ -485,6 +506,14 @@ class __$$ShiftWithEmployeesDtoImplCopyWithImpl<$Res>
           ? _value.requiredEmployees
           : requiredEmployees // ignore: cast_nullable_to_non_nullable
               as int,
+      shiftStartTime: freezed == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftEndTime: freezed == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
+              as String?,
       approvedCount: null == approvedCount
           ? _value.approvedCount
           : approvedCount // ignore: cast_nullable_to_non_nullable
@@ -512,6 +541,8 @@ class _$ShiftWithEmployeesDtoImpl implements _ShiftWithEmployeesDto {
       {@JsonKey(name: 'shift_id') required this.shiftId,
       @JsonKey(name: 'shift_name') this.shiftName,
       @JsonKey(name: 'required_employees') this.requiredEmployees = 0,
+      @JsonKey(name: 'shift_start_time') this.shiftStartTime,
+      @JsonKey(name: 'shift_end_time') this.shiftEndTime,
       @JsonKey(name: 'approved_count') this.approvedCount = 0,
       @JsonKey(name: 'pending_count') this.pendingCount = 0,
       @JsonKey(name: 'approved_employees')
@@ -534,6 +565,13 @@ class _$ShiftWithEmployeesDtoImpl implements _ShiftWithEmployeesDto {
   @override
   @JsonKey(name: 'required_employees')
   final int requiredEmployees;
+// Shift time range (from RPC: YYYY-MM-DD HH24:MI:SS format in user's timezone)
+  @override
+  @JsonKey(name: 'shift_start_time')
+  final String? shiftStartTime;
+  @override
+  @JsonKey(name: 'shift_end_time')
+  final String? shiftEndTime;
 // Counts
   @override
   @JsonKey(name: 'approved_count')
@@ -565,7 +603,7 @@ class _$ShiftWithEmployeesDtoImpl implements _ShiftWithEmployeesDto {
 
   @override
   String toString() {
-    return 'ShiftWithEmployeesDto(shiftId: $shiftId, shiftName: $shiftName, requiredEmployees: $requiredEmployees, approvedCount: $approvedCount, pendingCount: $pendingCount, approvedEmployees: $approvedEmployees, pendingEmployees: $pendingEmployees)';
+    return 'ShiftWithEmployeesDto(shiftId: $shiftId, shiftName: $shiftName, requiredEmployees: $requiredEmployees, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, approvedCount: $approvedCount, pendingCount: $pendingCount, approvedEmployees: $approvedEmployees, pendingEmployees: $pendingEmployees)';
   }
 
   @override
@@ -578,6 +616,10 @@ class _$ShiftWithEmployeesDtoImpl implements _ShiftWithEmployeesDto {
                 other.shiftName == shiftName) &&
             (identical(other.requiredEmployees, requiredEmployees) ||
                 other.requiredEmployees == requiredEmployees) &&
+            (identical(other.shiftStartTime, shiftStartTime) ||
+                other.shiftStartTime == shiftStartTime) &&
+            (identical(other.shiftEndTime, shiftEndTime) ||
+                other.shiftEndTime == shiftEndTime) &&
             (identical(other.approvedCount, approvedCount) ||
                 other.approvedCount == approvedCount) &&
             (identical(other.pendingCount, pendingCount) ||
@@ -595,6 +637,8 @@ class _$ShiftWithEmployeesDtoImpl implements _ShiftWithEmployeesDto {
       shiftId,
       shiftName,
       requiredEmployees,
+      shiftStartTime,
+      shiftEndTime,
       approvedCount,
       pendingCount,
       const DeepCollectionEquality().hash(_approvedEmployees),
@@ -622,6 +666,8 @@ abstract class _ShiftWithEmployeesDto implements ShiftWithEmployeesDto {
           {@JsonKey(name: 'shift_id') required final String shiftId,
           @JsonKey(name: 'shift_name') final String? shiftName,
           @JsonKey(name: 'required_employees') final int requiredEmployees,
+          @JsonKey(name: 'shift_start_time') final String? shiftStartTime,
+          @JsonKey(name: 'shift_end_time') final String? shiftEndTime,
           @JsonKey(name: 'approved_count') final int approvedCount,
           @JsonKey(name: 'pending_count') final int pendingCount,
           @JsonKey(name: 'approved_employees')
@@ -642,7 +688,13 @@ abstract class _ShiftWithEmployeesDto implements ShiftWithEmployeesDto {
   String? get shiftName;
   @override
   @JsonKey(name: 'required_employees')
-  int get requiredEmployees; // Counts
+  int get requiredEmployees; // Shift time range (from RPC: YYYY-MM-DD HH24:MI:SS format in user's timezone)
+  @override
+  @JsonKey(name: 'shift_start_time')
+  String? get shiftStartTime;
+  @override
+  @JsonKey(name: 'shift_end_time')
+  String? get shiftEndTime; // Counts
   @override
   @JsonKey(name: 'approved_count')
   int get approvedCount;

@@ -1,4 +1,5 @@
 /// Stock status value object - encapsulates stock level business rules
+/// Note: Display names should be handled in Presentation layer via extensions
 enum StockStatus {
   outOfStock,
   lowStock,
@@ -12,16 +13,5 @@ enum StockStatus {
     if (quantity <= 0) return StockStatus.outOfStock;
     if (quantity <= 10) return StockStatus.lowStock;
     return StockStatus.inStock;
-  }
-
-  String get displayName {
-    switch (this) {
-      case StockStatus.outOfStock:
-        return 'Out of Stock';
-      case StockStatus.lowStock:
-        return 'Low Stock';
-      case StockStatus.inStock:
-        return 'In Stock';
-    }
   }
 }

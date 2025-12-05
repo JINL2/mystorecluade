@@ -15,7 +15,6 @@ import { SaleProductDataSource } from '../datasources/SaleProductDataSource';
 import { ProductModel } from '../models/ProductModel';
 import { ExchangeRateModel } from '../models/ExchangeRateModel';
 import { CashLocationModel } from '../models/CashLocationModel';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class SaleProductRepositoryImpl implements ISaleProductRepository {
   private dataSource: SaleProductDataSource;
@@ -129,7 +128,9 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         return itemData;
       });
 
-      const saleDate = DateTimeUtils.toRpcFormat(new Date());
+      // Format as ISO string with timezone offset for timestamptz (e.g., "2025-12-03T18:47:56+07:00")
+      const now = new Date();
+      const saleDate = now.toISOString();
 
       const rpcParams = {
         companyId: invoice.companyId,
@@ -176,43 +177,44 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         warnings: response.warnings,
       });
 
-      // Submit journal entry for accounting
-      console.log('📤 [Repository] Submitting journal entry for sales transaction');
+      // Submit journal entries for accounting (Sales + COGS)
+      console.log('📤 [Repository] Submitting journal entries for sales transaction');
 
-      // Format description as "yyyyMMdd Sales"
-      const now = new Date();
+      // Format description as "yyyyMMdd Sales" (using `now` from above)
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const description = `${year}${month}${day} Sales`;
 
-      const journalResult = await this.dataSource.submitJournalEntry({
+      const journalResult = await this.dataSource.submitSalesJournalEntries({
         companyId: invoice.companyId,
         storeId: invoice.storeId,
         userId: invoice.userId,
-        entryDate: saleDate,
+        entryDateUtc: saleDate,
         description,
         totalAmount: invoice.total,
+        totalCost: invoice.totalCost,
         cashLocationId: invoice.cashLocation.id,
       });
 
       if (!journalResult.success) {
-        console.error('❌ [Repository] Journal entry failed', {
+        console.error('❌ [Repository] Journal entries failed', {
           error: journalResult.error,
         });
-        // Journal entry failed - return error
+        // Journal entries failed - return error
         return {
           success: false,
-          error: `Invoice created but journal entry failed: ${journalResult.error}`,
+          error: `Invoice created but journal entries failed: ${journalResult.error}`,
         };
       }
 
-      console.log('✅ [Repository] Journal entry submitted successfully', {
-        journalId: journalResult.journalId,
+      console.log('✅ [Repository] Journal entries submitted successfully', {
+        salesJournalId: journalResult.salesJournalId,
+        cogsJournalId: journalResult.cogsJournalId,
       });
 
-      // Both RPCs succeeded
-      console.log('🎉 [Repository] Both invoice and journal entry created successfully');
+      // All RPCs succeeded
+      console.log('🎉 [Repository] Invoice and journal entries created successfully');
 
       return {
         success: true,

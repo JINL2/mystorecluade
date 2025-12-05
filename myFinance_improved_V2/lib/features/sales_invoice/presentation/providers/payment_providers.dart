@@ -100,30 +100,6 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     }
   }
 
-  // Update selected cash location
-  void updateCashLocation(CashLocation location) {
-    state = state.copyWith(selectedCashLocation: location);
-  }
-
-  // Update selected currency
-  void updateCurrency(PaymentCurrency currency) {
-    state = state.copyWith(
-      selectedCurrency: currency,
-      focusedCurrencyId: currency.currencyId,
-    );
-  }
-
-  // Update currency amount
-  void updateCurrencyAmount(String currencyId, double amount) {
-    final updatedAmounts = Map<String, double>.from(state.currencyAmounts);
-    if (amount > 0) {
-      updatedAmounts[currencyId] = amount;
-    } else {
-      updatedAmounts.remove(currencyId);
-    }
-    state = state.copyWith(currencyAmounts: updatedAmounts);
-  }
-
   // Set focused currency for input
   void setFocusedCurrency(String? currencyId) {
     state = state.copyWith(focusedCurrencyId: currencyId);
@@ -144,11 +120,6 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     );
   }
 
-  // Select a payment currency
-  void selectCurrency(PaymentCurrency? currency) {
-    state = state.copyWith(selectedCurrency: currency);
-  }
-
   // Clear selections
   void clearSelections() {
     state = state.copyWith(
@@ -167,6 +138,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
 
   /// Create a journal entry for cash sales transaction
   /// This is called after invoice creation to record the accounting entry
+  /// Includes COGS (Cost of Goods Sold) entries for inventory tracking
   Future<void> createSalesJournalEntry({
     required String companyId,
     required String storeId,
@@ -175,6 +147,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     required String description,
     required String lineDescription,
     required String cashLocationId,
+    required double totalCost,
   }) async {
     await _createSalesJournalUseCase.execute(
       companyId: companyId,
@@ -184,6 +157,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       description: description,
       lineDescription: lineDescription,
       cashLocationId: cashLocationId,
+      totalCost: totalCost,
     );
   }
 }

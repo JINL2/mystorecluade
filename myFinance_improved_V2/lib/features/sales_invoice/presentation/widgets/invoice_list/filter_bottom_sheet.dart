@@ -5,7 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../domain/value_objects/invoice_period.dart';
+import '../../extensions/invoice_period_extension.dart';
 import '../../providers/invoice_list_provider.dart';
 
 /// Bottom sheet for filtering invoices by period
