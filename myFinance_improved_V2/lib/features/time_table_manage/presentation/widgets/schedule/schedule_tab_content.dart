@@ -8,10 +8,8 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
-import '../shift_management_card.dart';
 import 'schedule_shift_card.dart';
 import '../../models/schedule_models.dart';
-import '../../providers/state/manager_shift_cards_provider.dart';
 import '../../providers/state/shift_metadata_provider.dart';
 import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
@@ -75,17 +73,19 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     });
   }
 
-  /// Load shift cards data for current month
+  /// Load shift data for current month
   void _loadMonthData() {
     if (widget.selectedStoreId == null) return;
 
-    // Load shift cards (requests)
-    ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+    // Load monthly shift status (employee data for shifts)
+    // Provider handles caching internally - won't re-fetch if already loaded
+    ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
       month: _selectedDate,
     );
 
-    // Load shift metadata (available shifts)
-    ref.invalidate(shiftMetadataProvider(widget.selectedStoreId!));
+    // Note: shiftMetadataProvider is NOT invalidated here
+    // It's store-level data that doesn't change with date/month
+    // It's auto-loaded on first watch via FutureProvider
   }
 
   @override
@@ -197,10 +197,16 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
       ];
     }
 
-    final cardsState = ref.watch(managerCardsProvider(widget.selectedStoreId!));
+    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
+    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
 
-    // Show loading state
-    if (cardsState.isLoading) {
+    // Show loading only on initial load (no data yet)
+    // Once data is loaded, switching dates should be instant (no loading indicator)
+    final isInitialLoading = monthlyStatusState.isLoading &&
+        monthlyStatusState.allMonthlyStatuses.isEmpty;
+    final isMetadataLoading = metadataAsync.isLoading && !metadataAsync.hasValue;
+
+    if (isInitialLoading || isMetadataLoading) {
       return [
         Center(
           child: Padding(
@@ -214,9 +220,15 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     }
 
     // Show error state
-    if (cardsState.error != null) {
+    if (monthlyStatusState.error != null && monthlyStatusState.allMonthlyStatuses.isEmpty) {
       return [
-        _buildEmptyState('Error loading shifts\n${cardsState.error}'),
+        _buildEmptyState('Error loading shift data\n${monthlyStatusState.error}'),
+      ];
+    }
+
+    if (metadataAsync.hasError && !metadataAsync.hasValue) {
+      return [
+        _buildEmptyState('Error loading shift metadata\n${metadataAsync.error}'),
       ];
     }
 
@@ -259,6 +271,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         shiftName: shift.name,
         startTime: shift.startTime,
         endTime: shift.endTime,
+        maxCapacity: shift.maxCapacity,
         assignedEmployees: assignedEmployees,
         onApprove: (shiftRequestId) => _handleApprove(shiftRequestId),
         onRemove: (shiftRequestId) => _handleRemove(shiftRequestId),

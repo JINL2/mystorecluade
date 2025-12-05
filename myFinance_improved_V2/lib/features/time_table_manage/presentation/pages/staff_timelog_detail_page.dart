@@ -78,12 +78,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   // Computed Properties
   // ============================================================================
 
-  bool get _areConfirmTimesValid {
-    final checkInValid = confirmedCheckIn != '--:--:--' && confirmedCheckIn.isNotEmpty;
-    final checkOutValid = confirmedCheckOut != '--:--:--' && confirmedCheckOut.isNotEmpty;
-    return checkInValid && checkOutValid;
-  }
-
   bool get hasChanges {
     final checkInChanged = confirmedCheckIn != _initialConfirmedCheckIn;
     final checkOutChanged = confirmedCheckOut != _initialConfirmedCheckOut;
@@ -93,13 +87,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         issueReportStatus != null &&
         issueReportStatus != _initialIssueReportStatus;
 
-    final hasAnyChange = checkInChanged || checkOutChanged || bonusChanged || issueStatusChanged;
-    final timesChanged = checkInChanged || checkOutChanged;
-
-    if (timesChanged) {
-      return hasAnyChange && _areConfirmTimesValid;
-    }
-    return hasAnyChange;
+    return checkInChanged || checkOutChanged || bonusChanged || issueStatusChanged;
   }
 
   bool get _isFullyConfirmed {

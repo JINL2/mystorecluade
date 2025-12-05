@@ -46,8 +46,6 @@ export class SalaryModel {
     return SalaryRecord.create({
       user_id: rawData.user_id,
       full_name: rawData.user_name,
-      email: rawData.email,
-      role_name: rawData.role_name || 'N/A',
       store_name: storeNames,
       base_salary: baseSalary,
       bonuses: bonuses.bonus_amount || 0,
@@ -65,6 +63,8 @@ export class SalaryModel {
       late_minutes: deductions.late_minutes || 0,
       overtime_count: overtime.overtime_count || 0,
       overtime_amount: overtime.overtime_amount || 0,
+      bank_name: rawData.user_bank_name || null,
+      account_number: rawData.user_account_number || null,
     });
   }
 

@@ -100,28 +100,27 @@ class _MetricItem extends StatelessWidget {
           style: TossTextStyles.small.copyWith(
             fontWeight: FontWeight.w500,
             color: TossColors.gray600,
+            fontSize: 12,
           ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              value,
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              change,
-              style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w500,
-                color: isNegative ? TossColors.error : TossColors.primary,
-              ),
-            ),
-          ],
+        Text(
+          change,
+          style: TossTextStyles.bodySmall.copyWith(
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+            color: isNegative ? TossColors.error : TossColors.primary,
+          ),
         ),
       ],
     );

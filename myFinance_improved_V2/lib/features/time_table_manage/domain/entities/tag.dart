@@ -36,9 +36,6 @@ class Tag {
   /// Check if tag is a warning tag
   bool get isWarning => tagType.toLowerCase() == 'warning';
 
-  /// Check if tag is an info tag
-  bool get isInfo => tagType.toLowerCase() == 'info';
-
   /// Check if tag is a late tag
   bool get isLate => tagType.toLowerCase() == 'late';
 

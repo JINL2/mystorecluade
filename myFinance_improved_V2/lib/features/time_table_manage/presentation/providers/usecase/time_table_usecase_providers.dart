@@ -9,7 +9,11 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../di/dependency_injection.dart';
+import '../../../domain/usecases/calculate_attendance_status.dart';
 import '../../../domain/usecases/delete_shift_tag.dart';
+import '../../../domain/usecases/find_consecutive_shift_chain.dart';
+import '../../../domain/usecases/find_current_shift.dart';
+import '../../../domain/usecases/find_upcoming_shift.dart';
 import '../../../domain/usecases/get_manager_overview.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
@@ -134,4 +138,43 @@ final updateBonusAmountUseCaseProvider = Provider<UpdateBonusAmount>((ref) {
 final getReliabilityScoreUseCaseProvider = Provider<GetReliabilityScore>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return GetReliabilityScore(repository);
+});
+
+// ============================================================================
+// Shift Analysis UseCases (Pure Domain Logic - No Repository Dependency)
+// ============================================================================
+
+/// Find Current Shift UseCase Provider
+///
+/// Pure business logic to find the current or nearest shift.
+/// No repository dependency - operates on in-memory data.
+final findCurrentShiftUseCaseProvider = Provider<FindCurrentShiftUseCase>((ref) {
+  return FindCurrentShiftUseCase();
+});
+
+/// Find Upcoming Shift UseCase Provider
+///
+/// Pure business logic to find the next shift after current activity.
+/// No repository dependency - operates on in-memory data.
+final findUpcomingShiftUseCaseProvider = Provider<FindUpcomingShiftUseCase>((ref) {
+  return FindUpcomingShiftUseCase();
+});
+
+/// Find Consecutive Shift Chain UseCase Provider
+///
+/// Pure business logic to find all shifts connected in a consecutive chain.
+/// No repository dependency - operates on in-memory data.
+final findConsecutiveShiftChainUseCaseProvider =
+    Provider<FindConsecutiveShiftChainUseCase>((ref) {
+  return FindConsecutiveShiftChainUseCase();
+});
+
+/// Calculate Attendance Status UseCase Provider
+///
+/// Pure business logic to calculate on-time/late/not-checked-in status.
+/// Supports consecutive shift inheritance.
+/// No repository dependency - operates on in-memory data.
+final calculateAttendanceStatusUseCaseProvider =
+    Provider<CalculateAttendanceStatusUseCase>((ref) {
+  return CalculateAttendanceStatusUseCase();
 });

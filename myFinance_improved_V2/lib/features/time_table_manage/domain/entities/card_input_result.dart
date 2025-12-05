@@ -41,12 +41,6 @@ class CardInputResult {
     this.message,
   });
 
-  /// Calculate actual work duration in hours
-  double get actualWorkDurationInHours {
-    final duration = confirmedEndTime.difference(confirmedStartTime);
-    return duration.inMinutes / 60.0;
-  }
-
   /// Check if a new tag was added
   bool get hasNewTag => newTag != null;
 
