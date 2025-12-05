@@ -60,15 +60,13 @@ post_install do |installer|
         'PERMISSION_NOTIFICATIONS=1',
       ]
       
-      # Exclude arm64 for simulator builds to avoid MLKit issues
-      if config.build_settings['SDKROOT'] == 'iphonesimulator'
-        config.build_settings['EXCLUDED_ARCHS'] = 'arm64'
-      end
+      # Allow arm64 for Apple Silicon simulators (macOS Tahoe/Xcode 26 fix)
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ''
     end
   end
   
-  # Fix for potential CocoaPods issues
+  # Fix for potential CocoaPods issues (allow arm64 for Apple Silicon)
   installer.pods_project.build_configurations.each do |config|
-    config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ''
   end
 end

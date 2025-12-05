@@ -371,12 +371,45 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                     width: isSelected ? 2 : 1,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: TossSpacing.iconSM,
-                  backgroundColor: TossColors.gray200,
-                  backgroundImage: NetworkImage(item.avatarUrl!),
-                  onBackgroundImageError: (_, __) {},
-                  child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
+                child: ClipOval(
+                  child: Image.network(
+                    item.avatarUrl!,
+                    width: TossSpacing.iconXL,
+                    height: TossSpacing.iconXL,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Show fallback icon ONLY when image fails to load
+                      return Container(
+                        width: TossSpacing.iconXL,
+                        height: TossSpacing.iconXL,
+                        color: TossColors.gray200,
+                        child: const Icon(
+                          Icons.person,
+                          size: 20,
+                          color: TossColors.gray500,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      // Show placeholder while loading
+                      return Container(
+                        width: TossSpacing.iconXL,
+                        height: TossSpacing.iconXL,
+                        color: TossColors.gray200,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               )
             else

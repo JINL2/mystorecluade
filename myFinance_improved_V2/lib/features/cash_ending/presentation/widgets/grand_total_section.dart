@@ -49,9 +49,7 @@ class GrandTotalSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: isBaseCurrency
-            ? TossColors.primary.withOpacity(0.05)
-            : Colors.transparent,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
