@@ -13,6 +13,7 @@ import '../providers/state/store_employees_provider.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
+import 'reliability_rankings_page.dart';
 
 /// Period options for Store Health section
 enum StatsPeriod {
@@ -127,6 +128,16 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                         return sorted.where((e) => e.finalScore < 80).take(3).toList();
                       }();
 
+                // Prepare employee lists for the rankings page
+                final storeEmployeesList = _mapToLeaderboardEmployees(
+                  storeEmployees,
+                  isNeedsAttention: false,
+                );
+                final companyEmployeesList = _mapToLeaderboardEmployees(
+                  score.employees,
+                  isNeedsAttention: false,
+                );
+
                 return StatsLeaderboard(
                   // Leaderboard shows Store employees only
                   topReliabilityList: _mapToLeaderboardEmployees(
@@ -137,11 +148,24 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                     filteredNeedsAttention,
                     isNeedsAttention: true,
                   ),
-                  // See All bottom sheet shows ALL Company employees (unfiltered)
-                  allEmployeesList: _mapToLeaderboardEmployees(
-                    score.employees,
-                    isNeedsAttention: false,
-                  ),
+                  // This list is used for "See All" - pass company employees
+                  allEmployeesList: companyEmployeesList,
+                  // Navigate to new page with current tab info
+                  onSeeAllTapWithTab: (selectedTab) {
+                    HapticFeedback.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => ReliabilityRankingsPage(
+                          storeId: storeId,
+                          storeEmployees: storeEmployeesList,
+                          companyEmployees: companyEmployeesList,
+                          initialTab: 0, // Start with "This Store" tab
+                          isNeedsAttention: selectedTab == 1, // 1 = Needs attention
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
               loading: () => const Center(
@@ -352,6 +376,20 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         // change is not provided by RPC - only show if historical data becomes available
         change: null,
         isPositive: !isNeedsAttention,
+        // Score breakdown fields for criteria-based filtering
+        finalScore: employee.finalScore,
+        lateRate: employee.lateRate,
+        lateRateScore: employee.lateRateScore,
+        totalApplications: employee.totalApplications,
+        applicationsScore: employee.applicationsScore,
+        avgLateMinutes: employee.avgLateMinutes,
+        lateMinutesScore: employee.lateMinutesScore,
+        fillRate: employee.avgFillRateApplied,
+        fillRateScore: employee.fillRateScore,
+        lateCount: employee.lateCount,
+        salaryAmount: employee.salaryAmount,
+        salaryType: employee.salaryType,
+        completedShifts: employee.completedShifts,
       );
     }).toList();
   }

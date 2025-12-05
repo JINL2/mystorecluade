@@ -2,6 +2,10 @@
 ///
 /// Provides list of employee user IDs for a specific store.
 /// Used to filter reliability leaderboard by store employees.
+///
+/// ✅ Clean Architecture Compliant:
+/// - Uses Repository interface (Domain layer)
+/// - No direct Datasource access
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +16,7 @@ import '../../../domain/entities/store_employee.dart';
 
 /// Store Employees Provider
 ///
-/// Loads employee list for a given store ID using get_employee_info RPC.
+/// Loads employee list for a given store ID using Repository.
 /// Returns list of StoreEmployee entities containing user IDs.
 ///
 /// Usage:
@@ -35,19 +39,15 @@ final storeEmployeesProvider =
     return [];
   }
 
-  final datasource = ref.watch(timeTableDatasourceProvider);
+  // ✅ Use Repository instead of Datasource directly
+  final repository = ref.watch(timeTableRepositoryProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
 
-  final response = await datasource.getStoreEmployees(
+  return repository.getStoreEmployees(
     companyId: companyId,
     storeId: storeId,
   );
-
-  // Convert JSON response to StoreEmployee entities
-  return response
-      .map((item) => StoreEmployee.fromJson(item as Map<String, dynamic>))
-      .toList();
 });
 
 /// Store Employee User IDs Provider

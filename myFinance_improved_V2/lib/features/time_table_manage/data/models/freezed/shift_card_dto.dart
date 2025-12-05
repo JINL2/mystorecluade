@@ -27,6 +27,9 @@ class ShiftCardDto with _$ShiftCardDto {
     // Shift information
     @JsonKey(name: 'shift_name') String? shiftName,
     @JsonKey(name: 'shift_time') @ShiftTimeConverter() ShiftTime? shiftTime,
+    // Shift start/end time (NEW: "2025-12-05 14:00" format)
+    @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+    @JsonKey(name: 'shift_end_time') String? shiftEndTime,
 
     // Approval status
     @JsonKey(name: 'is_approved') @Default(false) bool isApproved,
