@@ -23,11 +23,14 @@ import '../../pages/staff_timelog_detail_page.dart';
 class TimesheetsTab extends ConsumerStatefulWidget {
   final String? selectedStoreId;
   final void Function(String storeId)? onStoreChanged;
+  /// Callback to navigate to Schedule tab with a specific date
+  final void Function(DateTime date)? onNavigateToSchedule;
 
   const TimesheetsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
+    this.onNavigateToSchedule,
   });
 
   @override
@@ -736,15 +739,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                           _loadMonthData(forceRefresh: true);
                         }
                       } else {
-                        // Shift problems (understaffed) navigate to date
-                        final oldMonth = _selectedDate.month;
-                        setState(() {
-                          _selectedDate = problem.date;
-                          _currentWeekStart = _getWeekStart(problem.date);
-                        });
-                        // Load new month data if month changed
-                        if (problem.date.month != oldMonth) {
-                          _loadMonthData();
+                        // Shift problems (understaffed) navigate to Schedule tab
+                        if (widget.onNavigateToSchedule != null) {
+                          widget.onNavigateToSchedule!(problem.date);
                         }
                       }
                     },

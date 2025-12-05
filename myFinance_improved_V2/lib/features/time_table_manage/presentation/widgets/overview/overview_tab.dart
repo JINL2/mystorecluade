@@ -28,12 +28,15 @@ class OverviewTab extends ConsumerStatefulWidget {
   final String? selectedStoreId;
   final VoidCallback onStoreSelectorTap;
   final void Function(String storeId)? onStoreChanged;
+  /// Callback to navigate to Schedule tab with a specific date
+  final void Function(DateTime date)? onNavigateToSchedule;
 
   const OverviewTab({
     super.key,
     required this.selectedStoreId,
     required this.onStoreSelectorTap,
     this.onStoreChanged,
+    this.onNavigateToSchedule,
   });
 
   @override
@@ -582,7 +585,11 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (context) => AttentionListPage(items: attentionItems),
+                builder: (context) => AttentionListPage(
+                  items: attentionItems,
+                  storeId: widget.selectedStoreId,
+                  onNavigateToSchedule: widget.onNavigateToSchedule,
+                ),
               ),
             );
           },
@@ -784,10 +791,11 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
 
   /// Handle attention item tap - navigate to detail page if it's a staff issue
   Future<void> _handleAttentionItemTap(AttentionItemData item) async {
-    // Skip navigation for shift-level issues (understaffed)
+    // For shift-level issues (understaffed), navigate to Schedule tab with the date
     if (item.isShiftProblem) {
-      // For understaffed shifts, we could navigate to schedule page instead
-      // For now, just return
+      if (item.shiftDate != null && widget.onNavigateToSchedule != null) {
+        widget.onNavigateToSchedule!(item.shiftDate!);
+      }
       return;
     }
 

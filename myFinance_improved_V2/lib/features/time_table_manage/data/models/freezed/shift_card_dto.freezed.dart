@@ -22,6 +22,7 @@ ShiftCardDto _$ShiftCardDtoFromJson(Map<String, dynamic> json) {
 mixin _$ShiftCardDto {
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @JsonKey(name: 'shift_date')
   String get shiftDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_request_id')
@@ -563,9 +564,9 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ShiftCardDtoImpl implements _ShiftCardDto {
   const _$ShiftCardDtoImpl(
-      {@JsonKey(name: 'shift_date') required this.shiftDate,
-      @JsonKey(name: 'shift_request_id') required this.shiftRequestId,
-      @JsonKey(name: 'user_name') required this.userName,
+      {@JsonKey(name: 'shift_date') this.shiftDate = '',
+      @JsonKey(name: 'shift_request_id') this.shiftRequestId = '',
+      @JsonKey(name: 'user_name') this.userName = '',
       @JsonKey(name: 'profile_image') this.profileImage,
       @JsonKey(name: 'shift_name') this.shiftName,
       @JsonKey(name: 'shift_time') @ShiftTimeConverter() this.shiftTime,
@@ -604,6 +605,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   final String shiftDate;
@@ -853,9 +855,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
 abstract class _ShiftCardDto implements ShiftCardDto {
   const factory _ShiftCardDto(
-      {@JsonKey(name: 'shift_date') required final String shiftDate,
-      @JsonKey(name: 'shift_request_id') required final String shiftRequestId,
-      @JsonKey(name: 'user_name') required final String userName,
+      {@JsonKey(name: 'shift_date') final String shiftDate,
+      @JsonKey(name: 'shift_request_id') final String shiftRequestId,
+      @JsonKey(name: 'user_name') final String userName,
       @JsonKey(name: 'profile_image') final String? profileImage,
       @JsonKey(name: 'shift_name') final String? shiftName,
       @JsonKey(name: 'shift_time')
@@ -898,6 +900,7 @@ abstract class _ShiftCardDto implements ShiftCardDto {
 
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   String get shiftDate;

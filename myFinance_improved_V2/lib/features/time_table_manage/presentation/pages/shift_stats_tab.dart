@@ -9,6 +9,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/reliability_score.dart';
 import '../providers/state/reliability_score_provider.dart';
+import '../providers/state/store_employees_provider.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
@@ -53,6 +54,11 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         ? ref.watch(reliabilityScoreProvider(storeId))
         : const AsyncValue<ReliabilityScore>.loading();
 
+    // Watch store employee user IDs for filtering leaderboard
+    final storeEmployeeIdsAsync = storeId.isNotEmpty
+        ? ref.watch(storeEmployeeUserIdsProvider(storeId))
+        : const AsyncValue<Set<String>>.data({});
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,23 +94,56 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
           const SizedBox(height: 24),
 
           // Reliability Leaderboard - Connected to real data
+          // Leaderboard shows only Store employees, See All shows Company employees
           Padding(
             padding: const EdgeInsets.all(TossSpacing.space3),
             child: reliabilityAsync.when(
-              data: (score) => StatsLeaderboard(
-                topReliabilityList: _mapToLeaderboardEmployees(
-                  score.topReliability,
-                  isNeedsAttention: false,
-                ),
-                needsAttentionList: _mapToLeaderboardEmployees(
-                  score.needsAttention,
-                  isNeedsAttention: true,
-                ),
-                allEmployeesList: _mapToLeaderboardEmployees(
-                  score.employees,
-                  isNeedsAttention: false,
-                ),
-              ),
+              data: (score) {
+                // Get store employee IDs for filtering
+                final storeEmployeeIds = storeEmployeeIdsAsync.valueOrNull ?? {};
+
+                // Filter employees by store (for leaderboard display)
+                final storeEmployees = storeEmployeeIds.isEmpty
+                    ? score.employees // If no store filter, show all
+                    : score.employees
+                        .where((e) => storeEmployeeIds.contains(e.userId))
+                        .toList();
+
+                // Get filtered top reliability (store employees only)
+                final filteredTopReliability = storeEmployees.isEmpty
+                    ? <EmployeeReliability>[]
+                    : () {
+                        final sorted = List<EmployeeReliability>.from(storeEmployees);
+                        sorted.sort((a, b) => b.finalScore.compareTo(a.finalScore));
+                        return sorted.take(3).toList();
+                      }();
+
+                // Get filtered needs attention (store employees only)
+                final filteredNeedsAttention = storeEmployees.isEmpty
+                    ? <EmployeeReliability>[]
+                    : () {
+                        final sorted = List<EmployeeReliability>.from(storeEmployees);
+                        sorted.sort((a, b) => a.finalScore.compareTo(b.finalScore));
+                        return sorted.where((e) => e.finalScore < 80).take(3).toList();
+                      }();
+
+                return StatsLeaderboard(
+                  // Leaderboard shows Store employees only
+                  topReliabilityList: _mapToLeaderboardEmployees(
+                    filteredTopReliability,
+                    isNeedsAttention: false,
+                  ),
+                  needsAttentionList: _mapToLeaderboardEmployees(
+                    filteredNeedsAttention,
+                    isNeedsAttention: true,
+                  ),
+                  // See All bottom sheet shows ALL Company employees (unfiltered)
+                  allEmployeesList: _mapToLeaderboardEmployees(
+                    score.employees,
+                    isNeedsAttention: false,
+                  ),
+                );
+              },
               loading: () => const Center(
                 child: Padding(
                   padding: EdgeInsets.all(TossSpacing.space4),

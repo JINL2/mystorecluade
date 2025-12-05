@@ -16,11 +16,12 @@ class ShiftCardDto with _$ShiftCardDto {
   const factory ShiftCardDto({
     // Core identification
     // v3: shift_date (actual work date from start_time_utc) instead of request_date
-    @JsonKey(name: 'shift_date') required String shiftDate,
-    @JsonKey(name: 'shift_request_id') required String shiftRequestId,
+    // Made nullable with defaults to handle empty RPC responses
+    @JsonKey(name: 'shift_date') @Default('') String shiftDate,
+    @JsonKey(name: 'shift_request_id') @Default('') String shiftRequestId,
 
     // User information
-    @JsonKey(name: 'user_name') required String userName,
+    @JsonKey(name: 'user_name') @Default('') String userName,
     @JsonKey(name: 'profile_image') String? profileImage,
 
     // Shift information
