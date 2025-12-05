@@ -509,11 +509,15 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
                           <div className={styles.salaryBreakdownTable}>
                             <div className={styles.breakdownRow}>
                               <span className={styles.breakdownLabel}>Bank Name</span>
-                              <span className={`${styles.breakdownValue} ${styles.notRegistered}`}>Not registered</span>
+                              <span className={`${styles.breakdownValue} ${!record.bankName ? styles.notRegistered : ''}`}>
+                                {record.bankName || 'Not registered'}
+                              </span>
                             </div>
                             <div className={styles.breakdownRow}>
                               <span className={styles.breakdownLabel}>Account Number</span>
-                              <span className={`${styles.breakdownValue} ${styles.notRegistered}`}>Not registered</span>
+                              <span className={`${styles.breakdownValue} ${!record.accountNumber ? styles.notRegistered : ''}`}>
+                                {record.accountNumber || 'Not registered'}
+                              </span>
                             </div>
                           </div>
                         </div>
