@@ -37,10 +37,13 @@ class GrayDividerSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      width: double.infinity,
-      color: color ?? TossColors.gray50,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Container(
+        height: height,
+        width: double.infinity,
+        color: color ?? TossColors.gray50,
+      ),
     );
   }
 }

@@ -119,13 +119,34 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
   }
 
   void _onFocusChange() {
-    if (!_focusNode.hasFocus) {
+    if (_focusNode.hasFocus) {
+      // Clear "0" when focused, or select all for easy replacement
+      if (_controller.text == '0') {
+        _controller.clear();
+      } else {
+        _controller.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _controller.text.length,
+        );
+      }
+      setState(() {}); // Rebuild to update border color
+    } else {
       // Validate on focus lost
       _validateAndUpdate(_controller.text);
+      setState(() {}); // Rebuild to update border color
     }
   }
 
   void _validateAndUpdate(String text) {
+    // Handle empty string as 0
+    if (text.isEmpty) {
+      _controller.text = '0';
+      if (widget.value != 0) {
+        widget.onChanged?.call(0);
+      }
+      return;
+    }
+
     final parsedValue = int.tryParse(text);
     if (parsedValue == null) {
       // Invalid input, reset to current value
@@ -258,7 +279,7 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 style: TossTextStyles.body.copyWith(
-                  color: widget.value == 0 ? TossColors.gray400 : _textColor,
+                  color: _textColor,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: const InputDecoration(
@@ -278,7 +299,7 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
               child: Text(
                 widget.value.toString(),
                 style: TossTextStyles.body.copyWith(
-                  color: widget.value == 0 ? TossColors.gray400 : _textColor,
+                  color: _textColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),

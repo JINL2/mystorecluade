@@ -10,6 +10,9 @@ import '../widgets/stats/hero_salary_display.dart';
 import '../widgets/stats/performance_kpi_card.dart';
 import '../widgets/stats/salary_breakdown_card.dart';
 import '../widgets/stats/salary_trend_section.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/gray_divider_space.dart';
 
 /// StatsTab - Attendance statistics and salary overview
 class StatsTab extends ConsumerStatefulWidget {
@@ -72,6 +75,24 @@ class _StatsTabState extends ConsumerState<StatsTab> {
     }
   }
 
+  /// Get the previous period label for comparison text
+  String _getPreviousPeriodLabel() {
+    switch (_selectedPeriod) {
+      case 'Today':
+        return 'yesterday';
+      case 'This Week':
+        return 'last week';
+      case 'This Month':
+        return 'last month';
+      case 'Last Month':
+        return 'previous month';
+      case 'This Year':
+        return 'last year';
+      default:
+        return 'previous';
+    }
+  }
+
   /// Format currency amount with symbol
   String _formatCurrency(double amount, String symbol) {
     final isNegative = amount < 0;
@@ -127,56 +148,100 @@ class _StatsTabState extends ConsumerState<StatsTab> {
         final salaryType = stats.salaryInfo.salaryType;
         final salaryAmount = stats.salaryInfo.salaryAmount;
 
+        // Format date for subtitle (e.g., "As of Dec/05")
+        final now = DateTime.now();
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final dateSubtitle = 'As of ${months[now.month - 1]}/${now.day.toString().padLeft(2, '0')}';
+
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Hero Salary Display
-              HeroSalaryDisplay(
-                title: 'Estimated Salary $_selectedPeriod',
-                amount: _formatCurrency(periodStats.totalPayment, symbol),
-                growthText: '${periodStats.formattedChangePercentage} vs previous',
-                isPositiveGrowth: periodStats.isPositiveChange,
-                onTitleTap: _showPeriodSelector,
+              Padding(
+                padding: EdgeInsets.all(TossSpacing.paddingMD),
+                child: HeroSalaryDisplay(
+                  title: 'Estimated Salary $_selectedPeriod',
+                  amount: _formatCurrency(periodStats.totalPayment, symbol),
+                  growthText: '${periodStats.formattedChangePercentage} vs ${_getPreviousPeriodLabel()}',
+                  isPositiveGrowth: periodStats.isPositiveChange,
+                  onTitleTap: _showPeriodSelector,
+                ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: TossSpacing.space2),
 
               // Performance KPI Card
-              PerformanceKpiCard(
-                ontimeRate: '${periodStats.onTimeRate.toStringAsFixed(0)}%',
-                ontimeRateChange: '+1.5%', // TODO: Get from backend - format: "+1.5%" or "-0.2%"
-                completedShifts: '${periodStats.completeShifts} shifts',
-                completedShiftsChange: '+0.8%', // TODO: Get from backend - format: "+0.8%" or "-0.5%"
-                reliabilityScore: stats.reliabilityScore.finalScore.toStringAsFixed(1),
-                reliabilityScoreChange: '-0.2%', // TODO: Get from backend - format: "+2.1%" or "-0.2%"
-                scoreBreakdown: stats.reliabilityScore.scoreBreakdown,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Salary Breakdown Card
-              SalaryBreakdownCard(
-                totalConfirmedTime: periodStats.formattedHours,
-                hourlySalary: salaryType == 'hourly'
-                    ? _formatCurrency(salaryAmount, symbol)
-                    : '-',
-                basePay: _formatCurrency(periodStats.basePay, symbol),
-                bonusPay: _formatCurrency(periodStats.bonusPay, symbol),
-                totalPayment: _formatCurrency(periodStats.totalPayment, symbol),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Salary Trend Section (Interactive Chart)
-              SalaryTrendSection(
-                weeklyData: stats.weeklyPayments.toChartList(),
-                footerNote:
-                    'Attendance data is based on your check-in/out history.\nConfirmed attendance is approved by your manager.',
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
+                child: PerformanceKpiCard(
+                  ontimeRate: '${periodStats.onTimeRate.toStringAsFixed(0)}%',
+                  ontimeRateChange: '+1.5%', // TODO: Get from backend - format: "+1.5%" or "-0.2%"
+                  completedShifts: '${periodStats.completeShifts}',
+                  completedShiftsChange: '+0.8%', // TODO: Get from backend - format: "+0.8%" or "-0.5%"
+                  reliabilityScore: stats.reliabilityScore.finalScore.toStringAsFixed(1),
+                  reliabilityScoreChange: '-0.2%', // TODO: Get from backend - format: "+2.1%" or "-0.2%"
+                  scoreBreakdown: stats.reliabilityScore.scoreBreakdown,
+                ),
               ),
 
               const SizedBox(height: 16),
+
+              // Gray Divider before Salary Breakdown
+              const GrayDividerSpace(),
+
+              // Salary Breakdown Section
+              Padding(
+                padding: EdgeInsets.all(TossSpacing.paddingMD),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section Title
+                    Text(
+                      'Salary Breakdown $_selectedPeriod',
+                      style: TossTextStyles.h3.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: TossSpacing.space1),
+                    Text(
+                      dateSubtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontSize: 13,
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                    SizedBox(height: TossSpacing.space5),
+
+                    // Salary Breakdown Card
+                    SalaryBreakdownCard(
+                      totalConfirmedTime: periodStats.formattedHours,
+                      hourlySalary: salaryType == 'hourly'
+                          ? _formatCurrency(salaryAmount, symbol)
+                          : '-',
+                      basePay: _formatCurrency(periodStats.basePay, symbol),
+                      bonusPay: _formatCurrency(periodStats.bonusPay, symbol),
+                      totalPayment: _formatCurrency(periodStats.totalPayment, symbol),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Gray Divider before Salary Trend
+              const GrayDividerSpace(),
+
+              // Salary Trend Section (Interactive Chart)
+              Padding(
+                padding: EdgeInsets.all(TossSpacing.paddingMD),
+                child: SalaryTrendSection(
+                  weeklyData: stats.weeklyPayments.toChartList(),
+                  footerNote:
+                      'Attendance data is based on your check-in/out history.\nConfirmed attendance is approved by your manager.',
+                ),
+              ),
+
+              SizedBox(height: TossSpacing.paddingMD),
             ],
           ),
         );

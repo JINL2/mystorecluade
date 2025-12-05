@@ -4,7 +4,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
 
-/// Ranking bar showing percentile position with clear labels
+/// Compact ranking card for 2x2 grid layout
 class RankingBarWidget extends StatelessWidget {
   final String name;
   final String value;
@@ -28,81 +28,33 @@ class RankingBarWidget extends StatelessWidget {
     final icon = _getRankingIcon(score);
 
     return TossWhiteCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header: Name + Weight
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  name,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.primarySurface,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '${weight}%',
-                  style: TossTextStyles.caption.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.primary,
-                  ),
-                ),
-              ),
-            ],
+          // Name
+          Text(
+            name,
+            style: TossTextStyles.bodyMedium.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: TossColors.gray700,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Value
           Text(
             '$value$unit',
             style: TossTextStyles.body.copyWith(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray800,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: TossColors.gray900,
             ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Ranking Bar
-          Stack(
-            children: [
-              // Background
-              Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              // Fill
-              FractionallySizedBox(
-                widthFactor: (score / 100).clamp(0.0, 1.0),
-                child: Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ],
           ),
 
           const SizedBox(height: 8),
@@ -115,13 +67,17 @@ class RankingBarWidget extends StatelessWidget {
                 size: 14,
                 color: color,
               ),
-              const SizedBox(width: 6),
-              Text(
-                rankingLabel,
-                style: TossTextStyles.caption.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  rankingLabel,
+                  style: TossTextStyles.caption.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -134,8 +90,8 @@ class RankingBarWidget extends StatelessWidget {
   String _getRankingLabel(double score) {
     if (score >= 90) return 'Top 10%';
     if (score >= 75) return 'Top 25%';
-    if (score >= 50) return 'Average (Top 50%)';
-    if (score >= 25) return 'Below Average';
+    if (score >= 50) return 'Average';
+    if (score >= 25) return 'Below Avg';
     return 'Bottom 25%';
   }
 

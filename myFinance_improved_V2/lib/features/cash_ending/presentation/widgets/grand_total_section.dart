@@ -36,9 +36,7 @@ class GrandTotalSection extends StatelessWidget {
         vertical: TossSpacing.space3,
       ),
       decoration: BoxDecoration(
-        color: isBaseCurrency
-            ? TossColors.primary.withOpacity(0.05)
-            : Colors.transparent,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

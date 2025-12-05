@@ -30,7 +30,9 @@ export 'widgets/schedule_header.dart' show ViewMode;
 /// - Week view: Week navigation + shift list
 /// - Month view: Month navigation + calendar + filtered shift list
 class MyScheduleTab extends ConsumerStatefulWidget {
-  const MyScheduleTab({super.key});
+  final TabController? tabController;
+
+  const MyScheduleTab({super.key, this.tabController});
 
   @override
   ConsumerState<MyScheduleTab> createState() => _MyScheduleTabState();
@@ -39,6 +41,11 @@ class MyScheduleTab extends ConsumerStatefulWidget {
 class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   // View mode state
   ViewMode _viewMode = ViewMode.week;
+
+  /// Navigate to Shift Sign Up tab (index 1)
+  void _goToShiftSignUpTab() {
+    widget.tabController?.animateTo(1);
+  }
 
   // Navigation state
   int _currentWeekOffset = 0; // 0 = current week, -1 = prev, +1 = next
@@ -329,6 +336,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                     upcomingShift: upcomingShift,
                     onCheckIn: () => _navigateToQRScanner(),
                     onCheckOut: () => _navigateToQRScanner(),
+                    onGoToShiftSignUp: _goToShiftSignUpTab,
                     onViewModeChanged: (mode) {
                       setState(() => _viewMode = mode);
                     },
@@ -392,6 +400,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                 upcomingShift: upcomingShift,
                 onCheckIn: () => _navigateToQRScanner(),
                 onCheckOut: () => _navigateToQRScanner(),
+                onGoToShiftSignUp: _goToShiftSignUpTab,
                 onViewModeChanged: (mode) {
                   setState(() => _viewMode = mode);
                 },
@@ -403,6 +412,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               todayShift: null,
               onCheckIn: () => _navigateToQRScanner(),
               onCheckOut: () => _navigateToQRScanner(),
+              onGoToShiftSignUp: _goToShiftSignUpTab,
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -413,6 +423,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               todayShift: null,
               onCheckIn: () => _navigateToQRScanner(),
               onCheckOut: () => _navigateToQRScanner(),
+              onGoToShiftSignUp: _goToShiftSignUpTab,
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -476,12 +487,14 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: TossSpacing.space1),
-          Text(
-            'Go to shift sign up',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
+          TextButton(
+            onPressed: _goToShiftSignUpTab,
+            child: Text(
+              'Go to shift sign up',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

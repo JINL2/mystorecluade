@@ -8,6 +8,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
+import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import '../widgets/timesheets/staff_timelog_card.dart';
 import '../widgets/timesheets/time_picker_bottom_sheet.dart';
 
@@ -209,7 +210,9 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
 
                   // Confirmed Attendance Card (with edit capability)
                   _buildConfirmedAttendanceCard(),
-                  const SizedBox(height: 16),
+
+                  // Gray Divider after Confirmed Attendance
+                  const GrayDividerSpace(),
 
                   // Issue Report Section (if exists)
                   if (employeeIssueReport != null) ...[
@@ -597,53 +600,46 @@ class _StaffTimelogDetailPageState extends State<StaffTimelogDetailPage> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray100, width: 1),
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-          child: Column(
-            children: [
-              _buildInfoRow(
-                label: 'Total confirmed time',
-                value: totalConfirmedTime,
+        Column(
+          children: [
+            _buildInfoRow(
+              label: 'Total confirmed time',
+              value: totalConfirmedTime,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Hourly salary',
+              value: hourlySalary,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 1,
+              color: TossColors.gray100,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Base pay',
+              value: basePay,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Bonus pay',
+              value: bonusPay,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Total payment',
+              value: totalPayment,
+              labelStyle: TossTextStyles.titleMedium.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Hourly salary',
-                value: hourlySalary,
+              valueStyle: TossTextStyles.titleMedium.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: 12),
-              Container(
-                height: 1,
-                color: TossColors.gray100,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Base pay',
-                value: basePay,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Bonus pay',
-                value: bonusPay,
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                label: 'Total payment',
-                value: totalPayment,
-                labelStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
-                valueStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

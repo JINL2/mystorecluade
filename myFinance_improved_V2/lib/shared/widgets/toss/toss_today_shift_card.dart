@@ -33,6 +33,7 @@ class TossTodayShiftCard extends StatelessWidget {
   final ShiftStatus status;
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
+  final VoidCallback? onGoToShiftSignUp;
   final bool isLoading;
   final bool? isUpcoming;
 
@@ -45,6 +46,7 @@ class TossTodayShiftCard extends StatelessWidget {
     required this.status,
     this.onCheckIn,
     this.onCheckOut,
+    this.onGoToShiftSignUp,
     this.isLoading = false,
     this.isUpcoming,
   });
@@ -113,12 +115,14 @@ class TossTodayShiftCard extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: TossSpacing.space1),
-            Text(
-              'Go to shift sign up',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray500,
+            TextButton(
+              onPressed: onGoToShiftSignUp,
+              child: Text(
+                'Go to shift sign up',
+                style: TossTextStyles.label.copyWith(
+                  color: TossColors.primary,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -205,7 +209,6 @@ class TossTodayShiftCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -219,7 +222,7 @@ class TossTodayShiftCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Today's shift",
+                isUpcoming == true ? 'Next shift' : 'Current shift',
                 style: TossTextStyles.label.copyWith(
                   color: TossColors.gray600,
                 ),
@@ -307,6 +310,7 @@ class TossTodayShiftCard extends StatelessWidget {
 
           // Check-in button
           _buildActionButton(),
+          SizedBox(height: TossSpacing.space6),
         ],
       ),
     );

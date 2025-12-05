@@ -32,25 +32,10 @@ class PerformanceKpiCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section title
-        Text(
-          'Performance Overview',
-          style: TossTextStyles.bodyMedium.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: TossColors.gray900,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space2),
-
         // KPI Card
         TossWhiteCard(
           showBorder: false,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          padding: EdgeInsets.zero,
           child: Row(
             children: [
               // On-time Rate
@@ -159,9 +144,9 @@ class _KpiColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label with optional info icon (always left-aligned)
+        // Label with optional info icon
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: showInfoIcon ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
           children: [
             Flexible(
               child: Text(
@@ -175,8 +160,7 @@ class _KpiColumn extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (showInfoIcon) ...[
-              const SizedBox(width: 4),
+            if (showInfoIcon)
               GestureDetector(
                 onTap: onInfoTap,
                 child: const Icon(
@@ -185,17 +169,17 @@ class _KpiColumn extends StatelessWidget {
                   color: TossColors.gray600,
                 ),
               ),
-            ],
           ],
         ),
 
         const SizedBox(height: 4),
 
-        // Value with change percentage
-        Row(
-          mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
+        // Value with change percentage - wrap to prevent overflow
+        Wrap(
+          alignment: alignRight ? WrapAlignment.end : WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 2,
           children: [
             Text(
               value,
@@ -205,17 +189,15 @@ class _KpiColumn extends StatelessWidget {
                 color: TossColors.gray900,
               ),
             ),
-            if (changePercentage != null) ...[
-              const SizedBox(width: 6),
+            if (changePercentage != null)
               Text(
                 changePercentage!,
                 style: TossTextStyles.caption.copyWith(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: _changeColor,
                 ),
               ),
-            ],
           ],
         ),
       ],

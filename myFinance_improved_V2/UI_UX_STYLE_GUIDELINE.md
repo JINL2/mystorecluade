@@ -1483,3 +1483,4 @@ TossExpandableCard(
 **Last Updated:** December 2025
 **Maintained by:** MyFinance Development Team
 **Questions?** Refer to `/lib/shared/themes/toss_design_system.dart` for implementation details
+for large section, use toss_spacing_6
