@@ -50,10 +50,19 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
       const currencySymbol = response.data.currency?.symbol;
       const invoices = InvoiceModel.fromJsonArray(response.data.invoices, currencySymbol);
 
+      // Map v2 pagination structure to PaginationInfo
+      const pagination = response.data.pagination ? {
+        current_page: response.data.pagination.page,
+        total_pages: response.data.pagination.total_pages,
+        total_count: response.data.pagination.total,
+        has_next: response.data.pagination.has_next,
+        has_prev: response.data.pagination.has_prev,
+      } : undefined;
+
       return {
         success: true,
         data: invoices,
-        pagination: response.data.pagination,
+        pagination,
       };
     } catch (error) {
       console.error('❌ Repository error fetching invoices:', error);
@@ -113,9 +122,14 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
     }
   }
 
-  async refundInvoices(invoiceIds: string[], notes: string, createdBy: string): Promise<BulkRefundResult> {
+  async refundInvoices(
+    invoiceIds: string[],
+    notes: string,
+    createdBy: string,
+    timezone: string = 'Asia/Ho_Chi_Minh'
+  ): Promise<BulkRefundResult> {
     try {
-      const response = await this.dataSource.refundInvoices(invoiceIds, notes, createdBy);
+      const response = await this.dataSource.refundInvoices(invoiceIds, notes, createdBy, timezone);
 
       return {
         success: true,

@@ -43,7 +43,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
 
       <div className={styles.actionsSection}>
         <TossButton
-          variant="secondary"
+          variant={selectedInvoicesCount > 0 && !hasSelectedCancelledInvoice ? 'error' : 'secondary'}
           size="md"
           onClick={onRefund}
           disabled={selectedInvoicesCount === 0 || hasSelectedCancelledInvoice}
@@ -54,7 +54,7 @@ export const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           }
           iconPosition="left"
         >
-          Refund
+          Refund{selectedInvoicesCount > 0 ? ` (${selectedInvoicesCount})` : ''}
         </TossButton>
       </div>
     </div>

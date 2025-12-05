@@ -14,10 +14,12 @@ interface UseInventoryHandlersProps {
   inventory: InventoryItem[];
   filteredAndSortedInventory: InventoryItem[];
   currencySymbol: string;
+  selectedProducts: Set<string>;
   toggleProductSelection: (productId: string) => void;
   clearSelection: () => void;
   openModal: (product: any) => void;
   openAddProductModal: () => void;
+  openDeleteConfirmModal: (products: InventoryItem[]) => void;
   showNotification: (variant: 'success' | 'error' | 'info', message: string) => void;
   statusStyles: {
     statusOutOfStock: string;
@@ -44,10 +46,12 @@ export const useInventoryHandlers = ({
   inventory,
   filteredAndSortedInventory,
   currencySymbol,
+  selectedProducts,
   toggleProductSelection,
   clearSelection,
   openModal,
   openAddProductModal,
+  openDeleteConfirmModal,
   showNotification,
   statusStyles,
 }: UseInventoryHandlersProps): UseInventoryHandlersReturn => {
@@ -100,9 +104,20 @@ export const useInventoryHandlers = ({
 
   // Handle delete products
   const handleDeleteProducts = useCallback(() => {
-    // TODO: Show delete confirmation modal
-    showNotification('info', 'Delete functionality will be implemented soon');
-  }, [showNotification]);
+    if (selectedProducts.size === 0) {
+      showNotification('info', 'Please select products to delete');
+      return;
+    }
+
+    // Get selected product details from inventory
+    const productsToDelete = inventory.filter((item) =>
+      selectedProducts.has(item.productId)
+    );
+
+    if (productsToDelete.length > 0) {
+      openDeleteConfirmModal(productsToDelete);
+    }
+  }, [selectedProducts, inventory, openDeleteConfirmModal, showNotification]);
 
   // Handle add product
   const handleAddProduct = useCallback(() => {

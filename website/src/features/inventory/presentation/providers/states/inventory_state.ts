@@ -44,6 +44,8 @@ export interface InventoryState {
   isModalOpen: boolean;
   selectedProductData: InventoryItem | null;
   isAddProductModalOpen: boolean;
+  isDeleteConfirmModalOpen: boolean;
+  productsToDelete: InventoryItem[];
 
   // ============================================
   // LOADING/ERROR STATE
@@ -79,6 +81,9 @@ export interface InventoryState {
   openAddProductModal: () => void;
   closeAddProductModal: () => void;
 
+  openDeleteConfirmModal: (products: InventoryItem[]) => void;
+  closeDeleteConfirmModal: () => void;
+
   showNotification: (variant: 'success' | 'error', message: string) => void;
   hideNotification: () => void;
 
@@ -112,5 +117,9 @@ export interface InventoryState {
     time: string,
     updatedBy: string
   ) => Promise<{ success: boolean; data?: any; error?: string }>;
+  deleteProducts: (
+    productIds: string[],
+    companyId: string
+  ) => Promise<{ success: boolean; message?: string; deletedCount?: number; error?: string }>;
   refresh: () => Promise<void>;
 }

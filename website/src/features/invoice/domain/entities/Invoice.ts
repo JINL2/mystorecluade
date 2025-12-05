@@ -17,10 +17,27 @@ export class Invoice {
     public readonly itemCount: number,
     public readonly totalQuantity: number,
     public readonly totalAmount: number,
-    public readonly status: 'draft' | 'issued' | 'paid' | 'cancelled',
+    public readonly status: 'draft' | 'issued' | 'paid' | 'cancelled' | 'completed',
     public readonly currencySymbol: string,
     public readonly paymentMethod: 'cash' | 'card' | 'bank' | 'transfer' | string = 'cash',
-    public readonly paymentStatus: 'paid' | 'pending' | 'cancelled' | string = 'pending'
+    public readonly paymentStatus: 'paid' | 'pending' | 'cancelled' | string = 'pending',
+    public readonly totalCost: number = 0,
+    public readonly profit: number = 0,
+    // Store info
+    public readonly storeName: string = '',
+    public readonly storeCode: string = '',
+    // Cash location info
+    public readonly cashLocationName: string | null = null,
+    public readonly cashLocationType: string | null = null,
+    // Amount details
+    public readonly subtotal: number = 0,
+    public readonly taxAmount: number = 0,
+    public readonly discountAmount: number = 0,
+    // Created by info
+    public readonly createdByName: string = '',
+    public readonly createdByEmail: string = '',
+    // Created at timestamp
+    public readonly createdAt: string = ''
   ) {}
 
   /**
@@ -34,6 +51,8 @@ export class Invoice {
         return 'Issued';
       case 'paid':
         return 'Paid';
+      case 'completed':
+        return 'Completed';
       case 'cancelled':
         return 'Cancelled';
       default:
@@ -53,8 +72,9 @@ export class Invoice {
   }
 
   /**
-   * Get formatted date
+   * Get formatted date with time
    * Note: invoiceDate is already converted to local timezone in InvoiceModel
+   * Format: "2025. 10. 25. 14:30"
    */
   get formattedDate(): string {
     if (!this.invoiceDate) {
@@ -65,12 +85,21 @@ export class Invoice {
       // invoiceDate is already in local timezone, just parse and format
       const localDate = new Date(this.invoiceDate);
 
-      // Format using Korean locale: "2025. 10. 25."
-      return localDate.toLocaleDateString('ko-KR', {
+      // Format date part using Korean locale: "2025. 10. 25."
+      const datePart = localDate.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
       });
+
+      // Format time part: "14:30"
+      const timePart = localDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      return `${datePart} ${timePart}`;
     } catch (error) {
       console.error('Error formatting date:', this.invoiceDate, error);
       return 'Invalid Date';
@@ -118,5 +147,28 @@ export class Invoice {
       return 'payment-cash';
     }
     return 'payment-default';
+  }
+
+  /**
+   * Get formatted time (HH:MM:SS)
+   * Extracts time from createdAt timestamp
+   */
+  get formattedTime(): string {
+    if (!this.createdAt) {
+      return '';
+    }
+
+    try {
+      const date = new Date(this.createdAt);
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+    } catch (error) {
+      console.error('Error formatting time:', this.createdAt, error);
+      return '';
+    }
   }
 }

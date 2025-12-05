@@ -5,7 +5,6 @@
 
 import { Invoice } from '../../domain/entities/Invoice';
 import { InvoiceDataSource } from '../../data/datasources/InvoiceDataSource';
-import { useInvoice } from './useInvoice';
 
 interface RefundInvoiceParams {
   invoiceIds: string[];
@@ -25,8 +24,7 @@ interface RefundResult {
   error?: string;
 }
 
-export const useRefundInvoice = () => {
-  const { refundInvoices, refresh } = useInvoice();
+export const useRefundInvoice = (refundInvoices: (invoiceIds: string[], notes: string, createdBy: string) => Promise<any>) => {
 
   /**
    * Refund invoices and create journal entries
@@ -78,6 +76,7 @@ export const useRefundInvoice = () => {
             createdBy: userId,
             invoiceNumber: refundResult.invoice_number,
             refundAmount: refundAmount,
+            totalCost: invoice.totalCost,
             cashLocationId: invoice.cashLocationId,
           });
 
@@ -87,6 +86,7 @@ export const useRefundInvoice = () => {
             createdBy: userId,
             invoiceNumber: refundResult.invoice_number,
             refundAmount: refundAmount,
+            totalCost: invoice.totalCost,
             cashLocationId: invoice.cashLocationId,
           });
 
@@ -115,8 +115,7 @@ export const useRefundInvoice = () => {
       journalFailCount
     );
 
-    // Refresh invoice list
-    refresh();
+    // Note: Caller is responsible for refreshing the invoice list
 
     return {
       success: total_failed === 0 && journalFailCount === 0,

@@ -60,7 +60,7 @@ export interface InvoiceState {
   loadInvoices: (companyId: string) => Promise<void>;
   fetchInvoiceDetail: (invoiceId: string) => Promise<void>;
   refundInvoice: (invoiceId: string, refundReason?: string, createdBy?: string) => Promise<RefundResult>;
-  refundInvoices: (invoiceIds: string[], notes: string, createdBy: string) => Promise<BulkRefundResult>;
+  refundInvoices: (invoiceIds: string[], notes: string, createdBy: string, timezone?: string) => Promise<BulkRefundResult>;
   refresh: (companyId: string) => Promise<void>;
 
   // ========== Reset Actions ==========

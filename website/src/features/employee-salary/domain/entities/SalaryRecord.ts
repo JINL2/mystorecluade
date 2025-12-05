@@ -18,8 +18,6 @@ export class SalaryRecord {
   constructor(
     public readonly userId: string,
     public readonly fullName: string,
-    public readonly email: string,
-    public readonly roleName: string,
     public readonly storeName: string,
     public readonly baseSalary: number,
     public readonly bonuses: number,
@@ -34,7 +32,9 @@ export class SalaryRecord {
     public readonly lateCount: number = 0,
     public readonly lateMinutes: number = 0,
     public readonly overtimeCount: number = 0,
-    public readonly overtimeAmount: number = 0
+    public readonly overtimeAmount: number = 0,
+    public readonly bankName: string | null = null,
+    public readonly accountNumber: string | null = null
   ) {}
 
   /**
@@ -119,8 +119,6 @@ export class SalaryRecord {
   static create(data: {
     user_id: string;
     full_name: string;
-    email: string;
-    role_name: string;
     store_name: string;
     base_salary: number;
     bonuses: number;
@@ -136,12 +134,12 @@ export class SalaryRecord {
     late_minutes?: number;
     overtime_count?: number;
     overtime_amount?: number;
+    bank_name?: string | null;
+    account_number?: string | null;
   }): SalaryRecord {
     return new SalaryRecord(
       data.user_id,
       data.full_name,
-      data.email,
-      data.role_name,
       data.store_name,
       data.base_salary || 0,
       data.bonuses || 0,
@@ -156,7 +154,9 @@ export class SalaryRecord {
       data.late_count || 0,
       data.late_minutes || 0,
       data.overtime_count || 0,
-      data.overtime_amount || 0
+      data.overtime_amount || 0,
+      data.bank_name || null,
+      data.account_number || null
     );
   }
 }

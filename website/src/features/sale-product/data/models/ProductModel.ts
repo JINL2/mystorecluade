@@ -14,6 +14,7 @@ export interface ProductDTO {
   unit: string;
   image_urls: string[];
   price: {
+    cost: number;
     selling: number;
   };
   stock: {
@@ -34,6 +35,7 @@ export interface ProductForSale {
   category_name: string;
   unit: string;
   image_urls: string[];
+  cost_price: number;
   selling_price: number;
   quantity_available: number;
 }
@@ -52,6 +54,7 @@ export class ProductModel {
       unit: dto.unit,
       imageUrls: dto.image_urls || [],
       sellingPrice: dto.price?.selling || 0,
+      costPrice: dto.price?.cost || 0,
       quantityAvailable: dto.stock?.quantity_available || 0,
     });
   }
@@ -69,6 +72,7 @@ export class ProductModel {
       unit: product.unit,
       image_urls: product.imageUrls,
       price: {
+        cost: product.costPrice,
         selling: product.sellingPrice,
       },
       stock: {
@@ -98,6 +102,7 @@ export class ProductModel {
       unit: saleProduct.unit,
       imageUrls: saleProduct.image_urls || [],
       sellingPrice: saleProduct.selling_price,
+      costPrice: saleProduct.cost_price || 0,
       quantityAvailable: saleProduct.quantity_available,
     });
   }

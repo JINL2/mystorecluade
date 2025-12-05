@@ -195,13 +195,13 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
     }
   },
 
-  refundInvoices: async (invoiceIds, notes, createdBy) => {
-    console.log('🟡 InvoiceProvider.refundInvoices - starting...', { invoiceIds, notes });
+  refundInvoices: async (invoiceIds, notes, createdBy, timezone = 'Asia/Ho_Chi_Minh') => {
+    console.log('🟡 InvoiceProvider.refundInvoices - starting...', { invoiceIds, notes, timezone });
 
     set({ refunding: true });
 
     try {
-      const result = await repository.refundInvoices(invoiceIds, notes, createdBy);
+      const result = await repository.refundInvoices(invoiceIds, notes, createdBy, timezone);
 
       if (!result.success || !result.data) {
         console.error('❌ InvoiceProvider.refundInvoices - failed:', result.error);

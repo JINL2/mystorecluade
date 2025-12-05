@@ -16,6 +16,7 @@ export const useSaleInvoice = () => {
   // Cart State
   const cartItems = useSaleProductStore((state) => state.cartItems);
   const subtotal = useSaleProductStore((state) => state.subtotal);
+  const totalCost = useSaleProductStore((state) => state.totalCost);
 
   // Discount State
   const discountType = useSaleProductStore((state) => state.discountType);
@@ -79,6 +80,7 @@ export const useSaleInvoice = () => {
     // Cart State
     cartItems,
     subtotal,
+    totalCost,
     itemCount: cartItems.length,
 
     // Discount State

@@ -1,26 +1,29 @@
 /**
  * InvoiceTable Component
- * Table with expandable rows for invoice display
+ * Table for invoice display with expandable detail panel
  */
 
 import React from 'react';
-import { InvoiceDetailPanel } from '../InvoiceDetailPanel';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import type { InvoiceTableProps } from './InvoiceTable.types';
 import styles from './InvoiceTable.module.css';
 
 export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   invoices,
   selectedInvoices,
+  localSearchQuery,
   expandedInvoiceId,
   invoiceDetail,
   detailLoading,
-  refunding,
-  localSearchQuery,
+  refundLoading,
   onToggleSelection,
   onSelectAll,
   onRowClick,
   onRefund,
 }) => {
+  // Get the expanded invoice for formatting
+  const expandedInvoice = invoices.find(inv => inv.invoiceId === expandedInvoiceId);
+
   return (
     <div className={styles.invoiceTableContainer}>
       <table className={styles.invoiceTable}>
@@ -32,40 +35,32 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 checked={invoices.length > 0 && selectedInvoices.size === invoices.length}
                 onChange={onSelectAll}
                 className={styles.checkbox}
-                disabled={invoices.length === 0}
               />
             </th>
-            <th>INVOICE #</th>
-            <th>DATE</th>
-            <th>CUSTOMER</th>
-            <th>ITEMS</th>
-            <th className={styles.paymentCell}>PAYMENT</th>
-            <th>TOTAL</th>
-            <th className={styles.statusCell}>STATUS</th>
+            <th>Invoice #</th>
+            <th style={{ textAlign: 'center' }}>Time</th>
+            <th>Items</th>
+            <th style={{ textAlign: 'center' }}>Payment</th>
+            <th>Total</th>
+            <th style={{ textAlign: 'center' }}>Status</th>
           </tr>
         </thead>
         <tbody>
           {invoices.length === 0 ? (
             <tr>
-              <td colSpan={8} className={styles.emptyStateCell}>
+              <td colSpan={7} className={styles.emptyStateCell}>
                 <div className={styles.emptyState}>
-                  <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Background Circle */}
-                    <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
-
-                    {/* Document Stack */}
-                    <rect x="35" y="40" width="50" height="60" rx="4" fill="white" stroke="#0064FF" strokeWidth="2"/>
-                    <rect x="40" y="35" width="50" height="60" rx="4" fill="white" stroke="#0064FF" strokeWidth="2"/>
-
-                    {/* Document Lines */}
-                    <line x1="48" y1="45" x2="75" y2="45" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="48" y1="52" x2="70" y2="52" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="48" y1="59" x2="72" y2="59" stroke="#E9ECEF" strokeWidth="2" strokeLinecap="round"/>
-
-                    {/* Invoice Symbol (Receipt Icon) */}
-                    <circle cx="60" cy="75" r="12" fill="#0064FF"/>
-                    <path d="M56 75 L58 77 L64 71" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <div className={styles.emptyIcon}>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ADB5BD" strokeWidth="1.5">
+                      <path d="M9 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <path d="M19 17h-4" />
+                      <path d="M19 13h-4" />
+                      <path d="M19 9h-4" />
+                      <path d="M19 5h-4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" />
+                      <path d="M3 9h4" />
+                      <path d="M3 13h4" />
+                    </svg>
+                  </div>
                   <h3 className={styles.emptyTitle}>No Invoices</h3>
                   <p className={styles.emptyText}>
                     {localSearchQuery ? `No invoices found matching "${localSearchQuery}"` : 'No invoice records found for the selected period'}
@@ -74,67 +69,174 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               </td>
             </tr>
           ) : (
-            invoices.map((invoice) => {
-              const isExpanded = expandedInvoiceId === invoice.invoiceId;
+            invoices.map((invoice) => (
+              <React.Fragment key={invoice.invoiceId}>
+                {/* Invoice Row */}
+                <tr
+                  className={`${styles.invoiceRow} ${styles.clickableRow} ${expandedInvoiceId === invoice.invoiceId ? styles.expandedRow : ''}`}
+                  onClick={() => onRowClick(invoice.invoiceId)}
+                >
+                  <td className={styles.checkboxCell} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedInvoices.has(invoice.invoiceId)}
+                      onChange={() => onToggleSelection(invoice.invoiceId)}
+                      className={styles.checkbox}
+                    />
+                  </td>
+                  <td className={styles.invoiceNumber}>{invoice.invoiceNumber}</td>
+                  <td className={styles.invoiceDate} style={{ textAlign: 'center' }}>{invoice.formattedDate}</td>
+                  <td className={styles.itemsCell}>{invoice.itemCount} items</td>
+                  <td className={styles.paymentCell}>
+                    <span className={`${styles.paymentBadge} ${styles[invoice.paymentBadgeClass]}`}>
+                      {invoice.paymentMethodDisplay}
+                    </span>
+                  </td>
+                  <td className={styles.totalCell}>
+                    {invoice.formatCurrency(invoice.totalAmount)}
+                  </td>
+                  <td className={styles.statusCell}>
+                    <span className={`${styles.statusBadge} ${styles[invoice.status]}`}>
+                      {invoice.statusDisplay.toUpperCase()}
+                    </span>
+                  </td>
+                </tr>
 
-              return (
-                <React.Fragment key={invoice.invoiceId}>
-                  <tr
-                    className={`${styles.invoiceRow} ${isExpanded ? styles.expandedRow : ''}`}
-                    onClick={() => onRowClick(invoice.invoiceId)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td className={styles.checkboxCell} onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedInvoices.has(invoice.invoiceId)}
-                        onChange={() => onToggleSelection(invoice.invoiceId)}
-                        className={styles.checkbox}
-                      />
-                    </td>
-                    <td className={styles.invoiceNumber}>{invoice.invoiceNumber}</td>
-                    <td className={styles.invoiceDate}>{invoice.formattedDate}</td>
-                    <td className={styles.customerCell}>
-                      {invoice.customerName}
-                    </td>
-                    <td className={styles.itemsCell}>
-                      <div className={styles.itemCount}>{invoice.itemCount} items</div>
-                      <div className={styles.itemQty}>Qty: {invoice.totalQuantity}</div>
-                    </td>
-                    <td className={styles.paymentCell}>
-                      <span className={`${styles.paymentBadge} ${styles[invoice.paymentBadgeClass]}`}>
-                        {invoice.paymentMethodDisplay}
-                      </span>
-                    </td>
-                    <td className={styles.totalCell}>
-                      {invoice.formatCurrency(invoice.totalAmount)}
-                    </td>
-                    <td className={styles.statusCell}>
-                      <span className={`${styles.statusBadge} ${styles[invoice.status]}`}>
-                        {invoice.statusDisplay.toUpperCase()}
-                      </span>
+                {/* Expanded Detail Row */}
+                {expandedInvoiceId === invoice.invoiceId && (
+                  <tr className={styles.detailRow}>
+                    <td colSpan={7}>
+                      <div className={styles.detailContent}>
+                        {detailLoading ? (
+                          <div className={styles.detailLoading}>
+                            <LoadingAnimation size="medium" />
+                          </div>
+                        ) : (
+                          <div className={styles.expandedPanel}>
+                            <div className={styles.expandedPanelGrid}>
+                              {/* Product List Section */}
+                              <div className={styles.productListSection}>
+                                <h4 className={styles.sectionTitle}>
+                                  Products ({invoiceDetail?.items.length || 0})
+                                </h4>
+                                <table className={styles.productTable}>
+                                  <thead>
+                                    <tr>
+                                      <th>Product</th>
+                                      <th>SKU</th>
+                                      <th>Qty</th>
+                                      <th>Unit Price</th>
+                                      <th>Discount</th>
+                                      <th>Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {invoiceDetail?.items.map((item) => (
+                                      <tr key={item.item_id}>
+                                        <td>
+                                          <div className={styles.productName}>{item.product_name}</div>
+                                        </td>
+                                        <td>
+                                          <div className={styles.productSku}>{item.sku}</div>
+                                        </td>
+                                        <td>{item.quantity_sold}</td>
+                                        <td>{expandedInvoice?.formatCurrency(item.unit_price)}</td>
+                                        <td>{expandedInvoice?.formatCurrency(item.discount_amount)}</td>
+                                        <td><strong>{expandedInvoice?.formatCurrency(item.total_amount)}</strong></td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Info Section */}
+                              <div className={styles.infoSection}>
+                                {/* Store & Cash Location Info */}
+                                <div className={styles.infoCard}>
+                                  <h5 className={styles.infoCardTitle}>Sale Location</h5>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Store</span>
+                                    <span className={styles.infoValue}>{invoice.storeName || '-'}</span>
+                                  </div>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Cash Location</span>
+                                    <span className={styles.infoValue}>
+                                      {invoice.cashLocationName || '-'}
+                                      {invoice.cashLocationType && (
+                                        <span className={`${styles.cashLocationType} ${styles[invoice.cashLocationType]}`}>
+                                          {invoice.cashLocationType}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Payment Method</span>
+                                    <span className={styles.infoValue}>{invoice.paymentMethodDisplay}</span>
+                                  </div>
+                                  {invoice.formattedTime && (
+                                    <div className={styles.infoItem}>
+                                      <span className={styles.infoLabel}>Created At</span>
+                                      <span className={styles.infoValue}>{invoice.formattedTime}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Amount Summary */}
+                                <div className={styles.infoCard}>
+                                  <h5 className={styles.infoCardTitle}>Amount Summary</h5>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Subtotal</span>
+                                    <span className={styles.infoValue}>{invoice.formatCurrency(invoice.subtotal)}</span>
+                                  </div>
+                                  {invoice.taxAmount > 0 && (
+                                    <div className={styles.infoItem}>
+                                      <span className={styles.infoLabel}>Tax</span>
+                                      <span className={styles.infoValue}>{invoice.formatCurrency(invoice.taxAmount)}</span>
+                                    </div>
+                                  )}
+                                  {invoice.discountAmount > 0 && (
+                                    <div className={styles.infoItem}>
+                                      <span className={styles.infoLabel}>Discount</span>
+                                      <span className={styles.infoValue}>-{invoice.formatCurrency(invoice.discountAmount)}</span>
+                                    </div>
+                                  )}
+                                  <div className={`${styles.infoItem} ${styles.totalRow}`}>
+                                    <span className={styles.infoLabel}>Total</span>
+                                    <span className={styles.infoValueHighlight}>{invoice.formatCurrency(invoice.totalAmount)}</span>
+                                  </div>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Total Cost</span>
+                                    <span className={styles.infoValue}>{invoice.formatCurrency(invoice.totalCost)}</span>
+                                  </div>
+                                  <div className={styles.infoItem}>
+                                    <span className={styles.infoLabel}>Profit</span>
+                                    <span className={`${styles.infoValue} ${invoice.profit >= 0 ? styles.profitPositive : styles.profitNegative}`}>
+                                      {invoice.formatCurrency(invoice.profit)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Refund Button */}
+                                <button
+                                  className={`${styles.refundButton} ${invoice.status === 'cancelled' ? styles.refundButtonDisabled : ''}`}
+                                  disabled={invoice.status === 'cancelled' || refundLoading}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRefund(invoice.invoiceId);
+                                  }}
+                                >
+                                  {refundLoading ? 'Processing...' : 'Refund'}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
-
-                  {/* Expanded Detail Row */}
-                  {isExpanded && (
-                    <tr className={styles.detailRow}>
-                      <td colSpan={8}>
-                        <div className={styles.detailContent}>
-                          <InvoiceDetailPanel
-                            invoice={invoice}
-                            invoiceDetail={invoiceDetail}
-                            detailLoading={detailLoading}
-                            refunding={refunding}
-                            onRefund={onRefund}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })
+                )}
+              </React.Fragment>
+            ))
           )}
         </tbody>
       </table>
