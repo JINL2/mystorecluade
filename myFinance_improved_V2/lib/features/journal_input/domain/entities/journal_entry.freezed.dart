@@ -18,6 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$JournalEntry {
   List<TransactionLine> get transactionLines =>
       throw _privateConstructorUsedError;
+  List<JournalAttachment> get attachments => throw _privateConstructorUsedError;
   DateTime get entryDate => throw _privateConstructorUsedError;
   String? get overallDescription => throw _privateConstructorUsedError;
   String? get selectedCompanyId => throw _privateConstructorUsedError;
@@ -39,6 +40,7 @@ abstract class $JournalEntryCopyWith<$Res> {
   @useResult
   $Res call(
       {List<TransactionLine> transactionLines,
+      List<JournalAttachment> attachments,
       DateTime entryDate,
       String? overallDescription,
       String? selectedCompanyId,
@@ -62,6 +64,7 @@ class _$JournalEntryCopyWithImpl<$Res, $Val extends JournalEntry>
   @override
   $Res call({
     Object? transactionLines = null,
+    Object? attachments = null,
     Object? entryDate = null,
     Object? overallDescription = freezed,
     Object? selectedCompanyId = freezed,
@@ -73,6 +76,10 @@ class _$JournalEntryCopyWithImpl<$Res, $Val extends JournalEntry>
           ? _value.transactionLines
           : transactionLines // ignore: cast_nullable_to_non_nullable
               as List<TransactionLine>,
+      attachments: null == attachments
+          ? _value.attachments
+          : attachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
       entryDate: null == entryDate
           ? _value.entryDate
           : entryDate // ignore: cast_nullable_to_non_nullable
@@ -107,6 +114,7 @@ abstract class _$$JournalEntryImplCopyWith<$Res>
   @useResult
   $Res call(
       {List<TransactionLine> transactionLines,
+      List<JournalAttachment> attachments,
       DateTime entryDate,
       String? overallDescription,
       String? selectedCompanyId,
@@ -128,6 +136,7 @@ class __$$JournalEntryImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? transactionLines = null,
+    Object? attachments = null,
     Object? entryDate = null,
     Object? overallDescription = freezed,
     Object? selectedCompanyId = freezed,
@@ -139,6 +148,10 @@ class __$$JournalEntryImplCopyWithImpl<$Res>
           ? _value._transactionLines
           : transactionLines // ignore: cast_nullable_to_non_nullable
               as List<TransactionLine>,
+      attachments: null == attachments
+          ? _value._attachments
+          : attachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
       entryDate: null == entryDate
           ? _value.entryDate
           : entryDate // ignore: cast_nullable_to_non_nullable
@@ -168,12 +181,14 @@ class __$$JournalEntryImplCopyWithImpl<$Res>
 class _$JournalEntryImpl extends _JournalEntry {
   const _$JournalEntryImpl(
       {final List<TransactionLine> transactionLines = const [],
+      final List<JournalAttachment> attachments = const [],
       required this.entryDate,
       this.overallDescription,
       this.selectedCompanyId,
       this.selectedStoreId,
       this.counterpartyCashLocationId})
       : _transactionLines = transactionLines,
+        _attachments = attachments,
         super._();
 
   final List<TransactionLine> _transactionLines;
@@ -184,6 +199,15 @@ class _$JournalEntryImpl extends _JournalEntry {
       return _transactionLines;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_transactionLines);
+  }
+
+  final List<JournalAttachment> _attachments;
+  @override
+  @JsonKey()
+  List<JournalAttachment> get attachments {
+    if (_attachments is EqualUnmodifiableListView) return _attachments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_attachments);
   }
 
   @override
@@ -199,7 +223,7 @@ class _$JournalEntryImpl extends _JournalEntry {
 
   @override
   String toString() {
-    return 'JournalEntry(transactionLines: $transactionLines, entryDate: $entryDate, overallDescription: $overallDescription, selectedCompanyId: $selectedCompanyId, selectedStoreId: $selectedStoreId, counterpartyCashLocationId: $counterpartyCashLocationId)';
+    return 'JournalEntry(transactionLines: $transactionLines, attachments: $attachments, entryDate: $entryDate, overallDescription: $overallDescription, selectedCompanyId: $selectedCompanyId, selectedStoreId: $selectedStoreId, counterpartyCashLocationId: $counterpartyCashLocationId)';
   }
 
   @override
@@ -209,6 +233,8 @@ class _$JournalEntryImpl extends _JournalEntry {
             other is _$JournalEntryImpl &&
             const DeepCollectionEquality()
                 .equals(other._transactionLines, _transactionLines) &&
+            const DeepCollectionEquality()
+                .equals(other._attachments, _attachments) &&
             (identical(other.entryDate, entryDate) ||
                 other.entryDate == entryDate) &&
             (identical(other.overallDescription, overallDescription) ||
@@ -227,6 +253,7 @@ class _$JournalEntryImpl extends _JournalEntry {
   int get hashCode => Object.hash(
       runtimeType,
       const DeepCollectionEquality().hash(_transactionLines),
+      const DeepCollectionEquality().hash(_attachments),
       entryDate,
       overallDescription,
       selectedCompanyId,
@@ -245,6 +272,7 @@ class _$JournalEntryImpl extends _JournalEntry {
 abstract class _JournalEntry extends JournalEntry {
   const factory _JournalEntry(
       {final List<TransactionLine> transactionLines,
+      final List<JournalAttachment> attachments,
       required final DateTime entryDate,
       final String? overallDescription,
       final String? selectedCompanyId,
@@ -254,6 +282,8 @@ abstract class _JournalEntry extends JournalEntry {
 
   @override
   List<TransactionLine> get transactionLines;
+  @override
+  List<JournalAttachment> get attachments;
   @override
   DateTime get entryDate;
   @override

@@ -632,7 +632,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -646,7 +645,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -664,7 +662,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -678,7 +675,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -696,7 +692,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -710,7 +705,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -780,17 +774,16 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         return denom.copyWith(quantity: quantity);
       }).toList();
 
-      // Only add currency if it has quantities
-      if (currencyQuantities.isNotEmpty) {
-        denominationQuantitiesMap[currencyId] = currencyQuantities;
-        currenciesWithData.add(Currency(
-          currencyId: currency.currencyId,
-          currencyCode: currency.currencyCode,
-          currencyName: currency.currencyName,
-          symbol: currency.symbol,
-          denominations: denominationsWithQuantity,
-        ));
-      }
+      // ✅ Always add currency (even if all quantities are 0)
+      // This allows recount of empty vault
+      denominationQuantitiesMap[currencyId] = currencyQuantities;
+      currenciesWithData.add(Currency(
+        currencyId: currency.currencyId,
+        currencyCode: currency.currencyCode,
+        currencyName: currency.currencyName,
+        symbol: currency.symbol,
+        denominations: denominationsWithQuantity,
+      ));
     }
 
     // ✅ Execute Multi-Currency RECOUNT (ALL currencies in ONE RPC call)

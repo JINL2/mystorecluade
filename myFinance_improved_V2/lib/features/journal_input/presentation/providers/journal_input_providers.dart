@@ -7,7 +7,9 @@
 // ✅ Repository implementation is provided via dependency injection
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../domain/entities/journal_attachment.dart';
 import '../../domain/entities/journal_entry.dart';
 import '../../domain/providers/repository_providers.dart';
 import 'journal_entry_notifier.dart';
@@ -131,8 +133,9 @@ final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String
 // Action Providers
 // =============================================================================
 
-/// Submit journal entry
-final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntry, String, String, String?)>(
+/// Submit journal entry and upload attachments
+/// Returns the created journal ID
+final submitJournalEntryProvider = Provider<Future<String> Function(JournalEntry, String, String, String?)>(
   (ref) {
     return (JournalEntry journalEntry, String userId, String companyId, String? storeId) async {
       if (!journalEntry.canSubmit()) {
@@ -140,11 +143,67 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntry, 
       }
 
       final repository = ref.read(journalEntryRepositoryProvider);
-      await repository.submitJournalEntry(
+
+      // Step 1: Create journal entry and get journal_id
+      final journalId = await repository.submitJournalEntry(
         journalEntry: journalEntry,
         userId: userId,
         companyId: companyId,
         storeId: storeId,
+      );
+
+      // Step 2: Upload attachments if any
+      final pendingFiles = journalEntry.pendingAttachments
+          .where((a) => a.localFile != null)
+          .map((a) => a.localFile!)
+          .toList();
+
+      if (pendingFiles.isNotEmpty) {
+        await repository.uploadAttachments(
+          companyId: companyId,
+          journalId: journalId,
+          uploadedBy: userId,
+          files: pendingFiles,
+        );
+      }
+
+      return journalId;
+    };
+  },
+);
+
+/// Upload attachments to an existing journal
+final uploadAttachmentsProvider = Provider<Future<List<JournalAttachment>> Function(String, String, String, List<XFile>)>(
+  (ref) {
+    return (String companyId, String journalId, String uploadedBy, List<XFile> files) async {
+      final repository = ref.read(journalEntryRepositoryProvider);
+      return await repository.uploadAttachments(
+        companyId: companyId,
+        journalId: journalId,
+        uploadedBy: uploadedBy,
+        files: files,
+      );
+    };
+  },
+);
+
+/// Get journal attachments
+final journalAttachmentsProvider = FutureProvider.family<List<JournalAttachment>, String>(
+  (ref, journalId) async {
+    if (journalId.isEmpty) return [];
+    final repository = ref.watch(journalEntryRepositoryProvider);
+    return await repository.getJournalAttachments(journalId);
+  },
+);
+
+/// Delete an attachment
+final deleteAttachmentProvider = Provider<Future<void> Function(String, String)>(
+  (ref) {
+    return (String attachmentId, String fileUrl) async {
+      final repository = ref.read(journalEntryRepositoryProvider);
+      await repository.deleteAttachment(
+        attachmentId: attachmentId,
+        fileUrl: fileUrl,
       );
     };
   },

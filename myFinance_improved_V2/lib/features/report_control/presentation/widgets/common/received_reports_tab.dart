@@ -18,6 +18,7 @@ import '../../providers/report_provider.dart';
 import '../../providers/report_state.dart';
 import '../../utils/template_registry.dart';
 import 'report_notification_card.dart';
+import '../../pages/templates/daily_attendance/daily_attendance_detail_page.dart';
 
 /// Tab for displaying received reports
 ///
@@ -92,7 +93,8 @@ class ReceivedReportsTab extends ConsumerWidget {
               Row(
                 children: [
                   // Unread toggle chip
-                  GestureDetector(
+                  Flexible(
+                    child: GestureDetector(
                     onTap: () => notifier.toggleShowUnreadOnly(),
                     child: Container(
                       padding: EdgeInsets.symmetric(
@@ -140,9 +142,11 @@ class ReceivedReportsTab extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  ),
                   SizedBox(width: TossSpacing.space2),
                   // Date range chip
-                  GestureDetector(
+                  Flexible(
+                    child: GestureDetector(
                     onTap: () => _showDateRangePicker(context, ref),
                     child: Container(
                       padding: EdgeInsets.symmetric(
@@ -193,10 +197,11 @@ class ReceivedReportsTab extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  ),
                   const Spacer(),
                   // Example button
                   GestureDetector(
-                    onTap: () => _showExampleReport(context),
+                    onTap: () => _showExampleMenu(context),
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: TossSpacing.space2,
@@ -686,47 +691,15 @@ class ReceivedReportsTab extends ConsumerWidget {
     return formatted;
   }
 
-  /// Show example report with rich visualization
-  void _showExampleReport(BuildContext context) {
-    // Create example notification
-    final exampleNotification = ReportNotification(
-      notificationId: 'example-notification',
-      title: 'Daily Financial Summary (Example)',
-      body: jsonEncode(ExampleReportData.dailyFinancialSummary.toJson()),
-      isRead: false,
-      createdAt: DateTime.now(),
-      reportDate: DateTime(2025, 12, 1),
-      sessionId: 'example-session',
-      templateId: 'd7f54762-cfad-422b-8d85-b71d827d10f2',
-      subscriptionId: null,
-      templateName: 'Daily Financial Summary',
-      templateCode: 'daily_fraud_detection',
-      templateIcon: null,
-      templateFrequency: 'daily',
-      categoryId: null,
-      categoryName: null,
-      sessionStatus: 'completed',
-      sessionStartedAt: null,
-      sessionCompletedAt: null,
-      sessionErrorMessage: null,
-      processingTimeMs: null,
-      subscriptionEnabled: null,
-      subscriptionScheduleTime: null,
-      subscriptionScheduleDays: null,
-      storeId: null,
-      storeName: null,
+  /// Show example attendance report
+  void _showExampleMenu(BuildContext context) {
+    // TODO: This test function needs to be updated to work with real notification data
+    // The DailyAttendanceDetailPage now requires a ReportNotification parameter
+    // For now, this functionality is disabled
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Example report requires notification data'),
+      ),
     );
-
-    // Use registry to show example
-    final page = TemplateRegistry.buildByCode(
-      'daily_fraud_detection',
-      exampleNotification,
-    );
-
-    if (page != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => page),
-      );
-    }
   }
 }

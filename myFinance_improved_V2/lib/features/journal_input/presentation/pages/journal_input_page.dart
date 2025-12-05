@@ -23,8 +23,8 @@ import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../domain/entities/transaction_line.dart';
 // Presentation
 import '../providers/journal_input_providers.dart';
-import '../providers/states/journal_entry_state.dart';
 import '../widgets/add_transaction_dialog.dart';
+import '../widgets/attachment_picker_section.dart';
 import '../widgets/transaction_line_card.dart';
 
 class JournalInputPage extends ConsumerStatefulWidget {
@@ -473,6 +473,17 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                         textInputAction: TextInputAction.newline,
                         showKeyboardToolbar: false,
                       ),
+                    ),
+
+                    // Attachments Section
+                    TossWhiteCard(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space4,
+                        vertical: TossSpacing.space2,
+                      ),
+                      padding: const EdgeInsets.all(TossSpacing.space4),
+                      showBorder: false,
+                      child: const AttachmentPickerSection(),
                     ),
 
                     // Transaction Lines Section

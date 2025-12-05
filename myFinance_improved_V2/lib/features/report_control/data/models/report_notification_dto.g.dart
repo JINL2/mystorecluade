@@ -44,6 +44,7 @@ _$ReportNotificationDtoImpl _$$ReportNotificationDtoImplFromJson(
               .toList(),
       storeId: json['store_id'] as String?,
       storeName: json['store_name'] as String?,
+      companyId: json['company_id'] as String?,
     );
 
 Map<String, dynamic> _$$ReportNotificationDtoImplToJson(
@@ -75,4 +76,5 @@ Map<String, dynamic> _$$ReportNotificationDtoImplToJson(
       'subscription_schedule_days': instance.subscriptionScheduleDays,
       'store_id': instance.storeId,
       'store_name': instance.storeName,
+      'company_id': instance.companyId,
     };

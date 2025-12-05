@@ -58,11 +58,14 @@ class ReportParser {
           return null;
         }
       } else if (outerJson.containsKey('template_id') ||
-          outerJson.containsKey('account_changes')) {
+          outerJson.containsKey('account_changes') ||
+          outerJson.containsKey('hero_stats') ||
+          outerJson.containsKey('issues')) {
         print('🔍 [Parser] Step 3b: Direct report JSON');
         reportJson = outerJson;
       } else {
         print('❌ [Parser] No recognized format');
+        print('📋 [Parser] Available keys: ${outerJson.keys.join(', ')}');
         return null;
       }
 

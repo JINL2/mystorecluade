@@ -9,8 +9,10 @@
 /// - ✅ Provides dependency injection
 library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
+import '../../domain/entities/template_attachment.dart';
 import '../../domain/usecases/create_transaction_from_template_usecase.dart';
 
 /// Provider for CreateTransactionFromTemplateUseCase
@@ -26,3 +28,44 @@ final createTransactionFromTemplateUseCaseProvider = Provider<CreateTransactionF
     transactionRepository: transactionRepository,
   );
 });
+
+// =============================================================================
+// Attachment Providers
+// =============================================================================
+
+/// Upload attachments to an existing journal
+final uploadTemplateAttachmentsProvider = Provider<Future<List<TemplateAttachment>> Function(String, String, String, List<XFile>)>(
+  (ref) {
+    return (String companyId, String journalId, String uploadedBy, List<XFile> files) async {
+      final repository = ref.read(transactionRepositoryProvider);
+      return await repository.uploadAttachments(
+        companyId: companyId,
+        journalId: journalId,
+        uploadedBy: uploadedBy,
+        files: files,
+      );
+    };
+  },
+);
+
+/// Get journal attachments
+final templateJournalAttachmentsProvider = FutureProvider.family<List<TemplateAttachment>, String>(
+  (ref, journalId) async {
+    if (journalId.isEmpty) return [];
+    final repository = ref.watch(transactionRepositoryProvider);
+    return await repository.getJournalAttachments(journalId);
+  },
+);
+
+/// Delete an attachment
+final deleteTemplateAttachmentProvider = Provider<Future<void> Function(String, String)>(
+  (ref) {
+    return (String attachmentId, String fileUrl) async {
+      final repository = ref.read(transactionRepositoryProvider);
+      await repository.deleteAttachment(
+        attachmentId: attachmentId,
+        fileUrl: fileUrl,
+      );
+    };
+  },
+);

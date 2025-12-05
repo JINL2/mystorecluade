@@ -6,13 +6,18 @@
 /// - Checks template usage for deletion safety
 /// - Follows DTO pattern for type safety and consistency with TemplateRepository
 /// - Matches production QuickTransactionRepository pattern
+/// - Handles attachment uploads to Supabase Storage
 ///
 /// 🎯 FOCUSED: Template-to-transaction creation only, no CRUD
 /// Clean Architecture: DATA LAYER - Repository Implementation
 library;
+import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/entities/template_attachment.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/transaction_line_entity.dart';
 import '../../domain/repositories/transaction_repository.dart';
@@ -39,8 +44,9 @@ class SupabaseTransactionRepository implements TransactionRepository {
   }
 
   /// ✅ NEW: Create transaction directly from template data
+  /// Returns the created journal ID for attachment uploads
   @override
-  Future<void> saveFromTemplate(CreateFromTemplateParams params) async {
+  Future<String> saveFromTemplate(CreateFromTemplateParams params) async {
     // ✅ FIXED: Format entry date as simple date string (YYYY-MM-DD)
     // RPC function expects TIMESTAMP, but PostgreSQL auto-converts from date string
     final entryDate = DateFormat('yyyy-MM-dd').format(params.entryDate);
@@ -65,8 +71,13 @@ class SupabaseTransactionRepository implements TransactionRepository {
       'p_store_id': params.storeId?.isNotEmpty == true ? params.storeId : null, // UUID (nullable)
     };
 
-    // Call Supabase RPC
-    await _supabaseService.client.rpc('insert_journal_with_everything_utc', params: rpcParams);
+    // Call Supabase RPC - returns journal_id as String
+    final journalId = await _supabaseService.client.rpc<String>(
+      'insert_journal_with_everything_utc',
+      params: rpcParams,
+    );
+
+    return journalId;
   }
 
   @override
@@ -417,5 +428,252 @@ class SupabaseTransactionRepository implements TransactionRepository {
 
     return null;
   }
-}
 
+  // =============================================================================
+  // Attachment Operations
+  // =============================================================================
+
+  /// Storage bucket name for journal attachments
+  static const String _bucketName = 'journal-attachments';
+
+  /// Maximum file size in bytes (5MB)
+  static const int _maxFileSizeBytes = 5 * 1024 * 1024;
+
+  /// Image compression quality (0-100) - Lower = smaller file size
+  static const int _compressionQuality = 50;
+
+  /// Maximum image dimension for compression - Smaller = smaller file size
+  static const int _maxImageDimension = 800;
+
+  /// Upload attachments to storage and save metadata to database
+  @override
+  Future<List<TemplateAttachment>> uploadAttachments({
+    required String companyId,
+    required String journalId,
+    required String uploadedBy,
+    required List<XFile> files,
+  }) async {
+    final uploadedAttachments = <TemplateAttachment>[];
+
+    for (final file in files) {
+      try {
+        final attachment = await _uploadSingleAttachment(
+          companyId: companyId,
+          journalId: journalId,
+          uploadedBy: uploadedBy,
+          file: file,
+        );
+        uploadedAttachments.add(attachment);
+      } catch (e) {
+        debugPrint('❌ Failed to upload attachment ${file.name}: $e');
+        // Continue with other files even if one fails
+      }
+    }
+
+    return uploadedAttachments;
+  }
+
+  /// Upload a single attachment with compression
+  Future<TemplateAttachment> _uploadSingleAttachment({
+    required String companyId,
+    required String journalId,
+    required String uploadedBy,
+    required XFile file,
+  }) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final originalName = file.name;
+    final fileName = '${timestamp}_$originalName';
+    final mimeType = _getMimeType(originalName);
+
+    // Storage path: {company_id}/{journal_id}/{timestamp}_{filename}
+    final storagePath = '$companyId/$journalId/$fileName';
+
+    // Compress image if applicable
+    Uint8List fileBytes;
+    if (_isImageFile(originalName)) {
+      fileBytes = await _compressImage(file);
+      debugPrint('📷 Compressed image: ${file.name}');
+    } else {
+      fileBytes = await file.readAsBytes();
+    }
+
+    // Check file size after compression
+    if (fileBytes.length > _maxFileSizeBytes) {
+      throw Exception('File size exceeds 5MB limit after compression');
+    }
+
+    // Upload to storage
+    await _supabaseService.client.storage.from(_bucketName).uploadBinary(
+      storagePath,
+      fileBytes,
+      fileOptions: FileOptions(contentType: mimeType),
+    );
+
+    // Get the file URL (signed URL for private bucket)
+    final fileUrl = _supabaseService.client.storage.from(_bucketName).getPublicUrl(storagePath);
+
+    // Save to database
+    final now = DateTime.now().toUtc();
+    final response = await _supabaseService.client.from('journal_attachments').insert({
+      'journal_id': journalId,
+      'file_url': fileUrl,
+      'file_name': originalName,
+      'uploaded_by': uploadedBy,
+      'uploaded_at_utc': now.toIso8601String(),
+    }).select('attachment_id').single();
+
+    debugPrint('✅ Uploaded attachment: $originalName -> $storagePath');
+
+    return TemplateAttachment(
+      attachmentId: response['attachment_id'] as String,
+      journalId: journalId,
+      fileUrl: fileUrl,
+      fileName: originalName,
+      fileSizeBytes: fileBytes.length,
+      mimeType: mimeType,
+      uploadedBy: uploadedBy,
+      uploadedAtUtc: now,
+    );
+  }
+
+  /// Compress image using flutter_image_compress
+  Future<Uint8List> _compressImage(XFile file) async {
+    try {
+      final filePath = file.path;
+
+      // Use flutter_image_compress for compression
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        filePath,
+        minWidth: _maxImageDimension,
+        minHeight: _maxImageDimension,
+        quality: _compressionQuality,
+        format: _getCompressFormat(file.name),
+      );
+
+      if (compressedBytes != null) {
+        return compressedBytes;
+      }
+
+      // Fallback to original if compression fails
+      return await file.readAsBytes();
+    } catch (e) {
+      debugPrint('⚠️ Image compression failed, using original: $e');
+      return await file.readAsBytes();
+    }
+  }
+
+  /// Get compress format based on file extension
+  CompressFormat _getCompressFormat(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'png':
+        return CompressFormat.png;
+      case 'webp':
+        return CompressFormat.webp;
+      default:
+        return CompressFormat.jpeg;
+    }
+  }
+
+  /// Get all attachments for a journal entry
+  @override
+  Future<List<TemplateAttachment>> getJournalAttachments(String journalId) async {
+    try {
+      final response = await _supabaseService.client
+          .from('journal_attachments')
+          .select()
+          .eq('journal_id', journalId)
+          .order('uploaded_at_utc', ascending: true);
+
+      return response.map<TemplateAttachment>((row) {
+        return TemplateAttachment(
+          attachmentId: row['attachment_id'] as String,
+          journalId: row['journal_id'] as String,
+          fileUrl: row['file_url'] as String,
+          fileName: row['file_name'] as String? ?? 'unknown',
+          uploadedBy: row['uploaded_by'] as String?,
+          uploadedAtUtc: row['uploaded_at_utc'] != null
+              ? DateTime.parse(row['uploaded_at_utc'] as String)
+              : null,
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('❌ Failed to fetch attachments: $e');
+      throw Exception('Failed to fetch attachments: $e');
+    }
+  }
+
+  /// Delete an attachment from storage and database
+  @override
+  Future<void> deleteAttachment({
+    required String attachmentId,
+    required String fileUrl,
+  }) async {
+    try {
+      // Extract storage path from URL
+      final storagePath = _extractStoragePathFromUrl(fileUrl);
+
+      // Delete from storage
+      if (storagePath.isNotEmpty) {
+        await _supabaseService.client.storage.from(_bucketName).remove([storagePath]);
+        debugPrint('🗑️ Deleted from storage: $storagePath');
+      }
+
+      // Delete from database
+      await _supabaseService.client
+          .from('journal_attachments')
+          .delete()
+          .eq('attachment_id', attachmentId);
+
+      debugPrint('✅ Deleted attachment: $attachmentId');
+    } catch (e) {
+      debugPrint('❌ Failed to delete attachment: $e');
+      throw Exception('Failed to delete attachment: $e');
+    }
+  }
+
+  /// Extract storage path from public URL
+  String _extractStoragePathFromUrl(String fileUrl) {
+    try {
+      final uri = Uri.parse(fileUrl);
+      final pathSegments = uri.pathSegments;
+
+      // Find the bucket name index and extract the path after it
+      final bucketIndex = pathSegments.indexOf(_bucketName);
+      if (bucketIndex != -1 && bucketIndex < pathSegments.length - 1) {
+        return pathSegments.sublist(bucketIndex + 1).join('/');
+      }
+
+      return '';
+    } catch (e) {
+      debugPrint('⚠️ Failed to extract storage path from URL: $e');
+      return '';
+    }
+  }
+
+  /// Get MIME type from file name
+  String _getMimeType(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  /// Check if file is an image
+  bool _isImageFile(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif'].contains(ext);
+  }
+}

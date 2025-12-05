@@ -2,6 +2,7 @@
 // Pure business entity with no dependencies on frameworks
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'journal_attachment.dart';
 import 'transaction_line.dart';
 
 part 'journal_entry.freezed.dart';
@@ -12,6 +13,7 @@ class JournalEntry with _$JournalEntry {
 
   const factory JournalEntry({
     @Default([]) List<TransactionLine> transactionLines,
+    @Default([]) List<JournalAttachment> attachments,
     required DateTime entryDate,
     String? overallDescription,
     String? selectedCompanyId,
@@ -70,6 +72,7 @@ class JournalEntry with _$JournalEntry {
   JournalEntry clear() {
     return JournalEntry(
       transactionLines: const [],
+      attachments: const [],
       entryDate: DateTime.now(),
       overallDescription: null,
       selectedCompanyId: selectedCompanyId, // Keep company ID
@@ -77,6 +80,48 @@ class JournalEntry with _$JournalEntry {
       counterpartyCashLocationId: null,
     );
   }
+
+  // =============================================================================
+  // Attachment Management Methods
+  // =============================================================================
+
+  /// Add an attachment to the journal entry
+  JournalEntry addAttachment(JournalAttachment attachment) {
+    return copyWith(
+      attachments: [...attachments, attachment],
+    );
+  }
+
+  /// Remove an attachment at the specified index
+  JournalEntry removeAttachment(int index) {
+    if (index >= 0 && index < attachments.length) {
+      final newAttachments = List<JournalAttachment>.from(attachments);
+      newAttachments.removeAt(index);
+      return copyWith(attachments: newAttachments);
+    }
+    return this;
+  }
+
+  /// Clear all attachments
+  JournalEntry clearAttachments() {
+    return copyWith(attachments: const []);
+  }
+
+  /// Get pending attachments (not yet uploaded)
+  List<JournalAttachment> get pendingAttachments =>
+      attachments.where((a) => a.isPendingUpload).toList();
+
+  /// Get uploaded attachments
+  List<JournalAttachment> get uploadedAttachments =>
+      attachments.where((a) => a.isUploaded).toList();
+
+  /// Check if any attachment exceeds size limit
+  bool get hasOversizedAttachment =>
+      attachments.any((a) => a.exceedsSizeLimit);
+
+  /// Total size of all attachments in bytes
+  int get totalAttachmentSizeBytes =>
+      attachments.fold(0, (sum, a) => sum + a.fileSizeBytes);
 
   // =============================================================================
   // Business Logic Methods (Moved from Presentation Layer)
