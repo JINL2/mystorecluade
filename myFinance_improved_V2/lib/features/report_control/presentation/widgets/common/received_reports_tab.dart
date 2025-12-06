@@ -19,6 +19,7 @@ import '../../providers/report_state.dart';
 import '../../utils/template_registry.dart';
 import 'report_notification_card.dart';
 import '../../pages/templates/daily_attendance/daily_attendance_detail_page.dart';
+import '../../pages/templates/cash_location/cash_location_template.dart';
 
 /// Tab for displaying received reports
 ///
@@ -691,14 +692,81 @@ class ReceivedReportsTab extends ConsumerWidget {
     return formatted;
   }
 
-  /// Show example attendance report
+  /// Show example report menu
   void _showExampleMenu(BuildContext context) {
-    // TODO: This test function needs to be updated to work with real notification data
-    // The DailyAttendanceDetailPage now requires a ReportNotification parameter
-    // For now, this functionality is disabled
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Example report requires notification data'),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Example Reports',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Cash Location Example
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet,
+                    color: Color(0xFF10B981),
+                    size: 20,
+                  ),
+                ),
+                title: const Text('Cash Location Report'),
+                subtitle: const Text('Cash reconciliation example'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CashLocationTemplate.buildExamplePage(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
+              // Financial Summary Example (placeholder)
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.analytics,
+                    color: TossColors.primary,
+                    size: 20,
+                  ),
+                ),
+                title: const Text('Financial Summary'),
+                subtitle: const Text('Daily financial report example'),
+                trailing: const Icon(Icons.chevron_right),
+                enabled: false, // Disabled for now
+                onTap: null,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
