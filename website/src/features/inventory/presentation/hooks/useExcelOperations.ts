@@ -7,7 +7,7 @@
  * - Separate business logic from components
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { excelExportManager } from '@/core/utils/excel-export-utils';
 import { supabaseService } from '@/core/services/supabase_service';
 import type { InventoryItem } from '../../domain/entities/InventoryItem';
@@ -25,10 +25,14 @@ interface ExcelOperationsProps {
     companyId: string,
     storeId: string,
     userId: string,
-    products: any[]
+    products: any[],
+    defaultPrice?: boolean
   ) => Promise<{ success: boolean; summary?: any }>;
   showNotification: (variant: 'success' | 'error', message: string) => void;
 }
+
+// Selected price type for import
+type PriceType = 'store' | 'default' | null;
 
 export const useExcelOperations = ({
   inventory,
@@ -44,6 +48,8 @@ export const useExcelOperations = ({
 }: ExcelOperationsProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [showPriceTypeModal, setShowPriceTypeModal] = useState(false);
+  const [selectedPriceType, setSelectedPriceType] = useState<PriceType>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -87,23 +93,37 @@ export const useExcelOperations = ({
   };
 
   /**
-   * Handle import Excel with Batch Processing
+   * Handle import Excel - Process file with selected price type
    */
   const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     if (!file) {
+      // Reset price type if no file selected
+      setSelectedPriceType(null);
       return;
     }
 
     // Reset file input
     event.target.value = '';
 
+    // Check if price type was selected
+    if (!selectedPriceType) {
+      showNotification('error', 'Please select a price type first');
+      return;
+    }
+
     // Validate file type
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       showNotification('error', 'Please select a valid Excel file (.xlsx or .xls)');
+      setSelectedPriceType(null);
       return;
     }
+
+    const defaultPrice = selectedPriceType === 'default';
+
+    // Reset price type after capturing it
+    setSelectedPriceType(null);
 
     try {
       // Parse Excel file first (before showing loading overlay)
@@ -127,7 +147,7 @@ export const useExcelOperations = ({
       const BATCH_SIZE = 200;
       const totalProducts = parsedProducts.length;
 
-      // Show loading overlay AFTER parsing and validation complete
+      // Show loading overlay
       setIsImporting(true);
 
       // Initialize aggregated results
@@ -143,8 +163,8 @@ export const useExcelOperations = ({
         const batch = parsedProducts.slice(start, end);
 
         try {
-          // Import current batch via RPC
-          const result = await importExcel(companyId, selectedStoreId!, user.id, batch);
+          // Import current batch via RPC with price type
+          const result = await importExcel(companyId, selectedStoreId!, user.id, batch, defaultPrice);
 
           if (result.success && result.summary) {
             // Aggregate results
@@ -181,10 +201,42 @@ export const useExcelOperations = ({
   };
 
   /**
-   * Trigger file picker for import
+   * Handle store price selection - opens file picker
+   */
+  const handleStorePrice = useCallback(() => {
+    setSelectedPriceType('store');
+    setShowPriceTypeModal(false);
+    // Trigger file picker after state update
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
+  }, []);
+
+  /**
+   * Handle default price selection - opens file picker
+   */
+  const handleDefaultPrice = useCallback(() => {
+    setSelectedPriceType('default');
+    setShowPriceTypeModal(false);
+    // Trigger file picker after state update
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
+  }, []);
+
+  /**
+   * Close price type modal without importing
+   */
+  const closePriceTypeModal = useCallback(() => {
+    setShowPriceTypeModal(false);
+    setSelectedPriceType(null);
+  }, []);
+
+  /**
+   * Show price type modal when Import Excel button is clicked
    */
   const handleImportClick = () => {
-    fileInputRef.current?.click();
+    setShowPriceTypeModal(true);
   };
 
   return {
@@ -194,5 +246,10 @@ export const useExcelOperations = ({
     handleExportExcel,
     handleImportExcel,
     handleImportClick,
+    // Price type modal
+    showPriceTypeModal,
+    handleStorePrice,
+    handleDefaultPrice,
+    closePriceTypeModal,
   };
 };

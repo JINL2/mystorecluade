@@ -128,6 +128,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     handleExportExcel,
     handleImportExcel,
     handleImportClick,
+    // Price type modal
+    showPriceTypeModal,
+    handleStorePrice,
+    handleDefaultPrice,
+    closePriceTypeModal,
   } = useExcelOperations({
     inventory,
     companyId,
@@ -730,6 +735,187 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           ))}
         </div>
       </ConfirmModal>
+
+      {/* Price Type Selection Modal for Import */}
+      {showPriceTypeModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001,
+          }}
+          onClick={closePriceTypeModal}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '480px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                background: '#4169E1',
+                padding: '24px',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21Z" />
+              </svg>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+                Select Price Type
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '24px' }}>
+              {/* Info Section */}
+              <div
+                style={{
+                  background: '#F0F6FF',
+                  border: '1px solid #C5D9FF',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#4169E1" style={{ flexShrink: 0, marginTop: '2px' }}>
+                    <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                  </svg>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#191f28', marginBottom: '4px' }}>
+                      Which price would you like to update?
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6B7280', lineHeight: 1.5 }}>
+                      For existing products, choose to update the store-specific price or the default (company-wide) price. After selecting, you will be prompted to choose an Excel file.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {/* Store Price Button - Primary/Recommended */}
+                <button
+                  onClick={handleStorePrice}
+                  style={{
+                    flex: 1,
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '2px solid #4169E1',
+                    background: '#4169E1',
+                    color: 'white',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = '#3558c0';
+                    e.currentTarget.style.borderColor = '#3558c0';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = '#4169E1';
+                    e.currentTarget.style.borderColor = '#4169E1';
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z" />
+                  </svg>
+                  <span>Store Price</span>
+                  <span style={{ fontSize: '11px', fontWeight: 400, opacity: 0.85 }}>
+                    Recommended
+                  </span>
+                </button>
+
+                {/* Default Price Button - Secondary/Gray */}
+                <button
+                  onClick={handleDefaultPrice}
+                  style={{
+                    flex: 1,
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '2px solid #D1D5DB',
+                    background: '#F9FAFB',
+                    color: '#6B7280',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = '#F3F4F6';
+                    e.currentTarget.style.borderColor = '#9CA3AF';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = '#F9FAFB';
+                    e.currentTarget.style.borderColor = '#D1D5DB';
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A2.25,2.25 0 0,1 14.25,11A2.25,2.25 0 0,1 12,13.25A2.25,2.25 0 0,1 9.75,11A2.25,2.25 0 0,1 12,8.75M12,15C13.5,15 16.5,15.75 16.5,17.25V18H7.5V17.25C7.5,15.75 10.5,15 12,15Z" />
+                  </svg>
+                  <span>Default Price</span>
+                  <span style={{ fontSize: '11px', fontWeight: 400 }}>
+                    Company-wide
+                  </span>
+                </button>
+              </div>
+
+              {/* Cancel Button */}
+              <button
+                onClick={closePriceTypeModal}
+                style={{
+                  width: '100%',
+                  marginTop: '16px',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#6B7280',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#F3F4F6';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
