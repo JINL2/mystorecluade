@@ -67,6 +67,16 @@ export interface InventoryTableSectionProps {
   loading?: boolean;
 
   /**
+   * Current company ID for API calls
+   */
+  companyId: string;
+
+  /**
+   * Current store ID for API calls
+   */
+  storeId: string;
+
+  /**
    * Callback when select all checkbox changes
    */
   onSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void;

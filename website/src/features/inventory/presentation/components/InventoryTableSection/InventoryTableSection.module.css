@@ -497,6 +497,302 @@
   animation: slideDown 0.3s ease;
 }
 
+/* Tab Navigation Styles */
+.detailTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailTab {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6C757D;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -1px;
+}
+
+.detailTab:hover {
+  color: #0064FF;
+  background: rgba(0, 100, 255, 0.05);
+}
+
+.detailTabActive {
+  color: #0064FF;
+  border-bottom-color: #0064FF;
+  font-weight: 600;
+}
+
+.detailTabContent {
+  min-height: 200px;
+}
+
+/* History Tab Styles */
+.historyTabContent {
+  padding: 20px 0;
+}
+
+.historyEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #9CA3AF;
+  text-align: center;
+}
+
+.historyEmpty svg {
+  margin-bottom: 16px;
+  color: #D1D5DB;
+}
+
+.historyEmpty p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* History Loading State */
+.historyLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* History Error State */
+.historyError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #dc2626;
+  text-align: center;
+}
+
+.historyError svg {
+  margin-bottom: 16px;
+  color: #fca5a5;
+}
+
+.historyError p {
+  font-size: 14px;
+  margin: 0 0 16px 0;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0064FF;
+  background: white;
+  border: 1px solid #0064FF;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #f0f6ff;
+}
+
+/* History Table Styles - Excel Style */
+.historyTableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #D1D5DB;
+  border-radius: 0;
+  background: white;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: auto;
+}
+
+.historyTable td {
+  border-bottom: none;
+  vertical-align: middle;
+  color: #374151;
+  background: white;
+}
+
+.historyTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.historyTable tbody tr:hover {
+  background: #F8FBFF;
+}
+
+.historyTable tbody tr:hover td {
+  background: #F8FBFF;
+}
+
+.historyTableRow {
+  transition: background-color 0.15s ease;
+}
+
+/* History Header Row - Excel Style */
+.historyHeaderRow {
+  background: #F8F9FA !important;
+}
+
+.historyHeaderRow:hover {
+  background: #F8F9FA !important;
+}
+
+.historyHeaderRow:hover td {
+  background: #F8F9FA !important;
+}
+
+.historyHeader {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #6C757D !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #F8F9FA !important;
+  border-bottom: 1px solid #D1D5DB !important;
+}
+
+/* History Table Column Widths - Percentage Based */
+.historyColTime {
+  width: 18%;
+  font-size: 13px;
+  color: #6B7280;
+  white-space: nowrap;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColType {
+  width: 12%;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColDesc {
+  width: 25%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColUser {
+  width: 18%;
+  color: #6B7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+.historyColQty {
+  width: 12%;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+.historyColStock {
+  width: 15%;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #111827;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+/* History Type Badge */
+.historyTypeBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Quantity Colors for History */
+.quantityPositive {
+  color: #16a34a !important;
+}
+
+.quantityNegativeHistory {
+  color: #dc2626 !important;
+}
+
+/* History Pagination */
+.historyPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #E9ECEF;
+}
+
+.historyPaginationInfo {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.historyPaginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.historyPaginationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.historyPaginationButton:hover:not(:disabled) {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.historyPaginationButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.historyPaginationActive {
+  background: #0064FF !important;
+  color: white !important;
+  border-color: #0064FF !important;
+}
+
+.historyPaginationActive:hover {
+  background: #0052CC !important;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;

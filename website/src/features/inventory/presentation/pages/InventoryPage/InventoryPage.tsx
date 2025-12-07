@@ -408,6 +408,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 expandedProductId={expandedProductId}
                 isAllSelected={isAllSelected}
                 loading={loading}
+                companyId={companyId}
+                storeId={selectedStoreId || ''}
                 onSelectAll={handleSelectAll}
                 onCheckboxChange={handleCheckboxChange}
                 onRowClick={(productId) => setExpandedProductId(expandedProductId === productId ? null : productId)}

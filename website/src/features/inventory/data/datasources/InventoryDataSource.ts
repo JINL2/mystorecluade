@@ -23,7 +23,98 @@ interface InventoryResponse {
   };
 }
 
+export interface ProductHistoryItem {
+  log_id: string;
+  event_category: 'stock' | 'price' | 'product';
+  event_type: string;
+  // Stock fields
+  quantity_before?: number;
+  quantity_after?: number;
+  quantity_change?: number;
+  // Price fields
+  cost_before?: number;
+  cost_after?: number;
+  selling_price_before?: number;
+  selling_price_after?: number;
+  min_price_before?: number;
+  min_price_after?: number;
+  // Product fields
+  name_before?: string;
+  name_after?: string;
+  sku_before?: string;
+  sku_after?: string;
+  barcode_before?: string;
+  barcode_after?: string;
+  brand_id_before?: string;
+  brand_id_after?: string;
+  brand_name_before?: string;
+  brand_name_after?: string;
+  category_id_before?: string;
+  category_id_after?: string;
+  category_name_before?: string;
+  category_name_after?: string;
+  weight_before?: number;
+  weight_after?: number;
+  // Reference fields
+  invoice_id?: string;
+  invoice_number?: string;
+  transfer_id?: string;
+  from_store_id?: string;
+  from_store_name?: string;
+  to_store_id?: string;
+  to_store_name?: string;
+  // Other fields
+  reason?: string;
+  notes?: string;
+  created_by?: string;
+  created_user?: string;
+  created_at: string;
+}
+
+export interface ProductHistoryResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  detail?: string;
+  data: ProductHistoryItem[];
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export class InventoryDataSource {
+  /**
+   * Transform v3 product response to flat structure for frontend compatibility
+   */
+  private transformV3Product(product: any): any {
+    return {
+      product_id: product.product_id,
+      sku: product.sku,
+      barcode: product.barcode,
+      product_name: product.product_name,
+      product_type: product.product_type,
+      brand_name: product.brand_name,
+      category_name: product.category_name,
+      unit: product.unit,
+      image_urls: product.image_urls || [],
+      created_at: product.created_at,
+      // Flatten stock object
+      quantity_on_hand: product.stock?.quantity_on_hand ?? 0,
+      quantity_available: product.stock?.quantity_available ?? 0,
+      quantity_reserved: product.stock?.quantity_reserved ?? 0,
+      // Flatten price object
+      cost_price: product.price?.cost ?? 0,
+      selling_price: product.price?.selling ?? 0,
+      price_source: product.price?.source ?? 'default',
+      // Flatten status object
+      stock_level: product.status?.stock_level ?? 'normal',
+      is_active: product.status?.is_active ?? true,
+      // Recent changes (keep as-is for potential future use)
+      recent_changes: product.recent_changes || [],
+    };
+  }
+
   async getInventory(
     companyId: string,
     storeId: string | null,
@@ -35,6 +126,11 @@ export class InventoryDataSource {
 
     // If no company ID, return empty result
     if (!companyId) {
+      return { products: [] };
+    }
+
+    // v3 requires store_id - if null, return empty
+    if (!storeId) {
       return { products: [] };
     }
 
@@ -54,16 +150,18 @@ export class InventoryDataSource {
       rpcParams.p_search = search.trim();
     }
 
-    // RPC 'get_inventory_page_v2' returns products with UTC columns converted to user timezone
-    const { data, error } = await supabase.rpc('get_inventory_page_v2', rpcParams);
+    // RPC 'get_inventory_page_v3' returns products with nested stock/price/status objects
+    const { data, error } = await supabase.rpc('get_inventory_page_v3', rpcParams);
 
     if (error) {
       throw new Error(error.message);
     }
 
-    // Handle direct success wrapper format: { success: true, data: { products: [], pagination: {}, currency: {} } }
+    // Handle success wrapper format: { success: true, data: { products: [], pagination: {}, currency: {} } }
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
-      const products = data.data?.products || [];
+      const rawProducts = data.data?.products || [];
+      // Transform v3 nested structure to flat structure
+      const products = rawProducts.map((p: any) => this.transformV3Product(p));
 
       return {
         products: products,
@@ -73,7 +171,7 @@ export class InventoryDataSource {
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page');
+    throw new Error('Invalid response format from get_inventory_page_v3');
   }
 
   async updateProduct(
@@ -81,20 +179,23 @@ export class InventoryDataSource {
     companyId: string,
     storeId: string,
     productData: any,
-    originalData?: any
-  ): Promise<{ success: boolean; error?: string }> {
+    originalData?: any,
+    userId?: string
+  ): Promise<{ success: boolean; error?: string; data?: any }> {
     const supabase = supabaseService.getClient();
 
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Build params - only include fields that changed or are always required
+    // Build params for v4 - p_created_by is required
     const params: any = {
       p_product_id: productId,
       p_company_id: companyId,
       p_store_id: storeId,
+      p_created_by: userId || productData.userId, // Required for v4
       p_updated_at: new Date().toISOString(),
       p_timezone: userTimezone,
+      p_default_price: productData.defaultPrice ?? false, // false = store price, true = default price
     };
 
     // Only include product name if it changed
@@ -134,6 +235,7 @@ export class InventoryDataSource {
 
     if (!originalData || productData.currentStock !== originalData.currentStock) {
       params.p_new_quantity = productData.currentStock;
+      params.p_flow_type = productData.flowType || 'adjust'; // Flow type for stock changes
     }
 
     // Always include image URLs if provided (array comparison is complex)
@@ -141,7 +243,7 @@ export class InventoryDataSource {
       params.p_image_urls = productData.imageUrls || null;
     }
 
-    const { data, error } = await supabase.rpc('inventory_edit_product_v3', params);
+    const { data, error } = await supabase.rpc('inventory_edit_product_v4', params);
 
     if (error) {
       return {
@@ -155,6 +257,7 @@ export class InventoryDataSource {
       if (data.success === true) {
         return {
           success: true,
+          data: data.data, // Include response data (updated_fields, stock_change, logs_created)
         };
       } else {
         return {
@@ -191,18 +294,20 @@ export class InventoryDataSource {
     companyId: string,
     storeId: string,
     userId: string,
-    products: any[]
-  ): Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }> {
+    products: any[],
+    defaultPrice: boolean = false
+  ): Promise<{ success: boolean; summary?: any; errors?: any[]; message?: string; error?: string }> {
     const supabase = supabaseService.getClient();
 
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('inventory_import_excel_v3', {
+    const { data, error } = await supabase.rpc('inventory_import_excel_v4', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_user_id: userId,
       p_products: products,
+      p_default_price: defaultPrice, // false = store price, true = default price
       p_time: new Date().toISOString(),
       p_timezone: userTimezone,
     });
@@ -220,12 +325,13 @@ export class InventoryDataSource {
         success: data.success,
         summary: data.summary,
         errors: data.errors,
+        message: data.message,
       };
     }
 
     return {
       success: false,
-      error: 'Invalid response format from inventory_import_excel_v3',
+      error: 'Invalid response format from inventory_import_excel_v4',
     };
   }
 
@@ -375,6 +481,11 @@ export class InventoryDataSource {
       return { products: [] };
     }
 
+    // v3 requires store_id - if null, return empty
+    if (!storeId) {
+      return { products: [] };
+    }
+
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -391,15 +502,17 @@ export class InventoryDataSource {
       rpcParams.p_search = search.trim();
     }
 
-    const { data, error } = await supabase.rpc('get_inventory_page_v2', rpcParams);
+    const { data, error } = await supabase.rpc('get_inventory_page_v3', rpcParams);
 
     if (error) {
       throw new Error(error.message);
     }
 
-    // Handle direct success wrapper format
+    // Handle success wrapper format
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
-      const products = data.data?.products || [];
+      const rawProducts = data.data?.products || [];
+      // Transform v3 nested structure to flat structure
+      const products = rawProducts.map((p: any) => this.transformV3Product(p));
 
       return {
         products: products,
@@ -409,7 +522,7 @@ export class InventoryDataSource {
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page');
+    throw new Error('Invalid response format from get_inventory_page_v3');
   }
 
   /**
@@ -473,6 +586,59 @@ export class InventoryDataSource {
       success: false,
       error: 'Invalid response format from inventory_delete_product_v3',
       code: 'INVALID_RESPONSE',
+    };
+  }
+
+  /**
+   * Get product history (inventory logs)
+   * Uses inventory_product_history RPC
+   */
+  async getProductHistory(
+    companyId: string,
+    storeId: string,
+    productId: string,
+    page: number = 1,
+    pageSize: number = 5
+  ): Promise<ProductHistoryResponse> {
+    const supabase = supabaseService.getClient();
+
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const { data, error } = await supabase.rpc('inventory_product_history', {
+      p_company_id: companyId,
+      p_store_id: storeId,
+      p_product_id: productId,
+      p_timezone: userTimezone,
+      p_page: page,
+      p_page_size: pageSize,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        message: error.message,
+        data: [],
+        total_count: 0,
+        page: 1,
+        page_size: pageSize,
+        total_pages: 0,
+      };
+    }
+
+    // Handle success wrapper response
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as ProductHistoryResponse;
+    }
+
+    return {
+      success: false,
+      message: 'Invalid response format from inventory_product_history',
+      data: [],
+      total_count: 0,
+      page: 1,
+      page_size: pageSize,
+      total_pages: 0,
     };
   }
 }
