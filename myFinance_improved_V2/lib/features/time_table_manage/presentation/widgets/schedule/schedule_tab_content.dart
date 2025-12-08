@@ -569,7 +569,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   /// Handle Approve button click
   ///
   /// Calls toggle_shift_approval_v3 RPC to approve a shift request.
-  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Local state is updated by ScheduleShiftCard for instant UI feedback.
+  /// Provider caches are invalidated for cross-tab sync (Timesheets tab).
   /// Returns true on success, false on failure.
   Future<bool> _handleApprove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return false;
@@ -587,6 +588,20 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           userId: userId,
         ),
       );
+
+      // Invalidate provider caches for cross-tab sync
+      // This ensures Timesheets tab sees updated data
+      if (widget.selectedStoreId != null) {
+        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
+          month: _selectedDate,
+          forceRefresh: true,
+        );
+        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+          month: _selectedDate,
+          forceRefresh: true,
+        );
+      }
+
       return true;
     } catch (e) {
       return false;
@@ -596,7 +611,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   /// Handle Remove button click from bottom sheet
   ///
   /// Calls toggle_shift_approval_v3 RPC to unapprove a shift request.
-  /// Does NOT refresh data - local state is updated by ScheduleShiftCard.
+  /// Local state is updated by ScheduleShiftCard for instant UI feedback.
+  /// Provider caches are invalidated for cross-tab sync (Timesheets tab).
   /// Returns true on success, false on failure.
   Future<bool> _handleRemove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return false;
@@ -614,6 +630,20 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
           userId: userId,
         ),
       );
+
+      // Invalidate provider caches for cross-tab sync
+      // This ensures Timesheets tab sees updated data
+      if (widget.selectedStoreId != null) {
+        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
+          month: _selectedDate,
+          forceRefresh: true,
+        );
+        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+          month: _selectedDate,
+          forceRefresh: true,
+        );
+      }
+
       return true;
     } catch (e) {
       return false;
