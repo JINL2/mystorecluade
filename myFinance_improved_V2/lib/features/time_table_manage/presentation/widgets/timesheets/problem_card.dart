@@ -88,11 +88,15 @@ class AttendanceProblem {
 class ProblemCard extends StatelessWidget {
   final AttendanceProblem problem;
   final VoidCallback? onTap;
+  /// If true, show day number (e.g., "7") instead of weekday (e.g., "Sun")
+  /// Useful for "This month" filter where weekday alone is ambiguous
+  final bool showDayNumber;
 
   const ProblemCard({
     super.key,
     required this.problem,
     this.onTap,
+    this.showDayNumber = false,
   });
 
   String _getProblemLabel(ProblemType type) {
@@ -123,6 +127,11 @@ class ProblemCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
+    if (showDayNumber) {
+      // Show day number for "This month" filter (e.g., "7")
+      return date.day.toString();
+    }
+    // Show weekday for "Today" and "This week" filters (e.g., "Sun")
     final weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday - 1];
     return weekday;
   }

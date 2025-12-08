@@ -151,28 +151,13 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name with dropdown indicator
-                  GestureDetector(
-                    onTap: _showEmployeeSelector,
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            employee.name,
-                            style: TossTextStyles.titleLarge.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.keyboard_arrow_down,
-                          size: 20,
-                          color: TossColors.gray600,
-                        ),
-                      ],
+                  // Name
+                  Text(
+                    employee.name,
+                    style: TossTextStyles.titleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   // Role and store
@@ -383,7 +368,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 13.8,
         shiftName: 'Morning shift',
-        dayOfWeek: 'Tue',
+        dayNumber: 15,
         clockIn: '08:12',
         clockOut: '--:--',
         needsConfirm: true,
@@ -392,7 +377,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 11.8,
         shiftName: 'Opening shift',
-        dayOfWeek: 'Sun',
+        dayNumber: 14,
         clockIn: '--:--',
         clockOut: '16:02',
         needsConfirm: true,
@@ -401,7 +386,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 9.8,
         shiftName: 'Afternoon shift',
-        dayOfWeek: 'Fri',
+        dayNumber: 12,
         clockIn: '14:00',
         clockOut: '23:18',
         needsConfirm: true,
@@ -410,7 +395,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 7.8,
         shiftName: 'Closing shift',
-        dayOfWeek: 'Wed',
+        dayNumber: 10,
         clockIn: '17:58',
         clockOut: '21:15',
         needsConfirm: true,
@@ -423,7 +408,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 13.8,
         shiftName: 'Morning shift',
-        dayOfWeek: 'Mon',
+        dayNumber: 8,
         clockIn: '08:05',
         clockOut: '--:--',
         needsConfirm: false,
@@ -432,7 +417,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 11.8,
         shiftName: 'Opening shift',
-        dayOfWeek: 'Sat',
+        dayNumber: 7,
         clockIn: '--:--',
         clockOut: '15:45',
         needsConfirm: false,
@@ -441,7 +426,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 10.2,
         shiftName: 'Afternoon shift',
-        dayOfWeek: 'Thu',
+        dayNumber: 6,
         clockIn: '13:55',
         clockOut: '22:30',
         needsConfirm: false,
@@ -450,7 +435,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 7.5,
         shiftName: 'Closing shift',
-        dayOfWeek: 'Tue',
+        dayNumber: 5,
         clockIn: '18:02',
         clockOut: '21:00',
         needsConfirm: false,
@@ -459,7 +444,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 8.0,
         shiftName: 'Morning shift',
-        dayOfWeek: 'Mon',
+        dayNumber: 4,
         clockIn: '08:15',
         clockOut: '16:00',
         needsConfirm: false,
@@ -468,7 +453,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 8.0,
         shiftName: 'Opening shift',
-        dayOfWeek: 'Fri',
+        dayNumber: 3,
         clockIn: '07:58',
         clockOut: '16:05',
         needsConfirm: false,
@@ -477,7 +462,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 9.5,
         shiftName: 'Afternoon shift',
-        dayOfWeek: 'Wed',
+        dayNumber: 2,
         clockIn: '14:00',
         clockOut: '23:00',
         needsConfirm: false,
@@ -486,7 +471,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 7.2,
         shiftName: 'Closing shift',
-        dayOfWeek: 'Sun',
+        dayNumber: 1,
         clockIn: '17:50',
         clockOut: '20:45',
         needsConfirm: false,
@@ -495,7 +480,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 8.0,
         shiftName: 'Morning shift',
-        dayOfWeek: 'Sat',
+        dayNumber: 28,
         clockIn: '08:20',
         clockOut: '16:10',
         needsConfirm: false,
@@ -504,7 +489,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       const _AttendanceItem(
         paidHours: 12.0,
         shiftName: 'Opening shift',
-        dayOfWeek: 'Thu',
+        dayNumber: 25,
         clockIn: '--:--',
         clockOut: '18:00',
         needsConfirm: false,
@@ -787,7 +772,7 @@ class _AttendanceTab extends StatelessWidget {
 class _AttendanceItem {
   final double paidHours;
   final String shiftName;
-  final String dayOfWeek;
+  final int dayNumber; // Day of month (1-31)
   final String clockIn;
   final String clockOut;
   final bool needsConfirm;
@@ -796,7 +781,7 @@ class _AttendanceItem {
   const _AttendanceItem({
     required this.paidHours,
     required this.shiftName,
-    required this.dayOfWeek,
+    required this.dayNumber,
     required this.clockIn,
     required this.clockOut,
     this.needsConfirm = false,
@@ -870,7 +855,7 @@ class _AttendanceCard extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: '${item.dayOfWeek} · ',
+                          text: '${item.dayNumber} · ',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
                           ),

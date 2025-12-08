@@ -32,11 +32,14 @@ enum StatsPeriod {
 class ShiftStatsTab extends ConsumerStatefulWidget {
   final String? selectedStoreId;
   final void Function(String storeId)? onStoreChanged;
+  /// Callback to navigate to Timesheets tab with a specific filter
+  final void Function(String filter)? onNavigateToTimesheets;
 
   const ShiftStatsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
+    this.onNavigateToTimesheets,
   });
 
   @override
@@ -235,6 +238,10 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             onTimeDisplay: onTimeDisplay,
             problemSolved: problemSolved,
             totalProblems: totalProblems > 0 ? totalProblems : 1, // Avoid division by zero
+            onProblemSolvesTap: () {
+              // Navigate to Timesheets tab with "This month" filter
+              widget.onNavigateToTimesheets?.call('this_month');
+            },
           ),
           const SizedBox(height: 16),
 
