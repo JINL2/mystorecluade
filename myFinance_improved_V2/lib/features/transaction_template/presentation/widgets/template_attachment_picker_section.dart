@@ -280,16 +280,15 @@ class _TemplateAttachmentPickerSectionState
                 const SizedBox(width: TossSpacing.space1),
                 Text(
                   'Attachments',
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.label.copyWith(
                     color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 if (widget.isRequired) ...[
-                  const SizedBox(width: TossSpacing.space1),
+                  const SizedBox(width: 2),
                   Text(
                     '*',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.label.copyWith(
                       color: TossColors.error,
                       fontWeight: FontWeight.w600,
                     ),

@@ -2,17 +2,13 @@
 ///
 /// This file contains form state providers for:
 /// - Add Shift Form
-/// - Shift Details Form
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../domain/entities/shift_card.dart';
 import '../notifiers/add_shift_form_notifier.dart';
-import '../notifiers/shift_details_form_notifier.dart';
 import '../states/add_shift_form_state.dart';
-import '../states/shift_details_form_state.dart';
 import '../usecase/time_table_usecase_providers.dart';
 
 // ============================================================================
@@ -42,39 +38,6 @@ final addShiftFormProvider = StateNotifierProvider.family<
     getScheduleDataUseCase,
     insertScheduleUseCase,
     storeId,
-    timezone,
-  );
-});
-
-// ============================================================================
-// Shift Details Form Provider
-// ============================================================================
-
-/// Shift Details Form Provider
-///
-/// Manages the state of the Shift Details bottom sheet.
-/// Requires ShiftCard parameter to initialize form with existing data.
-///
-/// Usage:
-/// ```dart
-/// final formState = ref.watch(shiftDetailsFormProvider(card));
-/// final notifier = ref.read(shiftDetailsFormProvider(card).notifier);
-/// ```
-final shiftDetailsFormProvider = StateNotifierProvider.family<
-    ShiftDetailsFormNotifier,
-    ShiftDetailsFormState,
-    ShiftCard>((ref, card) {
-  // Use UseCases instead of Repository directly (Clean Architecture)
-  final inputCardUseCase = ref.watch(inputCardUseCaseProvider);
-  final deleteShiftTagUseCase = ref.watch(deleteShiftTagUseCaseProvider);
-  final updateBonusAmountUseCase = ref.watch(updateBonusAmountUseCaseProvider);
-  // Use device local timezone instead of user DB timezone
-  final timezone = DateTimeUtils.getLocalTimezone();
-  return ShiftDetailsFormNotifier(
-    card,
-    inputCardUseCase,
-    deleteShiftTagUseCase,
-    updateBonusAmountUseCase,
     timezone,
   );
 });

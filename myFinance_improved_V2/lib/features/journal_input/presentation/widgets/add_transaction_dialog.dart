@@ -328,9 +328,46 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
+                // "Set Up" button - navigate to Account Settings
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(); // Close dialog
+                      Navigator.of(context).pop(); // Close AddTransactionDialog
+                      // Navigate to debt account settings page
+                      if (_selectedCounterpartyId != null && _selectedCounterpartyName != null) {
+                        context.pushNamed(
+                          'debtAccountSettings',
+                          pathParameters: {
+                            'counterpartyId': _selectedCounterpartyId!,
+                            'name': _selectedCounterpartyName!,
+                          },
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.primary,
+                      foregroundColor: TossColors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Set Up Account Mapping',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                // "Cancel" button - reset selection
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
                     onPressed: () {
                       Navigator.of(dialogContext).pop();
                       // Reset counterparty selection
@@ -343,19 +380,18 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         _isInternal = false;
                       });
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      foregroundColor: TossColors.white,
+                    style: TextButton.styleFrom(
+                      foregroundColor: TossColors.gray600,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
-                      elevation: 0,
                     ),
                     child: Text(
-                      'OK',
+                      'Cancel',
                       style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.gray600,
                       ),
                     ),
                   ),

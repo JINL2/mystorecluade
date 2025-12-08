@@ -70,10 +70,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   int penaltyAmount = 0;
   late int _initialPenaltyAmount;
 
-  // Controllers for bonus and penalty text fields
-  final TextEditingController _bonusController = TextEditingController();
-  final TextEditingController _penaltyController = TextEditingController();
-
   // Controllers for bonus and memo text fields
   final TextEditingController _bonusController = TextEditingController();
   final TextEditingController _memoController = TextEditingController();

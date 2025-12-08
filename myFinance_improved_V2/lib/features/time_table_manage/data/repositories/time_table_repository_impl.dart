@@ -1,5 +1,4 @@
 import '../../domain/entities/bulk_approval_result.dart';
-import '../../domain/entities/card_input_result.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
@@ -14,8 +13,6 @@ import '../datasources/time_table_datasource.dart';
 // Freezed DTOs
 import '../models/freezed/bulk_approval_result_dto.dart';
 import '../models/freezed/bulk_approval_result_dto_mapper.dart';
-import '../models/freezed/card_input_result_dto.dart';
-import '../models/freezed/card_input_result_dto_mapper.dart';
 import '../models/freezed/manager_overview_dto.dart';
 import '../models/freezed/manager_overview_dto_mapper.dart';
 import '../models/freezed/manager_shift_cards_dto.dart';
@@ -325,42 +322,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<CardInputResult> inputCard({
-    required String managerId,
-    required String shiftRequestId,
-    String? confirmStartTime,  // Nullable - RPC keeps existing if null
-    String? confirmEndTime,    // Nullable - RPC keeps existing if null
-    String? newTagContent,
-    String? newTagType,
-    required bool isLate,
-    required bool isProblemSolved,
-    required String timezone,
-  }) async {
-    try {
-      final data = await _datasource.inputCard(
-        managerId: managerId,
-        shiftRequestId: shiftRequestId,
-        confirmStartTime: confirmStartTime,
-        confirmEndTime: confirmEndTime,
-        newTagContent: newTagContent,
-        newTagType: newTagType,
-        isLate: isLate,
-        isProblemSolved: isProblemSolved,
-        timezone: timezone,
-      );
-
-      final dto = CardInputResultDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to input card: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<void> updateBonusAmount({
     required String shiftRequestId,
     required double bonusAmount,
@@ -374,35 +335,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to update bonus: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> inputCardV4({
-    required String managerId,
-    required String shiftRequestId,
-    String? confirmStartTime,
-    String? confirmEndTime,
-    bool? isProblemSolved,
-    double? bonusAmount,
-    required String timezone,
-  }) async {
-    try {
-      return await _datasource.inputCardV4(
-        managerId: managerId,
-        shiftRequestId: shiftRequestId,
-        confirmStartTime: confirmStartTime,
-        confirmEndTime: confirmEndTime,
-        isProblemSolved: isProblemSolved,
-        bonusAmount: bonusAmount,
-        timezone: timezone,
-      );
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to input card v4: $e',
         originalError: e,
       );
     }
