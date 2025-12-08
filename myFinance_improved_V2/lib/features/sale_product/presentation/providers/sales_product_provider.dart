@@ -94,8 +94,12 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         search: state.searchQuery,
       );
 
-      // Append new products to existing list
-      final allProducts = [...state.products, ...result.products];
+      // Append new products to existing list, avoiding duplicates
+      final existingIds = state.products.map((p) => p.productId).toSet();
+      final newProducts = result.products
+          .where((p) => !existingIds.contains(p.productId))
+          .toList();
+      final allProducts = [...state.products, ...newProducts];
 
       state = state.copyWith(
         products: allProducts,
