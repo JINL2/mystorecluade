@@ -17,6 +17,7 @@ class InvoiceListState with _$InvoiceListState {
   const factory InvoiceListState({
     @Default([]) List<Invoice> invoices,
     @Default(false) bool isLoading,
+    @Default(false) bool isLoadingMore,
     String? error,
     InvoicePageResult? response,
     @Default(InvoicePeriod.allTime) InvoicePeriod selectedPeriod,
@@ -25,6 +26,10 @@ class InvoiceListState with _$InvoiceListState {
     @Default('') String searchQuery,
     @Default(1) int currentPage,
   }) = _InvoiceListState;
+
+  /// Check if more data can be loaded
+  bool get canLoadMore =>
+      response?.pagination.hasNext == true && !isLoadingMore;
 
   /// Get grouped invoices by date
   Map<String, List<Invoice>> get groupedInvoices {

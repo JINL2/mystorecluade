@@ -1,6 +1,9 @@
 // Repository Implementation: JournalEntryRepositoryImpl
 // Implements the repository interface using the datasource
 
+import 'package:image_picker/image_picker.dart';
+
+import '../../domain/entities/journal_attachment.dart';
 import '../../domain/entities/journal_entry.dart';
 import '../../domain/repositories/journal_entry_repository.dart';
 import '../datasources/journal_entry_datasource.dart';
@@ -56,7 +59,7 @@ class JournalEntryRepositoryImpl implements JournalEntryRepository {
   }
 
   @override
-  Future<void> submitJournalEntry({
+  Future<String> submitJournalEntry({
     required JournalEntry journalEntry,
     required String userId,
     required String companyId,
@@ -65,12 +68,47 @@ class JournalEntryRepositoryImpl implements JournalEntryRepository {
     // Convert domain entity to data model
     final journalEntryModel = JournalEntryModel.fromEntity(journalEntry);
 
-    // Submit through datasource
-    await _dataSource.submitJournalEntry(
+    // Submit through datasource and return journal_id
+    return await _dataSource.submitJournalEntry(
       journalEntry: journalEntryModel,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
+    );
+  }
+
+  // =============================================================================
+  // Attachment Operations
+  // =============================================================================
+
+  @override
+  Future<List<JournalAttachment>> uploadAttachments({
+    required String companyId,
+    required String journalId,
+    required String uploadedBy,
+    required List<XFile> files,
+  }) async {
+    return await _dataSource.uploadAttachments(
+      companyId: companyId,
+      journalId: journalId,
+      uploadedBy: uploadedBy,
+      files: files,
+    );
+  }
+
+  @override
+  Future<List<JournalAttachment>> getJournalAttachments(String journalId) async {
+    return await _dataSource.getJournalAttachments(journalId);
+  }
+
+  @override
+  Future<void> deleteAttachment({
+    required String attachmentId,
+    required String fileUrl,
+  }) async {
+    return await _dataSource.deleteAttachment(
+      attachmentId: attachmentId,
+      fileUrl: fileUrl,
     );
   }
 }

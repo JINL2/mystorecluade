@@ -49,6 +49,9 @@ class ReportNotification with _$ReportNotification {
     // Store info
     String? storeId,
     String? storeName,
+
+    // Company info
+    String? companyId,
   }) = _ReportNotification;
 
   const ReportNotification._();

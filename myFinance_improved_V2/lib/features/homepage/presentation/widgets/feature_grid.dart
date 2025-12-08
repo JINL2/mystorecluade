@@ -199,26 +199,10 @@ class _CategorySection extends StatelessWidget {
           const SizedBox(height: TossSpacing.space4),
 
           // Features List (only visible features)
-          ...visibleFeatures.asMap().entries.map((entry) {
-            final index = entry.key;
-            final feature = entry.value;
-            final isLast = index == visibleFeatures.length - 1;
-
-            return Column(
-              children: [
-                _FeatureListItem(
-                  feature: feature,
-                  categoryId: category.categoryId,
-                ),
-                if (!isLast)
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: TossSpacing.space2,
-                    ),
-                    height: 0.5,
-                    color: TossColors.borderLight,
-                  ),
-              ],
+          ...visibleFeatures.map((feature) {
+            return _FeatureListItem(
+              feature: feature,
+              categoryId: category.categoryId,
             );
           }),
         ],

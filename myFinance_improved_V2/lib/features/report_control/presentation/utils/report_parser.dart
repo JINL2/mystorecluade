@@ -58,11 +58,18 @@ class ReportParser {
           return null;
         }
       } else if (outerJson.containsKey('template_id') ||
-          outerJson.containsKey('account_changes')) {
+          outerJson.containsKey('account_changes') ||
+          outerJson.containsKey('hero_stats') ||
+          outerJson.containsKey('issues') ||
+          outerJson.containsKey('report_month') ||  // Monthly salary report
+          outerJson.containsKey('report_date') ||   // Cash location report
+          outerJson.containsKey('summary') ||       // General summary reports
+          outerJson.containsKey('employees')) {     // Salary/attendance reports
         print('🔍 [Parser] Step 3b: Direct report JSON');
         reportJson = outerJson;
       } else {
         print('❌ [Parser] No recognized format');
+        print('📋 [Parser] Available keys: ${outerJson.keys.join(', ')}');
         return null;
       }
 

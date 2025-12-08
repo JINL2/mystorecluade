@@ -127,36 +127,41 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
         vertical: TossSpacing.space3,
         horizontal: 0,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  'Discount',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                _buildDiscountToggle(),
-                if (discountAmount > 0 && _cartTotal > 0) ...[
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    '(${((discountAmount / _cartTotal) * 100).toStringAsFixed(2)}%)',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: TossColors.gray500,
-                      fontWeight: FontWeight.w500,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      'Discount',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    const SizedBox(width: TossSpacing.space3),
+                    _buildDiscountToggle(),
+                  ],
+                ),
+              ),
+              _buildDiscountInput(),
+            ],
           ),
-          _buildDiscountInput(),
+          // Show percentage indicator below the toggle when discount is applied
+          if (discountAmount > 0 && _cartTotal > 0) ...[
+            const SizedBox(height: TossSpacing.space2),
+            Text(
+              'Saving ${((discountAmount / _cartTotal) * 100).toStringAsFixed(1)}% off subtotal',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.success,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );

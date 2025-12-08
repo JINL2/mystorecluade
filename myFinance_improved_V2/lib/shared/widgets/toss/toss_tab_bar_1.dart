@@ -156,12 +156,14 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
 
     return Container(
       padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Theme(
-        data: ThemeData(
-          splashColor: TossColors.transparent,
-          highlightColor: TossColors.transparent,
-        ),
-        child: TabBar(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Theme(
+          data: ThemeData(
+            splashColor: TossColors.transparent,
+            highlightColor: TossColors.transparent,
+          ),
+          child: TabBar(
           controller: _tabController,
           isScrollable: widget.isScrollable,
           indicatorSize: TabBarIndicatorSize.tab,
@@ -179,7 +181,9 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
           unselectedLabelStyle: unselectedTextStyle,
           dividerColor: TossColors.transparent,
           overlayColor: WidgetStateProperty.all(TossColors.transparent),
+          labelPadding: EdgeInsets.zero,
           tabs: widget.tabs.map((tab) => Tab(text: tab)).toList(),
+          ),
         ),
       ),
     );

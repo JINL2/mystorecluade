@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../domain/entities/journal_attachment.dart';
 import '../../domain/entities/journal_entry.dart';
 import '../../domain/entities/transaction_line.dart';
 import 'states/journal_entry_state.dart';
@@ -7,6 +9,7 @@ import 'states/journal_entry_state.dart';
 ///
 /// Manages the state of journal entry creation including:
 /// - Transaction lines management
+/// - Attachment management
 /// - Form validation
 /// - Submission state
 class JournalEntryNotifier extends StateNotifier<JournalEntryState> {
@@ -116,12 +119,82 @@ class JournalEntryNotifier extends StateNotifier<JournalEntryState> {
   JournalEntry getCurrentJournalEntry() {
     return JournalEntry(
       transactionLines: state.transactionLines,
+      attachments: state.pendingAttachments,
       entryDate: state.entryDate ?? DateTime.now(),
       overallDescription: state.overallDescription,
       selectedCompanyId: state.selectedCompanyId,
       selectedStoreId: state.selectedStoreId,
       counterpartyCashLocationId: state.counterpartyCashLocationId,
     );
+  }
+
+  // =============================================================================
+  // Attachment Management
+  // =============================================================================
+
+  /// Add an attachment to the pending list
+  void addAttachment(JournalAttachment attachment) {
+    if (state.pendingAttachments.length >= JournalEntryState.maxAttachments) {
+      setError('Maximum ${JournalEntryState.maxAttachments} attachments allowed');
+      return;
+    }
+
+    if (attachment.exceedsSizeLimit) {
+      setError('File ${attachment.fileName} exceeds 5MB limit');
+      return;
+    }
+
+    state = state.copyWith(
+      pendingAttachments: [...state.pendingAttachments, attachment],
+    );
+  }
+
+  /// Add multiple attachments
+  void addAttachments(List<JournalAttachment> attachments) {
+    final availableSlots = JournalEntryState.maxAttachments - state.pendingAttachments.length;
+    final validAttachments = attachments
+        .where((a) => !a.exceedsSizeLimit)
+        .take(availableSlots)
+        .toList();
+
+    if (validAttachments.isEmpty) return;
+
+    state = state.copyWith(
+      pendingAttachments: [...state.pendingAttachments, ...validAttachments],
+    );
+
+    // Notify if some attachments were skipped
+    final skippedCount = attachments.length - validAttachments.length;
+    if (skippedCount > 0) {
+      setError('$skippedCount file(s) skipped (too large or limit reached)');
+    }
+  }
+
+  /// Remove an attachment at the specified index
+  void removeAttachment(int index) {
+    if (index >= 0 && index < state.pendingAttachments.length) {
+      final newAttachments = List<JournalAttachment>.from(state.pendingAttachments);
+      newAttachments.removeAt(index);
+      state = state.copyWith(pendingAttachments: newAttachments);
+    }
+  }
+
+  /// Clear all attachments
+  void clearAttachments() {
+    state = state.copyWith(pendingAttachments: []);
+  }
+
+  /// Set uploading attachments state
+  void setUploadingAttachments(bool isUploading) {
+    state = state.copyWith(isUploadingAttachments: isUploading);
+  }
+
+  /// Get list of XFile from pending attachments (for upload)
+  List<dynamic> getPendingFiles() {
+    return state.pendingAttachments
+        .where((a) => a.localFile != null)
+        .map((a) => a.localFile!)
+        .toList();
   }
 }
 

@@ -6,7 +6,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../domain/entities/cash_location.dart';
+import '../../../extensions/cash_location_extension.dart';
 import '../../../providers/payment_providers.dart';
 import '../helpers/payment_helpers.dart';
 
@@ -125,6 +125,16 @@ class CashLocationBottomSheet extends StatelessWidget {
   }
 
   Widget _buildLocationTypeBadge(CashLocation location) {
+    // Get badge color based on location type
+    Color badgeColor;
+    if (location.isBank) {
+      badgeColor = TossColors.primary;
+    } else if (location.isVault) {
+      badgeColor = TossColors.warning;
+    } else {
+      badgeColor = TossColors.success;
+    }
+
     return Row(
       children: [
         Container(
@@ -133,15 +143,13 @@ class CashLocationBottomSheet extends StatelessWidget {
             vertical: TossSpacing.space1,
           ),
           decoration: BoxDecoration(
-            color: location.isBank
-                ? TossColors.primary.withValues(alpha: 0.1)
-                : TossColors.success.withValues(alpha: 0.1),
+            color: badgeColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
           child: Text(
             location.displayType,
             style: TossTextStyles.caption.copyWith(
-              color: location.isBank ? TossColors.primary : TossColors.success,
+              color: badgeColor,
               fontWeight: FontWeight.w500,
             ),
           ),

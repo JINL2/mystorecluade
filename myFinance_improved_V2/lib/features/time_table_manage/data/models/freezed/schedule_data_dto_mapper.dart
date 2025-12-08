@@ -7,7 +7,7 @@ import 'store_shift_dto_mapper.dart';
 extension ScheduleDataDtoMapper on ScheduleDataDto {
   ScheduleData toEntity({required String storeId, String shiftDate = ''}) {
     return ScheduleData(
-      employees: storeEmployees.map((e) => e.toEntity()).toList(),
+      employees: storeEmployees.map((e) => e.toEmployeeInfo()).toList(),
       shifts: storeShifts
           .map((s) => s.toEntity(storeId: storeId, shiftDate: shiftDate))
           .toList(),

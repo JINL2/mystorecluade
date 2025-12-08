@@ -49,7 +49,8 @@ class MultiCurrencyRecount with _$MultiCurrencyRecount {
     if (locationId.isEmpty) return 'Location ID is required';
     if (userId.isEmpty) return 'User ID is required';
     if (currencyRecounts.isEmpty) return 'At least one currency recount is required';
-    if (!hasData) return 'At least one currency must have data';
+    // ✅ Allow 0 amount recount (vault can be empty)
+    // Removed: if (!hasData) return 'At least one currency must have data';
     return null;
   }
 }

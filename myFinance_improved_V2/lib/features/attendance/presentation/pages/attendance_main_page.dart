@@ -23,14 +23,24 @@ class AttendanceMainPage extends ConsumerStatefulWidget {
   ConsumerState<AttendanceMainPage> createState() => _AttendanceMainPageState();
 }
 
-class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage> {
+class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     // Refresh all data when page is entered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshAllData();
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   /// Invalidate all attendance-related providers to force data refresh
@@ -57,12 +67,22 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage> {
         backgroundColor: TossColors.background,
       ),
       body: SafeArea(
-        child: TossTabBarView1(
-          tabs: const ['My Schedule', 'Requests', 'Stats'],
-          children: const [
-            MyScheduleTab(),
-            ShiftRequestsTab(),
-            StatsTab(),
+        child: Column(
+          children: [
+            TossTabBar1(
+              tabs: const ['My Schedule', 'Shift Sign Up', 'Stats'],
+              controller: _tabController,
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  MyScheduleTab(tabController: _tabController),
+                  const ShiftRequestsTab(),
+                  const StatsTab(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

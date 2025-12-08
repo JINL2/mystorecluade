@@ -30,7 +30,7 @@ class TossBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColor = backgroundColor ?? TossColors.gray50;
     final fgColor = textColor ?? TossColors.gray700;
-    
+
     return Container(
       padding: padding ?? const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
@@ -38,7 +38,7 @@ class TossBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(borderRadius ?? 6),
+        borderRadius: BorderRadius.circular(borderRadius ?? 100),
         border: border,
       ),
       child: Row(
@@ -56,7 +56,7 @@ class TossBadge extends StatelessWidget {
             label,
             style: TossTextStyles.small.copyWith(
               color: fgColor,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -91,21 +91,6 @@ class TossStatusBadge extends StatelessWidget {
   Color _getBackgroundColor() {
     switch (status) {
       case BadgeStatus.success:
-        return TossColors.success.withValues(alpha: 0.1);
-      case BadgeStatus.warning:
-        return TossColors.warning.withValues(alpha: 0.1);
-      case BadgeStatus.error:
-        return TossColors.error.withValues(alpha: 0.1);
-      case BadgeStatus.info:
-        return TossColors.info.withValues(alpha: 0.1);
-      case BadgeStatus.neutral:
-        return TossColors.gray50;
-    }
-  }
-  
-  Color _getTextColor() {
-    switch (status) {
-      case BadgeStatus.success:
         return TossColors.success;
       case BadgeStatus.warning:
         return TossColors.warning;
@@ -114,8 +99,12 @@ class TossStatusBadge extends StatelessWidget {
       case BadgeStatus.info:
         return TossColors.info;
       case BadgeStatus.neutral:
-        return TossColors.gray700;
+        return TossColors.gray500;
     }
+  }
+
+  Color _getTextColor() {
+    return Colors.white;
   }
 }
 

@@ -34,7 +34,7 @@ class ManageShiftCard extends StatelessWidget {
     final endTime = DateTimeUtils.formatTimeOnly(card.shift.planEndTime);
     final shiftTime = '$startTime-$endTime';
 
-    final shiftDate = card.shiftDate;
+    final requestDate = card.shiftDate;
     final isApproved = card.isApproved;
     final isProblem = card.hasProblem;
     final isProblemSolved = card.isProblemSolved;

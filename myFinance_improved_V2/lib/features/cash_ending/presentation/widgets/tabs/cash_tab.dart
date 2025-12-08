@@ -10,6 +10,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
@@ -533,6 +534,11 @@ class _CashTabState extends ConsumerState<CashTab> {
                   currencySymbol: state.baseCurrencySymbol,
                   label: 'Grand total ${state.baseCurrency?.currencyCode ?? ""}',
                   isBaseCurrency: true,
+                  journalAmount: state.cashLocationJournalAmount,
+                  isLoadingJournal: state.isLoadingJournalAmount,
+                  onHistoryTap: state.selectedCashLocationId != null
+                      ? () => _navigateToAccountDetail(state, grandTotal)
+                      : null,
                 );
               },
             ),
@@ -675,5 +681,37 @@ class _CashTabState extends ConsumerState<CashTab> {
     }
 
     return subtotal;
+  }
+
+  /// Navigate to AccountDetailPage for transaction history
+  void _navigateToAccountDetail(CashEndingState state, double grandTotal) {
+    if (state.selectedCashLocationId == null) return;
+
+    // Find the selected location
+    final selectedLocation = state.cashLocations.firstWhere(
+      (loc) => loc.locationId == state.selectedCashLocationId,
+      orElse: () => state.cashLocations.first,
+    );
+
+    // Calculate difference
+    final journalAmount = state.cashLocationJournalAmount ?? 0.0;
+    final difference = grandTotal - journalAmount;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AccountDetailPage(
+          locationId: state.selectedCashLocationId,
+          accountName: selectedLocation.locationName,
+          locationType: 'cash',
+          balance: journalAmount.toInt(),
+          errors: difference.toInt().abs(),
+          totalJournal: journalAmount.toInt(),
+          totalReal: grandTotal.toInt(),
+          cashDifference: difference.toInt(),
+          currencySymbol: state.baseCurrencySymbol,
+        ),
+      ),
+    );
   }
 }

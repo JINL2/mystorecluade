@@ -1,11 +1,24 @@
 import '../entities/sales_product.dart';
 
+/// Response containing products and pagination info
+class ProductLoadResult {
+  final List<SalesProduct> products;
+  final int totalCount;
+  final bool hasNextPage;
+
+  ProductLoadResult({
+    required this.products,
+    required this.totalCount,
+    required this.hasNextPage,
+  });
+}
+
 /// Repository interface for sales product operations
 abstract class SalesProductRepository {
   /// Load products for sale
   ///
-  /// Returns list of [SalesProduct] available for sale based on filters
-  Future<List<SalesProduct>> loadProducts({
+  /// Returns [ProductLoadResult] with products and pagination info
+  Future<ProductLoadResult> loadProducts({
     required String companyId,
     required String storeId,
     int page = 1,
@@ -14,7 +27,7 @@ abstract class SalesProductRepository {
   });
 
   /// Refresh product list
-  Future<List<SalesProduct>> refreshProducts({
+  Future<ProductLoadResult> refreshProducts({
     required String companyId,
     required String storeId,
   });

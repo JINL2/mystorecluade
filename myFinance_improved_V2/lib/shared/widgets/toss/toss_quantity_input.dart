@@ -119,13 +119,28 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
   }
 
   void _onFocusChange() {
-    if (!_focusNode.hasFocus) {
+    if (_focusNode.hasFocus) {
+      // Clear "0" when focused so user can type directly
+      if (_controller.text == '0' || widget.value == 0) {
+        _controller.clear();
+        _controller.selection = const TextSelection.collapsed(offset: 0);
+      }
+    } else {
       // Validate on focus lost
       _validateAndUpdate(_controller.text);
     }
   }
 
   void _validateAndUpdate(String text) {
+    // Empty text means 0
+    if (text.isEmpty) {
+      _controller.text = '0';
+      if (widget.value != 0) {
+        widget.onChanged?.call(0);
+      }
+      return;
+    }
+
     final parsedValue = int.tryParse(text);
     if (parsedValue == null) {
       // Invalid input, reset to current value

@@ -23,46 +23,77 @@ class AttendanceQRButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Material(
-        color: TossColors.primary,
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        child: InkWell(
-          onTap: () async {
-            HapticFeedback.mediumImpact();
-
-            // Navigate to QR scanner page
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const QRScannerPage(),
-              ),
-            );
-
-            // If successfully checked in/out, notify parent
-            if (result != null && result is Map<String, dynamic>) {
-              onScanResult?.call(result);
-            }
-          },
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              TossColors.primary,
+              TossColors.primary.withOpacity(0.85),
+            ],
+          ),
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.qr_code_scanner,
-                  color: TossColors.white,
-                  size: 24,
+          boxShadow: [
+            BoxShadow(
+              color: TossColors.primary.withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: TossColors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+          child: InkWell(
+            onTap: () async {
+              HapticFeedback.mediumImpact();
+
+              // Navigate to QR scanner page
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QRScannerPage(),
                 ),
-                const SizedBox(width: TossSpacing.space3),
-                Text(
-                  'Scan QR Code',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.w600,
+              );
+
+              // If successfully checked in/out, notify parent
+              if (result != null && result is Map<String, dynamic>) {
+                onScanResult?.call(result);
+              }
+            },
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: TossSpacing.space4,
+                horizontal: TossSpacing.space5,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space2),
+                    decoration: BoxDecoration(
+                      color: TossColors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: const Icon(
+                      Icons.qr_code_scanner,
+                      color: TossColors.white,
+                      size: 22,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: TossSpacing.space3),
+                  Text(
+                    'Scan QR Code',
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.white,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

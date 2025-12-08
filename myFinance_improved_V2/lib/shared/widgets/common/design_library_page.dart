@@ -31,6 +31,7 @@ import 'toss_loading_view.dart';
 import 'toss_section_header.dart';
 import 'toss_white_card.dart';
 import 'avatar_stack_interact.dart';
+import 'gray_divider_space.dart';
 
 /// Design Library Page
 ///
@@ -1081,6 +1082,89 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
               TossIconButton.add(
                 onPressed: () {},
               ),
+              TossIconButton.filter(
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // Filter Icon Showcase
+        _buildComponentShowcase(
+          'Filter Icon',
+          'Current filter icon used across the app (Icons.filter_list)',
+          'toss_icons.dart',
+          Row(
+            children: [
+              Column(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: TossColors.gray100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.filter_list,
+                      size: 24,
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    'filter_list',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: TossSpacing.space4),
+              Column(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: TossColors.gray100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.filter_list_rounded,
+                      size: 24,
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    'filter_list_rounded',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: TossSpacing.space4),
+              Column(
+                children: [
+                  TossIconButton.filter(
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    'TossIconButton.filter',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -1120,6 +1204,83 @@ class _DesignLibraryPageState extends ConsumerState<DesignLibraryPage> with Sing
                 title: 'Store Location',
                 subtitle: '123 Main Street',
                 onTap: () {},
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // GrayDividerSpace
+        _buildComponentShowcase(
+          'GrayDividerSpace',
+          'Full-width gray divider for section separation',
+          'gray_divider_space.dart',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Horizontal Divider (Default):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                color: TossColors.gray50,
+                child: const Text('Content above divider'),
+              ),
+              const GrayDividerSpace(),
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                color: TossColors.gray50,
+                child: const Text('Content below divider'),
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Custom Height (30px):',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              const GrayDividerSpace(height: 30),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Vertical Divider:',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Item 1',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                  const GrayVerticalDivider(),
+                  Text(
+                    'Item 2',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                  const GrayVerticalDivider(),
+                  Text(
+                    'Item 3',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

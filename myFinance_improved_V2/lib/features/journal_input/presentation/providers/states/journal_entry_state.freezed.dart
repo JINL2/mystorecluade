@@ -23,11 +23,19 @@ mixin _$JournalEntryState {
   List<TransactionLine> get transactionLines =>
       throw _privateConstructorUsedError;
 
+  /// Pending attachments to be uploaded (local files)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<JournalAttachment> get pendingAttachments =>
+      throw _privateConstructorUsedError;
+
   /// Whether the page is currently loading data
   bool get isLoading => throw _privateConstructorUsedError;
 
   /// Whether currently submitting the journal entry
   bool get isSubmitting => throw _privateConstructorUsedError;
+
+  /// Whether currently uploading attachments
+  bool get isUploadingAttachments => throw _privateConstructorUsedError;
 
   /// Error message if any error occurred
   String? get errorMessage => throw _privateConstructorUsedError;
@@ -66,8 +74,11 @@ abstract class $JournalEntryStateCopyWith<$Res> {
   $Res call(
       {JournalEntry? currentEntry,
       List<TransactionLine> transactionLines,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<JournalAttachment> pendingAttachments,
       bool isLoading,
       bool isSubmitting,
+      bool isUploadingAttachments,
       String? errorMessage,
       Map<String, String> fieldErrors,
       DateTime? entryDate,
@@ -96,8 +107,10 @@ class _$JournalEntryStateCopyWithImpl<$Res, $Val extends JournalEntryState>
   $Res call({
     Object? currentEntry = freezed,
     Object? transactionLines = null,
+    Object? pendingAttachments = null,
     Object? isLoading = null,
     Object? isSubmitting = null,
+    Object? isUploadingAttachments = null,
     Object? errorMessage = freezed,
     Object? fieldErrors = null,
     Object? entryDate = freezed,
@@ -115,6 +128,10 @@ class _$JournalEntryStateCopyWithImpl<$Res, $Val extends JournalEntryState>
           ? _value.transactionLines
           : transactionLines // ignore: cast_nullable_to_non_nullable
               as List<TransactionLine>,
+      pendingAttachments: null == pendingAttachments
+          ? _value.pendingAttachments
+          : pendingAttachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -122,6 +139,10 @@ class _$JournalEntryStateCopyWithImpl<$Res, $Val extends JournalEntryState>
       isSubmitting: null == isSubmitting
           ? _value.isSubmitting
           : isSubmitting // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isUploadingAttachments: null == isUploadingAttachments
+          ? _value.isUploadingAttachments
+          : isUploadingAttachments // ignore: cast_nullable_to_non_nullable
               as bool,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
@@ -180,8 +201,11 @@ abstract class _$$JournalEntryStateImplCopyWith<$Res>
   $Res call(
       {JournalEntry? currentEntry,
       List<TransactionLine> transactionLines,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<JournalAttachment> pendingAttachments,
       bool isLoading,
       bool isSubmitting,
+      bool isUploadingAttachments,
       String? errorMessage,
       Map<String, String> fieldErrors,
       DateTime? entryDate,
@@ -209,8 +233,10 @@ class __$$JournalEntryStateImplCopyWithImpl<$Res>
   $Res call({
     Object? currentEntry = freezed,
     Object? transactionLines = null,
+    Object? pendingAttachments = null,
     Object? isLoading = null,
     Object? isSubmitting = null,
+    Object? isUploadingAttachments = null,
     Object? errorMessage = freezed,
     Object? fieldErrors = null,
     Object? entryDate = freezed,
@@ -228,6 +254,10 @@ class __$$JournalEntryStateImplCopyWithImpl<$Res>
           ? _value._transactionLines
           : transactionLines // ignore: cast_nullable_to_non_nullable
               as List<TransactionLine>,
+      pendingAttachments: null == pendingAttachments
+          ? _value._pendingAttachments
+          : pendingAttachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -235,6 +265,10 @@ class __$$JournalEntryStateImplCopyWithImpl<$Res>
       isSubmitting: null == isSubmitting
           ? _value.isSubmitting
           : isSubmitting // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isUploadingAttachments: null == isUploadingAttachments
+          ? _value.isUploadingAttachments
+          : isUploadingAttachments // ignore: cast_nullable_to_non_nullable
               as bool,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
@@ -274,8 +308,11 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
   const _$JournalEntryStateImpl(
       {this.currentEntry,
       final List<TransactionLine> transactionLines = const [],
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final List<JournalAttachment> pendingAttachments = const [],
       this.isLoading = false,
       this.isSubmitting = false,
+      this.isUploadingAttachments = false,
       this.errorMessage,
       final Map<String, String> fieldErrors = const {},
       this.entryDate,
@@ -284,6 +321,7 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
       this.selectedStoreId,
       this.counterpartyCashLocationId})
       : _transactionLines = transactionLines,
+        _pendingAttachments = pendingAttachments,
         _fieldErrors = fieldErrors,
         super._();
 
@@ -304,6 +342,19 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
     return EqualUnmodifiableListView(_transactionLines);
   }
 
+  /// Pending attachments to be uploaded (local files)
+  final List<JournalAttachment> _pendingAttachments;
+
+  /// Pending attachments to be uploaded (local files)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<JournalAttachment> get pendingAttachments {
+    if (_pendingAttachments is EqualUnmodifiableListView)
+      return _pendingAttachments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_pendingAttachments);
+  }
+
   /// Whether the page is currently loading data
   @override
   @JsonKey()
@@ -313,6 +364,11 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
   @override
   @JsonKey()
   final bool isSubmitting;
+
+  /// Whether currently uploading attachments
+  @override
+  @JsonKey()
+  final bool isUploadingAttachments;
 
   /// Error message if any error occurred
   @override
@@ -352,7 +408,7 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
 
   @override
   String toString() {
-    return 'JournalEntryState(currentEntry: $currentEntry, transactionLines: $transactionLines, isLoading: $isLoading, isSubmitting: $isSubmitting, errorMessage: $errorMessage, fieldErrors: $fieldErrors, entryDate: $entryDate, overallDescription: $overallDescription, selectedCompanyId: $selectedCompanyId, selectedStoreId: $selectedStoreId, counterpartyCashLocationId: $counterpartyCashLocationId)';
+    return 'JournalEntryState(currentEntry: $currentEntry, transactionLines: $transactionLines, pendingAttachments: $pendingAttachments, isLoading: $isLoading, isSubmitting: $isSubmitting, isUploadingAttachments: $isUploadingAttachments, errorMessage: $errorMessage, fieldErrors: $fieldErrors, entryDate: $entryDate, overallDescription: $overallDescription, selectedCompanyId: $selectedCompanyId, selectedStoreId: $selectedStoreId, counterpartyCashLocationId: $counterpartyCashLocationId)';
   }
 
   @override
@@ -364,10 +420,14 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
                 other.currentEntry == currentEntry) &&
             const DeepCollectionEquality()
                 .equals(other._transactionLines, _transactionLines) &&
+            const DeepCollectionEquality()
+                .equals(other._pendingAttachments, _pendingAttachments) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isSubmitting, isSubmitting) ||
                 other.isSubmitting == isSubmitting) &&
+            (identical(other.isUploadingAttachments, isUploadingAttachments) ||
+                other.isUploadingAttachments == isUploadingAttachments) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
             const DeepCollectionEquality()
@@ -391,8 +451,10 @@ class _$JournalEntryStateImpl extends _JournalEntryState {
       runtimeType,
       currentEntry,
       const DeepCollectionEquality().hash(_transactionLines),
+      const DeepCollectionEquality().hash(_pendingAttachments),
       isLoading,
       isSubmitting,
+      isUploadingAttachments,
       errorMessage,
       const DeepCollectionEquality().hash(_fieldErrors),
       entryDate,
@@ -415,8 +477,11 @@ abstract class _JournalEntryState extends JournalEntryState {
   const factory _JournalEntryState(
       {final JournalEntry? currentEntry,
       final List<TransactionLine> transactionLines,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final List<JournalAttachment> pendingAttachments,
       final bool isLoading,
       final bool isSubmitting,
+      final bool isUploadingAttachments,
       final String? errorMessage,
       final Map<String, String> fieldErrors,
       final DateTime? entryDate,
@@ -434,6 +499,11 @@ abstract class _JournalEntryState extends JournalEntryState {
   @override
   List<TransactionLine> get transactionLines;
 
+  /// Pending attachments to be uploaded (local files)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<JournalAttachment> get pendingAttachments;
+
   /// Whether the page is currently loading data
   @override
   bool get isLoading;
@@ -441,6 +511,10 @@ abstract class _JournalEntryState extends JournalEntryState {
   /// Whether currently submitting the journal entry
   @override
   bool get isSubmitting;
+
+  /// Whether currently uploading attachments
+  @override
+  bool get isUploadingAttachments;
 
   /// Error message if any error occurred
   @override

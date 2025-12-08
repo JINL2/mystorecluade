@@ -13,18 +13,21 @@ class CreateSalesJournalUseCase {
 
   /// Execute the use case
   ///
-  /// Creates a double-entry journal for cash sales:
+  /// Creates a journal entry for cash sales with COGS:
   /// - Debit: Cash account (increase asset)
   /// - Credit: Sales revenue account (increase revenue)
+  /// - Debit: COGS account (increase expense)
+  /// - Credit: Inventory account (decrease asset)
   ///
   /// Parameters:
   /// - [companyId]: Company ID
   /// - [storeId]: Store ID
   /// - [userId]: User ID creating the entry
-  /// - [amount]: Transaction amount
+  /// - [amount]: Transaction amount (sales amount)
   /// - [description]: Journal description
   /// - [lineDescription]: Line item description
   /// - [cashLocationId]: Cash location ID
+  /// - [totalCost]: Total cost of goods sold
   ///
   /// Returns: Future that completes when journal is created
   Future<void> execute({
@@ -35,6 +38,7 @@ class CreateSalesJournalUseCase {
     required String description,
     required String lineDescription,
     required String cashLocationId,
+    required double totalCost,
   }) async {
     // Validate input parameters
     if (companyId.isEmpty) {
@@ -68,6 +72,9 @@ class CreateSalesJournalUseCase {
       cashLocationId: cashLocationId,
       cashAccountId: AccountConfig.cashAccountId,
       salesAccountId: AccountConfig.salesRevenueAccountId,
+      cogsAccountId: AccountConfig.cogsAccountId,
+      inventoryAccountId: AccountConfig.inventoryAccountId,
+      totalCost: totalCost,
     );
   }
 }

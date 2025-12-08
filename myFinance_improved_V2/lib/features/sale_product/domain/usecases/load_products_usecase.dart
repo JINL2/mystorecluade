@@ -1,4 +1,3 @@
-import '../entities/sales_product.dart';
 import '../exceptions/sales_exceptions.dart';
 import '../repositories/sales_product_repository.dart';
 
@@ -15,7 +14,7 @@ class LoadProductsUseCase {
   ///
   /// Throws [NoCompanyOrStoreSelectedException] if company or store is not selected.
   /// Throws [ProductsLoadFailedException] if loading fails.
-  Future<List<SalesProduct>> execute({
+  Future<ProductLoadResult> execute({
     required String companyId,
     required String storeId,
     int page = 1,
@@ -29,15 +28,13 @@ class LoadProductsUseCase {
 
     try {
       // Load products from repository
-      final products = await _repository.loadProducts(
+      return await _repository.loadProducts(
         companyId: companyId,
         storeId: storeId,
         page: page,
         limit: limit,
         search: search,
       );
-
-      return products;
     } catch (e) {
       if (e is SalesException) {
         rethrow;

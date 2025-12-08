@@ -21,6 +21,9 @@ final cashEndingProvider =
   final selectStoreUseCase = ref.watch(selectStoreUseCaseProvider);
   final loadRecentCashEndingsUseCase = ref.watch(loadRecentCashEndingsUseCaseProvider);
   final saveCashEndingUseCase = ref.watch(saveCashEndingUseCaseProvider);
+  final getCashBalanceSummaryUseCase = ref.watch(getCashBalanceSummaryUseCaseProvider);
+  final getBankBalanceSummaryUseCase = ref.watch(getBankBalanceSummaryUseCaseProvider);
+  final getVaultBalanceSummaryUseCase = ref.watch(getVaultBalanceSummaryUseCaseProvider);
 
   return CashEndingNotifier(
     loadStoresUseCase: loadStoresUseCase,
@@ -29,6 +32,9 @@ final cashEndingProvider =
     selectStoreUseCase: selectStoreUseCase,
     loadRecentCashEndingsUseCase: loadRecentCashEndingsUseCase,
     saveCashEndingUseCase: saveCashEndingUseCase,
+    getCashBalanceSummaryUseCase: getCashBalanceSummaryUseCase,
+    getBankBalanceSummaryUseCase: getBankBalanceSummaryUseCase,
+    getVaultBalanceSummaryUseCase: getVaultBalanceSummaryUseCase,
   );
 });
 

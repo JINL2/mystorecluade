@@ -11,7 +11,8 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_card.dart';
-import '../../providers/time_table_providers.dart';
+import '../../../domain/usecases/update_bonus_amount.dart';
+import '../../providers/usecase/time_table_usecase_providers.dart';
 import 'bonus_confirmation_dialog.dart';
 
 class BonusManagementTab extends ConsumerStatefulWidget {
@@ -93,10 +94,12 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       // Get shift request ID from the card
       final shiftRequestId = widget.card.shiftRequestId;
 
-      // Use repository instead of direct Supabase call
-      await ref.read(timeTableRepositoryProvider).updateBonusAmount(
-        shiftRequestId: shiftRequestId,
-        bonusAmount: newBonus.toDouble(),
+      // Use UseCase instead of Repository directly (Clean Architecture)
+      await ref.read(updateBonusAmountUseCaseProvider).call(
+        UpdateBonusAmountParams(
+          shiftRequestId: shiftRequestId,
+          bonusAmount: newBonus.toDouble(),
+        ),
       );
 
       // Close loading dialog
@@ -150,7 +153,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       final String? confirmEndStr = widget.card.confirmedEndTime?.toIso8601String();
       final String? actualStartStr = widget.card.actualStartTime?.toIso8601String();
       final String? actualEndStr = widget.card.actualEndTime?.toIso8601String();
-      final String shiftDate = widget.card.shiftDate;
+      final String requestDate = widget.card.shiftDate;
 
       String? startTimeStr;
       String? endTimeStr;
@@ -169,7 +172,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       }
 
       // Calculate hours if both start and end times are available
-      if (startTimeStr != null && endTimeStr != null && shiftDate.isNotEmpty) {
+      if (startTimeStr != null && endTimeStr != null && requestDate.isNotEmpty) {
         try {
           DateTime? startLocal;
           DateTime? endLocal;
@@ -181,14 +184,16 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
             endLocal = DateTime.parse(endTimeStr);
           } else {
             // Just time (HH:mm or HH:mm:ss), need to add date
-            // NOTE: RPC returns times already in local timezone - NO UTC conversion needed
             final startParts = startTimeStr.split(':');
             final endParts = endTimeStr.split(':');
 
             if (startParts.length >= 2 && endParts.length >= 2) {
-              // Parse as local DateTime directly - times are already local from RPC
-              startLocal = DateTime.parse('${shiftDate}T${startTimeStr.length == 5 ? '$startTimeStr:00' : startTimeStr}');
-              endLocal = DateTime.parse('${shiftDate}T${endTimeStr.length == 5 ? '$endTimeStr:00' : endTimeStr}');
+              // Create UTC DateTime and convert to local
+              final startUtc = DateTime.parse('${requestDate}T${startTimeStr.length == 5 ? '$startTimeStr:00' : startTimeStr}Z');
+              final endUtc = DateTime.parse('${requestDate}T${endTimeStr.length == 5 ? '$endTimeStr:00' : endTimeStr}Z');
+
+              startLocal = startUtc.toLocal();
+              endLocal = endUtc.toLocal();
             } else {
               startLocal = null;
               endLocal = null;

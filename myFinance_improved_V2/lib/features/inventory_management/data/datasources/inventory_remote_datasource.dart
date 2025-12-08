@@ -61,14 +61,13 @@ class InventoryRemoteDataSource {
   }
 
   /// Get paginated list of products
+  /// Note: Sorting is handled client-side as RPC does not support sort parameters
   Future<ProductPageResponse> getProducts({
     required String companyId,
     required String storeId,
     required int page,
     required int limit,
     String? search,
-    String? sortBy,
-    String? sortDirection,
     String? categoryId,
     String? brandId,
     String? stockStatus,

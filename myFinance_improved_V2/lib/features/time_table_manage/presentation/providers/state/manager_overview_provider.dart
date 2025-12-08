@@ -110,9 +110,8 @@ final managerOverviewProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerOverviewUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  // Use user's timezone from appState, fallback to device timezone (not UTC)
-  final timezone = (appState.user['timezone'] as String?) ??
-      DateTimeUtils.getLocalTimezone();
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
 
   return ManagerOverviewNotifier(useCase, companyId, storeId, timezone);
 });

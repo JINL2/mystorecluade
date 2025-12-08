@@ -14,6 +14,7 @@ class ScheduleHeader extends StatelessWidget {
   final ShiftCard? upcomingShift; // Closest upcoming shift (when no today shift)
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
+  final VoidCallback? onGoToShiftSignUp;
   final ValueChanged<ViewMode> onViewModeChanged;
 
   const ScheduleHeader({
@@ -24,6 +25,7 @@ class ScheduleHeader extends StatelessWidget {
     this.upcomingShift,
     this.onCheckIn,
     this.onCheckOut,
+    this.onGoToShiftSignUp,
     required this.onViewModeChanged,
   });
 
@@ -140,25 +142,23 @@ class ScheduleHeader extends StatelessWidget {
             isUpcoming: isUpcoming,
             onCheckIn: onCheckIn ?? () {},
             onCheckOut: onCheckOut ?? () {},
+            onGoToShiftSignUp: onGoToShiftSignUp,
           ),
         ),
         const SizedBox(height: 16),
 
-        // Toggle Button (Week/Month toggle) - Left aligned with 8px offset
-        Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: ToggleButtonGroup(
-            items: const [
-              ToggleButtonItem(id: 'week', label: 'Week'),
-              ToggleButtonItem(id: 'month', label: 'Month'),
-            ],
-            selectedId: viewMode == ViewMode.week ? 'week' : 'month',
-            onToggle: (id) {
-              onViewModeChanged(
-                id == 'week' ? ViewMode.week : ViewMode.month,
-              );
-            },
-          ),
+        // Toggle Button (Week/Month toggle)
+        ToggleButtonGroup(
+          items: const [
+            ToggleButtonItem(id: 'week', label: 'Week'),
+            ToggleButtonItem(id: 'month', label: 'Month'),
+          ],
+          selectedId: viewMode == ViewMode.week ? 'week' : 'month',
+          onToggle: (id) {
+            onViewModeChanged(
+              id == 'week' ? ViewMode.week : ViewMode.month,
+            );
+          },
         ),
         const SizedBox(height: 16),
       ],

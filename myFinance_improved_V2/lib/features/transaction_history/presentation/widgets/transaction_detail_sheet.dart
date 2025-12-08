@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/core/utils/number_formatter.dart';
+import 'package:myfinance_improved/core/utils/storage_url_helper.dart';
 import 'package:myfinance_improved/core/utils/text_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -11,6 +13,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/transaction.dart';
+import 'attachment_fullscreen_viewer.dart';
 
 class TransactionDetailSheet extends StatelessWidget {
   final Transaction transaction;
@@ -69,7 +72,7 @@ class TransactionDetailSheet extends StatelessWidget {
             // Attachments
             if (transaction.attachments.isNotEmpty) ...[
               const SizedBox(height: TossSpacing.space4),
-              _buildAttachments(),
+              _buildAttachments(context),
             ],
             
             const SizedBox(height: TossSpacing.space6),
@@ -496,49 +499,236 @@ class TransactionDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildAttachments() {
+  Widget _buildAttachments(BuildContext context) {
+    final attachments = transaction.attachments;
+    final imageAttachments = attachments.where((a) => a.isImage).toList();
+    final otherAttachments = attachments.where((a) => !a.isImage).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Attachments',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        ...transaction.attachments.map((attachment) => 
-          Container(
-            margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-            padding: const EdgeInsets.all(TossSpacing.space2),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              border: Border.all(
-                color: TossColors.gray100,
+        // Header
+        Row(
+          children: [
+            const Icon(
+              Icons.attach_file,
+              size: 16,
+              color: TossColors.gray500,
+            ),
+            const SizedBox(width: TossSpacing.space1),
+            Text(
+              'Attachments',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  _getFileIcon(attachment.fileType),
-                  size: 16,
-                  color: TossColors.gray500,
+            const SizedBox(width: TossSpacing.space2),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
+              ),
+              child: Text(
+                '${attachments.length}',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
                 ),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    attachment.fileName,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray700,
-                      fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space3),
+
+        // Image Gallery (Option 3: First image big + rest small)
+        if (imageAttachments.isNotEmpty)
+          _buildImageGallery(context, imageAttachments),
+
+        // Other files (PDF, etc.)
+        if (otherAttachments.isNotEmpty) ...[
+          if (imageAttachments.isNotEmpty)
+            const SizedBox(height: TossSpacing.space3),
+          ...otherAttachments.map((attachment) => _buildFileItem(attachment)),
+        ],
+      ],
+    );
+  }
+
+  /// Build image gallery with first image large, rest small
+  Widget _buildImageGallery(
+    BuildContext context,
+    List<TransactionAttachment> images,
+  ) {
+    if (images.isEmpty) return const SizedBox.shrink();
+
+    final firstImage = images.first;
+    final remainingImages = images.length > 1 ? images.sublist(1) : <TransactionAttachment>[];
+
+    return Column(
+      children: [
+        // First image - large (contain to show full image)
+        GestureDetector(
+          onTap: () => _openFullscreenViewer(context, images, 0),
+          child: Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(TossBorderRadius.md - 1),
+              child: _buildNetworkImage(firstImage.fileUrl ?? '', fit: BoxFit.contain),
+            ),
+          ),
+        ),
+
+        // Remaining images - small thumbnails
+        if (remainingImages.isNotEmpty) ...[
+          const SizedBox(height: TossSpacing.space2),
+          SizedBox(
+            height: 64,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: remainingImages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: TossSpacing.space2),
+              itemBuilder: (context, index) {
+                final image = remainingImages[index];
+                final actualIndex = index + 1; // +1 because first image is separate
+
+                return GestureDetector(
+                  onTap: () => _openFullscreenViewer(context, images, actualIndex),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      border: Border.all(color: TossColors.gray200),
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm - 1),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildNetworkImage(image.fileUrl ?? '', fit: BoxFit.cover),
+                          // Show count overlay on last thumbnail if more than 4 images
+                          if (index == 2 && remainingImages.length > 3)
+                            Container(
+                              color: Colors.black54,
+                              child: Center(
+                                child: Text(
+                                  '+${remainingImages.length - 3}',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Build network image with loading and error states
+  /// Automatically handles authenticated URLs for private Supabase storage
+  Widget _buildNetworkImage(String url, {BoxFit fit = BoxFit.cover}) {
+    if (url.isEmpty) {
+      return Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: Icon(Icons.image_not_supported, color: TossColors.gray400),
+        ),
+      );
+    }
+
+    // Convert to authenticated URL and get auth headers
+    final authenticatedUrl = StorageUrlHelper.toAuthenticatedUrl(url);
+    final authHeaders = StorageUrlHelper.getAuthHeaders();
+
+    return CachedNetworkImage(
+      imageUrl: authenticatedUrl,
+      httpHeaders: authHeaders,
+      fit: fit,
+      placeholder: (context, url) => Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: TossColors.gray400,
+            ),
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: Icon(Icons.broken_image, color: TossColors.gray400),
+        ),
+      ),
+    );
+  }
+
+  /// Build file item for non-image attachments
+  Widget _buildFileItem(TransactionAttachment attachment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        border: Border.all(color: TossColors.gray100),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: attachment.isPdf
+                  ? TossColors.error.withValues(alpha: 0.1)
+                  : TossColors.gray200,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+            ),
+            child: Icon(
+              attachment.isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
+              size: 20,
+              color: attachment.isPdf ? TossColors.error : TossColors.gray500,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  attachment.fileName,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  _formatFileSize(attachment.fileSize),
+                  attachment.fileExtension.toUpperCase(),
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray400,
                     fontSize: 10,
@@ -547,8 +737,29 @@ class TransactionDetailSheet extends StatelessWidget {
               ],
             ),
           ),
+          const Icon(
+            Icons.open_in_new,
+            size: 16,
+            color: TossColors.gray400,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Open fullscreen image viewer
+  void _openFullscreenViewer(
+    BuildContext context,
+    List<TransactionAttachment> images,
+    int initialIndex,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => AttachmentFullscreenViewer(
+          attachments: images,
+          initialIndex: initialIndex,
         ),
-      ],
+      ),
     );
   }
 
@@ -565,13 +776,6 @@ class TransactionDetailSheet extends StatelessWidget {
       default:
         return Icons.place;
     }
-  }
-
-  IconData _getFileIcon(String type) {
-    if (type.contains('image')) return Icons.image;
-    if (type.contains('pdf')) return Icons.picture_as_pdf;
-    if (type.contains('document')) return Icons.description;
-    return Icons.attach_file;
   }
 
   String _getAccountTypeLabel(String type) {
@@ -594,11 +798,4 @@ class TransactionDetailSheet extends StatelessWidget {
   String _formatCurrency(double amount) {
     return NumberFormatter.formatCurrencyDecimal(amount.abs(), '', decimalPlaces: 2);
   }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-
 }

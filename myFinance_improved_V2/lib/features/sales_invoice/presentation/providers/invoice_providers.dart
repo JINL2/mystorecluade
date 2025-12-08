@@ -5,4 +5,5 @@
 ///
 /// Clean Architecture: PRESENTATION LAYER imports Repository Providers (DI boundary)
 library;
-export '../../data/repositories/repository_providers.dart' show invoiceRepositoryProvider;
+export '../../data/repositories/repository_providers.dart'
+    show invoiceRepositoryProvider, salesJournalRepositoryProvider;

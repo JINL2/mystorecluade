@@ -49,7 +49,8 @@ mixin _$ReportNotification {
   List<int>? get subscriptionScheduleDays =>
       throw _privateConstructorUsedError; // Store info
   String? get storeId => throw _privateConstructorUsedError;
-  String? get storeName => throw _privateConstructorUsedError;
+  String? get storeName => throw _privateConstructorUsedError; // Company info
+  String? get companyId => throw _privateConstructorUsedError;
 
   /// Create a copy of ReportNotification
   /// with the given fields replaced by the non-null parameter values.
@@ -90,7 +91,8 @@ abstract class $ReportNotificationCopyWith<$Res> {
       String? subscriptionScheduleTime,
       List<int>? subscriptionScheduleDays,
       String? storeId,
-      String? storeName});
+      String? storeName,
+      String? companyId});
 }
 
 /// @nodoc
@@ -134,6 +136,7 @@ class _$ReportNotificationCopyWithImpl<$Res, $Val extends ReportNotification>
     Object? subscriptionScheduleDays = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
+    Object? companyId = freezed,
   }) {
     return _then(_value.copyWith(
       notificationId: null == notificationId
@@ -240,6 +243,10 @@ class _$ReportNotificationCopyWithImpl<$Res, $Val extends ReportNotification>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -278,7 +285,8 @@ abstract class _$$ReportNotificationImplCopyWith<$Res>
       String? subscriptionScheduleTime,
       List<int>? subscriptionScheduleDays,
       String? storeId,
-      String? storeName});
+      String? storeName,
+      String? companyId});
 }
 
 /// @nodoc
@@ -320,6 +328,7 @@ class __$$ReportNotificationImplCopyWithImpl<$Res>
     Object? subscriptionScheduleDays = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
+    Object? companyId = freezed,
   }) {
     return _then(_$ReportNotificationImpl(
       notificationId: null == notificationId
@@ -426,6 +435,10 @@ class __$$ReportNotificationImplCopyWithImpl<$Res>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -459,7 +472,8 @@ class _$ReportNotificationImpl extends _ReportNotification {
       this.subscriptionScheduleTime,
       final List<int>? subscriptionScheduleDays,
       this.storeId,
-      this.storeName})
+      this.storeName,
+      this.companyId})
       : _subscriptionScheduleDays = subscriptionScheduleDays,
         super._();
 
@@ -532,10 +546,13 @@ class _$ReportNotificationImpl extends _ReportNotification {
   final String? storeId;
   @override
   final String? storeName;
+// Company info
+  @override
+  final String? companyId;
 
   @override
   String toString() {
-    return 'ReportNotification(notificationId: $notificationId, title: $title, body: $body, isRead: $isRead, sentAt: $sentAt, createdAt: $createdAt, reportDate: $reportDate, sessionId: $sessionId, templateId: $templateId, subscriptionId: $subscriptionId, templateName: $templateName, templateCode: $templateCode, templateIcon: $templateIcon, templateFrequency: $templateFrequency, categoryId: $categoryId, categoryName: $categoryName, sessionStatus: $sessionStatus, sessionStartedAt: $sessionStartedAt, sessionCompletedAt: $sessionCompletedAt, sessionErrorMessage: $sessionErrorMessage, processingTimeMs: $processingTimeMs, subscriptionEnabled: $subscriptionEnabled, subscriptionScheduleTime: $subscriptionScheduleTime, subscriptionScheduleDays: $subscriptionScheduleDays, storeId: $storeId, storeName: $storeName)';
+    return 'ReportNotification(notificationId: $notificationId, title: $title, body: $body, isRead: $isRead, sentAt: $sentAt, createdAt: $createdAt, reportDate: $reportDate, sessionId: $sessionId, templateId: $templateId, subscriptionId: $subscriptionId, templateName: $templateName, templateCode: $templateCode, templateIcon: $templateIcon, templateFrequency: $templateFrequency, categoryId: $categoryId, categoryName: $categoryName, sessionStatus: $sessionStatus, sessionStartedAt: $sessionStartedAt, sessionCompletedAt: $sessionCompletedAt, sessionErrorMessage: $sessionErrorMessage, processingTimeMs: $processingTimeMs, subscriptionEnabled: $subscriptionEnabled, subscriptionScheduleTime: $subscriptionScheduleTime, subscriptionScheduleDays: $subscriptionScheduleDays, storeId: $storeId, storeName: $storeName, companyId: $companyId)';
   }
 
   @override
@@ -590,7 +607,9 @@ class _$ReportNotificationImpl extends _ReportNotification {
                 other._subscriptionScheduleDays, _subscriptionScheduleDays) &&
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.storeName, storeName) ||
-                other.storeName == storeName));
+                other.storeName == storeName) &&
+            (identical(other.companyId, companyId) ||
+                other.companyId == companyId));
   }
 
   @override
@@ -621,7 +640,8 @@ class _$ReportNotificationImpl extends _ReportNotification {
         subscriptionScheduleTime,
         const DeepCollectionEquality().hash(_subscriptionScheduleDays),
         storeId,
-        storeName
+        storeName,
+        companyId
       ]);
 
   /// Create a copy of ReportNotification
@@ -661,7 +681,8 @@ abstract class _ReportNotification extends ReportNotification {
       final String? subscriptionScheduleTime,
       final List<int>? subscriptionScheduleDays,
       final String? storeId,
-      final String? storeName}) = _$ReportNotificationImpl;
+      final String? storeName,
+      final String? companyId}) = _$ReportNotificationImpl;
   const _ReportNotification._() : super._();
 
   @override
@@ -715,7 +736,9 @@ abstract class _ReportNotification extends ReportNotification {
   @override
   String? get storeId;
   @override
-  String? get storeName;
+  String? get storeName; // Company info
+  @override
+  String? get companyId;
 
   /// Create a copy of ReportNotification
   /// with the given fields replaced by the non-null parameter values.

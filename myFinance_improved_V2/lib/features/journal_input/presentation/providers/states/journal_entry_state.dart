@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../domain/entities/journal_attachment.dart';
 import '../../../domain/entities/journal_entry.dart';
 import '../../../domain/entities/transaction_line.dart';
 
@@ -8,6 +10,7 @@ part 'journal_entry_state.freezed.dart';
 ///
 /// Manages the state of journal entry creation including:
 /// - Transaction lines
+/// - Attachments (pending uploads)
 /// - Loading states
 /// - Error handling
 /// - Form validation
@@ -22,11 +25,18 @@ class JournalEntryState with _$JournalEntryState {
     /// Transaction lines for the journal entry
     @Default([]) List<TransactionLine> transactionLines,
 
+    /// Pending attachments to be uploaded (local files)
+    @Default([]) @JsonKey(includeFromJson: false, includeToJson: false)
+    List<JournalAttachment> pendingAttachments,
+
     /// Whether the page is currently loading data
     @Default(false) bool isLoading,
 
     /// Whether currently submitting the journal entry
     @Default(false) bool isSubmitting,
+
+    /// Whether currently uploading attachments
+    @Default(false) bool isUploadingAttachments,
 
     /// Error message if any error occurred
     String? errorMessage,
@@ -103,6 +113,33 @@ class JournalEntryState with _$JournalEntryState {
         .map((line) => line.cashLocationId!)
         .toSet();
   }
+
+  // =============================================================================
+  // Attachment Methods
+  // =============================================================================
+
+  /// Number of pending attachments
+  int get attachmentCount => pendingAttachments.length;
+
+  /// Check if there are any attachments
+  bool get hasAttachments => pendingAttachments.isNotEmpty;
+
+  /// Check if any attachment exceeds size limit (5MB)
+  bool get hasOversizedAttachment =>
+      pendingAttachments.any((a) => a.exceedsSizeLimit);
+
+  /// Total size of all attachments in bytes
+  int get totalAttachmentSizeBytes =>
+      pendingAttachments.fold(0, (sum, a) => sum + a.fileSizeBytes);
+
+  /// Total size in MB for display
+  double get totalAttachmentSizeMB => totalAttachmentSizeBytes / (1024 * 1024);
+
+  /// Maximum number of attachments allowed
+  static const int maxAttachments = 10;
+
+  /// Check if more attachments can be added
+  bool get canAddMoreAttachments => pendingAttachments.length < maxAttachments;
 }
 
 /// Transaction Line Creation State - UI state for adding/editing transaction lines

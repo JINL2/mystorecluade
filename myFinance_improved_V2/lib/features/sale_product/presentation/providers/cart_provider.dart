@@ -17,11 +17,21 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   final AddToCartUseCase _addToCartUseCase;
   final UpdateCartQuantityUseCase _updateQuantityUseCase;
 
+  /// Map to store SalesProduct by productId for later retrieval
+  final Map<String, SalesProduct> _productsMap = {};
+
   CartNotifier(this._addToCartUseCase, this._updateQuantityUseCase) : super([]);
+
+  /// Get list of SalesProducts in cart
+  List<SalesProduct> get cartProducts =>
+      state.map((item) => _productsMap[item.productId]).whereType<SalesProduct>().toList();
 
   /// Add product to cart
   void addItem(SalesProduct product) {
     try {
+      // Store the SalesProduct for later retrieval
+      _productsMap[product.productId] = product;
+
       final existingIndex = state.indexWhere((item) => item.productId == product.productId);
 
       if (existingIndex >= 0) {
@@ -82,6 +92,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
 
   /// Clear entire cart
   void clearCart() {
+    _productsMap.clear();
     state = [];
   }
 

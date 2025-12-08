@@ -98,40 +98,48 @@ class TossTextField extends StatelessWidget {
             hintStyle: TossTextStyles.body.copyWith(
               color: TossColors.gray400,
             ),
-            filled: true,
-            fillColor: enabled ? TossColors.gray50 : TossColors.gray100,
+            filled: false,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(
+                color: TossColors.gray100,
+                width: 1,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(
+                color: TossColors.gray100,
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               borderSide: const BorderSide(
                 color: TossColors.primary,
-                width: 1.5,
+                width: 1,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               borderSide: const BorderSide(
                 color: TossColors.error,
-                width: 1.5,
+                width: 1,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               borderSide: const BorderSide(
                 color: TossColors.error,
-                width: 1.5,
+                width: 1,
               ),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(
+                color: TossColors.gray100,
+                width: 1,
+              ),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,

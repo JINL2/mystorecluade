@@ -18,11 +18,14 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$SalesProductState {
   List<SalesProduct> get products => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
+  bool get isLoadingMore => throw _privateConstructorUsedError;
   bool get isRefreshing => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
   String get searchQuery => throw _privateConstructorUsedError;
   SortOption get sortOption => throw _privateConstructorUsedError;
   int get currentPage => throw _privateConstructorUsedError;
+  int get pageSize => throw _privateConstructorUsedError;
+  int get totalCount => throw _privateConstructorUsedError;
   bool get hasNextPage => throw _privateConstructorUsedError;
 
   /// Create a copy of SalesProductState
@@ -41,11 +44,14 @@ abstract class $SalesProductStateCopyWith<$Res> {
   $Res call(
       {List<SalesProduct> products,
       bool isLoading,
+      bool isLoadingMore,
       bool isRefreshing,
       String? errorMessage,
       String searchQuery,
       SortOption sortOption,
       int currentPage,
+      int pageSize,
+      int totalCount,
       bool hasNextPage});
 }
 
@@ -66,11 +72,14 @@ class _$SalesProductStateCopyWithImpl<$Res, $Val extends SalesProductState>
   $Res call({
     Object? products = null,
     Object? isLoading = null,
+    Object? isLoadingMore = null,
     Object? isRefreshing = null,
     Object? errorMessage = freezed,
     Object? searchQuery = null,
     Object? sortOption = null,
     Object? currentPage = null,
+    Object? pageSize = null,
+    Object? totalCount = null,
     Object? hasNextPage = null,
   }) {
     return _then(_value.copyWith(
@@ -81,6 +90,10 @@ class _$SalesProductStateCopyWithImpl<$Res, $Val extends SalesProductState>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingMore: null == isLoadingMore
+          ? _value.isLoadingMore
+          : isLoadingMore // ignore: cast_nullable_to_non_nullable
               as bool,
       isRefreshing: null == isRefreshing
           ? _value.isRefreshing
@@ -101,6 +114,14 @@ class _$SalesProductStateCopyWithImpl<$Res, $Val extends SalesProductState>
       currentPage: null == currentPage
           ? _value.currentPage
           : currentPage // ignore: cast_nullable_to_non_nullable
+              as int,
+      pageSize: null == pageSize
+          ? _value.pageSize
+          : pageSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalCount: null == totalCount
+          ? _value.totalCount
+          : totalCount // ignore: cast_nullable_to_non_nullable
               as int,
       hasNextPage: null == hasNextPage
           ? _value.hasNextPage
@@ -121,11 +142,14 @@ abstract class _$$SalesProductStateImplCopyWith<$Res>
   $Res call(
       {List<SalesProduct> products,
       bool isLoading,
+      bool isLoadingMore,
       bool isRefreshing,
       String? errorMessage,
       String searchQuery,
       SortOption sortOption,
       int currentPage,
+      int pageSize,
+      int totalCount,
       bool hasNextPage});
 }
 
@@ -144,11 +168,14 @@ class __$$SalesProductStateImplCopyWithImpl<$Res>
   $Res call({
     Object? products = null,
     Object? isLoading = null,
+    Object? isLoadingMore = null,
     Object? isRefreshing = null,
     Object? errorMessage = freezed,
     Object? searchQuery = null,
     Object? sortOption = null,
     Object? currentPage = null,
+    Object? pageSize = null,
+    Object? totalCount = null,
     Object? hasNextPage = null,
   }) {
     return _then(_$SalesProductStateImpl(
@@ -159,6 +186,10 @@ class __$$SalesProductStateImplCopyWithImpl<$Res>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingMore: null == isLoadingMore
+          ? _value.isLoadingMore
+          : isLoadingMore // ignore: cast_nullable_to_non_nullable
               as bool,
       isRefreshing: null == isRefreshing
           ? _value.isRefreshing
@@ -180,6 +211,14 @@ class __$$SalesProductStateImplCopyWithImpl<$Res>
           ? _value.currentPage
           : currentPage // ignore: cast_nullable_to_non_nullable
               as int,
+      pageSize: null == pageSize
+          ? _value.pageSize
+          : pageSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalCount: null == totalCount
+          ? _value.totalCount
+          : totalCount // ignore: cast_nullable_to_non_nullable
+              as int,
       hasNextPage: null == hasNextPage
           ? _value.hasNextPage
           : hasNextPage // ignore: cast_nullable_to_non_nullable
@@ -190,17 +229,21 @@ class __$$SalesProductStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SalesProductStateImpl implements _SalesProductState {
+class _$SalesProductStateImpl extends _SalesProductState {
   const _$SalesProductStateImpl(
       {final List<SalesProduct> products = const [],
       this.isLoading = false,
+      this.isLoadingMore = false,
       this.isRefreshing = false,
       this.errorMessage,
       this.searchQuery = '',
       this.sortOption = SortOption.nameAsc,
       this.currentPage = 1,
+      this.pageSize = 10,
+      this.totalCount = 0,
       this.hasNextPage = false})
-      : _products = products;
+      : _products = products,
+        super._();
 
   final List<SalesProduct> _products;
   @override
@@ -214,6 +257,9 @@ class _$SalesProductStateImpl implements _SalesProductState {
   @override
   @JsonKey()
   final bool isLoading;
+  @override
+  @JsonKey()
+  final bool isLoadingMore;
   @override
   @JsonKey()
   final bool isRefreshing;
@@ -230,11 +276,17 @@ class _$SalesProductStateImpl implements _SalesProductState {
   final int currentPage;
   @override
   @JsonKey()
+  final int pageSize;
+  @override
+  @JsonKey()
+  final int totalCount;
+  @override
+  @JsonKey()
   final bool hasNextPage;
 
   @override
   String toString() {
-    return 'SalesProductState(products: $products, isLoading: $isLoading, isRefreshing: $isRefreshing, errorMessage: $errorMessage, searchQuery: $searchQuery, sortOption: $sortOption, currentPage: $currentPage, hasNextPage: $hasNextPage)';
+    return 'SalesProductState(products: $products, isLoading: $isLoading, isLoadingMore: $isLoadingMore, isRefreshing: $isRefreshing, errorMessage: $errorMessage, searchQuery: $searchQuery, sortOption: $sortOption, currentPage: $currentPage, pageSize: $pageSize, totalCount: $totalCount, hasNextPage: $hasNextPage)';
   }
 
   @override
@@ -245,6 +297,8 @@ class _$SalesProductStateImpl implements _SalesProductState {
             const DeepCollectionEquality().equals(other._products, _products) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isLoadingMore, isLoadingMore) ||
+                other.isLoadingMore == isLoadingMore) &&
             (identical(other.isRefreshing, isRefreshing) ||
                 other.isRefreshing == isRefreshing) &&
             (identical(other.errorMessage, errorMessage) ||
@@ -255,6 +309,10 @@ class _$SalesProductStateImpl implements _SalesProductState {
                 other.sortOption == sortOption) &&
             (identical(other.currentPage, currentPage) ||
                 other.currentPage == currentPage) &&
+            (identical(other.pageSize, pageSize) ||
+                other.pageSize == pageSize) &&
+            (identical(other.totalCount, totalCount) ||
+                other.totalCount == totalCount) &&
             (identical(other.hasNextPage, hasNextPage) ||
                 other.hasNextPage == hasNextPage));
   }
@@ -264,11 +322,14 @@ class _$SalesProductStateImpl implements _SalesProductState {
       runtimeType,
       const DeepCollectionEquality().hash(_products),
       isLoading,
+      isLoadingMore,
       isRefreshing,
       errorMessage,
       searchQuery,
       sortOption,
       currentPage,
+      pageSize,
+      totalCount,
       hasNextPage);
 
   /// Create a copy of SalesProductState
@@ -281,21 +342,27 @@ class _$SalesProductStateImpl implements _SalesProductState {
           this, _$identity);
 }
 
-abstract class _SalesProductState implements SalesProductState {
+abstract class _SalesProductState extends SalesProductState {
   const factory _SalesProductState(
       {final List<SalesProduct> products,
       final bool isLoading,
+      final bool isLoadingMore,
       final bool isRefreshing,
       final String? errorMessage,
       final String searchQuery,
       final SortOption sortOption,
       final int currentPage,
+      final int pageSize,
+      final int totalCount,
       final bool hasNextPage}) = _$SalesProductStateImpl;
+  const _SalesProductState._() : super._();
 
   @override
   List<SalesProduct> get products;
   @override
   bool get isLoading;
+  @override
+  bool get isLoadingMore;
   @override
   bool get isRefreshing;
   @override
@@ -307,6 +374,10 @@ abstract class _SalesProductState implements SalesProductState {
   @override
   int get currentPage;
   @override
+  int get pageSize;
+  @override
+  int get totalCount;
+  @override
   bool get hasNextPage;
 
   /// Create a copy of SalesProductState
@@ -314,152 +385,5 @@ abstract class _SalesProductState implements SalesProductState {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SalesProductStateImplCopyWith<_$SalesProductStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$CartState {
-  bool get isProcessing => throw _privateConstructorUsedError;
-  String? get errorMessage => throw _privateConstructorUsedError;
-
-  /// Create a copy of CartState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $CartStateCopyWith<CartState> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $CartStateCopyWith<$Res> {
-  factory $CartStateCopyWith(CartState value, $Res Function(CartState) then) =
-      _$CartStateCopyWithImpl<$Res, CartState>;
-  @useResult
-  $Res call({bool isProcessing, String? errorMessage});
-}
-
-/// @nodoc
-class _$CartStateCopyWithImpl<$Res, $Val extends CartState>
-    implements $CartStateCopyWith<$Res> {
-  _$CartStateCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of CartState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isProcessing = null,
-    Object? errorMessage = freezed,
-  }) {
-    return _then(_value.copyWith(
-      isProcessing: null == isProcessing
-          ? _value.isProcessing
-          : isProcessing // ignore: cast_nullable_to_non_nullable
-              as bool,
-      errorMessage: freezed == errorMessage
-          ? _value.errorMessage
-          : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$CartStateImplCopyWith<$Res>
-    implements $CartStateCopyWith<$Res> {
-  factory _$$CartStateImplCopyWith(
-          _$CartStateImpl value, $Res Function(_$CartStateImpl) then) =
-      __$$CartStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({bool isProcessing, String? errorMessage});
-}
-
-/// @nodoc
-class __$$CartStateImplCopyWithImpl<$Res>
-    extends _$CartStateCopyWithImpl<$Res, _$CartStateImpl>
-    implements _$$CartStateImplCopyWith<$Res> {
-  __$$CartStateImplCopyWithImpl(
-      _$CartStateImpl _value, $Res Function(_$CartStateImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of CartState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isProcessing = null,
-    Object? errorMessage = freezed,
-  }) {
-    return _then(_$CartStateImpl(
-      isProcessing: null == isProcessing
-          ? _value.isProcessing
-          : isProcessing // ignore: cast_nullable_to_non_nullable
-              as bool,
-      errorMessage: freezed == errorMessage
-          ? _value.errorMessage
-          : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$CartStateImpl implements _CartState {
-  const _$CartStateImpl({this.isProcessing = false, this.errorMessage});
-
-  @override
-  @JsonKey()
-  final bool isProcessing;
-  @override
-  final String? errorMessage;
-
-  @override
-  String toString() {
-    return 'CartState(isProcessing: $isProcessing, errorMessage: $errorMessage)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CartStateImpl &&
-            (identical(other.isProcessing, isProcessing) ||
-                other.isProcessing == isProcessing) &&
-            (identical(other.errorMessage, errorMessage) ||
-                other.errorMessage == errorMessage));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, isProcessing, errorMessage);
-
-  /// Create a copy of CartState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CartStateImplCopyWith<_$CartStateImpl> get copyWith =>
-      __$$CartStateImplCopyWithImpl<_$CartStateImpl>(this, _$identity);
-}
-
-abstract class _CartState implements CartState {
-  const factory _CartState(
-      {final bool isProcessing, final String? errorMessage}) = _$CartStateImpl;
-
-  @override
-  bool get isProcessing;
-  @override
-  String? get errorMessage;
-
-  /// Create a copy of CartState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CartStateImplCopyWith<_$CartStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

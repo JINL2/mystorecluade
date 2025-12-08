@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-
 import '../../../../../core/utils/datetime_utils.dart';
 
 /// Shift Time Formatter
 ///
 /// Utility class for formatting shift times from UTC to local timezone.
+/// Pure Dart implementation - no Flutter dependencies.
 class ShiftTimeFormatter {
   /// Convert time string from UTC to local time
   ///
@@ -68,9 +67,12 @@ class ShiftTimeFormatter {
     }
   }
 
-  /// Format TimeOfDay to HH:mm string
-  static String formatTimeOfDay(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  /// Format hour and minute to HH:mm string
+  ///
+  /// Pure Dart implementation - no Flutter TimeOfDay dependency.
+  /// Use this for formatting time values from any source.
+  static String formatHourMinute(int hour, int minute) {
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 
   /// Convert local time (HH:mm) to UTC time (HH:mm:ss) for database storage

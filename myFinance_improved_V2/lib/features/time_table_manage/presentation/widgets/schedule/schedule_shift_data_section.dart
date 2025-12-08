@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/shift_metadata.dart';
+import '../../../domain/usecases/toggle_shift_approval.dart';
+import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
+import '../../providers/usecase/time_table_usecase_providers.dart';
 import 'schedule_shift_card.dart';
 
 /// Schedule Shift Data Section
@@ -83,6 +86,9 @@ class ScheduleShiftDataSection extends ConsumerWidget {
                         actualRequestId,
                       );
                 },
+                onRemoveApproved: (shiftRequestId) async {
+                  await _handleRemoveApproved(context, ref, shiftRequestId);
+                },
               );
             }),
           ] else if (!isLoadingMetadata) ...[
@@ -125,7 +131,8 @@ class ScheduleShiftDataSection extends ConsumerWidget {
 
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
 
-    final monthlyStatuses = ref.read(monthlyShiftStatusProvider(selectedStoreId!)).allMonthlyStatuses;
+    // Use ref.watch to rebuild when data changes
+    final monthlyStatuses = ref.watch(monthlyShiftStatusProvider(selectedStoreId!)).allMonthlyStatuses;
 
     for (var monthlyStatus in monthlyStatuses) {
       final dailyData = monthlyStatus.findByDate(dateStr);
@@ -137,41 +144,29 @@ class ScheduleShiftDataSection extends ConsumerWidget {
     return [];
   }
 
-  /// Format time string to display format (HH:mm)
+  /// Format time string to HH:mm format
   ///
-  /// NOTE: RPC returns times already converted to local timezone via p_timezone parameter.
-  /// NO UTC conversion needed - times are already local!
-  String _formatShiftTime(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
+  /// IMPORTANT: Times from database are wall-clock times (local to store).
+  /// This method only formats the time string to HH:mm (removes seconds).
+  /// DO NOT perform timezone conversion - times are already correct!
+  String _formatShiftTime(String? timeString) {
+    if (timeString == null || timeString.isEmpty || timeString == '--:--') {
       return '--:--';
     }
 
     try {
-      // 1. Full ISO 8601 format (e.g., "2024-01-01T09:00:00" or "2024-01-01T09:00:00Z")
-      if (timeStr.contains('T')) {
-        // Parse and format - times are already local from RPC
-        final cleanTime = timeStr.split('Z')[0].split('+')[0];
-        final dateTime = DateTime.parse(cleanTime);
-        return DateTimeUtils.formatTimeOnly(dateTime);
-      }
-
-      // 2. Time-only format (e.g., "09:00:00", "09:00")
-      // Already in local time from RPC, just format it
-      final cleanTime = timeStr.split('+')[0].split('Z')[0].trim();
-      final parts = cleanTime.split(':');
-
+      // Simply strip seconds from time string (HH:mm:ss → HH:mm)
+      // Times are already in local timezone from RPC
+      final parts = timeString.split(':');
       if (parts.length >= 2) {
-        final hour = parts[0].padLeft(2, '0');
-        final minute = parts[1].padLeft(2, '0');
-        return '$hour:$minute';
+        // Return only HH:mm, removing seconds
+        return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
       }
-
-      // Fallback: return original
-      return timeStr;
     } catch (e) {
-      // Final fallback: return original
-      return timeStr;
+      // Return original on error
     }
+
+    return timeString;
   }
 
   /// Get assigned employees for a specific shift
@@ -211,5 +206,38 @@ class ScheduleShiftDataSection extends ConsumerWidget {
     }
 
     return assignedEmployees;
+  }
+
+  /// Handle removing an approved employee from shift
+  Future<void> _handleRemoveApproved(
+    BuildContext context,
+    WidgetRef ref,
+    String shiftRequestId,
+  ) async {
+    try {
+      // Get current user ID from appStateProvider
+      final userId = ref.read(appStateProvider).userId;
+
+      if (userId.isEmpty) {
+        return;
+      }
+
+      // Call toggle shift approval API (toggles is_approved from true to false)
+      final toggleUseCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await toggleUseCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+
+      // Refresh shift data to show updated state
+      if (selectedStoreId != null && selectedStoreId!.isNotEmpty) {
+        // Invalidate the cache to force refresh
+        ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
+      }
+    } catch (e) {
+      // Silent fail - error handling can be added if needed
+    }
   }
 }

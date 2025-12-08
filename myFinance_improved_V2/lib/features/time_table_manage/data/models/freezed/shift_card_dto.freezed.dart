@@ -22,11 +22,14 @@ ShiftCardDto _$ShiftCardDtoFromJson(Map<String, dynamic> json) {
 mixin _$ShiftCardDto {
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @JsonKey(name: 'shift_date')
   String get shiftDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId =>
       throw _privateConstructorUsedError; // User information
+  @JsonKey(name: 'user_id')
+  String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_name')
   String get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
@@ -37,6 +40,11 @@ mixin _$ShiftCardDto {
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
   ShiftTime? get shiftTime =>
+      throw _privateConstructorUsedError; // Shift start/end time (NEW: "2025-12-05 14:00" format)
+  @JsonKey(name: 'shift_start_time')
+  String? get shiftStartTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'shift_end_time')
+  String? get shiftEndTime =>
       throw _privateConstructorUsedError; // Approval status
   @JsonKey(name: 'is_approved')
   bool get isApproved => throw _privateConstructorUsedError;
@@ -118,10 +126,13 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
   $Res call(
       {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'shift_time') @ShiftTimeConverter() ShiftTime? shiftTime,
+      @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+      @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'is_approved') bool isApproved,
       @JsonKey(name: 'is_problem') bool isProblem,
       @JsonKey(name: 'is_problem_solved') bool isProblemSolved,
@@ -170,10 +181,13 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
   $Res call({
     Object? shiftDate = null,
     Object? shiftRequestId = null,
+    Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
     Object? shiftName = freezed,
     Object? shiftTime = freezed,
+    Object? shiftStartTime = freezed,
+    Object? shiftEndTime = freezed,
     Object? isApproved = null,
     Object? isProblem = null,
     Object? isProblemSolved = null,
@@ -210,6 +224,10 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
       userName: null == userName
           ? _value.userName
           : userName // ignore: cast_nullable_to_non_nullable
@@ -226,6 +244,14 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.shiftTime
           : shiftTime // ignore: cast_nullable_to_non_nullable
               as ShiftTime?,
+      shiftStartTime: freezed == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftEndTime: freezed == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
+              as String?,
       isApproved: null == isApproved
           ? _value.isApproved
           : isApproved // ignore: cast_nullable_to_non_nullable
@@ -345,10 +371,13 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
   $Res call(
       {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'shift_name') String? shiftName,
       @JsonKey(name: 'shift_time') @ShiftTimeConverter() ShiftTime? shiftTime,
+      @JsonKey(name: 'shift_start_time') String? shiftStartTime,
+      @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'is_approved') bool isApproved,
       @JsonKey(name: 'is_problem') bool isProblem,
       @JsonKey(name: 'is_problem_solved') bool isProblemSolved,
@@ -395,10 +424,13 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
   $Res call({
     Object? shiftDate = null,
     Object? shiftRequestId = null,
+    Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
     Object? shiftName = freezed,
     Object? shiftTime = freezed,
+    Object? shiftStartTime = freezed,
+    Object? shiftEndTime = freezed,
     Object? isApproved = null,
     Object? isProblem = null,
     Object? isProblemSolved = null,
@@ -435,6 +467,10 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
               as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
       userName: null == userName
           ? _value.userName
           : userName // ignore: cast_nullable_to_non_nullable
@@ -451,6 +487,14 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value.shiftTime
           : shiftTime // ignore: cast_nullable_to_non_nullable
               as ShiftTime?,
+      shiftStartTime: freezed == shiftStartTime
+          ? _value.shiftStartTime
+          : shiftStartTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      shiftEndTime: freezed == shiftEndTime
+          ? _value.shiftEndTime
+          : shiftEndTime // ignore: cast_nullable_to_non_nullable
+              as String?,
       isApproved: null == isApproved
           ? _value.isApproved
           : isApproved // ignore: cast_nullable_to_non_nullable
@@ -563,12 +607,15 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ShiftCardDtoImpl implements _ShiftCardDto {
   const _$ShiftCardDtoImpl(
-      {@JsonKey(name: 'shift_date') required this.shiftDate,
-      @JsonKey(name: 'shift_request_id') required this.shiftRequestId,
-      @JsonKey(name: 'user_name') required this.userName,
+      {@JsonKey(name: 'shift_date') this.shiftDate = '',
+      @JsonKey(name: 'shift_request_id') this.shiftRequestId = '',
+      @JsonKey(name: 'user_id') this.userId = '',
+      @JsonKey(name: 'user_name') this.userName = '',
       @JsonKey(name: 'profile_image') this.profileImage,
       @JsonKey(name: 'shift_name') this.shiftName,
       @JsonKey(name: 'shift_time') @ShiftTimeConverter() this.shiftTime,
+      @JsonKey(name: 'shift_start_time') this.shiftStartTime,
+      @JsonKey(name: 'shift_end_time') this.shiftEndTime,
       @JsonKey(name: 'is_approved') this.isApproved = false,
       @JsonKey(name: 'is_problem') this.isProblem = false,
       @JsonKey(name: 'is_problem_solved') this.isProblemSolved = false,
@@ -604,6 +651,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   final String shiftDate;
@@ -611,6 +659,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @JsonKey(name: 'shift_request_id')
   final String shiftRequestId;
 // User information
+  @override
+  @JsonKey(name: 'user_id')
+  final String userId;
   @override
   @JsonKey(name: 'user_name')
   final String userName;
@@ -625,6 +676,13 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
   final ShiftTime? shiftTime;
+// Shift start/end time (NEW: "2025-12-05 14:00" format)
+  @override
+  @JsonKey(name: 'shift_start_time')
+  final String? shiftStartTime;
+  @override
+  @JsonKey(name: 'shift_end_time')
+  final String? shiftEndTime;
 // Approval status
   @override
   @JsonKey(name: 'is_approved')
@@ -722,7 +780,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
   @override
   String toString() {
-    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
+    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
   }
 
   @override
@@ -734,6 +792,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.shiftDate == shiftDate) &&
             (identical(other.shiftRequestId, shiftRequestId) ||
                 other.shiftRequestId == shiftRequestId) &&
+            (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.userName, userName) ||
                 other.userName == userName) &&
             (identical(other.profileImage, profileImage) ||
@@ -742,6 +801,10 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.shiftName == shiftName) &&
             (identical(other.shiftTime, shiftTime) ||
                 other.shiftTime == shiftTime) &&
+            (identical(other.shiftStartTime, shiftStartTime) ||
+                other.shiftStartTime == shiftStartTime) &&
+            (identical(other.shiftEndTime, shiftEndTime) ||
+                other.shiftEndTime == shiftEndTime) &&
             (identical(other.isApproved, isApproved) ||
                 other.isApproved == isApproved) &&
             (identical(other.isProblem, isProblem) ||
@@ -803,10 +866,13 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         runtimeType,
         shiftDate,
         shiftRequestId,
+        userId,
         userName,
         profileImage,
         shiftName,
         shiftTime,
+        shiftStartTime,
+        shiftEndTime,
         isApproved,
         isProblem,
         isProblemSolved,
@@ -853,14 +919,17 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
 abstract class _ShiftCardDto implements ShiftCardDto {
   const factory _ShiftCardDto(
-      {@JsonKey(name: 'shift_date') required final String shiftDate,
-      @JsonKey(name: 'shift_request_id') required final String shiftRequestId,
-      @JsonKey(name: 'user_name') required final String userName,
+      {@JsonKey(name: 'shift_date') final String shiftDate,
+      @JsonKey(name: 'shift_request_id') final String shiftRequestId,
+      @JsonKey(name: 'user_id') final String userId,
+      @JsonKey(name: 'user_name') final String userName,
       @JsonKey(name: 'profile_image') final String? profileImage,
       @JsonKey(name: 'shift_name') final String? shiftName,
       @JsonKey(name: 'shift_time')
       @ShiftTimeConverter()
       final ShiftTime? shiftTime,
+      @JsonKey(name: 'shift_start_time') final String? shiftStartTime,
+      @JsonKey(name: 'shift_end_time') final String? shiftEndTime,
       @JsonKey(name: 'is_approved') final bool isApproved,
       @JsonKey(name: 'is_problem') final bool isProblem,
       @JsonKey(name: 'is_problem_solved') final bool isProblemSolved,
@@ -898,12 +967,16 @@ abstract class _ShiftCardDto implements ShiftCardDto {
 
 // Core identification
 // v3: shift_date (actual work date from start_time_utc) instead of request_date
+// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   String get shiftDate;
   @override
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId; // User information
+  @override
+  @JsonKey(name: 'user_id')
+  String get userId;
   @override
   @JsonKey(name: 'user_name')
   String get userName;
@@ -916,7 +989,14 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   @override
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
-  ShiftTime? get shiftTime; // Approval status
+  ShiftTime?
+      get shiftTime; // Shift start/end time (NEW: "2025-12-05 14:00" format)
+  @override
+  @JsonKey(name: 'shift_start_time')
+  String? get shiftStartTime;
+  @override
+  @JsonKey(name: 'shift_end_time')
+  String? get shiftEndTime; // Approval status
   @override
   @JsonKey(name: 'is_approved')
   bool get isApproved;

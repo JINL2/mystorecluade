@@ -18,6 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$InvoiceListState {
   List<Invoice> get invoices => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
+  bool get isLoadingMore => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   InvoicePageResult? get response => throw _privateConstructorUsedError;
   InvoicePeriod get selectedPeriod => throw _privateConstructorUsedError;
@@ -42,6 +43,7 @@ abstract class $InvoiceListStateCopyWith<$Res> {
   $Res call(
       {List<Invoice> invoices,
       bool isLoading,
+      bool isLoadingMore,
       String? error,
       InvoicePageResult? response,
       InvoicePeriod selectedPeriod,
@@ -68,6 +70,7 @@ class _$InvoiceListStateCopyWithImpl<$Res, $Val extends InvoiceListState>
   $Res call({
     Object? invoices = null,
     Object? isLoading = null,
+    Object? isLoadingMore = null,
     Object? error = freezed,
     Object? response = freezed,
     Object? selectedPeriod = null,
@@ -84,6 +87,10 @@ class _$InvoiceListStateCopyWithImpl<$Res, $Val extends InvoiceListState>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingMore: null == isLoadingMore
+          ? _value.isLoadingMore
+          : isLoadingMore // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -128,6 +135,7 @@ abstract class _$$InvoiceListStateImplCopyWith<$Res>
   $Res call(
       {List<Invoice> invoices,
       bool isLoading,
+      bool isLoadingMore,
       String? error,
       InvoicePageResult? response,
       InvoicePeriod selectedPeriod,
@@ -152,6 +160,7 @@ class __$$InvoiceListStateImplCopyWithImpl<$Res>
   $Res call({
     Object? invoices = null,
     Object? isLoading = null,
+    Object? isLoadingMore = null,
     Object? error = freezed,
     Object? response = freezed,
     Object? selectedPeriod = null,
@@ -168,6 +177,10 @@ class __$$InvoiceListStateImplCopyWithImpl<$Res>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingMore: null == isLoadingMore
+          ? _value.isLoadingMore
+          : isLoadingMore // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -207,6 +220,7 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
   const _$InvoiceListStateImpl(
       {final List<Invoice> invoices = const [],
       this.isLoading = false,
+      this.isLoadingMore = false,
       this.error,
       this.response,
       this.selectedPeriod = InvoicePeriod.allTime,
@@ -230,6 +244,9 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
   @JsonKey()
   final bool isLoading;
   @override
+  @JsonKey()
+  final bool isLoadingMore;
+  @override
   final String? error;
   @override
   final InvoicePageResult? response;
@@ -251,7 +268,7 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
 
   @override
   String toString() {
-    return 'InvoiceListState(invoices: $invoices, isLoading: $isLoading, error: $error, response: $response, selectedPeriod: $selectedPeriod, sortBy: $sortBy, sortAscending: $sortAscending, searchQuery: $searchQuery, currentPage: $currentPage)';
+    return 'InvoiceListState(invoices: $invoices, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error, response: $response, selectedPeriod: $selectedPeriod, sortBy: $sortBy, sortAscending: $sortAscending, searchQuery: $searchQuery, currentPage: $currentPage)';
   }
 
   @override
@@ -262,6 +279,8 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
             const DeepCollectionEquality().equals(other._invoices, _invoices) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isLoadingMore, isLoadingMore) ||
+                other.isLoadingMore == isLoadingMore) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.response, response) ||
                 other.response == response) &&
@@ -281,6 +300,7 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
       runtimeType,
       const DeepCollectionEquality().hash(_invoices),
       isLoading,
+      isLoadingMore,
       error,
       response,
       selectedPeriod,
@@ -303,6 +323,7 @@ abstract class _InvoiceListState extends InvoiceListState {
   const factory _InvoiceListState(
       {final List<Invoice> invoices,
       final bool isLoading,
+      final bool isLoadingMore,
       final String? error,
       final InvoicePageResult? response,
       final InvoicePeriod selectedPeriod,
@@ -316,6 +337,8 @@ abstract class _InvoiceListState extends InvoiceListState {
   List<Invoice> get invoices;
   @override
   bool get isLoading;
+  @override
+  bool get isLoadingMore;
   @override
   String? get error;
   @override

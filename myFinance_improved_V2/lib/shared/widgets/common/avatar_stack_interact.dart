@@ -322,7 +322,7 @@ class AvatarStackInteract extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _UsersBottomSheet(
+      builder: (sheetContext) => _UsersBottomSheet(
         title: title,
         subtitle: subtitle,
         users: users,
@@ -330,7 +330,23 @@ class AvatarStackInteract extends StatelessWidget {
         userItemBuilder: userItemBuilder,
         onUserTap: onUserTap,
         actionButtons: actionButtons,
-        onActionTap: onActionTap,
+        onActionTap: onActionTap != null
+            ? (user, actionId) {
+                // Call the original callback which updates parent state
+                onActionTap!(user, actionId);
+                // Close the current sheet
+                Navigator.of(sheetContext).pop();
+                // Wait for all frames to complete and widget tree to rebuild
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  // Wait one more frame to ensure parent widget fully rebuilt
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) {
+                      _showUsersBottomSheet(context);
+                    }
+                  });
+                });
+              }
+            : null,
       ),
     );
   }
@@ -433,7 +449,7 @@ class _UsersBottomSheet extends StatelessWidget {
                 ? _buildEmptyState()
                 : ListView.separated(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.only(top: 8, bottom: 32),
                     itemCount: users.length,
                     separatorBuilder: (context, index) => const Divider(
                       height: 1,

@@ -1,4 +1,5 @@
 /// Invoice period filter enum
+/// Note: displayName is in presentation/extensions/invoice_period_extension.dart
 enum InvoicePeriod {
   today,
   thisWeek,
@@ -6,21 +7,7 @@ enum InvoicePeriod {
   lastMonth,
   allTime;
 
-  String get displayName {
-    switch (this) {
-      case InvoicePeriod.today:
-        return 'Today';
-      case InvoicePeriod.thisWeek:
-        return 'This week';
-      case InvoicePeriod.thisMonth:
-        return 'This month';
-      case InvoicePeriod.lastMonth:
-        return 'Last month';
-      case InvoicePeriod.allTime:
-        return 'All time';
-    }
-  }
-
+  /// Get date range for this period (business logic)
   DateRange getDateRange() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day, 23, 59, 59);

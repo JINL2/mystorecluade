@@ -9,6 +9,8 @@ import '../../../../domain/entities/report_detail.dart';
 import '../../../widgets/templates/financial_summary/account_changes_section.dart';
 import '../../../widgets/templates/financial_summary/red_flags_section.dart';
 import '../../../widgets/templates/financial_summary/ai_insights_section.dart';
+import 'domain/entities/cpa_audit_data.dart';
+import 'widgets/all_transactions_section.dart';
 
 /// Financial Summary Detail Page
 ///
@@ -16,10 +18,12 @@ import '../../../widgets/templates/financial_summary/ai_insights_section.dart';
 /// Design follows Attendance Stats pattern for consistency.
 class FinancialSummaryDetailPage extends StatefulWidget {
   final ReportDetail report;
+  final CpaAuditData? auditData; // ← 추가
 
   const FinancialSummaryDetailPage({
     super.key,
     required this.report,
+    this.auditData, // ← 추가
   });
 
   @override
@@ -42,7 +46,7 @@ class _FinancialSummaryDetailPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Account Changes (Main Content - First!)
+            // Account Changes (AI 요약)
             AccountChangesSection(
               accountChanges: widget.report.accountChanges,
             ),
@@ -60,6 +64,16 @@ class _FinancialSummaryDetailPageState
             RedFlagsSection(
               redFlags: widget.report.redFlags,
             ),
+
+            const SizedBox(height: 20),
+
+            // All Transactions (실제 거래 데이터 - 맨 아래로 이동!)
+            if (widget.auditData != null) ...[
+              AllTransactionsSection(
+                auditData: widget.auditData!,
+                isMinimal: true, // 미니멀 모드 활성화
+              ),
+            ],
 
             const SizedBox(height: 16),
           ],

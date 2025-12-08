@@ -18,13 +18,13 @@ import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import '../../../sales_invoice/presentation/pages/payment_method_page.dart';
 import '../../domain/entities/cart_item.dart';
-import '../../domain/value_objects/sort_option.dart';
+import '../extensions/sort_option_extension.dart';
 import '../providers/cart_provider.dart';
 import '../providers/filtered_products_provider.dart';
 import '../providers/sales_product_provider.dart';
-import '../widgets/cart/added_items_section.dart';
 import '../widgets/cart/cart_summary_bar.dart';
 import '../widgets/list/selectable_product_tile.dart';
+import '../widgets/modals/sort_options_bottom_sheet.dart';
 
 class SaleProductPage extends ConsumerStatefulWidget {
   const SaleProductPage({super.key});
@@ -36,6 +36,7 @@ class SaleProductPage extends ConsumerStatefulWidget {
 class _SaleProductPageState extends ConsumerState<SaleProductPage>
     with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _searchDebounceTimer;
   bool _isSearchFocused = false;
@@ -58,15 +59,31 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         }
       });
     });
+
+    // Add scroll listener for infinite scroll
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _searchDebounceTimer?.cancel();
     _searchFocusNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load next page when near bottom (200px threshold)
+      final salesState = ref.read(salesProductProvider);
+      if (salesState.canLoadMore) {
+        debugPrint('[SaleProductPage] _onScroll: Calling loadNextPage()');
+        ref.read(salesProductProvider.notifier).loadNextPage();
+      }
+    }
   }
 
   @override
@@ -86,69 +103,70 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   void _showSortOptionsSheet() {
     final currentSort = ref.read(salesProductProvider).sortOption;
 
-    // Only show base options (Asc variants) - tap toggles between Asc/Desc
-    final baseOptions = [
-      SortOption.nameAsc,
-      SortOption.priceAsc,
-      SortOption.stockAsc,
-    ];
-
-    showModalBottomSheet(
+    SortOptionsBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isDismissible: true,
-      builder: (context) => SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(TossBorderRadius.lg),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sort Products',
-                  style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space3),
-                ...baseOptions.map((option) {
-                  final isSelected = currentSort == option ||
-                      currentSort == option.toggled;
-                  return ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(option.displayName),
-                    selected: isSelected,
-                    trailing: isSelected
-                        ? Icon(
-                            currentSort.isAscending
-                                ? Icons.arrow_upward
-                                : Icons.arrow_downward,
-                            size: 20,
-                          )
-                        : null,
-                    onTap: () {
-                      final newSort = isSelected ? currentSort.toggled : option;
-                      ref.read(salesProductProvider.notifier).updateSort(newSort);
-                      Navigator.pop(context);
-                    },
-                  );
-                }),
-                const SizedBox(height: TossSpacing.space2),
-              ],
-            ),
+      currentSort: currentSort,
+      onSortChanged: (newSort) {
+        ref.read(salesProductProvider.notifier).updateSort(newSort);
+      },
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    final cart = ref.read(cartProvider);
+    if (cart.isEmpty) {
+      return true;
+    }
+
+    final shouldDiscard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: TossColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Text(
+          'Discard Selection?',
+          style: TossTextStyles.h4.copyWith(
+            color: TossColors.gray900,
           ),
         ),
+        content: Text(
+          'You have items in your cart. Are you sure you want to discard your selection?',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Discard',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+
+    if (shouldDiscard == true) {
+      ref.read(cartProvider.notifier).clearCart();
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -189,17 +207,33 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     // Get filtered products (memoized - only recomputes when dependencies change)
     final displayProducts = ref.watch(filteredProductsProvider);
 
-    final shouldShowProductList = cart.isEmpty || _isSearchFocused;
-
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: AppBar(
-        title: Text('Sales', style: TossTextStyles.h3),
-        centerTitle: true,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: TossScaffold(
         backgroundColor: TossColors.gray100,
-        foregroundColor: TossColors.black,
-      ),
-      body: Column(
+        appBar: AppBar(
+          title: Text('Sales', style: TossTextStyles.h3),
+          centerTitle: true,
+          backgroundColor: TossColors.gray100,
+          foregroundColor: TossColors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              final shouldPop = await _onWillPop();
+              if (shouldPop && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+        body: Column(
         children: [
           // Search bar
           Container(
@@ -218,22 +252,15 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             ),
           ),
 
-          // Scrollable content
+          // Scrollable content with infinite scroll
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Added Items Section (shown when cart has items and search is not focused)
-                  if (cart.isNotEmpty && !_isSearchFocused)
-                    AddedItemsSection(
-                      cartItems: cart,
-                      currencySymbol: currencySymbol,
-                    ),
-
-                  // Only show sort control and product list when needed
-                  if (shouldShowProductList) ...[
-                    // Sort Control
-                    Container(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                  // Always show sort control and product list
+                  // Sort Control
+                  SliverToBoxAdapter(
+                    child: Container(
                       margin: const EdgeInsets.fromLTRB(
                         TossSpacing.space4,
                         TossSpacing.space3,
@@ -288,10 +315,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                         ),
                       ),
                     ),
+                  ),
 
-                    // Products Content
-                    if (displayProducts.isEmpty)
-                      SizedBox(
+                  // Products Content
+                  if (displayProducts.isEmpty)
+                    SliverToBoxAdapter(
+                      child: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.3,
                         child: Center(
                           child: Column(
@@ -312,106 +341,142 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                             ],
                           ),
                         ),
-                      )
-                    else
-                      Container(
-                        margin: const EdgeInsets.all(TossSpacing.space4),
+                      ),
+                    )
+                  else ...[
+                    // Section Header
+                    SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(
+                          TossSpacing.space4,
+                          TossSpacing.space2,
+                          TossSpacing.space4,
+                          0,
+                        ),
                         child: TossWhiteCard(
                           padding: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              // Section Header
-                              Container(
-                                padding: const EdgeInsets.all(TossSpacing.space4),
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: TossColors.gray100,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.shopping_cart_rounded,
-                                      color: TossColors.primary,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: TossSpacing.space2),
-                                    Text(
-                                      'Select Products',
-                                      style: TossTextStyles.h4.copyWith(
-                                        color: TossColors.gray900,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: TossSpacing.space2,
-                                        vertical: TossSpacing.space1,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: TossColors.primary.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                                      ),
-                                      child: Text(
-                                        '${displayProducts.length} available',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          child: Container(
+                            padding: const EdgeInsets.all(TossSpacing.space4),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: TossColors.gray100,
+                                  width: 1,
                                 ),
                               ),
-
-                              // Product List
-                              ...displayProducts.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final product = entry.value;
-                                final cartItem = cart.firstWhere(
-                                  (item) => item.productId == product.productId,
-                                  orElse: () => const CartItem(
-                                    id: '',
-                                    productId: '',
-                                    sku: '',
-                                    name: '',
-                                    price: 0,
-                                    quantity: 0,
-                                    available: 0,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.shopping_cart_rounded,
+                                  color: TossColors.primary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Text(
+                                  'Select Products',
+                                  style: TossTextStyles.h4.copyWith(
+                                    color: TossColors.gray900,
                                   ),
-                                );
-
-                                return Column(
-                                  children: [
-                                    SelectableProductTile(
-                                      product: product,
-                                      cartItem: cartItem,
-                                      currencySymbol: currencySymbol,
-                                      onUnfocusSearch: () => _searchFocusNode.unfocus(),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: TossSpacing.space2,
+                                    vertical: TossSpacing.space1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                  ),
+                                  child: Text(
+                                    '${salesState.totalCount} available',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.primary,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    if (index < displayProducts.length - 1)
-                                      const Divider(
-                                        height: 1,
-                                        color: TossColors.gray100,
-                                        indent: TossSpacing.space4,
-                                        endIndent: TossSpacing.space4,
-                                      ),
-                                  ],
-                                );
-                              }),
-                            ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Product List Items
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final product = displayProducts[index];
+                          final cartItem = cart.firstWhere(
+                            (item) => item.productId == product.productId,
+                            orElse: () => const CartItem(
+                              id: '',
+                              productId: '',
+                              sku: '',
+                              name: '',
+                              price: 0,
+                              quantity: 0,
+                              available: 0,
+                            ),
+                          );
+
+                          return Container(
+                            margin: const EdgeInsets.fromLTRB(
+                              TossSpacing.space4,
+                              0,
+                              TossSpacing.space4,
+                              0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: TossColors.surface,
+                              borderRadius: index == displayProducts.length - 1
+                                  ? const BorderRadius.only(
+                                      bottomLeft: Radius.circular(TossBorderRadius.lg),
+                                      bottomRight: Radius.circular(TossBorderRadius.lg),
+                                    )
+                                  : null,
+                            ),
+                            child: Column(
+                              children: [
+                                SelectableProductTile(
+                                  product: product,
+                                  cartItem: cartItem,
+                                  currencySymbol: currencySymbol,
+                                ),
+                                if (index < displayProducts.length - 1)
+                                  const Divider(
+                                    height: 1,
+                                    color: TossColors.gray100,
+                                    indent: TossSpacing.space4,
+                                    endIndent: TossSpacing.space4,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                        childCount: displayProducts.length,
+                      ),
+                    ),
+
+                    // Loading More Indicator
+                    if (salesState.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(TossSpacing.space4),
+                          child: Center(
+                            child: CircularProgressIndicator(),
                           ),
                         ),
                       ),
                   ],
 
-                  // Bottom padding to prevent cart bar overlap
-                  SizedBox(height: cart.isNotEmpty ? 100 : 80),
-                ],
-              ),
+                // Bottom padding to prevent cart bar overlap
+                SliverToBoxAdapter(
+                  child: SizedBox(height: cart.isNotEmpty ? 100 : 80),
+                ),
+              ],
             ),
           ),
         ],
@@ -425,12 +490,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               onDone: () {
                 // Navigate to payment method page with cart items
                 final cartItems = ref.read(cartProvider);
-                final products = salesState.products;
+                final cartNotifier = ref.read(cartProvider.notifier);
 
-                // Convert cart items to SalesProduct list
-                final selectedProductsList = cartItems.map((cartItem) {
-                  return products.firstWhere((p) => p.productId == cartItem.productId);
-                }).toList();
+                // Get SalesProducts directly from cart (stored when added)
+                final selectedProductsList = cartNotifier.cartProducts;
 
                 // Convert to the map format for quantities
                 final productQuantities = <String, int>{};
@@ -450,6 +513,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               },
             )
           : null,
+      ),
     );
   }
 }

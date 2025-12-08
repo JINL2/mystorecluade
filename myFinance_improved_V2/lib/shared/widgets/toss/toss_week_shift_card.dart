@@ -32,15 +32,8 @@ class TossWeekShiftCard extends StatelessWidget {
   });
 
   Color? _getLeftBorderColor() {
-    switch (status) {
-      case ShiftCardStatus.inProgress:
-      case ShiftCardStatus.onTime:
-        return null; // No border for on-time shifts in screenshot
-      case ShiftCardStatus.late:
-        return TossColors.error;
-      default:
-        return null;
-    }
+    // No left border for any status
+    return null;
   }
 
   String? _getStatusText() {

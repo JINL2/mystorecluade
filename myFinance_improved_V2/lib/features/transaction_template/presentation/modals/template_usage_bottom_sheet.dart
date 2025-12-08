@@ -2,6 +2,7 @@
 ///
 /// Purpose: Allows users to create transactions from templates with minimal input.
 /// Handles complex templates with cash locations, counterparties, and debt tracking.
+/// Supports attachment uploads for receipts and documents.
 ///
 /// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
 ///
@@ -10,7 +11,9 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
@@ -23,12 +26,59 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dar
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 // ✅ Clean Architecture: Use Case from Domain layer
+import '../../domain/entities/template_attachment.dart';
 import '../../domain/usecases/create_transaction_from_template_usecase.dart';
 import '../../domain/validators/template_form_validator.dart';
 // 🔧 ENHANCED: Template analysis for intelligent UI
 import '../../domain/value_objects/template_analysis_result.dart';
 // ✅ Clean Architecture: Provider from Presentation layer
 import '../providers/use_case_providers.dart';
+import '../widgets/template_attachment_picker_section.dart';
+
+/// Custom TextInputFormatter for thousand separators (000,000 format)
+class ThousandSeparatorInputFormatter extends TextInputFormatter {
+  final NumberFormat _formatter = NumberFormat('#,###', 'en_US');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Allow empty input
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove all non-digit characters except decimal point
+    String cleanText = newValue.text.replaceAll(RegExp(r'[^\d.]'), '');
+
+    // Handle decimal numbers
+    final parts = cleanText.split('.');
+    String integerPart = parts[0];
+    String? decimalPart = parts.length > 1 ? parts[1] : null;
+
+    // Parse and format integer part
+    if (integerPart.isEmpty) {
+      integerPart = '0';
+    }
+
+    final intValue = int.tryParse(integerPart) ?? 0;
+    String formattedText = _formatter.format(intValue);
+
+    // Add decimal part if exists
+    if (decimalPart != null) {
+      formattedText = '$formattedText.$decimalPart';
+    }
+
+    // Calculate new cursor position
+    int cursorOffset = formattedText.length;
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: cursorOffset),
+    );
+  }
+}
 
 // Debt configuration model
 class DebtConfiguration {
@@ -98,7 +148,10 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
     
     // Create a key to access the form state
     final GlobalKey<_TemplateUsageBottomSheetState> formKey = GlobalKey();
-    
+
+    // Track button state for loading indicator
+    final buttonStateNotifier = ValueNotifier<bool>(false);
+
     // Use TossTextFieldKeyboardModal with action buttons
     return TossTextFieldKeyboardModal.show(
       context: context,
@@ -111,30 +164,48 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
       // Keep the original action buttons for the modal
       actionButtons: [
         Expanded(
-          child: TossSecondaryButton(
-            text: 'Cancel',
-            fullWidth: true,
-            onPressed: () {
-              context.pop();
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossSecondaryButton(
+                text: 'Cancel',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () {
+                  context.pop();
+                },
+              );
             },
           ),
         ),
         Expanded(
           flex: 2,
-          child: TossPrimaryButton(
-            text: 'Create Transaction',
-            fullWidth: true,
-            onPressed: () async {
-              // Get the form state and submit
-              final state = formKey.currentState;
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossPrimaryButton(
+                text: isSubmitting ? 'Creating...' : 'Create Transaction',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () async {
+                  // Get the form state and submit
+                  final state = formKey.currentState;
 
-              if (state != null) {
-                final isValid = state._isFormValid;
+                  if (state != null) {
+                    // 🔒 Check if already submitting
+                    if (state.isSubmitting) return;
 
-                if (isValid) {
-                  await state._handleSubmit();
-                }
-              }
+                    final isValid = state._isFormValid;
+
+                    if (isValid) {
+                      // Update button state
+                      buttonStateNotifier.value = true;
+                      await state._handleSubmit();
+                      buttonStateNotifier.value = false;
+                    }
+                  }
+                },
+              );
             },
           ),
         ),
@@ -165,6 +236,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   String? _cashLocationError;
   String? _counterpartyError;
   TemplateValidationResult? _lastValidationResult;
+
+  // 📎 Attachment state
+  List<TemplateAttachment> _pendingAttachments = [];
+
+  // 🔄 Loading state for transaction creation
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -204,6 +281,17 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     });
   }
 
+  /// Check if template requires attachment
+  bool get _requiresAttachment {
+    return widget.template['required_attachment'] == true;
+  }
+
+  /// Check if attachment requirement is satisfied
+  bool get _attachmentRequirementSatisfied {
+    if (!_requiresAttachment) return true;
+    return _pendingAttachments.isNotEmpty;
+  }
+
   /// Comprehensive form validation using domain validator
   bool get _isFormValid {
     final canSubmit = TemplateFormValidator.canSubmit(
@@ -214,8 +302,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
     );
 
-    return canSubmit;
+    // Also check attachment requirement
+    return canSubmit && _attachmentRequirementSatisfied;
   }
+
+  /// Check if transaction is being created (for loading indicator)
+  bool get isSubmitting => _isSubmitting;
 
   /// Get full validation result for error display
   TemplateValidationResult _getValidationResult() {
@@ -238,22 +330,60 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   @override
   Widget build(BuildContext context) {
     // ✅ No padding here - parent TossTextFieldKeyboardModal handles it
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        // 🔧 ENHANCED: Template info card (Legacy style)
-        _buildTemplateInfoCard(),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🔧 ENHANCED: Template info card (Legacy style)
+            _buildTemplateInfoCard(),
 
-        const SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
 
-        // 🔧 ENHANCED: "Just enter these:" section with blue border (Legacy style)
-        _buildInputSection(),
+            // 🔧 ENHANCED: "Just enter these:" section with blue border (Legacy style)
+            _buildInputSection(),
 
-        const SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
 
-        // 🔧 ENHANCED: Template details collapsible section
-        _buildTemplateDetailsSection(),
+            // 🔧 ENHANCED: Template details collapsible section
+            _buildTemplateDetailsSection(),
+          ],
+        ),
+
+        // 🔄 Loading overlay when submitting
+        if (_isSubmitting)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space3),
+                    Text(
+                      'Creating transaction...',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -394,6 +524,26 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           const SizedBox(height: TossSpacing.space3),
           _buildCounterpartySelector(),
         ],
+
+        // 📎 Attachments section
+        const SizedBox(height: TossSpacing.space3),
+
+        // ⚠️ Required attachment warning banner
+        if (_requiresAttachment && !_attachmentRequirementSatisfied) ...[
+          _buildAttachmentWarningBanner(),
+          const SizedBox(height: TossSpacing.space2),
+        ],
+
+        TemplateAttachmentPickerSection(
+          attachments: _pendingAttachments,
+          onAttachmentsChanged: (attachments) {
+            setState(() {
+              _pendingAttachments = attachments;
+            });
+          },
+          canAddMore: _pendingAttachments.length < TemplateAttachment.maxAttachments,
+          isRequired: _requiresAttachment,
+        ),
       ],
     );
   }
@@ -406,8 +556,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         TossTextField(
           controller: _amountController,
           label: 'Amount *',
-          hintText: 'Enter amount',
-          keyboardType: TextInputType.number,
+          hintText: 'Enter amount (e.g., 1,000,000)',
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+            ThousandSeparatorInputFormatter(),
+          ],
           onChanged: (value) {
             // Real-time validation happens via listener
             setState(() {});
@@ -524,6 +678,40 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         ),
       ],
+    );
+  }
+
+  /// Builds required attachment warning banner
+  Widget _buildAttachmentWarningBanner() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: TossColors.warning.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: TossColors.warning,
+            size: 20,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              'This template requires an attachment (receipt, invoice, etc.)',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray800,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -738,7 +926,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   }
   
   /// ✅ Clean Architecture: Creates transaction using Use Case
-  Future<void> _createTransactionFromTemplate(double amount) async {
+  /// Returns the created journal ID for attachment uploads
+  Future<String> _createTransactionFromTemplate(double amount) async {
     // Get app state for company/user/store IDs
     // ✅ FIXED: Access state properties from AppState, not AppStateNotifier
     final legacyAppState = ref.read(Legacy.appStateProvider);
@@ -765,13 +954,31 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       storeId: storeId,
     );
 
-    // Execute use case
+    // Execute use case - returns journal_id
     final useCase = ref.read(createTransactionFromTemplateUseCaseProvider);
-    await useCase.execute(params);
+    final journalId = await useCase.execute(params);
+
+    // Upload attachments if any
+    if (_pendingAttachments.isNotEmpty) {
+      final pendingFiles = _pendingAttachments
+          .where((a) => a.localFile != null)
+          .map((a) => a.localFile!)
+          .toList();
+
+      if (pendingFiles.isNotEmpty) {
+        final uploadAttachments = ref.read(uploadTemplateAttachmentsProvider);
+        await uploadAttachments(companyId, journalId, userId, pendingFiles);
+      }
+    }
+
+    return journalId;
   }
 
   Future<void> _handleSubmit() async {
     // 🔧 ENHANCED: Comprehensive form submission with validation and feedback
+
+    // Prevent double submission
+    if (_isSubmitting) return;
 
     // 1. Validate form
     final validationResult = _getValidationResult();
@@ -795,9 +1002,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
     try {
       // 2. Show loading state
-      if (mounted) {
-        // TODO: Show loading indicator
-      }
+      setState(() {
+        _isSubmitting = true;
+      });
 
       // 3. Parse amount
       final cleanAmount = _amountController.text.replaceAll(',', '').replaceAll(' ', '');
@@ -809,6 +1016,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
       // 5. Success feedback
       if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -827,6 +1038,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     } catch (e) {
       // 6. Error feedback
       if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
         showDialog(
           context: context,
           barrierDismissible: true,

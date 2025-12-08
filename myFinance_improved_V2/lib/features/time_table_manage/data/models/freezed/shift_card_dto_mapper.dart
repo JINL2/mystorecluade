@@ -37,9 +37,20 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       checkoutDistanceFromStore: checkoutDistanceFromStore,
       salaryType: salaryType,
       salaryAmount: salaryAmount,
+      basePay: basePay,
+      totalPayWithBonus: totalPayWithBonus,
+      // Store raw time strings from RPC for display without conversion
+      actualStartRaw: actualStart,
+      actualEndRaw: actualEnd,
+      confirmedStartRaw: confirmStartTime,
+      confirmedEndRaw: confirmEndTime,
       tags: noticeTags.map((tag) => tag.toEntity()).toList(),
       problemType: problemType,
       reportReason: reportReason,
+      // Shift start/end time from RPC ("2025-12-05 14:00" format)
+      // Used for consecutive shift detection
+      shiftStartTime: shiftStartTime,
+      shiftEndTime: shiftEndTime,
       createdAt: DateTime.now(), // RPC doesn't return created_at
       approvedAt: null, // RPC doesn't return approved_at
     );
@@ -48,7 +59,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
   /// Map DTO user fields to EmployeeInfo entity
   EmployeeInfo _mapEmployee() {
     return EmployeeInfo(
-      userId: '', // RPC doesn't return user_id in this format
+      userId: userId,
       userName: userName,
       profileImage: profileImage,
     );

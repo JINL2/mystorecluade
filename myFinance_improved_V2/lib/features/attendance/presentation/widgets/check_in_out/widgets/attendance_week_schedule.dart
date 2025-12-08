@@ -131,10 +131,14 @@ class AttendanceWeekSchedule extends StatelessWidget {
 
           // Week Days
           Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
+            padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+              border: Border.all(
+                color: TossColors.gray200,
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -169,20 +173,19 @@ class AttendanceWeekSchedule extends StatelessWidget {
                         color: isSelected
                             ? TossColors.primary
                             : isToday
-                                ? TossColors.surface
+                                ? TossColors.primarySurface
                                 : TossColors.transparent,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         border: isToday && !isSelected
                             ? Border.all(
-                                color: TossColors.gray200,
-                                width: 1,
+                                color: TossColors.primary.withOpacity(0.3),
+                                width: 1.5,
                               )
                             : null,
-                        // Add subtle shadow for selected date
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: TossColors.primary.withValues(alpha: 0.3),
+                                  color: TossColors.primary.withValues(alpha: 0.25),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -197,8 +200,10 @@ class AttendanceWeekSchedule extends StatelessWidget {
                             weekdayName,
                             style: TossTextStyles.small.copyWith(
                               color: isSelected
-                                  ? TossColors.surface
-                                  : TossColors.gray500,
+                                  ? TossColors.white
+                                  : isToday
+                                      ? TossColors.primary
+                                      : TossColors.gray500,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -208,8 +213,10 @@ class AttendanceWeekSchedule extends StatelessWidget {
                             date.day.toString(),
                             style: TossTextStyles.h3.copyWith(
                               color: isSelected
-                                  ? TossColors.surface
-                                  : TossColors.gray900,
+                                  ? TossColors.white
+                                  : isToday
+                                      ? TossColors.primary
+                                      : TossColors.gray900,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -221,19 +228,24 @@ class AttendanceWeekSchedule extends StatelessWidget {
                               height: 6,
                               decoration: BoxDecoration(
                                 color: hasApprovedShift
-                                    ? (isSelected ? TossColors.surface : TossColors.success)
-                                    : (isSelected ? TossColors.surface : TossColors.warning),
+                                    ? (isSelected ? TossColors.white : TossColors.success)
+                                    : (isSelected ? TossColors.white : TossColors.warning),
                                 shape: BoxShape.circle,
                               ),
                             )
                           else
-                            Text(
-                              'off',
-                              style: TossTextStyles.small.copyWith(
-                                color: isSelected
-                                    ? TossColors.surface.withValues(alpha: 0.8)
-                                    : TossColors.gray400,
-                                fontWeight: FontWeight.w500,
+                            Container(
+                              height: 6,
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? TossColors.white.withValues(alpha: 0.5)
+                                      : TossColors.gray300,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
                         ],

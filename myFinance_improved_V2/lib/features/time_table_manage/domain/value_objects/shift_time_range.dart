@@ -16,16 +16,8 @@ class ShiftTimeRange {
   /// Get duration in hours
   double get durationInHours => duration.inMinutes / 60.0;
 
-  /// Get duration in minutes
-  int get durationInMinutes => duration.inMinutes;
-
   /// Check if time range is valid (end after start)
   bool get isValid => endTime.isAfter(startTime);
-
-  /// Check if this time range overlaps with another
-  bool isOverlapping(ShiftTimeRange other) {
-    return startTime.isBefore(other.endTime) && endTime.isAfter(other.startTime);
-  }
 
   /// Format time range as string (HH:mm - HH:mm)
   String toDisplayString() {

@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
@@ -520,6 +521,11 @@ class _VaultTabState extends ConsumerState<VaultTab> {
               currencySymbol: state.baseCurrencySymbol,
               label: 'Grand total ${state.baseCurrency?.currencyCode ?? ""}',
               isBaseCurrency: true,
+              journalAmount: state.vaultLocationJournalAmount,
+              isLoadingJournal: state.isLoadingVaultJournalAmount,
+              onHistoryTap: state.selectedVaultLocationId != null
+                  ? () => _navigateToAccountDetail(state, grandTotal)
+                  : null,
             );
           },
         ),
@@ -632,7 +638,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -646,7 +651,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -664,7 +668,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -678,7 +681,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -696,7 +698,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 )
               : TossButton1.outlinedGray(
@@ -710,7 +711,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                     debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   borderRadius: TossBorderRadius.lg,
                 ),
         ),
@@ -780,17 +780,16 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         return denom.copyWith(quantity: quantity);
       }).toList();
 
-      // Only add currency if it has quantities
-      if (currencyQuantities.isNotEmpty) {
-        denominationQuantitiesMap[currencyId] = currencyQuantities;
-        currenciesWithData.add(Currency(
-          currencyId: currency.currencyId,
-          currencyCode: currency.currencyCode,
-          currencyName: currency.currencyName,
-          symbol: currency.symbol,
-          denominations: denominationsWithQuantity,
-        ));
-      }
+      // ✅ Always add currency (even if all quantities are 0)
+      // This allows recount of empty vault
+      denominationQuantitiesMap[currencyId] = currencyQuantities;
+      currenciesWithData.add(Currency(
+        currencyId: currency.currencyId,
+        currencyCode: currency.currencyCode,
+        currencyName: currency.currencyName,
+        symbol: currency.symbol,
+        denominations: denominationsWithQuantity,
+      ));
     }
 
     // ✅ Execute Multi-Currency RECOUNT (ALL currencies in ONE RPC call)
@@ -958,6 +957,38 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       userId: userId,
       recordDate: now,
       currencyRecounts: currencyRecounts,
+    );
+  }
+
+  /// Navigate to AccountDetailPage for transaction history
+  void _navigateToAccountDetail(CashEndingState state, double grandTotal) {
+    if (state.selectedVaultLocationId == null) return;
+
+    // Find the selected location
+    final selectedLocation = state.vaultLocations.firstWhere(
+      (loc) => loc.locationId == state.selectedVaultLocationId,
+      orElse: () => state.vaultLocations.first,
+    );
+
+    // Calculate difference
+    final journalAmount = state.vaultLocationJournalAmount ?? 0.0;
+    final difference = grandTotal - journalAmount;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AccountDetailPage(
+          locationId: state.selectedVaultLocationId,
+          accountName: selectedLocation.locationName,
+          locationType: 'vault',
+          balance: journalAmount.toInt(),
+          errors: difference.toInt().abs(),
+          totalJournal: journalAmount.toInt(),
+          totalReal: grandTotal.toInt(),
+          cashDifference: difference.toInt(),
+          currencySymbol: state.baseCurrencySymbol,
+        ),
+      ),
     );
   }
 }

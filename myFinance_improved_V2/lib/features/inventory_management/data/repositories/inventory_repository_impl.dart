@@ -46,7 +46,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }) async {
     try {
       final activeFilter = filter ?? const ProductFilter();
-      final activeSort = sortOption ?? SortOption.defaultOption;
+      // Note: sortOption is kept in interface for future RPC support
+      // Currently sorting is handled client-side in Presentation layer
 
       final response = await _remoteDataSource.getProducts(
         companyId: companyId,
@@ -54,8 +55,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
         page: pagination.page,
         limit: pagination.limit,
         search: activeFilter.searchQuery,
-        sortBy: activeSort.field.dbFieldName,
-        sortDirection: activeSort.direction.dbValue,
         categoryId: activeFilter.categoryId,
         brandId: activeFilter.brandId,
         stockStatus: activeFilter.stockStatus,

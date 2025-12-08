@@ -1,19 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../domain/repositories/time_table_repository.dart';
+import '../../../domain/usecases/get_schedule_data.dart';
+import '../../../domain/usecases/insert_schedule.dart';
 import '../states/add_shift_form_state.dart';
 
 /// Add Shift Form Notifier
 ///
-/// Manages the business logic for the Add Shift form
+/// Manages the business logic for the Add Shift form.
+/// Uses UseCases for Clean Architecture compliance.
 class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
-  final TimeTableRepository _repository;
+  final GetScheduleData _getScheduleDataUseCase;
+  final InsertSchedule _insertScheduleUseCase;
   final String _storeId;
   final String _timezone;
 
-  AddShiftFormNotifier(this._repository, this._storeId, this._timezone)
-      : super(const AddShiftFormState()) {
+  AddShiftFormNotifier(
+    this._getScheduleDataUseCase,
+    this._insertScheduleUseCase,
+    this._storeId,
+    this._timezone,
+  ) : super(const AddShiftFormState()) {
     // Load data on initialization
     loadScheduleData();
   }
@@ -31,14 +38,13 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isLoadingData: true, error: null);
 
     try {
-      print('🔄 AddShiftForm: Loading schedule data for storeId: $_storeId, timezone: $_timezone');
-
-      final scheduleData = await _repository.getScheduleData(
-        storeId: _storeId,
-        timezone: _timezone,
+      // Use UseCase instead of Repository directly
+      final scheduleData = await _getScheduleDataUseCase.call(
+        GetScheduleDataParams(
+          storeId: _storeId,
+          timezone: _timezone,
+        ),
       );
-
-      print('📦 AddShiftForm: Got ${scheduleData.employees.length} employees, ${scheduleData.shifts.length} shifts');
 
       final employees = scheduleData.employees
           .map((emp) => {
@@ -58,16 +64,12 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
               },)
           .toList();
 
-      print('✅ AddShiftForm: Mapped ${employees.length} employees, ${shifts.length} shifts');
-
       state = state.copyWith(
         employees: employees,
         shifts: shifts,
         isLoadingData: false,
       );
-    } catch (e, stackTrace) {
-      print('❌ AddShiftForm: Error loading schedule data: $e');
-      print('❌ AddShiftForm: Stack trace: $stackTrace');
+    } catch (e) {
       state = state.copyWith(
         error: 'Error: ${e.toString()}',
         isLoadingData: false,
@@ -102,40 +104,33 @@ class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      // v4 RPC uses p_start_time and p_end_time (user's local timestamps)
-      // Combine selected date with shift start/end times
-      final selectedDate = state.selectedDate!;
-      final dateStr = DateTimeUtils.toDateOnly(selectedDate);
-
-      // Find selected shift to get start/end times
+      // Get the selected shift's start and end times
       final selectedShift = state.shifts.firstWhere(
-        (s) => s['shift_id'] == state.selectedShiftId,
+        (shift) => shift['shift_id'] == state.selectedShiftId,
       );
-      final shiftStartTime = selectedShift['start_time'] as String; // HH:mm
-      final shiftEndTime = selectedShift['end_time'] as String; // HH:mm
 
-      // Combine date with time: yyyy-MM-dd HH:mm:ss
-      final startTime = '$dateStr $shiftStartTime:00';
+      final startTime = selectedShift['start_time'] as String;
+      final endTime = selectedShift['end_time'] as String;
 
-      // Handle overnight shifts (end time < start time means next day)
-      String endTime;
-      if (shiftEndTime.compareTo(shiftStartTime) < 0) {
-        // Overnight shift - add 1 day to end date
-        final nextDate = selectedDate.add(const Duration(days: 1));
-        final nextDateStr = DateTimeUtils.toDateOnly(nextDate);
-        endTime = '$nextDateStr $shiftEndTime:00';
-      } else {
-        endTime = '$dateStr $shiftEndTime:00';
-      }
+      // Format selected date as "YYYY-MM-DD"
+      final selectedDate = state.selectedDate!;
+      final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
 
-      await _repository.insertSchedule(
-        userId: state.selectedEmployeeId!,
-        shiftId: state.selectedShiftId!,
-        storeId: _storeId,
-        startTime: startTime,
-        endTime: endTime,
-        approvedBy: approvedBy,
-        timezone: _timezone,
+      // Combine date and time: "YYYY-MM-DD HH:mm"
+      final startTimeStr = '$dateStr $startTime';
+      final endTimeStr = '$dateStr $endTime';
+
+      // Use UseCase instead of Repository directly
+      await _insertScheduleUseCase.call(
+        InsertScheduleParams(
+          userId: state.selectedEmployeeId!,
+          shiftId: state.selectedShiftId!,
+          storeId: _storeId,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          approvedBy: approvedBy,
+          timezone: _timezone,
+        ),
       );
 
       state = state.copyWith(isSaving: false);

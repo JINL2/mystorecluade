@@ -6,6 +6,7 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_white_card.dart';
+import '../../../extensions/cash_location_extension.dart';
 import '../../../providers/payment_providers.dart';
 import '../../../providers/states/payment_method_state.dart';
 import '../bottom_sheets/cash_location_bottom_sheet.dart';

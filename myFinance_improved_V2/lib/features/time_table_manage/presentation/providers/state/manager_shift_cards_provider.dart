@@ -46,11 +46,9 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
 
     // Skip if already loaded (unless force refresh)
     if (!forceRefresh && state.dataByMonth.containsKey(monthKey)) {
-      print('📦 ManagerCards: Skipping load for $monthKey (already cached)');
       return;
     }
 
-    print('🔄 ManagerCards: Loading data for $monthKey (storeId: $_storeId, companyId: $_companyId)');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -70,8 +68,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         ),
       );
 
-      print('✅ ManagerCards: Loaded ${data.approvedCards.length} approved, ${data.pendingCards.length} pending');
-
       final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
@@ -80,7 +76,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
         isLoading: false,
       );
     } catch (e) {
-      print('❌ ManagerCards: Error loading data: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -116,9 +111,8 @@ final managerCardsProvider = StateNotifierProvider.family<
   final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  // Use user's timezone from appState, fallback to device timezone (not UTC)
-  final timezone = (appState.user['timezone'] as String?) ??
-      DateTimeUtils.getLocalTimezone();
+  // Use device local timezone instead of user DB timezone
+  final timezone = DateTimeUtils.getLocalTimezone();
 
   return ManagerShiftCardsNotifier(useCase, companyId, storeId, timezone);
 });

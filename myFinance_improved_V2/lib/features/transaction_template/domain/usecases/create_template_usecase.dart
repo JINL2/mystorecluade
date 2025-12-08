@@ -233,6 +233,7 @@ class CreateTemplateUseCase {
       counterpartyId: command.counterpartyId,
       counterpartyCashLocationId: command.counterpartyCashLocationId,
       createdBy: command.createdBy,
+      requiredAttachment: command.requiredAttachment,
     );
   }
 
@@ -669,7 +670,7 @@ class QuickBuilderValidation {
 }
 
 /// Command for creating a template (DOMAIN-BASED, SIMPLIFIED)
-/// 
+///
 /// Clean Architecture Rule: Commands should only contain Domain concepts
 /// UI-specific fields are converted to Domain structure before reaching UseCase
 class CreateTemplateCommand {
@@ -685,6 +686,7 @@ class CreateTemplateCommand {
   final String storeId;
   final String? createdBy;  // ✅ Optional: DB may not have this field
   final bool allowWarnings;                      // For QuickTransaction compatibility
+  final bool requiredAttachment;                 // Whether attachment is required when using template
 
   const CreateTemplateCommand({
     required this.name,
@@ -699,6 +701,7 @@ class CreateTemplateCommand {
     required this.storeId,
     this.createdBy,  // ✅ Optional
     this.allowWarnings = false,
+    this.requiredAttachment = false,
   });
   
   /// Create from Domain TemplateCreationData (SIMPLIFIED)

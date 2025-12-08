@@ -35,13 +35,17 @@ extension MonthlyShiftStatusDtoMapper on MonthlyShiftStatusDto {
 /// Extension to map ShiftWithEmployeesDto → ShiftWithRequests Entity
 extension ShiftWithEmployeesDtoMapper on ShiftWithEmployeesDto {
   ShiftWithRequests toEntity(String requestDate) {
+    // Parse shift times from RPC (format: "YYYY-MM-DD HH:MM:SS")
+    final startTime = _parseShiftTime(shiftStartTime, requestDate);
+    final endTime = _parseShiftTime(shiftEndTime, requestDate);
+
     // Create Shift entity
     final shift = Shift(
       shiftId: shiftId,
       storeId: '', // RPC doesn't return store_id at shift level
       shiftDate: requestDate,
-      planStartTime: DateTime.now(), // RPC doesn't return times
-      planEndTime: DateTime.now(), // RPC doesn't return times
+      planStartTime: startTime,
+      planEndTime: endTime,
       targetCount: requiredEmployees,
       currentCount: approvedCount,
       shiftName: shiftName,
@@ -62,6 +66,22 @@ extension ShiftWithEmployeesDtoMapper on ShiftWithEmployeesDto {
       approvedRequests: approvedReqs,
       pendingRequests: pendingReqs,
     );
+  }
+
+  /// Parse shift time from RPC format "YYYY-MM-DD HH:MM:SS"
+  DateTime _parseShiftTime(String? timeStr, String fallbackDate) {
+    if (timeStr == null || timeStr.isEmpty) {
+      // Fallback to start of day if no time provided
+      return DateTime.parse(fallbackDate);
+    }
+
+    try {
+      // RPC returns format: "2025-12-06 09:00:00"
+      return DateTime.parse(timeStr.replaceFirst(' ', 'T'));
+    } catch (e) {
+      // Fallback to start of day on parse error
+      return DateTime.parse(fallbackDate);
+    }
   }
 }
 

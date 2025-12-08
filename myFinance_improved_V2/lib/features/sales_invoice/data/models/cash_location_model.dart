@@ -1,6 +1,19 @@
 import '../../domain/entities/cash_location.dart';
 
 /// Cash location model for data transfer
+///
+/// Supports get_cash_locations RPC response format:
+/// {
+///   "id": "uuid",
+///   "name": "Location Name",
+///   "type": "cash" | "bank",
+///   "storeId": "uuid" | null,
+///   "isCompanyWide": true | false,
+///   "currencyCode": "VND" | null,
+///   "bankAccount": "..." | null,
+///   "bankName": "..." | null,
+///   ...
+/// }
 class CashLocationModel {
   final Map<String, dynamic> json;
 
@@ -13,20 +26,16 @@ class CashLocationModel {
 
   /// Convert to domain entity
   CashLocation toEntity() {
-    // Support both RPC response and direct model fields
-    final locationSummary = json['location_summary'] as Map<String, dynamic>?;
-    final isRpcResponse = locationSummary != null;
-    final data = isRpcResponse ? locationSummary : json;
-
+    // RPC response uses camelCase field names
     return CashLocation(
-      id: data['cash_location_id']?.toString() ?? data['id']?.toString() ?? '',
-      name: data['location_name']?.toString() ?? data['name']?.toString() ?? '',
-      type: data['location_type']?.toString() ?? data['type']?.toString() ?? 'cash',
-      storeId: data['store_id']?.toString() ?? '',
-      isCompanyWide: (data['is_company_wide'] as bool?) ?? false,
-      currencyCode: data['currency_code']?.toString() ?? 'VND',
-      bankAccount: data['bank_account']?.toString(),
-      bankName: data['bank_name']?.toString(),
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'cash',
+      storeId: json['storeId']?.toString() ?? '',
+      isCompanyWide: (json['isCompanyWide'] as bool?) ?? false,
+      currencyCode: json['currencyCode']?.toString() ?? 'VND',
+      bankAccount: json['bankAccount']?.toString(),
+      bankName: json['bankName']?.toString(),
     );
   }
 }

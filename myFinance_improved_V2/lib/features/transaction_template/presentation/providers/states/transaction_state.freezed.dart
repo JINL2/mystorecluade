@@ -18,6 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$TransactionCreationState {
   bool get isCreating => throw _privateConstructorUsedError;
   bool get isValidating => throw _privateConstructorUsedError;
+  bool get isUploadingAttachments => throw _privateConstructorUsedError;
   Transaction? get createdTransaction => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
   Map<String, String> get fieldErrors =>
@@ -27,6 +28,11 @@ mixin _$TransactionCreationState {
   String? get note => throw _privateConstructorUsedError;
   String? get cashLocationId => throw _privateConstructorUsedError;
   String? get counterpartyId => throw _privateConstructorUsedError;
+
+  /// Pending attachments to be uploaded (local files)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<TemplateAttachment> get pendingAttachments =>
+      throw _privateConstructorUsedError;
 
   /// Create a copy of TransactionCreationState
   /// with the given fields replaced by the non-null parameter values.
@@ -44,6 +50,7 @@ abstract class $TransactionCreationStateCopyWith<$Res> {
   $Res call(
       {bool isCreating,
       bool isValidating,
+      bool isUploadingAttachments,
       Transaction? createdTransaction,
       String? errorMessage,
       Map<String, String> fieldErrors,
@@ -51,7 +58,9 @@ abstract class $TransactionCreationStateCopyWith<$Res> {
       double? amount,
       String? note,
       String? cashLocationId,
-      String? counterpartyId});
+      String? counterpartyId,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<TemplateAttachment> pendingAttachments});
 }
 
 /// @nodoc
@@ -72,6 +81,7 @@ class _$TransactionCreationStateCopyWithImpl<$Res,
   $Res call({
     Object? isCreating = null,
     Object? isValidating = null,
+    Object? isUploadingAttachments = null,
     Object? createdTransaction = freezed,
     Object? errorMessage = freezed,
     Object? fieldErrors = null,
@@ -80,6 +90,7 @@ class _$TransactionCreationStateCopyWithImpl<$Res,
     Object? note = freezed,
     Object? cashLocationId = freezed,
     Object? counterpartyId = freezed,
+    Object? pendingAttachments = null,
   }) {
     return _then(_value.copyWith(
       isCreating: null == isCreating
@@ -89,6 +100,10 @@ class _$TransactionCreationStateCopyWithImpl<$Res,
       isValidating: null == isValidating
           ? _value.isValidating
           : isValidating // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isUploadingAttachments: null == isUploadingAttachments
+          ? _value.isUploadingAttachments
+          : isUploadingAttachments // ignore: cast_nullable_to_non_nullable
               as bool,
       createdTransaction: freezed == createdTransaction
           ? _value.createdTransaction
@@ -122,6 +137,10 @@ class _$TransactionCreationStateCopyWithImpl<$Res,
           ? _value.counterpartyId
           : counterpartyId // ignore: cast_nullable_to_non_nullable
               as String?,
+      pendingAttachments: null == pendingAttachments
+          ? _value.pendingAttachments
+          : pendingAttachments // ignore: cast_nullable_to_non_nullable
+              as List<TemplateAttachment>,
     ) as $Val);
   }
 }
@@ -138,6 +157,7 @@ abstract class _$$TransactionCreationStateImplCopyWith<$Res>
   $Res call(
       {bool isCreating,
       bool isValidating,
+      bool isUploadingAttachments,
       Transaction? createdTransaction,
       String? errorMessage,
       Map<String, String> fieldErrors,
@@ -145,7 +165,9 @@ abstract class _$$TransactionCreationStateImplCopyWith<$Res>
       double? amount,
       String? note,
       String? cashLocationId,
-      String? counterpartyId});
+      String? counterpartyId,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<TemplateAttachment> pendingAttachments});
 }
 
 /// @nodoc
@@ -165,6 +187,7 @@ class __$$TransactionCreationStateImplCopyWithImpl<$Res>
   $Res call({
     Object? isCreating = null,
     Object? isValidating = null,
+    Object? isUploadingAttachments = null,
     Object? createdTransaction = freezed,
     Object? errorMessage = freezed,
     Object? fieldErrors = null,
@@ -173,6 +196,7 @@ class __$$TransactionCreationStateImplCopyWithImpl<$Res>
     Object? note = freezed,
     Object? cashLocationId = freezed,
     Object? counterpartyId = freezed,
+    Object? pendingAttachments = null,
   }) {
     return _then(_$TransactionCreationStateImpl(
       isCreating: null == isCreating
@@ -182,6 +206,10 @@ class __$$TransactionCreationStateImplCopyWithImpl<$Res>
       isValidating: null == isValidating
           ? _value.isValidating
           : isValidating // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isUploadingAttachments: null == isUploadingAttachments
+          ? _value.isUploadingAttachments
+          : isUploadingAttachments // ignore: cast_nullable_to_non_nullable
               as bool,
       createdTransaction: freezed == createdTransaction
           ? _value.createdTransaction
@@ -215,16 +243,21 @@ class __$$TransactionCreationStateImplCopyWithImpl<$Res>
           ? _value.counterpartyId
           : counterpartyId // ignore: cast_nullable_to_non_nullable
               as String?,
+      pendingAttachments: null == pendingAttachments
+          ? _value._pendingAttachments
+          : pendingAttachments // ignore: cast_nullable_to_non_nullable
+              as List<TemplateAttachment>,
     ));
   }
 }
 
 /// @nodoc
 
-class _$TransactionCreationStateImpl implements _TransactionCreationState {
+class _$TransactionCreationStateImpl extends _TransactionCreationState {
   const _$TransactionCreationStateImpl(
       {this.isCreating = false,
       this.isValidating = false,
+      this.isUploadingAttachments = false,
       this.createdTransaction,
       this.errorMessage,
       final Map<String, String> fieldErrors = const {},
@@ -232,8 +265,12 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
       this.amount,
       this.note,
       this.cashLocationId,
-      this.counterpartyId})
-      : _fieldErrors = fieldErrors;
+      this.counterpartyId,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final List<TemplateAttachment> pendingAttachments = const []})
+      : _fieldErrors = fieldErrors,
+        _pendingAttachments = pendingAttachments,
+        super._();
 
   @override
   @JsonKey()
@@ -241,6 +278,9 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
   @override
   @JsonKey()
   final bool isValidating;
+  @override
+  @JsonKey()
+  final bool isUploadingAttachments;
   @override
   final Transaction? createdTransaction;
   @override
@@ -266,9 +306,22 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
   @override
   final String? counterpartyId;
 
+  /// Pending attachments to be uploaded (local files)
+  final List<TemplateAttachment> _pendingAttachments;
+
+  /// Pending attachments to be uploaded (local files)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<TemplateAttachment> get pendingAttachments {
+    if (_pendingAttachments is EqualUnmodifiableListView)
+      return _pendingAttachments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_pendingAttachments);
+  }
+
   @override
   String toString() {
-    return 'TransactionCreationState(isCreating: $isCreating, isValidating: $isValidating, createdTransaction: $createdTransaction, errorMessage: $errorMessage, fieldErrors: $fieldErrors, selectedTemplateId: $selectedTemplateId, amount: $amount, note: $note, cashLocationId: $cashLocationId, counterpartyId: $counterpartyId)';
+    return 'TransactionCreationState(isCreating: $isCreating, isValidating: $isValidating, isUploadingAttachments: $isUploadingAttachments, createdTransaction: $createdTransaction, errorMessage: $errorMessage, fieldErrors: $fieldErrors, selectedTemplateId: $selectedTemplateId, amount: $amount, note: $note, cashLocationId: $cashLocationId, counterpartyId: $counterpartyId, pendingAttachments: $pendingAttachments)';
   }
 
   @override
@@ -280,6 +333,8 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
                 other.isCreating == isCreating) &&
             (identical(other.isValidating, isValidating) ||
                 other.isValidating == isValidating) &&
+            (identical(other.isUploadingAttachments, isUploadingAttachments) ||
+                other.isUploadingAttachments == isUploadingAttachments) &&
             (identical(other.createdTransaction, createdTransaction) ||
                 other.createdTransaction == createdTransaction) &&
             (identical(other.errorMessage, errorMessage) ||
@@ -293,7 +348,9 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
             (identical(other.cashLocationId, cashLocationId) ||
                 other.cashLocationId == cashLocationId) &&
             (identical(other.counterpartyId, counterpartyId) ||
-                other.counterpartyId == counterpartyId));
+                other.counterpartyId == counterpartyId) &&
+            const DeepCollectionEquality()
+                .equals(other._pendingAttachments, _pendingAttachments));
   }
 
   @override
@@ -301,6 +358,7 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
       runtimeType,
       isCreating,
       isValidating,
+      isUploadingAttachments,
       createdTransaction,
       errorMessage,
       const DeepCollectionEquality().hash(_fieldErrors),
@@ -308,7 +366,8 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
       amount,
       note,
       cashLocationId,
-      counterpartyId);
+      counterpartyId,
+      const DeepCollectionEquality().hash(_pendingAttachments));
 
   /// Create a copy of TransactionCreationState
   /// with the given fields replaced by the non-null parameter values.
@@ -320,23 +379,30 @@ class _$TransactionCreationStateImpl implements _TransactionCreationState {
           _$TransactionCreationStateImpl>(this, _$identity);
 }
 
-abstract class _TransactionCreationState implements TransactionCreationState {
+abstract class _TransactionCreationState extends TransactionCreationState {
   const factory _TransactionCreationState(
-      {final bool isCreating,
-      final bool isValidating,
-      final Transaction? createdTransaction,
-      final String? errorMessage,
-      final Map<String, String> fieldErrors,
-      final String? selectedTemplateId,
-      final double? amount,
-      final String? note,
-      final String? cashLocationId,
-      final String? counterpartyId}) = _$TransactionCreationStateImpl;
+          {final bool isCreating,
+          final bool isValidating,
+          final bool isUploadingAttachments,
+          final Transaction? createdTransaction,
+          final String? errorMessage,
+          final Map<String, String> fieldErrors,
+          final String? selectedTemplateId,
+          final double? amount,
+          final String? note,
+          final String? cashLocationId,
+          final String? counterpartyId,
+          @JsonKey(includeFromJson: false, includeToJson: false)
+          final List<TemplateAttachment> pendingAttachments}) =
+      _$TransactionCreationStateImpl;
+  const _TransactionCreationState._() : super._();
 
   @override
   bool get isCreating;
   @override
   bool get isValidating;
+  @override
+  bool get isUploadingAttachments;
   @override
   Transaction? get createdTransaction;
   @override
@@ -353,6 +419,11 @@ abstract class _TransactionCreationState implements TransactionCreationState {
   String? get cashLocationId;
   @override
   String? get counterpartyId;
+
+  /// Pending attachments to be uploaded (local files)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<TemplateAttachment> get pendingAttachments;
 
   /// Create a copy of TransactionCreationState
   /// with the given fields replaced by the non-null parameter values.

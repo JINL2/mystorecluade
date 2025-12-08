@@ -170,4 +170,20 @@ class ReportRepositoryImpl extends BaseRepository implements ReportRepository {
       operationName: 'unsubscribeFromTemplate',
     );
   }
+
+  @override
+  Future<String> getSessionContent({
+    required String sessionId,
+    required String userId,
+  }) async {
+    return executeWithErrorHandling(
+      () async {
+        return await _remoteDataSource.getSessionContent(
+          sessionId: sessionId,
+          userId: userId,
+        );
+      },
+      operationName: 'getSessionContent',
+    );
+  }
 }

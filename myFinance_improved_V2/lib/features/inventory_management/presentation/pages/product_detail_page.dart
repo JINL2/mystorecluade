@@ -9,6 +9,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/product.dart';
+import '../extensions/stock_status_extension.dart';
 import '../providers/inventory_providers.dart';
 
 /// Product Detail Page - Shows detailed product information

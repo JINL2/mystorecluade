@@ -81,4 +81,12 @@ abstract class ReportRepository {
     required String subscriptionId,
     required String userId,
   });
+
+  /// Get report session content (리포트 클릭 시 상세 데이터 가져오기)
+  ///
+  /// Uses RPC: report_get_session_content
+  Future<String> getSessionContent({
+    required String sessionId,
+    required String userId,
+  });
 }

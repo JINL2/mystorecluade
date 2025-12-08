@@ -52,6 +52,9 @@ class ReportNotificationDto with _$ReportNotificationDto {
     // Store info
     @JsonKey(name: 'store_id') String? storeId,
     @JsonKey(name: 'store_name') String? storeName,
+
+    // Company info
+    @JsonKey(name: 'company_id') String? companyId,
   }) = _ReportNotificationDto;
 
   const ReportNotificationDto._();
@@ -96,6 +99,7 @@ class ReportNotificationDto with _$ReportNotificationDto {
       subscriptionScheduleDays: subscriptionScheduleDays,
       storeId: storeId,
       storeName: storeName,
+      companyId: companyId,
     );
   }
 

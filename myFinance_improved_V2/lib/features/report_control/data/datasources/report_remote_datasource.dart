@@ -285,4 +285,38 @@ class ReportRemoteDataSource {
       rethrow; // Re-throw to preserve stack trace
     }
   }
+
+  /// Call RPC: report_get_session_content
+  ///
+  /// 리포트 클릭 시 session_id로 content만 가져오기
+  Future<String> getSessionContent({
+    required String sessionId,
+    required String userId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<List<dynamic>>(
+        'report_get_session_content',
+        params: {
+          'p_session_id': sessionId,
+          'p_user_id': userId,
+        },
+      );
+
+      if (response == null || response.isEmpty) {
+        throw Exception('No content found for session: $sessionId');
+      }
+
+      final data = response.first as Map<String, dynamic>;
+      final content = data['content'] as String?;
+
+      if (content == null || content.isEmpty) {
+        throw Exception('Content is empty for session: $sessionId');
+      }
+
+      return content;
+    } catch (e) {
+      print('[ReportDataSource] ❌ Error fetching session content: $e');
+      rethrow;
+    }
+  }
 }

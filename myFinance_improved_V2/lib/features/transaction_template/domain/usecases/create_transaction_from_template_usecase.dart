@@ -57,12 +57,14 @@ class CreateTransactionFromTemplateUseCase {
   }) : _transactionRepository = transactionRepository;
 
   /// Execute: Create transaction from template
+  /// Returns the created journal ID for attachment uploads
   ///
   /// **비즈니스 플로우**:
   /// 1. Use Case Params 받기
   /// 2. Repository Params로 변환
   /// 3. Repository에 위임
-  Future<void> execute(CreateTransactionFromTemplateParams params) async {
+  /// 4. Journal ID 반환 (첨부파일 업로드용)
+  Future<String> execute(CreateTransactionFromTemplateParams params) async {
     // ✅ SIMPLIFIED: Delegate to Repository's saveFromTemplate method
     // Repository handles all template → RPC conversion logic
     final repositoryParams = CreateFromTemplateParams(
@@ -78,7 +80,8 @@ class CreateTransactionFromTemplateUseCase {
       entryDate: DateTime.now(),
     );
 
-    await _transactionRepository.saveFromTemplate(repositoryParams);
+    // Returns journal_id for attachment uploads
+    return await _transactionRepository.saveFromTemplate(repositoryParams);
   }
 
   /// Extract counterparty ID from template or user selection

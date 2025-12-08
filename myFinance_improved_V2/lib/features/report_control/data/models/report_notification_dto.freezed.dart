@@ -78,7 +78,9 @@ mixin _$ReportNotificationDto {
   @JsonKey(name: 'store_id')
   String? get storeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'store_name')
-  String? get storeName => throw _privateConstructorUsedError;
+  String? get storeName => throw _privateConstructorUsedError; // Company info
+  @JsonKey(name: 'company_id')
+  String? get companyId => throw _privateConstructorUsedError;
 
   /// Serializes this ReportNotificationDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -124,7 +126,8 @@ abstract class $ReportNotificationDtoCopyWith<$Res> {
       @JsonKey(name: 'subscription_schedule_days')
       List<int>? subscriptionScheduleDays,
       @JsonKey(name: 'store_id') String? storeId,
-      @JsonKey(name: 'store_name') String? storeName});
+      @JsonKey(name: 'store_name') String? storeName,
+      @JsonKey(name: 'company_id') String? companyId});
 }
 
 /// @nodoc
@@ -169,6 +172,7 @@ class _$ReportNotificationDtoCopyWithImpl<$Res,
     Object? subscriptionScheduleDays = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
+    Object? companyId = freezed,
   }) {
     return _then(_value.copyWith(
       notificationId: null == notificationId
@@ -275,6 +279,10 @@ class _$ReportNotificationDtoCopyWithImpl<$Res,
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -316,7 +324,8 @@ abstract class _$$ReportNotificationDtoImplCopyWith<$Res>
       @JsonKey(name: 'subscription_schedule_days')
       List<int>? subscriptionScheduleDays,
       @JsonKey(name: 'store_id') String? storeId,
-      @JsonKey(name: 'store_name') String? storeName});
+      @JsonKey(name: 'store_name') String? storeName,
+      @JsonKey(name: 'company_id') String? companyId});
 }
 
 /// @nodoc
@@ -359,6 +368,7 @@ class __$$ReportNotificationDtoImplCopyWithImpl<$Res>
     Object? subscriptionScheduleDays = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
+    Object? companyId = freezed,
   }) {
     return _then(_$ReportNotificationDtoImpl(
       notificationId: null == notificationId
@@ -465,6 +475,10 @@ class __$$ReportNotificationDtoImplCopyWithImpl<$Res>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -500,7 +514,8 @@ class _$ReportNotificationDtoImpl extends _ReportNotificationDto {
       @JsonKey(name: 'subscription_schedule_days')
       final List<int>? subscriptionScheduleDays,
       @JsonKey(name: 'store_id') this.storeId,
-      @JsonKey(name: 'store_name') this.storeName})
+      @JsonKey(name: 'store_name') this.storeName,
+      @JsonKey(name: 'company_id') this.companyId})
       : _subscriptionScheduleDays = subscriptionScheduleDays,
         super._();
 
@@ -600,10 +615,14 @@ class _$ReportNotificationDtoImpl extends _ReportNotificationDto {
   @override
   @JsonKey(name: 'store_name')
   final String? storeName;
+// Company info
+  @override
+  @JsonKey(name: 'company_id')
+  final String? companyId;
 
   @override
   String toString() {
-    return 'ReportNotificationDto(notificationId: $notificationId, title: $title, body: $body, isRead: $isRead, sentAt: $sentAt, createdAt: $createdAt, reportDate: $reportDate, sessionId: $sessionId, templateId: $templateId, subscriptionId: $subscriptionId, templateName: $templateName, templateCode: $templateCode, templateIcon: $templateIcon, templateFrequency: $templateFrequency, categoryId: $categoryId, categoryName: $categoryName, sessionStatus: $sessionStatus, sessionStartedAt: $sessionStartedAt, sessionCompletedAt: $sessionCompletedAt, sessionErrorMessage: $sessionErrorMessage, processingTimeMs: $processingTimeMs, subscriptionEnabled: $subscriptionEnabled, subscriptionScheduleTime: $subscriptionScheduleTime, subscriptionScheduleDays: $subscriptionScheduleDays, storeId: $storeId, storeName: $storeName)';
+    return 'ReportNotificationDto(notificationId: $notificationId, title: $title, body: $body, isRead: $isRead, sentAt: $sentAt, createdAt: $createdAt, reportDate: $reportDate, sessionId: $sessionId, templateId: $templateId, subscriptionId: $subscriptionId, templateName: $templateName, templateCode: $templateCode, templateIcon: $templateIcon, templateFrequency: $templateFrequency, categoryId: $categoryId, categoryName: $categoryName, sessionStatus: $sessionStatus, sessionStartedAt: $sessionStartedAt, sessionCompletedAt: $sessionCompletedAt, sessionErrorMessage: $sessionErrorMessage, processingTimeMs: $processingTimeMs, subscriptionEnabled: $subscriptionEnabled, subscriptionScheduleTime: $subscriptionScheduleTime, subscriptionScheduleDays: $subscriptionScheduleDays, storeId: $storeId, storeName: $storeName, companyId: $companyId)';
   }
 
   @override
@@ -658,7 +677,9 @@ class _$ReportNotificationDtoImpl extends _ReportNotificationDto {
                 other._subscriptionScheduleDays, _subscriptionScheduleDays) &&
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.storeName, storeName) ||
-                other.storeName == storeName));
+                other.storeName == storeName) &&
+            (identical(other.companyId, companyId) ||
+                other.companyId == companyId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -690,7 +711,8 @@ class _$ReportNotificationDtoImpl extends _ReportNotificationDto {
         subscriptionScheduleTime,
         const DeepCollectionEquality().hash(_subscriptionScheduleDays),
         storeId,
-        storeName
+        storeName,
+        companyId
       ]);
 
   /// Create a copy of ReportNotificationDto
@@ -739,8 +761,9 @@ abstract class _ReportNotificationDto extends ReportNotificationDto {
       @JsonKey(name: 'subscription_schedule_days')
       final List<int>? subscriptionScheduleDays,
       @JsonKey(name: 'store_id') final String? storeId,
-      @JsonKey(name: 'store_name')
-      final String? storeName}) = _$ReportNotificationDtoImpl;
+      @JsonKey(name: 'store_name') final String? storeName,
+      @JsonKey(name: 'company_id')
+      final String? companyId}) = _$ReportNotificationDtoImpl;
   const _ReportNotificationDto._() : super._();
 
   factory _ReportNotificationDto.fromJson(Map<String, dynamic> json) =
@@ -825,7 +848,10 @@ abstract class _ReportNotificationDto extends ReportNotificationDto {
   String? get storeId;
   @override
   @JsonKey(name: 'store_name')
-  String? get storeName;
+  String? get storeName; // Company info
+  @override
+  @JsonKey(name: 'company_id')
+  String? get companyId;
 
   /// Create a copy of ReportNotificationDto
   /// with the given fields replaced by the non-null parameter values.
