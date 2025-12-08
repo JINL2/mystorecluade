@@ -345,10 +345,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   /**
    * Import products from Excel
    * Calls RPC to import products (NO auto-refresh for batch processing)
+   * @param defaultPrice - false = store price, true = default price (for existing products)
    */
-  importExcel: async (companyId, storeId, userId, products) => {
+  importExcel: async (companyId, storeId, userId, products, defaultPrice = false) => {
     try {
-      const result = await repository.importExcel(companyId, storeId, userId, products);
+      const result = await repository.importExcel(companyId, storeId, userId, products, defaultPrice);
       return result;
     } catch (err) {
       return {

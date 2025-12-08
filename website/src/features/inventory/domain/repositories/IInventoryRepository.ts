@@ -42,16 +42,22 @@ export interface UpdateProductData {
 export interface ImportExcelResult {
   success: boolean;
   summary?: {
+    total_rows: number;
     created: number;
     updated: number;
     skipped: number;
     errors: number;
+    logs_created: number;
   };
   errors?: Array<{
     row: number;
     error: string;
+    barcode?: string;
+    image_count?: number;
+    unit?: string;
     data?: any;
   }>;
+  message?: string;
   error?: string;
 }
 
@@ -88,12 +94,14 @@ export interface IInventoryRepository {
 
   /**
    * Import products from Excel file data
+   * @param defaultPrice - false = store price, true = default price (for existing products)
    */
   importExcel(
     companyId: string,
     storeId: string,
     userId: string,
-    products: any[]
+    products: any[],
+    defaultPrice?: boolean
   ): Promise<ImportExcelResult>;
 
   /**

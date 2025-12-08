@@ -106,7 +106,7 @@ export interface InventoryState {
     newSku?: string
   ) => Promise<{ success: boolean; error?: { code: string; message: string; details?: string } }>;
   updateProduct: (productId: string, companyId: string, storeId: string, data: UpdateProductData, originalData?: any) => Promise<UpdateProductResult>;
-  importExcel: (companyId: string, storeId: string, userId: string, products: any[]) => Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }>;
+  importExcel: (companyId: string, storeId: string, userId: string, products: any[], defaultPrice?: boolean) => Promise<{ success: boolean; summary?: any; errors?: any[]; error?: string }>;
   moveProduct: (
     companyId: string,
     fromStoreId: string,

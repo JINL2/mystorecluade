@@ -8,6 +8,22 @@ import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import type { ProductDetailsFormProps } from './ProductDetailsForm.types';
 import styles from './ProductDetailsModal.module.css';
 
+/**
+ * Format number with thousand separators (e.g., 1234567 -> "1,234,567")
+ */
+const formatNumberWithCommas = (value: string | number): string => {
+  const numStr = String(value).replace(/[^\d]/g, '');
+  if (!numStr) return '';
+  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+/**
+ * Parse formatted number back to raw number string (e.g., "1,234,567" -> "1234567")
+ */
+const parseFormattedNumber = (value: string): string => {
+  return value.replace(/,/g, '');
+};
+
 export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
   formData,
   metadata,
@@ -156,10 +172,10 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
           <div className={styles.formGroup}>
             <label className={styles.label}>Cost Price</label>
             <input
-              type="number"
+              type="text"
               className={styles.input}
-              value={formData.costPrice}
-              onChange={(e) => onInputChange('costPrice', e.target.value)}
+              value={formatNumberWithCommas(formData.costPrice)}
+              onChange={(e) => onInputChange('costPrice', parseFormattedNumber(e.target.value))}
               placeholder="0"
             />
           </div>
@@ -167,10 +183,10 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
           <div className={styles.formGroup}>
             <label className={styles.label}>Selling Price</label>
             <input
-              type="number"
+              type="text"
               className={styles.input}
-              value={formData.sellingPrice}
-              onChange={(e) => onInputChange('sellingPrice', e.target.value)}
+              value={formatNumberWithCommas(formData.sellingPrice)}
+              onChange={(e) => onInputChange('sellingPrice', parseFormattedNumber(e.target.value))}
               placeholder="0"
             />
           </div>
