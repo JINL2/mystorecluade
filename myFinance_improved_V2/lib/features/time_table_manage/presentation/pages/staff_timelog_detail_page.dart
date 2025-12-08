@@ -344,11 +344,15 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       final timezone = DateTimeUtils.getLocalTimezone();
 
       // v5: isReportedSolved
-      // - 유저가 버튼 클릭 안 함 → 기존 값(_initialIsReportedSolved) 전송
+      // - confirm time이 변경되면 → true (문제 해결됨으로 처리)
       // - Approve 클릭 → true
       // - Reject 클릭 → false
+      // - 아무것도 안 바꿨으면 → 기존 값 전송
       bool? isReportedSolved;
-      if (widget.staffRecord.isReported) {
+      if (isConfirmedTimeChanged) {
+        // Confirm time이 변경되면 문제 해결됨으로 처리
+        isReportedSolved = true;
+      } else if (widget.staffRecord.isReported) {
         if (issueReportStatus == 'approved') {
           isReportedSolved = true;
         } else if (issueReportStatus == 'rejected') {
