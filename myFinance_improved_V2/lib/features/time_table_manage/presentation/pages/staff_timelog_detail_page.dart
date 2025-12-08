@@ -376,31 +376,38 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
                         ),
-                        const SizedBox(height: 16),
-                        AdjustmentSection(
-                          employeeName: widget.staffRecord.staffName,
-                          employeeAvatarUrl: widget.staffRecord.avatarUrl,
-                          issueReport: employeeIssueReport,
-                          isProblemSolved: widget.staffRecord.isProblemSolved,
-                          showBothButtons: _showBothIssueButtons,
-                          issueReportStatus: issueReportStatus,
-                          onExpandButtons: () => setState(() => _showBothIssueButtons = true),
-                          onApprove: () => setState(() => issueReportStatus = 'approved'),
-                          onReject: () => setState(() => issueReportStatus = 'rejected'),
-                          onResetSelection: () => setState(() {
-                            issueReportStatus = null;
-                            _showBothIssueButtons = true;
-                          }),
-                          bonusController: _bonusController,
-                          penaltyController: _penaltyController,
-                          onBonusChanged: _onBonusChanged,
-                          onPenaltyChanged: _onPenaltyChanged,
-                        ),
                       ],
                     ),
                   ),
 
-                  // Full-width gray divider
+                  // Full-width gray divider before Adjustment section
+                  const GrayDividerSpace(),
+
+                  // Section 2: Adjustment section
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: AdjustmentSection(
+                      employeeName: widget.staffRecord.staffName,
+                      employeeAvatarUrl: widget.staffRecord.avatarUrl,
+                      issueReport: employeeIssueReport,
+                      isProblemSolved: widget.staffRecord.isProblemSolved,
+                      showBothButtons: _showBothIssueButtons,
+                      issueReportStatus: issueReportStatus,
+                      onExpandButtons: () => setState(() => _showBothIssueButtons = true),
+                      onApprove: () => setState(() => issueReportStatus = 'approved'),
+                      onReject: () => setState(() => issueReportStatus = 'rejected'),
+                      onResetSelection: () => setState(() {
+                        issueReportStatus = null;
+                        _showBothIssueButtons = true;
+                      }),
+                      bonusController: _bonusController,
+                      penaltyController: _penaltyController,
+                      onBonusChanged: _onBonusChanged,
+                      onPenaltyChanged: _onPenaltyChanged,
+                    ),
+                  ),
+
+                  // Full-width gray divider before Salary breakdown
                   const GrayDividerSpace(),
 
                   // Section 2: Salary breakdown

@@ -25,12 +25,15 @@ class TimesheetsTab extends ConsumerStatefulWidget {
   final void Function(String storeId)? onStoreChanged;
   /// Callback to navigate to Schedule tab with a specific date
   final void Function(DateTime date)? onNavigateToSchedule;
+  /// Initial filter to apply when tab is shown (e.g., 'this_month')
+  final String? initialFilter;
 
   const TimesheetsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
     this.onNavigateToSchedule,
+    this.initialFilter,
   });
 
   @override
@@ -47,10 +50,24 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     super.initState();
     _currentWeekStart = _getWeekStart(_selectedDate);
 
+    // Apply initial filter if provided
+    if (widget.initialFilter != null) {
+      selectedFilter = widget.initialFilter;
+    }
+
     // Load data for current month
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMonthData();
     });
+  }
+
+  /// Set the filter programmatically (called from parent)
+  void setFilter(String filter) {
+    if (mounted) {
+      setState(() {
+        selectedFilter = filter;
+      });
+    }
   }
 
   @override
@@ -59,6 +76,12 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     // Reload data if store changed
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
       _loadMonthData();
+    }
+    // Update filter if initialFilter changed
+    if (widget.initialFilter != null && widget.initialFilter != oldWidget.initialFilter) {
+      setState(() {
+        selectedFilter = widget.initialFilter;
+      });
     }
   }
 
@@ -697,6 +720,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                         final problem = filteredProblems[index];
                         return ProblemCard(
                           problem: problem,
+                          showDayNumber: selectedFilter == 'this_month',
                           onTap: () async {
                             // Staff problems navigate to detail page
                             if (!problem.isShiftProblem && problem.staffId != null) {

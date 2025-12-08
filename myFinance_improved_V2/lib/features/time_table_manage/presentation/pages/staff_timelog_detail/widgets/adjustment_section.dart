@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../../../shared/widgets/toss/toss_button_1.dart';
 
 /// Adjustment section for shift details

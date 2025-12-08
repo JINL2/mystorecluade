@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
+import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../pages/attention_list_page.dart';
 import '../../pages/staff_timelog_detail_page.dart';
@@ -242,16 +243,20 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         onTime: SnapshotMetric(
           count: attendance.onTime.length,
           employees: onTimeEmployees,
+          cards: attendance.onTime,
         ),
         late: SnapshotMetric(
           count: attendance.late.length,
           employees: lateEmployees,
+          cards: attendance.late,
         ),
         notCheckedIn: SnapshotMetric(
           count: attendance.notCheckedIn.length,
           employees: notCheckedInEmployees,
+          cards: attendance.notCheckedIn,
         ),
       ),
+      onEmployeeTap: (card) => _handleEmployeeTap(card, shift),
     );
   }
 
@@ -570,6 +575,65 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           shiftName: item.shiftName ?? 'Shift',
           shiftDate: shiftDateStr,
           shiftTimeRange: item.shiftTimeRange ?? item.time,
+        ),
+      ),
+    );
+
+    // If save was successful, force refresh the data
+    if (result == true && widget.selectedStoreId != null) {
+      ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
+        month: DateTime.now(),
+        forceRefresh: true,
+      );
+      ref.invalidate(monthlyShiftStatusProvider(widget.selectedStoreId!));
+    }
+  }
+
+  /// Handle employee tap from snapshot metrics - navigate to staff detail page
+  Future<void> _handleEmployeeTap(ShiftCard card, Shift shift) async {
+    // Create StaffTimeRecord from ShiftCard
+    final staffRecord = StaffTimeRecord(
+      staffId: card.employee.userId,
+      staffName: card.employee.userName,
+      avatarUrl: card.employee.profileImage,
+      clockIn: card.actualStartTime != null
+          ? '${card.actualStartTime!.hour.toString().padLeft(2, '0')}:${card.actualStartTime!.minute.toString().padLeft(2, '0')}'
+          : '--:--',
+      clockOut: card.actualEndTime != null
+          ? '${card.actualEndTime!.hour.toString().padLeft(2, '0')}:${card.actualEndTime!.minute.toString().padLeft(2, '0')}'
+          : '--:--',
+      isLate: card.isLate,
+      isOvertime: card.isOverTime,
+      needsConfirm: card.confirmedStartTime == null && card.confirmedEndTime == null,
+      isConfirmed: card.confirmedStartTime != null || card.confirmedEndTime != null,
+      shiftRequestId: card.shiftRequestId,
+      actualStart: card.actualStartTime?.toIso8601String(),
+      actualEnd: card.actualEndTime?.toIso8601String(),
+      confirmStartTime: card.confirmedStartTime?.toIso8601String(),
+      confirmEndTime: card.confirmedEndTime?.toIso8601String(),
+      isReported: card.isReported,
+      reportReason: card.reportReason,
+      isProblemSolved: card.isProblemSolved,
+      bonusAmount: card.bonusAmount ?? 0.0,
+      salaryType: card.salaryType,
+      salaryAmount: card.salaryAmount,
+      basePay: card.basePay,
+      totalPayWithBonus: card.totalPayWithBonus,
+      paidHour: card.paidHour,
+      lateMinute: card.lateMinute,
+      overtimeMinute: card.overTimeMinute,
+    );
+
+    // Format shift date for display
+    final shiftDateStr = DateFormat('EEE, d MMM yyyy').format(shift.planStartTime);
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) => StaffTimelogDetailPage(
+          staffRecord: staffRecord,
+          shiftName: shift.shiftName ?? 'Shift',
+          shiftDate: shiftDateStr,
+          shiftTimeRange: _formatTimeRange(shift.planStartTime, shift.planEndTime),
         ),
       ),
     );
