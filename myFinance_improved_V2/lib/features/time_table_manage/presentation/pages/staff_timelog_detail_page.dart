@@ -95,7 +95,35 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
     return checkInChanged || checkOutChanged || bonusChanged || penaltyChanged || issueStatusChanged;
   }
 
+  /// Check if the shift is still in progress (not yet ended)
+  /// If shiftEndTime exists and current time is before it, shift hasn't ended yet
+  bool get _isShiftStillInProgress {
+    final shiftEndTime = widget.staffRecord.shiftEndTime;
+    if (shiftEndTime == null) return false;
+    return DateTime.now().isBefore(shiftEndTime);
+  }
+
   bool get _isFullyConfirmed {
+    final hasCheckIn = confirmedCheckIn != '--:--:--';
+    final hasCheckOut = confirmedCheckOut != '--:--:--';
+
+    debugPrint('[DEBUG] _isFullyConfirmed: hasCheckIn=$hasCheckIn, hasCheckOut=$hasCheckOut');
+    debugPrint('[DEBUG] confirmedCheckIn=$confirmedCheckIn, confirmedCheckOut=$confirmedCheckOut');
+    debugPrint('[DEBUG] shiftEndTime=${widget.staffRecord.shiftEndTime}');
+    debugPrint('[DEBUG] _isShiftStillInProgress=$_isShiftStillInProgress');
+
+    // IMPORTANT: Check shift progress FIRST, before checking hasCheckIn/hasCheckOut
+    // If shift is still in progress (hasn't ended yet), don't require confirmation yet
+    // Treat as "confirmed" for now (no need to show "Need confirm")
+    if (_isShiftStillInProgress) {
+      debugPrint('[DEBUG] Shift still in progress - returning true (no need confirm)');
+      return true;
+    }
+
+    // Shift has ended - now check if we have both check-in and check-out
+    if (!hasCheckIn || !hasCheckOut) return false;
+
+    // Shift has ended - now check late/overtime status for confirmation requirements
     bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
     bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
     return checkInConfirmed && checkOutConfirmed;
@@ -137,12 +165,16 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   int get basePayAmount {
     final basePayStr = widget.staffRecord.basePay;
     if (basePayStr != null && basePayStr.isNotEmpty) {
-      final amount = double.tryParse(basePayStr);
+      // Remove commas before parsing (RPC returns formatted string like "150,000")
+      final cleanedStr = basePayStr.replaceAll(',', '');
+      final amount = double.tryParse(cleanedStr);
       if (amount != null) return amount.toInt();
     }
     final salaryAmountStr = widget.staffRecord.salaryAmount;
     if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
-      final salaryAmount = double.tryParse(salaryAmountStr);
+      // Remove commas before parsing
+      final cleanedSalary = salaryAmountStr.replaceAll(',', '');
+      final salaryAmount = double.tryParse(cleanedSalary);
       if (salaryAmount != null) {
         return (widget.staffRecord.paidHour * salaryAmount).toInt();
       }
@@ -369,12 +401,15 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           isFullyConfirmed: _isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          checkInNeedsConfirm: widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
-                          checkOutNeedsConfirm: widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
+                          // Don't show "needs confirm" if shift is still in progress
+                          checkInNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
+                          checkOutNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
                           isCheckInConfirmed: isCheckInManuallyConfirmed,
                           isCheckOutConfirmed: isCheckOutManuallyConfirmed,
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
+                          // Hide status badge when shift is still in progress
+                          isShiftInProgress: _isShiftStillInProgress,
                         ),
                       ],
                     ),

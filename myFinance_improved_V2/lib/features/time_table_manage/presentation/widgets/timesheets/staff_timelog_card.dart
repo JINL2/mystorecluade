@@ -34,6 +34,10 @@ class StaffTimeRecord {
   final int lateMinute; // late_minute
   final int overtimeMinute; // over_time_minute
 
+  // Shift end time - used to determine if shift has ended yet
+  // If current time is before this, don't show "Need confirm"
+  final DateTime? shiftEndTime;
+
   const StaffTimeRecord({
     required this.staffId,
     required this.staffName,
@@ -61,6 +65,7 @@ class StaffTimeRecord {
     this.paidHour = 0.0,
     this.lateMinute = 0,
     this.overtimeMinute = 0,
+    this.shiftEndTime,
   });
 }
 

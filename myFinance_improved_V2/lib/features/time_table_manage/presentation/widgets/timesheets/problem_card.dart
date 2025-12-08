@@ -48,6 +48,7 @@ class AttendanceProblem {
   final double paidHour;
   final int lateMinute;
   final int overtimeMinute;
+  final DateTime? shiftEndTime;
 
   const AttendanceProblem({
     required this.id,
@@ -81,6 +82,7 @@ class AttendanceProblem {
     this.paidHour = 0.0,
     this.lateMinute = 0,
     this.overtimeMinute = 0,
+    this.shiftEndTime,
   });
 }
 

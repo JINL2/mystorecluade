@@ -10,6 +10,7 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
     _$ShiftCardDtoImpl(
       shiftDate: json['shift_date'] as String? ?? '',
       shiftRequestId: json['shift_request_id'] as String? ?? '',
+      userId: json['user_id'] as String? ?? '',
       userName: json['user_name'] as String? ?? '',
       profileImage: json['profile_image'] as String?,
       shiftName: json['shift_name'] as String?,
@@ -54,6 +55,7 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
     <String, dynamic>{
       'shift_date': instance.shiftDate,
       'shift_request_id': instance.shiftRequestId,
+      'user_id': instance.userId,
       'user_name': instance.userName,
       'profile_image': instance.profileImage,
       'shift_name': instance.shiftName,

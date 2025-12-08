@@ -21,6 +21,7 @@ class ShiftCardDto with _$ShiftCardDto {
     @JsonKey(name: 'shift_request_id') @Default('') String shiftRequestId,
 
     // User information
+    @JsonKey(name: 'user_id') @Default('') String userId,
     @JsonKey(name: 'user_name') @Default('') String userName,
     @JsonKey(name: 'profile_image') String? profileImage,
 

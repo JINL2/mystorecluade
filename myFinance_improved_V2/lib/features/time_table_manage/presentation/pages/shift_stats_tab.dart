@@ -8,8 +8,9 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/reliability_score.dart';
+import '../providers/state/manager_shift_cards_provider.dart';
 import '../providers/state/reliability_score_provider.dart';
-import '../providers/state/store_employees_provider.dart';
+import '../providers/states/time_table_state.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
@@ -58,10 +59,28 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         ? ref.watch(reliabilityScoreProvider(storeId))
         : const AsyncValue<ReliabilityScore>.loading();
 
-    // Watch store employee user IDs for filtering leaderboard
-    final storeEmployeeIdsAsync = storeId.isNotEmpty
-        ? ref.watch(storeEmployeeUserIdsProvider(storeId))
-        : const AsyncValue<Set<String>>.data({});
+    // Watch manager shift cards to get employees with actual work history
+    final managerCardsState = storeId.isNotEmpty
+        ? ref.watch(managerCardsProvider(storeId))
+        : const ManagerShiftCardsState();
+
+    // Extract employee UUIDs from shift cards (employees with actual work history this month)
+    final currentMonthKey = _getCurrentMonthKey();
+
+    // Ensure current month data is loaded
+    if (storeId.isNotEmpty) {
+      final notifier = ref.read(managerCardsProvider(storeId).notifier);
+      if (!managerCardsState.dataByMonth.containsKey(currentMonthKey)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifier.loadMonth(month: DateTime.now());
+        });
+      }
+    }
+
+    final employeesWithWorkHistory = _extractEmployeeIdsFromCards(
+      managerCardsState,
+      currentMonthKey,
+    );
 
     return SingleChildScrollView(
       child: Column(
@@ -101,17 +120,14 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             child: reliabilityAsync.when(
               data: (score) {
-                // Get store employee IDs for filtering
-                final storeEmployeeIds = storeEmployeeIdsAsync.valueOrNull ?? {};
-
                 // Get current store name for employee detail display
                 final currentStoreName = _getStoreName(storeId);
 
-                // Filter employees by store (for leaderboard display)
-                final storeEmployees = storeEmployeeIds.isEmpty
-                    ? score.employees // If no store filter, show all
+                // Filter employees by work history (employees with actual shifts this month)
+                final storeEmployees = employeesWithWorkHistory.isEmpty
+                    ? score.employees // If no work history filter, show all
                     : score.employees
-                        .where((e) => storeEmployeeIds.contains(e.userId))
+                        .where((e) => employeesWithWorkHistory.contains(e.userId))
                         .toList();
 
                 // Get filtered top reliability (store employees only)
@@ -427,6 +443,31 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         completedShifts: employee.completedShifts,
       );
     }).toList();
+  }
+
+  /// Get current month key in "yyyy-MM" format for data lookup
+  String _getCurrentMonthKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
+
+  /// Extract employee UUIDs from shift cards for a given month
+  /// Returns Set of user IDs who have actual work history in that month
+  Set<String> _extractEmployeeIdsFromCards(
+    ManagerShiftCardsState cardsState,
+    String monthKey,
+  ) {
+    final monthData = cardsState.dataByMonth[monthKey];
+    if (monthData == null) {
+      return {};
+    }
+
+    // Extract unique employee user IDs from shift cards
+    // Only include non-empty user IDs
+    return monthData.cards
+        .map((card) => card.employee.userId)
+        .where((userId) => userId.isNotEmpty)
+        .toSet();
   }
 
   /// Build store selector dropdown

@@ -59,7 +59,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
   /// Map DTO user fields to EmployeeInfo entity
   EmployeeInfo _mapEmployee() {
     return EmployeeInfo(
-      userId: '', // RPC doesn't return user_id in this format
+      userId: userId,
       userName: userName,
       profileImage: profileImage,
     );

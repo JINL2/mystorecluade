@@ -51,6 +51,7 @@ class AttentionItemData {
   final String? shiftName;
   final String? shiftTimeRange;
   final bool isShiftProblem; // True if understaffed, false if staff problem
+  final DateTime? shiftEndTime;
 
   AttentionItemData({
     required this.type,
@@ -85,6 +86,7 @@ class AttentionItemData {
     this.shiftName,
     this.shiftTimeRange,
     this.isShiftProblem = false,
+    this.shiftEndTime,
   });
 }
 
