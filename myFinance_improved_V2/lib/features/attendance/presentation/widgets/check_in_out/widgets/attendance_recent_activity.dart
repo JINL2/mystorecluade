@@ -238,42 +238,68 @@ class AttendanceRecentActivity extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Activity',
-                style: TossTextStyles.labelLarge.copyWith(
-                  color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  onViewAllTap();
-                  HapticFeedback.selectionClick();
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space2,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Activity',
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  child: Text(
-                    'View All',
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray500,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    FormatHelpers.formatDateWithDay(selectedDate),
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+              Material(
+                color: TossColors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    onViewAllTap();
+                    HapticFeedback.selectionClick();
+                  },
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space3,
+                      vertical: TossSpacing.space2,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'View All',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 12,
+                          color: TossColors.primary,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space4),
           // Activity List
           Container(
             decoration: BoxDecoration(
-              color: TossColors.background,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
-                color: TossColors.gray100,
+                color: TossColors.gray200,
                 width: 1,
               ),
             ),
@@ -296,6 +322,20 @@ class AttendanceRecentActivity extends StatelessWidget {
                           padding: const EdgeInsets.all(TossSpacing.space4),
                           child: Row(
                             children: [
+                              // Left: Time badge
+                              Container(
+                                padding: const EdgeInsets.all(TossSpacing.space3),
+                                decoration: BoxDecoration(
+                                  color: TossColors.primarySurface,
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                ),
+                                child: const Icon(
+                                  Icons.access_time,
+                                  size: 20,
+                                  color: TossColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: TossSpacing.space3),
                               // Time info
                               Expanded(
                                 child: Column(
@@ -306,26 +346,28 @@ class AttendanceRecentActivity extends StatelessWidget {
                                       children: [
                                         Text(
                                           activity['checkIn'] as String,
-                                          style: TossTextStyles.body.copyWith(
+                                          style: TossTextStyles.bodyMedium.copyWith(
                                             color: activity['checkIn'] == '--:--'
                                                 ? TossColors.gray400
                                                 : TossColors.gray900,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
-                                        Text(
-                                          ' → ',
-                                          style: TossTextStyles.body.copyWith(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+                                          child: Icon(
+                                            Icons.arrow_forward,
+                                            size: 14,
                                             color: TossColors.gray400,
                                           ),
                                         ),
                                         Text(
                                           activity['checkOut'] as String,
-                                          style: TossTextStyles.body.copyWith(
+                                          style: TossTextStyles.bodyMedium.copyWith(
                                             color: activity['checkOut'] == '--:--'
                                                 ? TossColors.gray400
                                                 : TossColors.gray900,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ],
@@ -335,7 +377,7 @@ class AttendanceRecentActivity extends StatelessWidget {
                                     Text(
                                       activity['shiftInfo'] as String,
                                       style: TossTextStyles.caption.copyWith(
-                                        color: TossColors.gray500,
+                                        color: TossColors.gray600,
                                       ),
                                     ),
                                   ],
@@ -348,9 +390,9 @@ class AttendanceRecentActivity extends StatelessWidget {
                                   // Duration
                                   Text(
                                     activity['hours'] as String,
-                                    style: TossTextStyles.body.copyWith(
+                                    style: TossTextStyles.bodyMedium.copyWith(
                                       color: TossColors.gray900,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                   const SizedBox(height: TossSpacing.space1),

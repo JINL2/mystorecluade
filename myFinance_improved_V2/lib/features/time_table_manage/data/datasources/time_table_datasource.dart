@@ -566,4 +566,41 @@ class TimeTableDatasource {
       );
     }
   }
+
+  /// Get employee info for a specific store
+  ///
+  /// Uses get_employee_info RPC
+  /// - p_store_id: When provided, returns only employees for that store
+  /// - Returns user_id, full_name, email, role_ids, role_names, stores, etc.
+  /// - Used to filter reliability leaderboard by store employees
+  Future<List<dynamic>> getStoreEmployees({
+    required String companyId,
+    required String storeId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_employee_info',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+        },
+      );
+
+      if (response == null) {
+        return [];
+      }
+
+      if (response is List) {
+        return response;
+      }
+
+      return [];
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to fetch store employees: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 }

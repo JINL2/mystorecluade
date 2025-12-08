@@ -75,6 +75,8 @@ class EmployeeReliabilityDto with _$EmployeeReliabilityDto {
     @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'user_name') required String userName,
     @JsonKey(name: 'profile_image') String? profileImage,
+    @JsonKey(name: 'role') String? role,
+    @JsonKey(name: 'store_name') String? storeName,
     @JsonKey(name: 'total_applications') @Default(0) int totalApplications,
     @JsonKey(name: 'approved_shifts') @Default(0) int approvedShifts,
     @JsonKey(name: 'completed_shifts') @Default(0) int completedShifts,
@@ -82,8 +84,17 @@ class EmployeeReliabilityDto with _$EmployeeReliabilityDto {
     @JsonKey(name: 'late_rate') @Default(0) num lateRate,
     @JsonKey(name: 'on_time_rate') @Default(0) num onTimeRate,
     @JsonKey(name: 'avg_late_minutes') @Default(0) num avgLateMinutes,
+    @JsonKey(name: 'avg_fill_rate_applied') @Default(0) num avgFillRateApplied,
     @JsonKey(name: 'reliability') @Default(0) num reliability,
     @JsonKey(name: 'final_score') @Default(0) num finalScore,
+    // Score breakdown fields
+    @JsonKey(name: 'applications_score') @Default(0) num applicationsScore,
+    @JsonKey(name: 'late_rate_score') @Default(0) num lateRateScore,
+    @JsonKey(name: 'late_minutes_score') @Default(0) num lateMinutesScore,
+    @JsonKey(name: 'fill_rate_score') @Default(0) num fillRateScore,
+    // Salary fields for payroll calculation
+    @JsonKey(name: 'salary_amount') @Default(0) num salaryAmount,
+    @JsonKey(name: 'salary_type') String? salaryType,
   }) = _EmployeeReliabilityDto;
 
   factory EmployeeReliabilityDto.fromJson(Map<String, dynamic> json) =>

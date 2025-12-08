@@ -181,6 +181,7 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
           unselectedLabelStyle: unselectedTextStyle,
           dividerColor: TossColors.transparent,
           overlayColor: WidgetStateProperty.all(TossColors.transparent),
+          labelPadding: EdgeInsets.zero,
           tabs: widget.tabs.map((tab) => Tab(text: tab)).toList(),
           ),
         ),

@@ -51,7 +51,6 @@ class TossMonthCalendar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         color: TossColors.white,
       ),

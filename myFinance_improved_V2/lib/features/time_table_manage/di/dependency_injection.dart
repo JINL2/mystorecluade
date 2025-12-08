@@ -34,8 +34,8 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 /// Time Table Datasource Provider
 ///
 /// Concrete implementation of data source using Supabase
-/// This provider is internal to DI layer and should not be exposed to Presentation
-final _timeTableDatasourceProvider = Provider<TimeTableDatasource>((ref) {
+/// Exposed for direct RPC calls that don't need full Clean Architecture flow
+final timeTableDatasourceProvider = Provider<TimeTableDatasource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return TimeTableDatasource(client);
 });
@@ -49,7 +49,7 @@ final _timeTableDatasourceProvider = Provider<TimeTableDatasource>((ref) {
 /// Provides concrete implementation of TimeTableRepository
 /// Presentation layer accesses this through the interface type
 final timeTableRepositoryProvider = Provider<TimeTableRepository>((ref) {
-  final datasource = ref.watch(_timeTableDatasourceProvider);
+  final datasource = ref.watch(timeTableDatasourceProvider);
   return TimeTableRepositoryImpl(datasource);
 });
 

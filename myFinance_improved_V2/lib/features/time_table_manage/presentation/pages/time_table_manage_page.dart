@@ -193,6 +193,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             TossTabBar1(
               controller: _tabController,
               tabs: const ['Overview', 'Schedule', 'Timesheets', 'Stats'],
+              padding: EdgeInsets.zero,
             ),
             // Tab Content
             Expanded(
@@ -206,6 +207,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       // Legacy callback - no longer needed but kept for compatibility
                     },
                     onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
+                    onNavigateToSchedule: (date) => _navigateToScheduleWithDate(date),
                   ),
                   ScheduleTabContent(
                     selectedStoreId: selectedStoreId,
@@ -257,6 +259,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   TimesheetsTab(
                     selectedStoreId: selectedStoreId,
                     onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
+                    onNavigateToSchedule: (date) => _navigateToScheduleWithDate(date),
                   ),
                   // Stats Tab
                   ShiftStatsTab(
@@ -357,6 +360,23 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[month - 1];
+  }
+
+  /// Navigate to Schedule tab with a specific date selected
+  ///
+  /// Called when user taps on an understaffed shift in Need Attention section.
+  /// Switches to Schedule tab and sets the selected date.
+  void _navigateToScheduleWithDate(DateTime date) {
+    setState(() {
+      selectedDate = date;
+      focusedMonth = DateTime(date.year, date.month);
+    });
+
+    // Switch to Schedule tab (index 1)
+    _tabController.animateTo(1);
+
+    // Fetch data for the selected month if needed
+    fetchMonthlyShiftStatus(forDate: date);
   }
 
   /// Handle store change from dropdown selection

@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../providers/time_table_providers.dart';
 import '../widgets/overview/attention_card.dart';
+import '../widgets/timesheets/staff_timelog_card.dart';
+import 'staff_timelog_detail_page.dart';
 
 /// Attention List Page
 ///
 /// Full page showing all items that need attention in a 2-column grid.
-class AttentionListPage extends StatelessWidget {
+class AttentionListPage extends ConsumerWidget {
   final List<AttentionItemData> items;
+  final String? storeId;
+  /// Callback to navigate to Schedule tab with a specific date
+  final void Function(DateTime date)? onNavigateToSchedule;
 
   const AttentionListPage({
     super.key,
     required this.items,
+    this.storeId,
+    this.onNavigateToSchedule,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: TossColors.gray50,
       appBar: AppBar(
@@ -48,10 +58,88 @@ class AttentionListPage extends StatelessWidget {
               ),
               itemCount: items.length,
               itemBuilder: (context, index) {
-                return AttentionCard(item: items[index]);
+                final item = items[index];
+                return AttentionCard(
+                  item: item,
+                  onTap: () => _handleAttentionItemTap(context, ref, item),
+                );
               },
             ),
     );
+  }
+
+  /// Handle attention item tap - navigate to detail page if it's a staff issue
+  Future<void> _handleAttentionItemTap(
+    BuildContext context,
+    WidgetRef ref,
+    AttentionItemData item,
+  ) async {
+    // For shift-level issues (understaffed), navigate to Schedule tab with the date
+    if (item.isShiftProblem) {
+      if (item.shiftDate != null && onNavigateToSchedule != null) {
+        // Pop this page first, then navigate to schedule
+        Navigator.of(context).pop();
+        onNavigateToSchedule!(item.shiftDate!);
+      }
+      return;
+    }
+
+    // For staff-level issues (late, overtime, problem, reported), navigate to detail page
+    if (item.shiftRequestId == null) return;
+
+    // Create StaffTimeRecord from AttentionItemData
+    final staffRecord = StaffTimeRecord(
+      staffId: item.staffId ?? '',
+      staffName: item.title,
+      avatarUrl: item.avatarUrl,
+      clockIn: item.clockIn ?? '--:--',
+      clockOut: item.clockOut ?? '--:--',
+      isLate: item.isLate,
+      isOvertime: item.isOvertime,
+      needsConfirm: !item.isConfirmed,
+      isConfirmed: item.isConfirmed,
+      shiftRequestId: item.shiftRequestId,
+      actualStart: item.actualStart,
+      actualEnd: item.actualEnd,
+      confirmStartTime: item.confirmStartTime,
+      confirmEndTime: item.confirmEndTime,
+      isReported: item.isReported,
+      reportReason: item.reportReason,
+      isProblemSolved: item.isProblemSolved,
+      bonusAmount: item.bonusAmount,
+      salaryType: item.salaryType,
+      salaryAmount: item.salaryAmount,
+      basePay: item.basePay,
+      totalPayWithBonus: item.totalPayWithBonus,
+      paidHour: item.paidHour,
+      lateMinute: item.lateMinute,
+      overtimeMinute: item.overtimeMinute,
+    );
+
+    // Format shift date for display
+    final shiftDateStr = item.shiftDate != null
+        ? DateFormat('EEE, d MMM yyyy').format(item.shiftDate!)
+        : item.date;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) => StaffTimelogDetailPage(
+          staffRecord: staffRecord,
+          shiftName: item.shiftName ?? 'Shift',
+          shiftDate: shiftDateStr,
+          shiftTimeRange: item.shiftTimeRange ?? item.time,
+        ),
+      ),
+    );
+
+    // If save was successful, force refresh the data
+    if (result == true && storeId != null) {
+      ref.read(managerCardsProvider(storeId!).notifier).loadMonth(
+        month: DateTime.now(),
+        forceRefresh: true,
+      );
+      ref.invalidate(monthlyShiftStatusProvider(storeId!));
+    }
   }
 
   /// Build empty state

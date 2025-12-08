@@ -1,6 +1,7 @@
 /// Barrel file for staff timelog detail widgets
 library;
 
+export 'adjustment_section.dart';
 export 'bonus_section.dart';
 export 'confirmed_attendance_card.dart';
 export 'issue_report_card.dart';

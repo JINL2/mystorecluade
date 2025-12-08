@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
@@ -187,21 +189,25 @@ class ShiftRequestsActions {
     final approvedEmployees = dailyShift?.approvedEmployees ?? [];
     final pendingEmployees = dailyShift?.pendingEmployees ?? [];
 
-    // Combine approved and pending employees with status subtitle
+    // Combine approved and pending employees
+    // Assigned users show blue check tick, applied users show nothing
     final items = <TossSelectionItem>[
       ...approvedEmployees.map((employee) {
         return TossSelectionItem.fromGeneric(
           id: employee.userId,
           title: employee.userName,
-          subtitle: 'Assigned',
           avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : null,
+          trailing: const Icon(
+            LucideIcons.check,
+            color: TossColors.info,
+            size: 20,
+          ),
         );
       }),
       ...pendingEmployees.map((employee) {
         return TossSelectionItem.fromGeneric(
           id: employee.userId,
           title: employee.userName,
-          subtitle: 'Applied',
           avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : null,
         );
       }),
@@ -211,7 +217,7 @@ class ShiftRequestsActions {
       context: context,
       title: 'Applied Users',
       items: items,
-      showSubtitle: true,
+      showSubtitle: false,
       borderBottomWidth: 0,
       onItemSelected: (item) {
         // Optional: Navigate to user profile or show more details

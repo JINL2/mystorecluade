@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
@@ -11,6 +10,7 @@ class SalaryBreakdownCard extends StatelessWidget {
   final String hourlySalary;
   final String basePay;
   final String bonusPay;
+  final String penaltyDeduction;
   final String totalPayment;
 
   const SalaryBreakdownCard({
@@ -20,6 +20,7 @@ class SalaryBreakdownCard extends StatelessWidget {
     required this.hourlySalary,
     required this.basePay,
     required this.bonusPay,
+    this.penaltyDeduction = '0₫',
     required this.totalPayment,
   });
 
@@ -43,37 +44,28 @@ class SalaryBreakdownCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray100, width: 1),
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        _InfoRow(label: 'Total confirmed time', value: totalConfirmedTime),
+        const SizedBox(height: 12),
+        _InfoRow(label: 'Hourly salary', value: hourlySalary),
+        const SizedBox(height: 12),
+        Container(height: 1, color: TossColors.gray100),
+        const SizedBox(height: 12),
+        _InfoRow(label: 'Base pay', value: basePay),
+        const SizedBox(height: 12),
+        _InfoRow(label: 'Bonus pay', value: bonusPay),
+        const SizedBox(height: 12),
+        _InfoRow(label: 'Penalty deduction', value: penaltyDeduction),
+        const SizedBox(height: 12),
+        _InfoRow(
+          label: 'Total payment',
+          value: totalPayment,
+          labelStyle: TossTextStyles.titleMedium.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
           ),
-          child: Column(
-            children: [
-              _InfoRow(label: 'Total confirmed time', value: totalConfirmedTime),
-              const SizedBox(height: 12),
-              _InfoRow(label: 'Hourly salary', value: hourlySalary),
-              const SizedBox(height: 12),
-              Container(height: 1, color: TossColors.gray100),
-              const SizedBox(height: 12),
-              _InfoRow(label: 'Base pay', value: basePay),
-              const SizedBox(height: 12),
-              _InfoRow(label: 'Bonus pay', value: bonusPay),
-              const SizedBox(height: 12),
-              _InfoRow(
-                label: 'Total payment',
-                value: totalPayment,
-                labelStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
-                valueStyle: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+          valueStyle: TossTextStyles.titleMedium.copyWith(
+            color: TossColors.primary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

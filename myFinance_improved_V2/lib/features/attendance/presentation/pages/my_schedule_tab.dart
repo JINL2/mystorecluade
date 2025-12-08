@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/datetime_utils.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
@@ -27,7 +30,9 @@ export 'widgets/schedule_header.dart' show ViewMode;
 /// - Week view: Week navigation + shift list
 /// - Month view: Month navigation + calendar + filtered shift list
 class MyScheduleTab extends ConsumerStatefulWidget {
-  const MyScheduleTab({super.key});
+  final TabController? tabController;
+
+  const MyScheduleTab({super.key, this.tabController});
 
   @override
   ConsumerState<MyScheduleTab> createState() => _MyScheduleTabState();
@@ -36,6 +41,11 @@ class MyScheduleTab extends ConsumerStatefulWidget {
 class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   // View mode state
   ViewMode _viewMode = ViewMode.week;
+
+  /// Navigate to Shift Sign Up tab (index 1)
+  void _goToShiftSignUpTab() {
+    widget.tabController?.animateTo(1);
+  }
 
   // Navigation state
   int _currentWeekOffset = 0; // 0 = current week, -1 = prev, +1 = next
@@ -291,62 +301,63 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
     final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Common Header (Today's Shift Card + Toggle) - Fixed
-          todayShiftCardsAsync.when(
-            data: (todayShiftCards) {
-              final todayShift = ScheduleShiftFinder.findTodayShift(todayShiftCards);
-              final upcomingShift = todayShift == null
-                  ? ScheduleShiftFinder.findClosestUpcomingShift(todayShiftCards)
-                  : null;
-              return ScheduleHeader(
-                cardKey: _todayShiftCardKey,
-                viewMode: _viewMode,
-                todayShift: todayShift,
-                upcomingShift: upcomingShift,
-                onCheckIn: () => _navigateToQRScanner(),
-                onCheckOut: () => _navigateToQRScanner(),
-                onViewModeChanged: (mode) {
-                  setState(() => _viewMode = mode);
-                },
-              );
-            },
-            loading: () => ScheduleHeader(
-              cardKey: _todayShiftCardKey,
-              viewMode: _viewMode,
-              todayShift: null,
-              onCheckIn: () => _navigateToQRScanner(),
-              onCheckOut: () => _navigateToQRScanner(),
-              onViewModeChanged: (mode) {
-                setState(() => _viewMode = mode);
-              },
-            ),
-            error: (_, __) => ScheduleHeader(
-              cardKey: _todayShiftCardKey,
-              viewMode: _viewMode,
-              todayShift: null,
-              onCheckIn: () => _navigateToQRScanner(),
-              onCheckOut: () => _navigateToQRScanner(),
-              onViewModeChanged: (mode) {
-                setState(() => _viewMode = mode);
-              },
-            ),
-          ),
+    // Also check the primary week data to see if there are any shifts at all
+    return primaryShiftCardsAsync.when(
+      data: (primaryShiftCards) {
+        return todayShiftCardsAsync.when(
+          data: (todayShiftCards) {
+            final todayShift = ScheduleShiftFinder.findTodayShift(todayShiftCards);
+            final upcomingShift = todayShift == null
+                ? ScheduleShiftFinder.findClosestUpcomingShift(todayShiftCards)
+                : null;
 
-          // Week View (contains scrollable shift list)
-          Expanded(
-            child: _buildWeekShiftsList(
-              weekRange: weekRange,
-              primaryAsync: primaryShiftCardsAsync,
-              secondaryAsync: secondaryShiftCardsAsync,
-            ),
-          ),
-        ],
-      ),
+            // Merge both data sources to check if user has ANY shifts at all
+            final allShifts = [...todayShiftCards, ...primaryShiftCards];
+            final uniqueShifts = <String, ShiftCard>{};
+            for (final shift in allShifts) {
+              uniqueShifts[shift.shiftRequestId] = shift;
+            }
+
+            // If no shifts at all across all checked periods, show only empty state
+            if (uniqueShifts.isEmpty) {
+              return _buildEmptyStateOnly();
+            }
+
+            // Otherwise show normal UI
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ScheduleHeader(
+                    cardKey: _todayShiftCardKey,
+                    viewMode: _viewMode,
+                    todayShift: todayShift,
+                    upcomingShift: upcomingShift,
+                    onCheckIn: () => _navigateToQRScanner(),
+                    onCheckOut: () => _navigateToQRScanner(),
+                    onGoToShiftSignUp: _goToShiftSignUpTab,
+                    onViewModeChanged: (mode) {
+                      setState(() => _viewMode = mode);
+                    },
+                  ),
+                  Expanded(
+                    child: _buildWeekShiftsList(
+                      weekRange: weekRange,
+                      primaryAsync: primaryShiftCardsAsync,
+                      secondaryAsync: secondaryShiftCardsAsync,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => _buildEmptyStateOnly(),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => _buildEmptyStateOnly(),
     );
   }
 
@@ -389,6 +400,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
                 upcomingShift: upcomingShift,
                 onCheckIn: () => _navigateToQRScanner(),
                 onCheckOut: () => _navigateToQRScanner(),
+                onGoToShiftSignUp: _goToShiftSignUpTab,
                 onViewModeChanged: (mode) {
                   setState(() => _viewMode = mode);
                 },
@@ -400,6 +412,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               todayShift: null,
               onCheckIn: () => _navigateToQRScanner(),
               onCheckOut: () => _navigateToQRScanner(),
+              onGoToShiftSignUp: _goToShiftSignUpTab,
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -410,6 +423,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               todayShift: null,
               onCheckIn: () => _navigateToQRScanner(),
               onCheckOut: () => _navigateToQRScanner(),
+              onGoToShiftSignUp: _goToShiftSignUpTab,
               onViewModeChanged: (mode) {
                 setState(() => _viewMode = mode);
               },
@@ -443,6 +457,43 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => Center(child: Text('Error: $error')),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build empty state only (no header, no navigation)
+  Widget _buildEmptyStateOnly() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.calendar_today_outlined,
+            color: TossColors.gray400,
+            size: 48,
+          ),
+          SizedBox(height: TossSpacing.space3),
+          Text(
+            'You have no shift',
+            style: TossTextStyles.bodyLarge.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: TossSpacing.space1),
+          TextButton(
+            onPressed: _goToShiftSignUpTab,
+            child: Text(
+              'Go to shift sign up',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+              ),
             ),
           ),
         ],

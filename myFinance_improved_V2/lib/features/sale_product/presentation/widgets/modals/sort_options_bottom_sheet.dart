@@ -39,10 +39,10 @@ class SortOptionsBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: TossColors.surface,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
+          topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+          topRight: Radius.circular(TossBorderRadius.bottomSheet),
         ),
       ),
       child: Column(
@@ -50,7 +50,7 @@ class SortOptionsBottomSheet extends StatelessWidget {
         children: [
           // Handle
           Container(
-            width: 48,
+            width: 40,
             height: 4,
             margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
@@ -60,14 +60,27 @@ class SortOptionsBottomSheet extends StatelessWidget {
           ),
 
           // Title
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              TossSpacing.space4,
+              TossSpacing.space4,
+              TossSpacing.space4,
+              TossSpacing.space2,
+            ),
             child: Text(
               'Sort Products',
               style: TossTextStyles.h3.copyWith(
                 fontWeight: FontWeight.w700,
+                color: TossColors.gray900,
               ),
             ),
+          ),
+
+          // Divider
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: TossColors.gray200,
           ),
 
           // Sort options
@@ -139,22 +152,22 @@ class _SortOptionItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space4,
-            vertical: TossSpacing.space3,
+            vertical: TossSpacing.space4,
           ),
           child: Row(
             children: [
               Icon(
                 icon,
-                size: 20,
+                size: TossSpacing.iconSM,
                 color: isSelected ? TossColors.primary : TossColors.gray600,
               ),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   title,
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.bodyLarge.copyWith(
                     color: isSelected ? TossColors.primary : TossColors.gray900,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
               ),
@@ -168,9 +181,9 @@ class _SortOptionItem extends StatelessWidget {
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 const Icon(
-                  Icons.check_rounded,
+                  Icons.check_circle,
                   color: TossColors.primary,
-                  size: 20,
+                  size: TossSpacing.iconSM,
                 ),
               ],
             ],

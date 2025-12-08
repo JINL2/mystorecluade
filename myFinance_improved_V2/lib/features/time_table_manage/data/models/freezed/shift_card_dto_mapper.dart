@@ -47,6 +47,10 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       tags: noticeTags.map((tag) => tag.toEntity()).toList(),
       problemType: problemType,
       reportReason: reportReason,
+      // Shift start/end time from RPC ("2025-12-05 14:00" format)
+      // Used for consecutive shift detection
+      shiftStartTime: shiftStartTime,
+      shiftEndTime: shiftEndTime,
       createdAt: DateTime.now(), // RPC doesn't return created_at
       approvedAt: null, // RPC doesn't return approved_at
     );

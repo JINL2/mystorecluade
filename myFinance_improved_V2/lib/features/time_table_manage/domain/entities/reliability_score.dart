@@ -136,6 +136,8 @@ class EmployeeReliability {
   final String userId;
   final String userName;
   final String? profileImage;
+  final String? role;
+  final String? storeName;
   final int totalApplications;
   final int approvedShifts;
   final int completedShifts;
@@ -143,13 +145,24 @@ class EmployeeReliability {
   final double lateRate;
   final double onTimeRate;
   final double avgLateMinutes;
+  final double avgFillRateApplied;
   final double reliability;
   final double finalScore;
+  // Score breakdown fields
+  final double applicationsScore;
+  final double lateRateScore;
+  final double lateMinutesScore;
+  final double fillRateScore;
+  // Salary fields for payroll calculation
+  final double salaryAmount;
+  final String? salaryType;
 
   const EmployeeReliability({
     required this.userId,
     required this.userName,
     this.profileImage,
+    this.role,
+    this.storeName,
     required this.totalApplications,
     required this.approvedShifts,
     required this.completedShifts,
@@ -157,8 +170,15 @@ class EmployeeReliability {
     required this.lateRate,
     required this.onTimeRate,
     required this.avgLateMinutes,
+    this.avgFillRateApplied = 0,
     required this.reliability,
     required this.finalScore,
+    this.applicationsScore = 0,
+    this.lateRateScore = 0,
+    this.lateMinutesScore = 0,
+    this.fillRateScore = 0,
+    this.salaryAmount = 0,
+    this.salaryType,
   });
 
   /// Get employee name for display
