@@ -81,6 +81,10 @@ mixin _$TemplateDto {
   @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
 
+  /// Whether attachment is required when using this template (DB: required_attachment)
+  @JsonKey(name: 'required_attachment')
+  bool get requiredAttachment => throw _privateConstructorUsedError;
+
   /// Serializes this TemplateDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -114,7 +118,8 @@ abstract class $TemplateDtoCopyWith<$Res> {
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'updated_at') String updatedAt,
       @JsonKey(name: 'updated_by') String? updatedBy,
-      @JsonKey(name: 'is_active') bool isActive});
+      @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'required_attachment') bool requiredAttachment});
 }
 
 /// @nodoc
@@ -148,6 +153,7 @@ class _$TemplateDtoCopyWithImpl<$Res, $Val extends TemplateDto>
     Object? updatedAt = null,
     Object? updatedBy = freezed,
     Object? isActive = null,
+    Object? requiredAttachment = null,
   }) {
     return _then(_value.copyWith(
       templateId: null == templateId
@@ -214,6 +220,10 @@ class _$TemplateDtoCopyWithImpl<$Res, $Val extends TemplateDto>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      requiredAttachment: null == requiredAttachment
+          ? _value.requiredAttachment
+          : requiredAttachment // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -243,7 +253,8 @@ abstract class _$$TemplateDtoImplCopyWith<$Res>
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'updated_at') String updatedAt,
       @JsonKey(name: 'updated_by') String? updatedBy,
-      @JsonKey(name: 'is_active') bool isActive});
+      @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'required_attachment') bool requiredAttachment});
 }
 
 /// @nodoc
@@ -275,6 +286,7 @@ class __$$TemplateDtoImplCopyWithImpl<$Res>
     Object? updatedAt = null,
     Object? updatedBy = freezed,
     Object? isActive = null,
+    Object? requiredAttachment = null,
   }) {
     return _then(_$TemplateDtoImpl(
       templateId: null == templateId
@@ -341,6 +353,10 @@ class __$$TemplateDtoImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      requiredAttachment: null == requiredAttachment
+          ? _value.requiredAttachment
+          : requiredAttachment // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -365,7 +381,8 @@ class _$TemplateDtoImpl implements _TemplateDto {
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'updated_at') required this.updatedAt,
       @JsonKey(name: 'updated_by') this.updatedBy,
-      @JsonKey(name: 'is_active') this.isActive = true})
+      @JsonKey(name: 'is_active') this.isActive = true,
+      @JsonKey(name: 'required_attachment') this.requiredAttachment = false})
       : _data = data,
         _tags = tags;
 
@@ -466,9 +483,14 @@ class _$TemplateDtoImpl implements _TemplateDto {
   @JsonKey(name: 'is_active')
   final bool isActive;
 
+  /// Whether attachment is required when using this template (DB: required_attachment)
+  @override
+  @JsonKey(name: 'required_attachment')
+  final bool requiredAttachment;
+
   @override
   String toString() {
-    return 'TemplateDto(templateId: $templateId, name: $name, templateDescription: $templateDescription, data: $data, tags: $tags, visibilityLevel: $visibilityLevel, permission: $permission, companyId: $companyId, storeId: $storeId, counterpartyId: $counterpartyId, counterpartyCashLocationId: $counterpartyCashLocationId, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, updatedBy: $updatedBy, isActive: $isActive)';
+    return 'TemplateDto(templateId: $templateId, name: $name, templateDescription: $templateDescription, data: $data, tags: $tags, visibilityLevel: $visibilityLevel, permission: $permission, companyId: $companyId, storeId: $storeId, counterpartyId: $counterpartyId, counterpartyCashLocationId: $counterpartyCashLocationId, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, updatedBy: $updatedBy, isActive: $isActive, requiredAttachment: $requiredAttachment)';
   }
 
   @override
@@ -505,7 +527,9 @@ class _$TemplateDtoImpl implements _TemplateDto {
             (identical(other.updatedBy, updatedBy) ||
                 other.updatedBy == updatedBy) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.requiredAttachment, requiredAttachment) ||
+                other.requiredAttachment == requiredAttachment));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -527,7 +551,8 @@ class _$TemplateDtoImpl implements _TemplateDto {
       createdAt,
       updatedAt,
       updatedBy,
-      isActive);
+      isActive,
+      requiredAttachment);
 
   /// Create a copy of TemplateDto
   /// with the given fields replaced by the non-null parameter values.
@@ -563,7 +588,9 @@ abstract class _TemplateDto implements TemplateDto {
       @JsonKey(name: 'created_at') required final String createdAt,
       @JsonKey(name: 'updated_at') required final String updatedAt,
       @JsonKey(name: 'updated_by') final String? updatedBy,
-      @JsonKey(name: 'is_active') final bool isActive}) = _$TemplateDtoImpl;
+      @JsonKey(name: 'is_active') final bool isActive,
+      @JsonKey(name: 'required_attachment')
+      final bool requiredAttachment}) = _$TemplateDtoImpl;
 
   factory _TemplateDto.fromJson(Map<String, dynamic> json) =
       _$TemplateDtoImpl.fromJson;
@@ -644,6 +671,11 @@ abstract class _TemplateDto implements TemplateDto {
   @override
   @JsonKey(name: 'is_active')
   bool get isActive;
+
+  /// Whether attachment is required when using this template (DB: required_attachment)
+  @override
+  @JsonKey(name: 'required_attachment')
+  bool get requiredAttachment;
 
   /// Create a copy of TemplateDto
   /// with the given fields replaced by the non-null parameter values.

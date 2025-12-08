@@ -197,13 +197,13 @@ Map<String, dynamic> _$$CashLocationIssueImplToJson(
 
 _$LastEntryInfoImpl _$$LastEntryInfoImplFromJson(Map<String, dynamic> json) =>
     _$LastEntryInfoImpl(
-      entryId: json['entry_id'] as String,
-      employeeId: json['employee_id'] as String,
-      employeeName: json['employee_name'] as String,
-      entryDate: json['entry_date'] as String,
-      entryTime: json['entry_time'] as String,
-      amount: (json['amount'] as num).toDouble(),
-      formattedAmount: json['formatted_amount'] as String,
+      entryId: json['entry_id'] as String? ?? '',
+      employeeId: json['employee_id'] as String? ?? '',
+      employeeName: json['employee_name'] as String? ?? 'Unknown',
+      entryDate: json['entry_date'] as String? ?? '',
+      entryTime: json['entry_time'] as String? ?? '',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      formattedAmount: json['formatted_amount'] as String? ?? '',
       description: json['description'] as String?,
       entryType: json['entry_type'] as String?,
     );

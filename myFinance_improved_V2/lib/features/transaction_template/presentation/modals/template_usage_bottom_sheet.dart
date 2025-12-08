@@ -281,6 +281,17 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     });
   }
 
+  /// Check if template requires attachment
+  bool get _requiresAttachment {
+    return widget.template['required_attachment'] == true;
+  }
+
+  /// Check if attachment requirement is satisfied
+  bool get _attachmentRequirementSatisfied {
+    if (!_requiresAttachment) return true;
+    return _pendingAttachments.isNotEmpty;
+  }
+
   /// Comprehensive form validation using domain validator
   bool get _isFormValid {
     final canSubmit = TemplateFormValidator.canSubmit(
@@ -291,7 +302,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
     );
 
-    return canSubmit;
+    // Also check attachment requirement
+    return canSubmit && _attachmentRequirementSatisfied;
   }
 
   /// Check if transaction is being created (for loading indicator)
@@ -515,6 +527,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
         // 📎 Attachments section
         const SizedBox(height: TossSpacing.space3),
+
+        // ⚠️ Required attachment warning banner
+        if (_requiresAttachment && !_attachmentRequirementSatisfied) ...[
+          _buildAttachmentWarningBanner(),
+          const SizedBox(height: TossSpacing.space2),
+        ],
+
         TemplateAttachmentPickerSection(
           attachments: _pendingAttachments,
           onAttachmentsChanged: (attachments) {
@@ -523,6 +542,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             });
           },
           canAddMore: _pendingAttachments.length < TemplateAttachment.maxAttachments,
+          isRequired: _requiresAttachment,
         ),
       ],
     );
@@ -658,6 +678,40 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         ),
       ],
+    );
+  }
+
+  /// Builds required attachment warning banner
+  Widget _buildAttachmentWarningBanner() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: TossColors.warning.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: TossColors.warning,
+            size: 20,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              'This template requires an attachment (receipt, invoice, etc.)',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray800,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

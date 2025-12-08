@@ -17,12 +17,14 @@ class TemplateAttachmentPickerSection extends StatefulWidget {
   final List<TemplateAttachment> attachments;
   final ValueChanged<List<TemplateAttachment>> onAttachmentsChanged;
   final bool canAddMore;
+  final bool isRequired;
 
   const TemplateAttachmentPickerSection({
     super.key,
     required this.attachments,
     required this.onAttachmentsChanged,
     this.canAddMore = true,
+    this.isRequired = false,
   });
 
   @override
@@ -270,10 +272,10 @@ class _TemplateAttachmentPickerSectionState
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.attach_file,
                   size: 18,
-                  color: TossColors.gray600,
+                  color: widget.isRequired ? TossColors.primary : TossColors.gray600,
                 ),
                 const SizedBox(width: TossSpacing.space1),
                 Text(
@@ -283,6 +285,16 @@ class _TemplateAttachmentPickerSectionState
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (widget.isRequired) ...[
+                  const SizedBox(width: TossSpacing.space1),
+                  Text(
+                    '*',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 if (attachments.isNotEmpty) ...[
                   const SizedBox(width: TossSpacing.space2),
                   Container(

@@ -3,6 +3,7 @@
 import '../pages/templates/financial_summary/financial_summary_template.dart';
 import '../pages/templates/daily_attendance/daily_attendance_template.dart';
 import '../pages/templates/cash_location/cash_location_template.dart';
+import '../pages/templates/monthly_salary/monthly_salary_template.dart';
 import 'template_registry.dart';
 
 /// Template Initializer
@@ -32,6 +33,7 @@ class TemplateInitializer {
     FinancialSummaryTemplate.register();
     DailyAttendanceTemplate.register();
     CashLocationTemplate.register();
+    MonthlySalaryTemplate.register();
 
     _initialized = true;
 

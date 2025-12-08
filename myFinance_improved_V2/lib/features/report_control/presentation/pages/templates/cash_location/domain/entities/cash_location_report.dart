@@ -151,13 +151,13 @@ class CashLocationIssue with _$CashLocationIssue {
 @freezed
 class LastEntryInfo with _$LastEntryInfo {
   const factory LastEntryInfo({
-    @JsonKey(name: 'entry_id') required String entryId,
-    @JsonKey(name: 'employee_id') required String employeeId,
-    @JsonKey(name: 'employee_name') required String employeeName,
-    @JsonKey(name: 'entry_date') required String entryDate,
-    @JsonKey(name: 'entry_time') required String entryTime,
-    @JsonKey(name: 'amount') required double amount,
-    @JsonKey(name: 'formatted_amount') required String formattedAmount,
+    @JsonKey(name: 'entry_id') @Default('') String entryId,
+    @JsonKey(name: 'employee_id') @Default('') String employeeId,
+    @JsonKey(name: 'employee_name') @Default('Unknown') String employeeName,
+    @JsonKey(name: 'entry_date') @Default('') String entryDate,
+    @JsonKey(name: 'entry_time') @Default('') String entryTime,
+    @JsonKey(name: 'amount') @Default(0) double amount,
+    @JsonKey(name: 'formatted_amount') @Default('') String formattedAmount,
     @JsonKey(name: 'description') String? description,
     @JsonKey(name: 'entry_type') String? entryType,
   }) = _LastEntryInfo;

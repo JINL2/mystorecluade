@@ -1059,8 +1059,6 @@ mixin _$TransactionAttachmentModel {
   String get fileName => throw _privateConstructorUsedError;
   @JsonKey(name: 'file_type')
   String get fileType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'file_size')
-  int get fileSize => throw _privateConstructorUsedError;
   @JsonKey(name: 'file_url')
   String? get fileUrl => throw _privateConstructorUsedError;
 
@@ -1082,7 +1080,6 @@ abstract class $TransactionAttachmentModelCopyWith<$Res> {
       {@JsonKey(name: 'attachment_id') String attachmentId,
       @JsonKey(name: 'file_name') String fileName,
       @JsonKey(name: 'file_type') String fileType,
-      @JsonKey(name: 'file_size') int fileSize,
       @JsonKey(name: 'file_url') String? fileUrl});
 }
 
@@ -1105,7 +1102,6 @@ class _$TransactionAttachmentModelCopyWithImpl<$Res,
     Object? attachmentId = null,
     Object? fileName = null,
     Object? fileType = null,
-    Object? fileSize = null,
     Object? fileUrl = freezed,
   }) {
     return _then(_value.copyWith(
@@ -1121,10 +1117,6 @@ class _$TransactionAttachmentModelCopyWithImpl<$Res,
           ? _value.fileType
           : fileType // ignore: cast_nullable_to_non_nullable
               as String,
-      fileSize: null == fileSize
-          ? _value.fileSize
-          : fileSize // ignore: cast_nullable_to_non_nullable
-              as int,
       fileUrl: freezed == fileUrl
           ? _value.fileUrl
           : fileUrl // ignore: cast_nullable_to_non_nullable
@@ -1146,7 +1138,6 @@ abstract class _$$TransactionAttachmentModelImplCopyWith<$Res>
       {@JsonKey(name: 'attachment_id') String attachmentId,
       @JsonKey(name: 'file_name') String fileName,
       @JsonKey(name: 'file_type') String fileType,
-      @JsonKey(name: 'file_size') int fileSize,
       @JsonKey(name: 'file_url') String? fileUrl});
 }
 
@@ -1168,7 +1159,6 @@ class __$$TransactionAttachmentModelImplCopyWithImpl<$Res>
     Object? attachmentId = null,
     Object? fileName = null,
     Object? fileType = null,
-    Object? fileSize = null,
     Object? fileUrl = freezed,
   }) {
     return _then(_$TransactionAttachmentModelImpl(
@@ -1184,10 +1174,6 @@ class __$$TransactionAttachmentModelImplCopyWithImpl<$Res>
           ? _value.fileType
           : fileType // ignore: cast_nullable_to_non_nullable
               as String,
-      fileSize: null == fileSize
-          ? _value.fileSize
-          : fileSize // ignore: cast_nullable_to_non_nullable
-              as int,
       fileUrl: freezed == fileUrl
           ? _value.fileUrl
           : fileUrl // ignore: cast_nullable_to_non_nullable
@@ -1198,13 +1184,13 @@ class __$$TransactionAttachmentModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$TransactionAttachmentModelImpl implements _TransactionAttachmentModel {
+class _$TransactionAttachmentModelImpl extends _TransactionAttachmentModel {
   const _$TransactionAttachmentModelImpl(
       {@JsonKey(name: 'attachment_id') required this.attachmentId,
       @JsonKey(name: 'file_name') required this.fileName,
       @JsonKey(name: 'file_type') required this.fileType,
-      @JsonKey(name: 'file_size') required this.fileSize,
-      @JsonKey(name: 'file_url') this.fileUrl});
+      @JsonKey(name: 'file_url') this.fileUrl})
+      : super._();
 
   @override
   @JsonKey(name: 'attachment_id')
@@ -1216,15 +1202,12 @@ class _$TransactionAttachmentModelImpl implements _TransactionAttachmentModel {
   @JsonKey(name: 'file_type')
   final String fileType;
   @override
-  @JsonKey(name: 'file_size')
-  final int fileSize;
-  @override
   @JsonKey(name: 'file_url')
   final String? fileUrl;
 
   @override
   String toString() {
-    return 'TransactionAttachmentModel(attachmentId: $attachmentId, fileName: $fileName, fileType: $fileType, fileSize: $fileSize, fileUrl: $fileUrl)';
+    return 'TransactionAttachmentModel(attachmentId: $attachmentId, fileName: $fileName, fileType: $fileType, fileUrl: $fileUrl)';
   }
 
   @override
@@ -1238,14 +1221,12 @@ class _$TransactionAttachmentModelImpl implements _TransactionAttachmentModel {
                 other.fileName == fileName) &&
             (identical(other.fileType, fileType) ||
                 other.fileType == fileType) &&
-            (identical(other.fileSize, fileSize) ||
-                other.fileSize == fileSize) &&
             (identical(other.fileUrl, fileUrl) || other.fileUrl == fileUrl));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, attachmentId, fileName, fileType, fileSize, fileUrl);
+  int get hashCode =>
+      Object.hash(runtimeType, attachmentId, fileName, fileType, fileUrl);
 
   /// Create a copy of TransactionAttachmentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1257,15 +1238,14 @@ class _$TransactionAttachmentModelImpl implements _TransactionAttachmentModel {
           _$TransactionAttachmentModelImpl>(this, _$identity);
 }
 
-abstract class _TransactionAttachmentModel
-    implements TransactionAttachmentModel {
+abstract class _TransactionAttachmentModel extends TransactionAttachmentModel {
   const factory _TransactionAttachmentModel(
           {@JsonKey(name: 'attachment_id') required final String attachmentId,
           @JsonKey(name: 'file_name') required final String fileName,
           @JsonKey(name: 'file_type') required final String fileType,
-          @JsonKey(name: 'file_size') required final int fileSize,
           @JsonKey(name: 'file_url') final String? fileUrl}) =
       _$TransactionAttachmentModelImpl;
+  const _TransactionAttachmentModel._() : super._();
 
   @override
   @JsonKey(name: 'attachment_id')
@@ -1276,9 +1256,6 @@ abstract class _TransactionAttachmentModel
   @override
   @JsonKey(name: 'file_type')
   String get fileType;
-  @override
-  @JsonKey(name: 'file_size')
-  int get fileSize;
   @override
   @JsonKey(name: 'file_url')
   String? get fileUrl;

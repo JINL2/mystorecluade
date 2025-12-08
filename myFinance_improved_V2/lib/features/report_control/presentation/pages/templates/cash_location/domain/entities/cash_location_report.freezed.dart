@@ -2658,13 +2658,13 @@ class __$$LastEntryInfoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$LastEntryInfoImpl implements _LastEntryInfo {
   const _$LastEntryInfoImpl(
-      {@JsonKey(name: 'entry_id') required this.entryId,
-      @JsonKey(name: 'employee_id') required this.employeeId,
-      @JsonKey(name: 'employee_name') required this.employeeName,
-      @JsonKey(name: 'entry_date') required this.entryDate,
-      @JsonKey(name: 'entry_time') required this.entryTime,
-      @JsonKey(name: 'amount') required this.amount,
-      @JsonKey(name: 'formatted_amount') required this.formattedAmount,
+      {@JsonKey(name: 'entry_id') this.entryId = '',
+      @JsonKey(name: 'employee_id') this.employeeId = '',
+      @JsonKey(name: 'employee_name') this.employeeName = 'Unknown',
+      @JsonKey(name: 'entry_date') this.entryDate = '',
+      @JsonKey(name: 'entry_time') this.entryTime = '',
+      @JsonKey(name: 'amount') this.amount = 0,
+      @JsonKey(name: 'formatted_amount') this.formattedAmount = '',
       @JsonKey(name: 'description') this.description,
       @JsonKey(name: 'entry_type') this.entryType});
 
@@ -2759,16 +2759,16 @@ class _$LastEntryInfoImpl implements _LastEntryInfo {
 
 abstract class _LastEntryInfo implements LastEntryInfo {
   const factory _LastEntryInfo(
-      {@JsonKey(name: 'entry_id') required final String entryId,
-      @JsonKey(name: 'employee_id') required final String employeeId,
-      @JsonKey(name: 'employee_name') required final String employeeName,
-      @JsonKey(name: 'entry_date') required final String entryDate,
-      @JsonKey(name: 'entry_time') required final String entryTime,
-      @JsonKey(name: 'amount') required final double amount,
-      @JsonKey(name: 'formatted_amount') required final String formattedAmount,
-      @JsonKey(name: 'description') final String? description,
-      @JsonKey(name: 'entry_type')
-      final String? entryType}) = _$LastEntryInfoImpl;
+          {@JsonKey(name: 'entry_id') final String entryId,
+          @JsonKey(name: 'employee_id') final String employeeId,
+          @JsonKey(name: 'employee_name') final String employeeName,
+          @JsonKey(name: 'entry_date') final String entryDate,
+          @JsonKey(name: 'entry_time') final String entryTime,
+          @JsonKey(name: 'amount') final double amount,
+          @JsonKey(name: 'formatted_amount') final String formattedAmount,
+          @JsonKey(name: 'description') final String? description,
+          @JsonKey(name: 'entry_type') final String? entryType}) =
+      _$LastEntryInfoImpl;
 
   factory _LastEntryInfo.fromJson(Map<String, dynamic> json) =
       _$LastEntryInfoImpl.fromJson;
