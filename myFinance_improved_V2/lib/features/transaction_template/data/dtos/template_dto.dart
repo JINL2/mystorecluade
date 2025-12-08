@@ -58,6 +58,9 @@ class TemplateDto with _$TemplateDto {
     
     /// Active status flag (DB: is_active)
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
+
+    /// Whether attachment is required when using this template (DB: required_attachment)
+    @JsonKey(name: 'required_attachment') @Default(false) bool requiredAttachment,
   }) = _TemplateDto;
 
   factory TemplateDto.fromJson(Map<String, dynamic> json) => _$TemplateDtoFromJson(json);

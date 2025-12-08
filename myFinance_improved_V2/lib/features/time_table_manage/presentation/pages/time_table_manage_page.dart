@@ -99,6 +99,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
   // Filter state for manage tab - default to show approved shifts
   String? selectedFilter = 'approved'; // null = 'all', 'problem', 'approved', 'pending'
+
+  // Filter state for timesheets tab (used when navigating from Stats tab)
+  String? _timesheetsFilter;
   
   @override
   void initState() {
@@ -193,6 +196,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             TossTabBar1(
               controller: _tabController,
               tabs: const ['Overview', 'Schedule', 'Timesheets', 'Stats'],
+              padding: EdgeInsets.zero,
             ),
             // Tab Content
             Expanded(
@@ -259,11 +263,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     selectedStoreId: selectedStoreId,
                     onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
                     onNavigateToSchedule: (date) => _navigateToScheduleWithDate(date),
+                    initialFilter: _timesheetsFilter,
                   ),
                   // Stats Tab
                   ShiftStatsTab(
                     selectedStoreId: selectedStoreId,
                     onStoreChanged: (newStoreId) => _handleStoreChange(newStoreId),
+                    onNavigateToTimesheets: (filter) => _navigateToTimesheetsWithFilter(filter),
                   ),
                 ],
               ),
@@ -376,6 +382,19 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
     // Fetch data for the selected month if needed
     fetchMonthlyShiftStatus(forDate: date);
+  }
+
+  /// Navigate to Timesheets tab with a specific filter
+  ///
+  /// Called when user taps on "Problem solves" in Stats tab.
+  /// Switches to Timesheets tab and sets the filter (e.g., 'this_month').
+  void _navigateToTimesheetsWithFilter(String filter) {
+    setState(() {
+      _timesheetsFilter = filter;
+    });
+
+    // Switch to Timesheets tab (index 2)
+    _tabController.animateTo(2);
   }
 
   /// Handle store change from dropdown selection

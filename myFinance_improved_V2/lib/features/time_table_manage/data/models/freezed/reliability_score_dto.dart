@@ -75,6 +75,8 @@ class EmployeeReliabilityDto with _$EmployeeReliabilityDto {
     @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'user_name') required String userName,
     @JsonKey(name: 'profile_image') String? profileImage,
+    @JsonKey(name: 'role') String? role,
+    @JsonKey(name: 'store_name') String? storeName,
     @JsonKey(name: 'total_applications') @Default(0) int totalApplications,
     @JsonKey(name: 'approved_shifts') @Default(0) int approvedShifts,
     @JsonKey(name: 'completed_shifts') @Default(0) int completedShifts,

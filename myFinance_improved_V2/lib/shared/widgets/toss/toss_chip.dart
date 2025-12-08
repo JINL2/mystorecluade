@@ -138,11 +138,14 @@ class TossChipGroup extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      item.label,
-                      style: TossTextStyles.caption.copyWith(
-                        color: isSelected ? TossColors.white : TossColors.gray700,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    Flexible(
+                      child: Text(
+                        item.label,
+                        style: TossTextStyles.caption.copyWith(
+                          color: isSelected ? TossColors.white : TossColors.gray700,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (item.count != null) ...[

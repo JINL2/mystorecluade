@@ -77,7 +77,10 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   // Permissions (lowercase to match validation)
   String _selectedVisibility = 'public';
   String _selectedPermission = 'common';
-  
+
+  // Required attachment toggle
+  bool _requiredAttachment = false;
+
   // Loading state
   bool _isCreating = false;
 
@@ -288,6 +291,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         companyId: ref.read(appStateProvider).companyChoosen.toString(),
         storeId: ref.read(appStateProvider).storeChoosen.toString(),
         createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(), // ✅ Get user ID from app state
+        requiredAttachment: _requiredAttachment, // ✅ Whether attachment is required when using template
       );
 
       print('📋 Command Details:');
@@ -511,6 +515,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             PermissionsForm(
               selectedVisibility: _selectedVisibility,
               selectedPermission: _selectedPermission,
+              requiredAttachment: _requiredAttachment,
               onVisibilityChanged: (value) {
                 setState(() {
                   _selectedVisibility = value ?? 'public';
@@ -519,6 +524,11 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               onPermissionChanged: (value) {
                 setState(() {
                   _selectedPermission = value ?? 'common';
+                });
+              },
+              onRequiredAttachmentChanged: (value) {
+                setState(() {
+                  _requiredAttachment = value;
                 });
               },
             ),

@@ -9,6 +9,7 @@ import '../../core/constants.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/location.dart';
 import '../../domain/exceptions/cash_ending_exception.dart';
+import '../../domain/usecases/get_balance_summary_usecase.dart';
 import '../../domain/usecases/load_currencies_usecase.dart';
 import '../../domain/usecases/load_locations_usecase.dart';
 import '../../domain/usecases/load_recent_cash_endings_usecase.dart';
@@ -34,6 +35,9 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   final SelectStoreUseCase _selectStoreUseCase;
   final LoadRecentCashEndingsUseCase _loadRecentCashEndingsUseCase;
   final SaveCashEndingUseCase _saveCashEndingUseCase;
+  final GetCashBalanceSummaryUseCase? _getCashBalanceSummaryUseCase;
+  final GetBankBalanceSummaryUseCase? _getBankBalanceSummaryUseCase;
+  final GetVaultBalanceSummaryUseCase? _getVaultBalanceSummaryUseCase;
 
   CashEndingNotifier({
     required LoadStoresUseCase loadStoresUseCase,
@@ -42,12 +46,18 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     required SelectStoreUseCase selectStoreUseCase,
     required LoadRecentCashEndingsUseCase loadRecentCashEndingsUseCase,
     required SaveCashEndingUseCase saveCashEndingUseCase,
+    GetCashBalanceSummaryUseCase? getCashBalanceSummaryUseCase,
+    GetBankBalanceSummaryUseCase? getBankBalanceSummaryUseCase,
+    GetVaultBalanceSummaryUseCase? getVaultBalanceSummaryUseCase,
   })  : _loadStoresUseCase = loadStoresUseCase,
         _loadCurrenciesUseCase = loadCurrenciesUseCase,
         _loadLocationsUseCase = loadLocationsUseCase,
         _selectStoreUseCase = selectStoreUseCase,
         _loadRecentCashEndingsUseCase = loadRecentCashEndingsUseCase,
         _saveCashEndingUseCase = saveCashEndingUseCase,
+        _getCashBalanceSummaryUseCase = getCashBalanceSummaryUseCase,
+        _getBankBalanceSummaryUseCase = getBankBalanceSummaryUseCase,
+        _getVaultBalanceSummaryUseCase = getVaultBalanceSummaryUseCase,
         super(const CashEndingState());
 
   /// Load stores for a company
@@ -300,15 +310,111 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   // ============================================================================
 
   void setSelectedCashLocation(String? locationId) {
-    state = state.copyWith(selectedCashLocationId: locationId);
+    state = state.copyWith(
+      selectedCashLocationId: locationId,
+      // Reset journal amount when location changes
+      cashLocationJournalAmount: null,
+    );
+
+    // Fetch journal amount for the selected location
+    if (locationId != null && locationId.isNotEmpty) {
+      _fetchCashLocationJournalAmount(locationId);
+    }
+  }
+
+  /// Fetch journal amount for a cash location
+  ///
+  /// Called when cash location is selected to show journal balance
+  /// for user verification before submit
+  Future<void> _fetchCashLocationJournalAmount(String locationId) async {
+    if (_getCashBalanceSummaryUseCase == null) return;
+
+    state = state.copyWith(isLoadingJournalAmount: true);
+
+    try {
+      final balanceSummary = await _getCashBalanceSummaryUseCase!.execute(locationId);
+
+      state = state.copyWith(
+        cashLocationJournalAmount: balanceSummary.totalJournal,
+        isLoadingJournalAmount: false,
+      );
+    } catch (e) {
+      // Silently fail - journal amount is optional reference info
+      state = state.copyWith(
+        isLoadingJournalAmount: false,
+        cashLocationJournalAmount: null,
+      );
+    }
   }
 
   void setSelectedBankLocation(String? locationId) {
-    state = state.copyWith(selectedBankLocationId: locationId);
+    state = state.copyWith(
+      selectedBankLocationId: locationId,
+      // Reset journal amount when location changes
+      bankLocationJournalAmount: null,
+    );
+
+    // Fetch journal amount for the selected location
+    if (locationId != null && locationId.isNotEmpty) {
+      _fetchBankLocationJournalAmount(locationId);
+    }
+  }
+
+  /// Fetch journal amount for a bank location
+  Future<void> _fetchBankLocationJournalAmount(String locationId) async {
+    if (_getBankBalanceSummaryUseCase == null) return;
+
+    state = state.copyWith(isLoadingBankJournalAmount: true);
+
+    try {
+      final balanceSummary = await _getBankBalanceSummaryUseCase!.execute(locationId);
+
+      state = state.copyWith(
+        bankLocationJournalAmount: balanceSummary.totalJournal,
+        isLoadingBankJournalAmount: false,
+      );
+    } catch (e) {
+      // Silently fail - journal amount is optional reference info
+      state = state.copyWith(
+        isLoadingBankJournalAmount: false,
+        bankLocationJournalAmount: null,
+      );
+    }
   }
 
   void setSelectedVaultLocation(String? locationId) {
-    state = state.copyWith(selectedVaultLocationId: locationId);
+    state = state.copyWith(
+      selectedVaultLocationId: locationId,
+      // Reset journal amount when location changes
+      vaultLocationJournalAmount: null,
+    );
+
+    // Fetch journal amount for the selected location
+    if (locationId != null && locationId.isNotEmpty) {
+      _fetchVaultLocationJournalAmount(locationId);
+    }
+  }
+
+  /// Fetch journal amount for a vault location
+  Future<void> _fetchVaultLocationJournalAmount(String locationId) async {
+    if (_getVaultBalanceSummaryUseCase == null) return;
+
+    state = state.copyWith(isLoadingVaultJournalAmount: true);
+
+    try {
+      final balanceSummary = await _getVaultBalanceSummaryUseCase!.execute(locationId);
+
+      state = state.copyWith(
+        vaultLocationJournalAmount: balanceSummary.totalJournal,
+        isLoadingVaultJournalAmount: false,
+      );
+    } catch (e) {
+      // Silently fail - journal amount is optional reference info
+      state = state.copyWith(
+        isLoadingVaultJournalAmount: false,
+        vaultLocationJournalAmount: null,
+      );
+    }
   }
 
   void addCashCurrency(String currencyId) {

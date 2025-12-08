@@ -145,33 +145,37 @@ class AttendanceHeroSection extends StatelessWidget {
     final overtimeBonus = salaryInfo.calculateOvertimeBonus(overtimeTotal);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              TossColors.primary.withOpacity(0.08),
-              TossColors.primary.withOpacity(0.12),
+              TossColors.primary.withOpacity(0.05),
+              TossColors.primarySurface,
             ],
           ),
           borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
+          border: Border.all(
+            color: TossColors.primary.withOpacity(0.1),
+            width: 1,
+          ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space5),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(monthDisplay),
-              const SizedBox(height: TossSpacing.space6),
+              const SizedBox(height: TossSpacing.space5),
               _buildStatsGrid(
                 totalShifts,
                 actualWorkHours,
                 overtimeTotal.toString(),
                 lateDeductionTotal.toString(),
               ),
-              const SizedBox(height: TossSpacing.space5),
+              const SizedBox(height: TossSpacing.space4),
               HeroSalaryCard(
                 currencySymbol: currencySymbol,
                 estimatedSalary: estimatedSalary,

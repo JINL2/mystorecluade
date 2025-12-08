@@ -12,6 +12,7 @@ import '../../../providers/report_provider.dart';
 import 'financial_summary_detail_page.dart';
 import 'providers/financial_data_providers.dart';
 import 'domain/entities/cpa_audit_data.dart';
+import '../../../../../../app/providers/app_state_provider.dart';
 
 /// Financial Summary Template
 ///
@@ -117,16 +118,36 @@ class _FinancialSummaryLoaderState
       print('🔍 [FinancialTemplate] Fetching CPA audit data...');
       final financialRepo = ref.read(financialDataRepositoryProvider);
 
-      // companyId 가져오기 (Supabase user metadata에서)
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) {
-        throw Exception('User not authenticated');
+      // companyId 가져오기
+      // 1순위: notification에서 가져오기 (RPC 응답에 포함됨)
+      // 2순위: AppState에서 가져오기 (현재 선택된 회사)
+      // 3순위: report_generation_sessions 테이블에서 직접 조회
+      String? companyId = widget.notification.companyId;
+
+      if (companyId == null || companyId.isEmpty) {
+        // AppState에서 가져오기
+        final appState = ref.read(appStateProvider);
+        companyId = appState.companyChoosen;
+
+        if ((companyId?.isEmpty ?? true) && widget.notification.sessionId.isNotEmpty) {
+          // 3순위: session에서 직접 가져오기
+          print('🔍 [FinancialTemplate] Fetching company_id from session...');
+          final sessionData = await Supabase.instance.client
+              .from('report_generation_sessions')
+              .select('company_id')
+              .eq('session_id', widget.notification.sessionId)
+              .maybeSingle();
+
+          companyId = sessionData?['company_id'] as String?;
+          print('✅ [FinancialTemplate] Got company_id from session: $companyId');
+        }
+
+        if (companyId == null || companyId.isEmpty) {
+          throw Exception('Company ID not found in notification, AppState, or session');
+        }
       }
 
-      final companyId = user.userMetadata?['company_id'] as String?;
-      if (companyId == null) {
-        throw Exception('Company ID not found in user metadata');
-      }
+      print('✅ [FinancialTemplate] Using companyId: $companyId');
 
       _auditData = await financialRepo.getCpaAuditReport(
         companyId: companyId,

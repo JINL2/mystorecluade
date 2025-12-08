@@ -12,9 +12,11 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../providers/bank_tab_provider.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
+import '../grand_total_section.dart';
 import '../section_label.dart';
 import '../store_selector.dart';
 /// Bank Tab - Single amount input (no denominations)
@@ -227,6 +229,12 @@ class _BankTabState extends ConsumerState<BankTab> {
         : (state.currencies.isNotEmpty ? state.currencies.first : null);
 
     final currencyCode = selectedCurrency?.currencyCode ?? '';
+    final currencySymbol = selectedCurrency?.symbol ?? '';
+
+    // Calculate current bank amount from input
+    final bankAmount = double.tryParse(
+      _bankAmountController.text.replaceAll(',', ''),
+    ) ?? 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -236,7 +244,22 @@ class _BankTabState extends ConsumerState<BankTab> {
         // Bank balance input field
         _buildBankAmountInput(),
 
-        const SizedBox(height: TossSpacing.space6),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Grand Total with Journal and Difference
+        GrandTotalSection(
+          totalAmount: bankAmount,
+          currencySymbol: currencySymbol,
+          label: 'Bank Balance $currencyCode',
+          isBaseCurrency: true,
+          journalAmount: state.bankLocationJournalAmount,
+          isLoadingJournal: state.isLoadingBankJournalAmount,
+          onHistoryTap: state.selectedBankLocationId != null
+              ? () => _navigateToAccountDetail(state, bankAmount, currencySymbol)
+              : null,
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
 
         // Save button
         _buildBankSaveButton(state),
@@ -349,5 +372,37 @@ class _BankTabState extends ConsumerState<BankTab> {
     setState(() {
       _bankAmountController.clear();
     });
+  }
+
+  /// Navigate to AccountDetailPage for transaction history
+  void _navigateToAccountDetail(CashEndingState state, double bankAmount, String currencySymbol) {
+    if (state.selectedBankLocationId == null) return;
+
+    // Find the selected location
+    final selectedLocation = state.bankLocations.firstWhere(
+      (loc) => loc.locationId == state.selectedBankLocationId,
+      orElse: () => state.bankLocations.first,
+    );
+
+    // Calculate difference
+    final journalAmount = state.bankLocationJournalAmount ?? 0.0;
+    final difference = bankAmount - journalAmount;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AccountDetailPage(
+          locationId: state.selectedBankLocationId,
+          accountName: selectedLocation.locationName,
+          locationType: 'bank',
+          balance: journalAmount.toInt(),
+          errors: difference.toInt().abs(),
+          totalJournal: journalAmount.toInt(),
+          totalReal: bankAmount.toInt(),
+          cashDifference: difference.toInt(),
+          currencySymbol: currencySymbol,
+        ),
+      ),
+    );
   }
 }

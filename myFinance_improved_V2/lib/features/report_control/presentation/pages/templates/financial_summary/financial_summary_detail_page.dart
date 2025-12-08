@@ -46,14 +46,6 @@ class _FinancialSummaryDetailPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // All Transactions (실제 거래 데이터 - 최상단!)
-            if (widget.auditData != null) ...[
-              AllTransactionsSection(
-                auditData: widget.auditData!,
-              ),
-              const SizedBox(height: 20),
-            ],
-
             // Account Changes (AI 요약)
             AccountChangesSection(
               accountChanges: widget.report.accountChanges,
@@ -72,6 +64,16 @@ class _FinancialSummaryDetailPageState
             RedFlagsSection(
               redFlags: widget.report.redFlags,
             ),
+
+            const SizedBox(height: 20),
+
+            // All Transactions (실제 거래 데이터 - 맨 아래로 이동!)
+            if (widget.auditData != null) ...[
+              AllTransactionsSection(
+                auditData: widget.auditData!,
+                isMinimal: true, // 미니멀 모드 활성화
+              ),
+            ],
 
             const SizedBox(height: 16),
           ],

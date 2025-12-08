@@ -210,16 +210,8 @@ Map<String, dynamic> _$$RedFlagsImplToJson(_$RedFlagsImpl instance) =>
     };
 
 _$TransactionFlagImpl _$$TransactionFlagImplFromJson(
-        Map<String, dynamic> json) {
-  print('🔍 [TransactionFlag fromJson] Input JSON: $json');
-  print('🔍 [TransactionFlag] amount=${json['amount']} (${json['amount'].runtimeType})');
-  print('🔍 [TransactionFlag] formatted=${json['formatted']} (${json['formatted'].runtimeType})');
-  print('🔍 [TransactionFlag] description=${json['description']} (${json['description'].runtimeType})');
-  print('🔍 [TransactionFlag] employee=${json['employee']} (${json['employee'].runtimeType})');
-  print('🔍 [TransactionFlag] store=${json['store']} (${json['store'].runtimeType})');
-  print('🔍 [TransactionFlag] severity=${json['severity']} (${json['severity'].runtimeType})');
-
-  return _$TransactionFlagImpl(
+        Map<String, dynamic> json) =>
+    _$TransactionFlagImpl(
       amount: (json['amount'] as num).toDouble(),
       formatted: json['formatted'] as String,
       description: json['description'] as String?,
@@ -227,7 +219,6 @@ _$TransactionFlagImpl _$$TransactionFlagImplFromJson(
       store: json['store'] as String?,
       severity: json['severity'] as String?,
     );
-}
 
 Map<String, dynamic> _$$TransactionFlagImplToJson(
         _$TransactionFlagImpl instance) =>

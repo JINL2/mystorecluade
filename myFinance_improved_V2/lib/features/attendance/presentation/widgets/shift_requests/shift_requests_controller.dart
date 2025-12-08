@@ -93,7 +93,16 @@ class ShiftRequestsController {
 
       return response;
     } catch (e) {
-      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus ERROR: $e');
+      final errorMessage = e.toString();
+      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus ERROR: $errorMessage');
+
+      // If it's a NOT_FOUND error, return empty list instead of null
+      // This is expected when there are no shift requests yet
+      if (errorMessage.contains('NOT_FOUND') || errorMessage.contains('No matching shift request')) {
+        debugPrint('[ShiftRequestsController] NOT_FOUND error - returning empty list (no shift requests available)');
+        return [];
+      }
+
       return null;
     }
   }

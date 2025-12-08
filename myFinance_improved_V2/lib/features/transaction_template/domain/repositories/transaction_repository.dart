@@ -1,3 +1,6 @@
+import 'package:image_picker/image_picker.dart';
+
+import '../entities/template_attachment.dart';
 import '../entities/transaction_entity.dart';
 
 /// Parameters for creating transaction from template
@@ -32,6 +35,7 @@ class CreateFromTemplateParams {
 /// Purpose: Handles transaction creation from templates
 /// - Creates transactions using insert_journal_with_everything RPC
 /// - Checks template usage for deletion safety
+/// - Manages attachments for transactions created from templates
 ///
 /// 🎯 FOCUSED: Only template-to-transaction creation, no CRUD operations
 abstract class TransactionRepository {
@@ -41,11 +45,12 @@ abstract class TransactionRepository {
   Future<void> save(Transaction transaction);
 
   /// ✅ Creates transaction directly from template data
+  /// Returns the created journal ID for attachment uploads
   ///
   /// This method handles the full template-to-RPC conversion in the data layer
   /// following Clean Architecture: Use Case provides business logic,
   /// Repository handles data persistence details
-  Future<void> saveFromTemplate(CreateFromTemplateParams params);
+  Future<String> saveFromTemplate(CreateFromTemplateParams params);
 
   /// Checks if any transactions were created using a specific template
   ///
@@ -56,4 +61,26 @@ abstract class TransactionRepository {
   ///
   /// Used for transaction lookup and validation operations
   Future<Transaction?> findById(String transactionId);
+
+  // =============================================================================
+  // Attachment Operations
+  // =============================================================================
+
+  /// Upload attachments to storage and save to database
+  /// Returns list of uploaded attachments with file URLs
+  Future<List<TemplateAttachment>> uploadAttachments({
+    required String companyId,
+    required String journalId,
+    required String uploadedBy,
+    required List<XFile> files,
+  });
+
+  /// Get all attachments for a journal entry
+  Future<List<TemplateAttachment>> getJournalAttachments(String journalId);
+
+  /// Delete an attachment from storage and database
+  Future<void> deleteAttachment({
+    required String attachmentId,
+    required String fileUrl,
+  });
 }

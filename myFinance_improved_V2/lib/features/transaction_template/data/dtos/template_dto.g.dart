@@ -28,6 +28,7 @@ _$TemplateDtoImpl _$$TemplateDtoImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updated_at'] as String,
       updatedBy: json['updated_by'] as String?,
       isActive: json['is_active'] as bool? ?? true,
+      requiredAttachment: json['required_attachment'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$TemplateDtoImplToJson(_$TemplateDtoImpl instance) =>
@@ -48,4 +49,5 @@ Map<String, dynamic> _$$TemplateDtoImplToJson(_$TemplateDtoImpl instance) =>
       'updated_at': instance.updatedAt,
       'updated_by': instance.updatedBy,
       'is_active': instance.isActive,
+      'required_attachment': instance.requiredAttachment,
     };

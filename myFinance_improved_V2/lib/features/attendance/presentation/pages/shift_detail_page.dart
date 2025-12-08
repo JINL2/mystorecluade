@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
+import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
 /// Shift Detail Page - Shows detailed information about a specific shift
 ///
@@ -34,6 +35,9 @@ class ShiftDetailPage extends ConsumerStatefulWidget {
 class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = false;
+
+  // 🔒 Prevent double submission
+  bool _isSubmittingReport = false;
 
   /// Format date from "2025-11-24" to "Mon, 24 Nov 2025"
   String _formatDate(String dateStr) {
@@ -114,153 +118,230 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     }
   }
 
+  /// Get check-in time color based on confirmation status
+  /// - Red: late and not yet confirmed by manager
+  /// - Blue: confirmed by manager
+  /// - Black: normal (not late)
+  TextStyle? _getCheckInTimeColor() {
+    final isConfirmedByManager = widget.shift.confirmStartTime != null;
+
+    if (widget.shift.isLate && !isConfirmedByManager) {
+      // Late but not confirmed - needs manager attention
+      return TossTextStyles.bodyLarge.copyWith(
+        color: TossColors.error,
+        fontWeight: FontWeight.w600,
+      );
+    } else if (isConfirmedByManager) {
+      // Manager confirmed
+      return TossTextStyles.bodyLarge.copyWith(
+        color: TossColors.primary,
+        fontWeight: FontWeight.w600,
+      );
+    }
+    return null; // Default black - normal case
+  }
+
+  /// Get check-out time color based on confirmation status
+  /// - Red: overtime and not yet confirmed by manager
+  /// - Blue: confirmed by manager
+  /// - Black: normal (no overtime)
+  TextStyle? _getCheckOutTimeColor() {
+    final isConfirmedByManager = widget.shift.confirmEndTime != null;
+
+    if (widget.shift.isExtratime && !isConfirmedByManager) {
+      // Overtime but not confirmed - needs manager attention
+      return TossTextStyles.bodyLarge.copyWith(
+        color: TossColors.error,
+        fontWeight: FontWeight.w600,
+      );
+    } else if (isConfirmedByManager) {
+      // Manager confirmed
+      return TossTextStyles.bodyLarge.copyWith(
+        color: TossColors.primary,
+        fontWeight: FontWeight.w600,
+      );
+    }
+    return null; // Default black - normal case
+  }
+
   /// Submit report to server via RPC
   Future<void> _submitReport(String reason) async {
-    final now = DateTime.now();
-    final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    final timezone = DateTimeUtils.getLocalTimezone();
+    // 🔒 Prevent double submission
+    if (_isSubmittingReport) return;
 
-    final reportShiftIssue = ref.read(reportShiftIssueProvider);
-    final success = await reportShiftIssue(
-      shiftRequestId: widget.shift.shiftRequestId,
-      reportReason: reason,
-      time: time,
-      timezone: timezone,
-    );
+    setState(() {
+      _isSubmittingReport = true;
+    });
 
-    if (!mounted) return;
+    try {
+      final now = DateTime.now();
+      final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-    if (success) {
-      // Refresh shift cards data
-      final requestDate = DateTime.parse(widget.shift.requestDate);
-      final yearMonth =
-          '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
-      ref.invalidate(monthlyShiftCardsProvider(yearMonth));
-
-      // Show success message and close page
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report submitted successfully'),
-          backgroundColor: TossColors.success,
-        ),
+      final reportShiftIssue = ref.read(reportShiftIssueProvider);
+      final success = await reportShiftIssue(
+        shiftRequestId: widget.shift.shiftRequestId,
+        reportReason: reason,
+        time: time,
+        timezone: timezone,
       );
-      Navigator.pop(context);
-    } else {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to submit report. Please try again.'),
-          backgroundColor: TossColors.error,
-        ),
-      );
+
+      if (!mounted) return;
+
+      if (success) {
+        // Refresh shift cards data
+        final requestDate = DateTime.parse(widget.shift.requestDate);
+        final yearMonth =
+            '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
+        ref.invalidate(monthlyShiftCardsProvider(yearMonth));
+
+        // Show success message and close page
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Report submitted successfully'),
+            backgroundColor: TossColors.success,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to submit report. Please try again.'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingReport = false;
+        });
+      }
     }
   }
 
   /// Show report issue bottom sheet
   void _showReportBottomSheet(BuildContext context) {
     final TextEditingController reasonController = TextEditingController();
+    bool isSubmitting = false;
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
       backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext bottomSheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 24,
-            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Report Issue',
-                style: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w700,
-                ),
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 24,
+                bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Please describe the problem with this shift',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Text Input
-              Container(
-                decoration: BoxDecoration(
-                  color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: TossColors.gray200, width: 1),
-                ),
-                child: TextField(
-                  controller: reasonController,
-                  maxLines: 4,
-                  maxLength: 500,
-                  decoration: InputDecoration(
-                    hintText: 'Enter the reason for reporting this issue...',
-                    hintStyle: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray400,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                    counterStyle: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Action Buttons
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TossButton1.secondary(
-                      text: 'Cancel',
-                      fullWidth: true,
-                      onPressed: () => Navigator.pop(bottomSheetContext),
+                  // Header
+                  Text(
+                    'Report Issue',
+                    style: TossTextStyles.titleMedium.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TossButton1.primary(
-                      text: 'OK',
-                      fullWidth: true,
-                      onPressed: () async {
-                        final reason = reasonController.text.trim();
-                        if (reason.isEmpty) {
-                          // Show validation message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a reason'),
-                              backgroundColor: TossColors.error,
-                            ),
-                          );
-                          return;
-                        }
-                        Navigator.pop(bottomSheetContext);
-                        await _submitReport(reason);
-                      },
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please describe the problem with this shift',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.gray600,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Text Input
+                  Container(
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: TossColors.gray200, width: 1),
+                    ),
+                    child: TextField(
+                      controller: reasonController,
+                      maxLines: 4,
+                      maxLength: 500,
+                      enabled: !isSubmitting,
+                      decoration: InputDecoration(
+                        hintText: 'Enter the reason for reporting this issue...',
+                        hintStyle: TossTextStyles.bodyLarge.copyWith(
+                          color: TossColors.gray400,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(16),
+                        counterStyle: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TossButton1.secondary(
+                          text: 'Cancel',
+                          fullWidth: true,
+                          isEnabled: !isSubmitting,
+                          onPressed: isSubmitting ? null : () => Navigator.pop(bottomSheetContext),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TossButton1.primary(
+                          text: isSubmitting ? 'Submitting...' : 'OK',
+                          fullWidth: true,
+                          isEnabled: !isSubmitting,
+                          onPressed: isSubmitting ? null : () async {
+                            final reason = reasonController.text.trim();
+                            if (reason.isEmpty) {
+                              // Show validation message
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter a reason'),
+                                  backgroundColor: TossColors.error,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // 🔒 Show loading state in bottom sheet
+                            setBottomSheetState(() {
+                              isSubmitting = true;
+                            });
+
+                            // Close bottom sheet first, then submit
+                            Navigator.pop(bottomSheetContext);
+                            await _submitReport(reason);
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -293,75 +374,97 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Shift Info Card
-                  _buildShiftInfoCard(),
-                  const SizedBox(height: 16),
-
-                  // Recorded Attendance Card
-                  TossExpandableCard(
-                    title: 'Recorded attendance',
-                    isExpanded: _recordedAttendanceExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _recordedAttendanceExpanded = !_recordedAttendanceExpanded;
-                      });
-                    },
-                    content: Column(
+                  // Top section with padding
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInfoRow(
-                          label: 'Recorded check-in',
-                          value: _formatTime(widget.shift.actualStartTime, includeSeconds: true),
+                        // Shift Info Card
+                        _buildShiftInfoCard(),
+                        const SizedBox(height: 16),
+
+                        // Recorded Attendance Card
+                        TossExpandableCard(
+                          title: 'Recorded attendance',
+                          isExpanded: _recordedAttendanceExpanded,
+                          onToggle: () {
+                            setState(() {
+                              _recordedAttendanceExpanded = !_recordedAttendanceExpanded;
+                            });
+                          },
+                          content: Column(
+                            children: [
+                              _buildInfoRow(
+                                label: 'Recorded check-in',
+                                value: _formatTime(widget.shift.actualStartTime, includeSeconds: true),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                label: 'Recorded check-out',
+                                value: _formatTime(widget.shift.actualEndTime, includeSeconds: true),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        _buildInfoRow(
-                          label: 'Recorded check-out',
-                          value: _formatTime(widget.shift.actualEndTime, includeSeconds: true),
+                        const SizedBox(height: 16),
+
+                        // Confirmed Attendance Card
+                        TossExpandableCard(
+                          title: 'Confirmed attendance',
+                          isExpanded: _confirmedAttendanceExpanded,
+                          onToggle: () {
+                            setState(() {
+                              _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded;
+                            });
+                          },
+                          content: Column(
+                            children: [
+                              _buildInfoRow(
+                                label: 'Confirmed check-in',
+                                value: _formatTime(_getConfirmedStartTime()),
+                                valueStyle: _getCheckInTimeColor(),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                label: 'Confirmed check-out',
+                                value: _formatTime(_getConfirmedEndTime()),
+                                valueStyle: _getCheckOutTimeColor(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Confirmed Attendance Card
-                  TossExpandableCard(
-                    title: 'Confirmed attendance',
-                    isExpanded: _confirmedAttendanceExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded;
-                      });
-                    },
-                    content: Column(
+                  // Gray Divider - full width
+                  const GrayDividerSpace(),
+
+                  // Bottom section with padding
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInfoRow(
-                          label: 'Confirmed check-in',
-                          value: _formatTime(_getConfirmedStartTime()),
+                        // Payment Summary Card
+                        _buildPaymentSummaryCard(),
+                        const SizedBox(height: 20),
+
+                        // Helper Text
+                        Text(
+                          'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            height: 1.6,
+                            fontSize: 12,
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        _buildInfoRow(
-                          label: 'Confirmed check-out',
-                          value: _formatTime(_getConfirmedEndTime()),
-                        ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Payment Summary Card
-                  _buildPaymentSummaryCard(),
-                  const SizedBox(height: 20),
-
-                  // Helper Text
-                  Text(
-                    'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                      height: 1.6,
-                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -507,13 +610,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       error: (_, __) => '\$',
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+    return Column(
         children: [
           _buildInfoRow(
             label: 'Total confirmed time',
@@ -541,6 +638,17 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
+            label: 'Penalty deduction',
+            value: '-${_formatMoney(widget.shift.lateDeducutAmount, currencySymbol)}',
+            valueStyle: widget.shift.lateDeducutAmount > 0
+                ? TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  )
+                : null,
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
             label: 'Total payment',
             value: _formatMoney(widget.shift.totalPayAmount, currencySymbol),
             labelStyle: TossTextStyles.titleMedium.copyWith(
@@ -553,7 +661,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             ),
           ),
         ],
-      ),
     );
   }
 
