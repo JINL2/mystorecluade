@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 class TossTextField extends StatelessWidget {
   final String? label;
+  final Widget? labelWidget; // Custom label widget (overrides label if provided)
   final String hintText;
   final TextEditingController? controller;
   final bool obscureText;
@@ -28,10 +29,12 @@ class TossTextField extends StatelessWidget {
   final String keyboardDoneText;
   final bool isImportant; // New field for important emphasis
   final TextStyle? labelStyle; // New field for custom label style
+  final bool isRequired; // Show red asterisk for required fields
 
   const TossTextField({
     super.key,
     this.label,
+    this.labelWidget,
     required this.hintText,
     this.controller,
     this.obscureText = false,
@@ -53,6 +56,7 @@ class TossTextField extends StatelessWidget {
     this.keyboardDoneText = 'Done',
     this.isImportant = false,
     this.labelStyle,
+    this.isRequired = false,
   });
 
   @override
@@ -60,13 +64,32 @@ class TossTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) ...[
-          Text(
-            label!,
-            style: labelStyle ?? TossTextStyles.label.copyWith(
-              color: TossColors.gray700,
-              fontWeight: isImportant ? FontWeight.w700 : FontWeight.w500,
-            ),
+        // Custom labelWidget takes priority, then label with optional isRequired asterisk
+        if (labelWidget != null) ...[
+          labelWidget!,
+          const SizedBox(height: TossSpacing.space2),
+        ] else if (label != null) ...[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label!,
+                style: labelStyle ?? TossTextStyles.label.copyWith(
+                  color: TossColors.gray700,
+                  fontWeight: isImportant ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              if (isRequired) ...[
+                const SizedBox(width: 2),
+                Text(
+                  '*',
+                  style: TossTextStyles.label.copyWith(
+                    color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: TossSpacing.space2),
         ],

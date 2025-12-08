@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -8,6 +9,7 @@ class CounterPartyDataSource {
   CounterPartyDataSource(this._client);
 
   /// Get all counter parties for a company
+  /// Includes linked company name for internal counterparties
   Future<List<Map<String, dynamic>>> getCounterParties({
     required String companyId,
     List<String>? typeFilters,
@@ -17,9 +19,10 @@ class CounterPartyDataSource {
     String sortColumn = 'is_internal',
     bool ascending = false,
   }) async {
+    // Join with companies table to get linked company name
     var query = _client
         .from('counterparties')
-        .select()
+        .select('*, linked_company:linked_company_id(company_name)')
         .eq('company_id', companyId)
         .eq('is_deleted', false);
 
@@ -43,7 +46,15 @@ class CounterPartyDataSource {
     // Apply sorting
     final response = await query.order(sortColumn, ascending: ascending);
 
-    return List<Map<String, dynamic>>.from(response as List);
+    // Flatten linked_company data for easier access
+    final results = List<Map<String, dynamic>>.from(response as List);
+    return results.map((item) {
+      final linkedCompany = item['linked_company'] as Map<String, dynamic>?;
+      return {
+        ...item,
+        'linked_company_name': linkedCompany?['company_name'],
+      };
+    }).toList();
   }
 
   /// Get counter party by ID
@@ -55,6 +66,28 @@ class CounterPartyDataSource {
         .maybeSingle();
 
     return response;
+  }
+
+  /// Check if internal counterparty with same linked_company_id already exists
+  Future<bool> checkDuplicateInternalCounterparty({
+    required String companyId,
+    required String linkedCompanyId,
+    String? excludeCounterpartyId,
+  }) async {
+    var query = _client
+        .from('counterparties')
+        .select('counterparty_id')
+        .eq('company_id', companyId)
+        .eq('linked_company_id', linkedCompanyId)
+        .eq('is_deleted', false);
+
+    // Exclude current counterparty when updating
+    if (excludeCounterpartyId != null) {
+      query = query.neq('counterparty_id', excludeCounterpartyId);
+    }
+
+    final response = await query.maybeSingle();
+    return response != null;
   }
 
   /// Create counter party
@@ -69,25 +102,51 @@ class CounterPartyDataSource {
     bool isInternal = false,
     String? linkedCompanyId,
   }) async {
-    final response = await _client.from('counterparties').insert({
-      'company_id': companyId,
-      'name': name,
-      'type': type,
-      'email': email,
-      'phone': phone,
-      'address': address,
-      'notes': notes,
-      'is_internal': isInternal,
-      'linked_company_id': linkedCompanyId,
-      'created_at': DateTimeUtils.nowUtc(), // ✅ UTC로 저장
-    }).select().single();
+    // Check for duplicate internal counterparty before insert
+    if (isInternal && linkedCompanyId != null) {
+      final isDuplicate = await checkDuplicateInternalCounterparty(
+        companyId: companyId,
+        linkedCompanyId: linkedCompanyId,
+      );
+      if (isDuplicate) {
+        throw Exception(
+          'This internal company is already registered as a counterparty. '
+          'Each company can only have one counterparty linked to the same internal company.'
+        );
+      }
+    }
 
-    return response;
+    try {
+      final response = await _client.from('counterparties').insert({
+        'company_id': companyId,
+        'name': name,
+        'type': type,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'notes': notes,
+        'is_internal': isInternal,
+        'linked_company_id': linkedCompanyId,
+        'created_at': DateTimeUtils.nowUtc(), // ✅ UTC로 저장
+      }).select().single();
+
+      return response;
+    } on PostgrestException catch (e) {
+      // Handle unique constraint violation
+      if (e.code == '23505' && e.message.contains('counterparties_company_linked_unique')) {
+        throw Exception(
+          'This internal company is already registered as a counterparty. '
+          'Each company can only have one counterparty linked to the same internal company.'
+        );
+      }
+      rethrow;
+    }
   }
 
   /// Update counter party
   Future<Map<String, dynamic>> updateCounterParty({
     required String counterpartyId,
+    required String companyId,
     required String name,
     required String type,
     String? email,
@@ -97,6 +156,21 @@ class CounterPartyDataSource {
     bool isInternal = false,
     String? linkedCompanyId,
   }) async {
+    // Check for duplicate internal counterparty before update
+    if (isInternal && linkedCompanyId != null) {
+      final isDuplicate = await checkDuplicateInternalCounterparty(
+        companyId: companyId,
+        linkedCompanyId: linkedCompanyId,
+        excludeCounterpartyId: counterpartyId, // Exclude self
+      );
+      if (isDuplicate) {
+        throw Exception(
+          'This internal company is already registered as a counterparty. '
+          'Each company can only have one counterparty linked to the same internal company.'
+        );
+      }
+    }
+
     final updateData = {
       'name': name,
       'type': type,
@@ -108,14 +182,25 @@ class CounterPartyDataSource {
       'linked_company_id': linkedCompanyId,
     };
 
-    final response = await _client
-        .from('counterparties')
-        .update(updateData)
-        .eq('counterparty_id', counterpartyId)
-        .select()
-        .single();
+    try {
+      final response = await _client
+          .from('counterparties')
+          .update(updateData)
+          .eq('counterparty_id', counterpartyId)
+          .select()
+          .single();
 
-    return response;
+      return response;
+    } on PostgrestException catch (e) {
+      // Handle unique constraint violation
+      if (e.code == '23505' && e.message.contains('counterparties_company_linked_unique')) {
+        throw Exception(
+          'This internal company is already registered as a counterparty. '
+          'Each company can only have one counterparty linked to the same internal company.'
+        );
+      }
+      rethrow;
+    }
   }
 
   /// Validate if counter party can be deleted
@@ -137,23 +222,77 @@ class CounterPartyDataSource {
     }).eq('counterparty_id', counterpartyId);
   }
 
-  /// Get unlinked companies
+  /// Get all linkable companies with linked status
+  /// Shows all companies the user has access to, marking already linked ones
+  /// Already linked companies are sorted to the bottom
   Future<List<Map<String, dynamic>>> getUnlinkedCompanies({
     required String userId,
     required String companyId,
   }) async {
     try {
-      final response = await _client.rpc('get_unlinked_companies', params: {
-        'p_user_id': userId,
-        'p_company_id': companyId,
-      },);
+      debugPrint('🔍 [getUnlinkedCompanies] Fetching with userId: $userId, companyId: $companyId');
 
-      if (response == null) return [];
-      if (response is List) {
-        return List<Map<String, dynamic>>.from(response);
+      // Get all companies the user has access to
+      final userCompanies = await _client
+          .from('user_companies')
+          .select('company_id, companies!inner(company_id, company_name)')
+          .eq('user_id', userId)
+          .eq('is_deleted', false);
+
+      debugPrint('🔍 [getUnlinkedCompanies] User companies: ${userCompanies.length}');
+
+      // Get already linked company IDs for current company's counterparties
+      final linkedCounterparties = await _client
+          .from('counterparties')
+          .select('linked_company_id')
+          .eq('company_id', companyId)
+          .eq('is_deleted', false)
+          .not('linked_company_id', 'is', null);
+
+      final linkedIds = (linkedCounterparties as List)
+          .map((cp) => cp['linked_company_id'] as String)
+          .toSet();
+
+      debugPrint('🔍 [getUnlinkedCompanies] Already linked IDs: $linkedIds');
+
+      // Build result with all companies, marking linked status
+      // Exclude current company (can't link to itself)
+      final availableCompanies = <Map<String, dynamic>>[];
+      final linkedCompanies = <Map<String, dynamic>>[];
+
+      for (final uc in userCompanies) {
+        final company = uc['companies'] as Map<String, dynamic>;
+        final cid = company['company_id'] as String;
+
+        // Skip current company - can't link to itself
+        if (cid == companyId) {
+          debugPrint('🔍 [getUnlinkedCompanies] Skipping current company: $cid');
+          continue;
+        }
+
+        final isAlreadyLinked = linkedIds.contains(cid);
+
+        final companyData = {
+          'company_id': cid,
+          'company_name': company['company_name'] as String,
+          'is_already_linked': isAlreadyLinked,
+        };
+
+        if (isAlreadyLinked) {
+          linkedCompanies.add(companyData);
+        } else {
+          availableCompanies.add(companyData);
+        }
       }
-      return [];
-    } catch (e) {
+
+      // Sort: available companies first, then linked companies at the bottom
+      final result = [...availableCompanies, ...linkedCompanies];
+
+      debugPrint('✅ [getUnlinkedCompanies] Returning ${result.length} companies (${linkedCompanies.length} already linked)');
+      return result;
+    } catch (e, stack) {
+      debugPrint('❌ [getUnlinkedCompanies] Error: $e');
+      debugPrint('❌ [getUnlinkedCompanies] Stack: $stack');
       return [];
     }
   }

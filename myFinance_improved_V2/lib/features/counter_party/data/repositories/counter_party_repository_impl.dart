@@ -81,6 +81,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   @override
   Future<CounterParty> updateCounterParty({
     required String counterpartyId,
+    required String companyId,
     required String name,
     required CounterPartyType type,
     String? email,
@@ -93,6 +94,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
     try {
       final data = await _dataSource.updateCounterParty(
         counterpartyId: counterpartyId,
+        companyId: companyId,
         name: name,
         type: type.displayName,
         email: email?.isEmpty == true ? null : email,

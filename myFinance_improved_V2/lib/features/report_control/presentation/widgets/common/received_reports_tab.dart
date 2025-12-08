@@ -128,15 +128,18 @@ class ReceivedReportsTab extends ConsumerWidget {
                                 : TossColors.gray600,
                           ),
                           SizedBox(width: TossSpacing.space1),
-                          Text(
-                            ReportStrings.filterUnreadOnly,
-                            style: TossTextStyles.bodySmall.copyWith(
-                              color: state.showUnreadOnly
-                                  ? TossColors.primary
-                                  : TossColors.gray700,
-                              fontWeight: state.showUnreadOnly
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
+                          Flexible(
+                            child: Text(
+                              ReportStrings.filterUnreadOnly,
+                              style: TossTextStyles.bodySmall.copyWith(
+                                color: state.showUnreadOnly
+                                    ? TossColors.primary
+                                    : TossColors.gray700,
+                                fontWeight: state.showUnreadOnly
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -181,17 +184,20 @@ class ReceivedReportsTab extends ConsumerWidget {
                                 : TossColors.gray600,
                           ),
                           SizedBox(width: TossSpacing.space1),
-                          Text(
-                            _getDateRangeLabel(state),
-                            style: TossTextStyles.bodySmall.copyWith(
-                              color: (state.startDate != null ||
-                                      state.endDate != null)
-                                  ? TossColors.primary
-                                  : TossColors.gray700,
-                              fontWeight: (state.startDate != null ||
-                                      state.endDate != null)
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
+                          Flexible(
+                            child: Text(
+                              _getDateRangeLabel(state),
+                              style: TossTextStyles.bodySmall.copyWith(
+                                color: (state.startDate != null ||
+                                        state.endDate != null)
+                                    ? TossColors.primary
+                                    : TossColors.gray700,
+                                fontWeight: (state.startDate != null ||
+                                        state.endDate != null)
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

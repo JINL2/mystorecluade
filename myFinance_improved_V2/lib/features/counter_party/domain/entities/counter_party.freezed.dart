@@ -35,6 +35,8 @@ mixin _$CounterParty {
   bool get isInternal => throw _privateConstructorUsedError;
   @JsonKey(name: 'linked_company_id')
   String? get linkedCompanyId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'linked_company_name')
+  String? get linkedCompanyName => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
   String? get createdBy => throw _privateConstructorUsedError;
   @JsonKey(
@@ -88,6 +90,7 @@ abstract class $CounterPartyCopyWith<$Res> {
       String? notes,
       @JsonKey(name: 'is_internal') bool isInternal,
       @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
+      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(
           name: 'created_at',
@@ -135,6 +138,7 @@ class _$CounterPartyCopyWithImpl<$Res, $Val extends CounterParty>
     Object? notes = freezed,
     Object? isInternal = null,
     Object? linkedCompanyId = freezed,
+    Object? linkedCompanyName = freezed,
     Object? createdBy = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
@@ -183,6 +187,10 @@ class _$CounterPartyCopyWithImpl<$Res, $Val extends CounterParty>
       linkedCompanyId: freezed == linkedCompanyId
           ? _value.linkedCompanyId
           : linkedCompanyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      linkedCompanyName: freezed == linkedCompanyName
+          ? _value.linkedCompanyName
+          : linkedCompanyName // ignore: cast_nullable_to_non_nullable
               as String?,
       createdBy: freezed == createdBy
           ? _value.createdBy
@@ -237,6 +245,7 @@ abstract class _$$CounterPartyImplCopyWith<$Res>
       String? notes,
       @JsonKey(name: 'is_internal') bool isInternal,
       @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
+      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(
           name: 'created_at',
@@ -282,6 +291,7 @@ class __$$CounterPartyImplCopyWithImpl<$Res>
     Object? notes = freezed,
     Object? isInternal = null,
     Object? linkedCompanyId = freezed,
+    Object? linkedCompanyName = freezed,
     Object? createdBy = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
@@ -331,6 +341,10 @@ class __$$CounterPartyImplCopyWithImpl<$Res>
           ? _value.linkedCompanyId
           : linkedCompanyId // ignore: cast_nullable_to_non_nullable
               as String?,
+      linkedCompanyName: freezed == linkedCompanyName
+          ? _value.linkedCompanyName
+          : linkedCompanyName // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -379,6 +393,7 @@ class _$CounterPartyImpl extends _CounterParty {
       this.notes,
       @JsonKey(name: 'is_internal') this.isInternal = false,
       @JsonKey(name: 'linked_company_id') this.linkedCompanyId,
+      @JsonKey(name: 'linked_company_name') this.linkedCompanyName,
       @JsonKey(name: 'created_by') this.createdBy,
       @JsonKey(
           name: 'created_at',
@@ -430,6 +445,9 @@ class _$CounterPartyImpl extends _CounterParty {
   @JsonKey(name: 'linked_company_id')
   final String? linkedCompanyId;
   @override
+  @JsonKey(name: 'linked_company_name')
+  final String? linkedCompanyName;
+  @override
   @JsonKey(name: 'created_by')
   final String? createdBy;
   @override
@@ -462,7 +480,7 @@ class _$CounterPartyImpl extends _CounterParty {
 
   @override
   String toString() {
-    return 'CounterParty(counterpartyId: $counterpartyId, companyId: $companyId, name: $name, type: $type, email: $email, phone: $phone, address: $address, notes: $notes, isInternal: $isInternal, linkedCompanyId: $linkedCompanyId, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, lastTransactionDate: $lastTransactionDate, totalTransactions: $totalTransactions, balance: $balance)';
+    return 'CounterParty(counterpartyId: $counterpartyId, companyId: $companyId, name: $name, type: $type, email: $email, phone: $phone, address: $address, notes: $notes, isInternal: $isInternal, linkedCompanyId: $linkedCompanyId, linkedCompanyName: $linkedCompanyName, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, lastTransactionDate: $lastTransactionDate, totalTransactions: $totalTransactions, balance: $balance)';
   }
 
   @override
@@ -484,6 +502,8 @@ class _$CounterPartyImpl extends _CounterParty {
                 other.isInternal == isInternal) &&
             (identical(other.linkedCompanyId, linkedCompanyId) ||
                 other.linkedCompanyId == linkedCompanyId) &&
+            (identical(other.linkedCompanyName, linkedCompanyName) ||
+                other.linkedCompanyName == linkedCompanyName) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
             (identical(other.createdAt, createdAt) ||
@@ -513,6 +533,7 @@ class _$CounterPartyImpl extends _CounterParty {
       notes,
       isInternal,
       linkedCompanyId,
+      linkedCompanyName,
       createdBy,
       createdAt,
       updatedAt,
@@ -551,6 +572,7 @@ abstract class _CounterParty extends CounterParty {
       final String? notes,
       @JsonKey(name: 'is_internal') final bool isInternal,
       @JsonKey(name: 'linked_company_id') final String? linkedCompanyId,
+      @JsonKey(name: 'linked_company_name') final String? linkedCompanyName,
       @JsonKey(name: 'created_by') final String? createdBy,
       @JsonKey(
           name: 'created_at',
@@ -601,6 +623,9 @@ abstract class _CounterParty extends CounterParty {
   @override
   @JsonKey(name: 'linked_company_id')
   String? get linkedCompanyId;
+  @override
+  @JsonKey(name: 'linked_company_name')
+  String? get linkedCompanyName;
   @override
   @JsonKey(name: 'created_by')
   String? get createdBy;
