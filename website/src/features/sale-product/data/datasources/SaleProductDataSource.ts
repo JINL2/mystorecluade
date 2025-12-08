@@ -178,8 +178,6 @@ export class SaleProductDataSource {
     message?: string;
     error?: string;
   }> {
-    console.log('🔌 [DataSource] submitInvoice called', params);
-
     const supabase = supabaseService.getClient();
 
     // Get user's local timezone from device
@@ -209,25 +207,14 @@ export class SaleProductDataSource {
       rpcParams.p_notes = params.notes;
     }
 
-    console.log('🔌 [DataSource] Calling RPC inventory_create_invoice_v4', rpcParams);
-
     const { data, error } = await supabase.rpc('inventory_create_invoice_v4', rpcParams);
 
     if (error) {
-      console.error('❌ [DataSource] Supabase RPC error', {
-        error,
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
       return {
         success: false,
         error: error.message,
       };
     }
-
-    console.log('✅ [DataSource] Supabase RPC success', data);
 
     return data || { success: false, error: 'No response from server' };
   }
@@ -254,8 +241,6 @@ export class SaleProductDataSource {
     cogsJournalId?: string;
     error?: string;
   }> {
-    console.log('🔌 [DataSource] submitSalesJournalEntries called', params);
-
     const supabase = supabaseService.getClient();
 
     // Fixed account IDs for sales transactions
@@ -300,28 +285,17 @@ export class SaleProductDataSource {
       p_invoice_id: params.invoiceId, // Link journal to invoice
     };
 
-    console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_v2 (Sales)', salesJournalParams);
-
     const { data: salesData, error: salesError } = await supabase.rpc(
       'insert_journal_with_everything_v2',
       salesJournalParams
     );
 
     if (salesError) {
-      console.error('❌ [DataSource] Sales journal entry RPC error', {
-        error: salesError,
-        code: salesError.code,
-        message: salesError.message,
-        details: salesError.details,
-        hint: salesError.hint,
-      });
       return {
         success: false,
         error: `Sales journal failed: ${salesError.message}`,
       };
     }
-
-    console.log('✅ [DataSource] Sales journal entry RPC success', salesData);
 
     // 2. COGS Journal: COGS (debit) / Inventory (credit)
     // Only create if totalCost > 0
@@ -356,28 +330,17 @@ export class SaleProductDataSource {
         p_invoice_id: params.invoiceId, // Link journal to invoice
       };
 
-      console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_v2 (COGS)', cogsJournalParams);
-
       const { data: cogsData, error: cogsError } = await supabase.rpc(
         'insert_journal_with_everything_v2',
         cogsJournalParams
       );
 
       if (cogsError) {
-        console.error('❌ [DataSource] COGS journal entry RPC error', {
-          error: cogsError,
-          code: cogsError.code,
-          message: cogsError.message,
-          details: cogsError.details,
-          hint: cogsError.hint,
-        });
         return {
           success: false,
           error: `COGS journal failed: ${cogsError.message}`,
         };
       }
-
-      console.log('✅ [DataSource] COGS journal entry RPC success', cogsData);
 
       return {
         success: true,

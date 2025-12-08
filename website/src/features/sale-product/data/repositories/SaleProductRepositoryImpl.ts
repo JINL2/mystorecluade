@@ -98,16 +98,6 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
     error?: string;
   }> {
     try {
-      console.log('📤 [Repository] submitSaleInvoice called', {
-        companyId: invoice.companyId,
-        storeId: invoice.storeId,
-        userId: invoice.userId,
-        cashLocationId: invoice.cashLocation.id,
-        cashLocationName: invoice.cashLocation.name,
-        cashLocationType: invoice.cashLocation.type,
-        itemsCount: invoice.items.length,
-      });
-
       // Map CartItem[] to RPC items format
       // Rule:
       // - 1개 상품: p_items[0].discount_amount에 할인, p_discount_amount = null
@@ -144,41 +134,17 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         discountAmount: isSingleItem ? undefined : invoice.discountAmount,
       };
 
-      console.log('📨 [Repository] RPC parameters', {
-        p_company_id: rpcParams.companyId,
-        p_store_id: rpcParams.storeId,
-        p_user_id: rpcParams.userId,
-        p_sale_date: rpcParams.saleDate,
-        p_items: rpcParams.items,
-        p_payment_method: rpcParams.paymentMethod,
-        p_cash_location_id: rpcParams.cashLocationId,
-        p_discount_amount: rpcParams.discountAmount,
-      });
-
       // Call the RPC function
       const response = await this.dataSource.submitInvoice(rpcParams);
 
-      console.log('📥 [Repository] RPC response', response);
-
       if (!response.success) {
-        console.error('❌ [Repository] RPC returned error', {
-          error: response.error,
-          response,
-        });
         return {
           success: false,
           error: response.error || 'Failed to submit invoice',
         };
       }
 
-      console.log('✅ [Repository] Invoice submitted successfully', {
-        invoiceNumber: response.invoiceNumber,
-        totalAmount: response.totalAmount,
-        warnings: response.warnings,
-      });
-
       // Submit journal entries for accounting (Sales + COGS)
-      console.log('📤 [Repository] Submitting journal entries for sales transaction');
 
       // Format description as "yyyyMMdd Sales" (using `now` from above)
       const year = now.getFullYear();
@@ -199,34 +165,17 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
       });
 
       if (!journalResult.success) {
-        console.error('❌ [Repository] Journal entries failed', {
-          error: journalResult.error,
-        });
-        // Journal entries failed - return error
         return {
           success: false,
           error: `Invoice created but journal entries failed: ${journalResult.error}`,
         };
       }
 
-      console.log('✅ [Repository] Journal entries submitted successfully', {
-        salesJournalId: journalResult.salesJournalId,
-        cogsJournalId: journalResult.cogsJournalId,
-      });
-
-      // All RPCs succeeded
-      console.log('🎉 [Repository] Invoice and journal entries created successfully');
-
       return {
         success: true,
         invoiceId: response.invoiceNumber,
       };
     } catch (error) {
-      console.error('❌ [Repository] Exception during submitSaleInvoice', {
-        error,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',

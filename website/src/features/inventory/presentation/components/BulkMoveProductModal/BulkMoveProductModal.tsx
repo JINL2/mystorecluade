@@ -65,10 +65,11 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
         if (isNaN(quantity) || quantity <= 0) return null;
         return {
           productId: product.productId,
+          productName: product.productName,
           quantity
         };
       })
-      .filter((item): item is { productId: string; quantity: number } => item !== null);
+      .filter((item): item is { productId: string; productName: string; quantity: number } => item !== null);
 
     if (items.length === 0) return;
 

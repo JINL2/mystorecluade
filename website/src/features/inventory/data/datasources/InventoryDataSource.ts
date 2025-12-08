@@ -428,7 +428,7 @@ export class InventoryDataSource {
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('inventory_move_product_v3', {
+    const rpcParams = {
       p_company_id: companyId,
       p_from_store_id: fromStoreId,
       p_to_store_id: toStoreId,
@@ -442,7 +442,9 @@ export class InventoryDataSource {
       p_time: new Date().toISOString(),
       p_notes: notes || null,
       p_timezone: userTimezone,
-    });
+    };
+
+    const { data, error } = await supabase.rpc('inventory_move_product_v3', rpcParams);
 
     if (error) {
       return {
@@ -453,7 +455,19 @@ export class InventoryDataSource {
 
     // Handle success wrapper response
     if (data && typeof data === 'object' && 'success' in data) {
-      return data as { success: boolean; data?: any; error?: string };
+      const response = data as { success: boolean; data?: any; error?: { code: string; details: string } };
+      // Convert error object to string for consistent return type
+      if (!response.success && response.error) {
+        return {
+          success: false,
+          data: response.data,
+          error: response.error.details || response.error.code || 'Move product failed',
+        };
+      }
+      return {
+        success: response.success,
+        data: response.data,
+      };
     }
 
     return {

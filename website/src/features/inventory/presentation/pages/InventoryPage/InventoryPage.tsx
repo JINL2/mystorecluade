@@ -547,21 +547,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         sourceStoreId={selectedStoreId || ''}
         companyId={companyId}
         onMove={async (targetStoreId, items, notes) => {
-          console.log('Bulk Move Debug:', {
-            selectedStoreId,
-            companyId,
-            userId,
-            targetStoreId,
-            items,
-            notes
-          });
-
           if (!selectedStoreId || !companyId || !userId) {
-            console.error('Missing values:', {
-              hasSelectedStoreId: !!selectedStoreId,
-              hasCompanyId: !!companyId,
-              hasUserId: !!userId
-            });
             showNotification('error', 'Missing required information');
             return;
           }
@@ -569,6 +555,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           // Move each product
           let successCount = 0;
           let errorCount = 0;
+          const failedProducts: { name: string; reason: string }[] = [];
 
           for (const item of items) {
             const result = await moveProduct(
@@ -586,6 +573,12 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
               successCount++;
             } else {
               errorCount++;
+              // Extract meaningful error message (error is now a string)
+              const errorDetails = result.error || 'Unknown error';
+              failedProducts.push({
+                name: item.productName || 'Unknown product',
+                reason: errorDetails,
+              });
             }
           }
 
@@ -594,11 +587,19 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
             setIsBulkMoveModalOpen(false);
             clearSelection();
           } else if (successCount > 0) {
-            showNotification('warning', `Moved ${successCount} product${successCount > 1 ? 's' : ''}, ${errorCount} failed`);
+            // Show detailed error message with failed product names
+            const failedNames = failedProducts.map(p => {
+              // Extract short reason (e.g., "Insufficient stock")
+              const shortReason = p.reason.includes('Insufficient stock') ? 'No stock' : 'Failed';
+              return `${p.name} (${shortReason})`;
+            }).join(', ');
+            showNotification('warning', `Moved ${successCount}, failed ${errorCount}: ${failedNames}`);
             setIsBulkMoveModalOpen(false);
             clearSelection();
           } else {
-            showNotification('error', 'Failed to move products');
+            // All failed - show first error reason
+            const firstReason = failedProducts[0]?.reason || 'Unknown error';
+            showNotification('error', `Failed to move products: ${firstReason}`);
           }
         }}
       />
