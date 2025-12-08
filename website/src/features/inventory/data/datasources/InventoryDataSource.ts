@@ -402,7 +402,7 @@ export class InventoryDataSource {
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('inventory_move_product_v2', {
+    const { data, error } = await supabase.rpc('inventory_move_product_v3', {
       p_company_id: companyId,
       p_from_store_id: fromStoreId,
       p_to_store_id: toStoreId,
@@ -412,9 +412,9 @@ export class InventoryDataSource {
           quantity: quantity,
         },
       ],
-      p_notes: notes || null,
-      p_time: new Date().toISOString(),
       p_updated_by: updatedBy,
+      p_time: new Date().toISOString(),
+      p_notes: notes || null,
       p_timezone: userTimezone,
     });
 
@@ -432,7 +432,7 @@ export class InventoryDataSource {
 
     return {
       success: false,
-      error: 'Invalid response format from inventory_move_product',
+      error: 'Invalid response format from inventory_move_product_v3',
     };
   }
 
