@@ -67,6 +67,12 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   // Bonus amount
   late int bonusAmount;
+  int penaltyAmount = 0;
+  late int _initialPenaltyAmount;
+
+  // Controllers for bonus and penalty text fields
+  final TextEditingController _bonusController = TextEditingController();
+  final TextEditingController _penaltyController = TextEditingController();
 
   // Controllers for bonus and memo text fields
   final TextEditingController _bonusController = TextEditingController();
@@ -215,7 +221,8 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
   String get bonusPay => '${NumberFormat('#,###').format(bonusAmount)}₫';
-  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount)}₫';
+  String get penaltyDeduction => '${NumberFormat('#,###').format(penaltyAmount)}₫';
+  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount - penaltyAmount)}₫';
 
   // ============================================================================
   // Lifecycle
@@ -256,6 +263,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
     _initialConfirmedCheckIn = confirmedCheckIn;
     _initialConfirmedCheckOut = confirmedCheckOut;
     _initialBonusAmount = bonusAmount;
+    _initialPenaltyAmount = penaltyAmount;
   }
 
   @override
