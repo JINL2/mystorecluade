@@ -22,6 +22,7 @@ import '../../../domain/usecases/get_schedule_data.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
 import '../../../domain/usecases/input_card.dart';
 import '../../../domain/usecases/input_card_v4.dart';
+import '../../../domain/usecases/input_card_v5.dart';
 import '../../../domain/usecases/insert_schedule.dart';
 import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
@@ -112,6 +113,18 @@ final inputCardUseCaseProvider = Provider<InputCard>((ref) {
 final inputCardV4UseCaseProvider = Provider<InputCardV4>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return InputCardV4(repository);
+});
+
+/// Input Card V5 UseCase Provider
+///
+/// Uses manager_shift_input_card_v5 RPC for updating shift cards
+/// with confirmed times, report solved status, bonus amount, and manager memo.
+/// Key changes from v4:
+/// - Renamed is_problem_solved → is_reported_solved
+/// - Added manager_memo parameter
+final inputCardV5UseCaseProvider = Provider<InputCardV5>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return InputCardV5(repository);
 });
 
 /// Delete Shift Tag UseCase Provider

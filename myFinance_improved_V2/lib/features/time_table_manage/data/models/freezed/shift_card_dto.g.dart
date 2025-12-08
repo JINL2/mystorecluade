@@ -42,6 +42,11 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
       problemType: json['problem_type'] as String?,
       isReported: json['is_reported'] as bool? ?? false,
       reportReason: json['report_reason'] as String?,
+      isReportedSolved: json['is_reported_solved'] as bool?,
+      managerMemos: (json['manager_memo'] as List<dynamic>?)
+              ?.map((e) => ManagerMemoDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       isValidCheckinLocation: json['is_valid_checkin_location'] as bool?,
       checkinDistanceFromStore:
           (json['checkin_distance_from_store'] as num?)?.toDouble() ?? 0.0,
@@ -83,6 +88,8 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
       'problem_type': instance.problemType,
       'is_reported': instance.isReported,
       'report_reason': instance.reportReason,
+      'is_reported_solved': instance.isReportedSolved,
+      'manager_memo': instance.managerMemos,
       'is_valid_checkin_location': instance.isValidCheckinLocation,
       'checkin_distance_from_store': instance.checkinDistanceFromStore,
       'is_valid_checkout_location': instance.isValidCheckoutLocation,
@@ -107,4 +114,21 @@ Map<String, dynamic> _$$TagDtoImplToJson(_$TagDtoImpl instance) =>
       'created_at': instance.createdAt,
       'created_by': instance.createdBy,
       'created_by_name': instance.createdByName,
+    };
+
+_$ManagerMemoDtoImpl _$$ManagerMemoDtoImplFromJson(Map<String, dynamic> json) =>
+    _$ManagerMemoDtoImpl(
+      type: json['type'] as String?,
+      content: json['content'] as String?,
+      createdAt: json['created_at'] as String?,
+      createdBy: json['created_by'] as String?,
+    );
+
+Map<String, dynamic> _$$ManagerMemoDtoImplToJson(
+        _$ManagerMemoDtoImpl instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'content': instance.content,
+      'created_at': instance.createdAt,
+      'created_by': instance.createdBy,
     };

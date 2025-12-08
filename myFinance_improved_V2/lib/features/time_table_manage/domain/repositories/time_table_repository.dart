@@ -273,4 +273,32 @@ abstract class TimeTableRepository {
     required String companyId,
     required String storeId,
   });
+
+  /// Input card data (manager updates shift) using v5 RPC
+  ///
+  /// Uses manager_shift_input_card_v5 RPC
+  /// - Simplified parameters: confirm times, report solved status, bonus amount, manager memo
+  /// - Times must be in user's LOCAL timezone (HH:mm:ss format)
+  /// - RPC converts local times to UTC internally
+  ///
+  /// [managerId] - Manager user ID performing the update
+  /// [shiftRequestId] - Shift request ID to update
+  /// [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
+  /// [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
+  /// [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
+  /// [bonusAmount] - Bonus amount, null to keep existing
+  /// [managerMemo] - Manager memo text, null to keep existing (new in v5)
+  /// [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  ///
+  /// Returns Map with success status and optional error info
+  Future<Map<String, dynamic>> inputCardV5({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isReportedSolved,
+    double? bonusAmount,
+    String? managerMemo,
+    required String timezone,
+  });
 }

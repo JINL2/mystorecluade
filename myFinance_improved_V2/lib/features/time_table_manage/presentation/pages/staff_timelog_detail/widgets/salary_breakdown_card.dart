@@ -10,7 +10,6 @@ class SalaryBreakdownCard extends StatelessWidget {
   final String hourlySalary;
   final String basePay;
   final String bonusPay;
-  final String penaltyDeduction;
   final String totalPayment;
 
   const SalaryBreakdownCard({
@@ -20,7 +19,6 @@ class SalaryBreakdownCard extends StatelessWidget {
     required this.hourlySalary,
     required this.basePay,
     required this.bonusPay,
-    this.penaltyDeduction = '0₫',
     required this.totalPayment,
   });
 
@@ -53,8 +51,6 @@ class SalaryBreakdownCard extends StatelessWidget {
         _InfoRow(label: 'Base pay', value: basePay),
         const SizedBox(height: 12),
         _InfoRow(label: 'Bonus pay', value: bonusPay),
-        const SizedBox(height: 12),
-        _InfoRow(label: 'Penalty deduction', value: penaltyDeduction),
         const SizedBox(height: 12),
         _InfoRow(
           label: 'Total payment',

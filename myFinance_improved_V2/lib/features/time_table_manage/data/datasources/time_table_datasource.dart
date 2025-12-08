@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -133,12 +134,13 @@ class TimeTableDatasource {
 
   /// Fetch manager shift cards from Supabase RPC
   ///
-  /// Uses manager_shift_get_cards_v3 RPC with timezone parameter
+  /// Uses manager_shift_get_cards_v4 RPC with timezone parameter
   /// - p_start_date and p_end_date are user's local dates (yyyy-MM-dd)
   /// - p_store_id is optional (NULL for all stores)
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   /// - Filters by start_time_utc converted to timezone (actual work date)
   /// - Uses v_shift_request view with is_problem_v2, is_problem_solved_v2 columns
+  /// - v4 adds: is_reported_solved (bool), manager_memo (jsonb array)
   Future<Map<String, dynamic>> getManagerShiftCards({
     required String startDate,
     required String endDate,
@@ -148,7 +150,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_cards_v3',
+        'manager_shift_get_cards_v4',
         params: {
           'p_start_date': startDate,
           'p_end_date': endDate,
@@ -598,6 +600,88 @@ class TimeTableDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to fetch store employees: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Input card data (manager updates shift) using v5 RPC
+  ///
+  /// Uses manager_shift_input_card_v5 RPC
+  /// - Simplified parameters: confirm times, report solved status, bonus amount, manager memo
+  /// - Times must be in user's LOCAL timezone (HH:mm:ss format with timezone)
+  /// - RPC converts local times to UTC internally
+  /// - Returns simple success/error response
+  ///
+  /// Parameters:
+  /// - [managerId] - Manager user ID performing the update
+  /// - [shiftRequestId] - Shift request ID to update
+  /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
+  /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
+  /// - [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
+  /// - [bonusAmount] - Bonus amount, null to keep existing
+  /// - [managerMemo] - Manager memo text, null to keep existing (new in v5)
+  /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  Future<Map<String, dynamic>> inputCardV5({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isReportedSolved,
+    double? bonusAmount,
+    String? managerMemo,
+    required String timezone,
+  }) async {
+    try {
+      // DEBUG: Log request parameters
+      debugPrint('🔷 [inputCardV5] REQUEST:');
+      debugPrint('   managerId=$managerId');
+      debugPrint('   shiftRequestId=$shiftRequestId');
+      debugPrint('   confirmStartTime=$confirmStartTime');
+      debugPrint('   confirmEndTime=$confirmEndTime');
+      debugPrint('   isReportedSolved=$isReportedSolved');
+      debugPrint('   bonusAmount=$bonusAmount');
+      debugPrint('   managerMemo=$managerMemo');
+      debugPrint('   timezone=$timezone');
+
+      final response = await _supabase.rpc<dynamic>(
+        'manager_shift_input_card_v5',
+        params: {
+          'p_manager_id': managerId,
+          'p_shift_request_id': shiftRequestId,
+          'p_confirm_start_time': confirmStartTime,
+          'p_confirm_end_time': confirmEndTime,
+          'p_is_reported_solved': isReportedSolved,
+          'p_bonus_amount': bonusAmount,
+          'p_manager_memo': managerMemo,
+          'p_timezone': timezone,
+        },
+      );
+
+      // DEBUG: Log response
+      debugPrint('🔶 [inputCardV5] RESPONSE: $response');
+      debugPrint('   response type: ${response.runtimeType}');
+
+      if (response == null) {
+        debugPrint('❌ [inputCardV5] NULL response');
+        return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
+      }
+
+      if (response is Map<String, dynamic>) {
+        debugPrint('✅ [inputCardV5] Success: ${response['success']}');
+        if (response['error'] != null) {
+          debugPrint('❌ [inputCardV5] Error: ${response['error']} - ${response['message']}');
+        }
+        return response;
+      }
+
+      debugPrint('❌ [inputCardV5] Invalid response format');
+      return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
+    } catch (e, stackTrace) {
+      debugPrint('❌ [inputCardV5] EXCEPTION: $e');
+      throw TimeTableException(
+        'Failed to input card v5: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

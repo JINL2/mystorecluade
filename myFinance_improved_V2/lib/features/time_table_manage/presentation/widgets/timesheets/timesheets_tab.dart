@@ -608,6 +608,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: detailedCard?.paidHour ?? 0.0,
           lateMinute: detailedCard?.lateMinute ?? 0,
           overtimeMinute: detailedCard?.overTimeMinute ?? 0,
+          // v4: New fields
+          isReportedSolved: detailedCard?.isReportedSolved,
+          managerMemos: detailedCard?.managerMemos ?? const [],
           shiftEndTime: shiftEndTime,
         );
       }).toList();

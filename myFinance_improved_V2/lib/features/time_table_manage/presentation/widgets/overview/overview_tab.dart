@@ -566,6 +566,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       paidHour: item.paidHour,
       lateMinute: item.lateMinute,
       overtimeMinute: item.overtimeMinute,
+      // v4: New fields
+      isReportedSolved: item.isReportedSolved,
+      managerMemos: item.managerMemos,
       shiftEndTime: item.shiftEndTime,
     );
 

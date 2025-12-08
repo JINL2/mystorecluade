@@ -459,4 +459,35 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       );
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> inputCardV5({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isReportedSolved,
+    double? bonusAmount,
+    String? managerMemo,
+    required String timezone,
+  }) async {
+    try {
+      return await _datasource.inputCardV5(
+        managerId: managerId,
+        shiftRequestId: shiftRequestId,
+        confirmStartTime: confirmStartTime,
+        confirmEndTime: confirmEndTime,
+        isReportedSolved: isReportedSolved,
+        bonusAmount: bonusAmount,
+        managerMemo: managerMemo,
+        timezone: timezone,
+      );
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to input card v5: $e',
+        originalError: e,
+      );
+    }
+  }
 }
