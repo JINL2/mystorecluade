@@ -8,21 +8,16 @@ import 'package:uuid/uuid.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../../domain/entities/manager_overview.dart';
-import '../../domain/entities/shift_card.dart';
 import '../providers/state/reliability_score_provider.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
-import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
-import '../widgets/manage/manage_tab_view.dart';
 import '../widgets/overview/overview_tab.dart';
 import '../widgets/schedule/schedule_tab_content.dart';
 import '../widgets/timesheets/timesheets_tab.dart';
@@ -181,7 +176,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         ? ref.watch(managerOverviewProvider(selectedStoreId!))
         : null;
     final managerOverviewDataByMonth = managerOverviewState?.dataByMonth ?? {};
-    final isLoadingOverview = managerOverviewState?.isLoading ?? false;
 
     return TossScaffold(
       appBar: const TossAppBar1(
@@ -453,36 +447,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     await fetchManagerOverview(forceRefresh: true);
     await fetchManagerCards(forceRefresh: true);
   }
-  
-  // Build shift data section
-  // ✅ Extracted to ScheduleShiftDataSection widget
-
-  // ✅ Refactored: Handle employee tap for selection using Provider
-  void _handleEmployeeTap(String shiftRequestId, bool isApproved, String shiftRequestIdFromData) {
-    HapticFeedback.selectionClick();
-
-    // Toggle selection via Provider
-    ref.read(selectedShiftRequestsProvider.notifier).toggleSelection(
-      shiftRequestId,
-      isApproved,
-      shiftRequestIdFromData,
-    );
-
-    // Auto-scroll to show the Approve button if newly selected
-    final isNowSelected = ref.read(selectedShiftRequestsProvider).selectedIds.contains(shiftRequestId);
-    if (isNowSelected) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_scheduleScrollController.hasClients) {
-          _scheduleScrollController.animateTo(
-            _scheduleScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
-    }
-  }
-
   // ✅ Refactored: Handle approval success callback using Provider
   Future<void> _handleApprovalSuccess() async {
     final monthKey = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}';
@@ -505,63 +469,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
   // ✅ Extracted to ScheduleTabContent widget
 
-
-  // Show shift details bottom sheet
-  void _showShiftDetailsBottomSheet(ShiftCard card) async {
-    final result = await showModalBottomSheet<dynamic>(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: ShiftDetailsBottomSheet(
-          card: card,
-          onUpdate: () {
-            // Refresh data when shift details are updated
-            if (selectedStoreId != null) {
-              fetchManagerOverview();
-              fetchManagerCards();
-            }
-          },
-        ),
-      ),
-    );
-    
-    // Handle different types of results
-    if (result == true) {
-      // Regular update (non-bonus) - refresh data
-      if (selectedStoreId != null) {
-        // ✅ Clear cache to force refresh
-        final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
-        ref.read(managerCardsProvider(selectedStoreId!).notifier).clearMonth(monthKey);
-
-        // Fetch fresh data
-        await fetchMonthlyShiftStatus(forDate: manageSelectedDate, forceRefresh: true);
-        await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
-        await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
-      }
-    } else if (result is Map && result['updated'] == true && result['bonus_amount'] != null) {
-      // Bonus update - refresh the data
-      if (mounted) {
-        await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
-      }
-
-      // Show success dialog
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context) => TossDialog.success(
-          title: 'Success',
-          message: 'Bonus updated successfully',
-          primaryButtonText: 'OK',
-        ),
-      );
-    }
-  }
-  
   // Show add shift bottom sheet
   void _showAddShiftBottomSheet() async {
     final result = await showModalBottomSheet<bool>(

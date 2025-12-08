@@ -11,6 +11,7 @@ import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
+import '../../../domain/entities/shift_metadata.dart';
 import '../../pages/staff_timelog_detail_page.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
@@ -107,6 +108,12 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         ? ref.watch(managerCardsProvider(widget.selectedStoreId!))
         : null;
 
+    // Watch shift metadata for all available shifts (including those with 0 requests)
+    final shiftMetadataAsync = widget.selectedStoreId != null
+        ? ref.watch(shiftMetadataProvider(widget.selectedStoreId!))
+        : null;
+    final shiftMetadata = shiftMetadataAsync?.valueOrNull;
+
     // ✅ UseCase: Find current activity shift
     final findCurrentShiftUseCase = ref.watch(findCurrentShiftUseCaseProvider);
     final currentActivityShift = findCurrentShiftUseCase(allDailyShifts);
@@ -140,9 +147,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           const SizedBox(height: TossSpacing.space6),
 
           // 4️⃣ Need Attention Section
-          _buildNeedAttentionHeader(managerCardsState, monthlyStatusState),
+          _buildNeedAttentionHeader(managerCardsState, monthlyStatusState, shiftMetadata),
           const SizedBox(height: TossSpacing.space2),
-          _buildNeedAttentionScroll(managerCardsState, monthlyStatusState),
+          _buildNeedAttentionScroll(managerCardsState, monthlyStatusState, shiftMetadata),
         ],
       ),
     );
@@ -299,8 +306,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   Widget _buildNeedAttentionHeader(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
+    ShiftMetadata? shiftMetadata,
   ) {
-    final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState);
+    final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState, shiftMetadata);
     // Filter to show only yesterday, today, tomorrow
     final filteredItems = _filterByRecentDates(attentionItems);
     final count = filteredItems.length;
@@ -336,16 +344,18 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   /// Get attention items from real data
   ///
   /// Sources:
-  /// 1. manager_shift_get_cards_v3 (is_approved = true):
+  /// 1. manager_shift_get_cards_v4 (is_approved = true):
   ///    - Late: is_late = true (show late_minute)
   ///    - Problem: is_problem = true AND is_problem_solved = false
   ///    - Reported: is_reported = true AND is_problem_solved = false
   ///    - Overtime: is_overtime = true (show overtime_minute)
-  /// 2. get_monthly_shift_status_manager_v4:
+  /// 2. get_monthly_shift_status_manager_v4 + get_shift_metadata_v2_utc:
   ///    - Understaffed: total_required > total_approved
+  ///    - Including shifts with 0 requests (from metadata)
   List<AttentionItemData> _getAttentionItems(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
+    ShiftMetadata? shiftMetadata,
   ) {
     final List<AttentionItemData> items = [];
 
@@ -459,7 +469,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       }
     }
 
-    // 2. Get understaffed shifts from monthly status
+    // 2. Get understaffed shifts from monthly status (shifts with at least 1 request)
+    // Build a set of (date, shiftId) pairs that have been processed
+    final Set<String> processedShifts = {};
+
     if (monthlyStatusState != null) {
       for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
         for (final dailyData in monthlyStatus.dailyShifts) {
@@ -467,6 +480,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
             final shift = shiftWithReqs.shift;
             final totalRequired = shift.targetCount;
             final totalApproved = shiftWithReqs.approvedRequests.length;
+
+            // Mark this shift as processed for this date
+            final shiftKey = '${dailyData.date}_${shift.shiftId}';
+            processedShifts.add(shiftKey);
 
             // Understaffed: total_required > total_approved
             if (totalRequired > totalApproved) {
@@ -488,15 +505,82 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       }
     }
 
+    // 3. Get understaffed shifts with 0 requests (from metadata)
+    // These shifts don't appear in monthly_status because no one has applied
+    if (shiftMetadata != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final tomorrow = today.add(const Duration(days: 1));
+
+      // Check for each active shift if it has any requests for yesterday/today/tomorrow
+      for (final metaShift in shiftMetadata.activeShifts) {
+        // Skip shifts that don't require staff
+        if (metaShift.targetCount <= 0) continue;
+
+        // Check for each relevant date
+        for (final date in [yesterday, today, tomorrow]) {
+          final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+          final shiftKey = '${dateStr}_${metaShift.shiftId}';
+
+          // Skip if this shift was already processed (has at least 1 request)
+          if (processedShifts.contains(shiftKey)) continue;
+
+          // This shift has 0 requests for this date - it's understaffed!
+          // Parse shift start time from metadata for shiftDate
+          final shiftDateTime = _parseTimeString(metaShift.startTime, date);
+
+          items.add(AttentionItemData(
+            type: AttentionType.understaffed,
+            title: metaShift.shiftName,
+            date: _formatDate(date),
+            time: _formatTimeRangeFromStrings(metaShift.startTime, metaShift.endTime),
+            subtext: '0/${metaShift.targetCount} assigned',
+            isShiftProblem: true,
+            shiftDate: shiftDateTime,
+            shiftName: metaShift.shiftName,
+            shiftTimeRange: _formatTimeRangeFromStrings(metaShift.startTime, metaShift.endTime),
+          ));
+        }
+      }
+    }
+
     return items;
+  }
+
+  /// Parse time string (HH:mm or HH:mm:ss) to DateTime on a specific date
+  DateTime _parseTimeString(String timeStr, DateTime date) {
+    try {
+      final parts = timeStr.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (e) {
+      return date;
+    }
+  }
+
+  /// Format time range from time strings (HH:mm format)
+  String _formatTimeRangeFromStrings(String startTime, String endTime) {
+    // Extract HH:mm from the time strings (might be HH:mm:ss+TZ format)
+    String extractTime(String time) {
+      // Handle formats like "10:00:00+07" or "10:00"
+      final parts = time.split(':');
+      if (parts.length >= 2) {
+        return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+      }
+      return time;
+    }
+    return '${extractTime(startTime)} – ${extractTime(endTime)}';
   }
 
   /// Build Need Attention horizontal scroll
   Widget _buildNeedAttentionScroll(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
+    ShiftMetadata? shiftMetadata,
   ) {
-    final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState);
+    final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState, shiftMetadata);
     // Filter to show only yesterday, today, tomorrow
     final filteredItems = _filterByRecentDates(attentionItems);
 
