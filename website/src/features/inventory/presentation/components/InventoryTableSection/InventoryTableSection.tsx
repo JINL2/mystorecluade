@@ -13,6 +13,7 @@ import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import type { InventoryTableSectionProps } from './InventoryTableSection.types';
 import type { InventoryItem } from '../../../domain/entities/InventoryItem';
 import { InventoryDataSource, type ProductHistoryItem } from '../../../data/datasources/InventoryDataSource';
+import { InvoiceDataSource, type InvoiceDetailResponse } from '@/features/invoice/data/datasources/InvoiceDataSource';
 import styles from './InventoryTableSection.module.css';
 
 type DetailTab = 'detail' | 'history';
@@ -25,6 +26,143 @@ interface ExpandedDetailRowProps {
   companyId: string;
   storeId: string;
 }
+
+// Invoice Detail Modal Component
+interface InvoiceDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  invoiceDetail: InvoiceDetailResponse['data'] | null;
+  loading: boolean;
+  formatCurrency: (value: number) => string;
+}
+
+const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
+  isOpen,
+  onClose,
+  invoiceDetail,
+  loading,
+  formatCurrency,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        {/* Modal Header */}
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>
+            Invoice Detail
+            {invoiceDetail?.invoice?.invoice_number && (
+              <span className={styles.invoiceNumber}> - {invoiceDetail.invoice.invoice_number}</span>
+            )}
+          </h3>
+          <button className={styles.modalCloseBtn} onClick={onClose}>
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className={styles.modalBody}>
+          {loading ? (
+            <div className={styles.modalLoading}>
+              <LoadingAnimation size="medium" />
+            </div>
+          ) : !invoiceDetail ? (
+            <div className={styles.modalError}>
+              <p>Failed to load invoice details</p>
+            </div>
+          ) : (
+            <>
+              {/* Items Table */}
+              <div className={styles.invoiceSection}>
+                <h4 className={styles.invoiceSectionTitle}>Items ({invoiceDetail.items.length})</h4>
+                <div className={styles.invoiceItemsTable}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Discount</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoiceDetail.items.map((item) => (
+                        <tr key={item.item_id}>
+                          <td>{item.product_name}</td>
+                          <td>{item.sku}</td>
+                          <td>{item.quantity_sold}</td>
+                          <td>{formatCurrency(item.unit_price)}</td>
+                          <td>{formatCurrency(item.discount_amount)}</td>
+                          <td><strong>{formatCurrency(item.total_amount)}</strong></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Store & Amount Info */}
+              <div className={styles.invoiceBottomGrid}>
+                {/* Store Information */}
+                <div className={styles.invoiceSection}>
+                  <h4 className={styles.invoiceSectionTitle}>Store & Date</h4>
+                  <div className={styles.invoiceInfo}>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Store:</span>
+                      <span className={styles.invoiceInfoValue}>{invoiceDetail.invoice.store_name}</span>
+                    </div>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Sale Date:</span>
+                      <span className={styles.invoiceInfoValue}>
+                        {new Date(invoiceDetail.invoice.sale_date).toLocaleString('en-US')}
+                      </span>
+                    </div>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Status:</span>
+                      <span className={`${styles.invoiceInfoValue} ${styles.invoiceStatus}`}>
+                        {invoiceDetail.invoice.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount Summary */}
+                <div className={styles.invoiceSection}>
+                  <h4 className={styles.invoiceSectionTitle}>Amount Summary</h4>
+                  <div className={styles.invoiceInfo}>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Subtotal:</span>
+                      <span className={styles.invoiceInfoValue}>{formatCurrency(invoiceDetail.amounts.subtotal)}</span>
+                    </div>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Tax:</span>
+                      <span className={styles.invoiceInfoValue}>{formatCurrency(invoiceDetail.amounts.tax_amount)}</span>
+                    </div>
+                    <div className={styles.invoiceInfoItem}>
+                      <span className={styles.invoiceInfoLabel}>Discount:</span>
+                      <span className={styles.invoiceInfoValue}>{formatCurrency(invoiceDetail.amounts.discount_amount)}</span>
+                    </div>
+                    <div className={`${styles.invoiceInfoItem} ${styles.invoiceTotalRow}`}>
+                      <span className={styles.invoiceTotalLabel}>Total:</span>
+                      <span className={styles.invoiceTotalValue}>
+                        {formatCurrency(invoiceDetail.amounts.total_amount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Helper function to get event type display info
 const getEventTypeInfo = (eventType: string): { label: string; color: string; bgColor: string } => {
@@ -39,6 +177,9 @@ const getEventTypeInfo = (eventType: string): { label: string; color: string; bg
     default_cost_changed: { label: 'Cost Changed', color: '#7c3aed', bgColor: '#faf5ff' },
     default_selling_changed: { label: 'Price Changed', color: '#7c3aed', bgColor: '#faf5ff' },
     default_min_price_changed: { label: 'Min Price Changed', color: '#7c3aed', bgColor: '#faf5ff' },
+    store_cost_changed: { label: 'Store Cost Changed', color: '#7c3aed', bgColor: '#faf5ff' },
+    store_selling_changed: { label: 'Store Price Changed', color: '#7c3aed', bgColor: '#faf5ff' },
+    store_min_price_changed: { label: 'Store Min Price', color: '#7c3aed', bgColor: '#faf5ff' },
     product_created: { label: 'Created', color: '#059669', bgColor: '#ecfdf5' },
     product_name_changed: { label: 'Name Changed', color: '#6366f1', bgColor: '#eef2ff' },
     product_sku_changed: { label: 'SKU Changed', color: '#6366f1', bgColor: '#eef2ff' },
@@ -68,10 +209,13 @@ const getHistoryDescription = (item: ProductHistoryItem, formatCurrency: (value:
     case 'stock_adjustment_decrease':
       return item.reason || item.notes || 'Adjustment';
     case 'default_cost_changed':
+    case 'store_cost_changed':
       return `${formatCurrency(item.cost_before || 0)} → ${formatCurrency(item.cost_after || 0)}`;
     case 'default_selling_changed':
+    case 'store_selling_changed':
       return `${formatCurrency(item.selling_price_before || 0)} → ${formatCurrency(item.selling_price_after || 0)}`;
     case 'default_min_price_changed':
+    case 'store_min_price_changed':
       return `${formatCurrency(item.min_price_before || 0)} → ${formatCurrency(item.min_price_after || 0)}`;
     case 'product_created':
       return item.notes || 'Product created';
@@ -110,6 +254,33 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
   const [historyTotalPages, setHistoryTotalPages] = useState(0);
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  // Invoice Detail Modal state
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceDetail, setInvoiceDetail] = useState<InvoiceDetailResponse['data'] | null>(null);
+  const [invoiceDetailLoading, setInvoiceDetailLoading] = useState(false);
+
+  // Handle click on Sale/Refund history item
+  const handleSaleItemClick = useCallback(async (invoiceId: string) => {
+    if (!invoiceId) return;
+
+    setShowInvoiceModal(true);
+    setInvoiceDetailLoading(true);
+    setInvoiceDetail(null);
+
+    try {
+      const dataSource = new InvoiceDataSource();
+      const response = await dataSource.getInvoiceDetail(invoiceId);
+
+      if (response.success && response.data) {
+        setInvoiceDetail(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to load invoice detail:', err);
+    } finally {
+      setInvoiceDetailLoading(false);
+    }
+  }, []);
 
   const loadHistory = useCallback(async (page: number = 1) => {
     if (!companyId || !storeId) {
@@ -329,8 +500,18 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
                               ? (historyItem.quantity_change! > 0 ? styles.quantityPositive : historyItem.quantity_change! < 0 ? styles.quantityNegativeHistory : '')
                               : '';
 
+                            // Check if this is a sale/refund event that can be clicked
+                            const isSaleEvent = historyItem.event_type === 'stock_sale' || historyItem.event_type === 'stock_refund';
+                            const hasInvoiceId = !!historyItem.invoice_id;
+                            const isClickable = isSaleEvent && hasInvoiceId;
+
                             return (
-                              <tr key={historyItem.log_id} className={styles.historyTableRow}>
+                              <tr
+                                key={historyItem.log_id}
+                                className={`${styles.historyTableRow} ${isClickable ? styles.historyClickableRow : ''}`}
+                                onClick={isClickable ? () => handleSaleItemClick(historyItem.invoice_id!) : undefined}
+                                style={isClickable ? { cursor: 'pointer' } : undefined}
+                              >
                                 <td className={styles.historyColTime}>
                                   {historyItem.created_at}
                                 </td>
@@ -339,6 +520,17 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
                                 </td>
                                 <td className={styles.historyColDesc}>
                                   {getHistoryDescription(historyItem, formatCurrency)}
+                                  {isClickable && (
+                                    <svg
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      style={{ marginLeft: '6px', color: '#0064FF', verticalAlign: 'middle' }}
+                                    >
+                                      <path d="M10,6V8H5V19H16V14H18V20A1,1 0 0,1 17,21H4A1,1 0 0,1 3,20V7A1,1 0 0,1 4,6H10M21,3V11H19L19,6.41L9.17,16.24L7.76,14.83L17.59,5H13V3H21Z"/>
+                                    </svg>
+                                  )}
                                 </td>
                                 <td className={styles.historyColUser}>
                                   {historyItem.created_user || '-'}
@@ -433,6 +625,15 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
           </div>
         </div>
       </td>
+
+      {/* Invoice Detail Modal */}
+      <InvoiceDetailModal
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        invoiceDetail={invoiceDetail}
+        loading={invoiceDetailLoading}
+        formatCurrency={formatCurrency}
+      />
     </tr>
   );
 };

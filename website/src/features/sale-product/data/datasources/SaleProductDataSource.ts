@@ -8,7 +8,8 @@ import { supabaseService } from '@/core/services/supabase_service';
 export class SaleProductDataSource {
   /**
    * Get inventory products for sale
-   * Calls get_inventory_page_v2 RPC function with timezone support
+   * Calls get_inventory_page_v3 RPC function with timezone support
+   * Supports store-specific pricing with fallback to default prices
    */
   async getProducts(
     companyId: string,
@@ -22,7 +23,7 @@ export class SaleProductDataSource {
     // Get user's local timezone from device
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('get_inventory_page_v2', {
+    const { data, error } = await supabase.rpc('get_inventory_page_v3', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
@@ -151,7 +152,7 @@ export class SaleProductDataSource {
 
   /**
    * Submit sale invoice
-   * Calls inventory_create_invoice_v3 RPC function with timestamptz support
+   * Calls inventory_create_invoice_v4 RPC function with timestamptz support and inventory_logs
    */
   async submitInvoice(params: {
     companyId: string;
@@ -208,9 +209,9 @@ export class SaleProductDataSource {
       rpcParams.p_notes = params.notes;
     }
 
-    console.log('🔌 [DataSource] Calling RPC inventory_create_invoice_v3', rpcParams);
+    console.log('🔌 [DataSource] Calling RPC inventory_create_invoice_v4', rpcParams);
 
-    const { data, error } = await supabase.rpc('inventory_create_invoice_v3', rpcParams);
+    const { data, error } = await supabase.rpc('inventory_create_invoice_v4', rpcParams);
 
     if (error) {
       console.error('❌ [DataSource] Supabase RPC error', {
@@ -233,7 +234,7 @@ export class SaleProductDataSource {
 
   /**
    * Submit journal entries for sales transaction
-   * Calls insert_journal_with_everything_utc RPC function twice:
+   * Calls insert_journal_with_everything_v2 RPC function twice:
    * 1. Sales Journal: Cash (debit) / Sales Revenue (credit) - totalAmount
    * 2. COGS Journal: COGS (debit) / Inventory (credit) - totalCost
    */
@@ -246,6 +247,7 @@ export class SaleProductDataSource {
     totalAmount: number;
     totalCost: number;
     cashLocationId: string;
+    invoiceId: string; // Invoice ID from inventory_create_invoice_v4
   }): Promise<{
     success: boolean;
     salesJournalId?: string;
@@ -262,13 +264,16 @@ export class SaleProductDataSource {
     const COGS_ACCOUNT_ID = '90565fe4-5bfc-4c5e-8759-af9a64e98cae';
     const INVENTORY_ACCOUNT_ID = '8babc1b3-47b4-4982-8f50-099ab9cdcaf9';
 
+    // Get user's local timezone from device
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     // 1. Sales Journal: Cash (debit) / Sales Revenue (credit)
     const salesJournalParams = {
       p_base_amount: params.totalAmount,
       p_company_id: params.companyId,
       p_created_by: params.userId,
       p_description: params.description,
-      p_entry_date_utc: params.entryDateUtc,
+      p_time: params.entryDateUtc,
       p_lines: [
         // Debit: Cash Account
         {
@@ -288,15 +293,17 @@ export class SaleProductDataSource {
           credit: params.totalAmount.toString(),
         },
       ],
-      p_store_id: params.storeId,
       p_counterparty_id: null,
       p_if_cash_location_id: null,
+      p_store_id: params.storeId,
+      p_timezone: userTimezone,
+      p_invoice_id: params.invoiceId, // Link journal to invoice
     };
 
-    console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_utc (Sales)', salesJournalParams);
+    console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_v2 (Sales)', salesJournalParams);
 
     const { data: salesData, error: salesError } = await supabase.rpc(
-      'insert_journal_with_everything_utc',
+      'insert_journal_with_everything_v2',
       salesJournalParams
     );
 
@@ -325,7 +332,7 @@ export class SaleProductDataSource {
         p_company_id: params.companyId,
         p_created_by: params.userId,
         p_description: cogsDescription,
-        p_entry_date_utc: params.entryDateUtc,
+        p_time: params.entryDateUtc,
         p_lines: [
           // Debit: COGS Account
           {
@@ -342,15 +349,17 @@ export class SaleProductDataSource {
             credit: params.totalCost.toString(),
           },
         ],
-        p_store_id: params.storeId,
         p_counterparty_id: null,
         p_if_cash_location_id: null,
+        p_store_id: params.storeId,
+        p_timezone: userTimezone,
+        p_invoice_id: params.invoiceId, // Link journal to invoice
       };
 
-      console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_utc (COGS)', cogsJournalParams);
+      console.log('🔌 [DataSource] Calling RPC insert_journal_with_everything_v2 (COGS)', cogsJournalParams);
 
       const { data: cogsData, error: cogsError } = await supabase.rpc(
-        'insert_journal_with_everything_utc',
+        'insert_journal_with_everything_v2',
         cogsJournalParams
       );
 
@@ -372,14 +381,14 @@ export class SaleProductDataSource {
 
       return {
         success: true,
-        salesJournalId: salesData?.journal_id,
-        cogsJournalId: cogsData?.journal_id,
+        salesJournalId: salesData,
+        cogsJournalId: cogsData,
       };
     }
 
     return {
       success: true,
-      salesJournalId: salesData?.journal_id,
+      salesJournalId: salesData,
     };
   }
 }

@@ -144,6 +144,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
     getAllInventoryForExport,
     importExcel,
     showNotification,
+    setCurrentPage,
   });
 
   // Debounced search with 300ms delay
@@ -452,7 +453,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
             selectedProductData?.productId || '',
             companyId,
             selectedStoreId || '',
-            updatedData,
+            { ...updatedData, userId }, // Include userId for RPC p_created_by
             originalData
           );
 

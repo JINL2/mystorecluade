@@ -302,7 +302,17 @@ export class InventoryDataSource {
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('inventory_import_excel_v4', {
+    console.log('📦 [DataSource] importExcel called with:', {
+      companyId,
+      storeId,
+      userId,
+      productsCount: products.length,
+      defaultPrice,
+      timezone: userTimezone,
+    });
+    console.log('📦 [DataSource] First product:', products[0]);
+
+    const rpcParams = {
       p_company_id: companyId,
       p_store_id: storeId,
       p_user_id: userId,
@@ -310,9 +320,16 @@ export class InventoryDataSource {
       p_default_price: defaultPrice, // false = store price, true = default price
       p_time: new Date().toISOString(),
       p_timezone: userTimezone,
-    });
+    };
+    console.log('📦 [DataSource] RPC params:', rpcParams);
+
+    const { data, error } = await supabase.rpc('inventory_import_excel_v4', rpcParams);
+
+    console.log('📦 [DataSource] RPC response - data:', data);
+    console.log('📦 [DataSource] RPC response - error:', error);
 
     if (error) {
+      console.error('📦 [DataSource] RPC error:', error);
       return {
         success: false,
         error: error.message,
@@ -321,6 +338,14 @@ export class InventoryDataSource {
 
     // Handle success wrapper response
     if (data && typeof data === 'object' && 'success' in data) {
+      console.log('📦 [DataSource] RPC success response:', data);
+      // Log detailed errors if any
+      if (data.errors && data.errors.length > 0) {
+        console.log('📦 [DataSource] ❌ ERRORS DETAIL:');
+        data.errors.forEach((err: any, idx: number) => {
+          console.log(`📦 [DataSource] Error ${idx + 1}:`, err);
+        });
+      }
       return {
         success: data.success,
         summary: data.summary,
@@ -329,6 +354,7 @@ export class InventoryDataSource {
       };
     }
 
+    console.error('📦 [DataSource] Invalid response format:', data);
     return {
       success: false,
       error: 'Invalid response format from inventory_import_excel_v4',

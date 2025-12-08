@@ -195,6 +195,7 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         totalAmount: invoice.total,
         totalCost: invoice.totalCost,
         cashLocationId: invoice.cashLocation.id,
+        invoiceId: response.invoice_id, // Pass invoice_id from inventory_create_invoice_v4 response
       });
 
       if (!journalResult.success) {
