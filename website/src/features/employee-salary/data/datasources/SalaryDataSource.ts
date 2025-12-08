@@ -8,10 +8,11 @@ import { supabaseService } from '@/core/services/supabase_service';
 export interface SalaryEmployeeRaw {
   user_id: string;
   user_name: string;
-  email: string;
-  role_name?: string;
   salary_type: 'monthly' | 'hourly';
+  user_bank_name?: string | null;
+  user_account_number?: string | null;
   currency_info: {
+    currency_id?: string;
     currency_symbol: string;
     currency_code: string;
   };
@@ -31,6 +32,7 @@ export interface SalaryEmployeeRaw {
     };
     bonuses?: {
       bonus_amount?: number;
+      bonus_count?: number;
     };
     overtime?: {
       overtime_amount?: number;
@@ -42,6 +44,7 @@ export interface SalaryEmployeeRaw {
     store_name: string;
     store_total_payment: number;
     worked_hours?: number;
+    shift_count?: number;
     base_payment?: number;
     late_deduction?: number;
     bonus_amount?: number;
@@ -65,16 +68,23 @@ export interface SalaryEmployeeRaw {
 }
 
 export interface SalaryRawData {
+  company_id?: string;
+  store_id?: string | null;
   period: string;
+  timezone?: string;
+  calculation_date?: string;
   employees: SalaryEmployeeRaw[];
   summary: {
     total_employees: number;
     total_salary?: number;
     total_payment?: number;
     total_base_payment?: number;
-    average_salary: number;
-    total_bonuses: number;
-    total_deductions: number;
+    total_bonus?: number;
+    total_overtime?: number;
+    total_late_deduction?: number;
+    average_salary?: number;
+    total_bonuses?: number;
+    total_deductions?: number;
     unsolved_problems?: number;
     total_problems?: number;
     employee_breakdown?: {
@@ -82,6 +92,7 @@ export interface SalaryRawData {
       hourly: number;
     };
     base_currency: {
+      currency_id?: string;
       currency_symbol: string;
       currency_code: string;
     };
@@ -156,7 +167,7 @@ export class SalaryDataSource {
       const timezone = this.getUserTimezone();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.rpc as any)('get_employee_salary_v2', {
+      const { data, error } = await (supabase.rpc as any)('get_employee_salary_v3', {
         p_company_id: companyId,
         p_month: month,
         p_timezone: timezone,
@@ -205,7 +216,7 @@ export class SalaryDataSource {
       const timezone = this.getUserTimezone();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.rpc as any)('get_employee_salary_excel_v2', {
+      const { data, error } = await (supabase.rpc as any)('get_employee_salary_excel_v3', {
         p_company_id: companyId,
         p_month: month,
         p_timezone: timezone,

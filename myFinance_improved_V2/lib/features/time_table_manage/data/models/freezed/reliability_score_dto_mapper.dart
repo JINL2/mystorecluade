@@ -63,6 +63,8 @@ extension EmployeeReliabilityDtoMapper on EmployeeReliabilityDto {
       userId: userId,
       userName: userName,
       profileImage: profileImage,
+      role: role,
+      storeName: storeName,
       totalApplications: totalApplications,
       approvedShifts: approvedShifts,
       completedShifts: completedShifts,
@@ -70,8 +72,15 @@ extension EmployeeReliabilityDtoMapper on EmployeeReliabilityDto {
       lateRate: lateRate.toDouble(),
       onTimeRate: onTimeRate.toDouble(),
       avgLateMinutes: avgLateMinutes.toDouble(),
+      avgFillRateApplied: avgFillRateApplied.toDouble(),
       reliability: reliability.toDouble(),
       finalScore: finalScore.toDouble(),
+      applicationsScore: applicationsScore.toDouble(),
+      lateRateScore: lateRateScore.toDouble(),
+      lateMinutesScore: lateMinutesScore.toDouble(),
+      fillRateScore: fillRateScore.toDouble(),
+      salaryAmount: salaryAmount.toDouble(),
+      salaryType: salaryType,
     );
   }
 }

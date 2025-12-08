@@ -23,11 +23,14 @@ import '../../pages/staff_timelog_detail_page.dart';
 class TimesheetsTab extends ConsumerStatefulWidget {
   final String? selectedStoreId;
   final void Function(String storeId)? onStoreChanged;
+  /// Callback to navigate to Schedule tab with a specific date
+  final void Function(DateTime date)? onNavigateToSchedule;
 
   const TimesheetsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
+    this.onNavigateToSchedule,
   });
 
   @override
@@ -609,231 +612,236 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
   @override
   Widget build(BuildContext context) {
+    const horizontalPadding = EdgeInsets.symmetric(horizontal: TossSpacing.space3);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space2,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Store selector
-          _buildStoreSelector(),
+          const SizedBox(height: TossSpacing.space2),
 
-          const SizedBox(height: TossSpacing.space4),
+          // Store selector (with padding)
+          Padding(
+            padding: horizontalPadding,
+            child: _buildStoreSelector(),
+          ),
 
-          // Gray divider after store selector
+          // Gray divider after store selector (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: TossSpacing.space4),
+          // Problems Section (with padding)
+          Padding(
+            padding: horizontalPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // "Problems" Section Header
+                Text(
+                  'Problems',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
 
-          // "Problems" Section Header
-          Text(
-            'Problems',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
+                const SizedBox(height: TossSpacing.space3),
+
+                // Filter Chips
+                TossChipGroup(
+                  items: [
+                    TossChipItem(
+                      value: 'today',
+                      label: 'Today',
+                      count: _getProblemCount('today'),
+                    ),
+                    TossChipItem(
+                      value: 'this_week',
+                      label: 'This week',
+                      count: _getProblemCount('this_week'),
+                    ),
+                    TossChipItem(
+                      value: 'this_month',
+                      label: 'This month',
+                      count: _getProblemCount('this_month'),
+                    ),
+                  ],
+                  selectedValue: selectedFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedFilter = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: TossSpacing.space3),
+
+                // Problems List
+                Builder(
+                  builder: (context) {
+                    final filteredProblems = _getFilteredProblems(selectedFilter ?? 'today');
+                    if (filteredProblems.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(TossSpacing.space8),
+                        child: TossEmptyView(
+                          title: 'No problems found',
+                          description: 'All attendance records look good!',
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: filteredProblems.length,
+                      itemBuilder: (context, index) {
+                        final problem = filteredProblems[index];
+                        return ProblemCard(
+                          problem: problem,
+                          onTap: () async {
+                            // Staff problems navigate to detail page
+                            if (!problem.isShiftProblem && problem.staffId != null) {
+                              // Create StaffTimeRecord from problem data
+                              final staffRecord = StaffTimeRecord(
+                                staffId: problem.staffId!,
+                                staffName: problem.name,
+                                avatarUrl: problem.avatarUrl,
+                                clockIn: problem.clockIn ?? '--:--',
+                                clockOut: problem.clockOut ?? '--:--',
+                                isLate: problem.isLate,
+                                isOvertime: problem.isOvertime,
+                                needsConfirm: !problem.isConfirmed && (problem.isLate || problem.isOvertime),
+                                isConfirmed: problem.isConfirmed,
+                                shiftRequestId: problem.shiftRequestId,
+                                actualStart: problem.actualStart,
+                                actualEnd: problem.actualEnd,
+                                confirmStartTime: problem.confirmStartTime,
+                                confirmEndTime: problem.confirmEndTime,
+                                isReported: problem.isReported,
+                                reportReason: problem.reportReason,
+                                isProblemSolved: problem.isProblemSolved,
+                                bonusAmount: problem.bonusAmount,
+                                salaryType: problem.salaryType,
+                                salaryAmount: problem.salaryAmount,
+                                basePay: problem.basePay,
+                                totalPayWithBonus: problem.totalPayWithBonus,
+                                paidHour: problem.paidHour,
+                                lateMinute: problem.lateMinute,
+                                overtimeMinute: problem.overtimeMinute,
+                              );
+
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute<bool>(
+                                  builder: (context) => StaffTimelogDetailPage(
+                                    staffRecord: staffRecord,
+                                    shiftName: problem.shiftName,
+                                    shiftDate: DateFormat('EEE, d MMM yyyy').format(problem.date),
+                                    shiftTimeRange: problem.timeRange ?? '--:-- - --:--',
+                                  ),
+                                ),
+                              );
+                              // Refresh data if save was successful (force refresh to bypass cache)
+                              if (result == true) {
+                                _loadMonthData(forceRefresh: true);
+                              }
+                            } else {
+                              // Shift problems (understaffed) navigate to Schedule tab
+                              if (widget.onNavigateToSchedule != null) {
+                                widget.onNavigateToSchedule!(problem.date);
+                              }
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
           ),
 
-          const SizedBox(height: TossSpacing.space3),
-
-          // Filter Chips
-          TossChipGroup(
-            items: [
-              TossChipItem(
-                value: 'today',
-                label: 'Today',
-                count: _getProblemCount('today'),
-              ),
-              TossChipItem(
-                value: 'this_week',
-                label: 'This week',
-                count: _getProblemCount('this_week'),
-              ),
-              TossChipItem(
-                value: 'this_month',
-                label: 'This month',
-                count: _getProblemCount('this_month'),
-              ),
-            ],
-            selectedValue: selectedFilter,
-            onChanged: (value) {
-              setState(() {
-                selectedFilter = value;
-              });
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Problems List
-          Builder(
-            builder: (context) {
-              final filteredProblems = _getFilteredProblems(selectedFilter ?? 'today');
-              if (filteredProblems.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(TossSpacing.space8),
-                  child: TossEmptyView(
-                    title: 'No problems found',
-                    description: 'All attendance records look good!',
-                  ),
-                );
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
-                itemCount: filteredProblems.length,
-                itemBuilder: (context, index) {
-                  final problem = filteredProblems[index];
-                  return ProblemCard(
-                    problem: problem,
-                    onTap: () async {
-                      // Staff problems navigate to detail page
-                      if (!problem.isShiftProblem && problem.staffId != null) {
-                        // Create StaffTimeRecord from problem data
-                        final staffRecord = StaffTimeRecord(
-                          staffId: problem.staffId!,
-                          staffName: problem.name,
-                          avatarUrl: problem.avatarUrl,
-                          clockIn: problem.clockIn ?? '--:--',
-                          clockOut: problem.clockOut ?? '--:--',
-                          isLate: problem.isLate,
-                          isOvertime: problem.isOvertime,
-                          needsConfirm: !problem.isConfirmed && (problem.isLate || problem.isOvertime),
-                          isConfirmed: problem.isConfirmed,
-                          shiftRequestId: problem.shiftRequestId,
-                          actualStart: problem.actualStart,
-                          actualEnd: problem.actualEnd,
-                          confirmStartTime: problem.confirmStartTime,
-                          confirmEndTime: problem.confirmEndTime,
-                          isReported: problem.isReported,
-                          reportReason: problem.reportReason,
-                          isProblemSolved: problem.isProblemSolved,
-                          bonusAmount: problem.bonusAmount,
-                          salaryType: problem.salaryType,
-                          salaryAmount: problem.salaryAmount,
-                          basePay: problem.basePay,
-                          totalPayWithBonus: problem.totalPayWithBonus,
-                          paidHour: problem.paidHour,
-                          lateMinute: problem.lateMinute,
-                          overtimeMinute: problem.overtimeMinute,
-                        );
-
-                        final result = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute<bool>(
-                            builder: (context) => StaffTimelogDetailPage(
-                              staffRecord: staffRecord,
-                              shiftName: problem.shiftName,
-                              shiftDate: DateFormat('EEE, d MMM yyyy').format(problem.date),
-                              shiftTimeRange: problem.timeRange ?? '--:-- - --:--',
-                            ),
-                          ),
-                        );
-                        // Refresh data if save was successful (force refresh to bypass cache)
-                        if (result == true) {
-                          _loadMonthData(forceRefresh: true);
-                        }
-                      } else {
-                        // Shift problems (understaffed) navigate to date
-                        final oldMonth = _selectedDate.month;
-                        setState(() {
-                          _selectedDate = problem.date;
-                          _currentWeekStart = _getWeekStart(problem.date);
-                        });
-                        // Load new month data if month changed
-                        if (problem.date.month != oldMonth) {
-                          _loadMonthData();
-                        }
-                      }
-                    },
-                  );
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Gray divider before week navigation
+          // Gray divider before week navigation (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: TossSpacing.space4),
+          // Timelogs Section (with padding)
+          Padding(
+            padding: horizontalPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Week Navigation
+                TossWeekNavigation(
+                  weekLabel: _getWeekLabel(),
+                  dateRange: _formatWeekRange(),
+                  onPrevWeek: () => _changeWeek(-7),
+                  onCurrentWeek: _jumpToToday,
+                  onNextWeek: () => _changeWeek(7),
+                ),
 
-          // Week Navigation
-          TossWeekNavigation(
-            weekLabel: _getWeekLabel(),
-            dateRange: _formatWeekRange(),
-            onPrevWeek: () => _changeWeek(-7),
-            onCurrentWeek: _jumpToToday,
-            onNextWeek: () => _changeWeek(7),
-          ),
+                const SizedBox(height: TossSpacing.space3),
 
-          const SizedBox(height: TossSpacing.space3),
+                // Week Dates Picker
+                WeekDatesPicker(
+                  selectedDate: _selectedDate,
+                  weekStartDate: _currentWeekStart,
+                  datesWithUserApproved: const {},
+                  shiftAvailabilityMap: _getShiftAvailabilityMap(),
+                  onDateSelected: (date) {
+                    final oldMonth = _selectedDate.month;
+                    setState(() => _selectedDate = date);
+                    // Load new month data if month changed
+                    if (date.month != oldMonth) {
+                      _loadMonthData();
+                    }
+                  },
+                ),
 
-          // Week Dates Picker
-          WeekDatesPicker(
-            selectedDate: _selectedDate,
-            weekStartDate: _currentWeekStart,
-            datesWithUserApproved: const {},
-            shiftAvailabilityMap: _getShiftAvailabilityMap(),
-            onDateSelected: (date) {
-              final oldMonth = _selectedDate.month;
-              setState(() => _selectedDate = date);
-              // Load new month data if month changed
-              if (date.month != oldMonth) {
-                _loadMonthData();
-              }
-            },
-          ),
+                const SizedBox(height: TossSpacing.space4),
 
-          const SizedBox(height: TossSpacing.space4),
+                // Timelogs section header
+                Text(
+                  'Timelogs for ${_formatSelectedDate(_selectedDate)}',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: TossSpacing.space3),
 
-          // Timelogs section header
-          Text(
-            'Timelogs for ${_formatSelectedDate(_selectedDate)}',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
+                // Shift sections
+                Builder(
+                  builder: (context) {
+                    final shifts = _getShiftsForSelectedDate();
+                    if (shifts.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(TossSpacing.space8),
+                        child: TossEmptyView(
+                          title: 'No timelogs',
+                          description: 'No approved shifts for this date',
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: shifts.length,
+                      itemBuilder: (context, index) {
+                        final shift = shifts[index];
+                        return ShiftSection(
+                          shift: shift,
+                          initiallyExpanded: false, // All sections collapsed by default
+                          onDataChanged: () => _loadMonthData(forceRefresh: true),
+                        );
+                      },
+                    );
+                  },
+                ),
+
+                const SizedBox(height: TossSpacing.space4),
+              ],
             ),
           ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Shift sections
-          Builder(
-            builder: (context) {
-              final shifts = _getShiftsForSelectedDate();
-              if (shifts.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(TossSpacing.space8),
-                  child: TossEmptyView(
-                    title: 'No timelogs',
-                    description: 'No approved shifts for this date',
-                  ),
-                );
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
-                itemCount: shifts.length,
-                itemBuilder: (context, index) {
-                  final shift = shifts[index];
-                  return ShiftSection(
-                    shift: shift,
-                    initiallyExpanded: false, // All sections collapsed by default
-                    onDataChanged: () => _loadMonthData(forceRefresh: true),
-                  );
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
         ],
       ),
     );

@@ -8,13 +8,15 @@ part of 'shift_card_dto.dart';
 
 _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
     _$ShiftCardDtoImpl(
-      shiftDate: json['shift_date'] as String,
-      shiftRequestId: json['shift_request_id'] as String,
-      userName: json['user_name'] as String,
+      shiftDate: json['shift_date'] as String? ?? '',
+      shiftRequestId: json['shift_request_id'] as String? ?? '',
+      userName: json['user_name'] as String? ?? '',
       profileImage: json['profile_image'] as String?,
       shiftName: json['shift_name'] as String?,
       shiftTime:
           const ShiftTimeConverter().fromJson(json['shift_time'] as String?),
+      shiftStartTime: json['shift_start_time'] as String?,
+      shiftEndTime: json['shift_end_time'] as String?,
       isApproved: json['is_approved'] as bool? ?? false,
       isProblem: json['is_problem'] as bool? ?? false,
       isProblemSolved: json['is_problem_solved'] as bool? ?? false,
@@ -56,6 +58,8 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
       'profile_image': instance.profileImage,
       'shift_name': instance.shiftName,
       'shift_time': const ShiftTimeConverter().toJson(instance.shiftTime),
+      'shift_start_time': instance.shiftStartTime,
+      'shift_end_time': instance.shiftEndTime,
       'is_approved': instance.isApproved,
       'is_problem': instance.isProblem,
       'is_problem_solved': instance.isProblemSolved,

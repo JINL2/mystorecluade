@@ -105,6 +105,14 @@ class ShiftCard {
   /// Report reason if this shift was reported
   final String? reportReason;
 
+  /// Shift start time from RPC ("2025-12-05 14:00" format)
+  /// Used for consecutive shift detection
+  final String? shiftStartTime;
+
+  /// Shift end time from RPC ("2025-12-05 14:00" format)
+  /// Used for consecutive shift detection
+  final String? shiftEndTime;
+
   /// When the request was created
   final DateTime createdAt;
 
@@ -146,6 +154,8 @@ class ShiftCard {
     this.tags = const [],
     this.problemType,
     this.reportReason,
+    this.shiftStartTime,
+    this.shiftEndTime,
     required this.createdAt,
     this.approvedAt,
   });
@@ -166,47 +176,14 @@ class ShiftCard {
   /// Get number of tags
   int get tagsCount => tags.length;
 
-  /// Calculate actual work duration in hours (if confirmed times exist)
-  double? get actualWorkDurationInHours {
-    if (confirmedStartTime == null || confirmedEndTime == null) return null;
-    final duration = confirmedEndTime!.difference(confirmedStartTime!);
-    return duration.inMinutes / 60.0;
-  }
-
-  /// Get estimated earnings (shift duration * hourly rate + bonus)
-  double get estimatedEarnings {
-    // This is a simplified calculation
-    // In a real app, you'd get hourly rate from employee data
-    final basePay = shift.durationInHours * 10.0; // Placeholder hourly rate
-    return basePay + (bonusAmount ?? 0.0);
-  }
-
   /// Get bonus tags
   List<Tag> get bonusTags {
     return tags.where((tag) => tag.isBonus).toList();
   }
 
-  /// Get warning tags
-  List<Tag> get warningTags {
-    return tags.where((tag) => tag.isWarning).toList();
-  }
-
   /// Get late tags
   List<Tag> get lateTags {
     return tags.where((tag) => tag.isLate).toList();
-  }
-
-  /// Check if employee was late (based on tags or confirmed times)
-  bool get wasLate {
-    // Check if there's a "late" tag
-    if (lateTags.isNotEmpty) return true;
-
-    // Or check if confirmed start time is after planned start time
-    if (confirmedStartTime != null) {
-      return confirmedStartTime!.isAfter(shift.planStartTime);
-    }
-
-    return false;
   }
 
   /// Copy with method for immutability
@@ -245,6 +222,8 @@ class ShiftCard {
     List<Tag>? tags,
     String? problemType,
     String? reportReason,
+    String? shiftStartTime,
+    String? shiftEndTime,
     DateTime? createdAt,
     DateTime? approvedAt,
   }) {
@@ -283,6 +262,8 @@ class ShiftCard {
       tags: tags ?? this.tags,
       problemType: problemType ?? this.problemType,
       reportReason: reportReason ?? this.reportReason,
+      shiftStartTime: shiftStartTime ?? this.shiftStartTime,
+      shiftEndTime: shiftEndTime ?? this.shiftEndTime,
       createdAt: createdAt ?? this.createdAt,
       approvedAt: approvedAt ?? this.approvedAt,
     );

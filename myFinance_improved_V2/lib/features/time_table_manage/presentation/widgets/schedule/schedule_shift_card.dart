@@ -18,6 +18,7 @@ class ScheduleShiftCard extends StatefulWidget {
   final String shiftName;
   final String startTime;
   final String endTime;
+  final int maxCapacity;
   final List<Map<String, dynamic>> assignedEmployees;
   /// Called when Approve button is clicked. Returns true on RPC success.
   final Future<bool> Function(String shiftRequestId) onApprove;
@@ -30,6 +31,7 @@ class ScheduleShiftCard extends StatefulWidget {
     required this.shiftName,
     required this.startTime,
     required this.endTime,
+    required this.maxCapacity,
     required this.assignedEmployees,
     required this.onApprove,
     required this.onRemove,
@@ -63,8 +65,14 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
   @override
   void didUpdateWidget(ScheduleShiftCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset local state when shift changes OR when assigned employees change significantly
-    if (oldWidget.shiftId != widget.shiftId) {
+    // Reset local state when shift changes OR when assigned employees change
+    // This is critical: same shiftId can have different employees on different dates!
+    final employeesChanged = !_areEmployeeListsEqual(
+      oldWidget.assignedEmployees,
+      widget.assignedEmployees,
+    );
+
+    if (oldWidget.shiftId != widget.shiftId || employeesChanged) {
       _localEmployees = List<Map<String, dynamic>>.from(
         widget.assignedEmployees.map((e) => Map<String, dynamic>.from(e)),
       );
@@ -75,6 +83,20 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
         _isExpanded = pendingEmployees.isNotEmpty;
       });
     }
+  }
+
+  /// Compare two employee lists to check if they are equal
+  bool _areEmployeeListsEqual(
+    List<Map<String, dynamic>> list1,
+    List<Map<String, dynamic>> list2,
+  ) {
+    if (list1.length != list2.length) return false;
+
+    // Compare by shift_request_id set
+    final ids1 = list1.map((e) => e['shift_request_id']?.toString() ?? '').toSet();
+    final ids2 = list2.map((e) => e['shift_request_id']?.toString() ?? '').toSet();
+
+    return ids1.length == ids2.length && ids1.containsAll(ids2);
   }
 
   @override
@@ -171,7 +193,7 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
                           )
                           .toList(),
                       title: 'Approved Employees',
-                      countTextFormat: '$totalAssigned/4 assigned',
+                      countTextFormat: '$totalAssigned/${widget.maxCapacity} assigned',
                       maxVisibleAvatars: 3,
                       avatarSize: 24,
                       overlapOffset: 16,
@@ -196,9 +218,12 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
             ),
           ),
 
+          // Divider line under the assigned row
+          if (_isExpanded)
+            const Divider(height: 1, thickness: 1, color: TossColors.gray200),
+
           // Applicants section (when expanded)
           if (_isExpanded && hasApplicants) ...[
-            const Divider(height: 1, color: TossColors.gray200),
             Padding(
               padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(

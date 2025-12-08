@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
 
@@ -64,42 +65,34 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   // Issue report from RPC
   String? get employeeIssueReport => widget.staffRecord.isReported ? widget.staffRecord.reportReason : null;
 
-  // Bonus amount initialized from RPC
+  // Bonus and penalty amounts
   late int bonusAmount;
+  int penaltyAmount = 0;
+  late int _initialPenaltyAmount;
+
+  // Controllers for bonus and penalty text fields
+  final TextEditingController _bonusController = TextEditingController();
+  final TextEditingController _penaltyController = TextEditingController();
 
   // Issue report approval state
   String? issueReportStatus;
   bool _showBothIssueButtons = false;
 
-  // Controllers
-  final TextEditingController _bonusController = TextEditingController();
-
   // ============================================================================
   // Computed Properties
   // ============================================================================
-
-  bool get _areConfirmTimesValid {
-    final checkInValid = confirmedCheckIn != '--:--:--' && confirmedCheckIn.isNotEmpty;
-    final checkOutValid = confirmedCheckOut != '--:--:--' && confirmedCheckOut.isNotEmpty;
-    return checkInValid && checkOutValid;
-  }
 
   bool get hasChanges {
     final checkInChanged = confirmedCheckIn != _initialConfirmedCheckIn;
     final checkOutChanged = confirmedCheckOut != _initialConfirmedCheckOut;
     final bonusChanged = bonusAmount != _initialBonusAmount;
+    final penaltyChanged = penaltyAmount != _initialPenaltyAmount;
     final hasIssueReport = widget.staffRecord.isReported;
     final issueStatusChanged = hasIssueReport &&
         issueReportStatus != null &&
         issueReportStatus != _initialIssueReportStatus;
 
-    final hasAnyChange = checkInChanged || checkOutChanged || bonusChanged || issueStatusChanged;
-    final timesChanged = checkInChanged || checkOutChanged;
-
-    if (timesChanged) {
-      return hasAnyChange && _areConfirmTimesValid;
-    }
-    return hasAnyChange;
+    return checkInChanged || checkOutChanged || bonusChanged || penaltyChanged || issueStatusChanged;
   }
 
   bool get _isFullyConfirmed {
@@ -159,7 +152,8 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
   String get bonusPay => '${NumberFormat('#,###').format(bonusAmount)}₫';
-  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount)}₫';
+  String get penaltyDeduction => '${NumberFormat('#,###').format(penaltyAmount)}₫';
+  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount - penaltyAmount)}₫';
 
   // ============================================================================
   // Lifecycle
@@ -180,10 +174,16 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
     confirmedCheckIn = TimelogHelpers.extractTimeFromString(widget.staffRecord.confirmStartTime) ?? recordedCheckIn;
     confirmedCheckOut = TimelogHelpers.extractTimeFromString(widget.staffRecord.confirmEndTime) ?? recordedCheckOut;
 
-    // Bonus
+    // Bonus and penalty
     bonusAmount = widget.staffRecord.bonusAmount.toInt();
+    penaltyAmount = 0; // TODO: Initialize from staffRecord when penalty field is added
+
+    // Initialize controllers with formatted values
     if (bonusAmount > 0) {
       _bonusController.text = NumberFormat('#,###').format(bonusAmount);
+    }
+    if (penaltyAmount > 0) {
+      _penaltyController.text = NumberFormat('#,###').format(penaltyAmount);
     }
 
     // Issue report status
@@ -196,11 +196,13 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
     _initialConfirmedCheckIn = confirmedCheckIn;
     _initialConfirmedCheckOut = confirmedCheckOut;
     _initialBonusAmount = bonusAmount;
+    _initialPenaltyAmount = penaltyAmount;
   }
 
   @override
   void dispose() {
     _bonusController.dispose();
+    _penaltyController.dispose();
     super.dispose();
   }
 
@@ -248,6 +250,18 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         isCheckOutManuallyConfirmed = true;
       });
     }
+  }
+
+  // ============================================================================
+  // Bonus/Penalty Callbacks
+  // ============================================================================
+
+  void _onBonusChanged(int amount) {
+    setState(() => bonusAmount = amount);
+  }
+
+  void _onPenaltyChanged(int amount) {
+    setState(() => penaltyAmount = amount);
   }
 
   // ============================================================================
@@ -330,62 +344,77 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ShiftInfoCard(
-                    shiftDate: widget.shiftDate,
-                    shiftName: widget.shiftName,
-                    shiftTimeRange: widget.shiftTimeRange,
-                    isLate: widget.staffRecord.isLate,
-                    isOvertime: widget.staffRecord.isOvertime,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildRecordedAttendanceCard(),
-                  const SizedBox(height: 16),
-                  ConfirmedAttendanceCard(
-                    isExpanded: _confirmedAttendanceExpanded,
-                    onToggle: () => setState(() => _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded),
-                    isFullyConfirmed: _isFullyConfirmed,
-                    confirmedCheckIn: confirmedCheckIn,
-                    confirmedCheckOut: confirmedCheckOut,
-                    checkInNeedsConfirm: widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
-                    checkOutNeedsConfirm: widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
-                    isCheckInConfirmed: isCheckInManuallyConfirmed,
-                    isCheckOutConfirmed: isCheckOutManuallyConfirmed,
-                    onEditCheckIn: _showTimePickerForCheckIn,
-                    onEditCheckOut: _showTimePickerForCheckOut,
-                  ),
-                  const SizedBox(height: 16),
-                  if (employeeIssueReport != null) ...[
-                    IssueReportCard(
-                      issueReport: employeeIssueReport!,
-                      isProblemSolved: widget.staffRecord.isProblemSolved,
-                      showBothButtons: _showBothIssueButtons,
-                      issueReportStatus: issueReportStatus,
-                      onExpandButtons: () => setState(() => _showBothIssueButtons = true),
-                      onApprove: () => setState(() => issueReportStatus = 'approved'),
-                      onReject: () => setState(() => issueReportStatus = 'rejected'),
-                      onResetSelection: () => setState(() {
-                        issueReportStatus = null;
-                        _showBothIssueButtons = true;
-                      }),
+                  // Section 1: Shift info, recorded/confirmed attendance, adjustments
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShiftInfoCard(
+                          shiftDate: widget.shiftDate,
+                          shiftName: widget.shiftName,
+                          shiftTimeRange: widget.shiftTimeRange,
+                          isLate: widget.staffRecord.isLate,
+                          isOvertime: widget.staffRecord.isOvertime,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildRecordedAttendanceCard(),
+                        const SizedBox(height: 16),
+                        ConfirmedAttendanceCard(
+                          isExpanded: _confirmedAttendanceExpanded,
+                          onToggle: () => setState(() => _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded),
+                          isFullyConfirmed: _isFullyConfirmed,
+                          confirmedCheckIn: confirmedCheckIn,
+                          confirmedCheckOut: confirmedCheckOut,
+                          checkInNeedsConfirm: widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
+                          checkOutNeedsConfirm: widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
+                          isCheckInConfirmed: isCheckInManuallyConfirmed,
+                          isCheckOutConfirmed: isCheckOutManuallyConfirmed,
+                          onEditCheckIn: _showTimePickerForCheckIn,
+                          onEditCheckOut: _showTimePickerForCheckOut,
+                        ),
+                        const SizedBox(height: 16),
+                        AdjustmentSection(
+                          employeeName: widget.staffRecord.staffName,
+                          employeeAvatarUrl: widget.staffRecord.avatarUrl,
+                          issueReport: employeeIssueReport,
+                          isProblemSolved: widget.staffRecord.isProblemSolved,
+                          showBothButtons: _showBothIssueButtons,
+                          issueReportStatus: issueReportStatus,
+                          onExpandButtons: () => setState(() => _showBothIssueButtons = true),
+                          onApprove: () => setState(() => issueReportStatus = 'approved'),
+                          onReject: () => setState(() => issueReportStatus = 'rejected'),
+                          onResetSelection: () => setState(() {
+                            issueReportStatus = null;
+                            _showBothIssueButtons = true;
+                          }),
+                          bonusController: _bonusController,
+                          penaltyController: _penaltyController,
+                          onBonusChanged: _onBonusChanged,
+                          onPenaltyChanged: _onPenaltyChanged,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  BonusSection(
-                    controller: _bonusController,
-                    onBonusChanged: (amount) => setState(() => bonusAmount = amount),
                   ),
-                  const SizedBox(height: 16),
-                  SalaryBreakdownCard(
-                    asOfDate: asOfDate,
-                    totalConfirmedTime: totalConfirmedTime,
-                    hourlySalary: hourlySalary,
-                    basePay: basePay,
-                    bonusPay: bonusPay,
-                    totalPayment: totalPayment,
+
+                  // Full-width gray divider
+                  const GrayDividerSpace(),
+
+                  // Section 2: Salary breakdown
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SalaryBreakdownCard(
+                      asOfDate: asOfDate,
+                      totalConfirmedTime: totalConfirmedTime,
+                      hourlySalary: hourlySalary,
+                      basePay: basePay,
+                      bonusPay: bonusPay,
+                      penaltyDeduction: penaltyDeduction,
+                      totalPayment: totalPayment,
+                    ),
                   ),
                 ],
               ),

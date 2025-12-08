@@ -7,6 +7,7 @@ import '../entities/operation_result.dart';
 import '../entities/reliability_score.dart';
 import '../entities/schedule_data.dart';
 import '../entities/shift_metadata.dart';
+import '../entities/store_employee.dart';
 
 /// Time Table Repository Interface
 ///
@@ -258,5 +259,18 @@ abstract class TimeTableRepository {
     required String storeId,
     required String time,
     required String timezone,
+  });
+
+  /// Get store employees for filtering
+  ///
+  /// Uses get_employee_info RPC
+  ///
+  /// [companyId] - Company ID
+  /// [storeId] - Store ID
+  ///
+  /// Returns list of [StoreEmployee] with user IDs
+  Future<List<StoreEmployee>> getStoreEmployees({
+    required String companyId,
+    required String storeId,
   });
 }

@@ -61,8 +61,10 @@ class ReliabilityRadarChart extends StatelessWidget {
           ),
           getTitle: (index, angle) {
             if (index >= displayCriteria.length) return const RadarChartTitle(text: '');
+            final name = _getShortName(displayCriteria[index]['name'] as String? ?? '');
+            final score = (displayCriteria[index]['score'] as num?)?.toInt() ?? 0;
             return RadarChartTitle(
-              text: _getShortName(displayCriteria[index]['name'] as String? ?? ''),
+              text: '$name\n$score',
               angle: angle,
             );
           },

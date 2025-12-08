@@ -7,6 +7,7 @@ import '../../domain/entities/operation_result.dart';
 import '../../domain/entities/reliability_score.dart';
 import '../../domain/entities/schedule_data.dart';
 import '../../domain/entities/shift_metadata.dart';
+import '../../domain/entities/store_employee.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../datasources/time_table_datasource.dart';
@@ -29,6 +30,8 @@ import '../models/freezed/schedule_data_dto.dart';
 import '../models/freezed/schedule_data_dto_mapper.dart';
 import '../models/freezed/shift_metadata_dto.dart';
 import '../models/freezed/shift_metadata_dto_mapper.dart';
+import '../models/freezed/store_employee_dto.dart';
+import '../models/freezed/store_employee_dto_mapper.dart';
 
 /// Time Table Repository Implementation
 ///
@@ -427,6 +430,31 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to fetch reliability score: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<List<StoreEmployee>> getStoreEmployees({
+    required String companyId,
+    required String storeId,
+  }) async {
+    try {
+      final data = await _datasource.getStoreEmployees(
+        companyId: companyId,
+        storeId: storeId,
+      );
+
+      // ✅ FREEZED: DTO → Entity conversion via mapper
+      return data
+          .map((item) => StoreEmployeeDto.fromJson(item as Map<String, dynamic>))
+          .map((dto) => dto.toStoreEmployee())
+          .toList();
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to fetch store employees: $e',
         originalError: e,
       );
     }

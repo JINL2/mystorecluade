@@ -1217,6 +1217,10 @@ mixin _$EmployeeReliabilityDto {
   String get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
   String? get profileImage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'role')
+  String? get role => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_name')
+  String? get storeName => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_applications')
   int get totalApplications => throw _privateConstructorUsedError;
   @JsonKey(name: 'approved_shifts')
@@ -1231,10 +1235,26 @@ mixin _$EmployeeReliabilityDto {
   num get onTimeRate => throw _privateConstructorUsedError;
   @JsonKey(name: 'avg_late_minutes')
   num get avgLateMinutes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'avg_fill_rate_applied')
+  num get avgFillRateApplied => throw _privateConstructorUsedError;
   @JsonKey(name: 'reliability')
   num get reliability => throw _privateConstructorUsedError;
   @JsonKey(name: 'final_score')
-  num get finalScore => throw _privateConstructorUsedError;
+  num get finalScore =>
+      throw _privateConstructorUsedError; // Score breakdown fields
+  @JsonKey(name: 'applications_score')
+  num get applicationsScore => throw _privateConstructorUsedError;
+  @JsonKey(name: 'late_rate_score')
+  num get lateRateScore => throw _privateConstructorUsedError;
+  @JsonKey(name: 'late_minutes_score')
+  num get lateMinutesScore => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fill_rate_score')
+  num get fillRateScore =>
+      throw _privateConstructorUsedError; // Salary fields for payroll calculation
+  @JsonKey(name: 'salary_amount')
+  num get salaryAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'salary_type')
+  String? get salaryType => throw _privateConstructorUsedError;
 
   /// Serializes this EmployeeReliabilityDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1256,6 +1276,8 @@ abstract class $EmployeeReliabilityDtoCopyWith<$Res> {
       {@JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
+      @JsonKey(name: 'role') String? role,
+      @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'total_applications') int totalApplications,
       @JsonKey(name: 'approved_shifts') int approvedShifts,
       @JsonKey(name: 'completed_shifts') int completedShifts,
@@ -1263,8 +1285,15 @@ abstract class $EmployeeReliabilityDtoCopyWith<$Res> {
       @JsonKey(name: 'late_rate') num lateRate,
       @JsonKey(name: 'on_time_rate') num onTimeRate,
       @JsonKey(name: 'avg_late_minutes') num avgLateMinutes,
+      @JsonKey(name: 'avg_fill_rate_applied') num avgFillRateApplied,
       @JsonKey(name: 'reliability') num reliability,
-      @JsonKey(name: 'final_score') num finalScore});
+      @JsonKey(name: 'final_score') num finalScore,
+      @JsonKey(name: 'applications_score') num applicationsScore,
+      @JsonKey(name: 'late_rate_score') num lateRateScore,
+      @JsonKey(name: 'late_minutes_score') num lateMinutesScore,
+      @JsonKey(name: 'fill_rate_score') num fillRateScore,
+      @JsonKey(name: 'salary_amount') num salaryAmount,
+      @JsonKey(name: 'salary_type') String? salaryType});
 }
 
 /// @nodoc
@@ -1286,6 +1315,8 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
     Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
+    Object? role = freezed,
+    Object? storeName = freezed,
     Object? totalApplications = null,
     Object? approvedShifts = null,
     Object? completedShifts = null,
@@ -1293,8 +1324,15 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
     Object? lateRate = null,
     Object? onTimeRate = null,
     Object? avgLateMinutes = null,
+    Object? avgFillRateApplied = null,
     Object? reliability = null,
     Object? finalScore = null,
+    Object? applicationsScore = null,
+    Object? lateRateScore = null,
+    Object? lateMinutesScore = null,
+    Object? fillRateScore = null,
+    Object? salaryAmount = null,
+    Object? salaryType = freezed,
   }) {
     return _then(_value.copyWith(
       userId: null == userId
@@ -1308,6 +1346,14 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      role: freezed == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
       totalApplications: null == totalApplications
           ? _value.totalApplications
@@ -1337,6 +1383,10 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
           ? _value.avgLateMinutes
           : avgLateMinutes // ignore: cast_nullable_to_non_nullable
               as num,
+      avgFillRateApplied: null == avgFillRateApplied
+          ? _value.avgFillRateApplied
+          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
+              as num,
       reliability: null == reliability
           ? _value.reliability
           : reliability // ignore: cast_nullable_to_non_nullable
@@ -1345,6 +1395,30 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
           ? _value.finalScore
           : finalScore // ignore: cast_nullable_to_non_nullable
               as num,
+      applicationsScore: null == applicationsScore
+          ? _value.applicationsScore
+          : applicationsScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      lateRateScore: null == lateRateScore
+          ? _value.lateRateScore
+          : lateRateScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      lateMinutesScore: null == lateMinutesScore
+          ? _value.lateMinutesScore
+          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      fillRateScore: null == fillRateScore
+          ? _value.fillRateScore
+          : fillRateScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      salaryAmount: null == salaryAmount
+          ? _value.salaryAmount
+          : salaryAmount // ignore: cast_nullable_to_non_nullable
+              as num,
+      salaryType: freezed == salaryType
+          ? _value.salaryType
+          : salaryType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1362,6 +1436,8 @@ abstract class _$$EmployeeReliabilityDtoImplCopyWith<$Res>
       {@JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
+      @JsonKey(name: 'role') String? role,
+      @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'total_applications') int totalApplications,
       @JsonKey(name: 'approved_shifts') int approvedShifts,
       @JsonKey(name: 'completed_shifts') int completedShifts,
@@ -1369,8 +1445,15 @@ abstract class _$$EmployeeReliabilityDtoImplCopyWith<$Res>
       @JsonKey(name: 'late_rate') num lateRate,
       @JsonKey(name: 'on_time_rate') num onTimeRate,
       @JsonKey(name: 'avg_late_minutes') num avgLateMinutes,
+      @JsonKey(name: 'avg_fill_rate_applied') num avgFillRateApplied,
       @JsonKey(name: 'reliability') num reliability,
-      @JsonKey(name: 'final_score') num finalScore});
+      @JsonKey(name: 'final_score') num finalScore,
+      @JsonKey(name: 'applications_score') num applicationsScore,
+      @JsonKey(name: 'late_rate_score') num lateRateScore,
+      @JsonKey(name: 'late_minutes_score') num lateMinutesScore,
+      @JsonKey(name: 'fill_rate_score') num fillRateScore,
+      @JsonKey(name: 'salary_amount') num salaryAmount,
+      @JsonKey(name: 'salary_type') String? salaryType});
 }
 
 /// @nodoc
@@ -1391,6 +1474,8 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
+    Object? role = freezed,
+    Object? storeName = freezed,
     Object? totalApplications = null,
     Object? approvedShifts = null,
     Object? completedShifts = null,
@@ -1398,8 +1483,15 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
     Object? lateRate = null,
     Object? onTimeRate = null,
     Object? avgLateMinutes = null,
+    Object? avgFillRateApplied = null,
     Object? reliability = null,
     Object? finalScore = null,
+    Object? applicationsScore = null,
+    Object? lateRateScore = null,
+    Object? lateMinutesScore = null,
+    Object? fillRateScore = null,
+    Object? salaryAmount = null,
+    Object? salaryType = freezed,
   }) {
     return _then(_$EmployeeReliabilityDtoImpl(
       userId: null == userId
@@ -1413,6 +1505,14 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      role: freezed == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
       totalApplications: null == totalApplications
           ? _value.totalApplications
@@ -1442,6 +1542,10 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
           ? _value.avgLateMinutes
           : avgLateMinutes // ignore: cast_nullable_to_non_nullable
               as num,
+      avgFillRateApplied: null == avgFillRateApplied
+          ? _value.avgFillRateApplied
+          : avgFillRateApplied // ignore: cast_nullable_to_non_nullable
+              as num,
       reliability: null == reliability
           ? _value.reliability
           : reliability // ignore: cast_nullable_to_non_nullable
@@ -1450,6 +1554,30 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
           ? _value.finalScore
           : finalScore // ignore: cast_nullable_to_non_nullable
               as num,
+      applicationsScore: null == applicationsScore
+          ? _value.applicationsScore
+          : applicationsScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      lateRateScore: null == lateRateScore
+          ? _value.lateRateScore
+          : lateRateScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      lateMinutesScore: null == lateMinutesScore
+          ? _value.lateMinutesScore
+          : lateMinutesScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      fillRateScore: null == fillRateScore
+          ? _value.fillRateScore
+          : fillRateScore // ignore: cast_nullable_to_non_nullable
+              as num,
+      salaryAmount: null == salaryAmount
+          ? _value.salaryAmount
+          : salaryAmount // ignore: cast_nullable_to_non_nullable
+              as num,
+      salaryType: freezed == salaryType
+          ? _value.salaryType
+          : salaryType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1461,6 +1589,8 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
       {@JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'user_name') required this.userName,
       @JsonKey(name: 'profile_image') this.profileImage,
+      @JsonKey(name: 'role') this.role,
+      @JsonKey(name: 'store_name') this.storeName,
       @JsonKey(name: 'total_applications') this.totalApplications = 0,
       @JsonKey(name: 'approved_shifts') this.approvedShifts = 0,
       @JsonKey(name: 'completed_shifts') this.completedShifts = 0,
@@ -1468,8 +1598,15 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
       @JsonKey(name: 'late_rate') this.lateRate = 0,
       @JsonKey(name: 'on_time_rate') this.onTimeRate = 0,
       @JsonKey(name: 'avg_late_minutes') this.avgLateMinutes = 0,
+      @JsonKey(name: 'avg_fill_rate_applied') this.avgFillRateApplied = 0,
       @JsonKey(name: 'reliability') this.reliability = 0,
-      @JsonKey(name: 'final_score') this.finalScore = 0});
+      @JsonKey(name: 'final_score') this.finalScore = 0,
+      @JsonKey(name: 'applications_score') this.applicationsScore = 0,
+      @JsonKey(name: 'late_rate_score') this.lateRateScore = 0,
+      @JsonKey(name: 'late_minutes_score') this.lateMinutesScore = 0,
+      @JsonKey(name: 'fill_rate_score') this.fillRateScore = 0,
+      @JsonKey(name: 'salary_amount') this.salaryAmount = 0,
+      @JsonKey(name: 'salary_type') this.salaryType});
 
   factory _$EmployeeReliabilityDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$EmployeeReliabilityDtoImplFromJson(json);
@@ -1483,6 +1620,12 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
   @override
   @JsonKey(name: 'profile_image')
   final String? profileImage;
+  @override
+  @JsonKey(name: 'role')
+  final String? role;
+  @override
+  @JsonKey(name: 'store_name')
+  final String? storeName;
   @override
   @JsonKey(name: 'total_applications')
   final int totalApplications;
@@ -1505,15 +1648,38 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
   @JsonKey(name: 'avg_late_minutes')
   final num avgLateMinutes;
   @override
+  @JsonKey(name: 'avg_fill_rate_applied')
+  final num avgFillRateApplied;
+  @override
   @JsonKey(name: 'reliability')
   final num reliability;
   @override
   @JsonKey(name: 'final_score')
   final num finalScore;
+// Score breakdown fields
+  @override
+  @JsonKey(name: 'applications_score')
+  final num applicationsScore;
+  @override
+  @JsonKey(name: 'late_rate_score')
+  final num lateRateScore;
+  @override
+  @JsonKey(name: 'late_minutes_score')
+  final num lateMinutesScore;
+  @override
+  @JsonKey(name: 'fill_rate_score')
+  final num fillRateScore;
+// Salary fields for payroll calculation
+  @override
+  @JsonKey(name: 'salary_amount')
+  final num salaryAmount;
+  @override
+  @JsonKey(name: 'salary_type')
+  final String? salaryType;
 
   @override
   String toString() {
-    return 'EmployeeReliabilityDto(userId: $userId, userName: $userName, profileImage: $profileImage, totalApplications: $totalApplications, approvedShifts: $approvedShifts, completedShifts: $completedShifts, lateCount: $lateCount, lateRate: $lateRate, onTimeRate: $onTimeRate, avgLateMinutes: $avgLateMinutes, reliability: $reliability, finalScore: $finalScore)';
+    return 'EmployeeReliabilityDto(userId: $userId, userName: $userName, profileImage: $profileImage, role: $role, storeName: $storeName, totalApplications: $totalApplications, approvedShifts: $approvedShifts, completedShifts: $completedShifts, lateCount: $lateCount, lateRate: $lateRate, onTimeRate: $onTimeRate, avgLateMinutes: $avgLateMinutes, avgFillRateApplied: $avgFillRateApplied, reliability: $reliability, finalScore: $finalScore, applicationsScore: $applicationsScore, lateRateScore: $lateRateScore, lateMinutesScore: $lateMinutesScore, fillRateScore: $fillRateScore, salaryAmount: $salaryAmount, salaryType: $salaryType)';
   }
 
   @override
@@ -1526,6 +1692,9 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
                 other.userName == userName) &&
             (identical(other.profileImage, profileImage) ||
                 other.profileImage == profileImage) &&
+            (identical(other.role, role) || other.role == role) &&
+            (identical(other.storeName, storeName) ||
+                other.storeName == storeName) &&
             (identical(other.totalApplications, totalApplications) ||
                 other.totalApplications == totalApplications) &&
             (identical(other.approvedShifts, approvedShifts) ||
@@ -1540,28 +1709,52 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
                 other.onTimeRate == onTimeRate) &&
             (identical(other.avgLateMinutes, avgLateMinutes) ||
                 other.avgLateMinutes == avgLateMinutes) &&
+            (identical(other.avgFillRateApplied, avgFillRateApplied) ||
+                other.avgFillRateApplied == avgFillRateApplied) &&
             (identical(other.reliability, reliability) ||
                 other.reliability == reliability) &&
             (identical(other.finalScore, finalScore) ||
-                other.finalScore == finalScore));
+                other.finalScore == finalScore) &&
+            (identical(other.applicationsScore, applicationsScore) ||
+                other.applicationsScore == applicationsScore) &&
+            (identical(other.lateRateScore, lateRateScore) ||
+                other.lateRateScore == lateRateScore) &&
+            (identical(other.lateMinutesScore, lateMinutesScore) ||
+                other.lateMinutesScore == lateMinutesScore) &&
+            (identical(other.fillRateScore, fillRateScore) ||
+                other.fillRateScore == fillRateScore) &&
+            (identical(other.salaryAmount, salaryAmount) ||
+                other.salaryAmount == salaryAmount) &&
+            (identical(other.salaryType, salaryType) ||
+                other.salaryType == salaryType));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      userId,
-      userName,
-      profileImage,
-      totalApplications,
-      approvedShifts,
-      completedShifts,
-      lateCount,
-      lateRate,
-      onTimeRate,
-      avgLateMinutes,
-      reliability,
-      finalScore);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        userId,
+        userName,
+        profileImage,
+        role,
+        storeName,
+        totalApplications,
+        approvedShifts,
+        completedShifts,
+        lateCount,
+        lateRate,
+        onTimeRate,
+        avgLateMinutes,
+        avgFillRateApplied,
+        reliability,
+        finalScore,
+        applicationsScore,
+        lateRateScore,
+        lateMinutesScore,
+        fillRateScore,
+        salaryAmount,
+        salaryType
+      ]);
 
   /// Create a copy of EmployeeReliabilityDto
   /// with the given fields replaced by the non-null parameter values.
@@ -1585,6 +1778,8 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
           {@JsonKey(name: 'user_id') required final String userId,
           @JsonKey(name: 'user_name') required final String userName,
           @JsonKey(name: 'profile_image') final String? profileImage,
+          @JsonKey(name: 'role') final String? role,
+          @JsonKey(name: 'store_name') final String? storeName,
           @JsonKey(name: 'total_applications') final int totalApplications,
           @JsonKey(name: 'approved_shifts') final int approvedShifts,
           @JsonKey(name: 'completed_shifts') final int completedShifts,
@@ -1592,8 +1787,15 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
           @JsonKey(name: 'late_rate') final num lateRate,
           @JsonKey(name: 'on_time_rate') final num onTimeRate,
           @JsonKey(name: 'avg_late_minutes') final num avgLateMinutes,
+          @JsonKey(name: 'avg_fill_rate_applied') final num avgFillRateApplied,
           @JsonKey(name: 'reliability') final num reliability,
-          @JsonKey(name: 'final_score') final num finalScore}) =
+          @JsonKey(name: 'final_score') final num finalScore,
+          @JsonKey(name: 'applications_score') final num applicationsScore,
+          @JsonKey(name: 'late_rate_score') final num lateRateScore,
+          @JsonKey(name: 'late_minutes_score') final num lateMinutesScore,
+          @JsonKey(name: 'fill_rate_score') final num fillRateScore,
+          @JsonKey(name: 'salary_amount') final num salaryAmount,
+          @JsonKey(name: 'salary_type') final String? salaryType}) =
       _$EmployeeReliabilityDtoImpl;
 
   factory _EmployeeReliabilityDto.fromJson(Map<String, dynamic> json) =
@@ -1608,6 +1810,12 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
   @override
   @JsonKey(name: 'profile_image')
   String? get profileImage;
+  @override
+  @JsonKey(name: 'role')
+  String? get role;
+  @override
+  @JsonKey(name: 'store_name')
+  String? get storeName;
   @override
   @JsonKey(name: 'total_applications')
   int get totalApplications;
@@ -1630,11 +1838,32 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
   @JsonKey(name: 'avg_late_minutes')
   num get avgLateMinutes;
   @override
+  @JsonKey(name: 'avg_fill_rate_applied')
+  num get avgFillRateApplied;
+  @override
   @JsonKey(name: 'reliability')
   num get reliability;
   @override
   @JsonKey(name: 'final_score')
-  num get finalScore;
+  num get finalScore; // Score breakdown fields
+  @override
+  @JsonKey(name: 'applications_score')
+  num get applicationsScore;
+  @override
+  @JsonKey(name: 'late_rate_score')
+  num get lateRateScore;
+  @override
+  @JsonKey(name: 'late_minutes_score')
+  num get lateMinutesScore;
+  @override
+  @JsonKey(name: 'fill_rate_score')
+  num get fillRateScore; // Salary fields for payroll calculation
+  @override
+  @JsonKey(name: 'salary_amount')
+  num get salaryAmount;
+  @override
+  @JsonKey(name: 'salary_type')
+  String? get salaryType;
 
   /// Create a copy of EmployeeReliabilityDto
   /// with the given fields replaced by the non-null parameter values.

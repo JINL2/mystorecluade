@@ -23,7 +23,8 @@ class SalaryBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TossWhiteCard(
-      padding: const EdgeInsets.all(16),
+      showBorder: false,
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           // Total confirmed time
@@ -64,15 +65,7 @@ class SalaryBreakdownCard extends StatelessWidget {
             value: bonusPay,
           ),
 
-          // Total section
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: TossColors.gray100,
-            ),
-          ),
+          const SizedBox(height: 12),
 
           // Total payment
           _BreakdownRow(
