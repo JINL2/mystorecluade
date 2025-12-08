@@ -9,7 +9,7 @@ import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 /**
  * Raw inventory item data from database/RPC
- * Represents the data structure returned by get_inventory_page RPC
+ * Supports both v2 (nested) and v3 (flat) response structures
  */
 export interface InventoryItemDTO {
   product_id: string;
@@ -22,16 +22,35 @@ export interface InventoryItemDTO {
   brand_name?: string;
   unit?: string;
   product_type?: string;
+  // Nested structure (v2 style)
   stock?: {
     quantity_on_hand?: number;
+    quantity_available?: number;
+    quantity_reserved?: number;
   };
   price?: {
     cost?: number;
     selling?: number;
+    source?: string;
   };
-  image_urls?: string[];  // 제품 이미지 URL 배열
+  status?: {
+    stock_level?: string;
+    is_active?: boolean;
+  };
+  // Flat structure (v3 transformed)
+  quantity_on_hand?: number;
+  quantity_available?: number;
+  quantity_reserved?: number;
+  cost_price?: number;
+  selling_price?: number;
+  price_source?: string;
+  stock_level?: string;
+  is_active?: boolean;
+  // Common fields
+  image_urls?: string[];
   created_at?: string;
   updated_at?: string;
+  recent_changes?: any[];
 }
 
 /**
@@ -40,15 +59,17 @@ export interface InventoryItemDTO {
 export class InventoryItemModel {
   /**
    * Convert raw database/RPC data to InventoryItem entity
+   * Supports both nested (v2) and flat (v3) response structures
    * @param json - Raw data from database
    * @param defaultCurrencySymbol - Default currency symbol to use
    * @returns InventoryItem domain entity
    */
   static fromJson(json: InventoryItemDTO, defaultCurrencySymbol: string = '₩'): InventoryItem {
-    // Extract nested values with fallbacks
-    const currentStock = json.stock?.quantity_on_hand ?? 0;
-    const unitPrice = json.price?.selling ?? 0;
-    const costPrice = json.price?.cost ?? 0;
+    // Extract values - support both nested and flat structures
+    // Flat structure takes priority (v3 transformed data)
+    const currentStock = json.quantity_on_hand ?? json.stock?.quantity_on_hand ?? 0;
+    const unitPrice = json.selling_price ?? json.price?.selling ?? 0;
+    const costPrice = json.cost_price ?? json.price?.cost ?? 0;
     const totalValue = currentStock * unitPrice;
 
     // Convert UTC created_at to Local Date object

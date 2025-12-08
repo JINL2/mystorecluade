@@ -235,6 +235,25 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       // Check confirmed status
       final isConfirmed = card.confirmedStartRaw != null || card.confirmedEndRaw != null;
 
+      // Parse shift end time and find consecutive end time
+      // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
+      // use the LAST shift's end time (18:00) for all shifts
+      final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
+      final shiftEndTime = _findConsecutiveEndTime(
+        staffId: card.employee.userId,
+        shiftDate: card.shiftDate,
+        currentShiftEndTime: currentShiftEndTime,
+        allCards: allCards,
+      );
+
+      // Skip adding problems if shift is still in progress
+      // (current time is before the consecutive shift end time)
+      final isShiftInProgress = shiftEndTime != null && DateTime.now().isBefore(shiftEndTime);
+      if (isShiftInProgress) {
+        // Shift hasn't ended yet - no problems can occur
+        continue;
+      }
+
       // No check-out: actual_end_time == null AND confirmed_end_time == null
       if (card.actualEndTime == null && card.confirmedEndTime == null) {
         problems.add(AttendanceProblem(
@@ -268,6 +287,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
+          shiftEndTime: shiftEndTime,
         ));
       }
 
@@ -304,6 +324,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
+          shiftEndTime: shiftEndTime,
         ));
       }
 
@@ -340,6 +361,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
+          shiftEndTime: shiftEndTime,
         ));
       }
     }
@@ -545,6 +567,19 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         // Needs confirm if late/overtime but not yet confirmed
         final needsConfirm = (isLate || isOverTime) && !isConfirmed;
 
+        // Parse shift end time and find consecutive end time
+        // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
+        // use the LAST shift's end time (18:00) for all shifts
+        final currentShiftEndTime = _parseShiftEndTime(detailedCard?.shiftEndTime);
+        final shiftEndTime = detailedCard != null
+            ? _findConsecutiveEndTime(
+                staffId: req.employee.userId,
+                shiftDate: selectedDateStr,
+                currentShiftEndTime: currentShiftEndTime,
+                allCards: allApprovedCards,
+              )
+            : currentShiftEndTime;
+
         return StaffTimeRecord(
           staffId: req.employee.userId,
           staffName: req.employee.userName,
@@ -573,6 +608,10 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: detailedCard?.paidHour ?? 0.0,
           lateMinute: detailedCard?.lateMinute ?? 0,
           overtimeMinute: detailedCard?.overTimeMinute ?? 0,
+          // v4: New fields
+          isReportedSolved: detailedCard?.isReportedSolved,
+          managerMemos: detailedCard?.managerMemos ?? const [],
+          shiftEndTime: shiftEndTime,
         );
       }).toList();
 
@@ -611,6 +650,69 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     }
 
     return timeString;
+  }
+
+  /// Parse shift end time string to DateTime
+  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00:00"
+  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
+    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
+    try {
+      // Normalize: replace 'T' with space if present
+      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
+      final parts = normalized.split(' ');
+      if (parts.length < 2) return null;
+
+      final dateParts = parts[0].split('-');
+      final timeParts = parts[1].split(':');
+
+      if (dateParts.length < 3 || timeParts.length < 2) return null;
+
+      return DateTime(
+        int.parse(dateParts[0]), // year
+        int.parse(dateParts[1]), // month
+        int.parse(dateParts[2]), // day
+        int.parse(timeParts[0]), // hour
+        int.parse(timeParts[1]), // minute
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Find the last consecutive shift end time for a staff member on a given date
+  /// Consecutive shifts: shifts where one ends and another starts (within 30 min gap)
+  /// Returns the end time of the last consecutive shift chain
+  DateTime? _findConsecutiveEndTime({
+    required String staffId,
+    required String shiftDate,
+    required DateTime? currentShiftEndTime,
+    required List<ShiftCard> allCards,
+  }) {
+    if (currentShiftEndTime == null) return null;
+
+    // Find all shifts for this staff member on the same date
+    final staffShiftsOnDate = allCards
+        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
+        .toList();
+
+    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
+
+    // Parse all shift end times and sort
+    final shiftEndTimes = <DateTime>[];
+    for (final card in staffShiftsOnDate) {
+      final endTime = _parseShiftEndTime(card.shiftEndTime);
+      if (endTime != null) {
+        shiftEndTimes.add(endTime);
+      }
+    }
+
+    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
+
+    // Sort by time
+    shiftEndTimes.sort();
+
+    // Return the latest end time (last shift of the day for this staff)
+    return shiftEndTimes.last;
   }
 
   String _formatSelectedDate(DateTime date) {
@@ -751,6 +853,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                                 paidHour: problem.paidHour,
                                 lateMinute: problem.lateMinute,
                                 overtimeMinute: problem.overtimeMinute,
+                                shiftEndTime: problem.shiftEndTime,
                               );
 
                               final result = await Navigator.of(context).push<bool>(

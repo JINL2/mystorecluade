@@ -54,8 +54,6 @@ class SalaryBreakdownCard extends StatelessWidget {
         const SizedBox(height: 12),
         _InfoRow(label: 'Bonus pay', value: bonusPay),
         const SizedBox(height: 12),
-        _InfoRow(label: 'Penalty deduction', value: penaltyDeduction),
-        const SizedBox(height: 12),
         _InfoRow(
           label: 'Total payment',
           value: totalPayment,

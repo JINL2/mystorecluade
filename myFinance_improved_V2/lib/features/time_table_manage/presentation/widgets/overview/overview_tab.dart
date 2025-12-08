@@ -11,7 +11,6 @@ import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
-import '../../pages/attention_list_page.dart';
 import '../../pages/staff_timelog_detail_page.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
@@ -256,7 +255,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           cards: attendance.notCheckedIn,
         ),
       ),
-      onEmployeeTap: (card) => _handleEmployeeTap(card, shift),
+      onEmployeeTap: (card) => _handleEmployeeTap(card, shift, allCards ?? []),
     );
   }
 
@@ -296,50 +295,42 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     );
   }
 
-  /// Build Need Attention header with "See All" button
+  /// Build Need Attention header (without "See All" button)
   Widget _buildNeedAttentionHeader(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
   ) {
     final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState);
-    final count = attentionItems.length;
+    // Filter to show only yesterday, today, tomorrow
+    final filteredItems = _filterByRecentDates(attentionItems);
+    final count = filteredItems.length;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Need Attention ($count)',
-          style: TossTextStyles.labelMedium.copyWith(
-            color: TossColors.gray600,
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (context) => AttentionListPage(
-                  items: attentionItems,
-                  storeId: widget.selectedStoreId,
-                  onNavigateToSchedule: widget.onNavigateToSchedule,
-                ),
-              ),
-            );
-          },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'See All',
-            style: TossTextStyles.button.copyWith(
-              color: TossColors.primary,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ],
+    return Text(
+      'Need Attention ($count)',
+      style: TossTextStyles.labelMedium.copyWith(
+        color: TossColors.gray600,
+      ),
     );
+  }
+
+  /// Filter attention items to show only yesterday, today, and tomorrow
+  List<AttentionItemData> _filterByRecentDates(List<AttentionItemData> items) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final tomorrow = today.add(const Duration(days: 1));
+
+    return items.where((item) {
+      if (item.shiftDate == null) return false;
+      final itemDate = DateTime(
+        item.shiftDate!.year,
+        item.shiftDate!.month,
+        item.shiftDate!.day,
+      );
+      return itemDate.isAtSameMomentAs(yesterday) ||
+          itemDate.isAtSameMomentAs(today) ||
+          itemDate.isAtSameMomentAs(tomorrow);
+    }).toList();
   }
 
   /// Get attention items from real data
@@ -369,6 +360,17 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         final shiftDate = DateTime.tryParse(card.shiftDate) ?? DateTime.now();
         final dateStr = _formatDate(shiftDate);
         final timeStr = _formatTimeRange(card.shift.planStartTime, card.shift.planEndTime);
+
+        // Parse shift end time and find consecutive end time
+        // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
+        // use the LAST shift's end time (18:00) for all shifts
+        final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
+        final shiftEndTime = _findConsecutiveEndTime(
+          staffId: card.employee.userId,
+          shiftDate: card.shiftDate,
+          currentShiftEndTime: currentShiftEndTime,
+          allCards: allCards,
+        );
 
         // Common navigation data for staff items
         AttentionItemData createStaffAttentionItem({
@@ -413,6 +415,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
             shiftName: card.shift.shiftName,
             shiftTimeRange: timeStr,
             isShiftProblem: false,
+            shiftEndTime: shiftEndTime,
           );
         }
 
@@ -494,8 +497,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     MonthlyShiftStatusState? monthlyStatusState,
   ) {
     final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState);
+    // Filter to show only yesterday, today, tomorrow
+    final filteredItems = _filterByRecentDates(attentionItems);
 
-    if (attentionItems.isEmpty) {
+    if (filteredItems.isEmpty) {
       return const SizedBox(
         height: 180,
         child: Center(
@@ -508,10 +513,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       height: 180,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: attentionItems.length,
+        itemCount: filteredItems.length,
         separatorBuilder: (context, index) => const SizedBox(width: TossSpacing.space3),
         itemBuilder: (context, index) {
-          final item = attentionItems[index];
+          final item = filteredItems[index];
           return AttentionCard(
             item: item,
             onTap: () => _handleAttentionItemTap(item),
@@ -561,6 +566,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       paidHour: item.paidHour,
       lateMinute: item.lateMinute,
       overtimeMinute: item.overtimeMinute,
+      // v4: New fields
+      isReportedSolved: item.isReportedSolved,
+      managerMemos: item.managerMemos,
+      shiftEndTime: item.shiftEndTime,
     );
 
     // Format shift date for display
@@ -590,7 +599,18 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   }
 
   /// Handle employee tap from snapshot metrics - navigate to staff detail page
-  Future<void> _handleEmployeeTap(ShiftCard card, Shift shift) async {
+  Future<void> _handleEmployeeTap(ShiftCard card, Shift shift, List<ShiftCard> allCards) async {
+    // Parse shift end time and find consecutive end time
+    // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
+    // use the LAST shift's end time (18:00) for all shifts
+    final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
+    final shiftEndTime = _findConsecutiveEndTime(
+      staffId: card.employee.userId,
+      shiftDate: card.shiftDate,
+      currentShiftEndTime: currentShiftEndTime,
+      allCards: allCards,
+    );
+
     // Create StaffTimeRecord from ShiftCard
     final staffRecord = StaffTimeRecord(
       staffId: card.employee.userId,
@@ -622,6 +642,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       paidHour: card.paidHour,
       lateMinute: card.lateMinute,
       overtimeMinute: card.overTimeMinute,
+      shiftEndTime: shiftEndTime,
     );
 
     // Format shift date for display
@@ -669,6 +690,64 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
         }
       },
     );
+  }
+
+  /// Parse shift end time string to DateTime
+  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00"
+  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
+    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
+    try {
+      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
+      final parts = normalized.split(' ');
+      if (parts.length < 2) return null;
+
+      final dateParts = parts[0].split('-');
+      final timeParts = parts[1].split(':');
+      if (dateParts.length < 3 || timeParts.length < 2) return null;
+
+      return DateTime(
+        int.parse(dateParts[0]),
+        int.parse(dateParts[1]),
+        int.parse(dateParts[2]),
+        int.parse(timeParts[0]),
+        int.parse(timeParts[1]),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Find the last consecutive shift end time for a staff member on a given date
+  /// Returns the end time of the last shift of the day for this staff member
+  DateTime? _findConsecutiveEndTime({
+    required String staffId,
+    required String shiftDate,
+    required DateTime? currentShiftEndTime,
+    required List<ShiftCard> allCards,
+  }) {
+    if (currentShiftEndTime == null) return null;
+
+    // Find all shifts for this staff member on the same date
+    final staffShiftsOnDate = allCards
+        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
+        .toList();
+
+    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
+
+    // Parse all shift end times and sort
+    final shiftEndTimes = <DateTime>[];
+    for (final card in staffShiftsOnDate) {
+      final endTime = _parseShiftEndTime(card.shiftEndTime);
+      if (endTime != null) {
+        shiftEndTimes.add(endTime);
+      }
+    }
+
+    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
+
+    // Sort by time and return the latest
+    shiftEndTimes.sort();
+    return shiftEndTimes.last;
   }
 
   /// Extract stores from user data

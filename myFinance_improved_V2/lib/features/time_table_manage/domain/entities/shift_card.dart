@@ -1,4 +1,5 @@
 import 'employee_info.dart';
+import 'manager_memo.dart';
 import 'shift.dart';
 import 'tag.dart';
 
@@ -7,6 +8,7 @@ import 'tag.dart';
 /// Represents a comprehensive view of a shift assignment with all relevant
 /// information including employee, shift details, approval status, and tags.
 /// v3: Uses shiftDate (actual work date from start_time_utc) instead of requestDate
+/// v4: Adds isReportedSolved (bool?), managerMemos (List<ManagerMemo>)
 class ShiftCard {
   /// The shift request ID
   final String shiftRequestId;
@@ -105,6 +107,12 @@ class ShiftCard {
   /// Report reason if this shift was reported
   final String? reportReason;
 
+  /// v4: Whether the report has been resolved
+  final bool? isReportedSolved;
+
+  /// v4: Manager memos for this shift
+  final List<ManagerMemo> managerMemos;
+
   /// Shift start time from RPC ("2025-12-05 14:00" format)
   /// Used for consecutive shift detection
   final String? shiftStartTime;
@@ -154,6 +162,8 @@ class ShiftCard {
     this.tags = const [],
     this.problemType,
     this.reportReason,
+    this.isReportedSolved,
+    this.managerMemos = const [],
     this.shiftStartTime,
     this.shiftEndTime,
     required this.createdAt,
@@ -222,6 +232,8 @@ class ShiftCard {
     List<Tag>? tags,
     String? problemType,
     String? reportReason,
+    bool? isReportedSolved,
+    List<ManagerMemo>? managerMemos,
     String? shiftStartTime,
     String? shiftEndTime,
     DateTime? createdAt,
@@ -262,6 +274,8 @@ class ShiftCard {
       tags: tags ?? this.tags,
       problemType: problemType ?? this.problemType,
       reportReason: reportReason ?? this.reportReason,
+      isReportedSolved: isReportedSolved ?? this.isReportedSolved,
+      managerMemos: managerMemos ?? this.managerMemos,
       shiftStartTime: shiftStartTime ?? this.shiftStartTime,
       shiftEndTime: shiftEndTime ?? this.shiftEndTime,
       createdAt: createdAt ?? this.createdAt,

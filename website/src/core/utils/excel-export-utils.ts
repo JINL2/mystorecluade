@@ -317,7 +317,6 @@ class ExcelExportManager {
 
       // Get cell values by column number
       const productData = {
-        product_id: null, // Not read from Excel, set to null
         sku: row.getCell(1).value || null, // Column A - SKU
         barcode: row.getCell(2).value || null, // Column B - Barcode
         product_name: row.getCell(3).value || '', // Column C - Product Name
@@ -370,8 +369,8 @@ class ExcelExportManager {
           imageUrls.push(String(image3).trim());
         }
 
-        // Set image_urls array (will be sent as JSONB to RPC)
-        productData.image_urls = imageUrls.length > 0 ? imageUrls : null;
+        // Set image_urls array (RPC expects array, not null)
+        productData.image_urls = imageUrls;
 
         products.push(productData);
       }

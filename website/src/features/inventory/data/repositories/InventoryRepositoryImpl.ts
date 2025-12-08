@@ -56,10 +56,11 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
     companyId: string,
     storeId: string,
     data: UpdateProductData,
-    originalData?: any
-  ): Promise<{ success: boolean; error?: string }> {
+    originalData?: any,
+    userId?: string
+  ): Promise<{ success: boolean; error?: string; data?: any }> {
     try {
-      return await this.dataSource.updateProduct(productId, companyId, storeId, data, originalData);
+      return await this.dataSource.updateProduct(productId, companyId, storeId, data, originalData, userId);
     } catch (error) {
       return {
         success: false,
@@ -106,10 +107,11 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
     companyId: string,
     storeId: string,
     userId: string,
-    products: any[]
+    products: any[],
+    defaultPrice: boolean = false
   ): Promise<ImportExcelResult> {
     try {
-      return await this.dataSource.importExcel(companyId, storeId, userId, products);
+      return await this.dataSource.importExcel(companyId, storeId, userId, products, defaultPrice);
     } catch (error) {
       return {
         success: false,

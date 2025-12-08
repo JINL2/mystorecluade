@@ -1,4 +1,5 @@
 import '../../../domain/entities/employee_info.dart';
+import '../../../domain/entities/manager_memo.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/tag.dart';
@@ -47,6 +48,9 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       tags: noticeTags.map((tag) => tag.toEntity()).toList(),
       problemType: problemType,
       reportReason: reportReason,
+      // v4: Report resolution and manager memos
+      isReportedSolved: isReportedSolved,
+      managerMemos: managerMemos.map((memo) => memo.toEntity()).toList(),
       // Shift start/end time from RPC ("2025-12-05 14:00" format)
       // Used for consecutive shift detection
       shiftStartTime: shiftStartTime,
@@ -59,7 +63,7 @@ extension ShiftCardDtoMapper on ShiftCardDto {
   /// Map DTO user fields to EmployeeInfo entity
   EmployeeInfo _mapEmployee() {
     return EmployeeInfo(
-      userId: '', // RPC doesn't return user_id in this format
+      userId: userId,
       userName: userName,
       profileImage: profileImage,
     );
@@ -143,6 +147,20 @@ extension TagDtoMapper on TagDto {
           ? DateTime.parse(createdAt!) // Parse as-is, already local time from RPC
           : DateTime.now(),
       createdBy: createdBy ?? '',
+    );
+  }
+}
+
+/// Extension to map ManagerMemoDto → ManagerMemo Entity
+///
+/// v4: Maps manager_memo jsonb array items to domain entity
+extension ManagerMemoDtoMapper on ManagerMemoDto {
+  ManagerMemo toEntity() {
+    return ManagerMemo(
+      type: type ?? 'note',
+      content: content ?? '',
+      createdAt: createdAt,
+      createdBy: createdBy,
     );
   }
 }

@@ -122,7 +122,7 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
             variant="secondary"
             size="md"
             onClick={onExport}
-            disabled={isExporting || totalItems === 0}
+            disabled={isExporting}
             icon={
               isExporting ? (
                 <LoadingAnimation size="small" />

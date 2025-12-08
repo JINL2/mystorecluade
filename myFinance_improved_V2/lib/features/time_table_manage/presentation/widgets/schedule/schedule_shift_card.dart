@@ -379,45 +379,30 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
 
   /// Handle Remove button click from bottom sheet
   /// Calls RPC and updates local state on success
+  /// Note: Bottom sheet lifecycle is handled by AvatarStackInteract
   Future<void> _handleRemove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return;
 
     HapticFeedback.selectionClick();
 
-    // Set loading state
-    setState(() {
-      _loadingRequests.add(shiftRequestId);
-    });
+    // Call the RPC through the callback (sync - AvatarStackInteract handles the rest)
+    final success = await widget.onRemove(shiftRequestId);
 
-    try {
-      // Call the RPC through the callback
-      final success = await widget.onRemove(shiftRequestId);
-
-      if (success && mounted) {
-        // Update local state - change is_approved to false
-        setState(() {
-          final index = _localEmployees.indexWhere(
-            (e) => e['shift_request_id'] == shiftRequestId,
-          );
-          if (index != -1) {
-            _localEmployees[index]['is_approved'] = false;
-          }
-          // Auto-expand to show the returned applicant
-          _isExpanded = true;
-        });
-        HapticFeedback.mediumImpact();
-        // Close bottom sheet if open
-        if (mounted) {
-          Navigator.of(context).pop();
+    if (success && mounted) {
+      // Update local state - change is_approved to false
+      setState(() {
+        final index = _localEmployees.indexWhere(
+          (e) => e['shift_request_id'] == shiftRequestId,
+        );
+        if (index != -1) {
+          _localEmployees[index]['is_approved'] = false;
         }
-      }
-    } finally {
-      // Clear loading state
-      if (mounted) {
-        setState(() {
-          _loadingRequests.remove(shiftRequestId);
-        });
-      }
+        // Auto-expand to show the returned applicant
+        _isExpanded = true;
+      });
+      HapticFeedback.mediumImpact();
+      // Note: Do NOT call Navigator.pop() here
+      // AvatarStackInteract handles closing and re-opening the bottom sheet
     }
   }
 }
