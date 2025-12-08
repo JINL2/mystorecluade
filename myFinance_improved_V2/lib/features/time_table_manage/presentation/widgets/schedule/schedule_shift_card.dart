@@ -218,9 +218,12 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
             ),
           ),
 
+          // Divider line under the assigned row
+          if (_isExpanded)
+            const Divider(height: 1, thickness: 1, color: TossColors.gray200),
+
           // Applicants section (when expanded)
           if (_isExpanded && hasApplicants) ...[
-            const Divider(height: 1, color: TossColors.gray200),
             Padding(
               padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(

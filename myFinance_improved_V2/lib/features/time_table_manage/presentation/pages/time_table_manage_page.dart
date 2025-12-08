@@ -193,6 +193,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             TossTabBar1(
               controller: _tabController,
               tabs: const ['Overview', 'Schedule', 'Timesheets', 'Stats'],
+              padding: EdgeInsets.zero,
             ),
             // Tab Content
             Expanded(

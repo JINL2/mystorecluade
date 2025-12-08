@@ -78,8 +78,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
           // Section Divider (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: 32),
-
           // Store Health Section - Connected to real data
           reliabilityAsync.when(
             data: (score) => _buildStoreHealthSection(score),
@@ -87,12 +85,12 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             error: (error, stack) => _buildErrorSection(error.toString()),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Section Divider (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Reliability Leaderboard - Connected to real data
           // Leaderboard shows only Store employees, See All shows Company employees
@@ -102,6 +100,9 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
               data: (score) {
                 // Get store employee IDs for filtering
                 final storeEmployeeIds = storeEmployeeIdsAsync.valueOrNull ?? {};
+
+                // Get current store name for employee detail display
+                final currentStoreName = _getStoreName(storeId);
 
                 // Filter employees by store (for leaderboard display)
                 final storeEmployees = storeEmployeeIds.isEmpty
@@ -132,6 +133,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                 final storeEmployeesList = _mapToLeaderboardEmployees(
                   storeEmployees,
                   isNeedsAttention: false,
+                  storeName: currentStoreName,
                 );
                 final companyEmployeesList = _mapToLeaderboardEmployees(
                   score.employees,
@@ -143,10 +145,12 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   topReliabilityList: _mapToLeaderboardEmployees(
                     filteredTopReliability,
                     isNeedsAttention: false,
+                    storeName: currentStoreName,
                   ),
                   needsAttentionList: _mapToLeaderboardEmployees(
                     filteredNeedsAttention,
                     isNeedsAttention: true,
+                    storeName: currentStoreName,
                   ),
                   // This list is used for "See All" - pass company employees
                   allEmployeesList: companyEmployeesList,
@@ -358,10 +362,30 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     );
   }
 
+  /// Get store name from store ID
+  String _getStoreName(String storeId) {
+    final appState = ref.read(appStateProvider);
+    final userData = appState.user;
+    final companies = (userData['companies'] as List<dynamic>?) ?? [];
+
+    for (final company in companies) {
+      final companyMap = company as Map<String, dynamic>;
+      final stores = (companyMap['stores'] as List<dynamic>?) ?? [];
+      for (final store in stores) {
+        final storeMap = store as Map<String, dynamic>;
+        if (storeMap['store_id']?.toString() == storeId) {
+          return storeMap['store_name']?.toString() ?? '';
+        }
+      }
+    }
+    return '';
+  }
+
   /// Map EmployeeReliability to LeaderboardEmployee
   List<LeaderboardEmployee> _mapToLeaderboardEmployees(
     List<EmployeeReliability> employees, {
     required bool isNeedsAttention,
+    String? storeName,
   }) {
     return employees.asMap().entries.map((entry) {
       final index = entry.key;
@@ -376,6 +400,10 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         // change is not provided by RPC - only show if historical data becomes available
         change: null,
         isPositive: !isNeedsAttention,
+        // Employee info for detail page
+        visitorId: employee.userId,
+        role: employee.role,
+        storeName: employee.storeName ?? storeName,
         // Score breakdown fields for criteria-based filtering
         finalScore: employee.finalScore,
         lateRate: employee.lateRate,

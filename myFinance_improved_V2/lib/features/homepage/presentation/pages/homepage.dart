@@ -374,22 +374,22 @@ class _HomepageState extends ConsumerState<Homepage> {
         clipBehavior: Clip.none,
         children: [
           SizedBox(
-            width: 47,
-            height: 47,
+            width: 36,
+            height: 36,
             child: Icon(
               icon,
-              size: 31,
+              size: 24,
               color: TossColors.textPrimary,
             ),
           ),
           if (showBadge && badgeCount > 0)
             Positioned(
-              top: 2,
-              right: 2,
+              top: 0,
+              right: 0,
               child: Container(
-                constraints: const BoxConstraints(minWidth: 16),
-                height: 16,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(minWidth: 15),
+                height: 15,
+                padding: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
                   borderRadius: BorderRadius.circular(999),
@@ -398,7 +398,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                   child: Text(
                     badgeCount.toString(),
                     style: TossTextStyles.caption.copyWith(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
                       color: TossColors.white,
                       height: 1,

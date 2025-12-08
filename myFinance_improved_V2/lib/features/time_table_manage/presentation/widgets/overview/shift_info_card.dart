@@ -102,6 +102,15 @@ class ShiftInfoCard extends StatelessWidget {
           // Shift Header
           _buildShiftHeader(),
 
+          // Divider line under header
+          if (snapshotData != null || (staffList != null && staffList!.isNotEmpty)) ...[
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              height: 1,
+              color: TossColors.gray200,
+            ),
+          ],
+
           // Snapshot or Staff Grid
           if (snapshotData != null) ...[
             const SizedBox(height: TossSpacing.space3),

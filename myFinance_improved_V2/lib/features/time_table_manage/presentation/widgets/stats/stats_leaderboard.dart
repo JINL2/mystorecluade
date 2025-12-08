@@ -14,6 +14,11 @@ class LeaderboardEmployee {
   final double? change; // Optional - only shown if RPC provides historical data
   final bool isPositive;
 
+  // Employee info for detail page
+  final String? visitorId; // User ID for data fetching
+  final String? role; // Employee role/position (e.g., "Shift leader", "Staff")
+  final String? storeName; // Store name where employee works
+
   // Individual scores for different ranking criteria
   final double finalScore; // Overall reliability score
   final double lateRate; // Late rate percentage
@@ -38,6 +43,9 @@ class LeaderboardEmployee {
     required this.score,
     this.change, // Optional
     required this.isPositive,
+    this.visitorId,
+    this.role,
+    this.storeName,
     this.finalScore = 0,
     this.lateRate = 0,
     this.lateRateScore = 0,
@@ -62,6 +70,9 @@ class LeaderboardEmployee {
     int? score,
     double? change,
     bool? isPositive,
+    String? visitorId,
+    String? role,
+    String? storeName,
     double? finalScore,
     double? lateRate,
     double? lateRateScore,
@@ -84,6 +95,9 @@ class LeaderboardEmployee {
       score: score ?? this.score,
       change: change ?? this.change,
       isPositive: isPositive ?? this.isPositive,
+      visitorId: visitorId ?? this.visitorId,
+      role: role ?? this.role,
+      storeName: storeName ?? this.storeName,
       finalScore: finalScore ?? this.finalScore,
       lateRate: lateRate ?? this.lateRate,
       lateRateScore: lateRateScore ?? this.lateRateScore,

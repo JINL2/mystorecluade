@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
 
 import '../widgets/stats/stats_leaderboard.dart';
+import 'employee_detail_page.dart';
 
 /// Ranking criteria enum for filtering employees
 enum RankingCriteria {
@@ -299,11 +300,26 @@ class _ReliabilityRankingsPageState
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       itemCount: displayedEmployees.length,
       itemBuilder: (context, index) {
+        final employee = displayedEmployees[index];
         return _RankingRow(
-          employee: displayedEmployees[index],
+          employee: employee,
           isNeedsAttention: _isNeedsAttentionMode,
+          onTap: () => _navigateToEmployeeDetail(employee),
         );
       },
+    );
+  }
+
+  void _navigateToEmployeeDetail(LeaderboardEmployee employee) {
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => EmployeeDetailPage(
+          employee: employee,
+          storeId: widget.storeId,
+        ),
+      ),
     );
   }
 }
@@ -352,17 +368,22 @@ class _LevelTab extends StatelessWidget {
 class _RankingRow extends StatelessWidget {
   final LeaderboardEmployee employee;
   final bool isNeedsAttention;
+  final VoidCallback? onTap;
 
   const _RankingRow({
     required this.employee,
     this.isNeedsAttention = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: TossSpacing.space5),
-      child: Row(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: TossSpacing.space5),
+        child: Row(
         children: [
           // Rank number (red for needs attention, blue for top reliability)
           SizedBox(
@@ -438,6 +459,7 @@ class _RankingRow extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }
