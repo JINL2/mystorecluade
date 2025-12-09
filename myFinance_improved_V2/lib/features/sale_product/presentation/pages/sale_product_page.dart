@@ -289,39 +289,30 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: brands.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 24),
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           final brand = brands[index];
           final isSelected = _selectedBrand == brand;
-          final isAllChip = brand == 'All';
 
           return GestureDetector(
             onTap: () => setState(() => _selectedBrand = brand),
             child: Center(
-              child: isAllChip
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isSelected ? TossColors.primary : TossColors.gray100,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      ),
-                      child: Text(
-                        brand,
-                        style: TossTextStyles.labelSmall.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: isSelected ? TossColors.white : TossColors.textPrimary,
-                        ),
-                      ),
-                    )
-                  : Text(
-                      brand,
-                      style: TossTextStyles.label.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: isSelected
-                            ? TossColors.textPrimary
-                            : TossColors.textSecondary,
-                      ),
-                    ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? TossColors.gray100 : Colors.transparent,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+                child: Text(
+                  brand,
+                  style: TossTextStyles.label.copyWith(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? TossColors.textPrimary : TossColors.textSecondary,
+                  ),
+                ),
+              ),
             ),
           );
         },

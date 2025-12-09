@@ -162,17 +162,19 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
   }
 
   Widget _buildStockBadge(int stockQuantity, bool isSelected) {
+    // Show blue if stock > 0, gray if stock <= 0
+    final hasStock = stockQuantity > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? TossColors.primarySurface : TossColors.gray50,
+        color: hasStock ? TossColors.primarySurface : TossColors.gray50,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         '$stockQuantity',
         style: TossTextStyles.bodySmall.copyWith(
           fontWeight: FontWeight.w500,
-          color: isSelected ? TossColors.primary : TossColors.textPrimary,
+          color: hasStock ? TossColors.primary : TossColors.textPrimary,
         ),
       ),
     );
