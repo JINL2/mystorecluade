@@ -1,6 +1,0 @@
-app_identifier("com.storebase.app")
-apple_id("your_apple_id@email.com") # Your Apple ID email
-team_id("YOUR_TEAM_ID") # Your Apple Developer Team ID
-
-# For App Store Connect API
-itc_team_id("YOUR_ITC_TEAM_ID") # Your App Store Connect Team ID (if different)
