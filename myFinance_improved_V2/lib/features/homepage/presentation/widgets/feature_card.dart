@@ -110,10 +110,10 @@ class _FeatureCardState extends State<FeatureCard>
                   Text(
                     widget.feature.featureName,
                     style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                      color: TossColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                       fontSize: 13,
-                      height: 1.3,
+                      height: 1.2,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,

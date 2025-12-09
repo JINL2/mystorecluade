@@ -114,13 +114,12 @@ class FeatureGrid extends ConsumerWidget {
         });
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Manual Library Card (always visible)
               const _LibraryCard(),
-              const SizedBox(height: TossSpacing.space4),
 
               // Categories (only with features)
               ...categoriesWithFeatures.map((category) => _CategorySection(
@@ -179,7 +178,7 @@ class _CategorySection extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -460,7 +459,8 @@ class _LibraryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),

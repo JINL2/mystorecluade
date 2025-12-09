@@ -3,17 +3,19 @@
 /// Command pattern for signup operation.
 ///
 /// Simple input data value object - no entity dependencies.
+/// Note: firstName and lastName are optional - they will be collected
+/// on the Complete Profile page after OTP verification.
 class SignupCommand {
   final String email;
   final String password;
-  final String firstName;
-  final String lastName;
+  final String? firstName;
+  final String? lastName;
 
   const SignupCommand({
     required this.email,
     required this.password,
-    required this.firstName,
-    required this.lastName,
+    this.firstName,
+    this.lastName,
   });
 
   @override

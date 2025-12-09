@@ -145,21 +145,23 @@ class _HomepageState extends ConsumerState<Homepage> {
               // App Header (Non-pinned)
               _buildAppHeader(),
 
-              const SliverToBoxAdapter(
-                child: SizedBox(height: TossSpacing.space4),
-              ),
-
               // Revenue Card or Salary Card (based on permission)
               if (appState.companyChoosen.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: _hasRevenuePermission()
-                      ? const RevenueCard()
-                      : const SalaryCard(), // Show salary if no revenue permission
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _hasRevenuePermission()
+                        ? const RevenueCard()
+                        : const SalaryCard(), // Show salary if no revenue permission
+                  ),
                 ),
 
               // Quick Access Section
               const SliverToBoxAdapter(
-                child: QuickAccessSection(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: QuickAccessSection(),
+                ),
               ),
 
               // Line Divider
@@ -175,7 +177,10 @@ class _HomepageState extends ConsumerState<Homepage> {
 
               // Feature Grid
               const SliverToBoxAdapter(
-                child: FeatureGrid(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: FeatureGrid(),
+                ),
               ),
             ],
           ),
@@ -224,7 +229,7 @@ class _HomepageState extends ConsumerState<Homepage> {
 
                     const SizedBox(width: 13),
 
-                    // Store name (top) and Company name (bottom) with chevron
+                    // Company name (top) and Store name (bottom) with chevron
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -234,23 +239,22 @@ class _HomepageState extends ConsumerState<Homepage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Store name (large, on top)
-                                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty)
-                                  Text(
-                                    storeName,
-                                    style: TossTextStyles.bodyLarge.copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: TossColors.textPrimary,
-                                      height: 1.2,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-
-                                // Company name (small, on bottom)
+                                // Company name (large, on top) - Title Medium: 15px/Bold
                                 Text(
                                   companyName,
+                                  style: TossTextStyles.bodyLarge.copyWith(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: TossColors.textPrimary,
+                                    height: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+
+                                // Store name (small, on bottom)
+                                Text(
+                                  storeName,
                                   style: TossTextStyles.caption.copyWith(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
@@ -330,8 +334,8 @@ class _HomepageState extends ConsumerState<Homepage> {
     if (profileImage.isNotEmpty) {
       return Image.network(
         profileImage,
-        width: 47,
-        height: 47,
+        width: 33,
+        height: 33,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return _buildAvatarFallback();
@@ -344,8 +348,8 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   Widget _buildAvatarFallback() {
     return Container(
-      width: 47,
-      height: 47,
+      width: 33,
+      height: 33,
       decoration: BoxDecoration(
         color: TossColors.primarySurface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -353,7 +357,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       child: Center(
         child: Text(
           _getUserInitials(),
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.caption.copyWith(
             color: TossColors.primary,
             fontWeight: FontWeight.w600,
           ),
