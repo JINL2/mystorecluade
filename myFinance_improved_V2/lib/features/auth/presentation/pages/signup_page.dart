@@ -20,12 +20,14 @@ import '../providers/auth_service.dart';
 ///
 /// Features:
 /// - Email/Password signup with validation
-/// - First Name / Last Name fields
 /// - Password confirmation with matching validation
 /// - Password strength indicator (5 levels)
 /// - Terms of Service agreement checkbox
 /// - Real-time validation with check icons
 /// - Fade + slide animations
+///
+/// Flow:
+/// - After signup → Email OTP verification → Complete Profile (name/photo) → Choose Role
 ///
 /// Architecture:
 /// - Uses authServiceProvider (Clean Architecture)
@@ -46,15 +48,11 @@ class _SignupPageState extends ConsumerState<SignupPage>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
 
   // Focus Nodes
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
-  final _firstNameFocusNode = FocusNode();
-  final _lastNameFocusNode = FocusNode();
 
   // Animation
   late AnimationController _animationController;
@@ -71,16 +69,12 @@ class _SignupPageState extends ConsumerState<SignupPage>
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
   bool _isPasswordMatch = false;
-  bool _isFirstNameValid = false;
-  bool _isLastNameValid = false;
   int _passwordStrength = 0;
 
   // Touch State - track if field has been interacted with
   bool _emailTouched = false;
   bool _passwordTouched = false;
   bool _confirmPasswordTouched = false;
-  bool _firstNameTouched = false;
-  bool _lastNameTouched = false;
 
   @override
   void initState() {
@@ -112,8 +106,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validatePasswordMatch);
-    _firstNameController.addListener(_validateFirstName);
-    _lastNameController.addListener(_validateLastName);
 
     // Add focus listeners to mark fields as touched when they lose focus
     _emailFocusNode.addListener(() {
@@ -129,16 +121,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
     _confirmPasswordFocusNode.addListener(() {
       if (!_confirmPasswordFocusNode.hasFocus && !_confirmPasswordTouched) {
         setState(() => _confirmPasswordTouched = true);
-      }
-    });
-    _firstNameFocusNode.addListener(() {
-      if (!_firstNameFocusNode.hasFocus && !_firstNameTouched) {
-        setState(() => _firstNameTouched = true);
-      }
-    });
-    _lastNameFocusNode.addListener(() {
-      if (!_lastNameFocusNode.hasFocus && !_lastNameTouched) {
-        setState(() => _lastNameTouched = true);
       }
     });
 
@@ -187,26 +169,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
     }
   }
 
-  void _validateFirstName() {
-    final firstName = _firstNameController.text.trim();
-    final isValid = firstName.isNotEmpty;
-    if (isValid != _isFirstNameValid) {
-      setState(() {
-        _isFirstNameValid = isValid;
-      });
-    }
-  }
-
-  void _validateLastName() {
-    final lastName = _lastNameController.text.trim();
-    final isValid = lastName.isNotEmpty;
-    if (isValid != _isLastNameValid) {
-      setState(() {
-        _isLastNameValid = isValid;
-      });
-    }
-  }
-
   @override
   void dispose() {
     _animationController.stop();
@@ -215,14 +177,10 @@ class _SignupPageState extends ConsumerState<SignupPage>
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
 
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
-    _firstNameFocusNode.dispose();
-    _lastNameFocusNode.dispose();
 
     super.dispose();
   }
@@ -256,10 +214,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
                           _buildWelcomeSection(),
 
                           const SizedBox(height: TossSpacing.space6),
-
-                          _buildNameFields(),
-
-                          const SizedBox(height: TossSpacing.space4),
 
                           _buildEmailField(),
 
@@ -302,45 +256,30 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
   // Temporary StorebaseAuthHeader implementation
   Widget _buildAuthHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: TossSpacing.space4,
-              top: TossSpacing.space3,
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios,
-                color: TossColors.textPrimary,
-                size: 20,
-              ),
-              onPressed: () {
-                context.go('/auth/login');
-              },
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: TossSpacing.space4,
+          top: TossSpacing.space3,
         ),
-        Padding(
-          padding: const EdgeInsets.only(
-            left: TossSpacing.space5,
+        child: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: TossColors.textPrimary,
+            size: 20,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/images/app icon.png',
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-          ),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/auth');
+            }
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
-      ],
+      ),
     );
   }
 
@@ -364,95 +303,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
             fontSize: AuthConstants.textSizeBodyLarge,
             height: AuthConstants.lineHeightStandard,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNameFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Name',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Row(
-          children: [
-            // First Name
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'First Name',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: TossSpacing.space1),
-                  TossTextField(
-                    controller: _firstNameController,
-                    focusNode: _firstNameFocusNode,
-                    hintText: AuthConstants.placeholderFirstName,
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => _lastNameFocusNode.requestFocus(),
-                    validator: (value) {
-                      if (!_firstNameTouched) return null;
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            // Last Name
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Last Name',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: TossSpacing.space1),
-                  TossTextField(
-                    controller: _lastNameController,
-                    focusNode: _lastNameFocusNode,
-                    hintText: AuthConstants.placeholderLastName,
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
-                    validator: (value) {
-                      if (!_lastNameTouched) return null;
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ],
     );
@@ -721,8 +571,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
     final canSignup = _isEmailValid &&
         _isPasswordValid &&
         _isPasswordMatch &&
-        _isFirstNameValid &&
-        _isLastNameValid &&
         _agreedToTerms;
 
     return _buildPrimaryButton(
@@ -776,8 +624,6 @@ class _SignupPageState extends ConsumerState<SignupPage>
   Future<void> _handleSignup() async {
     // Mark all fields as touched when user tries to submit
     setState(() {
-      _firstNameTouched = true;
-      _lastNameTouched = true;
       _emailTouched = true;
       _passwordTouched = true;
       _confirmPasswordTouched = true;
@@ -793,13 +639,12 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
     try {
       // ✅ Clean Architecture: Use authServiceProvider
+      // Note: Name and profile image will be collected on Complete Profile page after OTP verification
       final authService = ref.read(authServiceProvider);
 
       await authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
       );
 
       if (mounted) {
@@ -809,7 +654,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
               children: [
                 Icon(Icons.check_circle, color: TossColors.white, size: 20),
                 SizedBox(width: TossSpacing.space2),
-                Text('Account created successfully!'),
+                Text('Account created! Please verify your email.'),
               ],
             ),
             backgroundColor: TossColors.success,
@@ -824,13 +669,16 @@ class _SignupPageState extends ConsumerState<SignupPage>
           // Small delay for smooth transition
           await Future.delayed(const Duration(milliseconds: 200));
 
-          // Navigate to choose role page
+          // Navigate to email verification page
           if (mounted) {
             // Stop animation for smooth transition
             _animationController.stop();
 
-            // Navigate using safe navigation
-            context.go('/onboarding/choose-role');
+            // Navigate to verify email OTP page with email
+            context.push(
+              '/auth/verify-email',
+              extra: _emailController.text.trim(),
+            );
           }
         }
       }
@@ -965,8 +813,14 @@ class _SignupPageState extends ConsumerState<SignupPage>
         );
       }
     } catch (e) {
-      // Handle unexpected errors
+      // Handle unexpected errors - show actual error message
       if (mounted) {
+        // Extract meaningful error message
+        String errorMessage = e.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.replaceFirst('Exception: ', '');
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -975,7 +829,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
-                    'Unable to create account. Please try again or contact support.',
+                    errorMessage,
                     style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),

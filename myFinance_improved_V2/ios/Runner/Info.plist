@@ -51,6 +51,8 @@
 		<string>This app needs camera access to scan QR codes and take photos for receipts and transactions.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>This app needs photo library access to attach receipt images and document photos to transactions.</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Use Face ID to quickly and securely sign in to your Storebase account.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>UIBackgroundModes</key>
@@ -60,5 +62,24 @@
 		</array>
 		<key>FirebaseMessagingAutoInitEnabled</key>
 		<true/>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>io.supabase.luxapp</string>
+				</array>
+			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.752488262590-rlnbhkifa8g3ltmsq3su14f9ih22i6f6</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>
