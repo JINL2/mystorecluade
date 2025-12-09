@@ -31,6 +31,7 @@ import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreate
 import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
 import { ProductReceivePage } from '@/features/product-receive/presentation/pages/ProductReceivePage';
 import { ShipmentPage } from '@/features/shipment/presentation/pages/ShipmentPage';
+import { ShipmentCreatePage } from '@/features/shipment/presentation/pages/ShipmentCreatePage';
 import { StoreSettingPage } from '@/features/store-setting/presentation/pages/StoreSettingPage';
 import { TrackingPage } from '@/features/tracking/presentation/pages/TrackingPage';
 import { TransactionHistoryPage } from '@/features/transaction-history/presentation/pages/TransactionHistoryPage';
@@ -128,6 +129,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="0d76406c-2c45-422c-bc5a-ca6ebb0b4153">
             <ShipmentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product/shipment/create"
+        element={
+          <ProtectedRoute requiredFeatureId="0d76406c-2c45-422c-bc5a-ca6ebb0b4153">
+            <ShipmentCreatePage />
           </ProtectedRoute>
         }
       />

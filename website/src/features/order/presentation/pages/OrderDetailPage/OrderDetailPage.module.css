@@ -97,17 +97,12 @@
   color: #FF8A00;
 }
 
-.statusBadge.approved {
+.statusBadge.process {
   background: #E3F2FD;
   color: #0064FF;
 }
 
-.statusBadge.partial {
-  background: #FFF9E6;
-  color: #F59E0B;
-}
-
-.statusBadge.received {
+.statusBadge.complete {
   background: #E8F5E9;
   color: #2E7D32;
 }
@@ -115,11 +110,6 @@
 .statusBadge.cancelled {
   background: var(--toss-gray-100, #F1F3F5);
   color: var(--toss-gray-600, #6C757D);
-}
-
-.statusBadge.draft {
-  background: #F3E8FF;
-  color: #7C3AED;
 }
 
 /* Content */

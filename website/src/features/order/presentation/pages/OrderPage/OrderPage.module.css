@@ -230,14 +230,14 @@
   background: var(--toss-blue-surface, #F0F6FF);
 }
 
-/* Status Badge - Processing */
-.statusBadge.processing {
+/* Status Badge - Process */
+.statusBadge.process {
   background: #E3F2FD;
   color: #0064FF;
 }
 
-/* Status Badge - Completed */
-.statusBadge.completed {
+/* Status Badge - Complete */
+.statusBadge.complete {
   background: #E8F5E9;
   color: #2E7D32;
 }
@@ -584,29 +584,9 @@
   color: #FF8A00;
 }
 
-.statusBadge.approved {
-  background: #E3F2FD;
-  color: #0064FF;
-}
-
-.statusBadge.partial {
-  background: #FFF9E6;
-  color: #F59E0B;
-}
-
-.statusBadge.received {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
 .statusBadge.cancelled {
   background: var(--toss-gray-100, #F1F3F5);
   color: var(--toss-gray-600, #6C757D);
-}
-
-.statusBadge.draft {
-  background: #F3E8FF;
-  color: #7C3AED;
 }
 
 /* Table Cell Styles */

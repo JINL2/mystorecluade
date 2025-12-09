@@ -1,201 +1,522 @@
 /**
  * ShipmentPage Styles
- * Following 2025 Design System: Responsive padding with max-width: 100%
+ * Following 2025 Design System: Responsive padding with sidebar layout
+ * (Matching OrderPage structure)
  */
 
-/* Page Layout - Outer wrapper with responsive padding */
+/* Page Layout - Flexbox with sidebar */
 .pageLayout {
+  display: flex;
   min-height: 100vh;
-  background: white;
-  padding: 0 24px; /* Horizontal padding only */
-  max-width: 100%; /* Full width by default */
+  background: var(--color-gray-50);
+  padding: 0 24px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
-/* Page Container - Inner content wrapper */
-.container {
-  padding: var(--space-6) 0; /* Vertical padding only */
-  max-width: 100%; /* Match Navbar alignment */
-  width: 100%;
-}
-
-/* Page Header */
-.pageHeader {
-  margin-bottom: var(--space-6);
-}
-
-.pageTitle {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.pageSubtitle {
-  font-size: var(--font-base);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* Tabs Container */
-.tabsContainer {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Tabs Navigation */
-.tabsNav {
-  display: flex;
-  border-bottom: 2px solid var(--toss-gray-100);
-  background: var(--toss-gray-50);
-}
-
-.tabItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 24px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.tabItem:hover {
-  background: rgba(0, 100, 255, 0.05);
-  color: var(--toss-primary);
-}
-
-.tabItem.active {
-  color: var(--toss-primary);
-  border-bottom-color: var(--toss-primary);
-  background: white;
-}
-
-/* Tab Content */
-.tabContent {
-  padding: var(--space-6);
-  min-height: 400px;
-}
-
-/* Coming Soon Placeholder */
-.comingSoon {
-  text-align: center;
-  padding: 80px 32px;
-}
-
-.comingSoon h3 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 12px 0;
-}
-
-.comingSoon p {
-  font-size: var(--font-base);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* Loading & Error States */
-.loadingSpinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 80px 32px;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--toss-gray-200);
-  border-top-color: var(--toss-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
   }
 }
 
-.errorState {
-  text-align: center;
-  padding: 80px 32px;
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
 }
 
-.errorMessage {
-  color: var(--toss-error);
-  font-size: var(--font-base);
-  margin-bottom: var(--space-4);
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
 }
 
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 80px 32px;
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
-.emptyTitle {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 12px 0;
+/* Container */
+.container {
+  padding: 24px 0;
+  width: 100%;
+  max-width: 100%;
 }
 
-.emptyDescription {
-  font-size: var(--font-base);
-  color: var(--text-secondary);
+/* Page Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
   margin: 0;
 }
 
-/* Table Container */
+/* Content Card */
+.contentCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 400px;
+}
+
+/* ===== Shipment Header Styles ===== */
+.shipmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.shipmentTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.shipmentListTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0;
+}
+
+.shipmentSearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--toss-primary, #0064FF);
+  pointer-events: none;
+}
+
+.shipmentSearch {
+  width: 280px;
+  padding: 10px 8px 10px 44px;
+  border: 1px solid var(--toss-primary, #0064FF);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary, #212529);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.shipmentSearch::placeholder {
+  color: var(--text-secondary, #6C757D);
+}
+
+.shipmentSearch:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.12);
+}
+
+.shipmentActions {
+  display: flex;
+  gap: 12px;
+}
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.primaryButton:hover {
+  background: var(--toss-primary-dark, #0050CC);
+}
+
+/* View Button */
+.viewButton {
+  padding: 6px 12px;
+  border: 1px solid var(--toss-primary, #0064FF);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--toss-primary, #0064FF);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.viewButton:hover {
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+/* ===== Date Filter Styles ===== */
+.dateFilterContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+/* Date Preset Option (Radio style) */
+.datePresetOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.datePresetOption:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.radioInput {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--toss-primary, #0064FF);
+}
+
+.radioLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  flex: 1;
+}
+
+/* Custom Date Button */
+.customDateButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.customDateButton:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.customDateButton.active {
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--toss-blue-surface, #F0F6FF);
+  color: var(--toss-primary, #0064FF);
+}
+
+.customDateButton svg {
+  color: var(--text-secondary, #6C757D);
+}
+
+.customDateButton.active svg {
+  color: var(--toss-primary, #0064FF);
+}
+
+/* Selected Date Range Display */
+.selectedDateRange {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--toss-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.dateRangeText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #6C757D);
+}
+
+/* ===== Date Picker Modal ===== */
+.datePickerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.datePickerModal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.datePickerHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+  font-size: 15px;
+  color: var(--toss-primary, #0064FF);
+}
+
+.datePickerHeader strong {
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+}
+
+.datePickerBody {
+  padding: 24px;
+}
+
+.calendarContainer {
+  display: flex;
+  gap: 24px;
+}
+
+.calendarSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendarLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendarInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-primary, #212529);
+  background: white;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.calendarInput:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+}
+
+.calendarInput:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.1);
+}
+
+.calendarInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.calendarInput::-webkit-calendar-picker-indicator:hover {
+  background: var(--toss-gray-100, #F1F3F5);
+}
+
+.datePickerFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid var(--toss-gray-100, #F1F3F5);
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.todayButton {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--toss-primary, #0064FF);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.todayButton:hover {
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+.datePickerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid var(--toss-gray-300, #DEE2E6);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-primary, #212529);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelButton:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-color: var(--toss-gray-400, #CED4DA);
+}
+
+.applyButton {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.applyButton:hover:not(:disabled) {
+  background: var(--toss-primary-dark, #0050CC);
+}
+
+.applyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Table Styles ===== */
 .tableContainer {
   overflow-x: auto;
 }
 
-/* Shipment Table */
-.shipmentTable {
+.shipmentsTable {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.shipmentTable thead {
-  background: var(--toss-gray-50);
-  border-bottom: 2px solid var(--toss-gray-200);
+.shipmentsTable thead {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-bottom: 2px solid var(--toss-gray-200, #E9ECEF);
 }
 
-.shipmentTable th {
+.shipmentsTable th {
   padding: 16px;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 13px;
+  color: var(--text-secondary, #6C757D);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.shipmentTable tbody tr {
-  border-bottom: 1px solid var(--toss-gray-100);
+.shipmentsTable tbody tr {
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
   transition: background-color 0.15s ease;
 }
 
-.shipmentTable tbody tr:hover {
-  background: var(--toss-gray-50);
+.shipmentsTable tbody tr:hover {
+  background: var(--toss-gray-50, #F8F9FA);
 }
 
-.shipmentTable td {
+.shipmentsTable td {
   padding: 16px;
-  color: var(--text-primary);
+  color: var(--text-primary, #212529);
   vertical-align: middle;
+  text-align: center;
+}
+
+/* Shipment Number */
+.shipmentNumber {
+  font-weight: 600;
+  color: var(--toss-primary, #0064FF);
+  cursor: pointer;
+}
+
+.shipmentNumber:hover {
+  text-decoration: underline;
+}
+
+/* Currency Amount */
+.currencyAmount {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+/* Linked Order */
+.linkedOrder {
+  font-weight: 500;
+  color: var(--toss-primary, #0064FF);
+  cursor: pointer;
+}
+
+.linkedOrder:hover {
+  text-decoration: underline;
+}
+
+.noLink {
+  color: var(--text-secondary, #6C757D);
 }
 
 /* Status Badge */
@@ -213,80 +534,161 @@
   color: #FF8A00;
 }
 
-.statusBadge.shipped {
+.statusBadge.process {
   background: #E3F2FD;
   color: #0064FF;
 }
 
-.statusBadge.delivered {
+.statusBadge.complete {
   background: #E8F5E9;
   color: #2E7D32;
 }
 
 .statusBadge.cancelled {
-  background: var(--toss-gray-100);
-  color: var(--toss-gray-600);
+  background: var(--toss-gray-100, #F1F3F5);
+  color: var(--toss-gray-600, #6C757D);
 }
 
-/* Responsive Design */
+/* Table Cell Styles */
+.supplierName {
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
 
-/* Wide screens */
-@media (min-width: 1600px) {
-  .pageLayout {
-    padding: 0 48px;
+.itemCount {
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+/* Loading State */
+.loadingState {
+  text-align: center;
+  padding: 80px 32px;
+  color: var(--text-secondary, #6C757D);
+}
+
+.loadingState p {
+  margin: 16px 0 0 0;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--toss-gray-200, #E9ECEF);
+  border-top-color: var(--toss-primary, #0064FF);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-/* Ultra-wide screens */
-@media (min-width: 2000px) {
-  .pageLayout {
-    padding: 0 96px;
-    max-width: 1920px;
-  }
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 80px 32px;
 }
 
-/* Tablet and below */
-@media (max-width: 1200px) {
-  .shipmentTable {
-    font-size: 13px;
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+  color: var(--toss-gray-300, #DEE2E6);
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0 0 12px 0;
+}
+
+.emptyDescription {
+  font-size: 14px;
+  color: var(--text-secondary, #6C757D);
+  margin: 0;
+}
+
+/* ===== Responsive Design ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .contentCard {
+    padding: 20px;
   }
 
-  .shipmentTable th,
-  .shipmentTable td {
+  .shipmentsTable th,
+  .shipmentsTable td {
     padding: 12px;
   }
+
+  .calendarContainer {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .datePickerModal {
+    max-width: 90%;
+    margin: 0 16px;
+  }
 }
 
-/* Mobile */
+/* Mobile - hide sidebar */
 @media (max-width: 768px) {
   .pageLayout {
     padding: 0 16px;
   }
 
-  .container {
-    padding: var(--space-4) 0;
+  .sidebarWrapper {
+    display: none;
   }
 
-  .pageTitle {
+  .title {
     font-size: 24px;
   }
 
-  .tabContent {
-    padding: var(--space-4);
+  .subtitle {
+    font-size: 14px;
   }
 
-  .shipmentTable {
+  .contentCard {
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .shipmentsTable {
     min-width: 700px;
   }
 
-  .shipmentTable th,
-  .shipmentTable td {
+  .shipmentsTable th,
+  .shipmentsTable td {
     padding: 10px;
     font-size: 12px;
   }
 
-  .tabItem {
-    padding: 12px 16px;
-    font-size: 13px;
+  .datePickerModal {
+    max-width: 100%;
+    margin: 0 12px;
+    border-radius: 12px;
+  }
+
+  .datePickerFooter {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .datePickerActions {
+    width: 100%;
+  }
+
+  .cancelButton,
+  .applyButton {
+    flex: 1;
   }
 }

@@ -31,8 +31,8 @@ export interface PurchaseOrder {
   order_date: string;
   supplier_id: string;
   supplier_name: string;
-  order_status: 'draft' | 'pending' | 'approved' | 'cancelled';
-  receiving_status: 'pending' | 'partial' | 'received' | 'cancelled';
+  order_status: 'pending' | 'process' | 'complete' | 'cancelled';
+  receiving_status: 'pending' | 'process' | 'complete' | 'cancelled';
   total_amount: number;
   item_count: number;
   fulfilled_percentage: number;
@@ -60,16 +60,16 @@ export interface DatePickerState {
 
 // Order status options
 export const ORDER_STATUS_OPTIONS = [
-  { value: 'draft', label: 'Draft' },
   { value: 'pending', label: 'Pending' },
-  { value: 'approved', label: 'Approved' },
+  { value: 'process', label: 'Process' },
+  { value: 'complete', label: 'Complete' },
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
 // Receiving status options
 export const RECEIVING_STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
-  { value: 'partial', label: 'Partial' },
-  { value: 'received', label: 'Received' },
+  { value: 'process', label: 'Process' },
+  { value: 'complete', label: 'Complete' },
   { value: 'cancelled', label: 'Cancelled' },
 ];
