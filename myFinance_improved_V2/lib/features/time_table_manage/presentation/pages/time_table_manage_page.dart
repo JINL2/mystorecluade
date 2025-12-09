@@ -127,13 +127,33 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final appState = ref.read(appStateProvider);
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
 
+    // 🔷 DEBUG: Log AppState values on page entry
+    debugPrint('🔷 [TimeTableManagePage] initState - AppState values:');
+    debugPrint('   companyChoosen: ${appState.companyChoosen}');
+    debugPrint('   storeChoosen: ${appState.storeChoosen}');
+    debugPrint('   companyName: ${appState.companyName}');
+    debugPrint('   storeName: ${appState.storeName}');
+    debugPrint('   selectedStoreId (local): $selectedStoreId');
+
     // ✅ Fetch initial data AFTER build is complete to avoid Provider lifecycle violation
     // ✅ Always force refresh on page entry to ensure fresh data from RPC
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Invalidate providers to force fresh data on page entry
+        // 🔷 DEBUG: Log before invalidating providers
+        final currentAppState = ref.read(appStateProvider);
+        debugPrint('🔷 [TimeTableManagePage] postFrameCallback - Invalidating providers:');
+        debugPrint('   companyChoosen: ${currentAppState.companyChoosen}');
+        debugPrint('   storeChoosen: ${currentAppState.storeChoosen}');
+        debugPrint('   selectedStoreId: $selectedStoreId');
+
+        // Invalidate ALL providers to force fresh data on page entry
+        // This is critical when company/store changes - providers cache companyId at creation time
         ref.invalidate(shiftMetadataProvider(selectedStoreId!));
         ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
+        ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
+        ref.invalidate(managerOverviewProvider(selectedStoreId!));
+        ref.invalidate(managerCardsProvider(selectedStoreId!));
+
         // Fetch with forceRefresh to ensure fresh data from RPC
         fetchMonthlyShiftStatus(forceRefresh: true);
         // Also fetch overview data - force refresh to get latest data
@@ -438,9 +458,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       storeName: storeName,
     );
 
-    // Invalidate providers to force fresh data
+    // Invalidate ALL providers to force fresh data with new store
     ref.invalidate(shiftMetadataProvider(newStoreId));
     ref.invalidate(reliabilityScoreProvider(newStoreId));
+    ref.invalidate(monthlyShiftStatusProvider(newStoreId));
+    ref.invalidate(managerOverviewProvider(newStoreId));
+    ref.invalidate(managerCardsProvider(newStoreId));
 
     // Fetch data for the new store
     await fetchMonthlyShiftStatus(forceRefresh: true);

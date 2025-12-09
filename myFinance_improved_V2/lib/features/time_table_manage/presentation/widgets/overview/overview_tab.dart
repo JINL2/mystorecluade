@@ -93,7 +93,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final stores = _extractStores(appState.user);
+    final stores = _extractStores(appState.user, appState.companyChoosen);
 
     // Watch monthly shift status for current activity data
     final monthlyStatusState = widget.selectedStoreId != null
@@ -834,19 +834,26 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     return shiftEndTimes.last;
   }
 
-  /// Extract stores from user data
-  List<dynamic> _extractStores(Map<String, dynamic> userData) {
-    if (userData.isEmpty) return [];
+  /// Extract stores from user data for the currently selected company
+  List<dynamic> _extractStores(Map<String, dynamic> userData, String selectedCompanyId) {
+    if (userData.isEmpty || selectedCompanyId.isEmpty) return [];
 
     try {
       final companies = userData['companies'] as List<dynamic>?;
       if (companies == null || companies.isEmpty) return [];
 
-      final firstCompany = companies[0] as Map<String, dynamic>;
-      final stores = firstCompany['stores'] as List<dynamic>?;
-      if (stores == null) return [];
+      // Find the company matching the selected company ID
+      for (final company in companies) {
+        final companyMap = company as Map<String, dynamic>;
+        final companyId = companyMap['company_id']?.toString() ?? '';
+        if (companyId == selectedCompanyId) {
+          final stores = companyMap['stores'] as List<dynamic>?;
+          return stores ?? [];
+        }
+      }
 
-      return stores;
+      // Fallback: if no matching company found, return empty
+      return [];
     } catch (e) {
       return [];
     }

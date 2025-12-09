@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -522,17 +521,6 @@ class TimeTableDatasource {
     required String timezone,
   }) async {
     try {
-      // DEBUG: Log request parameters
-      debugPrint('🔷 [inputCardV5] REQUEST:');
-      debugPrint('   managerId=$managerId');
-      debugPrint('   shiftRequestId=$shiftRequestId');
-      debugPrint('   confirmStartTime=$confirmStartTime');
-      debugPrint('   confirmEndTime=$confirmEndTime');
-      debugPrint('   isReportedSolved=$isReportedSolved');
-      debugPrint('   bonusAmount=$bonusAmount');
-      debugPrint('   managerMemo=$managerMemo');
-      debugPrint('   timezone=$timezone');
-
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_input_card_v5',
         params: {
@@ -547,27 +535,16 @@ class TimeTableDatasource {
         },
       );
 
-      // DEBUG: Log response
-      debugPrint('🔶 [inputCardV5] RESPONSE: $response');
-      debugPrint('   response type: ${response.runtimeType}');
-
       if (response == null) {
-        debugPrint('❌ [inputCardV5] NULL response');
         return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
       }
 
       if (response is Map<String, dynamic>) {
-        debugPrint('✅ [inputCardV5] Success: ${response['success']}');
-        if (response['error'] != null) {
-          debugPrint('❌ [inputCardV5] Error: ${response['error']} - ${response['message']}');
-        }
         return response;
       }
 
-      debugPrint('❌ [inputCardV5] Invalid response format');
       return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
     } catch (e, stackTrace) {
-      debugPrint('❌ [inputCardV5] EXCEPTION: $e');
       throw TimeTableException(
         'Failed to input card v5: $e',
         originalError: e,

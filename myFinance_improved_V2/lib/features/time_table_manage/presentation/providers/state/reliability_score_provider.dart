@@ -4,6 +4,7 @@
 /// for a store. Uses FutureProvider for automatic caching and error handling.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -48,6 +49,13 @@ final reliabilityScoreProvider =
   // Use device local time in "yyyy-MM-dd HH:mm:ss" format (no timezone conversion)
   final now = DateTime.now();
   final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+
+  // 🔷 DEBUG: Log provider initialization
+  debugPrint('🔷 [reliabilityScoreProvider] Fetching:');
+  debugPrint('   companyId (from appState.companyChoosen): $companyId');
+  debugPrint('   storeId (family param): $storeId');
+  debugPrint('   time: $time');
+  debugPrint('   timezone: $timezone');
 
   return await useCase(
     GetReliabilityScoreParams(

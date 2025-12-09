@@ -4,6 +4,7 @@
 /// Provides cached access to overview data by month.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
@@ -112,6 +113,12 @@ final managerOverviewProvider = StateNotifierProvider.family<
   final companyId = appState.companyChoosen;
   // Use device local timezone instead of user DB timezone
   final timezone = DateTimeUtils.getLocalTimezone();
+
+  // 🔷 DEBUG: Log provider initialization
+  debugPrint('🔷 [managerOverviewProvider] Initializing:');
+  debugPrint('   companyId (from appState.companyChoosen): $companyId');
+  debugPrint('   storeId (family param): $storeId');
+  debugPrint('   timezone: $timezone');
 
   return ManagerOverviewNotifier(useCase, companyId, storeId, timezone);
 });
