@@ -97,18 +97,18 @@ export const useShipmentList = () => {
   const [tempFromDate, setTempFromDate] = useState<string>('');
   const [tempToDate, setTempToDate] = useState<string>('');
 
-  // Status filter states
-  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<Set<string>>(new Set());
+  // Status filter states (single select)
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<string | null>(null);
 
-  // Supplier filter state (multiselect)
-  const [supplierFilter, setSupplierFilter] = useState<Set<string>>(new Set());
+  // Supplier filter state (single select)
+  const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
 
   // Orders state (for order filter)
   const [orders, setOrders] = useState<OrderInfo[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
-  // Order filter state (multiselect)
-  const [orderFilter, setOrderFilter] = useState<Set<string>>(new Set());
+  // Order filter state (single select)
+  const [orderFilter, setOrderFilter] = useState<string | null>(null);
 
   // Debounce timer for search
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -268,11 +268,14 @@ export const useShipmentList = () => {
   useEffect(() => {
     if (!fromDate || !toDate) return;
 
-    const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-    const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-    const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-    loadShipments(searchQuery, fromDate, toDate, shipmentStatus, supplierId, orderId);
+    loadShipments(
+      searchQuery,
+      fromDate,
+      toDate,
+      shipmentStatusFilter || undefined,
+      supplierFilter || undefined,
+      orderFilter || undefined
+    );
   }, [loadShipments, fromDate, toDate, shipmentStatusFilter, supplierFilter, orderFilter]);
 
   // Handle refresh when coming back from ShipmentCreatePage
@@ -280,11 +283,14 @@ export const useShipmentList = () => {
     if (shouldRefresh && fromDate && toDate) {
       navigate(location.pathname, { replace: true, state: {} });
 
-      const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-      const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-      const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-      loadShipments(searchQuery, fromDate, toDate, shipmentStatus, supplierId, orderId);
+      loadShipments(
+        searchQuery,
+        fromDate,
+        toDate,
+        shipmentStatusFilter || undefined,
+        supplierFilter || undefined,
+        orderFilter || undefined
+      );
     }
   }, [shouldRefresh]);
 
@@ -297,11 +303,14 @@ export const useShipmentList = () => {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-      const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-      const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-      loadShipments(value, fromDate, toDate, shipmentStatus, supplierId, orderId);
+      loadShipments(
+        value,
+        fromDate,
+        toDate,
+        shipmentStatusFilter || undefined,
+        supplierFilter || undefined,
+        orderFilter || undefined
+      );
     }, 300);
   };
 
@@ -314,53 +323,29 @@ export const useShipmentList = () => {
     };
   }, []);
 
-  // Toggle status filters
-  const toggleShipmentStatus = (status: string) => {
-    setShipmentStatusFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(status)) {
-        newSet.delete(status);
-      } else {
-        newSet.add(status);
-      }
-      return newSet;
-    });
+  // Select status filter (single select - same value clears)
+  const selectShipmentStatus = (status: string) => {
+    setShipmentStatusFilter((prev) => (prev === status ? null : status));
   };
 
-  // Clear status filters
-  const clearShipmentStatusFilter = () => setShipmentStatusFilter(new Set());
+  // Clear status filter
+  const clearShipmentStatusFilter = () => setShipmentStatusFilter(null);
 
-  // Toggle supplier filter
-  const toggleSupplierFilter = (supplierId: string) => {
-    setSupplierFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(supplierId)) {
-        newSet.delete(supplierId);
-      } else {
-        newSet.add(supplierId);
-      }
-      return newSet;
-    });
+  // Select supplier filter (single select - same value clears)
+  const selectSupplierFilter = (supplierId: string) => {
+    setSupplierFilter((prev) => (prev === supplierId ? null : supplierId));
   };
 
   // Clear supplier filter
-  const clearSupplierFilter = () => setSupplierFilter(new Set());
+  const clearSupplierFilter = () => setSupplierFilter(null);
 
-  // Toggle order filter
-  const toggleOrderFilter = (orderId: string) => {
-    setOrderFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
+  // Select order filter (single select - same value clears)
+  const selectOrderFilter = (orderId: string) => {
+    setOrderFilter((prev) => (prev === orderId ? null : orderId));
   };
 
   // Clear order filter
-  const clearOrderFilter = () => setOrderFilter(new Set());
+  const clearOrderFilter = () => setOrderFilter(null);
 
   // Initialize dates on mount
   useEffect(() => {
@@ -470,11 +455,11 @@ export const useShipmentList = () => {
 
     // Actions
     handleSearchChange,
-    toggleShipmentStatus,
+    selectShipmentStatus,
     clearShipmentStatusFilter,
-    toggleSupplierFilter,
+    selectSupplierFilter,
     clearSupplierFilter,
-    toggleOrderFilter,
+    selectOrderFilter,
     clearOrderFilter,
     handlePresetChange,
     handleOpenCustomPicker,

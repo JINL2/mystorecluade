@@ -3,6 +3,25 @@
  * Type definitions for ShipmentCreatePage component
  */
 
+// Product interface from RPC response (for product search)
+export interface InventoryProduct {
+  product_id: string;
+  product_name: string;
+  sku: string;
+  barcode?: string;
+  image_urls?: string[];
+  stock: {
+    quantity_on_hand: number;
+    quantity_available: number;
+    quantity_reserved: number;
+  };
+  price: {
+    cost: number;
+    selling: number;
+    source: string;
+  };
+}
+
 // Counterparty interface (from get_counterparty_info RPC)
 export interface Counterparty {
   counterparty_id: string;
@@ -64,3 +83,20 @@ export interface SaveResult {
   message: string;
   shipmentNumber?: string;
 }
+
+// Import error state
+export interface ImportError {
+  show: boolean;
+  notFoundSkus: string[];
+}
+
+// One-time supplier for shipment
+export interface OneTimeSupplier {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+// Selection mode - either select from order or enter supplier directly
+export type SelectionMode = 'order' | 'supplier' | null;
