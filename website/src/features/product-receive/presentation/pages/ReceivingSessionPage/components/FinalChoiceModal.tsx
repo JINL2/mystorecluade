@@ -26,7 +26,7 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.reviewModalOverlay} onClick={onClose}>
+    <div className={styles.finalChoiceOverlay} onClick={onClose}>
       <div className={styles.finalChoiceModalContainer} onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className={styles.finalChoiceHeader}>
