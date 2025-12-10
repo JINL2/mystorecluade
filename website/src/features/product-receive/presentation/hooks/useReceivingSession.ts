@@ -538,6 +538,8 @@ export const useReceivingSession = () => {
       return;
     }
 
+    // Close modal first and show fullscreen loading
+    setShowFinalChoiceModal(false);
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -565,21 +567,22 @@ export const useReceivingSession = () => {
       console.log('📤 Submit session result:', result);
 
       setSubmitSuccess(true);
-      setShowFinalChoiceModal(false);
 
-      setTimeout(() => {
-        navigate('/product/product-receive', {
-          state: {
-            submitSuccess: true,
-            receivingNumber: result.receivingNumber,
-            itemsCount: result.itemsCount,
-            totalQuantity: result.totalQuantity,
-          }
-        });
-      }, 1500);
+      // Navigate immediately to receive page with refresh state
+      navigate('/product/product-receive', {
+        state: {
+          submitSuccess: true,
+          receivingNumber: result.receivingNumber,
+          itemsCount: result.itemsCount,
+          totalQuantity: result.totalQuantity,
+          refreshData: true,
+        }
+      });
     } catch (err) {
       console.error('📤 Submit session error:', err);
       setSubmitError(err instanceof Error ? err.message : 'Failed to submit session');
+      // Reopen modal to show error
+      setShowFinalChoiceModal(true);
     } finally {
       setIsSubmitting(false);
     }

@@ -68,8 +68,8 @@ export const useProductReceiveList = () => {
   const repository = useMemo(() => productReceiveRepository, []);
 
   // Check if we need to refresh data
-  const navigationState = location.state as { refresh?: boolean } | null;
-  const shouldRefresh = navigationState?.refresh;
+  const navigationState = location.state as { refresh?: boolean; refreshData?: boolean; submitSuccess?: boolean } | null;
+  const shouldRefresh = navigationState?.refresh || navigationState?.refreshData || navigationState?.submitSuccess;
 
   // App state
   const { currentCompany } = useAppState();
