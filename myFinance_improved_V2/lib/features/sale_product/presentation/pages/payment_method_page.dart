@@ -22,8 +22,8 @@ import '../../domain/entities/exchange_rate_data.dart';
 import '../../domain/repositories/payment_repository.dart';
 // Feature imports - sale_product presentation
 import '../helpers/exchange_rate_helper.dart';
+import '../../di/sale_product_providers.dart';
 import '../providers/payment_providers.dart';
-import '../providers/repository_providers.dart';
 import '../providers/sales_product_provider.dart';
 import '../providers/states/payment_method_state.dart';
 import '../providers/cart_provider.dart';

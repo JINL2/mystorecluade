@@ -7,10 +7,10 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../di/sale_product_providers.dart';
 import '../../domain/usecases/create_sales_journal_usecase.dart';
 import '../../domain/usecases/get_cash_locations_usecase.dart';
 import '../../domain/usecases/get_currency_data_usecase.dart';
-import 'repository_providers.dart';
 
 // ============================================================================
 // UseCase Providers

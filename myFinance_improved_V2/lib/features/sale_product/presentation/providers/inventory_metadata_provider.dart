@@ -1,21 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/inventory_metadata_datasource.dart';
-
-/// Provider for InventoryMetadataDataSource
-final inventoryMetadataDataSourceProvider =
-    Provider<InventoryMetadataDataSource>((ref) {
-  return InventoryMetadataDataSource(Supabase.instance.client);
-});
+import '../../di/sale_product_providers.dart';
+import '../../domain/entities/inventory_metadata.dart';
 
 /// Provider to fetch inventory metadata including brands, categories, etc.
 final inventoryMetadataProvider =
     StateNotifierProvider<InventoryMetadataNotifier, InventoryMetadataState>(
         (ref) {
-  final dataSource = ref.watch(inventoryMetadataDataSourceProvider);
-  return InventoryMetadataNotifier(ref, dataSource);
+  return InventoryMetadataNotifier(ref);
 });
 
 /// State for inventory metadata
@@ -60,10 +53,8 @@ class InventoryMetadataState {
 /// Notifier for inventory metadata
 class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
   final Ref ref;
-  final InventoryMetadataDataSource _dataSource;
 
-  InventoryMetadataNotifier(this.ref, this._dataSource)
-      : super(const InventoryMetadataState());
+  InventoryMetadataNotifier(this.ref) : super(const InventoryMetadataState());
 
   /// Load inventory metadata
   Future<void> loadMetadata() async {
@@ -82,7 +73,8 @@ class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
         return;
       }
 
-      final metadata = await _dataSource.getInventoryMetadata(
+      final repository = ref.read(inventoryMetadataRepositoryProvider);
+      final metadata = await repository.getInventoryMetadata(
         companyId: companyId,
         storeId: storeId,
       );

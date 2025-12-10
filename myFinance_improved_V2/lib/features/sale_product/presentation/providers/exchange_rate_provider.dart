@@ -1,15 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../di/sale_product_providers.dart';
 import '../../domain/entities/exchange_rate_data.dart';
-import '../helpers/exchange_rate_helper.dart';
-import '../../data/datasources/exchange_rate_datasource.dart';
-
-/// Provider for ExchangeRateDataSource
-final exchangeRateDataSourceProvider = Provider<ExchangeRateDataSource>((ref) {
-  return ExchangeRateDataSource(Supabase.instance.client);
-});
 
 /// State for exchange rate data
 class ExchangeRateState {
@@ -41,7 +34,8 @@ class ExchangeRateState {
   }
 
   /// Get base currency symbol
-  String get baseCurrencySymbol => exchangeRateData?.baseCurrency.symbol ?? '₫';
+  String get baseCurrencySymbol =>
+      exchangeRateData?.baseCurrency.symbol ?? '₫';
 
   /// Get base currency code
   String get baseCurrencyCode =>
@@ -51,17 +45,14 @@ class ExchangeRateState {
 /// Provider to fetch and manage exchange rates
 final saleExchangeRateProvider =
     StateNotifierProvider<SaleExchangeRateNotifier, ExchangeRateState>((ref) {
-  final dataSource = ref.watch(exchangeRateDataSourceProvider);
-  return SaleExchangeRateNotifier(ref, dataSource);
+  return SaleExchangeRateNotifier(ref);
 });
 
 /// Notifier for exchange rate state
 class SaleExchangeRateNotifier extends StateNotifier<ExchangeRateState> {
   final Ref ref;
-  final ExchangeRateDataSource _dataSource;
 
-  SaleExchangeRateNotifier(this.ref, this._dataSource)
-      : super(const ExchangeRateState());
+  SaleExchangeRateNotifier(this.ref) : super(const ExchangeRateState());
 
   /// Load exchange rates from server
   Future<void> loadExchangeRates() async {
@@ -79,20 +70,18 @@ class SaleExchangeRateNotifier extends StateNotifier<ExchangeRateState> {
         return;
       }
 
-      final response = await _dataSource.getExchangeRates(
+      final repository = ref.read(exchangeRateRepositoryProvider);
+      final exchangeRateData = await repository.getExchangeRates(
         companyId: companyId,
       );
 
-      if (response.error != null) {
+      if (exchangeRateData == null) {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: response.error,
+          errorMessage: 'Failed to load exchange rates',
         );
         return;
       }
-
-      // Convert to ExchangeRateData using helper
-      final exchangeRateData = ExchangeRateHelper.fromJson(response.toJson());
 
       state = state.copyWith(
         exchangeRateData: exchangeRateData,

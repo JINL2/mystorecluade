@@ -236,8 +236,8 @@ class InventoryMetadataDataSource {
 
   InventoryMetadataDataSource(this._client);
 
-  /// Get inventory metadata from RPC
-  Future<InventoryMetadata> getInventoryMetadata({
+  /// Get inventory metadata from RPC (returns raw JSON)
+  Future<Map<String, dynamic>> getInventoryMetadataRaw({
     required String companyId,
     required String storeId,
   }) async {
@@ -249,12 +249,23 @@ class InventoryMetadataDataSource {
       },
     ).single();
 
-    if (response.containsKey('success') && response['success'] == true) {
-      return InventoryMetadata.fromJson(response);
-    } else if (response.containsKey('success') && response['success'] == false) {
+    if (response.containsKey('success') && response['success'] == false) {
       throw Exception(response['error'] ?? 'Failed to load inventory metadata');
     }
 
+    return response;
+  }
+
+  /// Get inventory metadata from RPC (legacy - returns parsed object)
+  @Deprecated('Use Repository with getInventoryMetadataRaw instead')
+  Future<InventoryMetadata> getInventoryMetadata({
+    required String companyId,
+    required String storeId,
+  }) async {
+    final response = await getInventoryMetadataRaw(
+      companyId: companyId,
+      storeId: storeId,
+    );
     return InventoryMetadata.fromJson(response);
   }
 }

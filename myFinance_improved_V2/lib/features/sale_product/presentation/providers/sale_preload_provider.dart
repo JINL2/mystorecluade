@@ -1,12 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/exchange_rate_datasource.dart';
-import '../../data/datasources/payment_remote_datasource.dart';
+import '../../di/sale_product_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
-import '../helpers/exchange_rate_helper.dart';
 
 /// State for preloaded sale data (exchange rates + cash locations)
 class SalePreloadState {
@@ -50,41 +47,20 @@ class SalePreloadState {
       exchangeRateData?.baseCurrency.currencyCode ?? 'VND';
 
   /// Check if data is loaded
-  bool get hasData =>
-      exchangeRateData != null || cashLocations.isNotEmpty;
+  bool get hasData => exchangeRateData != null || cashLocations.isNotEmpty;
 }
-
-/// Provider for ExchangeRateDataSource
-final _exchangeRateDataSourceProvider =
-    Provider<ExchangeRateDataSource>((ref) {
-  return ExchangeRateDataSource(Supabase.instance.client);
-});
-
-/// Provider for PaymentRemoteDataSource
-final _paymentRemoteDataSourceProvider =
-    Provider<PaymentRemoteDataSource>((ref) {
-  return PaymentRemoteDataSource(Supabase.instance.client);
-});
 
 /// Provider to preload sale data (exchange rates + cash locations)
 final salePreloadProvider =
     StateNotifierProvider<SalePreloadNotifier, SalePreloadState>((ref) {
-  final exchangeRateDataSource = ref.watch(_exchangeRateDataSourceProvider);
-  final paymentDataSource = ref.watch(_paymentRemoteDataSourceProvider);
-  return SalePreloadNotifier(ref, exchangeRateDataSource, paymentDataSource);
+  return SalePreloadNotifier(ref);
 });
 
 /// Notifier for preloaded sale data
 class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
   final Ref ref;
-  final ExchangeRateDataSource _exchangeRateDataSource;
-  final PaymentRemoteDataSource _paymentDataSource;
 
-  SalePreloadNotifier(
-    this.ref,
-    this._exchangeRateDataSource,
-    this._paymentDataSource,
-  ) : super(const SalePreloadState());
+  SalePreloadNotifier(this.ref) : super(const SalePreloadState());
 
   /// Load all preload data (exchange rates + cash locations) in parallel
   Future<void> loadAll() async {
@@ -105,7 +81,7 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
         return;
       }
 
-      // Load exchange rates and cash locations in parallel
+      // Load exchange rates and cash locations in parallel using repositories
       final results = await Future.wait([
         _loadExchangeRates(companyId),
         _loadCashLocations(companyId, storeId),
@@ -128,25 +104,18 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
     }
   }
 
-  /// Load exchange rates
+  /// Load exchange rates using repository
   Future<ExchangeRateData?> _loadExchangeRates(String companyId) async {
     try {
-      final response = await _exchangeRateDataSource.getExchangeRates(
-        companyId: companyId,
-      );
-
-      if (response.error != null) {
-        return null;
-      }
-
-      return ExchangeRateHelper.fromJson(response.toJson());
+      final repository = ref.read(exchangeRateRepositoryProvider);
+      return await repository.getExchangeRates(companyId: companyId);
     } catch (e) {
       // Return null on error - exchange rates are optional
       return null;
     }
   }
 
-  /// Load cash locations
+  /// Load cash locations using repository
   Future<List<CashLocation>> _loadCashLocations(
     String companyId,
     String storeId,
@@ -156,12 +125,11 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
         return [];
       }
 
-      final models = await _paymentDataSource.getCashLocations(
+      final repository = ref.read(paymentRepositoryProvider);
+      return await repository.getCashLocations(
         companyId: companyId,
         storeId: storeId,
       );
-
-      return models.map((model) => model.toEntity()).toList();
     } catch (e) {
       // Return empty list on error - will be loaded again in payment page
       return [];
