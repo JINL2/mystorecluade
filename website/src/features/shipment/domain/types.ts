@@ -133,6 +133,10 @@ export interface ShipmentDetailItem {
   product_name: string;
   sku: string;
   quantity_shipped: number;
+  quantity_received: number;
+  quantity_accepted: number;
+  quantity_rejected: number;
+  quantity_remaining: number;
   unit_cost: number;
   total_amount: number;
 }

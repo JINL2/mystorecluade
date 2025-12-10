@@ -123,10 +123,10 @@ export class ShipmentDataSource {
       };
 
       if (params.fromDate) {
-        rpcParams.p_from_date = params.fromDate;
+        rpcParams.p_start_date = params.fromDate;
       }
       if (params.toDate) {
-        rpcParams.p_to_date = params.toDate;
+        rpcParams.p_end_date = params.toDate;
       }
       if (params.statusFilter) {
         rpcParams.p_status = params.statusFilter;

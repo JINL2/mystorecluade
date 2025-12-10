@@ -89,7 +89,26 @@ export const useShipmentDetail = () => {
         });
 
         if (result.success && result.data) {
-          setShipmentDetail(result.data as ShipmentDetail);
+          const detailData = result.data as ShipmentDetail;
+
+          // Debug: Log raw items data
+          console.log('📦 Raw items from RPC:', detailData.items);
+
+          if (detailData.items) {
+            detailData.items = detailData.items.map((item) => {
+              console.log('📦 Item before mapping:', item);
+              return {
+                ...item,
+                quantity_received: item.quantity_received ?? 0,
+                quantity_accepted: item.quantity_accepted ?? 0,
+                quantity_rejected: item.quantity_rejected ?? 0,
+                quantity_remaining: item.quantity_remaining ?? item.quantity_shipped,
+              };
+            });
+          }
+
+          console.log('📦 Final shipment detail:', detailData);
+          setShipmentDetail(detailData);
         } else {
           throw new Error(result.error || 'Failed to load shipment details');
         }

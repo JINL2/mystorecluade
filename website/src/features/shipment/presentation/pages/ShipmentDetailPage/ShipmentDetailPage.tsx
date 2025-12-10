@@ -172,7 +172,8 @@ export const ShipmentDetailPage: React.FC = () => {
                       <th>Product</th>
                       <th>SKU</th>
                       <th>Unit Cost</th>
-                      <th>Quantity</th>
+                      <th>Shipped</th>
+                      <th>Received</th>
                       <th>Total</th>
                     </tr>
                   </thead>
@@ -183,13 +184,32 @@ export const ShipmentDetailPage: React.FC = () => {
                         <td className={styles.sku}>{item.sku}</td>
                         <td>{formatPrice(item.unit_cost)}</td>
                         <td>{item.quantity_shipped}</td>
+                        <td className={styles.receivedQty}>
+                          <div className={styles.receivedBreakdown}>
+                            <span className={styles.receivedAccepted}>
+                              {item.quantity_accepted}
+                              <span className={styles.receivedLabel}>accepted</span>
+                            </span>
+                            {item.quantity_rejected > 0 && (
+                              <span className={styles.receivedRejected}>
+                                {item.quantity_rejected}
+                                <span className={styles.receivedLabel}>rejected</span>
+                              </span>
+                            )}
+                          </div>
+                          {item.quantity_remaining > 0 && (
+                            <span className={styles.remainingQty}>
+                              {item.quantity_remaining} remaining
+                            </span>
+                          )}
+                        </td>
                         <td className={styles.totalAmount}>{formatPrice(item.total_amount)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={4} className={styles.totalLabel}>Total Amount</td>
+                      <td colSpan={5} className={styles.totalLabel}>Total Amount</td>
                       <td className={styles.grandTotal}>{formatPrice(shipmentDetail.total_amount)}</td>
                     </tr>
                   </tfoot>

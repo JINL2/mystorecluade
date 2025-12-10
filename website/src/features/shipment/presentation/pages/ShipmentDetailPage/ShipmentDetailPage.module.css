@@ -295,6 +295,48 @@
   font-weight: 600;
 }
 
+/* Received Quantity Styles */
+.receivedQty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.receivedBreakdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receivedAccepted {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+.receivedRejected {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.receivedLabel {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.remainingQty {
+  font-size: 11px;
+  color: #FF8A00;
+  font-weight: 500;
+}
+
 .itemsTable tfoot {
   background: var(--toss-gray-50, #F8F9FA);
   border-top: 2px solid var(--toss-gray-200, #E9ECEF);
