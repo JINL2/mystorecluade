@@ -151,6 +151,10 @@ export class ShipmentModel {
       product_name: data.product_name,
       sku: data.sku,
       quantity_shipped: data.quantity_shipped || 0,
+      quantity_received: data.quantity_received ?? 0,
+      quantity_accepted: data.quantity_accepted ?? 0,
+      quantity_rejected: data.quantity_rejected ?? 0,
+      quantity_remaining: data.quantity_remaining ?? data.quantity_shipped ?? 0,
       unit_cost: data.unit_cost || 0,
       total_amount: data.total_amount || 0,
     };
