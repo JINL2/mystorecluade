@@ -3,10 +3,10 @@
  * Custom hook for shipment detail page management
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
+import { getShipmentRepository } from '../../data/repositories/ShipmentRepositoryImpl';
 import type { Currency, ShipmentDetail } from '../pages/ShipmentDetailPage/ShipmentDetailPage.types';
 
 // Format date for display (yyyy/MM/dd)
@@ -34,6 +34,7 @@ export const formatDateTime = (dateStr: string): string => {
 export const useShipmentDetail = () => {
   const navigate = useNavigate();
   const { shipmentId } = useParams<{ shipmentId: string }>();
+  const repository = useMemo(() => getShipmentRepository(), []);
 
   // App state
   const { currentCompany } = useAppState();
@@ -47,32 +48,26 @@ export const useShipmentDetail = () => {
   // Currency state
   const [currency, setCurrency] = useState<Currency>({ symbol: '₩', code: 'KRW' });
 
-  // Load base currency
+  // Load base currency using Repository
   useEffect(() => {
     const loadBaseCurrency = async () => {
       if (!companyId) return;
 
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_base_currency', {
-          p_company_id: companyId,
-        });
+        const result = await repository.getBaseCurrency(companyId);
 
-        if (!error && data?.base_currency) {
-          setCurrency({
-            symbol: data.base_currency.symbol || '₩',
-            code: data.base_currency.currency_code || 'KRW',
-          });
+        if (result.success && result.data) {
+          setCurrency(result.data);
         }
       } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+        console.error('💰 getBaseCurrency error:', err);
       }
     };
 
     loadBaseCurrency();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load shipment detail
+  // Load shipment detail using Repository
   useEffect(() => {
     const loadShipmentDetail = async () => {
       if (!companyId || !shipmentId) {
@@ -85,31 +80,18 @@ export const useShipmentDetail = () => {
       setError(null);
 
       try {
-        const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        console.log('📦 Calling inventory_get_shipment_detail with:', {
-          p_shipment_id: shipmentId,
-          p_company_id: companyId,
-          p_timezone: userTimezone,
+        const result = await repository.getShipmentDetail({
+          shipmentId,
+          companyId,
+          timezone: userTimezone,
         });
 
-        const { data, error: rpcError } = await supabase.rpc('inventory_get_shipment_detail', {
-          p_shipment_id: shipmentId,
-          p_company_id: companyId,
-          p_timezone: userTimezone,
-        });
-
-        console.log('📦 inventory_get_shipment_detail response:', { data, rpcError });
-
-        if (rpcError) {
-          throw new Error(rpcError.message);
-        }
-
-        if (data?.success && data?.data) {
-          setShipmentDetail(data.data);
+        if (result.success && result.data) {
+          setShipmentDetail(result.data as ShipmentDetail);
         } else {
-          throw new Error(data?.error || 'Failed to load shipment details');
+          throw new Error(result.error || 'Failed to load shipment details');
         }
       } catch (err) {
         console.error('📦 Load shipment detail error:', err);
@@ -120,7 +102,7 @@ export const useShipmentDetail = () => {
     };
 
     loadShipmentDetail();
-  }, [companyId, shipmentId]);
+  }, [companyId, shipmentId, repository]);
 
   // Format price with currency
   const formatPrice = useCallback(

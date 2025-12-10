@@ -75,7 +75,7 @@ export const useProductReceiveList = () => {
   const companyId = currentCompany?.company_id;
 
   // Currency state
-  const [currency, setCurrency] = useState<Currency>({ symbol: '₩', code: 'KRW' });
+  const [currency, setCurrency] = useState<Currency>({ symbol: '₩', code: 'KRW', name: 'Korean Won' });
 
   // Suppliers state
   const [suppliers, setSuppliers] = useState<Counterparty[]>([]);
@@ -126,6 +126,7 @@ export const useProductReceiveList = () => {
           setCurrency({
             symbol: data.base_currency.symbol || '₩',
             code: data.base_currency.currency_code || 'KRW',
+            name: data.base_currency.name || 'Korean Won',
           });
         }
       } catch (err) {

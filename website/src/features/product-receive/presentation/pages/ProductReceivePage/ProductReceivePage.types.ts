@@ -8,6 +8,7 @@
 export interface Currency {
   symbol: string;
   code: string;
+  name: string;
 }
 
 // Counterparty interface (from get_counterparty_info RPC)
@@ -102,6 +103,9 @@ export interface ShipmentDetail {
 
   can_cancel: boolean;
 }
+
+// ShipmentData alias for ShipmentDetail (used in components)
+export type ShipmentData = ShipmentDetail;
 
 // Filter state interface
 export interface ReceiveFilters {
