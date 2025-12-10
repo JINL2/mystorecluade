@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
+import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 import type { Session, Shipment, ShipmentDetail } from '../pages/ProductReceivePage/ProductReceivePage.types';
 
 interface UseReceiveSessionModalProps {
@@ -43,7 +43,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setShowSessionModal(true);
   }, []);
 
-  // Load existing active sessions for the shipment
+  // Load existing active sessions for the shipment using Repository
   const loadExistingSessions = useCallback(async () => {
     if (!currentCompany || !sessionShipmentId) return;
 
@@ -51,31 +51,39 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setSessionsError(null);
 
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       console.log('📦 Loading existing sessions for shipment:', sessionShipmentId);
 
-      const { data, error } = await supabase.rpc('inventory_get_session_list', {
-        p_company_id: currentCompany.company_id,
-        p_shipment_id: sessionShipmentId,
-        p_session_type: 'receiving',
-        p_is_active: true,
-        p_timezone: userTimezone,
+      const result = await productReceiveRepository.getSessionList({
+        companyId: currentCompany.company_id,
+        shipmentId: sessionShipmentId,
+        sessionType: 'receiving',
+        isActive: true,
+        timezone: userTimezone,
       });
 
-      console.log('📦 inventory_get_session_list response:', { data, error });
+      console.log('📦 getSessionList result:', result);
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      // Map domain entity to presentation format
+      const mappedSessions: Session[] = result.map(s => ({
+        session_id: s.sessionId,
+        session_type: s.sessionType as 'receiving' | 'counting',
+        store_id: s.storeId,
+        store_name: s.storeName,
+        shipment_id: s.shipmentId || null,
+        shipment_number: s.shipmentNumber || null,
+        count_id: null,
+        is_active: s.isActive,
+        is_final: s.isFinal,
+        member_count: s.memberCount || 0,
+        created_by: s.createdBy,
+        created_by_name: s.createdByName,
+        completed_at: null,
+        created_at: s.createdAt,
+      }));
 
-      if ((data as { success?: boolean; data?: Session[]; error?: string })?.success && (data as { data?: Session[] })?.data) {
-        setExistingSessions((data as { data: Session[] }).data);
-      } else {
-        setSessionsError((data as { error?: string })?.error || 'Failed to load sessions');
-        setExistingSessions([]);
-      }
+      setExistingSessions(mappedSessions);
     } catch (err) {
       console.error('📦 Load sessions error:', err);
       setSessionsError(err instanceof Error ? err.message : 'Failed to load sessions');
@@ -101,7 +109,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     }
   }, [loadExistingSessions]);
 
-  // Handle join session
+  // Handle join session using Repository
   const handleJoinSession = useCallback(async () => {
     if (!selectedSessionId || !currentUser) {
       setSessionsError('Please select a session to join');
@@ -112,55 +120,43 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setSessionsError(null);
 
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
       console.log('📦 Joining session:', { selectedSessionId, localTime, userTimezone });
 
-      const { data, error } = await supabase.rpc('inventory_join_session', {
-        p_session_id: selectedSessionId,
-        p_user_id: currentUser.user_id,
-        p_time: localTime,
-        p_timezone: userTimezone,
+      const result = await productReceiveRepository.joinSession({
+        sessionId: selectedSessionId,
+        userId: currentUser.user_id,
+        time: localTime,
+        timezone: userTimezone,
       });
 
-      console.log('📦 inventory_join_session response:', { data, error });
+      console.log('📦 joinSession result:', result);
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      const selectedSession = existingSessions.find(s => s.session_id === selectedSessionId);
+      const shipmentData = shipmentDetail || shipments.find(s => s.shipment_id === sessionShipmentId);
+      const shipmentIdForNav = sessionShipmentId;
 
-      const typedData = data as { success?: boolean; data?: { member_id?: string; created_by?: string; created_by_name?: string }; error?: string; message?: string };
+      setShowJoinSessionModal(false);
+      setSessionShipmentId(null);
+      setSelectedSessionId(null);
+      setExistingSessions([]);
 
-      if (typedData?.success) {
-        const selectedSession = existingSessions.find(s => s.session_id === selectedSessionId);
-        const shipmentData = shipmentDetail || shipments.find(s => s.shipment_id === sessionShipmentId);
-        const shipmentIdForNav = sessionShipmentId;
-
-        setShowJoinSessionModal(false);
-        setSessionShipmentId(null);
-        setSelectedSessionId(null);
-        setExistingSessions([]);
-
-        navigate(`/product/receive/session/${selectedSessionId}`, {
-          state: {
-            sessionData: {
-              ...selectedSession,
-              member_id: typedData.data?.member_id,
-              created_by: typedData.data?.created_by,
-              created_by_name: typedData.data?.created_by_name,
-            },
-            shipmentId: shipmentIdForNav,
-            shipmentData: shipmentData,
-            isNewSession: false,
-            joinMessage: typedData.message,
-          }
-        });
-      } else {
-        setSessionsError(typedData?.error || 'Failed to join session');
-      }
+      navigate(`/product/receive/session/${selectedSessionId}`, {
+        state: {
+          sessionData: {
+            ...selectedSession,
+            member_id: result.memberId,
+            created_by: result.createdBy,
+            created_by_name: result.createdByName,
+          },
+          shipmentId: shipmentIdForNav,
+          shipmentData: shipmentData,
+          isNewSession: false,
+        }
+      });
     } catch (err) {
       console.error('📦 Join session error:', err);
       setSessionsError(err instanceof Error ? err.message : 'Failed to join session');
@@ -169,7 +165,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     }
   }, [selectedSessionId, currentUser, existingSessions, shipmentDetail, shipments, sessionShipmentId, navigate]);
 
-  // Handle create session
+  // Handle create session using Repository
   const handleCreateSession = useCallback(async () => {
     if (!selectedStoreId || !sessionShipmentId || !currentCompany || !currentUser) {
       setCreateSessionError('Please select a store');
@@ -180,60 +176,49 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setCreateSessionError(null);
 
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
       console.log('📦 Creating session with local time:', { localTime, userTimezone });
 
-      const { data, error } = await supabase.rpc('inventory_create_session', {
-        p_company_id: currentCompany.company_id,
-        p_store_id: selectedStoreId,
-        p_user_id: currentUser.user_id,
-        p_session_type: 'receiving',
-        p_shipment_id: sessionShipmentId,
-        p_time: localTime,
-        p_timezone: userTimezone,
+      const result = await productReceiveRepository.createSession({
+        companyId: currentCompany.company_id,
+        storeId: selectedStoreId,
+        userId: currentUser.user_id,
+        sessionType: 'receiving',
+        shipmentId: sessionShipmentId,
+        time: localTime,
+        timezone: userTimezone,
       });
 
-      console.log('📦 inventory_create_session response:', { data, error });
+      console.log('📦 createSession result:', result);
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      const sessionId = result.sessionId;
+      console.log('Session created:', sessionId);
 
-      const typedData = data as { success?: boolean; data?: { session_id: string; [key: string]: unknown }; error?: string };
+      const selectedStore = stores.find(s => s.store_id === selectedStoreId);
+      const shipmentData = shipmentDetail || shipments.find(s => s.shipment_id === sessionShipmentId);
 
-      if (typedData?.success && typedData?.data) {
-        const sessionId = typedData.data.session_id;
-        const sessionData = typedData.data;
-        console.log('Session created:', sessionId);
+      setShowCreateSessionModal(false);
+      const shipmentIdForNav = sessionShipmentId;
+      const storeIdForNav = selectedStoreId;
+      setSessionShipmentId(null);
+      setSelectedStoreId(null);
 
-        const selectedStore = stores.find(s => s.store_id === selectedStoreId);
-        const shipmentData = shipmentDetail || shipments.find(s => s.shipment_id === sessionShipmentId);
-
-        setShowCreateSessionModal(false);
-        const shipmentIdForNav = sessionShipmentId;
-        const storeIdForNav = selectedStoreId;
-        setSessionShipmentId(null);
-        setSelectedStoreId(null);
-
-        navigate(`/product/receive/session/${sessionId}`, {
-          state: {
-            sessionData: {
-              ...sessionData,
-              store_name: selectedStore?.store_name || '',
-              store_id: storeIdForNav,
-            },
-            shipmentId: shipmentIdForNav,
-            shipmentData: shipmentData,
-            isNewSession: true,
-          }
-        });
-      } else {
-        setCreateSessionError(typedData?.error || 'Failed to create session');
-      }
+      navigate(`/product/receive/session/${sessionId}`, {
+        state: {
+          sessionData: {
+            session_id: sessionId,
+            store_name: selectedStore?.store_name || '',
+            store_id: storeIdForNav,
+            ...result,
+          },
+          shipmentId: shipmentIdForNav,
+          shipmentData: shipmentData,
+          isNewSession: true,
+        }
+      });
     } catch (err) {
       console.error('📦 Create session error:', err);
       setCreateSessionError(err instanceof Error ? err.message : 'Failed to create session');

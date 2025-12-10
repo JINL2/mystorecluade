@@ -1,13 +1,13 @@
 /**
  * useProductReceiveList Hook
  * Custom hook for product receive list management with filters
- * Uses inventory_get_shipment_list RPC to load shipments for receiving
+ * Uses Repository pattern for data access
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
+import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 import type {
   Currency,
   Counterparty,
@@ -65,6 +65,7 @@ export const formatDateDisplay = (dateStr: string): string => {
 export const useProductReceiveList = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const repository = useMemo(() => productReceiveRepository, []);
 
   // Check if we need to refresh data
   const navigationState = location.state as { refresh?: boolean } | null;
@@ -111,58 +112,57 @@ export const useProductReceiveList = () => {
   // Debounce timer for search
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load base currency
+  // Load base currency using Repository
   useEffect(() => {
     const loadBaseCurrency = async () => {
       if (!companyId) return;
 
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_base_currency', {
-          p_company_id: companyId,
+        const result = await repository.getBaseCurrency(companyId);
+        setCurrency({
+          symbol: result.symbol || '₩',
+          code: result.code || 'KRW',
+          name: 'Korean Won',
         });
-
-        if (!error && data?.base_currency) {
-          setCurrency({
-            symbol: data.base_currency.symbol || '₩',
-            code: data.base_currency.currency_code || 'KRW',
-            name: data.base_currency.name || 'Korean Won',
-          });
-        }
       } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+        console.error('💰 getBaseCurrency error:', err);
       }
     };
 
     loadBaseCurrency();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load counterparties (suppliers)
+  // Load counterparties (suppliers) using Repository
   useEffect(() => {
     const loadCounterparties = async () => {
       if (!companyId) return;
 
       setSuppliersLoading(true);
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_counterparty_info', {
-          p_company_id: companyId,
-        });
-
-        if (!error && data?.success && data?.data) {
-          setSuppliers(data.data);
-        }
+        const result = await repository.getCounterparties(companyId);
+        // Map domain entity to presentation format
+        const mappedSuppliers: Counterparty[] = result.map(c => ({
+          counterparty_id: c.counterpartyId,
+          name: c.name,
+          type: '',
+          email: null,
+          phone: null,
+          address: null,
+          notes: null,
+          is_internal: c.isInternal ?? false,
+        }));
+        setSuppliers(mappedSuppliers);
       } catch (err) {
-        console.error('🏢 get_counterparty_info error:', err);
+        console.error('🏢 getCounterparties error:', err);
       } finally {
         setSuppliersLoading(false);
       }
     };
 
     loadCounterparties();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load shipments using inventory_get_shipment_list RPC
+  // Load shipments using Repository
   const loadShipments = useCallback(async (
     search?: string,
     startDate?: string,
@@ -174,52 +174,37 @@ export const useProductReceiveList = () => {
 
     setShipmentsLoading(true);
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      // Build RPC parameters
-      const rpcParams: Record<string, unknown> = {
-        p_company_id: companyId,
-        p_timezone: userTimezone,
-        p_limit: 50,
-        p_offset: 0,
-      };
+      const result = await repository.getShipmentList({
+        companyId,
+        timezone: userTimezone,
+        searchQuery: search,
+        fromDate: startDate,
+        toDate: endDate,
+        statusFilter: shipmentStatus,
+        supplierFilter: supplierId,
+      });
 
-      // Add optional filters
-      if (search && search.trim()) {
-        rpcParams.p_search = search.trim();
-      }
-      if (shipmentStatus) {
-        rpcParams.p_status = shipmentStatus;
-      }
-      if (supplierId) {
-        rpcParams.p_supplier_id = supplierId;
-      }
-      if (startDate) {
-        rpcParams.p_start_date = `${startDate} 00:00:00`;
-      }
-      if (endDate) {
-        rpcParams.p_end_date = `${endDate} 23:59:59`;
-      }
+      // Map domain entity to presentation format
+      const mappedShipments: Shipment[] = result.shipments.map(s => ({
+        shipment_id: s.shipmentId,
+        shipment_number: s.shipmentNumber,
+        tracking_number: null,
+        shipped_date: s.shippedDate,
+        supplier_id: null,
+        supplier_name: s.supplierName,
+        status: s.status as Shipment['status'],
+        item_count: s.totalItems,
+        has_orders: false,
+        linked_order_count: 0,
+        notes: null,
+        created_at: s.shippedDate,
+        created_by: null,
+      }));
 
-      console.log('📦 Calling inventory_get_shipment_list for receive page:', rpcParams);
-
-      const { data, error } = await supabase.rpc('inventory_get_shipment_list', rpcParams);
-
-      console.log('📦 inventory_get_shipment_list response:', { data, error });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.success && data?.data) {
-        setShipments(data.data);
-        setTotalCount(data.total_count || 0);
-      } else {
-        console.error('📦 RPC error:', data?.error);
-        setShipments([]);
-        setTotalCount(0);
-      }
+      setShipments(mappedShipments);
+      setTotalCount(result.totalCount);
     } catch (err) {
       console.error('📦 Load shipments error:', err);
       setShipments([]);
@@ -227,49 +212,82 @@ export const useProductReceiveList = () => {
     } finally {
       setShipmentsLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load shipment detail using inventory_get_shipment_detail RPC
+  // Load shipment detail using Repository
   const loadShipmentDetail = useCallback(async (shipmentId: string) => {
     if (!companyId || !shipmentId) return;
 
     setDetailLoading(true);
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      console.log('📦 Calling inventory_get_shipment_detail:', {
-        p_shipment_id: shipmentId,
-        p_company_id: companyId,
-        p_timezone: userTimezone,
+      const result = await repository.getShipmentDetail({
+        shipmentId,
+        companyId,
+        timezone: userTimezone,
       });
 
-      const { data, error } = await supabase.rpc('inventory_get_shipment_detail', {
-        p_shipment_id: shipmentId,
-        p_company_id: companyId,
-        p_timezone: userTimezone,
-      });
+      // Map domain entity to presentation format
+      const mappedDetail: ShipmentDetail = {
+        shipment_id: result.shipmentId,
+        shipment_number: result.shipmentNumber,
+        tracking_number: result.trackingNumber || null,
+        shipped_date: result.shippedDate,
+        status: result.status as ShipmentDetail['status'],
+        total_amount: 0,
+        notes: result.notes || null,
+        created_by: null,
+        created_at: result.shippedDate,
+        supplier_id: result.supplierId || null,
+        supplier_name: result.supplierName,
+        supplier_phone: null,
+        supplier_email: null,
+        supplier_address: null,
+        is_registered_supplier: !!result.supplierId,
+        items: result.items.map(item => ({
+          item_id: item.itemId,
+          product_id: item.productId,
+          product_name: item.productName,
+          sku: item.sku,
+          quantity_shipped: item.quantityShipped,
+          quantity_received: item.quantityReceived,
+          quantity_accepted: item.quantityAccepted,
+          quantity_rejected: item.quantityRejected,
+          quantity_remaining: item.quantityRemaining,
+          unit_cost: item.unitCost,
+          total_amount: item.quantityShipped * item.unitCost,
+        })),
+        receiving_summary: result.receivingSummary ? {
+          total_shipped: result.receivingSummary.totalShipped,
+          total_received: result.receivingSummary.totalReceived,
+          total_accepted: result.receivingSummary.totalAccepted,
+          total_rejected: result.receivingSummary.totalRejected,
+          total_remaining: result.receivingSummary.totalRemaining,
+          progress_percentage: result.receivingSummary.progressPercentage,
+        } : {
+          total_shipped: 0,
+          total_received: 0,
+          total_accepted: 0,
+          total_rejected: 0,
+          total_remaining: 0,
+          progress_percentage: 0,
+        },
+        has_orders: false,
+        order_count: 0,
+        orders: [],
+        can_cancel: false,
+      };
 
-      console.log('📦 inventory_get_shipment_detail response:', { data, error });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.success && data?.data) {
-        setShipmentDetail(data.data);
-        setSelectedShipmentId(shipmentId);
-      } else {
-        console.error('📦 RPC error:', data?.error);
-        setShipmentDetail(null);
-      }
+      setShipmentDetail(mappedDetail);
+      setSelectedShipmentId(shipmentId);
     } catch (err) {
       console.error('📦 Load shipment detail error:', err);
       setShipmentDetail(null);
     } finally {
       setDetailLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, repository]);
 
   // Clear selected shipment
   const clearSelectedShipment = useCallback(() => {
