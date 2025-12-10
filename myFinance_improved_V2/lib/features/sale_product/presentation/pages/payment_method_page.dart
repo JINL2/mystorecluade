@@ -16,17 +16,19 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_button.dart';
 // Feature imports - journal_input (for exchangeRatesProvider)
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
-// Feature imports - sale_product
-import '../../../sale_product/domain/entities/sales_product.dart';
-import '../../../sale_product/presentation/providers/cart_provider.dart';
-import '../../../sale_product/presentation/providers/sales_product_provider.dart';
-// Feature imports - sales_invoice
+// Feature imports - sale_product domain
+import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
-import '../../domain/repositories/product_repository.dart';
+import '../../domain/repositories/payment_repository.dart';
+// Feature imports - sale_product presentation
 import '../helpers/exchange_rate_helper.dart';
 import '../providers/payment_providers.dart';
-import '../providers/product_providers.dart';
+import '../providers/repository_providers.dart';
+import '../providers/sales_product_provider.dart';
 import '../providers/states/payment_method_state.dart';
+import '../providers/cart_provider.dart';
+// Sale product entities
+import '../../domain/entities/sales_product.dart';
 // Extracted widgets
 import '../widgets/payment_method/bottom_sheets/invoice_success_bottom_sheet.dart';
 import '../widgets/payment_method/sections/exchange_rate_panel.dart';
@@ -38,12 +40,14 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
   final Map<String, int> productQuantities;
   final ExchangeRateData? exchangeRateData;
+  final List<CashLocation> cashLocations;
 
   const PaymentMethodPage({
     super.key,
     required this.selectedProducts,
     required this.productQuantities,
     this.exchangeRateData,
+    this.cashLocations = const [],
   });
 
   @override
@@ -65,9 +69,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     if (widget.exchangeRateData != null) {
       _exchangeRateData = widget.exchangeRateData;
     }
-    // Load currency and cash location data when page loads
+    // Set preloaded cash locations (already loaded in SaleProductPage)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(paymentMethodProvider.notifier).loadCurrencyData();
+      // Cash locations are preloaded in SaleProductPage via salePreloadProvider
+      // No RPC call needed here - just set the data to provider
+      ref
+          .read(paymentMethodProvider.notifier)
+          .setCashLocations(widget.cashLocations);
+
       // Only load exchange rates if not already provided
       if (_exchangeRateData == null) {
         _loadExchangeRates();
@@ -125,6 +134,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final paymentState = ref.watch(paymentMethodProvider);
     final discountAmount = paymentState.discountAmount;
     final finalTotal = _cartTotal - discountAmount;
+
+    // Determine if invoice can be completed
+    // - finalTotal >= 0 (allow free/gift, but not negative)
+    // - cash location must be selected
+    final bool canCompleteInvoice = finalTotal >= 0 &&
+        paymentState.selectedCashLocation != null;
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -188,6 +203,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     child: PaymentBreakdownSection(
                       selectedProducts: widget.selectedProducts,
                       productQuantities: widget.productQuantities,
+                      currencySymbol:
+                          _exchangeRateData?.baseCurrency.symbol ?? '₫',
                     ),
                   ),
 
@@ -214,6 +231,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               child: TossButton.primary(
                 text: 'Complete Invoice',
                 onPressed: _proceedToInvoice,
+                isEnabled: canCompleteInvoice,
                 fullWidth: true,
               ),
             ),
@@ -321,7 +339,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     try {
       // Get repository via provider
-      final productRepository = ref.read(productRepositoryProvider);
+      final paymentRepository = ref.read(paymentRepositoryProvider);
 
       // Determine payment method based on cash location type
       String paymentMethod = 'cash';
@@ -350,7 +368,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       }
 
       // Call repository to create invoice
-      final result = await productRepository.createInvoice(
+      final result = await paymentRepository.createInvoice(
         companyId: companyId,
         storeId: storeId,
         userId: userId,
