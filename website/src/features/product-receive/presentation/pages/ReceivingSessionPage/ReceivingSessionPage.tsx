@@ -7,6 +7,7 @@
 import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
+import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { useReceivingSession } from '../../hooks/useReceivingSession';
 import {
   SubmitReviewModal,
@@ -124,6 +125,9 @@ export const ReceivingSessionPage: React.FC = () => {
   return (
     <>
       <Navbar activeItem="product" />
+
+      {/* Fullscreen Loading when submitting */}
+      {isSubmitting && <LoadingAnimation fullscreen size="large" />}
 
       {/* Submit Confirmation Modal */}
       <ConfirmModal
