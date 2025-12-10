@@ -7,6 +7,9 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+
 import '../../../homepage/domain/entities/top_feature.dart';
 
 /// Session Page
@@ -15,9 +18,9 @@ import '../../../homepage/domain/entities/top_feature.dart';
 /// Feature ID: 540acbde-e5c7-4c5b-ad67-fd6204a56479
 /// Route: /session
 ///
-/// Options:
-/// - Create Session: Start a new session
-/// - Join Session: Join an existing session with a code
+/// Flow:
+/// 1. First select session type: Receive or Count
+/// 2. Then select action: Create Session or Join Session
 class SessionPage extends ConsumerStatefulWidget {
   final dynamic feature;
 
@@ -27,16 +30,54 @@ class SessionPage extends ConsumerStatefulWidget {
   ConsumerState<SessionPage> createState() => _SessionPageState();
 }
 
-class _SessionPageState extends ConsumerState<SessionPage> {
+/// Session type enum
+enum SessionType { receive, count }
+
+class _SessionPageState extends ConsumerState<SessionPage>
+    with SingleTickerProviderStateMixin {
   // Feature info extracted once
   String? _featureName;
   bool _featureInfoExtracted = false;
   bool _isNavigating = false;
 
+  // Current selected session type (null = show type selection)
+  SessionType? _selectedType;
+
+  // Animation controller for page transitions
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  bool _isGoingForward = true;
+
   @override
   void initState() {
     super.initState();
     _extractFeatureInfo();
+    _setupAnimation();
+  }
+
+  void _setupAnimation() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _updateSlideAnimation();
+    _animationController.value = 1.0; // Start fully visible
+  }
+
+  void _updateSlideAnimation() {
+    _slideAnimation = Tween<Offset>(
+      begin: _isGoingForward ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _extractFeatureInfo() {
@@ -60,39 +101,85 @@ class _SessionPageState extends ConsumerState<SessionPage> {
       appBar: TossAppBar1(
         title: _featureName ?? 'Session',
         backgroundColor: TossColors.background,
+        leading: _selectedType != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _goBack,
+              )
+            : null,
       ),
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Create Session Card
-              _buildActionCard(
-                context: context,
-                title: 'Create Session',
-                subtitle: 'Start a new work session',
-                icon: Icons.add_circle_outline,
-                color: TossColors.primary,
-                onTap: () => _onCreateSession(),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Join Session Card
-              _buildActionCard(
-                context: context,
-                title: 'Join Session',
-                subtitle: 'Join an existing session with a code',
-                icon: Icons.login_outlined,
-                color: TossColors.success,
-                onTap: () => _onJoinSession(),
-              ),
-            ],
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: _selectedType == null
+                ? _buildTypeSelection()
+                : _buildActionSelection(),
           ),
         ),
       ),
+    );
+  }
+
+  /// Build session type selection (Receive / Count)
+  Widget _buildTypeSelection() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Receive Card
+        _buildActionCard(
+          context: context,
+          title: 'Receive',
+          subtitle: 'Receive and verify incoming items',
+          icon: Icons.inventory_2_outlined,
+          color: TossColors.primary,
+          onTap: () => _onSelectType(SessionType.receive),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Count Card
+        _buildActionCard(
+          context: context,
+          title: 'Count',
+          subtitle: 'Count and verify inventory items',
+          icon: Icons.calculate_outlined,
+          color: TossColors.success,
+          onTap: () => _onSelectType(SessionType.count),
+        ),
+      ],
+    );
+  }
+
+  /// Build action selection (Create Session / Join Session)
+  Widget _buildActionSelection() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Create Session Card
+        _buildActionCard(
+          context: context,
+          title: 'Create Session',
+          subtitle: 'Start a new work session',
+          icon: Icons.add_circle_outline,
+          color: TossColors.primary,
+          onTap: () => _onCreateSession(),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Join Session Card
+        _buildActionCard(
+          context: context,
+          title: 'Join Session',
+          subtitle: 'Join an existing session with a code',
+          icon: Icons.login_outlined,
+          color: TossColors.success,
+          onTap: () => _onJoinSession(),
+        ),
+      ],
     );
   }
 
@@ -100,20 +187,95 @@ class _SessionPageState extends ConsumerState<SessionPage> {
   // Action Handlers
   // ==========================================
 
+  void _onSelectType(SessionType type) {
+    if (_isNavigating || !mounted) return;
+
+    _isGoingForward = true;
+    _updateSlideAnimation();
+    _animationController.forward(from: 0.0);
+
+    setState(() {
+      _selectedType = type;
+    });
+  }
+
+  void _goBack() {
+    if (_isNavigating || !mounted) return;
+
+    _isGoingForward = false;
+    _updateSlideAnimation();
+    _animationController.forward(from: 0.0);
+
+    setState(() {
+      _selectedType = null;
+    });
+  }
+
   void _onCreateSession() {
     if (_isNavigating || !mounted) return;
 
-    setState(() {
-      _isNavigating = true;
-    });
+    _showCreateSessionDialog();
+  }
 
-    // TODO: Navigate to create session page
-    // context.push('/session/create');
+  void _showCreateSessionDialog() {
+    final textController = TextEditingController(text: 'Session 1');
+    bool isValid = textController.text.trim().isNotEmpty;
 
-    // For now, show a snackbar
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return TossConfirmCancelDialog(
+            title: 'Create Session',
+            confirmButtonText: 'Create',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: isValid ? null : TossColors.gray300,
+            customContent: TossTextField(
+              label: 'Session Name',
+              hintText: 'Enter session name',
+              controller: textController,
+              onChanged: (value) {
+                setDialogState(() {
+                  isValid = value.trim().isNotEmpty;
+                });
+              },
+            ),
+            onConfirm: isValid
+                ? () {
+                    final sessionName = textController.text.trim();
+                    Navigator.of(dialogContext).pop(true);
+                    _createSession(sessionName);
+                  }
+                : null,
+            onCancel: () {
+              Navigator.of(dialogContext).pop(false);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _createSession(String sessionName) {
+    if (sessionName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter a session name'),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // TODO: Implement session creation logic
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Create Session - Coming Soon'),
+        content: Text('Creating session: $sessionName'),
         backgroundColor: TossColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -121,15 +283,6 @@ class _SessionPageState extends ConsumerState<SessionPage> {
         ),
       ),
     );
-
-    // Reset navigation state
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() {
-          _isNavigating = false;
-        });
-      }
-    });
   }
 
   void _onJoinSession() {
