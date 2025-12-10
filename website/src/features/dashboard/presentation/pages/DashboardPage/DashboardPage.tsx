@@ -4,7 +4,7 @@
  * Uses ErrorMessage component for consistent error handling
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../hooks/useDashboard';
 import { OverviewCard } from '../../components/OverviewCard';
@@ -23,7 +23,12 @@ const TRANSACTION_HISTORY_FEATURE_ID = '7e1fd11a-f632-427d-aefc-8b3dd6734faa';
 
 export const DashboardPage: React.FC<DashboardPageProps> = () => {
   const navigate = useNavigate();
-  const { currentCompany, permissions } = useAppState();
+  const { currentCompany, permissions, loadUserData } = useAppState();
+
+  // Dashboard 페이지 진입 시 권한 데이터 새로고침
+  useEffect(() => {
+    loadUserData();
+  }, []);
   const companyId = currentCompany?.company_id || '';
   const { data, loading, errorDialog, refresh, clearError } = useDashboard(companyId);
   const [showPermissionError, setShowPermissionError] = useState(false);

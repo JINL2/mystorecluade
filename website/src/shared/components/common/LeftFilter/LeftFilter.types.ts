@@ -10,6 +10,7 @@ export interface FilterOption {
   label: string;
   icon?: React.ReactNode;
   disabled?: boolean;
+  description?: string;
 }
 
 export interface FilterSection {

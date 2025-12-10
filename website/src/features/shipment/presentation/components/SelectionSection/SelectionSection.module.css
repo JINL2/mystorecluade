@@ -1,0 +1,254 @@
+/**
+ * SelectionSection Styles
+ * Styles for Order and Supplier selection sections
+ */
+
+/* ========================================
+   Selection Mode Sections
+   ======================================== */
+
+.selectionSection {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.selectionSection.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.selectionSection.active {
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 2px 12px rgba(0, 100, 255, 0.1);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sectionTitleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0;
+}
+
+.sectionNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.orBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: var(--toss-gray-100, #F1F3F5);
+  color: var(--text-secondary, #6C757D);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.selectionIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 100, 255, 0.08);
+  color: var(--toss-primary, #0064FF);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.selectionIndicator svg {
+  color: var(--toss-primary, #0064FF);
+}
+
+.selectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clearSelectionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #e5e8eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7684;
+  transition: all 0.15s ease;
+}
+
+.clearSelectionButton:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.clearSelectionButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sectionContent {
+  /* Content container */
+}
+
+/* ========================================
+   Select Group
+   ======================================== */
+
+.selectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  letter-spacing: 0.3px;
+}
+
+.required {
+  color: #DC2626;
+}
+
+/* ========================================
+   Supplier Section Styles
+   ======================================== */
+
+.supplierTypeToggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--toss-gray-100, #F1F3F5);
+  border-radius: 10px;
+}
+
+.toggleButton {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, #6C757D);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggleButton.active {
+  background: white;
+  color: var(--toss-primary, #0064FF);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.toggleButton:hover:not(.active) {
+  color: var(--text-primary, #212529);
+}
+
+.existingSupplier {
+  max-width: 400px;
+}
+
+.oneTimeSupplier {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input {
+  padding: 12px 16px;
+  border: 2px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text-primary, #212529);
+  transition: all 0.2s ease;
+}
+
+.input::placeholder {
+  color: var(--toss-gray-400, #CED4DA);
+}
+
+.input:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.1);
+}
+
+/* ========================================
+   Responsive Styles
+   ======================================== */
+
+@media (max-width: 768px) {
+  .selectionSection {
+    padding: 20px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .supplierTypeToggle {
+    flex-direction: column;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

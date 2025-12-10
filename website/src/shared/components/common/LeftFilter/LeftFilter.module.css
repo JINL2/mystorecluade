@@ -161,6 +161,36 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.optionContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.optionLabel {
+  flex: 0 0 auto;
+}
+
+.optionDescription {
+  flex: none !important;
+  width: auto !important;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(0, 100, 255, 0.12);
+  color: #0064FF;
+  white-space: nowrap;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .checkIcon {

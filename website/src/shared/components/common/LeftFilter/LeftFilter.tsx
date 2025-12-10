@@ -87,9 +87,12 @@ export const LeftFilter: React.FC<LeftFilterProps> = ({
               onClick={() => section.onToggle?.(option.value)}
               disabled={option.disabled}
             >
-              <span>
+              <span className={styles.optionContent}>
                 {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
-                {option.label}
+                <span className={styles.optionLabel}>{option.label}</span>
+                {option.description && (
+                  <span className={styles.optionDescription}>{option.description}</span>
+                )}
               </span>
               {selectedSet.has(option.value) && (
                 <svg className={styles.checkIcon} width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
