@@ -43,6 +43,10 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => StoreModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      subscription: json['subscription'] == null
+          ? null
+          : SubscriptionModel.fromJson(
+              json['subscription'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
@@ -53,6 +57,7 @@ Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
       'store_count': instance.storeCount,
       'role': instance.role,
       'stores': instance.stores,
+      'subscription': instance.subscription,
     };
 
 _$StoreModelImpl _$$StoreModelImplFromJson(Map<String, dynamic> json) =>
@@ -85,4 +90,37 @@ Map<String, dynamic> _$$RoleModelImplToJson(_$RoleModelImpl instance) =>
       'role_id': instance.roleId,
       'role_name': instance.roleName,
       'permissions': instance.permissions,
+    };
+
+_$SubscriptionModelImpl _$$SubscriptionModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$SubscriptionModelImpl(
+      planId: json['plan_id'] as String,
+      planName: json['plan_name'] as String,
+      displayName: json['display_name'] as String?,
+      planType: json['plan_type'] as String,
+      maxCompanies: (json['max_companies'] as num?)?.toInt() ?? 1,
+      maxStores: (json['max_stores'] as num?)?.toInt() ?? 1,
+      maxEmployees: (json['max_employees'] as num?)?.toInt() ?? 5,
+      aiDailyLimit: (json['ai_daily_limit'] as num?)?.toInt() ?? 2,
+      priceMonthly: (json['price_monthly'] as num?)?.toDouble() ?? 0,
+      features: (json['features'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$SubscriptionModelImplToJson(
+        _$SubscriptionModelImpl instance) =>
+    <String, dynamic>{
+      'plan_id': instance.planId,
+      'plan_name': instance.planName,
+      'display_name': instance.displayName,
+      'plan_type': instance.planType,
+      'max_companies': instance.maxCompanies,
+      'max_stores': instance.maxStores,
+      'max_employees': instance.maxEmployees,
+      'ai_daily_limit': instance.aiDailyLimit,
+      'price_monthly': instance.priceMonthly,
+      'features': instance.features,
     };

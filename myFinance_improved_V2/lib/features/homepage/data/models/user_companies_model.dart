@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/domain/entities/company.dart';
 import '../../../../core/domain/entities/store.dart';
+import '../../../../core/domain/entities/subscription.dart';
 import '../../domain/entities/user_with_companies.dart';
 
 part 'user_companies_model.freezed.dart';
@@ -66,6 +67,7 @@ class CompanyModel with _$CompanyModel {
     int? storeCount,
     RoleModel? role,  // ✅ Make nullable - some companies may not have role data
     @Default([]) List<StoreModel> stores,  // ✅ Provide default empty list
+    SubscriptionModel? subscription,  // ✅ Company subscription plan info
   }) = _CompanyModel;
 
   /// Create from JSON
@@ -80,6 +82,7 @@ class CompanyModel with _$CompanyModel {
       companyCode: companyCode ?? '',
       role: role?.toEntity() ?? const UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
       stores: stores.map((model) => model.toEntity(companyId)).toList(),
+      subscription: subscription?.toEntity(),  // ✅ Convert subscription model to entity
     );
   }
 
@@ -91,6 +94,9 @@ class CompanyModel with _$CompanyModel {
       companyCode: entity.companyCode,
       role: RoleModel.fromDomain(entity.role),
       stores: entity.stores.map((s) => StoreModel.fromDomain(s)).toList(),
+      subscription: entity.subscription != null
+          ? SubscriptionModel.fromDomain(entity.subscription!)
+          : null,
     );
   }
 }
@@ -163,4 +169,75 @@ class RoleModel with _$RoleModel {
       permissions: entity.permissions,
     );
   }
+}
+
+/// Subscription Model - nested model for company subscription/plan info
+@freezed
+class SubscriptionModel with _$SubscriptionModel {
+  const SubscriptionModel._();
+
+  @JsonSerializable(fieldRename: FieldRename.snake)
+  const factory SubscriptionModel({
+    required String planId,
+    required String planName,
+    String? displayName,
+    required String planType,
+    @Default(1) int maxCompanies,
+    @Default(1) int maxStores,
+    @Default(5) int maxEmployees,
+    @Default(2) int aiDailyLimit,
+    @Default(0) double priceMonthly,
+    @Default([]) List<String> features,
+  }) = _SubscriptionModel;
+
+  /// Create from JSON
+  factory SubscriptionModel.fromJson(Map<String, dynamic> json) =>
+      _$SubscriptionModelFromJson(json);
+
+  /// Convert to Domain Entity
+  Subscription toEntity() {
+    return Subscription(
+      planId: planId,
+      planName: planName,
+      displayName: displayName ?? planName,
+      planType: planType,
+      maxCompanies: maxCompanies,
+      maxStores: maxStores,
+      maxEmployees: maxEmployees,
+      aiDailyLimit: aiDailyLimit,
+      priceMonthly: priceMonthly,
+      features: features,
+    );
+  }
+
+  /// Create from Domain Entity
+  factory SubscriptionModel.fromDomain(Subscription entity) {
+    return SubscriptionModel(
+      planId: entity.planId,
+      planName: entity.planName,
+      displayName: entity.displayName,
+      planType: entity.planType,
+      maxCompanies: entity.maxCompanies,
+      maxStores: entity.maxStores,
+      maxEmployees: entity.maxEmployees,
+      aiDailyLimit: entity.aiDailyLimit,
+      priceMonthly: entity.priceMonthly,
+      features: entity.features,
+    );
+  }
+
+  /// Check if this is a free plan
+  bool get isFree => planType == 'free';
+
+  /// Check if this is a paid plan
+  bool get isPaid => planType != 'free';
+
+  /// Check if stores are unlimited (-1 means unlimited)
+  bool get hasUnlimitedStores => maxStores == -1;
+
+  /// Check if employees are unlimited (-1 means unlimited)
+  bool get hasUnlimitedEmployees => maxEmployees == -1;
+
+  /// Check if AI is unlimited (-1 means unlimited)
+  bool get hasUnlimitedAI => aiDailyLimit == -1;
 }

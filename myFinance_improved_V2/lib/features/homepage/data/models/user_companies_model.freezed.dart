@@ -301,7 +301,9 @@ mixin _$CompanyModel {
   int? get storeCount => throw _privateConstructorUsedError;
   RoleModel? get role =>
       throw _privateConstructorUsedError; // ✅ Make nullable - some companies may not have role data
-  List<StoreModel> get stores => throw _privateConstructorUsedError;
+  List<StoreModel> get stores =>
+      throw _privateConstructorUsedError; // ✅ Provide default empty list
+  SubscriptionModel? get subscription => throw _privateConstructorUsedError;
 
   /// Serializes this CompanyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -325,9 +327,11 @@ abstract class $CompanyModelCopyWith<$Res> {
       String? companyCode,
       int? storeCount,
       RoleModel? role,
-      List<StoreModel> stores});
+      List<StoreModel> stores,
+      SubscriptionModel? subscription});
 
   $RoleModelCopyWith<$Res>? get role;
+  $SubscriptionModelCopyWith<$Res>? get subscription;
 }
 
 /// @nodoc
@@ -351,6 +355,7 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? storeCount = freezed,
     Object? role = freezed,
     Object? stores = null,
+    Object? subscription = freezed,
   }) {
     return _then(_value.copyWith(
       companyId: null == companyId
@@ -377,6 +382,10 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
           ? _value.stores
           : stores // ignore: cast_nullable_to_non_nullable
               as List<StoreModel>,
+      subscription: freezed == subscription
+          ? _value.subscription
+          : subscription // ignore: cast_nullable_to_non_nullable
+              as SubscriptionModel?,
     ) as $Val);
   }
 
@@ -391,6 +400,20 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
 
     return $RoleModelCopyWith<$Res>(_value.role!, (value) {
       return _then(_value.copyWith(role: value) as $Val);
+    });
+  }
+
+  /// Create a copy of CompanyModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SubscriptionModelCopyWith<$Res>? get subscription {
+    if (_value.subscription == null) {
+      return null;
+    }
+
+    return $SubscriptionModelCopyWith<$Res>(_value.subscription!, (value) {
+      return _then(_value.copyWith(subscription: value) as $Val);
     });
   }
 }
@@ -409,10 +432,13 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
       String? companyCode,
       int? storeCount,
       RoleModel? role,
-      List<StoreModel> stores});
+      List<StoreModel> stores,
+      SubscriptionModel? subscription});
 
   @override
   $RoleModelCopyWith<$Res>? get role;
+  @override
+  $SubscriptionModelCopyWith<$Res>? get subscription;
 }
 
 /// @nodoc
@@ -434,6 +460,7 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? storeCount = freezed,
     Object? role = freezed,
     Object? stores = null,
+    Object? subscription = freezed,
   }) {
     return _then(_$CompanyModelImpl(
       companyId: null == companyId
@@ -460,6 +487,10 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
           ? _value._stores
           : stores // ignore: cast_nullable_to_non_nullable
               as List<StoreModel>,
+      subscription: freezed == subscription
+          ? _value.subscription
+          : subscription // ignore: cast_nullable_to_non_nullable
+              as SubscriptionModel?,
     ));
   }
 }
@@ -474,7 +505,8 @@ class _$CompanyModelImpl extends _CompanyModel {
       this.companyCode,
       this.storeCount,
       this.role,
-      final List<StoreModel> stores = const []})
+      final List<StoreModel> stores = const [],
+      this.subscription})
       : _stores = stores,
         super._();
 
@@ -502,9 +534,13 @@ class _$CompanyModelImpl extends _CompanyModel {
     return EqualUnmodifiableListView(_stores);
   }
 
+// ✅ Provide default empty list
+  @override
+  final SubscriptionModel? subscription;
+
   @override
   String toString() {
-    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, role: $role, stores: $stores)';
+    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, role: $role, stores: $stores, subscription: $subscription)';
   }
 
   @override
@@ -521,7 +557,9 @@ class _$CompanyModelImpl extends _CompanyModel {
             (identical(other.storeCount, storeCount) ||
                 other.storeCount == storeCount) &&
             (identical(other.role, role) || other.role == role) &&
-            const DeepCollectionEquality().equals(other._stores, _stores));
+            const DeepCollectionEquality().equals(other._stores, _stores) &&
+            (identical(other.subscription, subscription) ||
+                other.subscription == subscription));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -533,7 +571,8 @@ class _$CompanyModelImpl extends _CompanyModel {
       companyCode,
       storeCount,
       role,
-      const DeepCollectionEquality().hash(_stores));
+      const DeepCollectionEquality().hash(_stores),
+      subscription);
 
   /// Create a copy of CompanyModel
   /// with the given fields replaced by the non-null parameter values.
@@ -558,7 +597,8 @@ abstract class _CompanyModel extends CompanyModel {
       final String? companyCode,
       final int? storeCount,
       final RoleModel? role,
-      final List<StoreModel> stores}) = _$CompanyModelImpl;
+      final List<StoreModel> stores,
+      final SubscriptionModel? subscription}) = _$CompanyModelImpl;
   const _CompanyModel._() : super._();
 
   factory _CompanyModel.fromJson(Map<String, dynamic> json) =
@@ -576,7 +616,9 @@ abstract class _CompanyModel extends CompanyModel {
   RoleModel?
       get role; // ✅ Make nullable - some companies may not have role data
   @override
-  List<StoreModel> get stores;
+  List<StoreModel> get stores; // ✅ Provide default empty list
+  @override
+  SubscriptionModel? get subscription;
 
   /// Create a copy of CompanyModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1001,5 +1043,373 @@ abstract class _RoleModel extends RoleModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RoleModelImplCopyWith<_$RoleModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SubscriptionModel _$SubscriptionModelFromJson(Map<String, dynamic> json) {
+  return _SubscriptionModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SubscriptionModel {
+  String get planId => throw _privateConstructorUsedError;
+  String get planName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  String get planType => throw _privateConstructorUsedError;
+  int get maxCompanies => throw _privateConstructorUsedError;
+  int get maxStores => throw _privateConstructorUsedError;
+  int get maxEmployees => throw _privateConstructorUsedError;
+  int get aiDailyLimit => throw _privateConstructorUsedError;
+  double get priceMonthly => throw _privateConstructorUsedError;
+  List<String> get features => throw _privateConstructorUsedError;
+
+  /// Serializes this SubscriptionModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SubscriptionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SubscriptionModelCopyWith<SubscriptionModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SubscriptionModelCopyWith<$Res> {
+  factory $SubscriptionModelCopyWith(
+          SubscriptionModel value, $Res Function(SubscriptionModel) then) =
+      _$SubscriptionModelCopyWithImpl<$Res, SubscriptionModel>;
+  @useResult
+  $Res call(
+      {String planId,
+      String planName,
+      String? displayName,
+      String planType,
+      int maxCompanies,
+      int maxStores,
+      int maxEmployees,
+      int aiDailyLimit,
+      double priceMonthly,
+      List<String> features});
+}
+
+/// @nodoc
+class _$SubscriptionModelCopyWithImpl<$Res, $Val extends SubscriptionModel>
+    implements $SubscriptionModelCopyWith<$Res> {
+  _$SubscriptionModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SubscriptionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? planId = null,
+    Object? planName = null,
+    Object? displayName = freezed,
+    Object? planType = null,
+    Object? maxCompanies = null,
+    Object? maxStores = null,
+    Object? maxEmployees = null,
+    Object? aiDailyLimit = null,
+    Object? priceMonthly = null,
+    Object? features = null,
+  }) {
+    return _then(_value.copyWith(
+      planId: null == planId
+          ? _value.planId
+          : planId // ignore: cast_nullable_to_non_nullable
+              as String,
+      planName: null == planName
+          ? _value.planName
+          : planName // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      planType: null == planType
+          ? _value.planType
+          : planType // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxCompanies: null == maxCompanies
+          ? _value.maxCompanies
+          : maxCompanies // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxStores: null == maxStores
+          ? _value.maxStores
+          : maxStores // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxEmployees: null == maxEmployees
+          ? _value.maxEmployees
+          : maxEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      aiDailyLimit: null == aiDailyLimit
+          ? _value.aiDailyLimit
+          : aiDailyLimit // ignore: cast_nullable_to_non_nullable
+              as int,
+      priceMonthly: null == priceMonthly
+          ? _value.priceMonthly
+          : priceMonthly // ignore: cast_nullable_to_non_nullable
+              as double,
+      features: null == features
+          ? _value.features
+          : features // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SubscriptionModelImplCopyWith<$Res>
+    implements $SubscriptionModelCopyWith<$Res> {
+  factory _$$SubscriptionModelImplCopyWith(_$SubscriptionModelImpl value,
+          $Res Function(_$SubscriptionModelImpl) then) =
+      __$$SubscriptionModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String planId,
+      String planName,
+      String? displayName,
+      String planType,
+      int maxCompanies,
+      int maxStores,
+      int maxEmployees,
+      int aiDailyLimit,
+      double priceMonthly,
+      List<String> features});
+}
+
+/// @nodoc
+class __$$SubscriptionModelImplCopyWithImpl<$Res>
+    extends _$SubscriptionModelCopyWithImpl<$Res, _$SubscriptionModelImpl>
+    implements _$$SubscriptionModelImplCopyWith<$Res> {
+  __$$SubscriptionModelImplCopyWithImpl(_$SubscriptionModelImpl _value,
+      $Res Function(_$SubscriptionModelImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SubscriptionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? planId = null,
+    Object? planName = null,
+    Object? displayName = freezed,
+    Object? planType = null,
+    Object? maxCompanies = null,
+    Object? maxStores = null,
+    Object? maxEmployees = null,
+    Object? aiDailyLimit = null,
+    Object? priceMonthly = null,
+    Object? features = null,
+  }) {
+    return _then(_$SubscriptionModelImpl(
+      planId: null == planId
+          ? _value.planId
+          : planId // ignore: cast_nullable_to_non_nullable
+              as String,
+      planName: null == planName
+          ? _value.planName
+          : planName // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      planType: null == planType
+          ? _value.planType
+          : planType // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxCompanies: null == maxCompanies
+          ? _value.maxCompanies
+          : maxCompanies // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxStores: null == maxStores
+          ? _value.maxStores
+          : maxStores // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxEmployees: null == maxEmployees
+          ? _value.maxEmployees
+          : maxEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      aiDailyLimit: null == aiDailyLimit
+          ? _value.aiDailyLimit
+          : aiDailyLimit // ignore: cast_nullable_to_non_nullable
+              as int,
+      priceMonthly: null == priceMonthly
+          ? _value.priceMonthly
+          : priceMonthly // ignore: cast_nullable_to_non_nullable
+              as double,
+      features: null == features
+          ? _value._features
+          : features // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ));
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class _$SubscriptionModelImpl extends _SubscriptionModel {
+  const _$SubscriptionModelImpl(
+      {required this.planId,
+      required this.planName,
+      this.displayName,
+      required this.planType,
+      this.maxCompanies = 1,
+      this.maxStores = 1,
+      this.maxEmployees = 5,
+      this.aiDailyLimit = 2,
+      this.priceMonthly = 0,
+      final List<String> features = const []})
+      : _features = features,
+        super._();
+
+  factory _$SubscriptionModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SubscriptionModelImplFromJson(json);
+
+  @override
+  final String planId;
+  @override
+  final String planName;
+  @override
+  final String? displayName;
+  @override
+  final String planType;
+  @override
+  @JsonKey()
+  final int maxCompanies;
+  @override
+  @JsonKey()
+  final int maxStores;
+  @override
+  @JsonKey()
+  final int maxEmployees;
+  @override
+  @JsonKey()
+  final int aiDailyLimit;
+  @override
+  @JsonKey()
+  final double priceMonthly;
+  final List<String> _features;
+  @override
+  @JsonKey()
+  List<String> get features {
+    if (_features is EqualUnmodifiableListView) return _features;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_features);
+  }
+
+  @override
+  String toString() {
+    return 'SubscriptionModel(planId: $planId, planName: $planName, displayName: $displayName, planType: $planType, maxCompanies: $maxCompanies, maxStores: $maxStores, maxEmployees: $maxEmployees, aiDailyLimit: $aiDailyLimit, priceMonthly: $priceMonthly, features: $features)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SubscriptionModelImpl &&
+            (identical(other.planId, planId) || other.planId == planId) &&
+            (identical(other.planName, planName) ||
+                other.planName == planName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.planType, planType) ||
+                other.planType == planType) &&
+            (identical(other.maxCompanies, maxCompanies) ||
+                other.maxCompanies == maxCompanies) &&
+            (identical(other.maxStores, maxStores) ||
+                other.maxStores == maxStores) &&
+            (identical(other.maxEmployees, maxEmployees) ||
+                other.maxEmployees == maxEmployees) &&
+            (identical(other.aiDailyLimit, aiDailyLimit) ||
+                other.aiDailyLimit == aiDailyLimit) &&
+            (identical(other.priceMonthly, priceMonthly) ||
+                other.priceMonthly == priceMonthly) &&
+            const DeepCollectionEquality().equals(other._features, _features));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      planId,
+      planName,
+      displayName,
+      planType,
+      maxCompanies,
+      maxStores,
+      maxEmployees,
+      aiDailyLimit,
+      priceMonthly,
+      const DeepCollectionEquality().hash(_features));
+
+  /// Create a copy of SubscriptionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SubscriptionModelImplCopyWith<_$SubscriptionModelImpl> get copyWith =>
+      __$$SubscriptionModelImplCopyWithImpl<_$SubscriptionModelImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SubscriptionModelImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SubscriptionModel extends SubscriptionModel {
+  const factory _SubscriptionModel(
+      {required final String planId,
+      required final String planName,
+      final String? displayName,
+      required final String planType,
+      final int maxCompanies,
+      final int maxStores,
+      final int maxEmployees,
+      final int aiDailyLimit,
+      final double priceMonthly,
+      final List<String> features}) = _$SubscriptionModelImpl;
+  const _SubscriptionModel._() : super._();
+
+  factory _SubscriptionModel.fromJson(Map<String, dynamic> json) =
+      _$SubscriptionModelImpl.fromJson;
+
+  @override
+  String get planId;
+  @override
+  String get planName;
+  @override
+  String? get displayName;
+  @override
+  String get planType;
+  @override
+  int get maxCompanies;
+  @override
+  int get maxStores;
+  @override
+  int get maxEmployees;
+  @override
+  int get aiDailyLimit;
+  @override
+  double get priceMonthly;
+  @override
+  List<String> get features;
+
+  /// Create a copy of SubscriptionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SubscriptionModelImplCopyWith<_$SubscriptionModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -94,15 +94,32 @@ class AppStateNotifier extends StateNotifier<AppState> {
     required String storeId,
     String? companyName,
     String? storeName,
+    Map<String, dynamic>? subscription,
   }) {
     state = state.copyWith(
       companyChoosen: companyId,
       storeChoosen: storeId,
       companyName: companyName ?? state.companyName,
       storeName: storeName ?? state.storeName,
+      currentSubscription: subscription ?? state.currentSubscription,
+      planType: (subscription?['plan_type'] as String?) ?? state.planType,
+      maxStores: (subscription?['max_stores'] as int?) ?? state.maxStores,
+      maxEmployees: (subscription?['max_employees'] as int?) ?? state.maxEmployees,
+      aiDailyLimit: (subscription?['ai_daily_limit'] as int?) ?? state.aiDailyLimit,
     );
     // Save to cache
     _saveLastSelection();
+  }
+
+  /// Update subscription context
+  void updateSubscription(Map<String, dynamic> subscription) {
+    state = state.copyWith(
+      currentSubscription: subscription,
+      planType: (subscription['plan_type'] as String?) ?? 'free',
+      maxStores: (subscription['max_stores'] as int?) ?? 1,
+      maxEmployees: (subscription['max_employees'] as int?) ?? 5,
+      aiDailyLimit: (subscription['ai_daily_limit'] as int?) ?? 2,
+    );
   }
 
   /// Update company selection

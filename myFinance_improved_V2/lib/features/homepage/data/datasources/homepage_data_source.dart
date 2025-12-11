@@ -103,16 +103,17 @@ class HomepageDataSource {
 
   // === User & Company Operations ===
 
-  /// Fetch user companies and stores via get_user_companies_and_stores RPC
+  /// Fetch user companies and stores via get_user_companies_with_subscription RPC
   ///
-  /// Calls: rpc('get_user_companies_and_stores', {...})
-  /// Returns: User with companies and stores
+  /// Calls: rpc('get_user_companies_with_subscription', {...})
+  /// Returns: User with companies, stores, and subscription info
   ///
+  /// ✅ Uses new RPC that includes subscription data for each company
   /// ✅ Filters out deleted companies and stores before parsing
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
 
     final response = await _supabaseService.client.rpc(
-      'get_user_companies_and_stores',
+      'get_user_companies_with_subscription',
       params: {
         'p_user_id': userId,
       },

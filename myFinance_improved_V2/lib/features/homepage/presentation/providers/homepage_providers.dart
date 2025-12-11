@@ -257,13 +257,14 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
         ),
       );
 
-      // Update app state with selected company/store
+      // Update app state with selected company/store and subscription
       if (selection.hasSelection) {
         appStateNotifier.updateBusinessContext(
           companyId: selection.company!.id,
           storeId: selection.store?.id ?? '',
           companyName: selection.company!.companyName,
           storeName: selection.store?.storeName,
+          subscription: selection.company!.subscription?.toMap(),
         );
       }
     }

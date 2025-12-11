@@ -25,6 +25,14 @@ mixin _$AppState {
   String get storeChoosen => throw _privateConstructorUsedError;
   String get companyName => throw _privateConstructorUsedError;
   String get storeName =>
+      throw _privateConstructorUsedError; // Subscription Context (for currently selected company)
+  Map<String, dynamic> get currentSubscription =>
+      throw _privateConstructorUsedError;
+  String get planType =>
+      throw _privateConstructorUsedError; // 'free', 'basic', 'pro'
+  int get maxStores => throw _privateConstructorUsedError;
+  int get maxEmployees => throw _privateConstructorUsedError;
+  int get aiDailyLimit =>
       throw _privateConstructorUsedError; // Menu & Features Context (from get_categories_with_features RPC)
   List<dynamic> get categoryFeatures =>
       throw _privateConstructorUsedError; // Permission Context
@@ -58,6 +66,11 @@ abstract class $AppStateCopyWith<$Res> {
       String storeChoosen,
       String companyName,
       String storeName,
+      Map<String, dynamic> currentSubscription,
+      String planType,
+      int maxStores,
+      int maxEmployees,
+      int aiDailyLimit,
       List<dynamic> categoryFeatures,
       Set<String> permissions,
       bool hasAdminPermission,
@@ -90,6 +103,11 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
     Object? storeChoosen = null,
     Object? companyName = null,
     Object? storeName = null,
+    Object? currentSubscription = null,
+    Object? planType = null,
+    Object? maxStores = null,
+    Object? maxEmployees = null,
+    Object? aiDailyLimit = null,
     Object? categoryFeatures = null,
     Object? permissions = null,
     Object? hasAdminPermission = null,
@@ -128,6 +146,26 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String,
+      currentSubscription: null == currentSubscription
+          ? _value.currentSubscription
+          : currentSubscription // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      planType: null == planType
+          ? _value.planType
+          : planType // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxStores: null == maxStores
+          ? _value.maxStores
+          : maxStores // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxEmployees: null == maxEmployees
+          ? _value.maxEmployees
+          : maxEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      aiDailyLimit: null == aiDailyLimit
+          ? _value.aiDailyLimit
+          : aiDailyLimit // ignore: cast_nullable_to_non_nullable
+              as int,
       categoryFeatures: null == categoryFeatures
           ? _value.categoryFeatures
           : categoryFeatures // ignore: cast_nullable_to_non_nullable
@@ -180,6 +218,11 @@ abstract class _$$AppStateImplCopyWith<$Res>
       String storeChoosen,
       String companyName,
       String storeName,
+      Map<String, dynamic> currentSubscription,
+      String planType,
+      int maxStores,
+      int maxEmployees,
+      int aiDailyLimit,
       List<dynamic> categoryFeatures,
       Set<String> permissions,
       bool hasAdminPermission,
@@ -210,6 +253,11 @@ class __$$AppStateImplCopyWithImpl<$Res>
     Object? storeChoosen = null,
     Object? companyName = null,
     Object? storeName = null,
+    Object? currentSubscription = null,
+    Object? planType = null,
+    Object? maxStores = null,
+    Object? maxEmployees = null,
+    Object? aiDailyLimit = null,
     Object? categoryFeatures = null,
     Object? permissions = null,
     Object? hasAdminPermission = null,
@@ -248,6 +296,26 @@ class __$$AppStateImplCopyWithImpl<$Res>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String,
+      currentSubscription: null == currentSubscription
+          ? _value._currentSubscription
+          : currentSubscription // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      planType: null == planType
+          ? _value.planType
+          : planType // ignore: cast_nullable_to_non_nullable
+              as String,
+      maxStores: null == maxStores
+          ? _value.maxStores
+          : maxStores // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxEmployees: null == maxEmployees
+          ? _value.maxEmployees
+          : maxEmployees // ignore: cast_nullable_to_non_nullable
+              as int,
+      aiDailyLimit: null == aiDailyLimit
+          ? _value.aiDailyLimit
+          : aiDailyLimit // ignore: cast_nullable_to_non_nullable
+              as int,
       categoryFeatures: null == categoryFeatures
           ? _value._categoryFeatures
           : categoryFeatures // ignore: cast_nullable_to_non_nullable
@@ -295,6 +363,11 @@ class _$AppStateImpl implements _AppState {
       this.storeChoosen = '',
       this.companyName = '',
       this.storeName = '',
+      final Map<String, dynamic> currentSubscription = const {},
+      this.planType = 'free',
+      this.maxStores = 1,
+      this.maxEmployees = 5,
+      this.aiDailyLimit = 2,
       final List<dynamic> categoryFeatures = const [],
       final Set<String> permissions = const {},
       this.hasAdminPermission = false,
@@ -304,6 +377,7 @@ class _$AppStateImpl implements _AppState {
       this.isLoading = false,
       this.error = null})
       : _user = user,
+        _currentSubscription = currentSubscription,
         _categoryFeatures = categoryFeatures,
         _permissions = permissions;
 
@@ -337,6 +411,31 @@ class _$AppStateImpl implements _AppState {
   @override
   @JsonKey()
   final String storeName;
+// Subscription Context (for currently selected company)
+  final Map<String, dynamic> _currentSubscription;
+// Subscription Context (for currently selected company)
+  @override
+  @JsonKey()
+  Map<String, dynamic> get currentSubscription {
+    if (_currentSubscription is EqualUnmodifiableMapView)
+      return _currentSubscription;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_currentSubscription);
+  }
+
+  @override
+  @JsonKey()
+  final String planType;
+// 'free', 'basic', 'pro'
+  @override
+  @JsonKey()
+  final int maxStores;
+  @override
+  @JsonKey()
+  final int maxEmployees;
+  @override
+  @JsonKey()
+  final int aiDailyLimit;
 // Menu & Features Context (from get_categories_with_features RPC)
   final List<dynamic> _categoryFeatures;
 // Menu & Features Context (from get_categories_with_features RPC)
@@ -383,7 +482,7 @@ class _$AppStateImpl implements _AppState {
 
   @override
   String toString() {
-    return 'AppState(user: $user, userId: $userId, isAuthenticated: $isAuthenticated, companyChoosen: $companyChoosen, storeChoosen: $storeChoosen, companyName: $companyName, storeName: $storeName, categoryFeatures: $categoryFeatures, permissions: $permissions, hasAdminPermission: $hasAdminPermission, themeMode: $themeMode, languageCode: $languageCode, isOfflineMode: $isOfflineMode, isLoading: $isLoading, error: $error)';
+    return 'AppState(user: $user, userId: $userId, isAuthenticated: $isAuthenticated, companyChoosen: $companyChoosen, storeChoosen: $storeChoosen, companyName: $companyName, storeName: $storeName, currentSubscription: $currentSubscription, planType: $planType, maxStores: $maxStores, maxEmployees: $maxEmployees, aiDailyLimit: $aiDailyLimit, categoryFeatures: $categoryFeatures, permissions: $permissions, hasAdminPermission: $hasAdminPermission, themeMode: $themeMode, languageCode: $languageCode, isOfflineMode: $isOfflineMode, isLoading: $isLoading, error: $error)';
   }
 
   @override
@@ -404,6 +503,16 @@ class _$AppStateImpl implements _AppState {
             (identical(other.storeName, storeName) ||
                 other.storeName == storeName) &&
             const DeepCollectionEquality()
+                .equals(other._currentSubscription, _currentSubscription) &&
+            (identical(other.planType, planType) ||
+                other.planType == planType) &&
+            (identical(other.maxStores, maxStores) ||
+                other.maxStores == maxStores) &&
+            (identical(other.maxEmployees, maxEmployees) ||
+                other.maxEmployees == maxEmployees) &&
+            (identical(other.aiDailyLimit, aiDailyLimit) ||
+                other.aiDailyLimit == aiDailyLimit) &&
+            const DeepCollectionEquality()
                 .equals(other._categoryFeatures, _categoryFeatures) &&
             const DeepCollectionEquality()
                 .equals(other._permissions, _permissions) &&
@@ -421,23 +530,29 @@ class _$AppStateImpl implements _AppState {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_user),
-      userId,
-      isAuthenticated,
-      companyChoosen,
-      storeChoosen,
-      companyName,
-      storeName,
-      const DeepCollectionEquality().hash(_categoryFeatures),
-      const DeepCollectionEquality().hash(_permissions),
-      hasAdminPermission,
-      themeMode,
-      languageCode,
-      isOfflineMode,
-      isLoading,
-      error);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        const DeepCollectionEquality().hash(_user),
+        userId,
+        isAuthenticated,
+        companyChoosen,
+        storeChoosen,
+        companyName,
+        storeName,
+        const DeepCollectionEquality().hash(_currentSubscription),
+        planType,
+        maxStores,
+        maxEmployees,
+        aiDailyLimit,
+        const DeepCollectionEquality().hash(_categoryFeatures),
+        const DeepCollectionEquality().hash(_permissions),
+        hasAdminPermission,
+        themeMode,
+        languageCode,
+        isOfflineMode,
+        isLoading,
+        error
+      ]);
 
   /// Create a copy of AppState
   /// with the given fields replaced by the non-null parameter values.
@@ -457,6 +572,11 @@ abstract class _AppState implements AppState {
       final String storeChoosen,
       final String companyName,
       final String storeName,
+      final Map<String, dynamic> currentSubscription,
+      final String planType,
+      final int maxStores,
+      final int maxEmployees,
+      final int aiDailyLimit,
       final List<dynamic> categoryFeatures,
       final Set<String> permissions,
       final bool hasAdminPermission,
@@ -480,8 +600,17 @@ abstract class _AppState implements AppState {
   @override
   String get companyName;
   @override
-  String
-      get storeName; // Menu & Features Context (from get_categories_with_features RPC)
+  String get storeName; // Subscription Context (for currently selected company)
+  @override
+  Map<String, dynamic> get currentSubscription;
+  @override
+  String get planType; // 'free', 'basic', 'pro'
+  @override
+  int get maxStores;
+  @override
+  int get maxEmployees;
+  @override
+  int get aiDailyLimit; // Menu & Features Context (from get_categories_with_features RPC)
   @override
   List<dynamic> get categoryFeatures; // Permission Context
   @override
