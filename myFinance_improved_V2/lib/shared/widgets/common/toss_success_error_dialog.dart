@@ -902,6 +902,33 @@ class TossDialogs {
     
     return _parseErrorMessage(error);
   }
+
+  // === App Update Dialog ===
+
+  /// Show force update dialog when app version is outdated
+  ///
+  /// This dialog is non-dismissible and has only one action: close the app.
+  /// User must update the app to continue using it.
+  static Future<void> showForceUpdateRequired({
+    required BuildContext context,
+    VoidCallback? onOkPressed,
+  }) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: TossDialog.warning(
+          title: 'Update Required',
+          message: 'Please update the app to continue using MyFinance.',
+          icon: Icons.system_update,
+          primaryButtonText: 'OK',
+          onPrimaryPressed: onOkPressed,
+          dismissible: false,
+        ),
+      ),
+    );
+  }
 }
 
 // Compatibility aliases for easy migration

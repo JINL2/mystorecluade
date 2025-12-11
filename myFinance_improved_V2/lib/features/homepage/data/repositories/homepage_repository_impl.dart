@@ -131,4 +131,11 @@ class HomepageRepositoryImpl implements HomepageRepository {
       return false;
     }
   }
+
+  // === App Version Check ===
+
+  @override
+  Future<bool> checkAppVersion() async {
+    return await _dataSource.checkAppVersion();
+  }
 }

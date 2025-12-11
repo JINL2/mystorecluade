@@ -1,3 +1,5 @@
+import 'package:package_info_plus/package_info_plus.dart';
+
 import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_features_model.dart';
@@ -339,5 +341,40 @@ class HomepageDataSource {
   /// Format DateTime to YYYY-MM-DD
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  // === App Version Check ===
+
+  /// Check app version via check_app_version RPC
+  ///
+  /// Calls: rpc('check_app_version')
+  /// Returns: {version: "1.0.0"} or {version: null}
+  ///
+  /// Compares server version with current app version.
+  /// Returns true if versions match (app is up to date).
+  /// Returns false if versions don't match (update required).
+  Future<bool> checkAppVersion() async {
+    try {
+      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+        'check_app_version',
+      );
+
+      final serverVersion = response['version'] as String?;
+
+      if (serverVersion == null) {
+        // No version set on server - allow app to continue
+        return true;
+      }
+
+      // Get current app version
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+
+      // Compare versions
+      return serverVersion == currentVersion;
+    } catch (e) {
+      // On error, allow app to continue (don't block users)
+      return true;
+    }
   }
 }

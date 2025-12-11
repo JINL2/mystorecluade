@@ -398,6 +398,17 @@ final currenciesProvider = FutureProvider.autoDispose<List<Currency>>((ref) asyn
   );
 });
 
+// === App Version Check Provider ===
+
+/// Provider for checking app version against server
+///
+/// Returns true if app is up to date, false if update required.
+/// This should be called BEFORE loading other homepage data.
+final appVersionCheckProvider = FutureProvider<bool>((ref) async {
+  final repository = ref.watch(homepageRepositoryProvider);
+  return await repository.checkAppVersion();
+});
+
 // === Homepage Alert Provider ===
 
 /// Provider for fetching homepage alert
