@@ -80,7 +80,9 @@ export const JoinSessionModal: React.FC<JoinSessionModalProps> = ({
                   >
                     <div className={styles.sessionInfo}>
                       <div className={styles.sessionHeader}>
-                        <span className={styles.sessionStore}>{session.store_name}</span>
+                        <span className={styles.sessionStore}>
+                          {session.session_name || session.store_name}
+                        </span>
                         <span className={styles.sessionMembers}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
@@ -88,12 +90,12 @@ export const JoinSessionModal: React.FC<JoinSessionModalProps> = ({
                           {session.member_count}
                         </span>
                       </div>
-                      <div className={styles.sessionMeta}>
-                        <span className={styles.sessionCreator}>
-                          Created by {session.created_by_name}
+                      <div className={styles.sessionMetaVertical}>
+                        <span className={styles.sessionMetaItem}>
+                          {session.store_name}
                         </span>
-                        <span className={styles.sessionTime}>
-                          {session.created_at}
+                        <span className={styles.sessionMetaItem}>
+                          Created by {session.created_by_name} · {session.created_at?.slice(0, 16)}
                         </span>
                       </div>
                     </div>

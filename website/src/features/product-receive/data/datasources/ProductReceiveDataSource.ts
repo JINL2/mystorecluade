@@ -126,6 +126,7 @@ export interface ReceivingSummaryDTO {
 // Session DTO
 export interface SessionDTO {
   session_id: string;
+  session_name?: string;
   session_type: string;
   store_id: string;
   store_name: string;
@@ -215,6 +216,7 @@ export interface IProductReceiveDataSource {
     userId: string;
     sessionType: string;
     shipmentId: string;
+    sessionName?: string;
     time: string;
     timezone: string;
   }): Promise<CreateSessionResultDTO>;
@@ -497,12 +499,13 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     userId: string;
     sessionType: string;
     shipmentId: string;
+    sessionName?: string;
     time: string;
     timezone: string;
   }): Promise<CreateSessionResultDTO> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_create_session', {
+    const rpcParams: Record<string, unknown> = {
       p_company_id: params.companyId,
       p_store_id: params.storeId,
       p_user_id: params.userId,
@@ -510,7 +513,13 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       p_shipment_id: params.shipmentId,
       p_time: params.time,
       p_timezone: params.timezone,
-    });
+    };
+
+    if (params.sessionName) {
+      rpcParams.p_session_name = params.sessionName;
+    }
+
+    const { data, error } = await client.rpc('inventory_create_session', rpcParams);
 
     if (error) {
       throw new Error(`Failed to create session: ${error.message}`);
