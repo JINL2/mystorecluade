@@ -1,75 +1,58 @@
 /**
  * useShipmentCreate Hook
- * Custom hook for shipment creation form management
+ * Main hook for shipment creation form management
+ * Composes smaller specialized hooks for better maintainability
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { getShipmentRepository } from '../../data/repositories/ShipmentRepositoryImpl';
 import { supabaseService } from '@/core/services/supabase_service';
 import type {
   Counterparty,
   OrderInfo,
-  OrderItem,
-  ShipmentItem,
   Currency,
   SaveResult,
+  SelectionMode,
 } from '../pages/ShipmentCreatePage/ShipmentCreatePage.types';
+
+import { useShipmentCreateSupplier } from './useShipmentCreateSupplier';
+import { useShipmentCreateOrder } from './useShipmentCreateOrder';
+import { useShipmentCreateItems } from './useShipmentCreateItems';
+import { useShipmentCreateImport } from './useShipmentCreateImport';
+import { useShipmentCreateSearch } from './useShipmentCreateSearch';
 
 // Navigation state interface
 interface NavigationState {
   currency?: Currency;
   suppliers?: Counterparty[];
-}
-
-// Supplier option for TossSelector
-export interface SupplierOption {
-  value: string;
-  label: string;
-  description?: string;
+  orders?: OrderInfo[];
 }
 
 export const useShipmentCreate = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const repository = useMemo(() => getShipmentRepository(), []);
 
   // App state
-  const { currentCompany } = useAppState();
+  const { currentCompany, currentStore } = useAppState();
   const companyId = currentCompany?.company_id;
+  const storeId = currentStore?.store_id;
 
-  // Get currency and suppliers from navigation state
+  // Get navigation state
   const navigationState = location.state as NavigationState | null;
   const currencyFromState = navigationState?.currency;
   const suppliersFromState = navigationState?.suppliers;
+  const ordersFromState = navigationState?.orders;
 
   // Currency state
   const [currency, setCurrency] = useState<Currency>(
     currencyFromState || { symbol: '₩', code: 'KRW' }
   );
 
-  // Suppliers state
-  const [suppliers, setSuppliers] = useState<Counterparty[]>(suppliersFromState || []);
-  const [suppliersLoading, setSuppliersLoading] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
-
-  // Orders state
-  const [orders, setOrders] = useState<OrderInfo[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
-
-  // Order items state (items from selected order)
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [orderItemsLoading, setOrderItemsLoading] = useState(false);
-
-  // Shipment items state (items to be shipped)
-  const [shipmentItems, setShipmentItems] = useState<ShipmentItem[]>([]);
-
-  // Shipment details
-  const [shippedDate, setShippedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
-  const [trackingNumber, setTrackingNumber] = useState<string>('');
-  const [note, setNote] = useState<string>('');
+  // Selection mode state
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(null);
 
   // Save states
   const [isSaving, setIsSaving] = useState(false);
@@ -79,55 +62,75 @@ export const useShipmentCreate = () => {
     message: '',
   });
 
-  // Convert suppliers to options format
-  const supplierOptions: SupplierOption[] = suppliers.map((supplier) => ({
-    value: supplier.counterparty_id,
-    label: supplier.name,
-    description: supplier.is_internal ? 'INTERNAL' : undefined,
-  }));
+  // Shipment details
+  const [trackingNumber, setTrackingNumber] = useState<string>('');
+  const [note, setNote] = useState<string>('');
 
-  // Convert orders to options format
-  const orderOptions = orders.map((order) => ({
-    value: order.order_id,
-    label: `${order.order_number} - ${order.supplier_name}`,
-  }));
+  // Items hook (needs to be initialized first for clearShipmentItems)
+  const itemsHook = useShipmentCreateItems({
+    selectedOrder: null, // Will be updated via effect
+    allOrders: [],
+    orderItems: [],
+  });
 
-  // Calculate total amount
-  const totalAmount = shipmentItems.reduce(
-    (sum, item) => sum + item.quantity * item.unitPrice,
-    0
-  );
+  // Supplier hook
+  const supplierHook = useShipmentCreateSupplier({
+    companyId,
+    suppliersFromState,
+    onSelectionModeChange: setSelectionMode,
+    onClearOrderSelection: () => {
+      orderHook.clearOrderSelection();
+      itemsHook.clearShipmentItems();
+    },
+  });
 
-  // Load suppliers if not passed from ShipmentPage
-  useEffect(() => {
-    if (suppliersFromState && suppliersFromState.length > 0) {
-      return;
-    }
+  // Order hook
+  const orderHook = useShipmentCreateOrder({
+    companyId,
+    ordersFromState,
+    selectedSupplier: supplierHook.selectedSupplier,
+    onSelectionModeChange: setSelectionMode,
+    onSupplierChange: supplierHook.setSelectedSupplier,
+    onClearShipmentItems: itemsHook.clearShipmentItems,
+  });
 
-    const loadCounterparties = async () => {
-      if (!companyId) return;
+  // Re-initialize items hook with correct dependencies
+  const {
+    shipmentItems,
+    setShipmentItems,
+    totalAmount,
+    handleAddItem,
+    handleAddAllItems,
+    handleAddProductFromSearch,
+    handleRemoveItem,
+    handleQuantityChange,
+    handleCostChange,
+    clearShipmentItems,
+    itemSearchQuery,
+    setItemSearchQuery,
+    filteredShipmentItems,
+  } = useShipmentCreateItems({
+    selectedOrder: orderHook.selectedOrder,
+    allOrders: orderHook.allOrders,
+    orderItems: orderHook.orderItems,
+  });
 
-      setSuppliersLoading(true);
-      try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_counterparty_info', {
-          p_company_id: companyId,
-        });
+  // Import hook
+  const importHook = useShipmentCreateImport({
+    companyId,
+    storeId,
+    shipmentItems,
+    setShipmentItems,
+  });
 
-        if (!error && data?.success && data?.data) {
-          setSuppliers(data.data);
-        }
-      } catch (err) {
-        console.error('🏢 get_counterparty_info error:', err);
-      } finally {
-        setSuppliersLoading(false);
-      }
-    };
+  // Search hook
+  const searchHook = useShipmentCreateSearch({
+    companyId,
+    storeId,
+    onCurrencyChange: setCurrency,
+  });
 
-    loadCounterparties();
-  }, [companyId, suppliersFromState]);
-
-  // Load base currency if not passed
+  // Load base currency if not passed using Repository
   useEffect(() => {
     if (currencyFromState) return;
 
@@ -135,190 +138,30 @@ export const useShipmentCreate = () => {
       if (!companyId) return;
 
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_base_currency', {
-          p_company_id: companyId,
-        });
+        const result = await repository.getBaseCurrency(companyId);
 
-        if (!error && data?.base_currency) {
-          setCurrency({
-            symbol: data.base_currency.symbol || '₩',
-            code: data.base_currency.currency_code || 'KRW',
-          });
+        if (result.success && result.data) {
+          setCurrency(result.data);
         }
       } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+        console.error('💰 getBaseCurrency error:', err);
       }
     };
 
     loadBaseCurrency();
-  }, [companyId, currencyFromState]);
+  }, [companyId, currencyFromState, repository]);
 
-  // Load orders when supplier is selected
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (!companyId || !selectedSupplier) {
-        setOrders([]);
-        return;
-      }
-
-      setOrdersLoading(true);
-      try {
-        const supabase = supabaseService.getClient();
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-        const { data, error } = await supabase.rpc('inventory_get_order_info', {
-          p_company_id: companyId,
-          p_timezone: userTimezone,
-          p_supplier_id: selectedSupplier,
-        });
-
-        console.log('📋 inventory_get_order_info response:', { data, error });
-
-        if (!error && data?.success && data?.data) {
-          // Filter to only pending/process orders
-          const filteredOrders = data.data.filter(
-            (order: OrderInfo) => order.status === 'pending' || order.status === 'process'
-          );
-          setOrders(filteredOrders);
-        } else {
-          setOrders([]);
-        }
-      } catch (err) {
-        console.error('📋 inventory_get_order_info error:', err);
-        setOrders([]);
-      } finally {
-        setOrdersLoading(false);
-      }
-    };
-
-    loadOrders();
-  }, [companyId, selectedSupplier]);
-
-  // Load order items when order is selected
-  useEffect(() => {
-    const loadOrderItems = async () => {
-      if (!selectedOrder) {
-        setOrderItems([]);
-        return;
-      }
-
-      setOrderItemsLoading(true);
-      try {
-        const supabase = supabaseService.getClient();
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-        const { data, error } = await supabase.rpc('inventory_get_order_items', {
-          p_order_id: selectedOrder,
-          p_timezone: userTimezone,
-        });
-
-        console.log('📦 inventory_get_order_items response:', { data, error });
-
-        if (!error && data?.success && data?.data) {
-          // Filter items with remaining quantity > 0
-          const availableItems = data.data.filter(
-            (item: OrderItem) => item.remaining_quantity > 0
-          );
-          setOrderItems(availableItems);
-        } else {
-          setOrderItems([]);
-        }
-      } catch (err) {
-        console.error('📦 inventory_get_order_items error:', err);
-        setOrderItems([]);
-      } finally {
-        setOrderItemsLoading(false);
-      }
-    };
-
-    loadOrderItems();
-  }, [selectedOrder]);
-
-  // Handle supplier change - reset order selection
-  const handleSupplierChange = useCallback((supplierId: string | null) => {
-    setSelectedSupplier(supplierId);
-    setSelectedOrder(null);
-    setOrderItems([]);
-    setShipmentItems([]);
-  }, []);
-
-  // Handle order change
-  const handleOrderChange = useCallback((orderId: string | null) => {
-    setSelectedOrder(orderId);
-    setShipmentItems([]);
-  }, []);
-
-  // Add item to shipment
-  const handleAddItem = useCallback(
-    (orderItem: OrderItem) => {
-      const selectedOrderData = orders.find((o) => o.order_id === selectedOrder);
-      if (!selectedOrderData) return;
-
-      // Check if already added
-      const exists = shipmentItems.find((item) => item.orderItemId === orderItem.order_item_id);
-      if (exists) return;
-
-      const newItem: ShipmentItem = {
-        orderItemId: orderItem.order_item_id,
-        orderId: selectedOrder!,
-        orderNumber: selectedOrderData.order_number,
-        productId: orderItem.product_id,
-        productName: orderItem.product_name,
-        sku: orderItem.sku,
-        quantity: orderItem.remaining_quantity,
-        maxQuantity: orderItem.remaining_quantity,
-        unitPrice: orderItem.unit_price,
-      };
-
-      setShipmentItems((prev) => [...prev, newItem]);
+  // Handle add product from search (combines search hook and items hook)
+  const handleAddProductFromSearchWithClear = useCallback(
+    (product: Parameters<typeof handleAddProductFromSearch>[0]) => {
+      handleAddProductFromSearch(product);
+      searchHook.clearSearch();
     },
-    [selectedOrder, orders, shipmentItems]
+    [handleAddProductFromSearch, searchHook]
   );
 
-  // Add all items from current order
-  const handleAddAllItems = useCallback(() => {
-    const selectedOrderData = orders.find((o) => o.order_id === selectedOrder);
-    if (!selectedOrderData) return;
-
-    const newItems: ShipmentItem[] = orderItems
-      .filter((oi) => !shipmentItems.find((si) => si.orderItemId === oi.order_item_id))
-      .map((orderItem) => ({
-        orderItemId: orderItem.order_item_id,
-        orderId: selectedOrder!,
-        orderNumber: selectedOrderData.order_number,
-        productId: orderItem.product_id,
-        productName: orderItem.product_name,
-        sku: orderItem.sku,
-        quantity: orderItem.remaining_quantity,
-        maxQuantity: orderItem.remaining_quantity,
-        unitPrice: orderItem.unit_price,
-      }));
-
-    setShipmentItems((prev) => [...prev, ...newItems]);
-  }, [selectedOrder, orders, orderItems, shipmentItems]);
-
-  // Remove item from shipment
-  const handleRemoveItem = useCallback((orderItemId: string) => {
-    setShipmentItems((prev) => prev.filter((item) => item.orderItemId !== orderItemId));
-  }, []);
-
-  // Update item quantity
-  const handleQuantityChange = useCallback((orderItemId: string, quantity: number) => {
-    setShipmentItems((prev) =>
-      prev.map((item) => {
-        if (item.orderItemId === orderItemId) {
-          const validQuantity = Math.max(1, Math.min(quantity, item.maxQuantity));
-          return { ...item, quantity: validQuantity };
-        }
-        return item;
-      })
-    );
-  }, []);
-
-  // Handle save shipment
+  // Handle save shipment using Repository
   const handleSave = useCallback(async () => {
-    // Validation
     if (shipmentItems.length === 0) {
       setSaveResult({
         show: true,
@@ -328,13 +171,32 @@ export const useShipmentCreate = () => {
       return;
     }
 
-    if (!selectedSupplier) {
+    if (!selectionMode) {
       setSaveResult({
         show: true,
         success: false,
-        message: 'Please select a supplier',
+        message: 'Please select an order or enter supplier information',
       });
       return;
+    }
+
+    if (selectionMode === 'supplier') {
+      if (supplierHook.supplierType === 'existing' && !supplierHook.selectedSupplier) {
+        setSaveResult({
+          show: true,
+          success: false,
+          message: 'Please select a supplier',
+        });
+        return;
+      }
+      if (supplierHook.supplierType === 'onetime' && !supplierHook.oneTimeSupplier.name.trim()) {
+        setSaveResult({
+          show: true,
+          success: false,
+          message: 'Please enter supplier name',
+        });
+        return;
+      }
     }
 
     if (!companyId) {
@@ -352,7 +214,6 @@ export const useShipmentCreate = () => {
       const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      // Get current user ID
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -360,50 +221,53 @@ export const useShipmentCreate = () => {
         throw new Error('User not authenticated');
       }
 
-      // Build items array for RPC
       const items = shipmentItems.map((item) => ({
-        order_item_id: item.orderItemId,
-        quantity: item.quantity,
+        sku: item.sku,
+        quantity_shipped: item.quantity,
+        unit_cost: item.unitPrice,
       }));
 
-      // Build RPC parameters
-      const rpcParams: Record<string, unknown> = {
-        p_company_id: companyId,
-        p_user_id: user.id,
-        p_supplier_id: selectedSupplier,
-        p_items: items,
-        p_shipped_date: shippedDate,
-        p_timezone: userTimezone,
-      };
-
-      // Add optional fields
-      if (trackingNumber.trim()) {
-        rpcParams.p_tracking_number = trackingNumber.trim();
-      }
-      if (note.trim()) {
-        rpcParams.p_notes = note.trim();
-      }
-
-      console.log('📦 Creating shipment with params:', rpcParams);
-
-      const { data, error } = await supabase.rpc('inventory_create_shipment', rpcParams);
-
-      console.log('📦 inventory_create_shipment response:', { data, error });
-
-      if (error) {
-        throw error;
+      // Build supplier info for one-time supplier
+      let supplierInfo: Record<string, string> | undefined;
+      if (selectionMode === 'supplier' && supplierHook.supplierType === 'onetime') {
+        supplierInfo = {};
+        if (supplierHook.oneTimeSupplier.name.trim()) {
+          supplierInfo.name = supplierHook.oneTimeSupplier.name.trim();
+        }
+        if (supplierHook.oneTimeSupplier.phone.trim()) {
+          supplierInfo.phone = supplierHook.oneTimeSupplier.phone.trim();
+        }
+        if (supplierHook.oneTimeSupplier.email.trim()) {
+          supplierInfo.email = supplierHook.oneTimeSupplier.email.trim();
+        }
+        if (supplierHook.oneTimeSupplier.address.trim()) {
+          supplierInfo.address = supplierHook.oneTimeSupplier.address.trim();
+        }
       }
 
-      if (data?.success) {
+      const result = await repository.createShipment({
+        companyId,
+        userId: user.id,
+        items,
+        time: new Date().toISOString(),
+        timezone: userTimezone,
+        orderIds: selectionMode === 'order' && orderHook.selectedOrder ? [orderHook.selectedOrder] : undefined,
+        counterpartyId: selectionMode === 'supplier' && supplierHook.supplierType === 'existing' ? supplierHook.selectedSupplier || undefined : undefined,
+        supplierInfo,
+        trackingNumber: trackingNumber.trim() || undefined,
+        notes: note.trim() || undefined,
+      });
+
+      if (result.success) {
         setIsSaving(false);
         setSaveResult({
           show: true,
           success: true,
-          message: `Shipment ${data.shipment_number} has been created successfully.`,
-          shipmentNumber: data.shipment_number,
+          message: `Shipment ${result.shipment_number} has been created successfully.`,
+          shipmentNumber: result.shipment_number,
         });
       } else {
-        throw new Error(data?.message || 'Failed to create shipment');
+        throw new Error(result.message || 'Failed to create shipment');
       }
     } catch (err) {
       console.error('📦 Create shipment error:', err);
@@ -414,7 +278,7 @@ export const useShipmentCreate = () => {
         message: err instanceof Error ? err.message : 'Failed to create shipment. Please try again.',
       });
     }
-  }, [shipmentItems, selectedSupplier, companyId, shippedDate, trackingNumber, note]);
+  }, [selectionMode, shipmentItems, supplierHook, orderHook.selectedOrder, companyId, trackingNumber, note, repository]);
 
   // Handle cancel
   const handleCancel = useCallback(() => {
@@ -439,42 +303,60 @@ export const useShipmentCreate = () => {
   );
 
   // Check if save button should be disabled
-  const isSaveDisabled = isSaving || shipmentItems.length === 0 || !selectedSupplier;
+  const isSaveDisabled = useMemo(() => {
+    if (isSaving) return true;
+    if (shipmentItems.length === 0) return true;
+    if (!selectionMode) return true;
+
+    if (selectionMode === 'order') {
+      return !orderHook.selectedOrder;
+    }
+
+    if (selectionMode === 'supplier') {
+      if (supplierHook.supplierType === 'existing') {
+        return !supplierHook.selectedSupplier;
+      }
+      return !supplierHook.oneTimeSupplier.name.trim();
+    }
+
+    return true;
+  }, [isSaving, selectionMode, shipmentItems.length, orderHook.selectedOrder, supplierHook]);
 
   return {
     // Currency
     currency,
     formatPrice,
 
+    // Selection Mode
+    selectionMode,
+
     // Suppliers
-    suppliers,
-    suppliersLoading,
-    supplierOptions,
-    selectedSupplier,
-    handleSupplierChange,
+    suppliersLoading: supplierHook.suppliersLoading,
+    supplierOptions: supplierHook.supplierOptions,
+    selectedSupplier: supplierHook.selectedSupplier,
+
+    // Supplier Section
+    supplierType: supplierHook.supplierType,
+    handleSupplierTypeChange: supplierHook.handleSupplierTypeChange,
+    handleSupplierSectionChange: supplierHook.handleSupplierSectionChange,
+    handleClearSupplierSelection: supplierHook.handleClearSupplierSelection,
+    oneTimeSupplier: supplierHook.oneTimeSupplier,
+    handleOneTimeSupplierChange: supplierHook.handleOneTimeSupplierChange,
 
     // Orders
-    orders,
-    ordersLoading,
-    orderOptions,
-    selectedOrder,
-    handleOrderChange,
+    ordersLoading: orderHook.ordersLoading,
+    orderOptions: orderHook.orderOptions,
+    selectedOrder: orderHook.selectedOrder,
+    handleOrderChange: orderHook.handleOrderChange,
 
-    // Order items (available to add)
-    orderItems,
-    orderItemsLoading,
-
-    // Shipment items (items to ship)
+    // Shipment items
     shipmentItems,
     totalAmount,
-    handleAddItem,
-    handleAddAllItems,
     handleRemoveItem,
     handleQuantityChange,
+    handleCostChange,
 
     // Shipment details
-    shippedDate,
-    setShippedDate,
     trackingNumber,
     setTrackingNumber,
     note,
@@ -486,8 +368,26 @@ export const useShipmentCreate = () => {
     handleSave,
     handleSaveResultClose,
     isSaveDisabled,
-
-    // Navigation
     handleCancel,
+
+    // Import/Export
+    fileInputRef: importHook.fileInputRef,
+    isImporting: importHook.isImporting,
+    importError: importHook.importError,
+    handleImportClick: importHook.handleImportClick,
+    handleFileChange: importHook.handleFileChange,
+    handleExportSample: importHook.handleExportSample,
+    handleImportErrorClose: importHook.handleImportErrorClose,
+
+    // Product Search
+    searchInputRef: searchHook.searchInputRef,
+    dropdownRef: searchHook.dropdownRef,
+    searchQuery: searchHook.searchQuery,
+    setSearchQuery: searchHook.setSearchQuery,
+    searchResults: searchHook.searchResults,
+    isSearching: searchHook.isSearching,
+    showDropdown: searchHook.showDropdown,
+    setShowDropdown: searchHook.setShowDropdown,
+    handleAddProductFromSearch: handleAddProductFromSearchWithClear,
   };
 };

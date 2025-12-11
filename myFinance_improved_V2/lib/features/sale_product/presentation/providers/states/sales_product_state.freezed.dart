@@ -239,7 +239,7 @@ class _$SalesProductStateImpl extends _SalesProductState {
       this.searchQuery = '',
       this.sortOption = SortOption.nameAsc,
       this.currentPage = 1,
-      this.pageSize = 10,
+      this.pageSize = 15,
       this.totalCount = 0,
       this.hasNextPage = false})
       : _products = products,

@@ -10,12 +10,13 @@ import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
 
 import '../../../debt_control/presentation/providers/currency_provider.dart';
-import '../../../sales_invoice/presentation/pages/payment_method_page.dart';
+import 'payment_method_page.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../domain/entities/sales_product.dart';
-import '../providers/brands_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/filtered_products_provider.dart';
+import '../providers/sale_preload_provider.dart';
+import '../providers/inventory_metadata_provider.dart';
 import '../providers/sales_product_provider.dart';
 import '../providers/states/sales_product_state.dart';
 import '../widgets/cart/cart_summary_bar.dart';
@@ -45,7 +46,14 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cartProvider.notifier).clearCart();
-      ref.read(salesProductProvider.notifier).refresh();
+      // Invalidate providers to force fresh data load from server
+      ref.invalidate(filteredProductsProvider);
+      ref.invalidate(salesProductProvider);
+      ref.invalidate(inventoryMetadataProvider);
+      ref.invalidate(salePreloadProvider);
+      // Load metadata, exchange rates, and cash locations
+      ref.read(inventoryMetadataProvider.notifier).loadMetadata();
+      ref.read(salePreloadProvider.notifier).loadAll();
     });
 
     _scrollController.addListener(_onScroll);
@@ -190,14 +198,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     final cart = ref.watch(cartProvider);
     final currencySymbol = ref.watch(currencyProvider);
     final allProducts = ref.watch(filteredProductsProvider);
-    final brandsAsync = ref.watch(brandsProvider);
+    final metadataState = ref.watch(inventoryMetadataProvider);
 
-    // Get brands from database (with "All" prepended)
-    final brands = brandsAsync.when(
-      data: (list) => ['All', ...list.map((b) => b.name)],
-      loading: () => ['All'],
-      error: (_, __) => ['All'],
-    );
+    // Get brands from metadata
+    final brands = metadataState.brandNames;
 
     // Filter products by selected brand
     final displayProducts = _filterByBrand(allProducts);
@@ -413,12 +417,17 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       productQuantities[item.productId] = item.quantity;
     }
 
+    // Get preloaded data (exchange rates + cash locations)
+    final preloadState = ref.read(salePreloadProvider);
+
     Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (context) => PaymentMethodPage(
           selectedProducts: selectedProductsList,
           productQuantities: productQuantities,
+          exchangeRateData: preloadState.exchangeRateData,
+          cashLocations: preloadState.cashLocations,
         ),
       ),
     );

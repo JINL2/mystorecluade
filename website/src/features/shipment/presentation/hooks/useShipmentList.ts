@@ -4,10 +4,10 @@
  * Handles: currency loading, suppliers loading, shipments loading, filtering
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
+import { getShipmentRepository } from '../../data/repositories/ShipmentRepositoryImpl';
 import type {
   Currency,
   Counterparty,
@@ -65,6 +65,7 @@ export const formatDateDisplay = (dateStr: string): string => {
 export const useShipmentList = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const repository = useMemo(() => getShipmentRepository(), []);
 
   // Check if we need to refresh data
   const navigationState = location.state as { refresh?: boolean } | null;
@@ -81,7 +82,7 @@ export const useShipmentList = () => {
   const [suppliers, setSuppliers] = useState<Counterparty[]>([]);
   const [suppliersLoading, setSuppliersLoading] = useState(false);
 
-  // Shipments state (using mock data for now - RPC not implemented yet)
+  // Shipments state
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shipmentsLoading, setShipmentsLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -97,103 +98,87 @@ export const useShipmentList = () => {
   const [tempFromDate, setTempFromDate] = useState<string>('');
   const [tempToDate, setTempToDate] = useState<string>('');
 
-  // Status filter states
-  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<Set<string>>(new Set());
+  // Status filter states (single select)
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<string | null>(null);
 
-  // Supplier filter state (multiselect)
-  const [supplierFilter, setSupplierFilter] = useState<Set<string>>(new Set());
+  // Supplier filter state (single select)
+  const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
 
   // Orders state (for order filter)
   const [orders, setOrders] = useState<OrderInfo[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
-  // Order filter state (multiselect)
-  const [orderFilter, setOrderFilter] = useState<Set<string>>(new Set());
+  // Order filter state (single select)
+  const [orderFilter, setOrderFilter] = useState<string | null>(null);
 
   // Debounce timer for search
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load base currency
+  // Load base currency using Repository
   useEffect(() => {
     const loadBaseCurrency = async () => {
       if (!companyId) return;
 
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_base_currency', {
-          p_company_id: companyId,
-        });
+        const result = await repository.getBaseCurrency(companyId);
 
-        if (!error && data?.base_currency) {
-          setCurrency({
-            symbol: data.base_currency.symbol || '₩',
-            code: data.base_currency.currency_code || 'KRW',
-          });
+        if (result.success && result.data) {
+          setCurrency(result.data);
         }
       } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+        console.error('💰 getBaseCurrency error:', err);
       }
     };
 
     loadBaseCurrency();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load counterparties
+  // Load counterparties using Repository
   useEffect(() => {
     const loadCounterparties = async () => {
       if (!companyId) return;
 
       setSuppliersLoading(true);
       try {
-        const supabase = supabaseService.getClient();
-        const { data, error } = await supabase.rpc('get_counterparty_info', {
-          p_company_id: companyId,
-        });
+        const result = await repository.getCounterparties(companyId);
 
-        if (!error && data?.success && data?.data) {
-          setSuppliers(data.data);
+        if (result.success && result.data) {
+          setSuppliers(result.data);
         }
       } catch (err) {
-        console.error('🏢 get_counterparty_info error:', err);
+        console.error('🏢 getCounterparties error:', err);
       } finally {
         setSuppliersLoading(false);
       }
     };
 
     loadCounterparties();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load orders (for order filter)
+  // Load orders (for order filter) using Repository
   useEffect(() => {
     const loadOrders = async () => {
       if (!companyId) return;
 
       setOrdersLoading(true);
       try {
-        const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const result = await repository.getOrders(companyId, userTimezone);
 
-        const { data, error } = await supabase.rpc('inventory_get_order_info', {
-          p_company_id: companyId,
-          p_timezone: userTimezone,
-        });
-
-        console.log('📋 inventory_get_order_info response:', { data, error });
-
-        if (!error && data?.success && data?.data) {
-          setOrders(data.data);
+        if (result.success && result.data) {
+          setOrders(result.data);
         }
       } catch (err) {
-        console.error('📋 inventory_get_order_info error:', err);
+        console.error('📋 getOrders error:', err);
       } finally {
         setOrdersLoading(false);
       }
     };
 
     loadOrders();
-  }, [companyId]);
+  }, [companyId, repository]);
 
-  // Load shipments using inventory_get_shipment_list RPC
+  // Load shipments using Repository
   const loadShipments = useCallback(async (
     search?: string,
     startDate?: string,
@@ -206,52 +191,24 @@ export const useShipmentList = () => {
 
     setShipmentsLoading(true);
     try {
-      const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      // Build RPC parameters
-      const rpcParams: Record<string, unknown> = {
-        p_company_id: companyId,
-        p_timezone: userTimezone,
-        p_limit: 50,
-        p_offset: 0,
-      };
+      const result = await repository.getShipmentList({
+        companyId,
+        timezone: userTimezone,
+        searchQuery: search,
+        fromDate: startDate,
+        toDate: endDate,
+        statusFilter: shipmentStatus,
+        supplierFilter: supplierId,
+        orderFilter: orderId,
+      });
 
-      // Add optional filters
-      if (search && search.trim()) {
-        rpcParams.p_search = search.trim();
-      }
-      if (shipmentStatus) {
-        rpcParams.p_status = shipmentStatus;
-      }
-      if (supplierId) {
-        rpcParams.p_supplier_id = supplierId;
-      }
-      if (orderId) {
-        rpcParams.p_order_id = orderId;
-      }
-      if (startDate) {
-        rpcParams.p_start_date = `${startDate} 00:00:00`;
-      }
-      if (endDate) {
-        rpcParams.p_end_date = `${endDate} 23:59:59`;
-      }
-
-      console.log('📦 Calling inventory_get_shipment_list with:', rpcParams);
-
-      const { data, error } = await supabase.rpc('inventory_get_shipment_list', rpcParams);
-
-      console.log('📦 inventory_get_shipment_list response:', { data, error });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.success && data?.data) {
-        setShipments(data.data);
-        setTotalCount(data.total_count || 0);
+      if (result.success && result.data) {
+        setShipments(result.data as Shipment[]);
+        setTotalCount(result.data.length);
       } else {
-        console.error('📦 RPC error:', data?.error);
+        console.error('📦 getShipmentList error:', result.error);
         setShipments([]);
         setTotalCount(0);
       }
@@ -262,17 +219,20 @@ export const useShipmentList = () => {
     } finally {
       setShipmentsLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, repository]);
 
   // Trigger shipment load when filters change
   useEffect(() => {
     if (!fromDate || !toDate) return;
 
-    const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-    const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-    const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-    loadShipments(searchQuery, fromDate, toDate, shipmentStatus, supplierId, orderId);
+    loadShipments(
+      searchQuery,
+      fromDate,
+      toDate,
+      shipmentStatusFilter || undefined,
+      supplierFilter || undefined,
+      orderFilter || undefined
+    );
   }, [loadShipments, fromDate, toDate, shipmentStatusFilter, supplierFilter, orderFilter]);
 
   // Handle refresh when coming back from ShipmentCreatePage
@@ -280,11 +240,14 @@ export const useShipmentList = () => {
     if (shouldRefresh && fromDate && toDate) {
       navigate(location.pathname, { replace: true, state: {} });
 
-      const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-      const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-      const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-      loadShipments(searchQuery, fromDate, toDate, shipmentStatus, supplierId, orderId);
+      loadShipments(
+        searchQuery,
+        fromDate,
+        toDate,
+        shipmentStatusFilter || undefined,
+        supplierFilter || undefined,
+        orderFilter || undefined
+      );
     }
   }, [shouldRefresh]);
 
@@ -297,11 +260,14 @@ export const useShipmentList = () => {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      const shipmentStatus = shipmentStatusFilter.size === 1 ? Array.from(shipmentStatusFilter)[0] : undefined;
-      const supplierId = supplierFilter.size === 1 ? Array.from(supplierFilter)[0] : undefined;
-      const orderId = orderFilter.size === 1 ? Array.from(orderFilter)[0] : undefined;
-
-      loadShipments(value, fromDate, toDate, shipmentStatus, supplierId, orderId);
+      loadShipments(
+        value,
+        fromDate,
+        toDate,
+        shipmentStatusFilter || undefined,
+        supplierFilter || undefined,
+        orderFilter || undefined
+      );
     }, 300);
   };
 
@@ -314,53 +280,29 @@ export const useShipmentList = () => {
     };
   }, []);
 
-  // Toggle status filters
-  const toggleShipmentStatus = (status: string) => {
-    setShipmentStatusFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(status)) {
-        newSet.delete(status);
-      } else {
-        newSet.add(status);
-      }
-      return newSet;
-    });
+  // Select status filter (single select - same value clears)
+  const selectShipmentStatus = (status: string) => {
+    setShipmentStatusFilter((prev) => (prev === status ? null : status));
   };
 
-  // Clear status filters
-  const clearShipmentStatusFilter = () => setShipmentStatusFilter(new Set());
+  // Clear status filter
+  const clearShipmentStatusFilter = () => setShipmentStatusFilter(null);
 
-  // Toggle supplier filter
-  const toggleSupplierFilter = (supplierId: string) => {
-    setSupplierFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(supplierId)) {
-        newSet.delete(supplierId);
-      } else {
-        newSet.add(supplierId);
-      }
-      return newSet;
-    });
+  // Select supplier filter (single select - same value clears)
+  const selectSupplierFilter = (supplierId: string) => {
+    setSupplierFilter((prev) => (prev === supplierId ? null : supplierId));
   };
 
   // Clear supplier filter
-  const clearSupplierFilter = () => setSupplierFilter(new Set());
+  const clearSupplierFilter = () => setSupplierFilter(null);
 
-  // Toggle order filter
-  const toggleOrderFilter = (orderId: string) => {
-    setOrderFilter((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
+  // Select order filter (single select - same value clears)
+  const selectOrderFilter = (orderId: string) => {
+    setOrderFilter((prev) => (prev === orderId ? null : orderId));
   };
 
   // Clear order filter
-  const clearOrderFilter = () => setOrderFilter(new Set());
+  const clearOrderFilter = () => setOrderFilter(null);
 
   // Initialize dates on mount
   useEffect(() => {
@@ -470,11 +412,11 @@ export const useShipmentList = () => {
 
     // Actions
     handleSearchChange,
-    toggleShipmentStatus,
+    selectShipmentStatus,
     clearShipmentStatusFilter,
-    toggleSupplierFilter,
+    selectSupplierFilter,
     clearSupplierFilter,
-    toggleOrderFilter,
+    selectOrderFilter,
     clearOrderFilter,
     handlePresetChange,
     handleOpenCustomPicker,

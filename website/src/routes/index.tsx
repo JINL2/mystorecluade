@@ -30,8 +30,10 @@ import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
 import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreatePage';
 import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
 import { ProductReceivePage } from '@/features/product-receive/presentation/pages/ProductReceivePage';
+import { ReceivingSessionPage } from '@/features/product-receive/presentation/pages/ReceivingSessionPage';
 import { ShipmentPage } from '@/features/shipment/presentation/pages/ShipmentPage';
 import { ShipmentCreatePage } from '@/features/shipment/presentation/pages/ShipmentCreatePage';
+import { ShipmentDetailPage } from '@/features/shipment/presentation/pages/ShipmentDetailPage';
 import { StoreSettingPage } from '@/features/store-setting/presentation/pages/StoreSettingPage';
 import { TrackingPage } from '@/features/tracking/presentation/pages/TrackingPage';
 import { TransactionHistoryPage } from '@/features/transaction-history/presentation/pages/TransactionHistoryPage';
@@ -125,6 +127,14 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/product/receive/session/:sessionId"
+        element={
+          <ProtectedRoute requiredFeatureId="bd9c6193-27ae-4681-845b-34ccce91273f">
+            <ReceivingSessionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/product/shipment"
         element={
           <ProtectedRoute requiredFeatureId="0d76406c-2c45-422c-bc5a-ca6ebb0b4153">
@@ -137,6 +147,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="0d76406c-2c45-422c-bc5a-ca6ebb0b4153">
             <ShipmentCreatePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product/shipment/:shipmentId"
+        element={
+          <ProtectedRoute requiredFeatureId="0d76406c-2c45-422c-bc5a-ca6ebb0b4153">
+            <ShipmentDetailPage />
           </ProtectedRoute>
         }
       />

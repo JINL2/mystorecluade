@@ -350,14 +350,21 @@ export const useOrderList = () => {
     }
   };
 
-  // Convert suppliers to TossSelector options format
+  // Convert suppliers to LeftFilter radio options format
   const supplierOptions = suppliers.map((supplier) => ({
     value: supplier.counterparty_id,
     label: supplier.name,
-    description: supplier.is_internal ? 'INTERNAL' : undefined,
-    descriptionBgColor: supplier.is_internal ? 'rgba(107, 114, 128, 0.15)' : undefined,
-    descriptionColor: supplier.is_internal ? 'rgb(107, 114, 128)' : undefined,
   }));
+
+  // Select supplier filter (radio style - single selection)
+  const selectSupplierFilter = (supplierId: string) => {
+    setSelectedSupplier(supplierId);
+  };
+
+  // Clear supplier filter
+  const clearSupplierFilter = () => {
+    setSelectedSupplier(null);
+  };
 
   return {
     // State
@@ -385,6 +392,8 @@ export const useOrderList = () => {
     toggleReceivingStatus,
     clearOrderStatusFilter,
     clearReceivingStatusFilter,
+    selectSupplierFilter,
+    clearSupplierFilter,
     handlePresetChange,
     handleOpenCustomPicker,
     handleApplyCustomDate,

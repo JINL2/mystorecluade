@@ -44,6 +44,7 @@ import '../../features/notifications/presentation/pages/notifications_page.dart'
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
+import '../../features/session/presentation/pages/session_page.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -737,6 +738,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return ReportControlPage(feature: feature);
+        },
+      ),
+
+      // Session Route
+      GoRoute(
+        path: '/session',
+        name: 'session',
+        builder: (context, state) {
+          final feature = state.extra;
+          return SessionPage(feature: feature);
         },
       ),
     ],

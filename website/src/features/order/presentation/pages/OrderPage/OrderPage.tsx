@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
-import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { useOrderList, formatDateDisplay } from '../../hooks/useOrderList';
 import { ORDER_STATUS_OPTIONS, RECEIVING_STATUS_OPTIONS } from './OrderPage.types';
 import styles from './OrderPage.module.css';
@@ -20,7 +19,6 @@ export const OrderPage: React.FC = () => {
   const {
     currency,
     suppliers,
-    suppliersLoading,
     orders,
     ordersLoading,
     searchQuery,
@@ -39,13 +37,14 @@ export const OrderPage: React.FC = () => {
     toggleReceivingStatus,
     clearOrderStatusFilter,
     clearReceivingStatusFilter,
+    selectSupplierFilter,
+    clearSupplierFilter,
     handlePresetChange,
     handleApplyCustomDate,
     handleCancelCustomDate,
     handleSetTodayDate,
     setTempFromDate,
     setTempToDate,
-    setSelectedSupplier,
   } = useOrderList();
 
   // Click outside to close date picker
@@ -163,22 +162,12 @@ export const OrderPage: React.FC = () => {
     {
       id: 'supplier',
       title: 'Supplier',
-      type: 'custom',
+      type: 'radio',
       defaultExpanded: true,
-      customContent: (
-        <div className={styles.supplierFilterContent}>
-          <TossSelector
-            placeholder={suppliersLoading ? 'Loading suppliers...' : 'Select supplier'}
-            value={selectedSupplier ?? undefined}
-            options={supplierOptions}
-            onChange={(value) => setSelectedSupplier(value || null)}
-            searchable
-            fullWidth
-            disabled={suppliersLoading}
-            showDescriptions
-          />
-        </div>
-      ),
+      options: supplierOptions,
+      selectedValues: selectedSupplier || '',
+      onSelect: selectSupplierFilter,
+      onClear: clearSupplierFilter,
     },
   ];
 

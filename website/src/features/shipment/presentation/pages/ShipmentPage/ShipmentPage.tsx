@@ -19,6 +19,7 @@ export const ShipmentPage: React.FC = () => {
   const {
     currency,
     suppliers,
+    orders,
     shipments,
     shipmentsLoading,
     searchQuery,
@@ -34,11 +35,11 @@ export const ShipmentPage: React.FC = () => {
     supplierOptions,
     orderOptions,
     handleSearchChange,
-    toggleShipmentStatus,
+    selectShipmentStatus,
     clearShipmentStatusFilter,
-    toggleSupplierFilter,
+    selectSupplierFilter,
     clearSupplierFilter,
-    toggleOrderFilter,
+    selectOrderFilter,
     clearOrderFilter,
     handlePresetChange,
     handleApplyCustomDate,
@@ -141,34 +142,31 @@ export const ShipmentPage: React.FC = () => {
     {
       id: 'shipmentStatus',
       title: 'Shipment Status',
-      type: 'multiselect',
+      type: 'radio',
       defaultExpanded: true,
-      showCount: true,
       options: SHIPMENT_STATUS_OPTIONS,
-      selectedValues: shipmentStatusFilter,
-      onToggle: toggleShipmentStatus,
+      selectedValues: shipmentStatusFilter || '',
+      onSelect: selectShipmentStatus,
       onClear: clearShipmentStatusFilter,
     },
     {
       id: 'supplier',
       title: 'Supplier',
-      type: 'multiselect',
+      type: 'radio',
       defaultExpanded: true,
-      showCount: true,
       options: supplierOptions,
-      selectedValues: supplierFilter,
-      onToggle: toggleSupplierFilter,
+      selectedValues: supplierFilter || '',
+      onSelect: selectSupplierFilter,
       onClear: clearSupplierFilter,
     },
     {
       id: 'order',
       title: 'Linked Order',
-      type: 'multiselect',
+      type: 'radio',
       defaultExpanded: true,
-      showCount: true,
       options: orderOptions,
-      selectedValues: orderFilter,
-      onToggle: toggleOrderFilter,
+      selectedValues: orderFilter || '',
+      onSelect: selectOrderFilter,
       onClear: clearOrderFilter,
     },
   ];
@@ -209,7 +207,7 @@ export const ShipmentPage: React.FC = () => {
                 <div className={styles.shipmentActions}>
                   <button
                     className={styles.primaryButton}
-                    onClick={() => navigate('/product/shipment/create', { state: { currency, suppliers } })}
+                    onClick={() => navigate('/product/shipment/create', { state: { currency, suppliers, orders } })}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="12" y1="5" x2="12" y2="19" />

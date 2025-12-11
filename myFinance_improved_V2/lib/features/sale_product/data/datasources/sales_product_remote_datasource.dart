@@ -25,12 +25,12 @@ class SalesProductRemoteDataSource {
 
   /// Get inventory products for sales
   ///
-  /// Calls the `get_inventory_page_v2` RPC function
+  /// Calls the `get_inventory_page_v3` RPC function
   Future<SalesProductResponse> getInventoryProducts({
     required String companyId,
     required String storeId,
     required int page,
-    int limit = 10,
+    int limit = 15,
     String? search,
   }) async {
     final params = {
@@ -38,12 +38,12 @@ class SalesProductRemoteDataSource {
       'p_store_id': storeId,
       'p_page': page,
       'p_limit': limit,
-      'p_search': search ?? '',
+      'p_search': search,
       'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_inventory_page_v2',
+      'get_inventory_page_v3',
       params: params,
     ).single();
 
@@ -62,15 +62,15 @@ class SalesProductRemoteDataSource {
 
     // Extract products array
     final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
+
     final products = productsJson
         .map((json) => SalesProductModel.fromJson(json as Map<String, dynamic>))
         .toList();
 
-    // Extract pagination info
+    // Extract pagination info (v3 provides has_next directly)
     final paginationJson = dataToProcess['pagination'] as Map<String, dynamic>? ?? {};
     final totalCount = (paginationJson['total'] ?? 0) as int;
-    final totalPages = (paginationJson['total_pages'] ?? 1) as int;
-    final hasNextPage = page < totalPages;
+    final hasNextPage = (paginationJson['has_next'] ?? false) as bool;
 
     return SalesProductResponse(
       products: products,
