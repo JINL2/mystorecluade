@@ -283,7 +283,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   }
 
   Future<void> _proceedToInvoice() async {
+    print('🚀 [INVOICE] _proceedToInvoice() START');
+
     final paymentState = ref.read(paymentMethodProvider);
+    print('📋 [INVOICE] paymentState: selectedCashLocation=${paymentState.selectedCashLocation?.name}, discountAmount=${paymentState.discountAmount}');
 
     // Get required IDs
     final appState = ref.read(appStateProvider);
@@ -292,8 +295,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final storeId = appState.storeChoosen;
     final userId = authState.value?.id;
 
+    print('🔑 [INVOICE] IDs: companyId=$companyId, storeId=$storeId, userId=$userId');
+
     // Validate required fields
     if (companyId.isEmpty || storeId.isEmpty || userId == null) {
+      print('❌ [INVOICE] VALIDATION FAILED: Missing IDs');
       _showErrorDialog(
         'Missing Information',
         'Please ensure you are logged in and have selected a company and store.',
@@ -303,6 +309,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     // Validate cash location is selected
     if (paymentState.selectedCashLocation == null) {
+      print('❌ [INVOICE] VALIDATION FAILED: No cash location selected');
       _showErrorDialog(
         'Payment Method Required',
         'Please select a cash location before completing the invoice.',
@@ -326,13 +333,17 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         }
 
         items.add(itemData);
+        print('📦 [INVOICE] Item: productId=${product.productId}, quantity=$quantity, unitPrice=$sellingPrice');
       }
     }
 
     if (items.isEmpty) {
+      print('❌ [INVOICE] VALIDATION FAILED: No items');
       _showErrorDialog('No Items', 'No valid items to invoice');
       return;
     }
+
+    print('✅ [INVOICE] Validation passed. Total items: ${items.length}');
 
     // Show loading indicator
     _showLoadingDialog();
@@ -340,6 +351,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     try {
       // Get repository via provider
       final paymentRepository = ref.read(paymentRepositoryProvider);
+      print('🔧 [INVOICE] Got paymentRepository');
 
       // Determine payment method based on cash location type
       String paymentMethod = 'cash';
@@ -347,6 +359,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         paymentMethod =
             paymentState.selectedCashLocation!.isBank ? 'transfer' : 'cash';
       }
+      print('💳 [INVOICE] paymentMethod=$paymentMethod');
 
       // Prepare invoice items
       final invoiceItems = <InvoiceItem>[];
@@ -359,6 +372,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           ),
         );
       }
+      print('📝 [INVOICE] invoiceItems prepared: ${invoiceItems.length} items');
 
       // Build notes from cash location info
       String? notes;
@@ -366,22 +380,46 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final cashLoc = paymentState.selectedCashLocation!;
         notes = 'Cash Location: ${cashLoc.name} (${cashLoc.type})';
       }
+      print('📄 [INVOICE] notes=$notes');
+
+      final saleDate = DateTime.now();
+      final discountAmt = paymentState.discountAmount > 0
+          ? paymentState.discountAmount.roundToDouble()
+          : null;
+      final cashLocId = paymentState.selectedCashLocation?.id;
+
+      print('📤 [INVOICE] Calling createInvoice with:');
+      print('   companyId: $companyId');
+      print('   storeId: $storeId');
+      print('   userId: $userId');
+      print('   saleDate: $saleDate');
+      print('   items count: ${invoiceItems.length}');
+      print('   paymentMethod: $paymentMethod');
+      print('   discountAmount: $discountAmt');
+      print('   taxRate: 0.0');
+      print('   notes: $notes');
+      print('   cashLocationId: $cashLocId');
 
       // Call repository to create invoice
       final result = await paymentRepository.createInvoice(
         companyId: companyId,
         storeId: storeId,
         userId: userId,
-        saleDate: DateTime.now(),
+        saleDate: saleDate,
         items: invoiceItems,
         paymentMethod: paymentMethod,
-        discountAmount: paymentState.discountAmount > 0
-            ? paymentState.discountAmount.roundToDouble()
-            : null,
+        discountAmount: discountAmt,
         taxRate: 0.0,
         notes: notes,
-        cashLocationId: paymentState.selectedCashLocation?.id,
+        cashLocationId: cashLocId,
       );
+
+      print('📥 [INVOICE] createInvoice result:');
+      print('   success: ${result.success}');
+      print('   invoiceNumber: ${result.invoiceNumber}');
+      print('   totalAmount: ${result.totalAmount}');
+      print('   message: ${result.message}');
+      print('   warnings: ${result.warnings}');
 
       // Close loading dialog
       if (mounted) {
@@ -390,6 +428,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
       // Check response
       if (result.success) {
+        print('✅ [INVOICE] Invoice SUCCESS! Calling _handleInvoiceSuccess');
         await _handleInvoiceSuccess(
           result,
           paymentState,
@@ -398,12 +437,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           userId,
         );
       } else {
+        print('❌ [INVOICE] Invoice FAILED: ${result.message}');
         _showErrorDialog(
           'Invoice Creation Failed',
           result.message ?? 'Failed to create invoice',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('💥 [INVOICE] EXCEPTION: $e');
+      print('📚 [INVOICE] StackTrace: $stackTrace');
+
       // Close loading dialog if still open
       if (mounted) {
         context.pop();

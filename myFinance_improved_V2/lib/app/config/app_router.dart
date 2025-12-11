@@ -45,6 +45,9 @@ import '../../features/register_denomination/presentation/pages/register_denomin
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../features/session/presentation/pages/session_page.dart';
+import '../../features/session/presentation/pages/session_action_page.dart';
+import '../../features/session/presentation/pages/session_list_page.dart';
+import '../../features/session/presentation/pages/session_detail_page.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -748,6 +751,54 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return SessionPage(feature: feature);
+        },
+      ),
+
+      // Session Action Route (Create or Join)
+      GoRoute(
+        path: '/session/action/:sessionType',
+        name: 'session-action',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionActionPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session List Route (for joining sessions)
+      GoRoute(
+        path: '/session/list/:sessionType',
+        name: 'session-list',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionListPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session Detail Route (after creating/joining a session)
+      GoRoute(
+        path: '/session/detail/:sessionId',
+        name: 'session-detail',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          final sessionName = state.uri.queryParameters['sessionName'];
+          final isOwnerParam = state.uri.queryParameters['isOwner'];
+          final isOwner = isOwnerParam == 'true';
+
+          // Debug logs
+          debugPrint('🔍 [Router] Full URI: ${state.uri}');
+          debugPrint('🔍 [Router] Query params: ${state.uri.queryParameters}');
+          debugPrint('🔍 [Router] isOwner param raw: $isOwnerParam');
+          debugPrint('🔍 [Router] isOwner parsed: $isOwner');
+
+          return SessionDetailPage(
+            sessionId: sessionId,
+            sessionType: sessionType,
+            storeId: storeId,
+            sessionName: sessionName,
+            isOwner: isOwner,
+          );
         },
       ),
     ],

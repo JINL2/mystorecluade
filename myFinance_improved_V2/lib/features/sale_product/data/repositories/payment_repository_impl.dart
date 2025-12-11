@@ -74,28 +74,45 @@ class PaymentRepositoryImpl implements PaymentRepository {
     String? cashLocationId,
     String? customerId,
   }) async {
-    final response = await _remoteDataSource.createInvoice(
-      companyId: companyId,
-      storeId: storeId,
-      userId: userId,
-      saleDate: saleDate,
-      items: items,
-      paymentMethod: paymentMethod,
-      discountAmount: discountAmount,
-      taxRate: taxRate,
-      notes: notes,
-      cashLocationId: cashLocationId,
-      customerId: customerId,
-    );
+    print('🚀 [REPO] createInvoice() START');
+    print('📋 [REPO] items count: ${items.length}, paymentMethod: $paymentMethod');
 
-    return CreateInvoiceResult(
-      success: response['success'] as bool? ?? false,
-      invoiceNumber: response['invoice_number']?.toString(),
-      totalAmount: (response['total_amount'] as num?)?.toDouble(),
-      warnings: response['warnings'] != null
-          ? (response['warnings'] as List).map((e) => e.toString()).toList()
-          : null,
-      message: response['message']?.toString(),
-    );
+    try {
+      print('🔄 [REPO] Calling _remoteDataSource.createInvoice...');
+
+      final response = await _remoteDataSource.createInvoice(
+        companyId: companyId,
+        storeId: storeId,
+        userId: userId,
+        saleDate: saleDate,
+        items: items,
+        paymentMethod: paymentMethod,
+        discountAmount: discountAmount,
+        taxRate: taxRate,
+        notes: notes,
+        cashLocationId: cashLocationId,
+        customerId: customerId,
+      );
+
+      print('📥 [REPO] Raw response: $response');
+
+      final result = CreateInvoiceResult(
+        success: response['success'] as bool? ?? false,
+        invoiceNumber: response['invoice_number']?.toString(),
+        totalAmount: (response['total_amount'] as num?)?.toDouble(),
+        warnings: response['warnings'] != null
+            ? (response['warnings'] as List).map((e) => e.toString()).toList()
+            : null,
+        message: response['message']?.toString(),
+      );
+
+      print('✅ [REPO] Result: success=${result.success}, invoiceNumber=${result.invoiceNumber}, message=${result.message}');
+
+      return result;
+    } catch (e, stackTrace) {
+      print('💥 [REPO] EXCEPTION: $e');
+      print('📚 [REPO] StackTrace: $stackTrace');
+      rethrow;
+    }
   }
 }

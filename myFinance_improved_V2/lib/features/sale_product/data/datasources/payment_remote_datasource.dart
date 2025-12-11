@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -198,7 +199,7 @@ class PaymentRemoteDataSource {
     }
   }
 
-  /// Create invoice using inventory_create_invoice_v3
+  /// Create invoice using inventory_create_invoice_v4
   Future<Map<String, dynamic>> createInvoice({
     required String companyId,
     required String storeId,
@@ -212,40 +213,67 @@ class PaymentRemoteDataSource {
     String? cashLocationId,
     String? customerId,
   }) async {
+    print('🚀 [RPC] createInvoice() START');
+
     try {
       // Get user's local timezone (IANA format)
       final timezone = DateTimeUtils.getLocalTimezone();
+      print('🌍 [RPC] timezone=$timezone');
 
       // Format sale_date as timestamptz with local timezone offset
       // e.g., "2025-12-03T18:47:56+07:00"
       final saleDateWithOffset = DateTimeUtils.toLocalWithOffset(saleDate);
+      print('📅 [RPC] saleDateWithOffset=$saleDateWithOffset');
+
+      // Prepare items for logging
+      final itemsList = items.map((item) => item.toJson()).toList();
+      print('📦 [RPC] items JSON: ${jsonEncode(itemsList)}');
+
+      // Build params
+      final params = <String, dynamic>{
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_created_by': userId,
+        'p_sale_date': saleDateWithOffset,
+        'p_items': itemsList,
+        'p_payment_method': paymentMethod,
+        'p_timezone': timezone,
+      };
+
+      if (discountAmount != null) params['p_discount_amount'] = discountAmount;
+      if (taxRate != null) params['p_tax_rate'] = taxRate;
+      if (notes != null) params['p_notes'] = notes;
+      if (cashLocationId != null) params['p_cash_location_id'] = cashLocationId;
+      if (customerId != null) params['p_customer_id'] = customerId;
+
+      print('📤 [RPC] Full params: ${jsonEncode(params)}');
+      print('🔄 [RPC] Calling inventory_create_invoice_v4...');
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_create_invoice_v3',
-        params: {
-          'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_created_by': userId,
-          'p_sale_date': saleDateWithOffset,
-          'p_items': items.map((item) => item.toJson()).toList(),
-          'p_payment_method': paymentMethod,
-          'p_timezone': timezone,
-          if (discountAmount != null) 'p_discount_amount': discountAmount,
-          if (taxRate != null) 'p_tax_rate': taxRate,
-          if (notes != null) 'p_notes': notes,
-          if (cashLocationId != null) 'p_cash_location_id': cashLocationId,
-          if (customerId != null) 'p_customer_id': customerId,
-        },
+        'inventory_create_invoice_v4',
+        params: params,
       );
+
+      print('📥 [RPC] Response: ${jsonEncode(response)}');
+      print('✅ [RPC] createInvoice() SUCCESS');
 
       return response;
     } on PostgrestException catch (e) {
+      print('❌ [RPC] PostgrestException:');
+      print('   code: ${e.code}');
+      print('   message: ${e.message}');
+      print('   details: ${e.details}');
+      print('   hint: ${e.hint}');
+
       throw PaymentNetworkException(
         'Failed to create invoice: ${e.message}',
         code: e.code,
         originalError: e,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('💥 [RPC] Exception: $e');
+      print('📚 [RPC] StackTrace: $stackTrace');
+
       if (e is PaymentException) rethrow;
       throw PaymentDataException(
         'Failed to process invoice creation: $e',
