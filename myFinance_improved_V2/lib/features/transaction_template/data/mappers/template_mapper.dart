@@ -38,6 +38,7 @@ extension TemplateDtoToDomain on TemplateDto {
 
       updatedBy: updatedBy,
       isActive: isActive,
+      requiredAttachment: requiredAttachment,
     );
   }
 }
@@ -69,6 +70,7 @@ extension TransactionTemplateToDDto on TransactionTemplate {
 
       updatedBy: updatedBy,
       isActive: isActive,
+      requiredAttachment: requiredAttachment,
     );
   }
 }

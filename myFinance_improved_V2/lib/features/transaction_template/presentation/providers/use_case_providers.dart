@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/entities/template_attachment.dart';
 import '../../domain/usecases/create_transaction_from_template_usecase.dart';
+import '../../domain/usecases/update_template_usecase.dart';
 
 /// Provider for CreateTransactionFromTemplateUseCase
 ///
@@ -69,3 +70,18 @@ final deleteTemplateAttachmentProvider = Provider<Future<void> Function(String, 
     };
   },
 );
+
+// =============================================================================
+// Template Update Provider
+// =============================================================================
+
+/// Provider for UpdateTemplateUseCase
+///
+/// **Dependency Flow**:
+/// Presentation → Domain Use Case → Repository Interface ← Data Implementation
+final updateTemplateUseCaseProvider = Provider<UpdateTemplateUseCase>((ref) {
+  final templateRepository = ref.read(templateRepositoryProvider);
+  return UpdateTemplateUseCase(
+    templateRepository: templateRepository,
+  );
+});

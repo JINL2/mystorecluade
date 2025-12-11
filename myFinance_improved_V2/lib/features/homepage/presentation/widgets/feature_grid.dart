@@ -114,13 +114,12 @@ class FeatureGrid extends ConsumerWidget {
         });
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Manual Library Card (always visible)
               const _LibraryCard(),
-              const SizedBox(height: TossSpacing.space4),
 
               // Categories (only with features)
               ...categoriesWithFeatures.map((category) => _CategorySection(
@@ -179,7 +178,7 @@ class _CategorySection extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -199,26 +198,10 @@ class _CategorySection extends StatelessWidget {
           const SizedBox(height: TossSpacing.space4),
 
           // Features List (only visible features)
-          ...visibleFeatures.asMap().entries.map((entry) {
-            final index = entry.key;
-            final feature = entry.value;
-            final isLast = index == visibleFeatures.length - 1;
-
-            return Column(
-              children: [
-                _FeatureListItem(
-                  feature: feature,
-                  categoryId: category.categoryId,
-                ),
-                if (!isLast)
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: TossSpacing.space2,
-                    ),
-                    height: 0.5,
-                    color: TossColors.borderLight,
-                  ),
-              ],
+          ...visibleFeatures.map((feature) {
+            return _FeatureListItem(
+              feature: feature,
+              categoryId: category.categoryId,
             );
           }),
         ],
@@ -476,7 +459,8 @@ class _LibraryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),

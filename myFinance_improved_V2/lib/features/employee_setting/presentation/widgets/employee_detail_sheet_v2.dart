@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -8,7 +9,9 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/employee_salary.dart';
+import '../../domain/entities/shift_audit_log.dart';
 import '../providers/employee_providers.dart';
 
 class EmployeeDetailSheetV2 extends ConsumerStatefulWidget {
@@ -168,12 +171,44 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Text(
-              employee.roleName,
+              employee.roleName.isNotEmpty ? employee.roleName : 'No role assigned',
               style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray900,
+                color: employee.roleName.isNotEmpty ? TossColors.gray900 : TossColors.gray500,
                 fontWeight: FontWeight.w500,
               ),
             ),
+          ),
+
+          // Last Activity Status
+          const SizedBox(height: TossSpacing.space2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                employee.isActiveToday
+                    ? Icons.circle
+                    : Icons.access_time_rounded,
+                size: 10,
+                color: employee.isActiveToday
+                    ? TossColors.success
+                    : (employee.isInactive
+                        ? TossColors.gray300
+                        : TossColors.gray400),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                employee.lastActivityAt != null
+                    ? 'Last active ${employee.lastActivityText}'
+                    : 'No recent activity',
+                style: TossTextStyles.caption.copyWith(
+                  color: employee.isActiveToday
+                      ? TossColors.success
+                      : (employee.isInactive
+                          ? TossColors.gray400
+                          : TossColors.gray500),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -248,7 +283,7 @@ class _InfoTab extends StatelessWidget {
             children: [
               if (employee.department != null)
                 _buildInfoRow('Department', employee.department!),
-              _buildInfoRow('Role', employee.roleName),
+              _buildInfoRow('Role', employee.roleName.isNotEmpty ? employee.roleName : 'No role assigned'),
               if (employee.managerName != null)
                 _buildInfoRow('Manager', employee.managerName!),
               if (employee.workLocation != null)
@@ -258,6 +293,8 @@ class _InfoTab extends StatelessWidget {
               _buildInfoRow('Employment Status', employee.employmentStatus ?? 'Active'),
               if (employee.costCenter != null)
                 _buildInfoRow('Cost Center', employee.costCenter!),
+              // Last Activity
+              _buildLastActivityRow(employee),
             ],
           ),
           
@@ -269,8 +306,8 @@ class _InfoTab extends StatelessWidget {
             icon: Icons.account_balance_outlined,
             color: TossColors.warning,
             children: [
-              _buildInfoRow('Bank Name', 'Not specified'), // TODO: Add to database
-              _buildInfoRow('Bank Number', 'Not specified'), // TODO: Add to database
+              _buildInfoRow('Bank Name', employee.bankName ?? 'Not specified'),
+              _buildInfoRow('Bank Number', employee.bankAccountNumber ?? 'Not specified'),
             ],
           ),
         ],
@@ -359,8 +396,8 @@ class _InfoTab extends StatelessWidget {
   }
   
   Widget _buildInfoRow(String label, String value) {
-    final isEmpty = value.isEmpty || value == 'Not specified' || value == 'Not assigned';
-    
+    final isEmpty = value.isEmpty || value == 'Not specified' || value == 'Not assigned' || value == 'No role assigned';
+
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
@@ -385,6 +422,61 @@ class _InfoTab extends StatelessWidget {
                 fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w500,
                 fontStyle: isEmpty ? FontStyle.italic : FontStyle.normal,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLastActivityRow(EmployeeSalary employee) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              'Last Activity',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  employee.isActiveToday
+                      ? Icons.circle
+                      : Icons.access_time_rounded,
+                  size: 12,
+                  color: employee.isActiveToday
+                      ? TossColors.success
+                      : (employee.isInactive
+                          ? TossColors.gray300
+                          : TossColors.gray400),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    employee.lastActivityAt != null
+                        ? employee.lastActivityText
+                        : 'No activity recorded',
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: employee.isActiveToday
+                          ? TossColors.success
+                          : (employee.isInactive
+                              ? TossColors.gray400
+                              : TossColors.gray900),
+                      fontWeight: employee.isActiveToday ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -538,7 +630,7 @@ class _SalaryTab extends StatelessWidget {
 }
 
 // Role Tab
-class _RoleTab extends StatelessWidget {
+class _RoleTab extends ConsumerWidget {
   final EmployeeSalary employee;
   final VoidCallback onManage;
 
@@ -548,8 +640,9 @@ class _RoleTab extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasRole = employee.roleName.isNotEmpty;
+    final isOwnerAsync = ref.watch(isCurrentUserOwnerProvider);
 
     return Column(
       children: [
@@ -600,8 +693,8 @@ class _RoleTab extends StatelessWidget {
             ),
           ),
         ),
-        
-        // Fixed bottom button
+
+        // Fixed bottom buttons
         Container(
           padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: const BoxDecoration(
@@ -614,31 +707,410 @@ class _RoleTab extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: SizedBox(
-              width: double.infinity,
-              child: TossPrimaryButton(
-                text: hasRole ? 'Change Role' : 'Assign Role',
-                onPressed: onManage,
-                fullWidth: true,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Change Role Button
+                SizedBox(
+                  width: double.infinity,
+                  child: TossPrimaryButton(
+                    text: hasRole ? 'Change Role' : 'Assign Role',
+                    onPressed: onManage,
+                    fullWidth: true,
+                  ),
+                ),
+
+                // Delete Employee Button - Only visible to Owner
+                isOwnerAsync.when(
+                  data: (isOwner) {
+                    if (!isOwner) return const SizedBox.shrink();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(top: TossSpacing.space3),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => _showDeleteConfirmationDialog(context, ref),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: TossColors.error,
+                            side: const BorderSide(color: TossColors.error),
+                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            ),
+                          ),
+                          child: Text(
+                            'Remove Employee',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         ),
       ],
     );
   }
+
+  void _showDeleteConfirmationDialog(BuildContext context, WidgetRef ref) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _DeleteEmployeeDialog(
+        employee: employee,
+        onConfirm: (deleteSalary) async {
+          Navigator.of(dialogContext).pop();
+          await _executeDelete(context, ref, deleteSalary);
+        },
+      ),
+    );
+  }
+
+  Future<void> _executeDelete(BuildContext context, WidgetRef ref, bool deleteSalary) async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final repository = ref.read(employeeRepositoryProvider);
+
+    // Show loading indicator
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final result = await repository.deleteEmployee(
+        companyId: companyId,
+        employeeUserId: employee.userId,
+        deleteSalary: deleteSalary,
+      );
+
+      // Hide loading indicator
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (result['success'] == true) {
+        // Remove employee from mutable list immediately
+        final currentList = ref.read(mutableEmployeeListProvider);
+        if (currentList != null) {
+          final updatedList = currentList.where((e) => e.userId != employee.userId).toList();
+          ref.read(mutableEmployeeListProvider.notifier).state = updatedList;
+        }
+
+        // Also invalidate the source provider to refresh from server
+        ref.invalidate(employeeSalaryListProvider);
+
+        // Close the bottom sheet
+        if (context.mounted) {
+          Navigator.of(context).pop();
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${employee.fullName} has been removed from the company.'),
+              backgroundColor: TossColors.success,
+            ),
+          );
+        }
+      } else {
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text((result['message'] as String?) ?? 'Failed to remove employee.'),
+              backgroundColor: TossColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Hide loading indicator
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    }
+  }
+}
+
+// Delete Employee Confirmation Dialog
+class _DeleteEmployeeDialog extends ConsumerStatefulWidget {
+  final EmployeeSalary employee;
+  final void Function(bool deleteSalary) onConfirm;
+
+  const _DeleteEmployeeDialog({
+    required this.employee,
+    required this.onConfirm,
+  });
+
+  @override
+  ConsumerState<_DeleteEmployeeDialog> createState() => _DeleteEmployeeDialogState();
+}
+
+class _DeleteEmployeeDialogState extends ConsumerState<_DeleteEmployeeDialog> {
+  bool _deleteSalary = true;
+  bool _isLoading = true;
+  Map<String, dynamic>? _validationData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValidationData();
+  }
+
+  Future<void> _loadValidationData() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final repository = ref.read(employeeRepositoryProvider);
+
+    try {
+      final result = await repository.validateEmployeeDelete(
+        companyId: companyId,
+        employeeUserId: widget.employee.userId,
+      );
+
+      if (mounted) {
+        setState(() {
+          _validationData = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _validationData = {
+            'success': false,
+            'message': 'Failed to validate: $e',
+          };
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: TossColors.error, size: 28),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              'Remove Employee',
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: _isLoading
+          ? const SizedBox(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : _buildContent(),
+      actions: _isLoading
+          ? null
+          : [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'Cancel',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ),
+              if (_validationData?['success'] == true)
+                ElevatedButton(
+                  onPressed: () => widget.onConfirm(_deleteSalary),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TossColors.error,
+                    foregroundColor: TossColors.white,
+                  ),
+                  child: const Text('Remove'),
+                ),
+            ],
+    );
+  }
+
+  Widget _buildContent() {
+    if (_validationData?['success'] != true) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Text(
+                    (_validationData?['message'] as String?) ?? 'Cannot delete this employee.',
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final dataSummary = _validationData?['data_summary'] as Map<String, dynamic>?;
+    final willPreserve = dataSummary?['will_preserve'] as Map<String, dynamic>?;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Are you sure you want to remove "${widget.employee.fullName}" from your company?',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // Data preservation notice
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            border: Border.all(color: TossColors.gray200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Data to be preserved:',
+                style: TossTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              if (willPreserve != null) ...[
+                _buildPreserveRow('Shift Records', (willPreserve['shift_requests'] as int?) ?? 0),
+                _buildPreserveRow('Journal Entries', (willPreserve['journal_entries_created'] as int?) ?? 0),
+                _buildPreserveRow('Cash Entries', (willPreserve['cash_amount_entries'] as int?) ?? 0),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // Delete salary option
+        CheckboxListTile(
+          value: _deleteSalary,
+          onChanged: (value) => setState(() => _deleteSalary = value ?? true),
+          title: Text(
+            'Also delete salary information',
+            style: TossTextStyles.bodySmall.copyWith(
+              color: TossColors.gray900,
+            ),
+          ),
+          subtitle: Text(
+            'Uncheck to preserve salary history',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          activeColor: TossColors.primary,
+        ),
+
+        const SizedBox(height: TossSpacing.space2),
+
+        Text(
+          'This action will soft-delete the employee\'s company connection. The user account will remain active for other companies.',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreserveRow(String label, int count) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space1),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray600,
+            ),
+          ),
+          Text(
+            '$count records',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 
 // Attendance Tab
-class _AttendanceTab extends StatelessWidget {
+class _AttendanceTab extends ConsumerWidget {
   final EmployeeSalary employee;
 
   const _AttendanceTab({required this.employee});
 
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    // Watch audit logs provider
+    final auditLogsAsync = ref.watch(
+      employeeShiftAuditLogsProvider(
+        EmployeeAuditLogParams(
+          userId: employee.userId,
+          companyId: companyId,
+          limit: 20,
+          offset: 0,
+        ),
+      ),
+    );
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
@@ -670,7 +1142,7 @@ class _AttendanceTab extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _buildAttendanceMetric(
-                        'Working Days', 
+                        'Working Days',
                         '${employee.totalWorkingDay ?? 0}',
                         Icons.calendar_today,
                         TossColors.gray900,
@@ -679,7 +1151,7 @@ class _AttendanceTab extends StatelessWidget {
                     const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: _buildAttendanceMetric(
-                        'Working Hours', 
+                        'Working Hours',
                         '${employee.totalWorkingHour?.toStringAsFixed(1) ?? "0.0"}h',
                         Icons.access_time,
                         TossColors.success,
@@ -690,9 +1162,9 @@ class _AttendanceTab extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: TossSpacing.space5),
-          
+
           // Attendance Details
           Text(
             'Attendance Details',
@@ -701,31 +1173,125 @@ class _AttendanceTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
-          
+
           _buildDetailRow('Month', employee.month ?? 'Current'),
           _buildDetailRow(
-            'Total Working Days', 
+            'Total Working Days',
             '${employee.totalWorkingDay ?? 0} days',
           ),
           _buildDetailRow(
-            'Total Working Hours', 
+            'Total Working Hours',
             '${employee.totalWorkingHour?.toStringAsFixed(2) ?? "0.00"} hours',
           ),
           _buildDetailRow(
-            'Total Salary Earned', 
+            'Total Salary Earned',
             '${employee.symbol}${employee.totalSalary != null ? NumberFormatter.formatCurrencyDecimal(employee.totalSalary!, "") : "0.00"}',
           ),
-          
-          if (employee.totalWorkingDay != null && employee.totalWorkingDay! > 0) ...[
+
+          if (employee.totalWorkingDay != null &&
+              employee.totalWorkingDay! > 0) ...[
             const SizedBox(height: TossSpacing.space4),
             _buildDetailRow(
-              'Average Hours/Day', 
+              'Average Hours/Day',
               '${((employee.totalWorkingHour ?? 0) / employee.totalWorkingDay!).toStringAsFixed(1)} hours',
             ),
           ],
-          
+
           const SizedBox(height: TossSpacing.space6),
-          
+
+          // Recent Activity Section
+          Text(
+            'Recent Activity',
+            style: TossTextStyles.h4.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space3),
+
+          // Audit Logs List
+          auditLogsAsync.when(
+            data: (logs) {
+              if (logs.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray50,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.history,
+                        color: TossColors.gray400,
+                        size: 20,
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Text(
+                        'No recent activity recorded',
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                children: [
+                  ...logs.map((log) => _buildAuditLogItem(log)),
+                  if (logs.isNotEmpty && logs.first.totalCount > logs.length)
+                    Padding(
+                      padding: const EdgeInsets.only(top: TossSpacing.space2),
+                      child: Text(
+                        '${logs.first.totalCount - logs.length} more activities...',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray400,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+            error: (error, _) => Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.errorLight,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: TossColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      'Failed to load activity',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: TossSpacing.space6),
+
           // Performance Note
           Container(
             padding: const EdgeInsets.all(TossSpacing.space3),
@@ -747,6 +1313,98 @@ class _AttendanceTab extends StatelessWidget {
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuditLogItem(ShiftAuditLog log) {
+    // Get icon based on action type
+    IconData icon;
+    Color iconColor;
+
+    switch (log.actionType.toUpperCase()) {
+      case 'CHECKIN':
+        icon = Icons.login;
+        iconColor = TossColors.success;
+        break;
+      case 'CHECKOUT':
+        icon = Icons.logout;
+        iconColor = TossColors.primary;
+        break;
+      case 'MANAGER_EDIT':
+        icon = Icons.edit;
+        iconColor = TossColors.warning;
+        break;
+      case 'REPORT_SOLVED':
+        icon = Icons.check_circle;
+        iconColor = TossColors.success;
+        break;
+      default:
+        icon = Icons.history;
+        iconColor = TossColors.gray500;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      log.actionTypeText,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray900,
+                      ),
+                    ),
+                    if (log.storeName != null) ...[
+                      const SizedBox(width: TossSpacing.space1),
+                      Text(
+                        '@ ${log.storeName}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  log.relativeTimeText,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray400,
                   ),
                 ),
               ],

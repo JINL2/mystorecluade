@@ -8,8 +8,10 @@ import '../../domain/enums/template_constants.dart';
 import '../../domain/repositories/template_repository.dart';
 import '../../domain/usecases/create_template_usecase.dart';
 import '../../domain/usecases/delete_template_usecase.dart';
+import '../../domain/usecases/update_template_usecase.dart';
 import '../../domain/value_objects/template_filter.dart';
 import 'states/template_state.dart';
+import 'use_case_providers.dart';
 import 'validator_providers.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -21,14 +23,17 @@ import 'validator_providers.dart';
 class TemplateNotifier extends StateNotifier<TemplateState> {
   final CreateTemplateUseCase _createUseCase;
   final DeleteTemplateUseCase _deleteUseCase;
+  final UpdateTemplateUseCase _updateUseCase;
   final TemplateRepository _repository;
 
   TemplateNotifier({
     required CreateTemplateUseCase createUseCase,
     required DeleteTemplateUseCase deleteUseCase,
+    required UpdateTemplateUseCase updateUseCase,
     required TemplateRepository repository,
   })  : _createUseCase = createUseCase,
         _deleteUseCase = deleteUseCase,
+        _updateUseCase = updateUseCase,
         _repository = repository,
         super(const TemplateState());
 
@@ -118,6 +123,45 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       } else {
         state = state.copyWith(
           errorMessage: result.errorMessage ?? 'Failed to delete template',
+        );
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  /// 템플릿 업데이트 (직접 UseCase 호출)
+  Future<bool> updateTemplate(UpdateTemplateCommand command) async {
+    state = state.copyWith(errorMessage: null);
+
+    try {
+      // ✅ Flutter 표준: UseCase 직접 호출
+      final result = await _updateUseCase.execute(command);
+
+      if (result.isSuccess) {
+        // 업데이트된 템플릿 다시 로드
+        final updatedTemplate = await _repository.findById(command.templateId);
+        if (updatedTemplate != null) {
+          // 로컬 상태에서 해당 템플릿 업데이트
+          final updatedTemplates = state.templates.map((template) {
+            if (template.templateId == command.templateId) {
+              return updatedTemplate;
+            }
+            return template;
+          }).toList();
+
+          state = state.copyWith(
+            templates: updatedTemplates,
+            errorMessage: null,
+          );
+        }
+
+        return true;
+      } else {
+        state = state.copyWith(
+          errorMessage: result.error ?? 'Failed to update template',
         );
         return false;
       }
@@ -358,6 +402,7 @@ final templateProvider = StateNotifierProvider<TemplateNotifier, TemplateState>(
   return TemplateNotifier(
     createUseCase: ref.read(createTemplateUseCaseProvider),
     deleteUseCase: ref.read(deleteTemplateUseCaseProvider),
+    updateUseCase: ref.read(updateTemplateUseCaseProvider),
     repository: ref.read(templateRepositoryProvider),
   );
 });
@@ -513,6 +558,25 @@ final canDeleteTemplatesProvider = Provider<bool>((ref) {
   final hasAdminPermission = PermissionChecker.hasAdminPermission(permissions);
 
   return hasAdminPermission;
+});
+
+/// Can Edit Template Provider - 특정 템플릿 수정 권한 확인
+///
+/// 현재 사용자가 특정 템플릿을 수정할 수 있는지 확인
+/// - Admin 권한 보유자: 모든 템플릿 수정 가능
+/// - 일반 사용자: 본인이 생성한 템플릿만 수정 가능
+final canEditTemplateProvider = Provider.family<bool, String?>((ref, createdBy) {
+  // Admin은 모든 템플릿 수정 가능
+  final hasAdminPermission = ref.watch(canDeleteTemplatesProvider);
+  if (hasAdminPermission) return true;
+
+  // 본인이 만든 템플릿인지 확인
+  if (createdBy == null) return false;
+
+  final appState = ref.watch(appStateProvider);
+  final currentUserId = appState.user['user_id'] as String?;
+
+  return currentUserId != null && currentUserId == createdBy;
 });
 
 /// Refresh Templates Provider - 템플릿 새로고침 함수

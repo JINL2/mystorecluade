@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
@@ -7,6 +8,7 @@ import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.d
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
+import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 import '../../domain/enums/template_constants.dart';
 import '../../domain/factories/template_line_factory.dart';
 import '../../domain/usecases/create_template_usecase.dart';
@@ -77,9 +79,20 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   // Permissions (lowercase to match validation)
   String _selectedVisibility = 'public';
   String _selectedPermission = 'common';
-  
+
+  // Required attachment toggle
+  bool _requiredAttachment = false;
+
   // Loading state
   bool _isCreating = false;
+
+  // Account mapping validation state
+  Map<String, dynamic>? _debitAccountMapping;
+  Map<String, dynamic>? _creditAccountMapping;
+  String? _debitMappingError;
+  String? _creditMappingError;
+  bool _isCheckingDebitMapping = false;
+  bool _isCheckingCreditMapping = false;
 
   @override
   void initState() {
@@ -288,6 +301,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         companyId: ref.read(appStateProvider).companyChoosen.toString(),
         storeId: ref.read(appStateProvider).storeChoosen.toString(),
         createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(), // ✅ Get user ID from app state
+        requiredAttachment: _requiredAttachment, // ✅ Whether attachment is required when using template
       );
 
       print('📋 Command Details:');
@@ -358,6 +372,67 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     }
   }
 
+  /// Check account mapping for internal counterparty
+  Future<void> _checkAccountMapping({
+    required String counterpartyId,
+    required String accountId,
+    required bool isDebit,
+  }) async {
+    if (counterpartyId.isEmpty || accountId.isEmpty) return;
+
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) return;
+
+    setState(() {
+      if (isDebit) {
+        _isCheckingDebitMapping = true;
+        _debitMappingError = null;
+        _debitAccountMapping = null;
+      } else {
+        _isCheckingCreditMapping = true;
+        _creditMappingError = null;
+        _creditAccountMapping = null;
+      }
+    });
+
+    try {
+      final checkMapping = ref.read(checkAccountMappingProvider);
+      final mapping = await checkMapping(companyId, counterpartyId, accountId);
+
+      if (mounted) {
+        setState(() {
+          if (isDebit) {
+            _isCheckingDebitMapping = false;
+            _debitAccountMapping = mapping;
+            if (mapping == null) {
+              _debitMappingError = 'Account mapping required for internal transactions';
+            }
+          } else {
+            _isCheckingCreditMapping = false;
+            _creditAccountMapping = mapping;
+            if (mapping == null) {
+              _creditMappingError = 'Account mapping required for internal transactions';
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          if (isDebit) {
+            _isCheckingDebitMapping = false;
+            _debitMappingError = 'Error checking account mapping';
+          } else {
+            _isCheckingCreditMapping = false;
+            _creditMappingError = 'Error checking account mapping';
+          }
+        });
+      }
+    }
+  }
+
   bool _isStep2Valid(bool debitRequiresCounterparty, bool creditRequiresCounterparty,
                      bool debitIsCashAccount, bool creditIsCashAccount,) {
     // Basic validation for step 2 - account selection
@@ -387,6 +462,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     // For internal counterparty transactions, we need:
     // 1. Store ID selected
     // 2. Cash location selected (if the OTHER account is a cash account)
+    // 3. Account mapping must exist for internal counterparty with payable/receivable
 
     // Check debit counterparty + credit cash account
     if (debitRequiresCounterparty &&
@@ -399,6 +475,13 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       // If other account (credit) is cash, need counterparty cash location
       if (creditIsCashAccount && _selectedDebitCashLocationId == null) {
         return false;
+      }
+      // ✅ Account mapping MUST exist for internal counterparty with payable/receivable
+      if (_isCheckingDebitMapping) {
+        return false; // Still checking
+      }
+      if (_debitAccountMapping == null) {
+        return false; // No mapping found
       }
     }
 
@@ -413,6 +496,13 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       // If other account (debit) is cash, need counterparty cash location
       if (debitIsCashAccount && _selectedCreditCashLocationId == null) {
         return false;
+      }
+      // ✅ Account mapping MUST exist for internal counterparty with payable/receivable
+      if (_isCheckingCreditMapping) {
+        return false; // Still checking
+      }
+      if (_creditAccountMapping == null) {
+        return false; // No mapping found
       }
     }
 
@@ -511,6 +601,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             PermissionsForm(
               selectedVisibility: _selectedVisibility,
               selectedPermission: _selectedPermission,
+              requiredAttachment: _requiredAttachment,
               onVisibilityChanged: (value) {
                 setState(() {
                   _selectedVisibility = value ?? 'public';
@@ -519,6 +610,11 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               onPermissionChanged: (value) {
                 setState(() {
                   _selectedPermission = value ?? 'common';
+                });
+              },
+              onRequiredAttachmentChanged: (value) {
+                setState(() {
+                  _requiredAttachment = value;
                 });
               },
             ),
@@ -688,6 +784,9 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         _selectedDebitMyCashLocationId = null;
                         _selectedDebitStoreId = null;
                         _selectedDebitCashLocationId = null;
+                        // Reset mapping check when account changes
+                        _debitAccountMapping = null;
+                        _debitMappingError = null;
                       });
                     },
                     onCounterpartyChanged: (counterpartyId) {
@@ -730,12 +829,26 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     onCounterpartyDataChanged: (data) {
                       setState(() {
                         _selectedDebitCounterpartyData = data;
+                        // Reset mapping check when counterparty changes
+                        _debitAccountMapping = null;
+                        _debitMappingError = null;
                       });
+                      // ✅ Check account mapping for internal counterparty
+                      if (data != null &&
+                          data['is_internal'] == true &&
+                          _selectedDebitAccountId != null &&
+                          _selectedDebitCounterpartyId != null) {
+                        _checkAccountMapping(
+                          counterpartyId: _selectedDebitCounterpartyId!,
+                          accountId: _selectedDebitAccountId!,
+                          isDebit: true,
+                        );
+                      }
                     },
                   ),
-                  
+
                   const SizedBox(height: TossSpacing.space4),
-                  
+
                   // Credit Account Card
                   AccountSelectorCard(
                     type: AccountType.credit,
@@ -765,6 +878,9 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         _selectedCreditMyCashLocationId = null;
                         _selectedCreditStoreId = null;
                         _selectedCreditCashLocationId = null;
+                        // Reset mapping check when account changes
+                        _creditAccountMapping = null;
+                        _creditMappingError = null;
                       });
                     },
                     onCounterpartyChanged: (counterpartyId) {
@@ -807,12 +923,31 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                     onCounterpartyDataChanged: (data) {
                       setState(() {
                         _selectedCreditCounterpartyData = data;
+                        // Reset mapping check when counterparty changes
+                        _creditAccountMapping = null;
+                        _creditMappingError = null;
                       });
+                      // ✅ Check account mapping for internal counterparty
+                      if (data != null &&
+                          data['is_internal'] == true &&
+                          _selectedCreditAccountId != null &&
+                          _selectedCreditCounterpartyId != null) {
+                        _checkAccountMapping(
+                          counterpartyId: _selectedCreditCounterpartyId!,
+                          accountId: _selectedCreditAccountId!,
+                          isDebit: false,
+                        );
+                      }
                     },
                   ),
-                  
+
                   const SizedBox(height: TossSpacing.space3),
-                  
+
+                  // Account mapping error display
+                  _buildAccountMappingWarnings(),
+
+                  const SizedBox(height: TossSpacing.space3),
+
                   // Helpful explanation
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space3),
@@ -850,5 +985,154 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     );
   }
 
+  /// Build account mapping warning messages
+  Widget _buildAccountMappingWarnings() {
+    final List<Widget> warnings = [];
 
+    // Debit mapping check status
+    if (_isCheckingDebitMapping) {
+      warnings.add(_buildMappingStatusRow(
+        isLoading: true,
+        message: 'Checking debit account mapping...',
+      ));
+    } else if (_debitMappingError != null) {
+      warnings.add(_buildMappingStatusRow(
+        isError: true,
+        message: 'Debit: $_debitMappingError',
+        counterpartyId: _selectedDebitCounterpartyId,
+        counterpartyName: _selectedDebitCounterpartyData?['name']?.toString(),
+      ));
+    } else if (_debitAccountMapping != null) {
+      warnings.add(_buildMappingStatusRow(
+        isSuccess: true,
+        message: 'Debit account mapping verified',
+      ));
+    }
+
+    // Credit mapping check status
+    if (_isCheckingCreditMapping) {
+      warnings.add(_buildMappingStatusRow(
+        isLoading: true,
+        message: 'Checking credit account mapping...',
+      ));
+    } else if (_creditMappingError != null) {
+      warnings.add(_buildMappingStatusRow(
+        isError: true,
+        message: 'Credit: $_creditMappingError',
+        counterpartyId: _selectedCreditCounterpartyId,
+        counterpartyName: _selectedCreditCounterpartyData?['name']?.toString(),
+      ));
+    } else if (_creditAccountMapping != null) {
+      warnings.add(_buildMappingStatusRow(
+        isSuccess: true,
+        message: 'Credit account mapping verified',
+      ));
+    }
+
+    if (warnings.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: warnings,
+    );
+  }
+
+  /// Navigate to Account Settings page for the counterparty
+  void _navigateToAccountSettings(String counterpartyId, String counterpartyName) {
+    // Close the current modal first
+    Navigator.of(context).pop();
+    // Navigate to debt account settings page
+    context.pushNamed(
+      'debtAccountSettings',
+      pathParameters: {
+        'counterpartyId': counterpartyId,
+        'name': counterpartyName,
+      },
+    );
+  }
+
+  Widget _buildMappingStatusRow({
+    bool isLoading = false,
+    bool isError = false,
+    bool isSuccess = false,
+    required String message,
+    String? counterpartyId,
+    String? counterpartyName,
+  }) {
+    Color backgroundColor;
+    Color borderColor;
+    Color textColor;
+    Widget leadingWidget;
+
+    if (isLoading) {
+      backgroundColor = TossColors.gray50;
+      borderColor = TossColors.gray200;
+      textColor = TossColors.gray600;
+      leadingWidget = const SizedBox(
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    } else if (isError) {
+      backgroundColor = TossColors.error.withOpacity(0.1);
+      borderColor = TossColors.error.withOpacity(0.3);
+      textColor = TossColors.error;
+      leadingWidget = const Icon(Icons.warning, color: TossColors.error, size: 18);
+    } else if (isSuccess) {
+      backgroundColor = TossColors.success.withOpacity(0.1);
+      borderColor = TossColors.success.withOpacity(0.3);
+      textColor = TossColors.success;
+      leadingWidget = const Icon(Icons.check_circle, color: TossColors.success, size: 18);
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          leadingWidget,
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              message,
+              style: TossTextStyles.bodySmall.copyWith(
+                color: textColor,
+                fontWeight: isError ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ),
+          // Show "Go to Settings" button for error state with counterparty info
+          if (isError && counterpartyId != null && counterpartyName != null)
+            GestureDetector(
+              onTap: () => _navigateToAccountSettings(counterpartyId, counterpartyName),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: TossSpacing.space1,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.primary,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  'Set Up',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

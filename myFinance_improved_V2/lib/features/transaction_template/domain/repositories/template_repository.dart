@@ -10,7 +10,10 @@ abstract class TemplateRepository {
   
   /// Saves a new template or updates an existing one
   Future<void> save(TransactionTemplate template);
-  
+
+  /// Updates an existing template
+  Future<void> update(TransactionTemplate template);
+
   /// Finds a template by its unique identifier
   Future<TransactionTemplate?> findById(String templateId);
   

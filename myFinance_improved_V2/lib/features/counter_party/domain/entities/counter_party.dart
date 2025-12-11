@@ -22,6 +22,7 @@ class CounterParty with _$CounterParty {
     String? notes,
     @JsonKey(name: 'is_internal') @Default(false) bool isInternal,
     @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
+    @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
     @JsonKey(name: 'created_by') String? createdBy,
     @JsonKey(name: 'created_at', fromJson: _dateTimeFromJson, toJson: _dateTimeToJson) required DateTime createdAt,
     @JsonKey(name: 'updated_at', includeIfNull: false, fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable) DateTime? updatedAt,

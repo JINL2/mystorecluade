@@ -137,6 +137,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
         await ref.read(createCounterPartyProvider(params).future);
 
+        // Refresh counter party list immediately
+        ref.invalidate(optimizedCounterPartyDataProvider(companyId));
+
         if (mounted) {
           Navigator.of(context).pop(true);
           _showSuccess('Counter party created successfully');
@@ -145,6 +148,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         // Update existing counter party
         final params = UpdateCounterPartyParams(
           counterpartyId: widget.counterParty!.counterpartyId,
+          companyId: companyId,
           name: _nameController.text.trim(),
           type: _selectedType,
           email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
@@ -156,6 +160,12 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         );
 
         await ref.read(updateCounterPartyProvider(params).future);
+
+        // Refresh counter party list immediately
+        final currentCompanyId = ref.read(selectedCompanyIdProvider);
+        if (currentCompanyId != null) {
+          ref.invalidate(optimizedCounterPartyDataProvider(currentCompanyId));
+        }
 
         if (mounted) {
           Navigator.of(context).pop(true);

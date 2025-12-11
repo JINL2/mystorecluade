@@ -36,4 +36,57 @@ abstract class AuthRepository {
   ///
   /// Clears the session and auth tokens.
   Future<void> logout();
+
+  /// Update user password
+  ///
+  /// Updates the password for the currently authenticated user.
+  /// User must be authenticated (via reset link or OTP) to call this.
+  Future<void> updatePassword({
+    required String newPassword,
+  });
+
+  /// Send OTP code for password recovery
+  ///
+  /// Sends a 6-digit OTP code to the email for password recovery.
+  /// User enters this code in the app to verify their identity.
+  Future<void> sendPasswordRecoveryOtp({
+    required String email,
+  });
+
+  /// Verify OTP code and authenticate for password reset
+  ///
+  /// Verifies the OTP code and establishes a recovery session.
+  /// After verification, user can set a new password.
+  Future<void> verifyPasswordRecoveryOtp({
+    required String email,
+    required String token,
+  });
+
+  /// Resend signup confirmation OTP
+  ///
+  /// Resends the 6-digit OTP code to verify email after signup.
+  Future<void> resendSignupOtp({
+    required String email,
+  });
+
+  /// Verify signup OTP code
+  ///
+  /// Verifies the OTP code sent after signup to confirm email.
+  /// Returns [User] after successful verification.
+  Future<User> verifySignupOtp({
+    required String email,
+    required String token,
+  });
+
+  /// Sign in with Google
+  ///
+  /// Uses native Google Sign-In and authenticates with Supabase.
+  /// Returns [User] after successful authentication.
+  Future<User> signInWithGoogle();
+
+  /// Sign in with Apple
+  ///
+  /// Uses native Apple Sign-In and authenticates with Supabase.
+  /// Returns [User] after successful authentication.
+  Future<User> signInWithApple();
 }

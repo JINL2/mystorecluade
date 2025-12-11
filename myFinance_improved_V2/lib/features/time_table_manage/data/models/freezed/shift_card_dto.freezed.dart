@@ -28,6 +28,8 @@ mixin _$ShiftCardDto {
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId =>
       throw _privateConstructorUsedError; // User information
+  @JsonKey(name: 'user_id')
+  String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_name')
   String get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
@@ -92,6 +94,12 @@ mixin _$ShiftCardDto {
   bool get isReported => throw _privateConstructorUsedError;
   @JsonKey(name: 'report_reason')
   String? get reportReason =>
+      throw _privateConstructorUsedError; // v4: Report resolution status
+  @JsonKey(name: 'is_reported_solved')
+  bool? get isReportedSolved =>
+      throw _privateConstructorUsedError; // v4: Manager memos (jsonb array)
+  @JsonKey(name: 'manager_memo')
+  List<ManagerMemoDto> get managerMemos =>
       throw _privateConstructorUsedError; // Location validation (NEW in RPC)
   @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation => throw _privateConstructorUsedError;
@@ -124,6 +132,7 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
   $Res call(
       {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'shift_name') String? shiftName,
@@ -151,6 +160,8 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       @JsonKey(name: 'problem_type') String? problemType,
       @JsonKey(name: 'is_reported') bool isReported,
       @JsonKey(name: 'report_reason') String? reportReason,
+      @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
+      @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
@@ -178,6 +189,7 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
   $Res call({
     Object? shiftDate = null,
     Object? shiftRequestId = null,
+    Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
     Object? shiftName = freezed,
@@ -205,6 +217,8 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
     Object? problemType = freezed,
     Object? isReported = null,
     Object? reportReason = freezed,
+    Object? isReportedSolved = freezed,
+    Object? managerMemos = null,
     Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
     Object? isValidCheckoutLocation = freezed,
@@ -219,6 +233,10 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
       shiftRequestId: null == shiftRequestId
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
               as String,
       userName: null == userName
           ? _value.userName
@@ -328,6 +346,14 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.reportReason
           : reportReason // ignore: cast_nullable_to_non_nullable
               as String?,
+      isReportedSolved: freezed == isReportedSolved
+          ? _value.isReportedSolved
+          : isReportedSolved // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      managerMemos: null == managerMemos
+          ? _value.managerMemos
+          : managerMemos // ignore: cast_nullable_to_non_nullable
+              as List<ManagerMemoDto>,
       isValidCheckinLocation: freezed == isValidCheckinLocation
           ? _value.isValidCheckinLocation
           : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
@@ -363,6 +389,7 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
   $Res call(
       {@JsonKey(name: 'shift_date') String shiftDate,
       @JsonKey(name: 'shift_request_id') String shiftRequestId,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'shift_name') String? shiftName,
@@ -390,6 +417,8 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
       @JsonKey(name: 'problem_type') String? problemType,
       @JsonKey(name: 'is_reported') bool isReported,
       @JsonKey(name: 'report_reason') String? reportReason,
+      @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
+      @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
@@ -415,6 +444,7 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
   $Res call({
     Object? shiftDate = null,
     Object? shiftRequestId = null,
+    Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
     Object? shiftName = freezed,
@@ -442,6 +472,8 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
     Object? problemType = freezed,
     Object? isReported = null,
     Object? reportReason = freezed,
+    Object? isReportedSolved = freezed,
+    Object? managerMemos = null,
     Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
     Object? isValidCheckoutLocation = freezed,
@@ -456,6 +488,10 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
       shiftRequestId: null == shiftRequestId
           ? _value.shiftRequestId
           : shiftRequestId // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
               as String,
       userName: null == userName
           ? _value.userName
@@ -565,6 +601,14 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value.reportReason
           : reportReason // ignore: cast_nullable_to_non_nullable
               as String?,
+      isReportedSolved: freezed == isReportedSolved
+          ? _value.isReportedSolved
+          : isReportedSolved // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      managerMemos: null == managerMemos
+          ? _value._managerMemos
+          : managerMemos // ignore: cast_nullable_to_non_nullable
+              as List<ManagerMemoDto>,
       isValidCheckinLocation: freezed == isValidCheckinLocation
           ? _value.isValidCheckinLocation
           : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
@@ -595,6 +639,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   const _$ShiftCardDtoImpl(
       {@JsonKey(name: 'shift_date') this.shiftDate = '',
       @JsonKey(name: 'shift_request_id') this.shiftRequestId = '',
+      @JsonKey(name: 'user_id') this.userId = '',
       @JsonKey(name: 'user_name') this.userName = '',
       @JsonKey(name: 'profile_image') this.profileImage,
       @JsonKey(name: 'shift_name') this.shiftName,
@@ -622,6 +667,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       @JsonKey(name: 'problem_type') this.problemType,
       @JsonKey(name: 'is_reported') this.isReported = false,
       @JsonKey(name: 'report_reason') this.reportReason,
+      @JsonKey(name: 'is_reported_solved') this.isReportedSolved,
+      @JsonKey(name: 'manager_memo')
+      final List<ManagerMemoDto> managerMemos = const [],
       @JsonKey(name: 'is_valid_checkin_location') this.isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       this.checkinDistanceFromStore = 0.0,
@@ -629,7 +677,8 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       @JsonKey(name: 'checkout_distance_from_store')
       this.checkoutDistanceFromStore = 0.0,
       @JsonKey(name: 'store_name') this.storeName})
-      : _noticeTags = noticeTags;
+      : _noticeTags = noticeTags,
+        _managerMemos = managerMemos;
 
   factory _$ShiftCardDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$ShiftCardDtoImplFromJson(json);
@@ -644,6 +693,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @JsonKey(name: 'shift_request_id')
   final String shiftRequestId;
 // User information
+  @override
+  @JsonKey(name: 'user_id')
+  final String userId;
   @override
   @JsonKey(name: 'user_name')
   final String userName;
@@ -742,6 +794,21 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @override
   @JsonKey(name: 'report_reason')
   final String? reportReason;
+// v4: Report resolution status
+  @override
+  @JsonKey(name: 'is_reported_solved')
+  final bool? isReportedSolved;
+// v4: Manager memos (jsonb array)
+  final List<ManagerMemoDto> _managerMemos;
+// v4: Manager memos (jsonb array)
+  @override
+  @JsonKey(name: 'manager_memo')
+  List<ManagerMemoDto> get managerMemos {
+    if (_managerMemos is EqualUnmodifiableListView) return _managerMemos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_managerMemos);
+  }
+
 // Location validation (NEW in RPC)
   @override
   @JsonKey(name: 'is_valid_checkin_location')
@@ -762,7 +829,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
   @override
   String toString() {
-    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
+    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isReportedSolved: $isReportedSolved, managerMemos: $managerMemos, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
   }
 
   @override
@@ -774,6 +841,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.shiftDate == shiftDate) &&
             (identical(other.shiftRequestId, shiftRequestId) ||
                 other.shiftRequestId == shiftRequestId) &&
+            (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.userName, userName) ||
                 other.userName == userName) &&
             (identical(other.profileImage, profileImage) ||
@@ -826,6 +894,10 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.isReported == isReported) &&
             (identical(other.reportReason, reportReason) ||
                 other.reportReason == reportReason) &&
+            (identical(other.isReportedSolved, isReportedSolved) ||
+                other.isReportedSolved == isReportedSolved) &&
+            const DeepCollectionEquality()
+                .equals(other._managerMemos, _managerMemos) &&
             (identical(other.isValidCheckinLocation, isValidCheckinLocation) ||
                 other.isValidCheckinLocation == isValidCheckinLocation) &&
             (identical(
@@ -847,6 +919,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         runtimeType,
         shiftDate,
         shiftRequestId,
+        userId,
         userName,
         profileImage,
         shiftName,
@@ -874,6 +947,8 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         problemType,
         isReported,
         reportReason,
+        isReportedSolved,
+        const DeepCollectionEquality().hash(_managerMemos),
         isValidCheckinLocation,
         checkinDistanceFromStore,
         isValidCheckoutLocation,
@@ -901,6 +976,7 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   const factory _ShiftCardDto(
       {@JsonKey(name: 'shift_date') final String shiftDate,
       @JsonKey(name: 'shift_request_id') final String shiftRequestId,
+      @JsonKey(name: 'user_id') final String userId,
       @JsonKey(name: 'user_name') final String userName,
       @JsonKey(name: 'profile_image') final String? profileImage,
       @JsonKey(name: 'shift_name') final String? shiftName,
@@ -930,6 +1006,8 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       @JsonKey(name: 'problem_type') final String? problemType,
       @JsonKey(name: 'is_reported') final bool isReported,
       @JsonKey(name: 'report_reason') final String? reportReason,
+      @JsonKey(name: 'is_reported_solved') final bool? isReportedSolved,
+      @JsonKey(name: 'manager_memo') final List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'is_valid_checkin_location')
       final bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
@@ -953,6 +1031,9 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   @override
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId; // User information
+  @override
+  @JsonKey(name: 'user_id')
+  String get userId;
   @override
   @JsonKey(name: 'user_name')
   String get userName;
@@ -1035,7 +1116,13 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   bool get isReported;
   @override
   @JsonKey(name: 'report_reason')
-  String? get reportReason; // Location validation (NEW in RPC)
+  String? get reportReason; // v4: Report resolution status
+  @override
+  @JsonKey(name: 'is_reported_solved')
+  bool? get isReportedSolved; // v4: Manager memos (jsonb array)
+  @override
+  @JsonKey(name: 'manager_memo')
+  List<ManagerMemoDto> get managerMemos; // Location validation (NEW in RPC)
   @override
   @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation;
@@ -1329,5 +1416,235 @@ abstract class _TagDto implements TagDto {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TagDtoImplCopyWith<_$TagDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ManagerMemoDto _$ManagerMemoDtoFromJson(Map<String, dynamic> json) {
+  return _ManagerMemoDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ManagerMemoDto {
+  @JsonKey(name: 'type')
+  String? get type => throw _privateConstructorUsedError;
+  @JsonKey(name: 'content')
+  String? get content => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_by')
+  String? get createdBy => throw _privateConstructorUsedError;
+
+  /// Serializes this ManagerMemoDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ManagerMemoDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ManagerMemoDtoCopyWith<ManagerMemoDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ManagerMemoDtoCopyWith<$Res> {
+  factory $ManagerMemoDtoCopyWith(
+          ManagerMemoDto value, $Res Function(ManagerMemoDto) then) =
+      _$ManagerMemoDtoCopyWithImpl<$Res, ManagerMemoDto>;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'type') String? type,
+      @JsonKey(name: 'content') String? content,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') String? createdBy});
+}
+
+/// @nodoc
+class _$ManagerMemoDtoCopyWithImpl<$Res, $Val extends ManagerMemoDto>
+    implements $ManagerMemoDtoCopyWith<$Res> {
+  _$ManagerMemoDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ManagerMemoDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = freezed,
+    Object? content = freezed,
+    Object? createdAt = freezed,
+    Object? createdBy = freezed,
+  }) {
+    return _then(_value.copyWith(
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      content: freezed == content
+          ? _value.content
+          : content // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ManagerMemoDtoImplCopyWith<$Res>
+    implements $ManagerMemoDtoCopyWith<$Res> {
+  factory _$$ManagerMemoDtoImplCopyWith(_$ManagerMemoDtoImpl value,
+          $Res Function(_$ManagerMemoDtoImpl) then) =
+      __$$ManagerMemoDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'type') String? type,
+      @JsonKey(name: 'content') String? content,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') String? createdBy});
+}
+
+/// @nodoc
+class __$$ManagerMemoDtoImplCopyWithImpl<$Res>
+    extends _$ManagerMemoDtoCopyWithImpl<$Res, _$ManagerMemoDtoImpl>
+    implements _$$ManagerMemoDtoImplCopyWith<$Res> {
+  __$$ManagerMemoDtoImplCopyWithImpl(
+      _$ManagerMemoDtoImpl _value, $Res Function(_$ManagerMemoDtoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ManagerMemoDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = freezed,
+    Object? content = freezed,
+    Object? createdAt = freezed,
+    Object? createdBy = freezed,
+  }) {
+    return _then(_$ManagerMemoDtoImpl(
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      content: freezed == content
+          ? _value.content
+          : content // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ManagerMemoDtoImpl implements _ManagerMemoDto {
+  const _$ManagerMemoDtoImpl(
+      {@JsonKey(name: 'type') this.type,
+      @JsonKey(name: 'content') this.content,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'created_by') this.createdBy});
+
+  factory _$ManagerMemoDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ManagerMemoDtoImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'type')
+  final String? type;
+  @override
+  @JsonKey(name: 'content')
+  final String? content;
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @override
+  @JsonKey(name: 'created_by')
+  final String? createdBy;
+
+  @override
+  String toString() {
+    return 'ManagerMemoDto(type: $type, content: $content, createdAt: $createdAt, createdBy: $createdBy)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ManagerMemoDtoImpl &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.content, content) || other.content == content) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, type, content, createdAt, createdBy);
+
+  /// Create a copy of ManagerMemoDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ManagerMemoDtoImplCopyWith<_$ManagerMemoDtoImpl> get copyWith =>
+      __$$ManagerMemoDtoImplCopyWithImpl<_$ManagerMemoDtoImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ManagerMemoDtoImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ManagerMemoDto implements ManagerMemoDto {
+  const factory _ManagerMemoDto(
+          {@JsonKey(name: 'type') final String? type,
+          @JsonKey(name: 'content') final String? content,
+          @JsonKey(name: 'created_at') final String? createdAt,
+          @JsonKey(name: 'created_by') final String? createdBy}) =
+      _$ManagerMemoDtoImpl;
+
+  factory _ManagerMemoDto.fromJson(Map<String, dynamic> json) =
+      _$ManagerMemoDtoImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'type')
+  String? get type;
+  @override
+  @JsonKey(name: 'content')
+  String? get content;
+  @override
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+  @JsonKey(name: 'created_by')
+  String? get createdBy;
+
+  /// Create a copy of ManagerMemoDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ManagerMemoDtoImplCopyWith<_$ManagerMemoDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -4,6 +4,8 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
+import '../../../domain/entities/manager_memo.dart';
+
 /// Model for staff time record
 class StaffTimeRecord {
   final String staffId;
@@ -16,7 +18,7 @@ class StaffTimeRecord {
   final bool needsConfirm;
   final bool isConfirmed;
 
-  // Additional fields from RPC (manager_shift_get_cards_v3)
+  // Additional fields from RPC (manager_shift_get_cards_v4)
   final String? shiftRequestId; // shift_request_id - Required for RPC calls
   final String? actualStart; // actual_start - Recorded check-in
   final String? actualEnd; // actual_end - Recorded check-out
@@ -33,6 +35,14 @@ class StaffTimeRecord {
   final double paidHour; // paid_hour
   final int lateMinute; // late_minute
   final int overtimeMinute; // over_time_minute
+
+  // v4: New fields
+  final bool? isReportedSolved; // is_reported_solved - Whether report is resolved
+  final List<ManagerMemo> managerMemos; // manager_memo - Manager memos
+
+  // Shift end time - used to determine if shift has ended yet
+  // If current time is before this, don't show "Need confirm"
+  final DateTime? shiftEndTime;
 
   const StaffTimeRecord({
     required this.staffId,
@@ -61,6 +71,10 @@ class StaffTimeRecord {
     this.paidHour = 0.0,
     this.lateMinute = 0,
     this.overtimeMinute = 0,
+    // v4: New fields
+    this.isReportedSolved,
+    this.managerMemos = const [],
+    this.shiftEndTime,
   });
 }
 

@@ -11,8 +11,14 @@ import '../../features/auth/presentation/pages/choose_role_page.dart';
 import '../../features/auth/presentation/pages/create_business_page.dart';
 import '../../features/auth/presentation/pages/create_store_page.dart';
 import '../../features/auth/presentation/pages/join_business_page.dart';
+import '../../features/auth/presentation/pages/auth_welcome_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
+import '../../features/auth/presentation/pages/verify_email_otp_page.dart';
+import '../../features/auth/presentation/pages/verify_otp_page.dart';
+import '../../features/auth/presentation/pages/complete_profile_page.dart';
 import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
@@ -34,10 +40,15 @@ import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/my_page/presentation/pages/subscription_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
+import '../../features/session/presentation/pages/session_page.dart';
+import '../../features/session/presentation/pages/session_action_page.dart';
+import '../../features/session/presentation/pages/session_list_page.dart';
+import '../../features/session/presentation/pages/session_detail_page.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -50,12 +61,14 @@ import '../../shared/widgets/common/toss_scaffold.dart';
 import '../providers/app_state.dart';
 import '../providers/app_state_provider.dart';
 import '../providers/auth_providers.dart';
+import '../../features/homepage/presentation/providers/homepage_providers.dart';
 
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
   late final ProviderSubscription<bool> _authListener;
   late final ProviderSubscription<AppState> _appStateListener;
+  late final ProviderSubscription<AsyncValue<Map<String, dynamic>?>> _userCompaniesListener;
 
   final List<String> _redirectHistory = [];
   static const int _maxRedirectHistory = 10;
@@ -71,6 +84,7 @@ class RouterNotifier extends ChangeNotifier {
     _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
+        debugPrint('🔄 [RouterNotifier] Auth state changed: $previous -> $next');
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < const Duration(seconds: 2)) {
@@ -106,12 +120,41 @@ class RouterNotifier extends ChangeNotifier {
         });
       },
     );
+
+    // ✅ NEW: Listen to userCompaniesProvider for seamless workflow transitions
+    // When user companies data loads, trigger router refresh to navigate appropriately
+    _userCompaniesListener = _ref.listen<AsyncValue<Map<String, dynamic>?>>(
+      userCompaniesProvider,
+      (previous, next) {
+        debugPrint('🔄 [RouterNotifier] UserCompanies state changed');
+        next.when(
+          data: (data) {
+            debugPrint('✅ [RouterNotifier] UserCompanies data loaded: ${data != null}');
+            // Data loaded - trigger router refresh for next step navigation
+            Future.delayed(const Duration(milliseconds: 200), () {
+              notifyListeners();
+            });
+          },
+          loading: () {
+            debugPrint('⏳ [RouterNotifier] UserCompanies loading...');
+          },
+          error: (error, stack) {
+            debugPrint('❌ [RouterNotifier] UserCompanies error: $error');
+            // Error (e.g., orphan session) - trigger refresh to handle redirect
+            Future.delayed(const Duration(milliseconds: 100), () {
+              notifyListeners();
+            });
+          },
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
     _authListener.close();
     _appStateListener.close();
+    _userCompaniesListener.close();
     super.dispose();
   }
 
@@ -230,6 +273,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         final isOnboardingRoute = currentPath.startsWith('/onboarding');
         final isAuthRoute = currentPath.startsWith('/auth');
+        final isCompleteProfileRoute = currentPath == '/auth/complete-profile';
 
         // Get company count from app state
         final userData = appState.user;
@@ -241,10 +285,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           companyCount = (userData['companies'] as List).length;
         }
 
+        // Check if profile is complete (has first_name)
+        final userFirstName = userData['user_first_name']?.toString() ?? '';
+        final hasCompletedProfile = userFirstName.isNotEmpty;
 
-        // Redirect to login if not authenticated AND trying to access protected pages
+
+        // Redirect to auth welcome if not authenticated AND trying to access protected pages
         if (!isAuth && !isAuthRoute && !isOnboardingRoute) {
-          return safeRedirect('/auth/login', 'Not authenticated');
+          return safeRedirect('/auth', 'Not authenticated');
         }
 
         // Allow unauthenticated users to access auth pages (login, signup)
@@ -253,9 +301,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return null;
         }
 
+        // ✅ NEW: Redirect to complete profile if authenticated but profile incomplete
+        // Skip if already on complete-profile page
+        if (isAuth && hasUserData && !hasCompletedProfile && !isCompleteProfileRoute) {
+          return safeRedirect('/auth/complete-profile', 'Profile incomplete');
+        }
 
         // ✅ Redirect authenticated users away from auth pages
-        if (isAuth && isAuthRoute) {
+        if (isAuth && isAuthRoute && !isCompleteProfileRoute) {
 
           // If user has companies, go straight to home
           if (hasUserData && companyCount > 0) {
@@ -274,7 +327,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
 
         // Redirect to onboarding if authenticated but no companies (from homepage)
-        if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
+        if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0 && hasCompletedProfile) {
           return safeRedirect('/onboarding/choose-role', 'No companies');
         }
 
@@ -365,6 +418,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Auth Routes
       GoRoute(
+        path: '/auth',
+        name: 'auth',
+        builder: (context, state) => const AuthWelcomePage(),
+      ),
+      GoRoute(
         path: '/auth/login',
         name: 'login',
         builder: (context, state) => const LoginPage(),
@@ -373,6 +431,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/auth/signup',
         name: 'signup',
         builder: (context, state) => const SignupPage(),
+      ),
+
+      // Email Verification Route (after signup)
+      GoRoute(
+        path: '/auth/verify-email',
+        name: 'verify-email',
+        builder: (context, state) {
+          final email = state.extra as String?;
+          return VerifyEmailOtpPage(email: email);
+        },
+      ),
+
+      // Forgot Password Routes (OTP-based)
+      GoRoute(
+        path: '/auth/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/auth/verify-otp',
+        name: 'verify-otp',
+        builder: (context, state) {
+          final email = state.extra as String?;
+          return VerifyOtpPage(email: email);
+        },
+      ),
+      GoRoute(
+        path: '/auth/reset-password',
+        name: 'reset-password',
+        builder: (context, state) => const ResetPasswordPage(),
+      ),
+
+      // Complete Profile Route (for social login users with incomplete profile)
+      GoRoute(
+        path: '/auth/complete-profile',
+        name: 'complete-profile',
+        builder: (context, state) => const CompleteProfilePage(),
       ),
 
       // Onboarding Routes
@@ -517,6 +612,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'privacy-security',
         builder: (context, state) => const PrivacySecurityPage(),
       ),
+      GoRoute(
+        path: '/subscription',
+        name: 'subscription',
+        builder: (context, state) => const SubscriptionPage(),
+      ),
 
       // Store Shift Route
       GoRoute(
@@ -647,6 +747,64 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return ReportControlPage(feature: feature);
+        },
+      ),
+
+      // Session Route
+      GoRoute(
+        path: '/session',
+        name: 'session',
+        builder: (context, state) {
+          final feature = state.extra;
+          return SessionPage(feature: feature);
+        },
+      ),
+
+      // Session Action Route (Create or Join)
+      GoRoute(
+        path: '/session/action/:sessionType',
+        name: 'session-action',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionActionPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session List Route (for joining sessions)
+      GoRoute(
+        path: '/session/list/:sessionType',
+        name: 'session-list',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionListPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session Detail Route (after creating/joining a session)
+      GoRoute(
+        path: '/session/detail/:sessionId',
+        name: 'session-detail',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          final sessionName = state.uri.queryParameters['sessionName'];
+          final isOwnerParam = state.uri.queryParameters['isOwner'];
+          final isOwner = isOwnerParam == 'true';
+
+          // Debug logs
+          debugPrint('🔍 [Router] Full URI: ${state.uri}');
+          debugPrint('🔍 [Router] Query params: ${state.uri.queryParameters}');
+          debugPrint('🔍 [Router] isOwner param raw: $isOwnerParam');
+          debugPrint('🔍 [Router] isOwner parsed: $isOwner');
+
+          return SessionDetailPage(
+            sessionId: sessionId,
+            sessionType: sessionType,
+            storeId: storeId,
+            sessionName: sessionName,
+            isOwner: isOwner,
+          );
         },
       ),
     ],

@@ -1,5 +1,5 @@
 import '../../domain/entities/bulk_approval_result.dart';
-import '../../domain/entities/card_input_result.dart';
+import '../../domain/entities/employee_monthly_detail.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
@@ -9,13 +9,12 @@ import '../../domain/entities/schedule_data.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/entities/store_employee.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
+import '../models/employee_monthly_detail_model.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../datasources/time_table_datasource.dart';
 // Freezed DTOs
 import '../models/freezed/bulk_approval_result_dto.dart';
 import '../models/freezed/bulk_approval_result_dto_mapper.dart';
-import '../models/freezed/card_input_result_dto.dart';
-import '../models/freezed/card_input_result_dto_mapper.dart';
 import '../models/freezed/manager_overview_dto.dart';
 import '../models/freezed/manager_overview_dto_mapper.dart';
 import '../models/freezed/manager_shift_cards_dto.dart';
@@ -82,10 +81,32 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         timezone: timezone,
       );
 
-      // ✅ FREEZED: Simple DTO conversion (100+ lines → 10 lines!)
-      final dtos = data
-          .map((item) =>
-              MonthlyShiftStatusDto.fromJson(item as Map<String, dynamic>),)
+      // Pre-process data to handle null arrays before DTO conversion
+      final processedData = data.map((item) {
+        final map = Map<String, dynamic>.from(item as Map);
+        // Handle null shifts array
+        if (map['shifts'] == null) {
+          map['shifts'] = <dynamic>[];
+        } else if (map['shifts'] is List) {
+          // Process each shift to handle null employee arrays
+          map['shifts'] = (map['shifts'] as List).map((shift) {
+            final shiftMap = Map<String, dynamic>.from(shift as Map);
+            // Handle null employee arrays
+            if (shiftMap['approved_employees'] == null) {
+              shiftMap['approved_employees'] = <dynamic>[];
+            }
+            if (shiftMap['pending_employees'] == null) {
+              shiftMap['pending_employees'] = <dynamic>[];
+            }
+            return shiftMap;
+          }).toList();
+        }
+        return map;
+      }).toList();
+
+      // Convert to DTOs
+      final dtos = processedData
+          .map((item) => MonthlyShiftStatusDto.fromJson(item))
           .toList();
 
       // Group by month and convert to entities
@@ -325,42 +346,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<CardInputResult> inputCard({
-    required String managerId,
-    required String shiftRequestId,
-    String? confirmStartTime,  // Nullable - RPC keeps existing if null
-    String? confirmEndTime,    // Nullable - RPC keeps existing if null
-    String? newTagContent,
-    String? newTagType,
-    required bool isLate,
-    required bool isProblemSolved,
-    required String timezone,
-  }) async {
-    try {
-      final data = await _datasource.inputCard(
-        managerId: managerId,
-        shiftRequestId: shiftRequestId,
-        confirmStartTime: confirmStartTime,
-        confirmEndTime: confirmEndTime,
-        newTagContent: newTagContent,
-        newTagType: newTagType,
-        isLate: isLate,
-        isProblemSolved: isProblemSolved,
-        timezone: timezone,
-      );
-
-      final dto = CardInputResultDto.fromJson(data);
-      return dto.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to input card: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<void> updateBonusAmount({
     required String shiftRequestId,
     required double bonusAmount,
@@ -374,35 +359,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to update bonus: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> inputCardV4({
-    required String managerId,
-    required String shiftRequestId,
-    String? confirmStartTime,
-    String? confirmEndTime,
-    bool? isProblemSolved,
-    double? bonusAmount,
-    required String timezone,
-  }) async {
-    try {
-      return await _datasource.inputCardV4(
-        managerId: managerId,
-        shiftRequestId: shiftRequestId,
-        confirmStartTime: confirmStartTime,
-        confirmEndTime: confirmEndTime,
-        isProblemSolved: isProblemSolved,
-        bonusAmount: bonusAmount,
-        timezone: timezone,
-      );
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to input card v4: $e',
         originalError: e,
       );
     }
@@ -455,6 +411,62 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to fetch store employees: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> inputCardV5({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isReportedSolved,
+    double? bonusAmount,
+    String? managerMemo,
+    required String timezone,
+  }) async {
+    try {
+      return await _datasource.inputCardV5(
+        managerId: managerId,
+        shiftRequestId: shiftRequestId,
+        confirmStartTime: confirmStartTime,
+        confirmEndTime: confirmEndTime,
+        isReportedSolved: isReportedSolved,
+        bonusAmount: bonusAmount,
+        managerMemo: managerMemo,
+        timezone: timezone,
+      );
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to input card v5: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<EmployeeMonthlyDetail> getEmployeeMonthlyDetailLog({
+    required String userId,
+    required String companyId,
+    required String yearMonth,
+    required String timezone,
+  }) async {
+    try {
+      final data = await _datasource.getEmployeeMonthlyDetailLog(
+        userId: userId,
+        companyId: companyId,
+        yearMonth: yearMonth,
+        timezone: timezone,
+      );
+
+      return EmployeeMonthlyDetailModel.fromJson(data);
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to fetch employee monthly detail: $e',
         originalError: e,
       );
     }

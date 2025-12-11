@@ -18,7 +18,7 @@ class SalesProductState with _$SalesProductState {
     @Default('') String searchQuery,
     @Default(SortOption.nameAsc) SortOption sortOption,
     @Default(1) int currentPage,
-    @Default(10) int pageSize,
+    @Default(15) int pageSize,
     @Default(0) int totalCount,
     @Default(false) bool hasNextPage,
   }) = _SalesProductState;

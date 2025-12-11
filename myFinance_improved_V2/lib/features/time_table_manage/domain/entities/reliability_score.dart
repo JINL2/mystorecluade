@@ -136,6 +136,8 @@ class EmployeeReliability {
   final String userId;
   final String userName;
   final String? profileImage;
+  final String? role;
+  final String? storeName;
   final int totalApplications;
   final int approvedShifts;
   final int completedShifts;
@@ -159,6 +161,8 @@ class EmployeeReliability {
     required this.userId,
     required this.userName,
     this.profileImage,
+    this.role,
+    this.storeName,
     required this.totalApplications,
     required this.approvedShifts,
     required this.completedShifts,

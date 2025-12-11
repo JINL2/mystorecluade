@@ -4,6 +4,7 @@
 /// Uses FutureProvider for automatic caching and error handling.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
@@ -40,8 +41,13 @@ final shiftMetadataProvider =
   // Use device local timezone instead of user DB timezone
   final timezone = DateTimeUtils.getLocalTimezone();
 
+  // 🔷 DEBUG: Log provider initialization
+  debugPrint('🔷 [shiftMetadataProvider] Fetching:');
+  debugPrint('   storeId (family param): $storeId');
+  debugPrint('   timezone: $timezone');
+
   return await useCase(GetShiftMetadataParams(
     storeId: storeId,
     timezone: timezone,
-  ));
+  ),);
 });

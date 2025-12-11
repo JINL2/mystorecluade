@@ -20,6 +20,7 @@ extension UserDtoMapper on UserDto {
       email: email,
       firstName: firstName,
       lastName: lastName,
+      profileImage: profileImage,
       createdAt: DateTimeUtils.toLocal(createdAt),
       lastLoginAt:
           lastLoginAt != null ? DateTimeUtils.toLocal(lastLoginAt!) : null,
@@ -70,6 +71,7 @@ extension UserEntityMapper on User {
       email: email,
       firstName: firstName,
       lastName: lastName,
+      profileImage: profileImage,
       createdAt: DateTimeUtils.toUtc(createdAt),
       lastLoginAt:
           lastLoginAt != null ? DateTimeUtils.toUtc(lastLoginAt!) : null,

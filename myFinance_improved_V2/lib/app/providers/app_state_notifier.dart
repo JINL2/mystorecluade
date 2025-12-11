@@ -94,15 +94,39 @@ class AppStateNotifier extends StateNotifier<AppState> {
     required String storeId,
     String? companyName,
     String? storeName,
+    Map<String, dynamic>? subscription,
   }) {
+    // Use plan_name instead of plan_type because:
+    // - plan_type in DB is 'free' or 'paid' (billing category)
+    // - plan_name is 'free', 'basic', 'pro' (actual plan tier)
+    final planName = (subscription?['plan_name'] as String?) ?? state.planType;
+
     state = state.copyWith(
       companyChoosen: companyId,
       storeChoosen: storeId,
       companyName: companyName ?? state.companyName,
       storeName: storeName ?? state.storeName,
+      currentSubscription: subscription ?? state.currentSubscription,
+      planType: planName,
+      maxStores: (subscription?['max_stores'] as int?) ?? state.maxStores,
+      maxEmployees: (subscription?['max_employees'] as int?) ?? state.maxEmployees,
+      aiDailyLimit: (subscription?['ai_daily_limit'] as int?) ?? state.aiDailyLimit,
     );
+
     // Save to cache
     _saveLastSelection();
+  }
+
+  /// Update subscription context
+  void updateSubscription(Map<String, dynamic> subscription) {
+    // ⚠️ Use plan_name instead of plan_type (see updateBusinessContext comment)
+    state = state.copyWith(
+      currentSubscription: subscription,
+      planType: (subscription['plan_name'] as String?) ?? 'free',  // ✅ Use plan_name
+      maxStores: (subscription['max_stores'] as int?) ?? 1,
+      maxEmployees: (subscription['max_employees'] as int?) ?? 5,
+      aiDailyLimit: (subscription['ai_daily_limit'] as int?) ?? 2,
+    );
   }
 
   /// Update company selection

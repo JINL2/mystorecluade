@@ -91,6 +91,35 @@ class EmployeeCard extends StatelessWidget {
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // Last activity - always show
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(
+                          employee.isActiveToday
+                              ? Icons.circle
+                              : Icons.access_time_rounded,
+                          size: 10,
+                          color: employee.isActiveToday
+                              ? TossColors.success
+                              : (employee.isInactive
+                                  ? TossColors.gray300
+                                  : TossColors.gray400),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          employee.lastActivityText,
+                          style: TossTextStyles.caption.copyWith(
+                            color: employee.isActiveToday
+                                ? TossColors.success
+                                : (employee.isInactive
+                                    ? TossColors.gray400
+                                    : TossColors.gray500),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

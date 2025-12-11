@@ -33,6 +33,13 @@ class AppState with _$AppState {
     @Default('') String companyName,
     @Default('') String storeName,
 
+    // Subscription Context (for currently selected company)
+    @Default({}) Map<String, dynamic> currentSubscription,
+    @Default('free') String planType,  // 'free', 'basic', 'pro'
+    @Default(1) int maxStores,
+    @Default(5) int maxEmployees,
+    @Default(2) int aiDailyLimit,
+
     // Menu & Features Context (from get_categories_with_features RPC)
     @Default([]) List<dynamic> categoryFeatures,
 
@@ -63,6 +70,11 @@ class AppState with _$AppState {
       storeChoosen: (legacyState['storeChoosen'] as String?) ?? '',
       companyName: (legacyState['companyName'] as String?) ?? '',
       storeName: (legacyState['storeName'] as String?) ?? '',
+      currentSubscription: (legacyState['currentSubscription'] as Map<String, dynamic>?) ?? <String, dynamic>{},
+      planType: (legacyState['planType'] as String?) ?? 'free',
+      maxStores: (legacyState['maxStores'] as int?) ?? 1,
+      maxEmployees: (legacyState['maxEmployees'] as int?) ?? 5,
+      aiDailyLimit: (legacyState['aiDailyLimit'] as int?) ?? 2,
       categoryFeatures: (legacyState['categoryFeatures'] as List<dynamic>?) ?? <dynamic>[],
       permissions: Set<String>.from((legacyState['permissions'] as List<dynamic>?) ?? <String>[]),
       hasAdminPermission: (legacyState['hasAdminPermission'] as bool?) ?? false,
@@ -103,4 +115,57 @@ extension AppStateExtensions on AppState {
     'companyName': companyName,
     'storeName': storeName,
   };
+
+  // === Subscription-related convenience methods ===
+
+  /// Check if on free plan
+  bool get isFreePlan => planType == 'free';
+
+  /// Check if on basic plan
+  bool get isBasicPlan => planType == 'basic';
+
+  /// Check if on pro plan
+  bool get isProPlan => planType == 'pro';
+
+  /// Check if on paid plan (basic or pro)
+  bool get isPaidPlan => planType != 'free';
+
+  /// Check if stores are unlimited (-1 means unlimited)
+  bool get hasUnlimitedStores => maxStores == -1;
+
+  /// Check if employees are unlimited (-1 means unlimited)
+  bool get hasUnlimitedEmployees => maxEmployees == -1;
+
+  /// Check if AI is unlimited (-1 means unlimited)
+  bool get hasUnlimitedAI => aiDailyLimit == -1;
+
+  /// Check if can add more stores (based on current store count)
+  bool canAddStore(int currentStoreCount) {
+    if (hasUnlimitedStores) return true;
+    return currentStoreCount < maxStores;
+  }
+
+  /// Check if can add more employees
+  bool canAddEmployee(int currentEmployeeCount) {
+    if (hasUnlimitedEmployees) return true;
+    return currentEmployeeCount < maxEmployees;
+  }
+
+  /// Check if AI request is allowed today
+  bool canUseAI(int usedToday) {
+    if (hasUnlimitedAI) return true;
+    return usedToday < aiDailyLimit;
+  }
+
+  /// Get subscription plan display name
+  String get planDisplayName {
+    switch (planType) {
+      case 'basic':
+        return 'Basic';
+      case 'pro':
+        return 'Pro';
+      default:
+        return 'Free';
+    }
+  }
 }

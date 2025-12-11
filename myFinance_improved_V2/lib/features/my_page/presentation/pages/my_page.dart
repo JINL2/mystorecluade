@@ -19,6 +19,7 @@ import '../providers/user_profile_providers.dart';
 import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
 import '../widgets/settings_section.dart';
+import '../widgets/subscription_section.dart';
 
 class MyPage extends ConsumerStatefulWidget {
   const MyPage({super.key});
@@ -73,6 +74,12 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
         CurvedAnimation(
           parent: _entryController,
           curve: const Interval(0.1, 0.4, curve: Curves.easeOutCubic),
+        ),
+      ),
+      Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: _entryController,
+          curve: const Interval(0.2, 0.5, curve: Curves.easeOutCubic),
         ),
       ),
     ];
@@ -155,9 +162,17 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
                                     const SizedBox(height: TossSpacing.space4),
 
-                                    // Settings Section
+                                    // Subscription Section
                                     FadeTransition(
                                       opacity: _animations[1],
+                                      child: const SubscriptionSection(),
+                                    ),
+
+                                    const SizedBox(height: TossSpacing.space4),
+
+                                    // Settings Section
+                                    FadeTransition(
+                                      opacity: _animations[2],
                                       child: SettingsSection(
                                         onEditProfile: _navigateToEditProfile,
                                         onNotifications: _navigateToNotifications,

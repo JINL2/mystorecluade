@@ -14,6 +14,11 @@ class LeaderboardEmployee {
   final double? change; // Optional - only shown if RPC provides historical data
   final bool isPositive;
 
+  // Employee info for detail page
+  final String? visitorId; // User ID for data fetching
+  final String? role; // Employee role/position (e.g., "Shift leader", "Staff")
+  final String? storeName; // Store name where employee works
+
   // Individual scores for different ranking criteria
   final double finalScore; // Overall reliability score
   final double lateRate; // Late rate percentage
@@ -38,6 +43,9 @@ class LeaderboardEmployee {
     required this.score,
     this.change, // Optional
     required this.isPositive,
+    this.visitorId,
+    this.role,
+    this.storeName,
     this.finalScore = 0,
     this.lateRate = 0,
     this.lateRateScore = 0,
@@ -62,6 +70,9 @@ class LeaderboardEmployee {
     int? score,
     double? change,
     bool? isPositive,
+    String? visitorId,
+    String? role,
+    String? storeName,
     double? finalScore,
     double? lateRate,
     double? lateRateScore,
@@ -84,6 +95,9 @@ class LeaderboardEmployee {
       score: score ?? this.score,
       change: change ?? this.change,
       isPositive: isPositive ?? this.isPositive,
+      visitorId: visitorId ?? this.visitorId,
+      role: role ?? this.role,
+      storeName: storeName ?? this.storeName,
       finalScore: finalScore ?? this.finalScore,
       lateRate: lateRate ?? this.lateRate,
       lateRateScore: lateRateScore ?? this.lateRateScore,
@@ -112,6 +126,7 @@ class StatsLeaderboard extends StatefulWidget {
   final List<LeaderboardEmployee> allEmployeesList; // Full list for "See all"
   final VoidCallback? onSeeAllTap; // Optional callback for custom handling (deprecated)
   final void Function(int selectedTab)? onSeeAllTapWithTab; // Callback with current tab index
+  final void Function(LeaderboardEmployee employee)? onEmployeeTap; // Callback when employee is tapped
 
   const StatsLeaderboard({
     super.key,
@@ -120,6 +135,7 @@ class StatsLeaderboard extends StatefulWidget {
     required this.allEmployeesList,
     this.onSeeAllTap,
     this.onSeeAllTapWithTab,
+    this.onEmployeeTap,
   });
 
   @override
@@ -153,6 +169,9 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
           (employee) => _LeaderboardRow(
             employee: employee,
             isNeedsAttention: selectedTab == 1,
+            onTap: widget.onEmployeeTap != null
+                ? () => widget.onEmployeeTap!(employee)
+                : null,
           ),
         ),
 
@@ -282,15 +301,20 @@ class _LeaderboardTab extends StatelessWidget {
 class _LeaderboardRow extends StatelessWidget {
   final LeaderboardEmployee employee;
   final bool isNeedsAttention;
+  final VoidCallback? onTap;
 
   const _LeaderboardRow({
     required this.employee,
     required this.isNeedsAttention,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space6),
       child: Row(
         children: [
@@ -365,6 +389,7 @@ class _LeaderboardRow extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

@@ -86,6 +86,12 @@ dependencies:
   # Timezone for notifications
   timezone: ^0.9.2
   flutter_timezone: ^3.0.1
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^6.1.4
+  local_auth: ^2.3.0
+
+  # In-App Purchases (RevenueCat)
+  purchases_flutter: ^8.0.0
 
 dev_dependencies:
   flutter_test:

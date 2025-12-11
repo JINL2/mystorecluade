@@ -3,13 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/toss/toss_badge.dart';
+import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../domain/providers/repository_providers.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
 import '../widgets/feature_grid.dart';
@@ -27,6 +32,8 @@ class Homepage extends ConsumerStatefulWidget {
 class _HomepageState extends ConsumerState<Homepage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoggingOut = false;
+  bool _isRefreshing = false;
+  bool _alertShown = false; // Prevent showing alert multiple times per session
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +43,16 @@ class _HomepageState extends ConsumerState<Homepage> {
         backgroundColor: TossColors.surface,
         body: TossLoadingView(
           message: 'Logging out...',
+        ),
+      );
+    }
+
+    // Show loading view during refresh
+    if (_isRefreshing) {
+      return const Scaffold(
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(
+          message: 'Refreshing...',
         ),
       );
     }
@@ -67,6 +84,9 @@ class _HomepageState extends ConsumerState<Homepage> {
             ),
           );
         }
+
+        // Check and show homepage alert
+        _checkAndShowAlert();
 
         return _buildHomepage();
       },
@@ -145,21 +165,23 @@ class _HomepageState extends ConsumerState<Homepage> {
               // App Header (Non-pinned)
               _buildAppHeader(),
 
-              const SliverToBoxAdapter(
-                child: SizedBox(height: TossSpacing.space4),
-              ),
-
               // Revenue Card or Salary Card (based on permission)
               if (appState.companyChoosen.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: _hasRevenuePermission()
-                      ? const RevenueCard()
-                      : const SalaryCard(), // Show salary if no revenue permission
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _hasRevenuePermission()
+                        ? const RevenueCard()
+                        : const SalaryCard(), // Show salary if no revenue permission
+                  ),
                 ),
 
               // Quick Access Section
               const SliverToBoxAdapter(
-                child: QuickAccessSection(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: QuickAccessSection(),
+                ),
               ),
 
               // Line Divider
@@ -175,7 +197,10 @@ class _HomepageState extends ConsumerState<Homepage> {
 
               // Feature Grid
               const SliverToBoxAdapter(
-                child: FeatureGrid(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: FeatureGrid(),
+                ),
               ),
             ],
           ),
@@ -224,7 +249,7 @@ class _HomepageState extends ConsumerState<Homepage> {
 
                     const SizedBox(width: 13),
 
-                    // Store name (top) and Company name (bottom) with chevron
+                    // Company name (top) and Store name (bottom) with chevron
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -234,23 +259,35 @@ class _HomepageState extends ConsumerState<Homepage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Store name (large, on top)
-                                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty)
-                                  Text(
-                                    storeName,
-                                    style: TossTextStyles.bodyLarge.copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: TossColors.textPrimary,
-                                      height: 1.2,
+                                // Company name (large, on top) with subscription badge
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        companyName,
+                                        style: TossTextStyles.bodyLarge.copyWith(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: TossColors.textPrimary,
+                                          height: 1.2,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
+                                    const SizedBox(width: 6),
+                                    // Subscription Badge
+                                    SubscriptionBadge.fromPlanType(
+                                      appState.planType,
+                                      compact: true,
+                                    ),
+                                  ],
+                                ),
 
-                                // Company name (small, on bottom)
+                                // Store name (small, on bottom)
                                 Text(
-                                  companyName,
+                                  storeName,
                                   style: TossTextStyles.caption.copyWith(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
@@ -330,8 +367,8 @@ class _HomepageState extends ConsumerState<Homepage> {
     if (profileImage.isNotEmpty) {
       return Image.network(
         profileImage,
-        width: 47,
-        height: 47,
+        width: 33,
+        height: 33,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return _buildAvatarFallback();
@@ -344,8 +381,8 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   Widget _buildAvatarFallback() {
     return Container(
-      width: 47,
-      height: 47,
+      width: 33,
+      height: 33,
       decoration: BoxDecoration(
         color: TossColors.primarySurface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -353,7 +390,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       child: Center(
         child: Text(
           _getUserInitials(),
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.caption.copyWith(
             color: TossColors.primary,
             fontWeight: FontWeight.w600,
           ),
@@ -374,22 +411,22 @@ class _HomepageState extends ConsumerState<Homepage> {
         clipBehavior: Clip.none,
         children: [
           SizedBox(
-            width: 47,
-            height: 47,
+            width: 36,
+            height: 36,
             child: Icon(
               icon,
-              size: 31,
+              size: 24,
               color: TossColors.textPrimary,
             ),
           ),
           if (showBadge && badgeCount > 0)
             Positioned(
-              top: 2,
-              right: 2,
+              top: 0,
+              right: 0,
               child: Container(
-                constraints: const BoxConstraints(minWidth: 16),
-                height: 16,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(minWidth: 15),
+                height: 15,
+                padding: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
                   borderRadius: BorderRadius.circular(999),
@@ -398,7 +435,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                   child: Text(
                     badgeCount.toString(),
                     style: TossTextStyles.caption.copyWith(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
                       color: TossColors.white,
                       height: 1,
@@ -570,42 +607,107 @@ class _HomepageState extends ConsumerState<Homepage> {
     }
   }
 
+  /// Check and show homepage alert if conditions are met
+  ///
+  /// Shows alert only if:
+  /// - is_show = true
+  /// - is_checked = false
+  /// - Alert hasn't been shown in this session
+  void _checkAndShowAlert() {
+    if (_alertShown) return;
+
+    final alertAsync = ref.read(homepageAlertProvider);
+
+    alertAsync.whenData((alert) {
+      // Check conditions: is_show = true AND is_checked = false
+      if (alert.shouldDisplay && !_alertShown) {
+        _alertShown = true;
+
+        // Show dialog after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) => _HomepageAlertDialog(
+                message: alert.content ?? '',
+                onDontShowAgain: (bool isChecked) {
+                  // Call RPC to update is_checked (true = don't show again, false = show again)
+                  _responseHomepageAlert(isChecked);
+                },
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  /// Call homepage_response_alert RPC to update is_checked status
+  Future<void> _responseHomepageAlert(bool isChecked) async {
+    final userId = ref.read(appStateProvider).userId;
+    if (userId.isEmpty) return;
+
+    final repository = ref.read(homepageRepositoryProvider);
+    await repository.responseHomepageAlert(
+      userId: userId,
+      isChecked: isChecked,
+    );
+  }
+
   Future<void> _handleRefresh() async {
     final appStateNotifier = ref.read(appStateProvider.notifier);
+
+    // Show loading view
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+      });
+    }
 
     try {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
+
+      // Reset alert shown flag to allow showing again after refresh
+      _alertShown = false;
+
+      // Invalidate homepage alert cache (6-hour cache)
+      final userId = ref.read(appStateProvider).userId;
+      if (userId.isNotEmpty) {
+        AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
+      }
 
       // Invalidate all homepage providers to refresh data
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       ref.invalidate(quickAccessFeaturesProvider);
       ref.invalidate(revenueProvider);
+      ref.invalidate(homepageAlertProvider);
 
-      // Wait for providers to reload and update AppState
-      await Future.wait([
-        ref.read(userCompaniesProvider.future),
-        ref.read(categoriesWithFeaturesProvider.future),
-      ]);
+      // Invalidate salary-related providers
+      ref.invalidate(userSalaryProvider);
+      ref.invalidate(userShiftStatsProvider);
 
+      // Wait for essential provider to reload (others will load in background)
+      await ref.read(userCompaniesProvider.future);
+
+      // Hide loading view
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Data refreshed successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        setState(() {
+          _isRefreshing = false;
+        });
       }
     } catch (e) {
+      // Hide loading view on error
+      debugPrint('🔴 [Refresh] Error: $e');
       if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to refresh data'),
+            content: Text('Failed to refresh: $e'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -615,6 +717,75 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     }
+  }
+}
+
+/// Homepage Alert Dialog with "Don't show again" checkbox
+class _HomepageAlertDialog extends StatefulWidget {
+  final String message;
+  final void Function(bool dontShow) onDontShowAgain;
+
+  const _HomepageAlertDialog({
+    required this.message,
+    required this.onDontShowAgain,
+  });
+
+  @override
+  State<_HomepageAlertDialog> createState() => _HomepageAlertDialogState();
+}
+
+class _HomepageAlertDialogState extends State<_HomepageAlertDialog> {
+  bool _dontShowAgain = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TossDialog(
+      title: 'Notice',
+      message: widget.message,
+      type: TossDialogType.info,
+      icon: Icons.info_outline,
+      iconColor: TossColors.info,
+      primaryButtonText: 'OK',
+      onPrimaryPressed: () {
+        widget.onDontShowAgain(_dontShowAgain);
+        Navigator.of(context).pop();
+      },
+      customContent: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _dontShowAgain,
+              onChanged: (value) {
+                setState(() {
+                  _dontShowAgain = value ?? false;
+                });
+              },
+              activeColor: TossColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _dontShowAgain = !_dontShowAgain;
+              });
+            },
+            child: Text(
+              "Don't show again",
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
