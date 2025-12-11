@@ -77,8 +77,7 @@ class ShiftEmployeeDto with _$ShiftEmployeeDto {
   const factory ShiftEmployeeDto({
     @JsonKey(name: 'shift_request_id') required String shiftRequestId,
     @JsonKey(name: 'user_id') required String userId,
-    // user_name can be null when user profile is incomplete
-    @JsonKey(name: 'user_name') @Default('Unknown') String userName,
+    @JsonKey(name: 'user_name') required String userName,
     @JsonKey(name: 'is_approved') @Default(false) bool isApproved,
     @JsonKey(name: 'profile_image') String? profileImage,
   }) = _ShiftEmployeeDto;

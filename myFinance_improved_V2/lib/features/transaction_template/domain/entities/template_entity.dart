@@ -47,9 +47,6 @@ class TransactionTemplate extends Equatable {
   final String? updatedBy;
   final bool isActive;
 
-  /// Whether attachment is required when using this template
-  final bool requiredAttachment;
-
   const TransactionTemplate({
     required this.templateId,
     required this.name,
@@ -67,7 +64,6 @@ class TransactionTemplate extends Equatable {
     required this.updatedAt,
     this.updatedBy,
     this.isActive = true,
-    this.requiredAttachment = false,
   });
 
   /// 🏛️ DOMAIN API: Convenient access to template ID
@@ -95,7 +91,6 @@ class TransactionTemplate extends Equatable {
     String? counterpartyCashLocationId,
     String? createdBy,  // ✅ Optional: DB may not have this field, legacy compatibility
     Map<String, dynamic>? tags,
-    bool requiredAttachment = false,
   }) {
     final templateId = _generateTemplateId();
     final now = DateTime.now();
@@ -115,7 +110,6 @@ class TransactionTemplate extends Equatable {
       createdBy: createdBy,  // Can be null for legacy DB compatibility
       createdAt: now,
       updatedAt: now,
-      requiredAttachment: requiredAttachment,
     );
   }
 
@@ -547,7 +541,6 @@ class TransactionTemplate extends Equatable {
     DateTime? updatedAt,
     String? updatedBy,
     bool? isActive,
-    bool? requiredAttachment,
   }) {
     return TransactionTemplate(
       templateId: templateId ?? this.templateId,
@@ -566,7 +559,6 @@ class TransactionTemplate extends Equatable {
       updatedAt: updatedAt ?? DateTime.now(),
       updatedBy: updatedBy ?? this.updatedBy,
       isActive: isActive ?? this.isActive,
-      requiredAttachment: requiredAttachment ?? this.requiredAttachment,
     );
   }
 
@@ -588,7 +580,6 @@ class TransactionTemplate extends Equatable {
         updatedAt,
         updatedBy,
         isActive,
-        requiredAttachment,
       ];
 
   static String _generateTemplateId() {

@@ -12,7 +12,6 @@ class StatsGaugeCard extends StatelessWidget {
   final String onTimeDisplay;
   final int problemSolved;
   final int totalProblems;
-  final VoidCallback? onProblemSolvesTap;
 
   const StatsGaugeCard({
     super.key,
@@ -22,7 +21,6 @@ class StatsGaugeCard extends StatelessWidget {
     required this.onTimeDisplay,
     required this.problemSolved,
     required this.totalProblems,
-    this.onProblemSolvesTap,
   });
 
   @override
@@ -64,7 +62,9 @@ class StatsGaugeCard extends StatelessWidget {
                   displayValue: onTimeDisplay,
                   label: 'On-time rate',
                   color: TossColors.primary,
-                  showArrow: false,
+                  onTap: () {
+                    // TODO: Navigate to details
+                  },
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -74,7 +74,9 @@ class StatsGaugeCard extends StatelessWidget {
                   displayValue: '$problemSolved/$totalProblems',
                   label: 'Problem solves',
                   color: TossColors.error,
-                  onTap: onProblemSolvesTap ?? () {},
+                  onTap: () {
+                    // TODO: Navigate to details
+                  },
                 ),
               ),
             ],
@@ -90,16 +92,14 @@ class _GaugeWidget extends StatelessWidget {
   final String displayValue;
   final String label;
   final Color color;
-  final VoidCallback? onTap;
-  final bool showArrow;
+  final VoidCallback onTap;
 
   const _GaugeWidget({
     required this.value,
     required this.displayValue,
     required this.label,
     required this.color,
-    this.onTap,
-    this.showArrow = true,
+    required this.onTap,
   });
 
   @override
@@ -143,14 +143,12 @@ class _GaugeWidget extends StatelessWidget {
                           color: TossColors.gray600,
                         ),
                       ),
-                      if (showArrow) ...[
-                        const SizedBox(width: 2),
-                        const Icon(
-                          Icons.chevron_right,
-                          size: 12,
-                          color: TossColors.gray600,
-                        ),
-                      ],
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 12,
+                        color: TossColors.gray600,
+                      ),
                     ],
                   ),
                 ),

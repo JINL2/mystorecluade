@@ -672,11 +672,9 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       data: (counterParties) {
         if (counterParties.isEmpty) {
           return SliverFillRemaining(
-            hasScrollBody: false,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
                     Icons.people_outline,

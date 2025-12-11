@@ -5,7 +5,6 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_badge.dart';
-import '../../../domain/entities/shift_card.dart';
 import 'snapshot_metrics_section.dart';
 import 'staff_grid_section.dart';
 
@@ -28,13 +27,10 @@ enum ShiftStatusType {
 class SnapshotMetric {
   final int count;
   final List<Map<String, dynamic>> employees;
-  /// List of ShiftCards for navigation to detail page
-  final List<ShiftCard> cards;
 
   SnapshotMetric({
     required this.count,
     required this.employees,
-    this.cards = const [],
   });
 }
 
@@ -75,8 +71,6 @@ class ShiftInfoCard extends StatelessWidget {
   final ShiftStatusType? statusType;
   final SnapshotData? snapshotData;
   final List<StaffMember>? staffList;
-  /// Callback when an employee is tapped in the snapshot metrics bottom sheet
-  final void Function(ShiftCard card)? onEmployeeTap;
 
   const ShiftInfoCard({
     super.key,
@@ -88,7 +82,6 @@ class ShiftInfoCard extends StatelessWidget {
     this.statusType,
     this.snapshotData,
     this.staffList,
-    this.onEmployeeTap,
   });
 
   @override
@@ -109,22 +102,10 @@ class ShiftInfoCard extends StatelessWidget {
           // Shift Header
           _buildShiftHeader(),
 
-          // Divider line under header
-          if (snapshotData != null || (staffList != null && staffList!.isNotEmpty)) ...[
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              height: 1,
-              color: TossColors.gray200,
-            ),
-          ],
-
           // Snapshot or Staff Grid
           if (snapshotData != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            SnapshotMetricsSection(
-              data: snapshotData!,
-              onEmployeeTap: onEmployeeTap,
-            ),
+            SnapshotMetricsSection(data: snapshotData!),
           ],
           if (staffList != null && staffList!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space3),

@@ -3,16 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
-import '../../domain/providers/repository_providers.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
 import '../widgets/feature_grid.dart';
@@ -30,7 +27,6 @@ class Homepage extends ConsumerStatefulWidget {
 class _HomepageState extends ConsumerState<Homepage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoggingOut = false;
-  bool _alertShown = false; // Prevent showing alert multiple times per session
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +67,6 @@ class _HomepageState extends ConsumerState<Homepage> {
             ),
           );
         }
-
-        // Check and show homepage alert
-        _checkAndShowAlert();
 
         return _buildHomepage();
       },
@@ -152,23 +145,21 @@ class _HomepageState extends ConsumerState<Homepage> {
               // App Header (Non-pinned)
               _buildAppHeader(),
 
+              const SliverToBoxAdapter(
+                child: SizedBox(height: TossSpacing.space4),
+              ),
+
               // Revenue Card or Salary Card (based on permission)
               if (appState.companyChoosen.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _hasRevenuePermission()
-                        ? const RevenueCard()
-                        : const SalaryCard(), // Show salary if no revenue permission
-                  ),
+                  child: _hasRevenuePermission()
+                      ? const RevenueCard()
+                      : const SalaryCard(), // Show salary if no revenue permission
                 ),
 
               // Quick Access Section
               const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: QuickAccessSection(),
-                ),
+                child: QuickAccessSection(),
               ),
 
               // Line Divider
@@ -184,10 +175,7 @@ class _HomepageState extends ConsumerState<Homepage> {
 
               // Feature Grid
               const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: FeatureGrid(),
-                ),
+                child: FeatureGrid(),
               ),
             ],
           ),
@@ -236,7 +224,7 @@ class _HomepageState extends ConsumerState<Homepage> {
 
                     const SizedBox(width: 13),
 
-                    // Company name (top) and Store name (bottom) with chevron
+                    // Store name (top) and Company name (bottom) with chevron
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -246,22 +234,23 @@ class _HomepageState extends ConsumerState<Homepage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Company name (large, on top) - Title Medium: 15px/Bold
+                                // Store name (large, on top)
+                                if (appState.storeChoosen.isNotEmpty && storeName.isNotEmpty)
+                                  Text(
+                                    storeName,
+                                    style: TossTextStyles.bodyLarge.copyWith(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: TossColors.textPrimary,
+                                      height: 1.2,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+
+                                // Company name (small, on bottom)
                                 Text(
                                   companyName,
-                                  style: TossTextStyles.bodyLarge.copyWith(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: TossColors.textPrimary,
-                                    height: 1.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-
-                                // Store name (small, on bottom)
-                                Text(
-                                  storeName,
                                   style: TossTextStyles.caption.copyWith(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
@@ -341,8 +330,8 @@ class _HomepageState extends ConsumerState<Homepage> {
     if (profileImage.isNotEmpty) {
       return Image.network(
         profileImage,
-        width: 33,
-        height: 33,
+        width: 47,
+        height: 47,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return _buildAvatarFallback();
@@ -355,8 +344,8 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   Widget _buildAvatarFallback() {
     return Container(
-      width: 33,
-      height: 33,
+      width: 47,
+      height: 47,
       decoration: BoxDecoration(
         color: TossColors.primarySurface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -364,7 +353,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       child: Center(
         child: Text(
           _getUserInitials(),
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.body.copyWith(
             color: TossColors.primary,
             fontWeight: FontWeight.w600,
           ),
@@ -385,22 +374,22 @@ class _HomepageState extends ConsumerState<Homepage> {
         clipBehavior: Clip.none,
         children: [
           SizedBox(
-            width: 36,
-            height: 36,
+            width: 47,
+            height: 47,
             child: Icon(
               icon,
-              size: 24,
+              size: 31,
               color: TossColors.textPrimary,
             ),
           ),
           if (showBadge && badgeCount > 0)
             Positioned(
-              top: 0,
-              right: 0,
+              top: 2,
+              right: 2,
               child: Container(
-                constraints: const BoxConstraints(minWidth: 15),
-                height: 15,
-                padding: const EdgeInsets.symmetric(horizontal: 3),
+                constraints: const BoxConstraints(minWidth: 16),
+                height: 16,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
                   borderRadius: BorderRadius.circular(999),
@@ -409,7 +398,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                   child: Text(
                     badgeCount.toString(),
                     style: TossTextStyles.caption.copyWith(
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: TossColors.white,
                       height: 1,
@@ -581,54 +570,6 @@ class _HomepageState extends ConsumerState<Homepage> {
     }
   }
 
-  /// Check and show homepage alert if conditions are met
-  ///
-  /// Shows alert only if:
-  /// - is_show = true
-  /// - is_checked = false
-  /// - Alert hasn't been shown in this session
-  void _checkAndShowAlert() {
-    if (_alertShown) return;
-
-    final alertAsync = ref.read(homepageAlertProvider);
-
-    alertAsync.whenData((alert) {
-      // Check conditions: is_show = true AND is_checked = false
-      if (alert.shouldDisplay && !_alertShown) {
-        _alertShown = true;
-
-        // Show dialog after build completes
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            showDialog<void>(
-              context: context,
-              barrierDismissible: true,
-              builder: (_) => _HomepageAlertDialog(
-                message: alert.content ?? '',
-                onDontShowAgain: (bool isChecked) {
-                  // Call RPC to update is_checked (true = don't show again, false = show again)
-                  _responseHomepageAlert(isChecked);
-                },
-              ),
-            );
-          }
-        });
-      }
-    });
-  }
-
-  /// Call homepage_response_alert RPC to update is_checked status
-  Future<void> _responseHomepageAlert(bool isChecked) async {
-    final userId = ref.read(appStateProvider).userId;
-    if (userId.isEmpty) return;
-
-    final repository = ref.read(homepageRepositoryProvider);
-    await repository.responseHomepageAlert(
-      userId: userId,
-      isChecked: isChecked,
-    );
-  }
-
   Future<void> _handleRefresh() async {
     final appStateNotifier = ref.read(appStateProvider.notifier);
 
@@ -636,21 +577,11 @@ class _HomepageState extends ConsumerState<Homepage> {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
 
-      // Reset alert shown flag to allow showing again after refresh
-      _alertShown = false;
-
-      // Invalidate homepage alert cache (6-hour cache)
-      final userId = ref.read(appStateProvider).userId;
-      if (userId.isNotEmpty) {
-        AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
-      }
-
       // Invalidate all homepage providers to refresh data
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       ref.invalidate(quickAccessFeaturesProvider);
       ref.invalidate(revenueProvider);
-      ref.invalidate(homepageAlertProvider);
 
       // Wait for providers to reload and update AppState
       await Future.wait([
@@ -684,75 +615,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     }
-  }
-}
-
-/// Homepage Alert Dialog with "Don't show again" checkbox
-class _HomepageAlertDialog extends StatefulWidget {
-  final String message;
-  final void Function(bool dontShow) onDontShowAgain;
-
-  const _HomepageAlertDialog({
-    required this.message,
-    required this.onDontShowAgain,
-  });
-
-  @override
-  State<_HomepageAlertDialog> createState() => _HomepageAlertDialogState();
-}
-
-class _HomepageAlertDialogState extends State<_HomepageAlertDialog> {
-  bool _dontShowAgain = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return TossDialog(
-      title: 'Notice',
-      message: widget.message,
-      type: TossDialogType.info,
-      icon: Icons.info_outline,
-      iconColor: TossColors.info,
-      primaryButtonText: 'OK',
-      onPrimaryPressed: () {
-        widget.onDontShowAgain(_dontShowAgain);
-        Navigator.of(context).pop();
-      },
-      customContent: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: Checkbox(
-              value: _dontShowAgain,
-              onChanged: (value) {
-                setState(() {
-                  _dontShowAgain = value ?? false;
-                });
-              },
-              activeColor: TossColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _dontShowAgain = !_dontShowAgain;
-              });
-            },
-            child: Text(
-              "Don't show again",
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

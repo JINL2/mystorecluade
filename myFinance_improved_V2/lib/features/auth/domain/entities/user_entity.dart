@@ -26,7 +26,6 @@ class User with _$User {
     required String email,
     String? firstName,
     String? lastName,
-    String? profileImage,
     required DateTime createdAt,
     DateTime? lastLoginAt,
     required bool isEmailVerified,

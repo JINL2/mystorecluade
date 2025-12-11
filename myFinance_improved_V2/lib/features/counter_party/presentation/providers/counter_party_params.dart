@@ -25,7 +25,6 @@ class CreateCounterPartyParams with _$CreateCounterPartyParams {
 class UpdateCounterPartyParams with _$UpdateCounterPartyParams {
   const factory UpdateCounterPartyParams({
     required String counterpartyId,
-    required String companyId,
     required String name,
     required CounterPartyType type,
     String? email,

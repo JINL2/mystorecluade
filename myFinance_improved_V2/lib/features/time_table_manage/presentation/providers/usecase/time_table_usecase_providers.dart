@@ -20,7 +20,8 @@ import '../../../domain/usecases/get_monthly_shift_status.dart';
 import '../../../domain/usecases/get_reliability_score.dart';
 import '../../../domain/usecases/get_schedule_data.dart';
 import '../../../domain/usecases/get_shift_metadata.dart';
-import '../../../domain/usecases/input_card_v5.dart';
+import '../../../domain/usecases/input_card.dart';
+import '../../../domain/usecases/input_card_v4.dart';
 import '../../../domain/usecases/insert_schedule.dart';
 import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
@@ -98,13 +99,19 @@ final insertScheduleUseCaseProvider = Provider<InsertSchedule>((ref) {
 // Card & Tag UseCases
 // ============================================================================
 
-/// Input Card V5 UseCase Provider
-///
-/// Uses manager_shift_input_card_v5 RPC for updating shift cards
-/// with confirmed times, report solved status, bonus amount, and manager memo.
-final inputCardV5UseCaseProvider = Provider<InputCardV5>((ref) {
+/// Input Card UseCase Provider
+final inputCardUseCaseProvider = Provider<InputCard>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
-  return InputCardV5(repository);
+  return InputCard(repository);
+});
+
+/// Input Card V4 UseCase Provider
+///
+/// Uses manager_shift_input_card_v4 RPC for updating shift cards
+/// with confirmed times, problem solved status, and bonus amount.
+final inputCardV4UseCaseProvider = Provider<InputCardV4>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return InputCardV4(repository);
 });
 
 /// Delete Shift Tag UseCase Provider

@@ -1,8 +1,5 @@
 // lib/features/auth/data/datasources/supabase_user_datasource.dart
 
-import 'dart:io';
-
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../models/freezed/company_dto.dart';
@@ -53,10 +50,6 @@ abstract class UserDataSource {
   /// Get user's complete data including companies and stores
   /// Calls the get_user_companies_and_stores RPC function
   Future<Map<String, dynamic>> getUserCompleteData(String userId);
-
-  /// Upload profile image to storage
-  /// Returns the public URL of the uploaded image
-  Future<String> uploadProfileImage(String userId, String filePath);
 }
 
 /// Supabase implementation of UserDataSource
@@ -228,108 +221,6 @@ class SupabaseUserDataSource implements UserDataSource {
       return response as Map<String, dynamic>;
     } catch (e) {
       throw Exception('Failed to get user complete data: $e');
-    }
-  }
-
-  @override
-  Future<String> uploadProfileImage(String userId, String filePath) async {
-    File? compressedFile;
-    try {
-      final imageFile = File(filePath);
-
-      // Compress image for optimal storage
-      compressedFile = await _compressProfileImage(imageFile);
-
-      // Upload to Supabase Storage
-      final fileName = 'avatar_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final storagePath = 'avatars/$fileName';
-
-      await _client.storage.from('profileimage').upload(
-            storagePath,
-            compressedFile,
-            fileOptions: const FileOptions(
-              cacheControl: '3600',
-              upsert: false,
-            ),
-          );
-
-      // Get public URL
-      final publicUrl = _client.storage.from('profileimage').getPublicUrl(storagePath);
-
-      return publicUrl;
-    } catch (e) {
-      throw Exception('Failed to upload profile image: $e');
-    } finally {
-      // Clean up temporary compressed file
-      if (compressedFile != null) {
-        try {
-          if (await compressedFile.exists()) {
-            await compressedFile.delete();
-          }
-        } catch (_) {
-          // Cleanup error ignored
-        }
-      }
-    }
-  }
-
-  /// Compress profile image for optimal storage and performance
-  Future<File> _compressProfileImage(File originalFile) async {
-    try {
-      final bytes = await originalFile.readAsBytes();
-      final originalSize = bytes.length;
-
-      // Compression settings based on original size
-      int quality = 50;
-      int targetSize = 256;
-
-      if (originalSize > 5 * 1024 * 1024) {
-        quality = 40;
-      } else if (originalSize > 2 * 1024 * 1024) {
-        quality = 45;
-      } else if (originalSize < 200 * 1024) {
-        quality = 60;
-        targetSize = 300;
-      }
-
-      final compressedBytes = await FlutterImageCompress.compressWithFile(
-        originalFile.absolute.path,
-        minWidth: targetSize,
-        minHeight: targetSize,
-        quality: quality,
-        format: CompressFormat.jpeg,
-      );
-
-      if (compressedBytes == null || compressedBytes.isEmpty) {
-        throw Exception('Image compression failed');
-      }
-
-      // Create compressed file
-      final directory = originalFile.parent;
-      final compressedPath =
-          '${directory.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-      final compressedFile = File(compressedPath);
-      await compressedFile.writeAsBytes(compressedBytes);
-
-      // If still too large, compress more aggressively
-      if (compressedBytes.length > 100 * 1024 && quality > 30) {
-        final moreCompressedBytes = await FlutterImageCompress.compressWithFile(
-          originalFile.absolute.path,
-          minWidth: 200,
-          minHeight: 200,
-          quality: 30,
-          format: CompressFormat.jpeg,
-        );
-
-        if (moreCompressedBytes != null && moreCompressedBytes.isNotEmpty) {
-          await compressedFile.writeAsBytes(moreCompressedBytes);
-        }
-      }
-
-      return compressedFile;
-    } catch (e) {
-      throw Exception('Image compression failed: $e');
     }
   }
 }

@@ -251,11 +251,20 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
             fontSize: 15,
             color: TossColors.gray400,
           ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: TossColors.gray300,
+              width: 1.0,
+            ),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: TossColors.primary,
+              width: 1.5,
+            ),
+          ),
           isDense: true,
-          contentPadding: EdgeInsets.zero,
+          contentPadding: EdgeInsets.only(bottom: 4),
         ),
         onChanged: (value) {
           final inputValue =

@@ -25,15 +25,12 @@ class TimesheetsTab extends ConsumerStatefulWidget {
   final void Function(String storeId)? onStoreChanged;
   /// Callback to navigate to Schedule tab with a specific date
   final void Function(DateTime date)? onNavigateToSchedule;
-  /// Initial filter to apply when tab is shown (e.g., 'this_month')
-  final String? initialFilter;
 
   const TimesheetsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
     this.onNavigateToSchedule,
-    this.initialFilter,
   });
 
   @override
@@ -50,24 +47,10 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     super.initState();
     _currentWeekStart = _getWeekStart(_selectedDate);
 
-    // Apply initial filter if provided
-    if (widget.initialFilter != null) {
-      selectedFilter = widget.initialFilter;
-    }
-
     // Load data for current month
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMonthData();
     });
-  }
-
-  /// Set the filter programmatically (called from parent)
-  void setFilter(String filter) {
-    if (mounted) {
-      setState(() {
-        selectedFilter = filter;
-      });
-    }
   }
 
   @override
@@ -76,12 +59,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     // Reload data if store changed
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
       _loadMonthData();
-    }
-    // Update filter if initialFilter changed
-    if (widget.initialFilter != null && widget.initialFilter != oldWidget.initialFilter) {
-      setState(() {
-        selectedFilter = widget.initialFilter;
-      });
     }
   }
 
@@ -129,7 +106,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     return '$startDay-$endDay $month';
   }
 
-  /// Get week label (e.g., "This week", "Next week", "Last week", or "Week 52")
+  /// Get week label
   String _getWeekLabel() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -155,28 +132,15 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     if (_currentWeekStart.year == previousWeekStart.year &&
         _currentWeekStart.month == previousWeekStart.month &&
         _currentWeekStart.day == previousWeekStart.day) {
-      return 'Last week';
+      return 'Previous week';
     }
 
-    // Otherwise, return "Week [number]" (ISO week number)
-    final weekNumber = _getIsoWeekNumber(_currentWeekStart);
-    return 'Week $weekNumber';
-  }
-
-  /// Calculate ISO week number (1-53)
-  /// ISO 8601: Week 1 is the week containing the first Thursday of the year
-  int _getIsoWeekNumber(DateTime date) {
-    // Find the Thursday of the current week
-    final thursday = date.add(Duration(days: 4 - date.weekday));
-
-    // Find January 1st of that Thursday's year
-    final jan1 = DateTime(thursday.year, 1, 1);
-
-    // Calculate the number of days from Jan 1 to the Thursday
-    final daysDiff = thursday.difference(jan1).inDays;
-
-    // Week number is (days / 7) + 1
-    return (daysDiff / 7).floor() + 1;
+    // Otherwise, return "Week of [date]"
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return 'Week of ${_currentWeekStart.day} ${months[_currentWeekStart.month - 1]}';
   }
 
   /// Change week
@@ -248,25 +212,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       // Check confirmed status
       final isConfirmed = card.confirmedStartRaw != null || card.confirmedEndRaw != null;
 
-      // Parse shift end time and find consecutive end time
-      // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
-      // use the LAST shift's end time (18:00) for all shifts
-      final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
-      final shiftEndTime = _findConsecutiveEndTime(
-        staffId: card.employee.userId,
-        shiftDate: card.shiftDate,
-        currentShiftEndTime: currentShiftEndTime,
-        allCards: allCards,
-      );
-
-      // Skip adding problems if shift is still in progress
-      // (current time is before the consecutive shift end time)
-      final isShiftInProgress = shiftEndTime != null && DateTime.now().isBefore(shiftEndTime);
-      if (isShiftInProgress) {
-        // Shift hasn't ended yet - no problems can occur
-        continue;
-      }
-
       // No check-out: actual_end_time == null AND confirmed_end_time == null
       if (card.actualEndTime == null && card.confirmedEndTime == null) {
         problems.add(AttendanceProblem(
@@ -300,7 +245,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
-          shiftEndTime: shiftEndTime,
         ));
       }
 
@@ -337,7 +281,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
-          shiftEndTime: shiftEndTime,
         ));
       }
 
@@ -374,7 +317,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: card.paidHour,
           lateMinute: card.lateMinute,
           overtimeMinute: card.overTimeMinute,
-          shiftEndTime: shiftEndTime,
         ));
       }
     }
@@ -580,19 +522,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         // Needs confirm if late/overtime but not yet confirmed
         final needsConfirm = (isLate || isOverTime) && !isConfirmed;
 
-        // Parse shift end time and find consecutive end time
-        // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
-        // use the LAST shift's end time (18:00) for all shifts
-        final currentShiftEndTime = _parseShiftEndTime(detailedCard?.shiftEndTime);
-        final shiftEndTime = detailedCard != null
-            ? _findConsecutiveEndTime(
-                staffId: req.employee.userId,
-                shiftDate: selectedDateStr,
-                currentShiftEndTime: currentShiftEndTime,
-                allCards: allApprovedCards,
-              )
-            : currentShiftEndTime;
-
         return StaffTimeRecord(
           staffId: req.employee.userId,
           staffName: req.employee.userName,
@@ -621,10 +550,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           paidHour: detailedCard?.paidHour ?? 0.0,
           lateMinute: detailedCard?.lateMinute ?? 0,
           overtimeMinute: detailedCard?.overTimeMinute ?? 0,
-          // v4: New fields
-          isReportedSolved: detailedCard?.isReportedSolved,
-          managerMemos: detailedCard?.managerMemos ?? const [],
-          shiftEndTime: shiftEndTime,
         );
       }).toList();
 
@@ -665,69 +590,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     return timeString;
   }
 
-  /// Parse shift end time string to DateTime
-  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00:00"
-  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
-    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
-    try {
-      // Normalize: replace 'T' with space if present
-      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
-      final parts = normalized.split(' ');
-      if (parts.length < 2) return null;
-
-      final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
-
-      if (dateParts.length < 3 || timeParts.length < 2) return null;
-
-      return DateTime(
-        int.parse(dateParts[0]), // year
-        int.parse(dateParts[1]), // month
-        int.parse(dateParts[2]), // day
-        int.parse(timeParts[0]), // hour
-        int.parse(timeParts[1]), // minute
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Find the last consecutive shift end time for a staff member on a given date
-  /// Consecutive shifts: shifts where one ends and another starts (within 30 min gap)
-  /// Returns the end time of the last consecutive shift chain
-  DateTime? _findConsecutiveEndTime({
-    required String staffId,
-    required String shiftDate,
-    required DateTime? currentShiftEndTime,
-    required List<ShiftCard> allCards,
-  }) {
-    if (currentShiftEndTime == null) return null;
-
-    // Find all shifts for this staff member on the same date
-    final staffShiftsOnDate = allCards
-        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
-        .toList();
-
-    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
-
-    // Parse all shift end times and sort
-    final shiftEndTimes = <DateTime>[];
-    for (final card in staffShiftsOnDate) {
-      final endTime = _parseShiftEndTime(card.shiftEndTime);
-      if (endTime != null) {
-        shiftEndTimes.add(endTime);
-      }
-    }
-
-    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
-
-    // Sort by time
-    shiftEndTimes.sort();
-
-    // Return the latest end time (last shift of the day for this staff)
-    return shiftEndTimes.last;
-  }
-
   String _formatSelectedDate(DateTime date) {
     final weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday - 1];
     final day = date.day;
@@ -750,238 +612,225 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
   @override
   Widget build(BuildContext context) {
-    const horizontalPadding = EdgeInsets.symmetric(horizontal: TossSpacing.space3);
-
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: TossSpacing.space2),
+          // Store selector
+          _buildStoreSelector(),
 
-          // Store selector (with padding)
-          Padding(
-            padding: horizontalPadding,
-            child: _buildStoreSelector(),
-          ),
+          const SizedBox(height: TossSpacing.space4),
 
-          // Gray divider after store selector (full width)
+          // Gray divider after store selector
           const GrayDividerSpace(),
 
-          // Problems Section (with padding)
-          Padding(
-            padding: horizontalPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // "Problems" Section Header
-                Text(
-                  'Problems',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+          const SizedBox(height: TossSpacing.space4),
 
-                const SizedBox(height: TossSpacing.space3),
-
-                // Filter Chips
-                TossChipGroup(
-                  items: [
-                    TossChipItem(
-                      value: 'today',
-                      label: 'Today',
-                      count: _getProblemCount('today'),
-                    ),
-                    TossChipItem(
-                      value: 'this_week',
-                      label: 'This week',
-                      count: _getProblemCount('this_week'),
-                    ),
-                    TossChipItem(
-                      value: 'this_month',
-                      label: 'This month',
-                      count: _getProblemCount('this_month'),
-                    ),
-                  ],
-                  selectedValue: selectedFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedFilter = value;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: TossSpacing.space3),
-
-                // Problems List
-                Builder(
-                  builder: (context) {
-                    final filteredProblems = _getFilteredProblems(selectedFilter ?? 'today');
-                    if (filteredProblems.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(TossSpacing.space8),
-                        child: TossEmptyView(
-                          title: 'No problems found',
-                          description: 'All attendance records look good!',
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: filteredProblems.length,
-                      itemBuilder: (context, index) {
-                        final problem = filteredProblems[index];
-                        return ProblemCard(
-                          problem: problem,
-                          showDayNumber: selectedFilter == 'this_month',
-                          onTap: () async {
-                            // Staff problems navigate to detail page
-                            if (!problem.isShiftProblem && problem.staffId != null) {
-                              // Create StaffTimeRecord from problem data
-                              final staffRecord = StaffTimeRecord(
-                                staffId: problem.staffId!,
-                                staffName: problem.name,
-                                avatarUrl: problem.avatarUrl,
-                                clockIn: problem.clockIn ?? '--:--',
-                                clockOut: problem.clockOut ?? '--:--',
-                                isLate: problem.isLate,
-                                isOvertime: problem.isOvertime,
-                                needsConfirm: !problem.isConfirmed && (problem.isLate || problem.isOvertime),
-                                isConfirmed: problem.isConfirmed,
-                                shiftRequestId: problem.shiftRequestId,
-                                actualStart: problem.actualStart,
-                                actualEnd: problem.actualEnd,
-                                confirmStartTime: problem.confirmStartTime,
-                                confirmEndTime: problem.confirmEndTime,
-                                isReported: problem.isReported,
-                                reportReason: problem.reportReason,
-                                isProblemSolved: problem.isProblemSolved,
-                                bonusAmount: problem.bonusAmount,
-                                salaryType: problem.salaryType,
-                                salaryAmount: problem.salaryAmount,
-                                basePay: problem.basePay,
-                                totalPayWithBonus: problem.totalPayWithBonus,
-                                paidHour: problem.paidHour,
-                                lateMinute: problem.lateMinute,
-                                overtimeMinute: problem.overtimeMinute,
-                                shiftEndTime: problem.shiftEndTime,
-                              );
-
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute<bool>(
-                                  builder: (context) => StaffTimelogDetailPage(
-                                    staffRecord: staffRecord,
-                                    shiftName: problem.shiftName,
-                                    shiftDate: DateFormat('EEE, d MMM yyyy').format(problem.date),
-                                    shiftTimeRange: problem.timeRange ?? '--:-- - --:--',
-                                  ),
-                                ),
-                              );
-                              // Refresh data if save was successful (force refresh to bypass cache)
-                              if (result == true) {
-                                _loadMonthData(forceRefresh: true);
-                              }
-                            } else {
-                              // Shift problems (understaffed) navigate to Schedule tab
-                              if (widget.onNavigateToSchedule != null) {
-                                widget.onNavigateToSchedule!(problem.date);
-                              }
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
+          // "Problems" Section Header
+          Text(
+            'Problems',
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
             ),
           ),
 
-          // Gray divider before week navigation (full width)
+          const SizedBox(height: TossSpacing.space3),
+
+          // Filter Chips
+          TossChipGroup(
+            items: [
+              TossChipItem(
+                value: 'today',
+                label: 'Today',
+                count: _getProblemCount('today'),
+              ),
+              TossChipItem(
+                value: 'this_week',
+                label: 'This week',
+                count: _getProblemCount('this_week'),
+              ),
+              TossChipItem(
+                value: 'this_month',
+                label: 'This month',
+                count: _getProblemCount('this_month'),
+              ),
+            ],
+            selectedValue: selectedFilter,
+            onChanged: (value) {
+              setState(() {
+                selectedFilter = value;
+              });
+            },
+          ),
+
+          const SizedBox(height: TossSpacing.space3),
+
+          // Problems List
+          Builder(
+            builder: (context) {
+              final filteredProblems = _getFilteredProblems(selectedFilter ?? 'today');
+              if (filteredProblems.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(TossSpacing.space8),
+                  child: TossEmptyView(
+                    title: 'No problems found',
+                    description: 'All attendance records look good!',
+                  ),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: filteredProblems.length,
+                itemBuilder: (context, index) {
+                  final problem = filteredProblems[index];
+                  return ProblemCard(
+                    problem: problem,
+                    onTap: () async {
+                      // Staff problems navigate to detail page
+                      if (!problem.isShiftProblem && problem.staffId != null) {
+                        // Create StaffTimeRecord from problem data
+                        final staffRecord = StaffTimeRecord(
+                          staffId: problem.staffId!,
+                          staffName: problem.name,
+                          avatarUrl: problem.avatarUrl,
+                          clockIn: problem.clockIn ?? '--:--',
+                          clockOut: problem.clockOut ?? '--:--',
+                          isLate: problem.isLate,
+                          isOvertime: problem.isOvertime,
+                          needsConfirm: !problem.isConfirmed && (problem.isLate || problem.isOvertime),
+                          isConfirmed: problem.isConfirmed,
+                          shiftRequestId: problem.shiftRequestId,
+                          actualStart: problem.actualStart,
+                          actualEnd: problem.actualEnd,
+                          confirmStartTime: problem.confirmStartTime,
+                          confirmEndTime: problem.confirmEndTime,
+                          isReported: problem.isReported,
+                          reportReason: problem.reportReason,
+                          isProblemSolved: problem.isProblemSolved,
+                          bonusAmount: problem.bonusAmount,
+                          salaryType: problem.salaryType,
+                          salaryAmount: problem.salaryAmount,
+                          basePay: problem.basePay,
+                          totalPayWithBonus: problem.totalPayWithBonus,
+                          paidHour: problem.paidHour,
+                          lateMinute: problem.lateMinute,
+                          overtimeMinute: problem.overtimeMinute,
+                        );
+
+                        final result = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute<bool>(
+                            builder: (context) => StaffTimelogDetailPage(
+                              staffRecord: staffRecord,
+                              shiftName: problem.shiftName,
+                              shiftDate: DateFormat('EEE, d MMM yyyy').format(problem.date),
+                              shiftTimeRange: problem.timeRange ?? '--:-- - --:--',
+                            ),
+                          ),
+                        );
+                        // Refresh data if save was successful (force refresh to bypass cache)
+                        if (result == true) {
+                          _loadMonthData(forceRefresh: true);
+                        }
+                      } else {
+                        // Shift problems (understaffed) navigate to Schedule tab
+                        if (widget.onNavigateToSchedule != null) {
+                          widget.onNavigateToSchedule!(problem.date);
+                        }
+                      }
+                    },
+                  );
+                },
+              );
+            },
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Gray divider before week navigation
           const GrayDividerSpace(),
 
-          // Timelogs Section (with padding)
-          Padding(
-            padding: horizontalPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Week Navigation
-                TossWeekNavigation(
-                  weekLabel: _getWeekLabel(),
-                  dateRange: _formatWeekRange(),
-                  onPrevWeek: () => _changeWeek(-7),
-                  onCurrentWeek: _jumpToToday,
-                  onNextWeek: () => _changeWeek(7),
-                ),
+          const SizedBox(height: TossSpacing.space4),
 
-                const SizedBox(height: TossSpacing.space3),
+          // Week Navigation
+          TossWeekNavigation(
+            weekLabel: _getWeekLabel(),
+            dateRange: _formatWeekRange(),
+            onPrevWeek: () => _changeWeek(-7),
+            onCurrentWeek: _jumpToToday,
+            onNextWeek: () => _changeWeek(7),
+          ),
 
-                // Week Dates Picker
-                WeekDatesPicker(
-                  selectedDate: _selectedDate,
-                  weekStartDate: _currentWeekStart,
-                  datesWithUserApproved: const {},
-                  shiftAvailabilityMap: _getShiftAvailabilityMap(),
-                  onDateSelected: (date) {
-                    final oldMonth = _selectedDate.month;
-                    setState(() => _selectedDate = date);
-                    // Load new month data if month changed
-                    if (date.month != oldMonth) {
-                      _loadMonthData();
-                    }
-                  },
-                ),
+          const SizedBox(height: TossSpacing.space3),
 
-                const SizedBox(height: TossSpacing.space4),
+          // Week Dates Picker
+          WeekDatesPicker(
+            selectedDate: _selectedDate,
+            weekStartDate: _currentWeekStart,
+            datesWithUserApproved: const {},
+            shiftAvailabilityMap: _getShiftAvailabilityMap(),
+            onDateSelected: (date) {
+              final oldMonth = _selectedDate.month;
+              setState(() => _selectedDate = date);
+              // Load new month data if month changed
+              if (date.month != oldMonth) {
+                _loadMonthData();
+              }
+            },
+          ),
 
-                // Timelogs section header
-                Text(
-                  'Timelogs for ${_formatSelectedDate(_selectedDate)}',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+          const SizedBox(height: TossSpacing.space4),
 
-                const SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: 16),
 
-                // Shift sections
-                Builder(
-                  builder: (context) {
-                    final shifts = _getShiftsForSelectedDate();
-                    if (shifts.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(TossSpacing.space8),
-                        child: TossEmptyView(
-                          title: 'No timelogs',
-                          description: 'No approved shifts for this date',
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: shifts.length,
-                      itemBuilder: (context, index) {
-                        final shift = shifts[index];
-                        return ShiftSection(
-                          shift: shift,
-                          initiallyExpanded: false, // All sections collapsed by default
-                          onDataChanged: () => _loadMonthData(forceRefresh: true),
-                        );
-                      },
-                    );
-                  },
-                ),
-
-                const SizedBox(height: TossSpacing.space4),
-              ],
+          // Timelogs section header
+          Text(
+            'Timelogs for ${_formatSelectedDate(_selectedDate)}',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w600,
             ),
           ),
+
+          const SizedBox(height: TossSpacing.space3),
+
+          // Shift sections
+          Builder(
+            builder: (context) {
+              final shifts = _getShiftsForSelectedDate();
+              if (shifts.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(TossSpacing.space8),
+                  child: TossEmptyView(
+                    title: 'No timelogs',
+                    description: 'No approved shifts for this date',
+                  ),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: shifts.length,
+                itemBuilder: (context, index) {
+                  final shift = shifts[index];
+                  return ShiftSection(
+                    shift: shift,
+                    initiallyExpanded: false, // All sections collapsed by default
+                    onDataChanged: () => _loadMonthData(forceRefresh: true),
+                  );
+                },
+              );
+            },
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
         ],
       ),
     );
@@ -993,14 +842,18 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     final userData = appState.user;
     final companies = (userData['companies'] as List<dynamic>?) ?? [];
 
-    // Get stores from selected company only (no fallback to prevent showing wrong company's stores)
+    // Get stores from selected company
     List<dynamic> stores = [];
-    if (companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
-      for (final company in companies) {
-        final companyMap = company as Map<String, dynamic>;
-        if (companyMap['company_id']?.toString() == appState.companyChoosen) {
-          stores = (companyMap['stores'] as List<dynamic>?) ?? [];
-          break;
+    if (companies.isNotEmpty) {
+      try {
+        final selectedCompany = companies.firstWhere(
+          (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
+        ) as Map<String, dynamic>;
+        stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
+      } catch (e) {
+        if (companies.isNotEmpty) {
+          final firstCompany = companies.first as Map<String, dynamic>;
+          stores = (firstCompany['stores'] as List<dynamic>?) ?? [];
         }
       }
     }

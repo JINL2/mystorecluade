@@ -79,10 +79,9 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
 
               const SizedBox(height: 16),
 
-              // Categories (빈 카테고리는 숨김)
-              ...widget.accountChanges.companyWide
-                  .where((category) => category.accounts.isNotEmpty)
-                  .map((category) => _AccountCategoryCard(category: category)),
+              // Categories
+              ...widget.accountChanges.companyWide.map((category) =>
+                  _AccountCategoryCard(category: category),),
             ],
           ),
         ),
@@ -324,10 +323,9 @@ class _StoreAccountCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Categories (빈 카테고리는 숨김)
-          ...store.categories
-              .where((category) => category.accounts.isNotEmpty)
-              .map((category) => _AccountCategoryCard(category: category)),
+          // Categories
+          ...store.categories.map((category) =>
+              _AccountCategoryCard(category: category),),
         ],
       ),
     );

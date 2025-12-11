@@ -30,7 +30,6 @@ abstract class CounterPartyRepository {
   /// Update an existing counter party
   Future<CounterParty> updateCounterParty({
     required String counterpartyId,
-    required String companyId,
     required String name,
     required CounterPartyType type,
     String? email,

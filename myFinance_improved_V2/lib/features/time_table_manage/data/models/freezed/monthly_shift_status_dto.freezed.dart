@@ -725,8 +725,7 @@ mixin _$ShiftEmployeeDto {
   @JsonKey(name: 'shift_request_id')
   String get shiftRequestId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_id')
-  String get userId =>
-      throw _privateConstructorUsedError; // user_name can be null when user profile is incomplete
+  String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_name')
   String get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_approved')
@@ -870,7 +869,7 @@ class _$ShiftEmployeeDtoImpl implements _ShiftEmployeeDto {
   const _$ShiftEmployeeDtoImpl(
       {@JsonKey(name: 'shift_request_id') required this.shiftRequestId,
       @JsonKey(name: 'user_id') required this.userId,
-      @JsonKey(name: 'user_name') this.userName = 'Unknown',
+      @JsonKey(name: 'user_name') required this.userName,
       @JsonKey(name: 'is_approved') this.isApproved = false,
       @JsonKey(name: 'profile_image') this.profileImage});
 
@@ -883,7 +882,6 @@ class _$ShiftEmployeeDtoImpl implements _ShiftEmployeeDto {
   @override
   @JsonKey(name: 'user_id')
   final String userId;
-// user_name can be null when user profile is incomplete
   @override
   @JsonKey(name: 'user_name')
   final String userName;
@@ -941,7 +939,7 @@ abstract class _ShiftEmployeeDto implements ShiftEmployeeDto {
   const factory _ShiftEmployeeDto(
       {@JsonKey(name: 'shift_request_id') required final String shiftRequestId,
       @JsonKey(name: 'user_id') required final String userId,
-      @JsonKey(name: 'user_name') final String userName,
+      @JsonKey(name: 'user_name') required final String userName,
       @JsonKey(name: 'is_approved') final bool isApproved,
       @JsonKey(name: 'profile_image')
       final String? profileImage}) = _$ShiftEmployeeDtoImpl;
@@ -954,7 +952,7 @@ abstract class _ShiftEmployeeDto implements ShiftEmployeeDto {
   String get shiftRequestId;
   @override
   @JsonKey(name: 'user_id')
-  String get userId; // user_name can be null when user profile is incomplete
+  String get userId;
   @override
   @JsonKey(name: 'user_name')
   String get userName;

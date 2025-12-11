@@ -1,7 +1,5 @@
-import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_features_model.dart';
-import '../models/homepage_alert_model.dart';
 import '../models/revenue_model.dart';
 import '../models/top_feature_model.dart';
 import '../models/user_companies_model.dart';
@@ -246,67 +244,6 @@ class HomepageDataSource {
     } catch (e) {
       // Don't throw - logging clicks should not block user navigation
       // Just silently fail
-    }
-  }
-
-  // === Alert Operations ===
-
-  /// Fetch homepage alert via homepage_get_alert RPC
-  ///
-  /// Calls: rpc('homepage_get_alert', {p_user_id: userId})
-  /// Returns: Alert with is_show, is_checked flag and content
-  ///
-  /// Uses 6-hour cache to prevent excessive API calls.
-  /// Cache is reset on app restart or pull-to-refresh.
-  Future<HomepageAlertModel> getHomepageAlert({required String userId}) async {
-    try {
-      final response = await AuthDataCache.instance.deduplicate<Map<String, dynamic>>(
-        'homepage_get_alert_$userId',
-        () => _supabaseService.client.rpc<Map<String, dynamic>>(
-          'homepage_get_alert',
-          params: {'p_user_id': userId},
-        ),
-        customTimeout: const Duration(hours: 6),
-      );
-      return HomepageAlertModel.fromJson(response);
-    } catch (e) {
-      // Return default (no alert) on error to not block homepage
-      return const HomepageAlertModel(isShow: false, isChecked: false, content: null);
-    }
-  }
-
-  /// Force refresh homepage alert by invalidating cache
-  void invalidateHomepageAlertCache(String userId) {
-    AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
-  }
-
-  /// Update user's alert response (is_checked) via homepage_response_alert RPC
-  ///
-  /// Calls: rpc('homepage_response_alert', {p_user_id: userId, p_is_checked: isChecked})
-  /// Returns: {status: 'success', is_checked: bool} or {status: 'error', message: string}
-  Future<bool> responseHomepageAlert({
-    required String userId,
-    required bool isChecked,
-  }) async {
-    try {
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'homepage_response_alert',
-        params: {
-          'p_user_id': userId,
-          'p_is_checked': isChecked,
-        },
-      );
-
-      final status = response['status'] as String?;
-      if (status == 'success') {
-        // Invalidate cache so next fetch gets updated is_checked value
-        invalidateHomepageAlertCache(userId);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      // Silently fail - don't block user
-      return false;
     }
   }
 

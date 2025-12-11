@@ -18,20 +18,16 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 class PermissionsForm extends StatelessWidget {
   final String selectedVisibility;
   final String selectedPermission;
-  final bool requiredAttachment;
   final void Function(String?) onVisibilityChanged;
   final void Function(String?) onPermissionChanged;
-  final void Function(bool) onRequiredAttachmentChanged;
   final bool enabled;
-
+  
   const PermissionsForm({
     super.key,
     required this.selectedVisibility,
     required this.selectedPermission,
-    required this.requiredAttachment,
     required this.onVisibilityChanged,
     required this.onPermissionChanged,
-    required this.onRequiredAttachmentChanged,
     this.enabled = true,
   });
 
@@ -90,14 +86,9 @@ class PermissionsForm extends StatelessWidget {
               ),
             ],
           ),
-
+          
           const SizedBox(height: TossSpacing.space4),
-
-          // Required Attachment Toggle
-          _buildRequiredAttachmentToggle(),
-
-          const SizedBox(height: TossSpacing.space4),
-
+          
           // Info box about permissions
           _buildInfoBox(),
           
@@ -108,58 +99,6 @@ class PermissionsForm extends StatelessWidget {
     );
   }
   
-  Widget _buildRequiredAttachmentToggle() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.attach_file,
-            size: 20,
-            color: TossColors.gray700,
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Require Attachment',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space1),
-                Text(
-                  'Users must attach a receipt or document when using this template',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Switch.adaptive(
-            value: requiredAttachment,
-            onChanged: enabled ? onRequiredAttachmentChanged : null,
-            activeColor: TossColors.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildInfoBox() {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),

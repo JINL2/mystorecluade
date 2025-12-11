@@ -60,19 +60,12 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
     required String userId,
     String? firstName,
     String? lastName,
-    String? profileImagePath,
   }) {
     return execute(() async {
       final updates = <String, dynamic>{};
 
       if (firstName != null) updates['first_name'] = firstName;
       if (lastName != null) updates['last_name'] = lastName;
-
-      // Upload profile image if provided
-      if (profileImagePath != null) {
-        final imageUrl = await _dataSource.uploadProfileImage(userId, profileImagePath);
-        updates['profile_image'] = imageUrl;
-      }
 
       final updatedModel = await _dataSource.updateUserProfile(
         userId: userId,

@@ -63,8 +63,6 @@ extension EmployeeReliabilityDtoMapper on EmployeeReliabilityDto {
       userId: userId,
       userName: userName,
       profileImage: profileImage,
-      role: role,
-      storeName: storeName,
       totalApplications: totalApplications,
       approvedShifts: approvedShifts,
       completedShifts: completedShifts,

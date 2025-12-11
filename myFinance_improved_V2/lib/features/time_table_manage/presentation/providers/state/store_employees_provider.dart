@@ -39,6 +39,7 @@ final storeEmployeesProvider =
     return [];
   }
 
+  // ✅ Use Repository instead of Datasource directly
   final repository = ref.watch(timeTableRepositoryProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;

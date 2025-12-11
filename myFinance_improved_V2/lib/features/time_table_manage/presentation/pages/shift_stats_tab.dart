@@ -8,13 +8,11 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/reliability_score.dart';
-import '../providers/state/manager_shift_cards_provider.dart';
 import '../providers/state/reliability_score_provider.dart';
-import '../providers/states/time_table_state.dart';
+import '../providers/state/store_employees_provider.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
-import 'employee_detail_page.dart';
 import 'reliability_rankings_page.dart';
 
 /// Period options for Store Health section
@@ -34,14 +32,11 @@ enum StatsPeriod {
 class ShiftStatsTab extends ConsumerStatefulWidget {
   final String? selectedStoreId;
   final void Function(String storeId)? onStoreChanged;
-  /// Callback to navigate to Timesheets tab with a specific filter
-  final void Function(String filter)? onNavigateToTimesheets;
 
   const ShiftStatsTab({
     super.key,
     this.selectedStoreId,
     this.onStoreChanged,
-    this.onNavigateToTimesheets,
   });
 
   @override
@@ -60,28 +55,10 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         ? ref.watch(reliabilityScoreProvider(storeId))
         : const AsyncValue<ReliabilityScore>.loading();
 
-    // Watch manager shift cards to get employees with actual work history
-    final managerCardsState = storeId.isNotEmpty
-        ? ref.watch(managerCardsProvider(storeId))
-        : const ManagerShiftCardsState();
-
-    // Extract employee UUIDs from shift cards (employees with actual work history this month)
-    final currentMonthKey = _getCurrentMonthKey();
-
-    // Ensure current month data is loaded
-    if (storeId.isNotEmpty) {
-      final notifier = ref.read(managerCardsProvider(storeId).notifier);
-      if (!managerCardsState.dataByMonth.containsKey(currentMonthKey)) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifier.loadMonth(month: DateTime.now());
-        });
-      }
-    }
-
-    final employeesWithWorkHistory = _extractEmployeeIdsFromCards(
-      managerCardsState,
-      currentMonthKey,
-    );
+    // Watch store employee user IDs for filtering leaderboard
+    final storeEmployeeIdsAsync = storeId.isNotEmpty
+        ? ref.watch(storeEmployeeUserIdsProvider(storeId))
+        : const AsyncValue<Set<String>>.data({});
 
     return SingleChildScrollView(
       child: Column(
@@ -101,6 +78,8 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
           // Section Divider (full width)
           const GrayDividerSpace(),
 
+          const SizedBox(height: 32),
+
           // Store Health Section - Connected to real data
           reliabilityAsync.when(
             data: (score) => _buildStoreHealthSection(score),
@@ -108,12 +87,12 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             error: (error, stack) => _buildErrorSection(error.toString()),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Section Divider (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Reliability Leaderboard - Connected to real data
           // Leaderboard shows only Store employees, See All shows Company employees
@@ -121,14 +100,14 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             child: reliabilityAsync.when(
               data: (score) {
-                // Get current store name for employee detail display
-                final currentStoreName = _getStoreName(storeId);
+                // Get store employee IDs for filtering
+                final storeEmployeeIds = storeEmployeeIdsAsync.valueOrNull ?? {};
 
-                // Filter employees by work history (employees with actual shifts this month)
-                final storeEmployees = employeesWithWorkHistory.isEmpty
-                    ? score.employees // If no work history filter, show all
+                // Filter employees by store (for leaderboard display)
+                final storeEmployees = storeEmployeeIds.isEmpty
+                    ? score.employees // If no store filter, show all
                     : score.employees
-                        .where((e) => employeesWithWorkHistory.contains(e.userId))
+                        .where((e) => storeEmployeeIds.contains(e.userId))
                         .toList();
 
                 // Get filtered top reliability (store employees only)
@@ -153,7 +132,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                 final storeEmployeesList = _mapToLeaderboardEmployees(
                   storeEmployees,
                   isNeedsAttention: false,
-                  storeName: currentStoreName,
                 );
                 final companyEmployeesList = _mapToLeaderboardEmployees(
                   score.employees,
@@ -165,28 +143,13 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   topReliabilityList: _mapToLeaderboardEmployees(
                     filteredTopReliability,
                     isNeedsAttention: false,
-                    storeName: currentStoreName,
                   ),
                   needsAttentionList: _mapToLeaderboardEmployees(
                     filteredNeedsAttention,
                     isNeedsAttention: true,
-                    storeName: currentStoreName,
                   ),
                   // This list is used for "See All" - pass company employees
                   allEmployeesList: companyEmployeesList,
-                  // Navigate to employee detail page when tapped
-                  onEmployeeTap: (employee) {
-                    HapticFeedback.selectionClick();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (context) => EmployeeDetailPage(
-                          employee: employee,
-                          storeId: storeId,
-                        ),
-                      ),
-                    );
-                  },
                   // Navigate to new page with current tab info
                   onSeeAllTapWithTab: (selectedTab) {
                     HapticFeedback.selectionClick();
@@ -268,10 +231,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             onTimeDisplay: onTimeDisplay,
             problemSolved: problemSolved,
             totalProblems: totalProblems > 0 ? totalProblems : 1, // Avoid division by zero
-            onProblemSolvesTap: () {
-              // Navigate to Timesheets tab with "This month" filter
-              widget.onNavigateToTimesheets?.call('this_month');
-            },
           ),
           const SizedBox(height: 16),
 
@@ -399,30 +358,10 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     );
   }
 
-  /// Get store name from store ID
-  String _getStoreName(String storeId) {
-    final appState = ref.read(appStateProvider);
-    final userData = appState.user;
-    final companies = (userData['companies'] as List<dynamic>?) ?? [];
-
-    for (final company in companies) {
-      final companyMap = company as Map<String, dynamic>;
-      final stores = (companyMap['stores'] as List<dynamic>?) ?? [];
-      for (final store in stores) {
-        final storeMap = store as Map<String, dynamic>;
-        if (storeMap['store_id']?.toString() == storeId) {
-          return storeMap['store_name']?.toString() ?? '';
-        }
-      }
-    }
-    return '';
-  }
-
   /// Map EmployeeReliability to LeaderboardEmployee
   List<LeaderboardEmployee> _mapToLeaderboardEmployees(
     List<EmployeeReliability> employees, {
     required bool isNeedsAttention,
-    String? storeName,
   }) {
     return employees.asMap().entries.map((entry) {
       final index = entry.key;
@@ -437,10 +376,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         // change is not provided by RPC - only show if historical data becomes available
         change: null,
         isPositive: !isNeedsAttention,
-        // Employee info for detail page
-        visitorId: employee.userId,
-        role: employee.role,
-        storeName: employee.storeName ?? storeName,
         // Score breakdown fields for criteria-based filtering
         finalScore: employee.finalScore,
         lateRate: employee.lateRate,
@@ -459,45 +394,26 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     }).toList();
   }
 
-  /// Get current month key in "yyyy-MM" format for data lookup
-  String _getCurrentMonthKey() {
-    final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
-  }
-
-  /// Extract employee UUIDs from shift cards for a given month
-  /// Returns Set of user IDs who have actual work history in that month
-  Set<String> _extractEmployeeIdsFromCards(
-    ManagerShiftCardsState cardsState,
-    String monthKey,
-  ) {
-    final monthData = cardsState.dataByMonth[monthKey];
-    if (monthData == null) {
-      return {};
-    }
-
-    // Extract unique employee user IDs from shift cards
-    // Only include non-empty user IDs
-    return monthData.cards
-        .map((card) => card.employee.userId)
-        .where((userId) => userId.isNotEmpty)
-        .toSet();
-  }
-
   /// Build store selector dropdown
   Widget _buildStoreSelector() {
     final appState = ref.watch(appStateProvider);
     final userData = appState.user;
     final companies = (userData['companies'] as List<dynamic>?) ?? [];
 
-    // Get stores from selected company only (no fallback to prevent showing wrong company's stores)
+    // Get stores from selected company
     List<dynamic> stores = [];
-    if (companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
-      for (final company in companies) {
-        final companyMap = company as Map<String, dynamic>;
-        if (companyMap['company_id']?.toString() == appState.companyChoosen) {
-          stores = (companyMap['stores'] as List<dynamic>?) ?? [];
-          break;
+    if (companies.isNotEmpty) {
+      try {
+        final selectedCompany = companies.firstWhere(
+          (c) =>
+              (c as Map<String, dynamic>)['company_id'] ==
+              appState.companyChoosen,
+        ) as Map<String, dynamic>;
+        stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
+      } catch (e) {
+        if (companies.isNotEmpty) {
+          final firstCompany = companies.first as Map<String, dynamic>;
+          stores = (firstCompany['stores'] as List<dynamic>?) ?? [];
         }
       }
     }

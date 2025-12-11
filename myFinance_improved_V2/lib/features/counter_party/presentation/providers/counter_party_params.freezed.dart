@@ -319,7 +319,6 @@ abstract class _CreateCounterPartyParams implements CreateCounterPartyParams {
 /// @nodoc
 mixin _$UpdateCounterPartyParams {
   String get counterpartyId => throw _privateConstructorUsedError;
-  String get companyId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   CounterPartyType get type => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
@@ -344,7 +343,6 @@ abstract class $UpdateCounterPartyParamsCopyWith<$Res> {
   @useResult
   $Res call(
       {String counterpartyId,
-      String companyId,
       String name,
       CounterPartyType type,
       String? email,
@@ -372,7 +370,6 @@ class _$UpdateCounterPartyParamsCopyWithImpl<$Res,
   @override
   $Res call({
     Object? counterpartyId = null,
-    Object? companyId = null,
     Object? name = null,
     Object? type = null,
     Object? email = freezed,
@@ -386,10 +383,6 @@ class _$UpdateCounterPartyParamsCopyWithImpl<$Res,
       counterpartyId: null == counterpartyId
           ? _value.counterpartyId
           : counterpartyId // ignore: cast_nullable_to_non_nullable
-              as String,
-      companyId: null == companyId
-          ? _value.companyId
-          : companyId // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
           ? _value.name
@@ -438,7 +431,6 @@ abstract class _$$UpdateCounterPartyParamsImplCopyWith<$Res>
   @useResult
   $Res call(
       {String counterpartyId,
-      String companyId,
       String name,
       CounterPartyType type,
       String? email,
@@ -465,7 +457,6 @@ class __$$UpdateCounterPartyParamsImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? counterpartyId = null,
-    Object? companyId = null,
     Object? name = null,
     Object? type = null,
     Object? email = freezed,
@@ -479,10 +470,6 @@ class __$$UpdateCounterPartyParamsImplCopyWithImpl<$Res>
       counterpartyId: null == counterpartyId
           ? _value.counterpartyId
           : counterpartyId // ignore: cast_nullable_to_non_nullable
-              as String,
-      companyId: null == companyId
-          ? _value.companyId
-          : companyId // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
           ? _value.name
@@ -525,7 +512,6 @@ class __$$UpdateCounterPartyParamsImplCopyWithImpl<$Res>
 class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
   const _$UpdateCounterPartyParamsImpl(
       {required this.counterpartyId,
-      required this.companyId,
       required this.name,
       required this.type,
       this.email,
@@ -537,8 +523,6 @@ class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
 
   @override
   final String counterpartyId;
-  @override
-  final String companyId;
   @override
   final String name;
   @override
@@ -559,7 +543,7 @@ class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
 
   @override
   String toString() {
-    return 'UpdateCounterPartyParams(counterpartyId: $counterpartyId, companyId: $companyId, name: $name, type: $type, email: $email, phone: $phone, address: $address, notes: $notes, isInternal: $isInternal, linkedCompanyId: $linkedCompanyId)';
+    return 'UpdateCounterPartyParams(counterpartyId: $counterpartyId, name: $name, type: $type, email: $email, phone: $phone, address: $address, notes: $notes, isInternal: $isInternal, linkedCompanyId: $linkedCompanyId)';
   }
 
   @override
@@ -569,8 +553,6 @@ class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
             other is _$UpdateCounterPartyParamsImpl &&
             (identical(other.counterpartyId, counterpartyId) ||
                 other.counterpartyId == counterpartyId) &&
-            (identical(other.companyId, companyId) ||
-                other.companyId == companyId) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.email, email) || other.email == email) &&
@@ -584,8 +566,8 @@ class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, counterpartyId, companyId, name,
-      type, email, phone, address, notes, isInternal, linkedCompanyId);
+  int get hashCode => Object.hash(runtimeType, counterpartyId, name, type,
+      email, phone, address, notes, isInternal, linkedCompanyId);
 
   /// Create a copy of UpdateCounterPartyParams
   /// with the given fields replaced by the non-null parameter values.
@@ -600,7 +582,6 @@ class _$UpdateCounterPartyParamsImpl implements _UpdateCounterPartyParams {
 abstract class _UpdateCounterPartyParams implements UpdateCounterPartyParams {
   const factory _UpdateCounterPartyParams(
       {required final String counterpartyId,
-      required final String companyId,
       required final String name,
       required final CounterPartyType type,
       final String? email,
@@ -612,8 +593,6 @@ abstract class _UpdateCounterPartyParams implements UpdateCounterPartyParams {
 
   @override
   String get counterpartyId;
-  @override
-  String get companyId;
   @override
   String get name;
   @override

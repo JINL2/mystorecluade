@@ -26,14 +26,7 @@ class TimelogHelpers {
 
     // Already in time format (HH:mm:ss or HH:mm)
     if (input.contains(':')) {
-      final parts = input.split(':');
-      if (parts.length == 2) {
-        // HH:mm format → convert to HH:mm:ss
-        return '${parts[0]}:${parts[1]}:00';
-      } else if (parts.length >= 3) {
-        // Already HH:mm:ss format
-        return '${parts[0]}:${parts[1]}:${parts[2]}';
-      }
+      return input;
     }
 
     return null;

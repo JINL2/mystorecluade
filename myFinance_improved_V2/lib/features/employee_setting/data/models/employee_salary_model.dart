@@ -39,9 +39,6 @@ class EmployeeSalaryModel extends EmployeeSalary {
     super.totalWorkingDay,
     super.totalWorkingHour,
     super.totalSalary,
-    super.lastActivityAt,
-    super.bankName,
-    super.bankAccountNumber,
   });
 
   /// Create model from domain entity
@@ -79,9 +76,6 @@ class EmployeeSalaryModel extends EmployeeSalary {
       totalWorkingDay: entity.totalWorkingDay,
       totalWorkingHour: entity.totalWorkingHour,
       totalSalary: entity.totalSalary,
-      lastActivityAt: entity.lastActivityAt,
-      bankName: entity.bankName,
-      bankAccountNumber: entity.bankAccountNumber,
     );
   }
 
@@ -93,7 +87,7 @@ class EmployeeSalaryModel extends EmployeeSalary {
       fullName: json['full_name'] as String? ?? 'Unknown Employee',
       email: json['email'] as String? ?? '',
       profileImage: json['profile_image'] as String?,
-      roleName: json['role_name'] as String? ?? '',
+      roleName: json['role_name'] as String? ?? 'Unknown Role',
       companyId: json['company_id'] as String? ?? '',
       storeId: json['store_id'] as String?,
       salaryAmount: (json['salary_amount'] as num?)?.toDouble() ?? 0.0,
@@ -124,13 +118,6 @@ class EmployeeSalaryModel extends EmployeeSalary {
       totalWorkingDay: json['total_working_day'] as int?,
       totalWorkingHour: (json['total_working_hour'] as num?)?.toDouble(),
       totalSalary: (json['total_salary'] as num?)?.toDouble(),
-
-      // Activity tracking
-      lastActivityAt: DateTimeUtils.toLocalSafe(json['last_activity_at'] as String?),
-
-      // Bank information
-      bankName: json['bank_name'] as String?,
-      bankAccountNumber: json['bank_account_number'] as String?,
     );
   }
 
@@ -173,13 +160,6 @@ class EmployeeSalaryModel extends EmployeeSalary {
       'total_working_day': totalWorkingDay,
       'total_working_hour': totalWorkingHour,
       'total_salary': totalSalary,
-
-      // Activity tracking
-      'last_activity_at': lastActivityAt != null ? DateTimeUtils.toUtc(lastActivityAt!) : null,
-
-      // Bank information
-      'bank_name': bankName,
-      'bank_account_number': bankAccountNumber,
     };
   }
 
@@ -218,9 +198,6 @@ class EmployeeSalaryModel extends EmployeeSalary {
       totalWorkingDay: totalWorkingDay,
       totalWorkingHour: totalWorkingHour,
       totalSalary: totalSalary,
-      lastActivityAt: lastActivityAt,
-      bankName: bankName,
-      bankAccountNumber: bankAccountNumber,
     );
   }
 }

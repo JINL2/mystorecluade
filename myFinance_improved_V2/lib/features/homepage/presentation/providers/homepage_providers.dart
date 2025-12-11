@@ -1,16 +1,11 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
-import '../../domain/entities/homepage_alert.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
@@ -201,9 +196,6 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
 ///
 /// This provider is used globally across the app and returns Map<String, dynamic>
 /// for backward compatibility with existing code.
-///
-/// ⚠️ TIMEOUT: If user data doesn't load within 20 seconds, auto-logout occurs.
-/// This handles edge cases like orphan auth sessions (auth.users exists but public.users deleted).
 final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final authState = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -220,86 +212,49 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     return null;
   }
 
-  try {
-    // Fetch user companies data from repository with 20 second timeout
-    final repository = ref.read(homepageRepositoryProvider);
-    final userEntity = await repository.getUserCompanies(user.id)
-        .timeout(
-          const Duration(seconds: 20),
-          onTimeout: () {
-            throw TimeoutException('User data load timeout after 20 seconds');
-          },
-        );
+  // Fetch user companies data from repository
+  final repository = ref.read(homepageRepositoryProvider);
+  final userEntity = await repository.getUserCompanies(user.id);
 
-    // Convert entity to Map once (avoid duplication)
-    final userData = convertUserEntityToMap(userEntity);
+  // Convert entity to Map once (avoid duplication)
+  final userData = convertUserEntityToMap(userEntity);
 
-    // Update AppState only if data changed
-    if (appState.user.isEmpty || appState.user['user_id'] != user.id) {
-      appStateNotifier.updateUser(
-        user: userData,
-        isAuthenticated: true,
-      );
-    }
-
-    // Auto-select company and store using UseCase
-    if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
-      // Load last selection from cache
-      final lastSelection = await appStateNotifier.loadLastSelection();
-
-      // Execute auto-select use case (business logic encapsulated)
-      final autoSelect = AutoSelectCompanyStore();
-      final selection = autoSelect(
-        AutoSelectParams(
-          userEntity: userEntity,
-          lastCompanyId: lastSelection['companyId'] as String?,
-          lastStoreId: lastSelection['storeId'] as String?,
-        ),
-      );
-
-      // Update app state with selected company/store
-      if (selection.hasSelection) {
-        appStateNotifier.updateBusinessContext(
-          companyId: selection.company!.id,
-          storeId: selection.store?.id ?? '',
-          companyName: selection.company!.companyName,
-          storeName: selection.store?.storeName,
-        );
-      }
-    }
-
-    // Return Map (already converted once, reuse userData)
-    return userData;
-  } on TimeoutException {
-    // ⚠️ Timeout - auto logout and throw error
-    debugPrint('🔴 [UserCompanies] Timeout loading user data - forcing logout');
-
-    // Sign out the user
-    await ref.read(authServiceProvider).signOut();
-
-    // Clear app state
-    appStateNotifier.signOut();
-
-    throw Exception('Session expired. Please sign in again.');
-  } catch (e) {
-    // ⚠️ Other errors (e.g., user profile not found in public.users)
-    debugPrint('🔴 [UserCompanies] Error loading user data: $e');
-
-    // If error contains "No user companies data" - orphan auth session
-    if (e.toString().contains('No user companies data')) {
-      debugPrint('🔴 [UserCompanies] Orphan auth session detected - forcing logout');
-
-      // Sign out the user
-      await ref.read(authServiceProvider).signOut();
-
-      // Clear app state
-      appStateNotifier.signOut();
-
-      throw Exception('Account data not found. Please sign in again.');
-    }
-
-    rethrow;
+  // Update AppState only if data changed
+  if (appState.user.isEmpty || appState.user['user_id'] != user.id) {
+    appStateNotifier.updateUser(
+      user: userData,
+      isAuthenticated: true,
+    );
   }
+
+  // Auto-select company and store using UseCase
+  if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
+    // Load last selection from cache
+    final lastSelection = await appStateNotifier.loadLastSelection();
+
+    // Execute auto-select use case (business logic encapsulated)
+    final autoSelect = AutoSelectCompanyStore();
+    final selection = autoSelect(
+      AutoSelectParams(
+        userEntity: userEntity,
+        lastCompanyId: lastSelection['companyId'] as String?,
+        lastStoreId: lastSelection['storeId'] as String?,
+      ),
+    );
+
+    // Update app state with selected company/store
+    if (selection.hasSelection) {
+      appStateNotifier.updateBusinessContext(
+        companyId: selection.company!.id,
+        storeId: selection.store?.id ?? '',
+        companyName: selection.company!.companyName,
+        storeName: selection.store?.storeName,
+      );
+    }
+  }
+
+  // Return Map (already converted once, reuse userData)
+  return userData;
 });
 
 /// Entity-based provider for homepage (Clean Architecture)
@@ -364,28 +319,4 @@ final currenciesProvider = FutureProvider.autoDispose<List<Currency>>((ref) asyn
     (failure) => throw Exception(failure.message),
     (currencies) => currencies,
   );
-});
-
-// === Homepage Alert Provider ===
-
-/// Provider for fetching homepage alert
-///
-/// Returns alert data with is_show and is_checked flags.
-/// Uses 6-hour cache in DataSource to prevent excessive API calls.
-final homepageAlertProvider = FutureProvider<HomepageAlert>((ref) async {
-  // Wait for authentication
-  final authState = ref.watch(authStateProvider);
-  final user = authState.when(
-    data: (user) => user,
-    loading: () => null,
-    error: (_, __) => null,
-  );
-
-  if (user == null) {
-    return const HomepageAlert(isShow: false, isChecked: false, content: null);
-  }
-
-  final repository = ref.watch(homepageRepositoryProvider);
-  final alert = await repository.getHomepageAlert(userId: user.id);
-  return alert;
 });

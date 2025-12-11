@@ -18,9 +18,6 @@ class ConfirmedAttendanceCard extends StatelessWidget {
   final bool isCheckOutConfirmed;
   final VoidCallback onEditCheckIn;
   final VoidCallback onEditCheckOut;
-  /// When true, neither "Confirmed" nor "Need confirm" status is shown
-  /// (shift is still in progress)
-  final bool isShiftInProgress;
 
   const ConfirmedAttendanceCard({
     super.key,
@@ -35,7 +32,6 @@ class ConfirmedAttendanceCard extends StatelessWidget {
     required this.isCheckOutConfirmed,
     required this.onEditCheckIn,
     required this.onEditCheckOut,
-    this.isShiftInProgress = false,
   });
 
   @override
@@ -65,17 +61,14 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                       color: TossColors.gray900,
                     ),
                   ),
-                  // Only show status when shift has ended
-                  if (!isShiftInProgress) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      isFullyConfirmed ? '• Confirmed' : '• Need confirm',
-                      style: TossTextStyles.caption.copyWith(
-                        color: isFullyConfirmed ? TossColors.gray500 : TossColors.error,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isFullyConfirmed ? '• Confirmed' : '• Need confirm',
+                    style: TossTextStyles.caption.copyWith(
+                      color: isFullyConfirmed ? TossColors.gray500 : TossColors.error,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  ),
                   const Spacer(),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,

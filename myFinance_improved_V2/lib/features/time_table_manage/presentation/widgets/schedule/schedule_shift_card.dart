@@ -218,12 +218,9 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
             ),
           ),
 
-          // Divider line under the assigned row
-          if (_isExpanded)
-            const Divider(height: 1, thickness: 1, color: TossColors.gray200),
-
           // Applicants section (when expanded)
           if (_isExpanded && hasApplicants) ...[
+            const Divider(height: 1, color: TossColors.gray200),
             Padding(
               padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
@@ -379,30 +376,45 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
 
   /// Handle Remove button click from bottom sheet
   /// Calls RPC and updates local state on success
-  /// Note: Bottom sheet lifecycle is handled by AvatarStackInteract
   Future<void> _handleRemove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return;
 
     HapticFeedback.selectionClick();
 
-    // Call the RPC through the callback (sync - AvatarStackInteract handles the rest)
-    final success = await widget.onRemove(shiftRequestId);
+    // Set loading state
+    setState(() {
+      _loadingRequests.add(shiftRequestId);
+    });
 
-    if (success && mounted) {
-      // Update local state - change is_approved to false
-      setState(() {
-        final index = _localEmployees.indexWhere(
-          (e) => e['shift_request_id'] == shiftRequestId,
-        );
-        if (index != -1) {
-          _localEmployees[index]['is_approved'] = false;
+    try {
+      // Call the RPC through the callback
+      final success = await widget.onRemove(shiftRequestId);
+
+      if (success && mounted) {
+        // Update local state - change is_approved to false
+        setState(() {
+          final index = _localEmployees.indexWhere(
+            (e) => e['shift_request_id'] == shiftRequestId,
+          );
+          if (index != -1) {
+            _localEmployees[index]['is_approved'] = false;
+          }
+          // Auto-expand to show the returned applicant
+          _isExpanded = true;
+        });
+        HapticFeedback.mediumImpact();
+        // Close bottom sheet if open
+        if (mounted) {
+          Navigator.of(context).pop();
         }
-        // Auto-expand to show the returned applicant
-        _isExpanded = true;
-      });
-      HapticFeedback.mediumImpact();
-      // Note: Do NOT call Navigator.pop() here
-      // AvatarStackInteract handles closing and re-opening the bottom sheet
+      }
+    } finally {
+      // Clear loading state
+      if (mounted) {
+        setState(() {
+          _loadingRequests.remove(shiftRequestId);
+        });
+      }
     }
   }
 }

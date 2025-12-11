@@ -175,53 +175,23 @@ extension TransactionLineModelMapper on TransactionLineModel {
 /// Transaction attachment model
 @freezed
 class TransactionAttachmentModel with _$TransactionAttachmentModel {
-  const TransactionAttachmentModel._();
-
   const factory TransactionAttachmentModel({
     @JsonKey(name: 'attachment_id') required String attachmentId,
     @JsonKey(name: 'file_name') required String fileName,
     @JsonKey(name: 'file_type') required String fileType,
+    @JsonKey(name: 'file_size') required int fileSize,
     @JsonKey(name: 'file_url') String? fileUrl,
   }) = _TransactionAttachmentModel;
 
   factory TransactionAttachmentModel.fromJson(Map<String, dynamic> json) {
-    final fileName = json['file_name']?.toString() ?? '';
-    // Infer file_type from file_name if not provided
-    final fileType = json['file_type']?.toString() ?? _inferMimeType(fileName);
-
     return TransactionAttachmentModel(
       attachmentId: json['attachment_id']?.toString() ?? '',
-      fileName: fileName,
-      fileType: fileType,
+      fileName: json['file_name']?.toString() ?? '',
+      fileType: json['file_type']?.toString() ?? '',
+      fileSize: (json['file_size'] as num?)?.toInt() ?? 0,
       fileUrl: json['file_url']?.toString(),
     );
   }
-
-  /// Infer MIME type from file extension
-  static String _inferMimeType(String fileName) {
-    final ext = fileName.split('.').last.toLowerCase();
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'gif':
-        return 'image/gif';
-      case 'webp':
-        return 'image/webp';
-      case 'pdf':
-        return 'application/pdf';
-      default:
-        return 'application/octet-stream';
-    }
-  }
-
-  /// Check if this is an image file
-  bool get isImage => fileType.startsWith('image/');
-
-  /// Check if this is a PDF file
-  bool get isPdf => fileType == 'application/pdf';
 }
 
 /// Extension to convert attachment model to entity
@@ -231,6 +201,7 @@ extension TransactionAttachmentModelMapper on TransactionAttachmentModel {
       attachmentId: attachmentId,
       fileName: fileName,
       fileType: fileType,
+      fileSize: fileSize,
       fileUrl: fileUrl,
     );
   }

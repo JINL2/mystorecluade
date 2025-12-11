@@ -24,6 +24,8 @@ class CounterpartyList extends _$CounterpartyList {
   ]) async {
     final supabase = ref.read(supabaseServiceProvider);
 
+    print('DEBUG: CounterpartyList.build - companyId: $companyId, storeId: $storeId, type: $counterpartyType');
+
     try {
       final response = await supabase.client.rpc(
         'get_counterparties',
@@ -34,14 +36,19 @@ class CounterpartyList extends _$CounterpartyList {
         },
       );
 
+      print('DEBUG: CounterpartyList.build - RPC response: $response');
+
       if (response == null) {
+        print('DEBUG: CounterpartyList.build - response is null, returning empty list');
         return [];
       }
 
       final List<dynamic> data = response as List<dynamic>;
+      print('DEBUG: CounterpartyList.build - data count: ${data.length}');
 
       // RPC returns already transformed data, create CounterpartyData directly
       final result = data.map((item) {
+        print('DEBUG: CounterpartyList.build - processing item: $item');
         return CounterpartyData(
           id: item['id'] as String,
           name: item['name'] as String,
@@ -53,9 +60,12 @@ class CounterpartyList extends _$CounterpartyList {
           additionalData: item['additionalData'] as Map<String, dynamic>?,
         );
       }).toList();
+      print('DEBUG: CounterpartyList.build - converted result count: ${result.length}');
 
       return result;
-    } catch (e) {
+    } catch (e, stack) {
+      print('DEBUG: CounterpartyList.build - ERROR: $e');
+      print('DEBUG: CounterpartyList.build - STACK: $stack');
       // Return empty list on error to prevent UI crashes
       return [];
     }
@@ -95,11 +105,18 @@ Future<List<CounterpartyData>> currentCounterparties(CurrentCounterpartiesRef re
   final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
 
+  print('DEBUG: currentCounterparties - appState: $appState');
+  print('DEBUG: currentCounterparties - companyId: "$companyId", storeId: "$storeId"');
+  print('DEBUG: currentCounterparties - companyId.isEmpty: ${companyId.isEmpty}');
+
   if (companyId.isEmpty) {
+    print('DEBUG: currentCounterparties - companyId is empty, returning empty list');
     return [];
   }
 
-  return ref.watch(counterpartyListProvider(companyId, storeId.isEmpty ? null : storeId).future);
+  final result = await ref.watch(counterpartyListProvider(companyId, storeId.isEmpty ? null : storeId).future);
+  print('DEBUG: currentCounterparties - result count: ${result.length}');
+  return result;
 }
 
 /// Current counterparties filtered by type
@@ -259,6 +276,8 @@ Future<List<Map<String, dynamic>>> counterpartyStores(
   CounterpartyStoresRef ref,
   String companyId,
 ) async {
+  print('🔵 DEBUG: counterpartyStores - companyId: $companyId');
+
   final supabase = ref.read(supabaseServiceProvider);
 
   try {
@@ -266,11 +285,19 @@ Future<List<Map<String, dynamic>>> counterpartyStores(
         .from('stores')
         .select('store_id, store_name, store_address')
         .eq('company_id', companyId)
-        .eq('is_deleted', false)
+        .eq('is_deleted', false)  // ✅ FIXED: Use is_deleted instead of is_active
         .order('store_name');
 
-    return List<Map<String, dynamic>>.from(response as List);
-  } catch (e) {
+    print('🔵 DEBUG: counterpartyStores - response type: ${response.runtimeType}');
+    print('🔵 DEBUG: counterpartyStores - response: $response');
+
+    final result = List<Map<String, dynamic>>.from(response as List);
+    print('🔵 DEBUG: counterpartyStores - result count: ${result.length}');
+
+    return result;
+  } catch (e, stackTrace) {
+    print('🔴 ERROR: counterpartyStores - $e');
+    print('🔴 ERROR: counterpartyStores - stackTrace: $stackTrace');
     // Return empty list on error
     return [];
   }

@@ -26,14 +26,12 @@ abstract class UserRepository {
 
   /// Update user profile
   ///
-  /// Updates user's first name, last name, profile image, and other profile data.
-  /// If [profileImagePath] is provided, uploads the image and stores the URL.
+  /// Updates user's first name, last name, and other profile data.
   /// Returns the updated [User].
   Future<User> updateProfile({
     required String userId,
     String? firstName,
     String? lastName,
-    String? profileImagePath,
   });
 
   /// Update last login timestamp

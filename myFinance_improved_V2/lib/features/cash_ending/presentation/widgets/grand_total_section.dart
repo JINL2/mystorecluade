@@ -10,8 +10,10 @@ import '../../../../shared/themes/toss_text_styles.dart';
 /// Grand total section displayed at the bottom
 ///
 /// Shows the final total amount in base currency
-/// Design: Toss-style expandable comparison section
-class GrandTotalSection extends StatefulWidget {
+/// Updated: Now supports multi-currency Grand Total
+/// Updated: Now shows Journal amount and Difference for verification
+/// Updated: Added history button for viewing transaction history
+class GrandTotalSection extends StatelessWidget {
   final double totalAmount;
   final String currencySymbol;
   final String label;
@@ -40,144 +42,107 @@ class GrandTotalSection extends StatefulWidget {
   });
 
   @override
-  State<GrandTotalSection> createState() => _GrandTotalSectionState();
-}
-
-class _GrandTotalSectionState extends State<GrandTotalSection> {
-  bool _isExpanded = false;
-
-  @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,###');
-    final formattedAmount = '${widget.currencySymbol}${formatter.format(widget.totalAmount.toInt())}';
-    final hasJournalData = widget.isBaseCurrency && (widget.journalAmount != null || widget.isLoadingJournal);
+    final formattedAmount = '$currencySymbol${formatter.format(totalAmount.toInt())}';
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: widget.isBaseCurrency
-            ? TossColors.primary.withOpacity(0.05)
-            : Colors.transparent,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HERO: Main Total Row - The counted amount (most important)
+          // Header Row: Label + History Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Total',
+                label,
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  color: TossColors.gray500,
+                  fontSize: 13,
                 ),
               ),
-              Text(
-                formattedAmount,
-                style: TossTextStyles.h2.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
+              // History button (top-right corner)
+              if (onHistoryTap != null)
+                GestureDetector(
+                  onTap: onHistoryTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: TossColors.gray200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.receipt_long_outlined,
+                          size: 16,
+                          color: TossColors.gray700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'History',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray700,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
 
-          // Journal comparison section (expandable)
-          if (hasJournalData) ...[
-            const SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space2),
 
-            // Expandable header
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                children: [
-                  AnimatedRotation(
-                    turns: _isExpanded ? 0.25 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Compare with Journal',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
+          // PRIMARY: The counted amount (Grand Total) - Right aligned as HERO
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              formattedAmount,
+              style: TossTextStyles.h2.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 28,
               ),
             ),
+          ),
 
-            // Expanded details
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: Padding(
-                padding: const EdgeInsets.only(top: TossSpacing.space2),
-                child: _buildExpandedDetails(formatter),
-              ),
-              crossFadeState: _isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
-            ),
-          ],
-
-          // View History link (only show if available)
-          if (widget.onHistoryTap != null) ...[
+          // SECONDARY: Journal comparison (only show when available)
+          if (isBaseCurrency && (journalAmount != null || isLoadingJournal)) ...[
             const SizedBox(height: TossSpacing.space3),
-            Container(height: 1, color: TossColors.gray200),
-            const SizedBox(height: TossSpacing.space3),
-            GestureDetector(
-              onTap: widget.onHistoryTap,
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'View History',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: TossColors.gray400,
-                  ),
-                ],
-              ),
-            ),
+            _buildJournalComparison(formatter),
           ],
         ],
       ),
     );
   }
 
-  /// Build expanded details section (Toss style)
-  /// Shows Journal and Difference with left border indicator
-  Widget _buildExpandedDetails(NumberFormat formatter) {
-    if (widget.isLoadingJournal) {
-      return const Padding(
-        padding: EdgeInsets.only(left: 12),
+  /// Build vertical comparison section with right-aligned numbers
+  /// Shows Real, Journal, and Difference in a table format for easy comparison
+  Widget _buildJournalComparison(NumberFormat formatter) {
+    if (isLoadingJournal) {
+      return const Center(
         child: SizedBox(
-          width: 16,
-          height: 16,
+          width: 20,
+          height: 20,
           child: CircularProgressIndicator(
             strokeWidth: 2,
             color: TossColors.gray400,
@@ -186,18 +151,18 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       );
     }
 
-    final formattedJournal = '${widget.currencySymbol}${formatter.format(widget.journalAmount!.toInt())}';
-    final difference = widget.totalAmount - widget.journalAmount!;
+    final formattedJournal = '$currencySymbol${formatter.format(journalAmount!.toInt())}';
+    final difference = totalAmount - journalAmount!;
     final isBalanced = difference.abs() < 1;
 
     // Format difference with sign
     String formattedDifference;
     if (difference > 0) {
-      formattedDifference = '+${widget.currencySymbol}${formatter.format(difference.toInt())}';
+      formattedDifference = '+$currencySymbol${formatter.format(difference.toInt())}';
     } else if (difference < 0) {
-      formattedDifference = '-${widget.currencySymbol}${formatter.format(difference.abs().toInt())}';
+      formattedDifference = '-$currencySymbol${formatter.format(difference.abs().toInt())}';
     } else {
-      formattedDifference = '${widget.currencySymbol}${formatter.format(0)}';
+      formattedDifference = '$currencySymbol${formatter.format(0)}';
     }
 
     // Determine color for difference
@@ -210,43 +175,39 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       differenceColor = TossColors.success; // Surplus (green)
     }
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          left: BorderSide(
-            color: TossColors.gray300,
-            width: 2,
-          ),
+    return Column(
+      children: [
+        // Journal row
+        _buildComparisonRow(
+          label: 'Journal',
+          value: formattedJournal,
+          valueColor: TossColors.gray600,
+          valueFontWeight: FontWeight.w500,
         ),
-      ),
-      padding: const EdgeInsets.only(left: 12),
-      child: Column(
-        children: [
-          // Journal row
-          _buildDetailRow(
-            label: 'Journal',
-            value: formattedJournal,
-            valueColor: TossColors.gray600,
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          // Difference row
-          _buildDetailRow(
-            label: 'Difference',
-            value: formattedDifference,
-            valueColor: differenceColor,
-            isBold: !isBalanced,
-          ),
-        ],
-      ),
+        const SizedBox(height: TossSpacing.space2),
+        // Divider
+        Container(
+          height: 1,
+          color: TossColors.gray200,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // Difference row
+        _buildComparisonRow(
+          label: 'Difference',
+          value: formattedDifference,
+          valueColor: differenceColor,
+          valueFontWeight: isBalanced ? FontWeight.w500 : FontWeight.bold,
+        ),
+      ],
     );
   }
 
-  /// Build a single detail row (Toss style - subtle)
-  Widget _buildDetailRow({
+  /// Build a single row with label on left and value on right
+  Widget _buildComparisonRow({
     required String label,
     required String value,
     required Color valueColor,
-    bool isBold = false,
+    required FontWeight valueFontWeight,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -262,8 +223,8 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
           value,
           style: TossTextStyles.body.copyWith(
             color: valueColor,
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 16,
+            fontWeight: valueFontWeight,
           ),
         ),
       ],

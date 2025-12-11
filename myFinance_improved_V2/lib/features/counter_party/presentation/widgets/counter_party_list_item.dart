@@ -64,10 +64,7 @@ class CounterPartyListItem extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            // Show linked company name for internal counterparties
-                            counterParty.isInternal && counterParty.linkedCompanyName != null
-                                ? counterParty.linkedCompanyName!
-                                : counterParty.name,
+                            counterParty.name,
                             style: TossTextStyles.body.copyWith(
                               color: TossColors.textPrimary,
                               fontWeight: FontWeight.w600,

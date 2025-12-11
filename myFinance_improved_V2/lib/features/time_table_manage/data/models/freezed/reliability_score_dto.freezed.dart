@@ -1217,10 +1217,6 @@ mixin _$EmployeeReliabilityDto {
   String get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
   String? get profileImage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'role')
-  String? get role => throw _privateConstructorUsedError;
-  @JsonKey(name: 'store_name')
-  String? get storeName => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_applications')
   int get totalApplications => throw _privateConstructorUsedError;
   @JsonKey(name: 'approved_shifts')
@@ -1276,8 +1272,6 @@ abstract class $EmployeeReliabilityDtoCopyWith<$Res> {
       {@JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
-      @JsonKey(name: 'role') String? role,
-      @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'total_applications') int totalApplications,
       @JsonKey(name: 'approved_shifts') int approvedShifts,
       @JsonKey(name: 'completed_shifts') int completedShifts,
@@ -1315,8 +1309,6 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
     Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
-    Object? role = freezed,
-    Object? storeName = freezed,
     Object? totalApplications = null,
     Object? approvedShifts = null,
     Object? completedShifts = null,
@@ -1346,14 +1338,6 @@ class _$EmployeeReliabilityDtoCopyWithImpl<$Res,
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      role: freezed == role
-          ? _value.role
-          : role // ignore: cast_nullable_to_non_nullable
-              as String?,
-      storeName: freezed == storeName
-          ? _value.storeName
-          : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
       totalApplications: null == totalApplications
           ? _value.totalApplications
@@ -1436,8 +1420,6 @@ abstract class _$$EmployeeReliabilityDtoImplCopyWith<$Res>
       {@JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'profile_image') String? profileImage,
-      @JsonKey(name: 'role') String? role,
-      @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'total_applications') int totalApplications,
       @JsonKey(name: 'approved_shifts') int approvedShifts,
       @JsonKey(name: 'completed_shifts') int completedShifts,
@@ -1474,8 +1456,6 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? userName = null,
     Object? profileImage = freezed,
-    Object? role = freezed,
-    Object? storeName = freezed,
     Object? totalApplications = null,
     Object? approvedShifts = null,
     Object? completedShifts = null,
@@ -1505,14 +1485,6 @@ class __$$EmployeeReliabilityDtoImplCopyWithImpl<$Res>
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      role: freezed == role
-          ? _value.role
-          : role // ignore: cast_nullable_to_non_nullable
-              as String?,
-      storeName: freezed == storeName
-          ? _value.storeName
-          : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
       totalApplications: null == totalApplications
           ? _value.totalApplications
@@ -1589,8 +1561,6 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
       {@JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'user_name') required this.userName,
       @JsonKey(name: 'profile_image') this.profileImage,
-      @JsonKey(name: 'role') this.role,
-      @JsonKey(name: 'store_name') this.storeName,
       @JsonKey(name: 'total_applications') this.totalApplications = 0,
       @JsonKey(name: 'approved_shifts') this.approvedShifts = 0,
       @JsonKey(name: 'completed_shifts') this.completedShifts = 0,
@@ -1620,12 +1590,6 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
   @override
   @JsonKey(name: 'profile_image')
   final String? profileImage;
-  @override
-  @JsonKey(name: 'role')
-  final String? role;
-  @override
-  @JsonKey(name: 'store_name')
-  final String? storeName;
   @override
   @JsonKey(name: 'total_applications')
   final int totalApplications;
@@ -1679,7 +1643,7 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
 
   @override
   String toString() {
-    return 'EmployeeReliabilityDto(userId: $userId, userName: $userName, profileImage: $profileImage, role: $role, storeName: $storeName, totalApplications: $totalApplications, approvedShifts: $approvedShifts, completedShifts: $completedShifts, lateCount: $lateCount, lateRate: $lateRate, onTimeRate: $onTimeRate, avgLateMinutes: $avgLateMinutes, avgFillRateApplied: $avgFillRateApplied, reliability: $reliability, finalScore: $finalScore, applicationsScore: $applicationsScore, lateRateScore: $lateRateScore, lateMinutesScore: $lateMinutesScore, fillRateScore: $fillRateScore, salaryAmount: $salaryAmount, salaryType: $salaryType)';
+    return 'EmployeeReliabilityDto(userId: $userId, userName: $userName, profileImage: $profileImage, totalApplications: $totalApplications, approvedShifts: $approvedShifts, completedShifts: $completedShifts, lateCount: $lateCount, lateRate: $lateRate, onTimeRate: $onTimeRate, avgLateMinutes: $avgLateMinutes, avgFillRateApplied: $avgFillRateApplied, reliability: $reliability, finalScore: $finalScore, applicationsScore: $applicationsScore, lateRateScore: $lateRateScore, lateMinutesScore: $lateMinutesScore, fillRateScore: $fillRateScore, salaryAmount: $salaryAmount, salaryType: $salaryType)';
   }
 
   @override
@@ -1692,9 +1656,6 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
                 other.userName == userName) &&
             (identical(other.profileImage, profileImage) ||
                 other.profileImage == profileImage) &&
-            (identical(other.role, role) || other.role == role) &&
-            (identical(other.storeName, storeName) ||
-                other.storeName == storeName) &&
             (identical(other.totalApplications, totalApplications) ||
                 other.totalApplications == totalApplications) &&
             (identical(other.approvedShifts, approvedShifts) ||
@@ -1736,8 +1697,6 @@ class _$EmployeeReliabilityDtoImpl implements _EmployeeReliabilityDto {
         userId,
         userName,
         profileImage,
-        role,
-        storeName,
         totalApplications,
         approvedShifts,
         completedShifts,
@@ -1778,8 +1737,6 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
           {@JsonKey(name: 'user_id') required final String userId,
           @JsonKey(name: 'user_name') required final String userName,
           @JsonKey(name: 'profile_image') final String? profileImage,
-          @JsonKey(name: 'role') final String? role,
-          @JsonKey(name: 'store_name') final String? storeName,
           @JsonKey(name: 'total_applications') final int totalApplications,
           @JsonKey(name: 'approved_shifts') final int approvedShifts,
           @JsonKey(name: 'completed_shifts') final int completedShifts,
@@ -1810,12 +1767,6 @@ abstract class _EmployeeReliabilityDto implements EmployeeReliabilityDto {
   @override
   @JsonKey(name: 'profile_image')
   String? get profileImage;
-  @override
-  @JsonKey(name: 'role')
-  String? get role;
-  @override
-  @JsonKey(name: 'store_name')
-  String? get storeName;
   @override
   @JsonKey(name: 'total_applications')
   int get totalApplications;

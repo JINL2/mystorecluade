@@ -27,7 +27,7 @@ class SalesProductModel extends SalesProduct {
       return ProductImagesModel.fromJson(json['images'] as Map<String, dynamic>);
     }
 
-    // Format 2: 'image_urls' array from get_inventory_page_v3
+    // Format 2: 'image_urls' array from get_inventory_page_v2
     if (json['image_urls'] is List) {
       final urls = (json['image_urls'] as List).map((e) => e.toString()).toList();
       return ProductImagesModel(
@@ -86,15 +86,12 @@ class SalesProductModel extends SalesProduct {
       status: ProductStatusModel.fromJson(
         json['status'] as Map<String, dynamic>? ?? {},
       ),
-      // v3 returns brand_name/category_name directly as strings
-      category: json['category_name']?.toString() ??
-          (json['category'] is Map<String, dynamic>
-              ? (json['category'] as Map<String, dynamic>)['category_name']?.toString()
-              : json['category']?.toString()),
-      brand: json['brand_name']?.toString() ??
-          (json['brand'] is Map<String, dynamic>
-              ? (json['brand'] as Map<String, dynamic>)['brand_name']?.toString()
-              : json['brand']?.toString()),
+      category: json['category'] is Map<String, dynamic>
+          ? json['category']['category_name']?.toString()
+          : json['category']?.toString(),
+      brand: json['brand'] is Map<String, dynamic>
+          ? json['brand']['brand_name']?.toString()
+          : json['brand']?.toString(),
       unit: json['unit']?.toString(),
       attributes: ProductAttributesModel.fromJson(
         json['attributes'] as Map<String, dynamic>? ?? {},

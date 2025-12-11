@@ -334,8 +334,17 @@ class AvatarStackInteract extends StatelessWidget {
             ? (user, actionId) {
                 // Call the original callback which updates parent state
                 onActionTap!(user, actionId);
-                // Close the bottom sheet after action completes
+                // Close the current sheet
                 Navigator.of(sheetContext).pop();
+                // Wait for all frames to complete and widget tree to rebuild
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  // Wait one more frame to ensure parent widget fully rebuilt
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) {
+                      _showUsersBottomSheet(context);
+                    }
+                  });
+                });
               }
             : null,
       ),

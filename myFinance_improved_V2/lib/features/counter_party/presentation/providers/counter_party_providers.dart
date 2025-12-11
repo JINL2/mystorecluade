@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
@@ -152,7 +151,6 @@ final updateCounterPartyProvider = FutureProvider.autoDispose
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.updateCounterParty(
     counterpartyId: params.counterpartyId,
-    companyId: params.companyId,
     name: params.name,
     type: params.type,
     email: params.email,
@@ -177,29 +175,20 @@ final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((re
   final appState = ref.watch(appStateProvider);
   final companyId = ref.watch(selectedCompanyIdProvider);
 
-  debugPrint('🏢 [unlinkedCompaniesProvider] companyId: $companyId');
-  debugPrint('🏢 [unlinkedCompaniesProvider] appState.user: ${appState.user}');
-
   if (companyId == null || appState.user.isEmpty) {
-    debugPrint('⚠️ [unlinkedCompaniesProvider] Early return: companyId=$companyId, user.isEmpty=${appState.user.isEmpty}');
     return [];
   }
 
   // Safe type checking instead of unsafe cast
   final userId = appState.user['user_id'];
-  debugPrint('🏢 [unlinkedCompaniesProvider] userId: $userId (type: ${userId.runtimeType})');
-
   if (userId is! String) {
-    debugPrint('⚠️ [unlinkedCompaniesProvider] userId is not String: ${userId.runtimeType}');
     return [];
   }
 
-  final result = await repository.getUnlinkedCompanies(
+  return await repository.getUnlinkedCompanies(
     userId: userId,
     companyId: companyId,
   );
-  debugPrint('✅ [unlinkedCompaniesProvider] Got ${result.length} companies');
-  return result;
 });
 
 /// Manual refresh functionality

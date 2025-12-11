@@ -133,13 +133,12 @@ class TimeTableDatasource {
 
   /// Fetch manager shift cards from Supabase RPC
   ///
-  /// Uses manager_shift_get_cards_v4 RPC with timezone parameter
+  /// Uses manager_shift_get_cards_v3 RPC with timezone parameter
   /// - p_start_date and p_end_date are user's local dates (yyyy-MM-dd)
   /// - p_store_id is optional (NULL for all stores)
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   /// - Filters by start_time_utc converted to timezone (actual work date)
   /// - Uses v_shift_request view with is_problem_v2, is_problem_solved_v2 columns
-  /// - v4 adds: is_reported_solved (bool), manager_memo (jsonb array)
   Future<Map<String, dynamic>> getManagerShiftCards({
     required String startDate,
     required String endDate,
@@ -149,7 +148,7 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_cards_v4',
+        'manager_shift_get_cards_v3',
         params: {
           'p_start_date': startDate,
           'p_end_date': endDate,
@@ -304,6 +303,118 @@ class TimeTableDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to add schedule: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Input card data (comprehensive shift update with tags) using v3 RPC
+  ///
+  /// Uses manager_shift_input_card_v3 RPC with timezone support
+  /// - Date basis changed from request_time to start_time_utc (actual work date)
+  /// - Uses v2/_utc columns (confirm_start_time_utc, confirm_end_time_utc, notice_tag_v2, is_late_v2, is_problem_solved_v2)
+  /// - Supports night shifts (when end time < start time, adds 1 day to end time)
+  /// - Auto-generates tags when is_late or is_problem_solved values change
+  /// - Enriches tags with creator names from users table
+  /// - Returns timezone-converted times using p_timezone parameter
+  /// - Returns shift_date instead of request_date in response
+  /// - Validates minimum work time (30 min) and maximum work time (12 hours)
+  /// - confirmStartTime/confirmEndTime can be null to keep existing values
+  Future<Map<String, dynamic>> inputCard({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,  // Nullable - RPC keeps existing if null
+    String? confirmEndTime,    // Nullable - RPC keeps existing if null
+    String? newTagContent,
+    String? newTagType,
+    required bool isLate,
+    required bool isProblemSolved,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'manager_shift_input_card_v3',
+        params: {
+          'p_manager_id': managerId,
+          'p_shift_request_id': shiftRequestId,
+          'p_confirm_start_time': confirmStartTime,  // null is valid - RPC keeps existing
+          'p_confirm_end_time': confirmEndTime,      // null is valid - RPC keeps existing
+          'p_new_tag_content': newTagContent,
+          'p_new_tag_type': newTagType,
+          'p_is_late': isLate,
+          'p_is_problem_solved': isProblemSolved,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response == null) return {};
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      return {};
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to input card: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Input card data (manager updates shift) using v4 RPC
+  ///
+  /// Uses manager_shift_input_card_v4 RPC
+  /// - Simplified parameters: confirm times, problem solved status, bonus amount
+  /// - Times must be in user's LOCAL timezone (HH:mm:ss format with timezone)
+  /// - RPC converts local times to UTC internally
+  /// - Returns simple success/error response
+  ///
+  /// Parameters:
+  /// - [managerId] - Manager user ID performing the update
+  /// - [shiftRequestId] - Shift request ID to update
+  /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
+  /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
+  /// - [isProblemSolved] - Problem solved status, null to keep existing
+  /// - [bonusAmount] - Bonus amount, null to keep existing
+  /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  Future<Map<String, dynamic>> inputCardV4({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    bool? isProblemSolved,
+    double? bonusAmount,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'manager_shift_input_card_v4',
+        params: {
+          'p_manager_id': managerId,
+          'p_shift_request_id': shiftRequestId,
+          'p_confirm_start_time': confirmStartTime,
+          'p_confirm_end_time': confirmEndTime,
+          'p_is_problem_solved': isProblemSolved,
+          'p_bonus_amount': bonusAmount,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response == null) {
+        return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to input card v4: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -487,111 +598,6 @@ class TimeTableDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to fetch store employees: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Input card data (manager updates shift) using v5 RPC
-  ///
-  /// Uses manager_shift_input_card_v5 RPC
-  /// - Simplified parameters: confirm times, report solved status, bonus amount, manager memo
-  /// - Times must be in user's LOCAL timezone (HH:mm:ss format with timezone)
-  /// - RPC converts local times to UTC internally
-  /// - Returns simple success/error response
-  ///
-  /// Parameters:
-  /// - [managerId] - Manager user ID performing the update
-  /// - [shiftRequestId] - Shift request ID to update
-  /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
-  /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
-  /// - [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
-  /// - [bonusAmount] - Bonus amount, null to keep existing
-  /// - [managerMemo] - Manager memo text, null to keep existing (new in v5)
-  /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
-  Future<Map<String, dynamic>> inputCardV5({
-    required String managerId,
-    required String shiftRequestId,
-    String? confirmStartTime,
-    String? confirmEndTime,
-    bool? isReportedSolved,
-    double? bonusAmount,
-    String? managerMemo,
-    required String timezone,
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_input_card_v5',
-        params: {
-          'p_manager_id': managerId,
-          'p_shift_request_id': shiftRequestId,
-          'p_confirm_start_time': confirmStartTime,
-          'p_confirm_end_time': confirmEndTime,
-          'p_is_reported_solved': isReportedSolved,
-          'p_bonus_amount': bonusAmount,
-          'p_manager_memo': managerMemo,
-          'p_timezone': timezone,
-        },
-      );
-
-      if (response == null) {
-        return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
-      }
-
-      if (response is Map<String, dynamic>) {
-        return response;
-      }
-
-      return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
-    } catch (e, stackTrace) {
-      throw TimeTableException(
-        'Failed to input card v5: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Get employee monthly detail log
-  ///
-  /// Uses get_employee_monthly_detail_log RPC
-  /// - Returns comprehensive monthly data including shifts, audit logs, summary, salary
-  /// - p_year_month: Format 'YYYY-MM' (e.g., '2024-12')
-  /// - p_timezone: User's local timezone for date conversions
-  Future<Map<String, dynamic>> getEmployeeMonthlyDetailLog({
-    required String userId,
-    required String companyId,
-    required String yearMonth,
-    required String timezone,
-  }) async {
-    try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_employee_monthly_detail_log',
-        params: {
-          'p_user_id': userId,
-          'p_company_id': companyId,
-          'p_year_month': yearMonth,
-          'p_timezone': timezone,
-        },
-      );
-
-      if (response == null) {
-        return {'success': false, 'error': 'NULL_RESPONSE'};
-      }
-
-      if (response is Map<String, dynamic>) {
-        return response;
-      }
-
-      if (response is Map) {
-        return Map<String, dynamic>.from(response);
-      }
-
-      return {'success': false, 'error': 'INVALID_RESPONSE'};
-    } catch (e, stackTrace) {
-      throw TimeTableException(
-        'Failed to fetch employee monthly detail: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

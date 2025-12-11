@@ -368,7 +368,6 @@ class _TemplateCard extends ConsumerWidget {
       'updated_at': template.updatedAt.toIso8601String(),
       'updated_by': template.updatedBy,
       'is_active': template.isActive,
-      'required_attachment': template.requiredAttachment, // 🔧 FIXED: Add required_attachment field
     };
   }
 
@@ -520,8 +519,6 @@ class _TemplateCard extends ConsumerWidget {
     final details = _buildTemplateDetails();
     final isAdminTemplate = template.permission == TemplateConstants.adminPermissionUUID;
     final canDelete = ref.watch(canDeleteTemplatesProvider);
-    // Check edit permission - admin can edit any, creator can edit own
-    final canEdit = ref.watch(canEditTemplateProvider(template.createdBy));
 
     return Container(
       decoration: BoxDecoration(
@@ -543,12 +540,8 @@ class _TemplateCard extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Open template usage modal with edit permission
-            TemplateUsageBottomSheet.show(
-              context,
-              _templateToMap(),
-              canEdit: canEdit,
-            );
+            // Open template usage modal
+            TemplateUsageBottomSheet.show(context, _templateToMap());
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Padding(

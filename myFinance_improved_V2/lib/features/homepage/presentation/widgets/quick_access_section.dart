@@ -28,6 +28,9 @@ class QuickAccessSection extends ConsumerWidget {
         return Container(
           color: TossColors.surface,
           padding: const EdgeInsets.only(
+            left: TossSpacing.space4,
+            right: TossSpacing.space4,
+            top: 0,
             bottom: TossSpacing.space3,
           ),
           child: Column(
@@ -35,7 +38,7 @@ class QuickAccessSection extends ConsumerWidget {
             children: [
               // Row of circular buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: displayFeatures.map((feature) {
                   return _QuickAccessItem(feature: feature);
@@ -71,8 +74,8 @@ class _QuickAccessItem extends StatelessWidget {
         children: [
           // Circular icon button
           Container(
-            width: 40,
-            height: 40,
+            width: 54,
+            height: 54,
             decoration: const BoxDecoration(
               color: TossColors.primary,
               shape: BoxShape.circle,
@@ -118,15 +121,16 @@ class _LoadingQuickAccess extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: TossColors.surface,
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: List.generate(4, (index) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 54,
+                height: 54,
                 decoration: const BoxDecoration(
                   color: TossColors.gray200,
                   shape: BoxShape.circle,

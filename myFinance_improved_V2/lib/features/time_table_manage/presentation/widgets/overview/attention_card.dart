@@ -5,7 +5,6 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_badge.dart';
-import '../../../domain/entities/manager_memo.dart';
 
 /// Attention Type
 enum AttentionType {
@@ -52,11 +51,6 @@ class AttentionItemData {
   final String? shiftName;
   final String? shiftTimeRange;
   final bool isShiftProblem; // True if understaffed, false if staff problem
-  final DateTime? shiftEndTime;
-
-  // v4: New fields
-  final bool? isReportedSolved;
-  final List<ManagerMemo> managerMemos;
 
   AttentionItemData({
     required this.type,
@@ -91,10 +85,6 @@ class AttentionItemData {
     this.shiftName,
     this.shiftTimeRange,
     this.isShiftProblem = false,
-    this.shiftEndTime,
-    // v4: New fields
-    this.isReportedSolved,
-    this.managerMemos = const [],
   });
 }
 

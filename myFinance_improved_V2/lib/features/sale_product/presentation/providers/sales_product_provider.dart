@@ -19,7 +19,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   final Ref ref;
   final SalesProductRepository _repository;
 
-  static const int _defaultPageSize = 15;
+  static const int _defaultPageSize = 10;
 
   SalesProductNotifier(this.ref, this._repository) : super(const SalesProductState()) {
     loadProducts();
@@ -94,12 +94,8 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         search: state.searchQuery,
       );
 
-      // Append new products to existing list, avoiding duplicates
-      final existingIds = state.products.map((p) => p.productId).toSet();
-      final newProducts = result.products
-          .where((p) => !existingIds.contains(p.productId))
-          .toList();
-      final allProducts = [...state.products, ...newProducts];
+      // Append new products to existing list
+      final allProducts = [...state.products, ...result.products];
 
       state = state.copyWith(
         products: allProducts,

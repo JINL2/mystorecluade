@@ -98,21 +98,14 @@ class TransactionAttachment {
   final String attachmentId;
   final String fileName;
   final String fileType;
+  final int fileSize;
   final String? fileUrl;
 
   const TransactionAttachment({
     required this.attachmentId,
     required this.fileName,
     required this.fileType,
+    required this.fileSize,
     this.fileUrl,
   });
-
-  /// Check if this is an image file
-  bool get isImage => fileType.startsWith('image/');
-
-  /// Check if this is a PDF file
-  bool get isPdf => fileType == 'application/pdf';
-
-  /// Get file extension
-  String get fileExtension => fileName.split('.').last.toLowerCase();
 }

@@ -8,9 +8,8 @@ part 'shift_card_dto.g.dart';
 
 /// Shift Card DTO
 ///
-/// Maps exactly to manager_shift_get_cards_v4 RPC response
+/// Maps exactly to manager_shift_get_cards_v3 RPC response
 /// v3: Uses shift_date (from start_time_utc) instead of request_date
-/// v4: Adds is_reported_solved (bool), manager_memo (jsonb array)
 /// RPC Field Names → Dart Properties (with @JsonKey)
 @freezed
 class ShiftCardDto with _$ShiftCardDto {
@@ -22,7 +21,6 @@ class ShiftCardDto with _$ShiftCardDto {
     @JsonKey(name: 'shift_request_id') @Default('') String shiftRequestId,
 
     // User information
-    @JsonKey(name: 'user_id') @Default('') String userId,
     @JsonKey(name: 'user_name') @Default('') String userName,
     @JsonKey(name: 'profile_image') String? profileImage,
 
@@ -68,12 +66,6 @@ class ShiftCardDto with _$ShiftCardDto {
     @JsonKey(name: 'is_reported') @Default(false) bool isReported,
     @JsonKey(name: 'report_reason') String? reportReason,
 
-    // v4: Report resolution status
-    @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
-
-    // v4: Manager memos (jsonb array)
-    @JsonKey(name: 'manager_memo') @Default([]) List<ManagerMemoDto> managerMemos,
-
     // Location validation (NEW in RPC)
     @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
     @JsonKey(name: 'checkin_distance_from_store') @Default(0.0) double checkinDistanceFromStore,
@@ -104,21 +96,4 @@ class TagDto with _$TagDto {
 
   factory TagDto.fromJson(Map<String, dynamic> json) =>
       _$TagDtoFromJson(json);
-}
-
-/// Manager Memo DTO
-///
-/// Maps to manager_memo jsonb array from RPC v4
-/// Structure: {"type": "note", "content": "...", "created_at": "...", "created_by": "..."}
-@freezed
-class ManagerMemoDto with _$ManagerMemoDto {
-  const factory ManagerMemoDto({
-    @JsonKey(name: 'type') String? type,
-    @JsonKey(name: 'content') String? content,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'created_by') String? createdBy,
-  }) = _ManagerMemoDto;
-
-  factory ManagerMemoDto.fromJson(Map<String, dynamic> json) =>
-      _$ManagerMemoDtoFromJson(json);
 }

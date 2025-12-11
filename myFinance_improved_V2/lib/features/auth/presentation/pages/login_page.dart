@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -212,7 +210,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
                           _buildForgotPasswordSection(),
 
-                          const SizedBox(height: TossSpacing.space6),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                          ),
 
                           AnimatedBuilder(
                             animation: _buttonPulseAnimation,
@@ -225,6 +225,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
                               );
                             },
                           ),
+
+                          const SizedBox(height: TossSpacing.space4),
+
+                          _buildSignupSection(),
 
                           const SizedBox(height: TossSpacing.space8),
                         ],
@@ -240,29 +244,25 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
+  // TODO: Temporary header until StorebaseAuthHeader widget is available
   Widget _buildTemporaryHeader() {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.only(
-          left: TossSpacing.space4,
-          top: TossSpacing.space3,
+          left: 20,
+          top: 20,
+          right: 20,
+          bottom: 25.92,
         ),
-        child: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: TossColors.textPrimary,
-            size: 20,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            'assets/images/app icon.png',
+            width: 56,
+            height: 56,
+            fit: BoxFit.cover,
           ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/auth');
-            }
-          },
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
         ),
       ),
     );
@@ -273,7 +273,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Sign in with email',
+          'Welcome to Storebase!',
           style: TossTextStyles.h1.copyWith(
             color: TossColors.textPrimary,
             fontWeight: FontWeight.w800,
@@ -282,7 +282,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         Text(
-          'Enter your email and password to continue',
+          'All your business needs, on a smarter base.',
           style: TossTextStyles.body.copyWith(
             color: TossColors.textSecondary,
             height: AuthConstants.lineHeightStandard,
@@ -384,8 +384,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _passwordRevealController.stop();
             _buttonPulseController.stop();
 
-            // Navigate to forgot password page
-            context.push('/auth/forgot-password');
+            // TODO: Navigate to forgot password page
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Forgot password page not yet implemented'),
+              ),
+            );
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -414,6 +418,38 @@ class _LoginPageState extends ConsumerState<LoginPage>
       onPressed: _isLoading || !canLogin ? null : _handleLogin,
       isLoading: _isLoading,
       fullWidth: true,
+    );
+  }
+
+  Widget _buildSignupSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'New to Storebase? ',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            // Navigate to signup page
+            context.go('/auth/signup');
+          },
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Create account',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -449,14 +485,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
       // Register FCM token (optional, non-blocking)
       final productionTokenService = ProductionTokenService();
-      unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e) {
-          if (kDebugMode) {
-            debugPrint('⚠️ FCM token registration failed: $e');
-          }
-          return false;
-        }),
-      );
+      productionTokenService.registerTokenForLogin().catchError((e) {
+        if (kDebugMode) {
+          debugPrint('⚠️ FCM token registration failed: $e');
+        }
+      });
 
       // Show success message
       if (!mounted) return;
@@ -671,4 +704,5 @@ class _LoginPageState extends ConsumerState<LoginPage>
       }
     }
   }
+
 }

@@ -1,5 +1,4 @@
 import '../../domain/entities/category_with_features.dart';
-import '../../domain/entities/homepage_alert.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
@@ -101,34 +100,6 @@ class HomepageRepositoryImpl implements HomepageRepository {
       );
     } catch (e) {
       // Silently fail - don't block user navigation
-    }
-  }
-
-  // === Alert Operations ===
-
-  @override
-  Future<HomepageAlert> getHomepageAlert({required String userId}) async {
-    try {
-      final alertModel = await _dataSource.getHomepageAlert(userId: userId);
-      return alertModel.toEntity();
-    } catch (e) {
-      // Return default (no alert) on error
-      return const HomepageAlert(isShow: false, isChecked: false, content: null);
-    }
-  }
-
-  @override
-  Future<bool> responseHomepageAlert({
-    required String userId,
-    required bool isChecked,
-  }) async {
-    try {
-      return await _dataSource.responseHomepageAlert(
-        userId: userId,
-        isChecked: isChecked,
-      );
-    } catch (e) {
-      return false;
     }
   }
 }

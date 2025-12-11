@@ -21,8 +21,8 @@ class RevenueCard extends ConsumerWidget {
     final revenueAsync = ref.watch(revenueProvider(selectedPeriod));
 
     return Container(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -79,7 +79,7 @@ class RevenueCard extends ConsumerWidget {
                     Text(
                       selectedPeriod.displayName,
                       style: TossTextStyles.h3.copyWith(
-                        fontSize: 15,
+                        fontSize: 20,
                         color: TossColors.textPrimary,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.4,
@@ -117,15 +117,17 @@ class RevenueCard extends ConsumerWidget {
                   '${revenue.currencyCode}${_formatAmount(revenue.amount)}',
                   style: TossTextStyles.display.copyWith(
                     color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 28,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 36,
                     height: 1.2,
                     letterSpacing: -1.0,
                   ),
                 ),
 
+                const SizedBox(height: TossSpacing.space4),
+
                 // Growth indicator
-                if (revenue.previousAmount != 0)
+                if (revenue.previousAmount != 0) ...[
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(
@@ -138,15 +140,16 @@ class RevenueCard extends ConsumerWidget {
                         const SizedBox(width: TossSpacing.space1),
                         Text(
                           '${revenue.isIncreased ? '' : '-'}${revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.body.copyWith(
                             color: revenue.isIncreased ? TossColors.error : TossColors.success,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: TossSpacing.space2),
+                ],
               ],
             ),
             loading: () => const _LoadingRevenue(),
@@ -209,20 +212,23 @@ class _TabSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildTab(
-          'Company',
-          RevenueViewTab.company,
-          selectedTab == RevenueViewTab.company,
-        ),
-        _buildTab(
-          'Store',
-          RevenueViewTab.store,
-          selectedTab == RevenueViewTab.store,
-        ),
-      ],
+    return Transform.translate(
+      offset: const Offset(TossSpacing.space5, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTab(
+            'Company',
+            RevenueViewTab.company,
+            selectedTab == RevenueViewTab.company,
+          ),
+          _buildTab(
+            'Store',
+            RevenueViewTab.store,
+            selectedTab == RevenueViewTab.store,
+          ),
+        ],
+      ),
     );
   }
 

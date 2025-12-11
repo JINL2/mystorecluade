@@ -34,7 +34,6 @@ import '../../domain/value_objects/template_analysis_result.dart';
 // ✅ Clean Architecture: Provider from Presentation layer
 import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
-import 'edit_template_bottom_sheet.dart';
 
 /// Custom TextInputFormatter for thousand separators (000,000 format)
 class ThousandSeparatorInputFormatter extends TextInputFormatter {
@@ -105,13 +104,10 @@ class DebtConfiguration {
 // Main Template Usage Bottom Sheet
 class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> template;
-  /// Callback to notify parent when form validity changes
-  final ValueChanged<bool>? onValidityChanged;
-
+  
   const TemplateUsageBottomSheet({
     super.key,
     required this.template,
-    this.onValidityChanged,
   });
   
   static String _formatTagName(String tag) {
@@ -132,14 +128,10 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
     }
   }
   
-  static Future<void> show(
-    BuildContext context,
-    Map<String, dynamic> template, {
-    bool canEdit = false,
-  }) {
+  static Future<void> show(BuildContext context, Map<String, dynamic> template) {
     // Clean up template name for display
     String templateName = template['name']?.toString() ?? 'Transaction Template';
-    if (templateName.toLowerCase().contains('none') ||
+    if (templateName.toLowerCase().contains('none') || 
         templateName.toLowerCase().contains('account none')) {
       // Try to create a better name from the template type
       final data = template['data'] as List? ?? [];
@@ -153,81 +145,12 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
         }
       }
     }
-
+    
     // Create a key to access the form state
     final GlobalKey<_TemplateUsageBottomSheetState> formKey = GlobalKey();
 
     // Track button state for loading indicator
     final buttonStateNotifier = ValueNotifier<bool>(false);
-
-    // Track form validity for button enabled state
-    final formValidityNotifier = ValueNotifier<bool>(false);
-
-    // Build action buttons based on permission
-    final actionButtons = <Widget>[
-      // Edit button (only shown if user has permission)
-      if (canEdit)
-        Expanded(
-          child: ValueListenableBuilder<bool>(
-            valueListenable: buttonStateNotifier,
-            builder: (context, isSubmitting, _) {
-              return TossSecondaryButton(
-                text: 'Edit',
-                fullWidth: true,
-                isEnabled: !isSubmitting,
-                onPressed: isSubmitting ? null : () async {
-                  // Close current modal and open edit modal
-                  context.pop();
-                  final updated = await EditTemplateBottomSheet.show(context, template);
-                  if (updated == true) {
-                    // Template was updated, could refresh the list here if needed
-                  }
-                },
-              );
-            },
-          ),
-        ),
-      // Create Transaction button
-      Expanded(
-        flex: canEdit ? 2 : 1,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: buttonStateNotifier,
-          builder: (context, isSubmitting, _) {
-            return ValueListenableBuilder<bool>(
-              valueListenable: formValidityNotifier,
-              builder: (context, isFormValid, _) {
-                // 🔧 FIXED: Button is disabled when form is invalid OR submitting
-                final isButtonEnabled = isFormValid && !isSubmitting;
-
-                return TossPrimaryButton(
-                  text: isSubmitting ? 'Creating...' : 'Create Transaction',
-                  fullWidth: true,
-                  isEnabled: isButtonEnabled,
-                  onPressed: !isButtonEnabled ? null : () async {
-                    // Get the form state and submit
-                    final state = formKey.currentState;
-
-                    if (state != null) {
-                      // 🔒 Check if already submitting
-                      if (state.isSubmitting) return;
-
-                      final isValid = state._isFormValid;
-
-                      if (isValid) {
-                        // Update button state
-                        buttonStateNotifier.value = true;
-                        await state._handleSubmit();
-                        buttonStateNotifier.value = false;
-                      }
-                    }
-                  },
-                );
-              },
-            );
-          },
-        ),
-      ),
-    ];
 
     // Use TossTextFieldKeyboardModal with action buttons
     return TossTextFieldKeyboardModal.show(
@@ -237,14 +160,56 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
         horizontal: TossSpacing.space3,  // ✅ Reduced: 12px instead of default 16px
         vertical: TossSpacing.space3,
       ),
-      content: TemplateUsageBottomSheet(
-        key: formKey,
-        template: template,
-        onValidityChanged: (isValid) {
-          formValidityNotifier.value = isValid;
-        },
-      ),
-      actionButtons: actionButtons,
+      content: TemplateUsageBottomSheet(key: formKey, template: template),
+      // Keep the original action buttons for the modal
+      actionButtons: [
+        Expanded(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossSecondaryButton(
+                text: 'Cancel',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () {
+                  context.pop();
+                },
+              );
+            },
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: buttonStateNotifier,
+            builder: (context, isSubmitting, _) {
+              return TossPrimaryButton(
+                text: isSubmitting ? 'Creating...' : 'Create Transaction',
+                fullWidth: true,
+                isEnabled: !isSubmitting,
+                onPressed: isSubmitting ? null : () async {
+                  // Get the form state and submit
+                  final state = formKey.currentState;
+
+                  if (state != null) {
+                    // 🔒 Check if already submitting
+                    if (state.isSubmitting) return;
+
+                    final isValid = state._isFormValid;
+
+                    if (isValid) {
+                      // Update button state
+                      buttonStateNotifier.value = true;
+                      await state._handleSubmit();
+                      buttonStateNotifier.value = false;
+                    }
+                  }
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -287,12 +252,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
     // Add listeners for real-time validation
     _amountController.addListener(_validateAmountField);
-    _amountController.addListener(_notifyValidityChange);
-  }
-
-  /// Notify parent of form validity changes
-  void _notifyValidityChange() {
-    widget.onValidityChanged?.call(_isFormValid);
   }
 
   /// Real-time amount field validation
@@ -310,7 +269,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         selectedCashLocationId: _selectedMyCashLocationId,
       );
     });
-    _notifyValidityChange();
   }
 
   /// Real-time counterparty validation
@@ -321,18 +279,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         selectedCounterpartyId: _selectedCounterpartyId,
       );
     });
-    _notifyValidityChange();
-  }
-
-  /// Check if template requires attachment
-  bool get _requiresAttachment {
-    return widget.template['required_attachment'] == true;
-  }
-
-  /// Check if attachment requirement is satisfied
-  bool get _attachmentRequirementSatisfied {
-    if (!_requiresAttachment) return true;
-    return _pendingAttachments.isNotEmpty;
   }
 
   /// Comprehensive form validation using domain validator
@@ -345,8 +291,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
     );
 
-    // Also check attachment requirement
-    return canSubmit && _attachmentRequirementSatisfied;
+    return canSubmit;
   }
 
   /// Check if transaction is being created (for loading indicator)
@@ -570,24 +515,14 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
         // 📎 Attachments section
         const SizedBox(height: TossSpacing.space3),
-
-        // ⚠️ Required attachment warning banner
-        if (_requiresAttachment && !_attachmentRequirementSatisfied) ...[
-          _buildAttachmentWarningBanner(),
-          const SizedBox(height: TossSpacing.space2),
-        ],
-
         TemplateAttachmentPickerSection(
           attachments: _pendingAttachments,
           onAttachmentsChanged: (attachments) {
             setState(() {
               _pendingAttachments = attachments;
             });
-            // 🔧 FIXED: Notify parent when attachment changes affect form validity
-            _notifyValidityChange();
           },
           canAddMore: _pendingAttachments.length < TemplateAttachment.maxAttachments,
-          isRequired: _requiresAttachment,
         ),
       ],
     );
@@ -600,8 +535,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       children: [
         TossTextField(
           controller: _amountController,
-          label: 'Amount',
-          isRequired: true, // 🔧 Shows red asterisk
+          label: 'Amount *',
           hintText: 'Enter amount (e.g., 1,000,000)',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
@@ -724,40 +658,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         ),
       ],
-    );
-  }
-
-  /// Builds required attachment warning banner
-  Widget _buildAttachmentWarningBanner() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: TossColors.warning.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: TossColors.warning,
-            size: 20,
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Text(
-              'This template requires an attachment (receipt, invoice, etc.)',
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray800,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

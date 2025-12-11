@@ -18,7 +18,6 @@ _$CounterPartyImpl _$$CounterPartyImplFromJson(Map<String, dynamic> json) =>
       notes: json['notes'] as String?,
       isInternal: json['is_internal'] as bool? ?? false,
       linkedCompanyId: json['linked_company_id'] as String?,
-      linkedCompanyName: json['linked_company_name'] as String?,
       createdBy: json['created_by'] as String?,
       createdAt: _dateTimeFromJson(json['created_at'] as String),
       updatedAt: _dateTimeFromJsonNullable(json['updated_at'] as String?),
@@ -41,7 +40,6 @@ Map<String, dynamic> _$$CounterPartyImplToJson(_$CounterPartyImpl instance) =>
       'notes': instance.notes,
       'is_internal': instance.isInternal,
       'linked_company_id': instance.linkedCompanyId,
-      'linked_company_name': instance.linkedCompanyName,
       'created_by': instance.createdBy,
       'created_at': _dateTimeToJson(instance.createdAt),
       if (_dateTimeToJsonNullable(instance.updatedAt) case final value?)

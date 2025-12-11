@@ -51,7 +51,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

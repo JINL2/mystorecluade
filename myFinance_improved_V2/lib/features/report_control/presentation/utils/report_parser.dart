@@ -60,11 +60,7 @@ class ReportParser {
       } else if (outerJson.containsKey('template_id') ||
           outerJson.containsKey('account_changes') ||
           outerJson.containsKey('hero_stats') ||
-          outerJson.containsKey('issues') ||
-          outerJson.containsKey('report_month') ||  // Monthly salary report
-          outerJson.containsKey('report_date') ||   // Cash location report
-          outerJson.containsKey('summary') ||       // General summary reports
-          outerJson.containsKey('employees')) {     // Salary/attendance reports
+          outerJson.containsKey('issues')) {
         print('🔍 [Parser] Step 3b: Direct report JSON');
         reportJson = outerJson;
       } else {

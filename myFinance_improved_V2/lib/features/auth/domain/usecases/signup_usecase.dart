@@ -13,9 +13,6 @@ import '../value_objects/signup_command.dart';
 ///
 /// Handles user registration with validation.
 /// Throws exceptions for error cases - no Result pattern wrapper.
-///
-/// Note: Name fields are optional - they will be collected on the
-/// Complete Profile page after OTP verification.
 class SignupUseCase {
   final AuthRepository _authRepository;
 
@@ -44,33 +41,29 @@ class SignupUseCase {
       throw ValidationException(passwordResult.errors.first);
     }
 
-    // Step 3: Validate names (only if provided)
-    if (command.firstName != null && command.firstName!.isNotEmpty) {
-      final firstNameError = NameValidator.validate(
-        command.firstName!,
-        fieldName: 'First name',
-      );
-      if (firstNameError != null) {
-        throw ValidationException(firstNameError);
-      }
+    // Step 3: Validate names
+    final firstNameError = NameValidator.validate(
+      command.firstName,
+      fieldName: 'First name',
+    );
+    if (firstNameError != null) {
+      throw ValidationException(firstNameError);
     }
 
-    if (command.lastName != null && command.lastName!.isNotEmpty) {
-      final lastNameError = NameValidator.validate(
-        command.lastName!,
-        fieldName: 'Last name',
-      );
-      if (lastNameError != null) {
-        throw ValidationException(lastNameError);
-      }
+    final lastNameError = NameValidator.validate(
+      command.lastName,
+      fieldName: 'Last name',
+    );
+    if (lastNameError != null) {
+      throw ValidationException(lastNameError);
     }
 
     // Step 4: Create account
     final user = await _authRepository.signUp(
       email: command.email.trim(),
       password: command.password,
-      firstName: command.firstName?.trim(),
-      lastName: command.lastName?.trim(),
+      firstName: command.firstName.trim(),
+      lastName: command.lastName.trim(),
     );
 
     return user;
