@@ -10,6 +10,7 @@ import '../../../../core/domain/entities/feature.dart';
 import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
+import '../../domain/entities/homepage_alert.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
@@ -363,4 +364,28 @@ final currenciesProvider = FutureProvider.autoDispose<List<Currency>>((ref) asyn
     (failure) => throw Exception(failure.message),
     (currencies) => currencies,
   );
+});
+
+// === Homepage Alert Provider ===
+
+/// Provider for fetching homepage alert
+///
+/// Returns alert data with is_show and is_checked flags.
+/// Uses 6-hour cache in DataSource to prevent excessive API calls.
+final homepageAlertProvider = FutureProvider<HomepageAlert>((ref) async {
+  // Wait for authentication
+  final authState = ref.watch(authStateProvider);
+  final user = authState.when(
+    data: (user) => user,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+
+  if (user == null) {
+    return const HomepageAlert(isShow: false, isChecked: false, content: null);
+  }
+
+  final repository = ref.watch(homepageRepositoryProvider);
+  final alert = await repository.getHomepageAlert(userId: user.id);
+  return alert;
 });
