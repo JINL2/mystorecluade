@@ -10,6 +10,8 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/toss/toss_badge.dart';
+import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../domain/providers/repository_providers.dart';
@@ -30,6 +32,7 @@ class Homepage extends ConsumerStatefulWidget {
 class _HomepageState extends ConsumerState<Homepage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoggingOut = false;
+  bool _isRefreshing = false;
   bool _alertShown = false; // Prevent showing alert multiple times per session
 
   @override
@@ -40,6 +43,16 @@ class _HomepageState extends ConsumerState<Homepage> {
         backgroundColor: TossColors.surface,
         body: TossLoadingView(
           message: 'Logging out...',
+        ),
+      );
+    }
+
+    // Show loading view during refresh
+    if (_isRefreshing) {
+      return const Scaffold(
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(
+          message: 'Refreshing...',
         ),
       );
     }
@@ -246,17 +259,30 @@ class _HomepageState extends ConsumerState<Homepage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Company name (large, on top) - Title Medium: 15px/Bold
-                                Text(
-                                  companyName,
-                                  style: TossTextStyles.bodyLarge.copyWith(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: TossColors.textPrimary,
-                                    height: 1.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                // Company name (large, on top) with subscription badge
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        companyName,
+                                        style: TossTextStyles.bodyLarge.copyWith(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: TossColors.textPrimary,
+                                          height: 1.2,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    // Subscription Badge
+                                    SubscriptionBadge.fromPlanType(
+                                      appState.planType,
+                                      compact: true,
+                                    ),
+                                  ],
                                 ),
 
                                 // Store name (small, on bottom)
@@ -632,6 +658,13 @@ class _HomepageState extends ConsumerState<Homepage> {
   Future<void> _handleRefresh() async {
     final appStateNotifier = ref.read(appStateProvider.notifier);
 
+    // Show loading view
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+      });
+    }
+
     try {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
@@ -652,29 +685,29 @@ class _HomepageState extends ConsumerState<Homepage> {
       ref.invalidate(revenueProvider);
       ref.invalidate(homepageAlertProvider);
 
-      // Wait for providers to reload and update AppState
-      await Future.wait([
-        ref.read(userCompaniesProvider.future),
-        ref.read(categoriesWithFeaturesProvider.future),
-      ]);
+      // Invalidate salary-related providers
+      ref.invalidate(userSalaryProvider);
+      ref.invalidate(userShiftStatsProvider);
 
+      // Wait for essential provider to reload (others will load in background)
+      await ref.read(userCompaniesProvider.future);
+
+      // Hide loading view
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Data refreshed successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        setState(() {
+          _isRefreshing = false;
+        });
       }
     } catch (e) {
+      // Hide loading view on error
+      debugPrint('🔴 [Refresh] Error: $e');
       if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to refresh data'),
+            content: Text('Failed to refresh: $e'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

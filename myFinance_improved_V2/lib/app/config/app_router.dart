@@ -40,6 +40,7 @@ import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/my_page/presentation/pages/subscription_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
@@ -607,6 +608,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/privacy-security',
         name: 'privacy-security',
         builder: (context, state) => const PrivacySecurityPage(),
+      ),
+      GoRoute(
+        path: '/subscription',
+        name: 'subscription',
+        builder: (context, state) => const SubscriptionPage(),
       ),
 
       // Store Shift Route

@@ -15,6 +15,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 import 'view_invite_codes_sheet.dart';
 
@@ -319,12 +320,27 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    companyName,
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
+                                  // Company name with subscription badge
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          companyName,
+                                          style: TossTextStyles.body.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      // Subscription Badge from company data
+                                      // ⚠️ Use plan_name (free/basic/pro) not plan_type (free/paid)
+                                      SubscriptionBadge.fromPlanType(
+                                        (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
+                                        compact: true,
+                                      ),
+                                    ],
                                   ),
                                   Text(
                                     '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',

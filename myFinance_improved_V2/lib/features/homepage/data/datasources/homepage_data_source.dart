@@ -119,7 +119,6 @@ class HomepageDataSource {
       },
     );
 
-
     if (response == null) {
       throw Exception('No user companies data returned from database');
     }

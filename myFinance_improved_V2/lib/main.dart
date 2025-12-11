@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/monitoring/sentry_config.dart';
+import 'core/services/revenuecat_service.dart';
 import 'features/attendance/data/providers/attendance_data_providers.dart'
     as attendance_data;
 import 'features/attendance/domain/providers/attendance_repository_provider.dart'
@@ -54,6 +55,18 @@ Future<void> main() async {
         hint: 'Supabase initialization failed',
       );
       // Continue running the app even if Supabase fails
+    }
+
+    // Initialize RevenueCat for in-app purchases
+    try {
+      await RevenueCatService().initialize();
+    } catch (e, stackTrace) {
+      await SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'RevenueCat initialization failed',
+      );
+      // Continue running the app even if RevenueCat fails
     }
 
     runApp(
