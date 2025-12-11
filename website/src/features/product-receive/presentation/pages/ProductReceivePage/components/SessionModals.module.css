@@ -172,6 +172,30 @@
   opacity: 1;
 }
 
+.sessionNameInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  background: white;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.sessionNameInput:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+.sessionNameInput::placeholder {
+  color: var(--toss-gray-400, #ADB5BD);
+  font-weight: 400;
+}
+
 .errorMessage {
   display: flex;
   align-items: center;
@@ -382,6 +406,18 @@
   gap: 12px;
   font-size: 12px;
   color: var(--text-secondary, #6C757D);
+}
+
+.sessionMetaVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sessionMetaItem {
+  font-size: 12px;
+  color: var(--text-secondary, #6C757D);
+  line-height: 1.4;
 }
 
 .sessionCreator {

@@ -15,9 +15,11 @@ interface CreateSessionModalProps {
   isOpen: boolean;
   stores: Store[];
   selectedStoreId: string | null;
+  sessionName: string;
   isCreating: boolean;
   error: string | null;
   onSelectStore: (storeId: string) => void;
+  onSessionNameChange: (name: string) => void;
   onClose: () => void;
   onCreate: () => void;
 }
@@ -26,9 +28,11 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   isOpen,
   stores,
   selectedStoreId,
+  sessionName,
   isCreating,
   error,
   onSelectStore,
+  onSessionNameChange,
   onClose,
   onCreate,
 }) => {
@@ -81,6 +85,19 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 ))
               )}
             </div>
+          </div>
+
+          {/* Session Name Input */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Session Name (Optional)</label>
+            <input
+              type="text"
+              className={styles.sessionNameInput}
+              placeholder="Enter session name..."
+              value={sessionName}
+              onChange={(e) => onSessionNameChange(e.target.value)}
+              maxLength={100}
+            />
           </div>
 
           {/* Error Message */}

@@ -144,6 +144,7 @@ const mapShipmentDetailDTO = (dto: ShipmentDetailDTO): ShipmentDetail => ({
 
 const mapSessionDTO = (dto: SessionDTO): Session => ({
   sessionId: dto.session_id,
+  sessionName: dto.session_name,
   sessionType: dto.session_type,
   storeId: dto.store_id,
   storeName: dto.store_name,
@@ -283,6 +284,7 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
     userId: string;
     sessionType: string;
     shipmentId: string;
+    sessionName?: string;
     time: string;
     timezone: string;
   }): Promise<CreateSessionResult> {
