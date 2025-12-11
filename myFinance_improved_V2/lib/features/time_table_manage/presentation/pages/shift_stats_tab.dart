@@ -14,6 +14,7 @@ import '../providers/states/time_table_state.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
+import 'employee_detail_page.dart';
 import 'reliability_rankings_page.dart';
 
 /// Period options for Store Health section
@@ -173,6 +174,19 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   ),
                   // This list is used for "See All" - pass company employees
                   allEmployeesList: companyEmployeesList,
+                  // Navigate to employee detail page when tapped
+                  onEmployeeTap: (employee) {
+                    HapticFeedback.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => EmployeeDetailPage(
+                          employee: employee,
+                          storeId: storeId,
+                        ),
+                      ),
+                    );
+                  },
                   // Navigate to new page with current tab info
                   onSeeAllTapWithTab: (selectedTab) {
                     HapticFeedback.selectionClick();

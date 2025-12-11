@@ -45,6 +45,7 @@ export 'usecase/time_table_usecase_providers.dart';
 // ============================================================================
 // State Providers (Presentation Layer)
 // ============================================================================
+export 'state/employee_monthly_detail_provider.dart';
 export 'state/manager_overview_provider.dart';
 export 'state/manager_shift_cards_provider.dart';
 export 'state/monthly_shift_status_provider.dart';

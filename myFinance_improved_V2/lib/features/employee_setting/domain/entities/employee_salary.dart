@@ -40,6 +40,13 @@ class EmployeeSalary {
   final double? totalWorkingHour;
   final double? totalSalary;
 
+  // Activity tracking
+  final DateTime? lastActivityAt;
+
+  // Bank information
+  final String? bankName;
+  final String? bankAccountNumber;
+
   const EmployeeSalary({
     this.salaryId,
     required this.userId,
@@ -77,6 +84,13 @@ class EmployeeSalary {
     this.totalWorkingDay,
     this.totalWorkingHour,
     this.totalSalary,
+
+    // Activity tracking
+    this.lastActivityAt,
+
+    // Bank information
+    this.bankName,
+    this.bankAccountNumber,
   });
 
   EmployeeSalary copyWith({
@@ -112,6 +126,9 @@ class EmployeeSalary {
     int? totalWorkingDay,
     double? totalWorkingHour,
     double? totalSalary,
+    DateTime? lastActivityAt,
+    String? bankName,
+    String? bankAccountNumber,
   }) {
     return EmployeeSalary(
       salaryId: salaryId ?? this.salaryId,
@@ -146,6 +163,9 @@ class EmployeeSalary {
       totalWorkingDay: totalWorkingDay ?? this.totalWorkingDay,
       totalWorkingHour: totalWorkingHour ?? this.totalWorkingHour,
       totalSalary: totalSalary ?? this.totalSalary,
+      lastActivityAt: lastActivityAt ?? this.lastActivityAt,
+      bankName: bankName ?? this.bankName,
+      bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
     );
   }
 
@@ -188,5 +208,44 @@ class EmployeeSalary {
   bool get isReviewOverdue {
     if (nextReviewDate == null) return false;
     return DateTime.now().isAfter(nextReviewDate!);
+  }
+
+  /// Returns human-readable last activity text (e.g., "2 hours ago", "3 days ago")
+  String get lastActivityText {
+    if (lastActivityAt == null) return 'No activity';
+
+    final now = DateTime.now();
+    final difference = now.difference(lastActivityAt!);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inDays < 30) {
+      final weeks = difference.inDays ~/ 7;
+      return '${weeks}w ago';
+    } else if (difference.inDays < 365) {
+      final months = difference.inDays ~/ 30;
+      return '${months}mo ago';
+    } else {
+      final years = difference.inDays ~/ 365;
+      return '${years}y ago';
+    }
+  }
+
+  /// Returns true if the employee has been active in the last 24 hours
+  bool get isActiveToday {
+    if (lastActivityAt == null) return false;
+    return DateTime.now().difference(lastActivityAt!).inHours < 24;
+  }
+
+  /// Returns true if the employee has been inactive for more than 7 days
+  bool get isInactive {
+    if (lastActivityAt == null) return true;
+    return DateTime.now().difference(lastActivityAt!).inDays > 7;
   }
 }

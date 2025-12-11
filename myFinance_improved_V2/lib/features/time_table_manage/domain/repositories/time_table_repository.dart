@@ -1,4 +1,5 @@
 import '../entities/bulk_approval_result.dart';
+import '../entities/employee_monthly_detail.dart';
 import '../entities/manager_overview.dart';
 import '../entities/manager_shift_cards.dart';
 import '../entities/monthly_shift_status.dart';
@@ -239,6 +240,24 @@ abstract class TimeTableRepository {
     bool? isReportedSolved,
     double? bonusAmount,
     String? managerMemo,
+    required String timezone,
+  });
+
+  /// Get employee monthly detail log
+  ///
+  /// Uses get_employee_monthly_detail_log RPC
+  /// - Returns comprehensive monthly data including shifts, audit logs, summary, salary
+  ///
+  /// [userId] - Employee user ID
+  /// [companyId] - Company ID
+  /// [yearMonth] - Format 'YYYY-MM' (e.g., '2024-12')
+  /// [timezone] - User's local timezone
+  ///
+  /// Returns [EmployeeMonthlyDetail] with all monthly data
+  Future<EmployeeMonthlyDetail> getEmployeeMonthlyDetailLog({
+    required String userId,
+    required String companyId,
+    required String yearMonth,
     required String timezone,
   });
 }

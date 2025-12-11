@@ -552,4 +552,49 @@ class TimeTableDatasource {
       );
     }
   }
+
+  /// Get employee monthly detail log
+  ///
+  /// Uses get_employee_monthly_detail_log RPC
+  /// - Returns comprehensive monthly data including shifts, audit logs, summary, salary
+  /// - p_year_month: Format 'YYYY-MM' (e.g., '2024-12')
+  /// - p_timezone: User's local timezone for date conversions
+  Future<Map<String, dynamic>> getEmployeeMonthlyDetailLog({
+    required String userId,
+    required String companyId,
+    required String yearMonth,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_employee_monthly_detail_log',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_year_month': yearMonth,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response == null) {
+        return {'success': false, 'error': 'NULL_RESPONSE'};
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+
+      return {'success': false, 'error': 'INVALID_RESPONSE'};
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to fetch employee monthly detail: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 }
