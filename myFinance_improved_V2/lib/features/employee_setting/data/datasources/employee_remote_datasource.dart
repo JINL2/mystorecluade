@@ -5,6 +5,7 @@ import '../../domain/value_objects/currency_identifier.dart';
 import '../../domain/value_objects/salary_update_request.dart';
 import '../models/currency_type_model.dart';
 import '../models/employee_salary_model.dart';
+import '../models/shift_audit_log_model.dart';
 
 /// Remote Data Source: Employee Remote Data Source
 ///
@@ -209,6 +210,120 @@ class EmployeeRemoteDataSource {
           // Return empty list on error but keep stream alive
           return <EmployeeSalaryModel>[];
         });
+  }
+
+  /// Check if the current user is the owner of the specified company
+  Future<bool> isCurrentUserOwner(String companyId) async {
+    try {
+      final currentUserId = _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        return false;
+      }
+
+      final response = await _supabase
+          .from('companies')
+          .select('owner_id')
+          .eq('company_id', companyId)
+          .eq('is_deleted', false)
+          .maybeSingle();
+
+      if (response == null) {
+        return false;
+      }
+
+      return response['owner_id'] == currentUserId;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Validate employee deletion before executing
+  /// Returns validation result with affected data summary
+  Future<Map<String, dynamic>> validateEmployeeDelete({
+    required String companyId,
+    required String employeeUserId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'validate_employee_delete',
+        params: {
+          'p_company_id': companyId,
+          'p_employee_user_id': employeeUserId,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'RPC_ERROR',
+        'message': 'Failed to validate deletion: $e',
+      };
+    }
+  }
+
+  /// Delete employee from company (soft delete connections, preserve history)
+  /// p_delete_salary: true to also delete salary info, false to preserve
+  Future<Map<String, dynamic>> deleteEmployee({
+    required String companyId,
+    required String employeeUserId,
+    bool deleteSalary = true,
+  }) async {
+    try {
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'delete_employee',
+        params: {
+          'p_company_id': companyId,
+          'p_employee_user_id': employeeUserId,
+          'p_delete_salary': deleteSalary,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'DELETE_FAILED',
+        'message': 'Failed to delete employee: $e',
+      };
+    }
+  }
+
+  /// Get employee shift audit logs with pagination
+  Future<List<ShiftAuditLogModel>> getEmployeeShiftAuditLogs({
+    required String userId,
+    required String companyId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_employee_shift_audit_logs',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_limit': limit,
+          'p_offset': offset,
+        },
+      );
+
+      if (response == null) {
+        return [];
+      }
+
+      return (response as List)
+          .map((json) {
+            try {
+              return ShiftAuditLogModel.fromJson(json as Map<String, dynamic>);
+            } catch (e) {
+              return null;
+            }
+          })
+          .whereType<ShiftAuditLogModel>()
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load shift audit logs: $e');
+    }
   }
 
   /// Helper: Get default currencies

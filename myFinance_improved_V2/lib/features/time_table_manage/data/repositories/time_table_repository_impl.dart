@@ -1,4 +1,5 @@
 import '../../domain/entities/bulk_approval_result.dart';
+import '../../domain/entities/employee_monthly_detail.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
@@ -8,6 +9,7 @@ import '../../domain/entities/schedule_data.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/entities/store_employee.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
+import '../models/employee_monthly_detail_model.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../datasources/time_table_datasource.dart';
 // Freezed DTOs
@@ -440,6 +442,31 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to input card v5: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<EmployeeMonthlyDetail> getEmployeeMonthlyDetailLog({
+    required String userId,
+    required String companyId,
+    required String yearMonth,
+    required String timezone,
+  }) async {
+    try {
+      final data = await _datasource.getEmployeeMonthlyDetailLog(
+        userId: userId,
+        companyId: companyId,
+        yearMonth: yearMonth,
+        timezone: timezone,
+      );
+
+      return EmployeeMonthlyDetailModel.fromJson(data);
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to fetch employee monthly detail: $e',
         originalError: e,
       );
     }
