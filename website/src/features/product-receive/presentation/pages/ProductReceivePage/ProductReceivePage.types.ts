@@ -135,12 +135,12 @@ export const SHIPMENT_STATUS_OPTIONS = [
 // Session type (from inventory_get_session_list RPC)
 export interface Session {
   session_id: string;
+  session_name: string | null;
   session_type: 'receiving' | 'counting';
   store_id: string;
   store_name: string;
   shipment_id: string | null;
   shipment_number: string | null;
-  count_id: string | null;
   is_active: boolean;
   is_final: boolean;
   member_count: number;

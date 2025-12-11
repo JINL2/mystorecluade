@@ -26,6 +26,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
   // Create session modal state
   const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [sessionName, setSessionName] = useState<string>('Session1');
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [createSessionError, setCreateSessionError] = useState<string | null>(null);
 
@@ -68,12 +69,12 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
       // Map domain entity to presentation format
       const mappedSessions: Session[] = result.map(s => ({
         session_id: s.sessionId,
+        session_name: s.sessionName || null,
         session_type: s.sessionType as 'receiving' | 'counting',
         store_id: s.storeId,
         store_name: s.storeName,
         shipment_id: s.shipmentId || null,
         shipment_number: s.shipmentNumber || null,
-        count_id: null,
         is_active: s.isActive,
         is_final: s.isFinal,
         member_count: s.memberCount || 0,
@@ -99,6 +100,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
       setShowSessionModal(false);
       setShowCreateSessionModal(true);
       setSelectedStoreId(null);
+      setSessionName('Session1');
       setCreateSessionError(null);
     } else if (optionId === 'join_session') {
       setShowSessionModal(false);
@@ -180,7 +182,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-      console.log('📦 Creating session with local time:', { localTime, userTimezone });
+      console.log('📦 Creating session with local time:', { localTime, userTimezone, sessionName });
 
       const result = await productReceiveRepository.createSession({
         companyId: currentCompany.company_id,
@@ -188,6 +190,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
         userId: currentUser.user_id,
         sessionType: 'receiving',
         shipmentId: sessionShipmentId,
+        sessionName: sessionName.trim() || undefined,
         time: localTime,
         timezone: userTimezone,
       });
@@ -237,6 +240,7 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setShowCreateSessionModal(false);
     setSessionShipmentId(null);
     setSelectedStoreId(null);
+    setSessionName('Session1');
     setCreateSessionError(null);
   }, []);
 
@@ -261,6 +265,8 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     showCreateSessionModal,
     selectedStoreId,
     setSelectedStoreId,
+    sessionName,
+    setSessionName,
     isCreatingSession,
     createSessionError,
 

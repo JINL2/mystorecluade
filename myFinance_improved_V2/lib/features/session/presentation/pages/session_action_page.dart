@@ -2,22 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 
-/// Main session page - entry point for counting/receiving features
-class SessionPage extends ConsumerWidget {
-  final dynamic feature;
+/// Session action selection page - Create or Join
+class SessionActionPage extends ConsumerWidget {
+  final String sessionType; // 'counting' or 'receiving'
 
-  const SessionPage({super.key, this.feature});
+  const SessionActionPage({
+    super.key,
+    required this.sessionType,
+  });
+
+  String get _pageTitle {
+    return sessionType == 'counting' ? 'Stock Count' : 'Receiving';
+  }
+
+  String get _subtitle {
+    return sessionType == 'counting'
+        ? 'Create a new count session or join an existing one'
+        : 'Create a new receiving session or join an existing one';
+  }
+
+  Color get _typeColor {
+    return sessionType == 'counting' ? TossColors.primary : TossColors.success;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const TossAppBar1(title: 'Inventory'),
+      appBar: TossAppBar1(title: _pageTitle),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
@@ -26,7 +43,7 @@ class SessionPage extends ConsumerWidget {
             children: [
               // Header
               Text(
-                'Select Task Type',
+                'Select Action',
                 style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.textPrimary,
@@ -35,7 +52,7 @@ class SessionPage extends ConsumerWidget {
               ),
               const SizedBox(height: TossSpacing.space2),
               Text(
-                'Start inventory counting or receiving',
+                _subtitle,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.textSecondary,
                 ),
@@ -43,33 +60,23 @@ class SessionPage extends ConsumerWidget {
               ),
               const SizedBox(height: TossSpacing.space6),
 
-              // Counting Card
-              _SessionTypeCard(
-                icon: Icons.inventory_2_outlined,
-                title: 'Stock Count',
-                subtitle: 'Verify and adjust current inventory quantities',
-                color: TossColors.primary,
-                onTap: () => context.push('/session/action/counting'),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-
-              // Receiving Card
-              _SessionTypeCard(
-                icon: Icons.local_shipping_outlined,
-                title: 'Receiving',
-                subtitle: 'Process new product arrivals',
-                color: TossColors.success,
-                onTap: () => context.push('/session/action/receiving'),
+              // Create Session Card
+              _ActionCard(
+                icon: Icons.add_circle_outline,
+                title: 'Create Session',
+                subtitle: 'Start a new ${sessionType == 'counting' ? 'stock count' : 'receiving'} session',
+                color: _typeColor,
+                onTap: () => context.push('/session/create/$sessionType'),
               ),
               const SizedBox(height: TossSpacing.space4),
 
               // Join Session Card
-              _SessionTypeCard(
+              _ActionCard(
                 icon: Icons.group_add_outlined,
                 title: 'Join Session',
-                subtitle: 'Join an existing inventory session',
+                subtitle: 'Join an existing ${sessionType == 'counting' ? 'stock count' : 'receiving'} session',
                 color: TossColors.warning,
-                onTap: () => context.push('/session/list/join'),
+                onTap: () => context.push('/session/list/$sessionType'),
               ),
             ],
           ),
@@ -79,15 +86,15 @@ class SessionPage extends ConsumerWidget {
   }
 }
 
-/// Session type selection card
-class _SessionTypeCard extends StatelessWidget {
+/// Action selection card
+class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
-  const _SessionTypeCard({
+  const _ActionCard({
     required this.icon,
     required this.title,
     required this.subtitle,

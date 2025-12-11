@@ -114,6 +114,7 @@ export interface ShipmentDetail {
 // Session entity
 export interface Session {
   sessionId: string;
+  sessionName?: string;
   sessionType: string;
   storeId: string;
   storeName: string;

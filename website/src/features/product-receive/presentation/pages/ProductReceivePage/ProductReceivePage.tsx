@@ -63,6 +63,8 @@ export const ProductReceivePage: React.FC = () => {
     showCreateSessionModal,
     selectedStoreId,
     setSelectedStoreId,
+    sessionName,
+    setSessionName,
     isCreatingSession,
     createSessionError,
     showJoinSessionModal,
@@ -261,9 +263,11 @@ export const ProductReceivePage: React.FC = () => {
         isOpen={showCreateSessionModal}
         stores={stores}
         selectedStoreId={selectedStoreId}
+        sessionName={sessionName}
         isCreating={isCreatingSession}
         error={createSessionError}
         onSelectStore={setSelectedStoreId}
+        onSessionNameChange={setSessionName}
         onClose={handleCloseCreateSessionModal}
         onCreate={handleCreateSession}
       />

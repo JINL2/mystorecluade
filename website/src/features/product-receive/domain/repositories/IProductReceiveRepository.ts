@@ -109,6 +109,7 @@ export interface IProductReceiveRepository {
     userId: string;
     sessionType: string;
     shipmentId: string;
+    sessionName?: string;
     time: string;
     timezone: string;
   }): Promise<CreateSessionResult>;
