@@ -11,6 +11,10 @@ import '../../../../shared/themes/toss_text_styles.dart';
 ///
 /// Shows the final total amount in base currency
 /// Design: Toss-style expandable comparison section
+///
+/// When currency is foreign (not base currency):
+/// - Shows total in local currency
+/// - Shows converted amount in base currency for comparison with Journal
 class GrandTotalSection extends StatefulWidget {
   final double totalAmount;
   final String currencySymbol;
@@ -28,6 +32,15 @@ class GrandTotalSection extends StatefulWidget {
   /// Used to navigate to AccountDetailPage
   final VoidCallback? onHistoryTap;
 
+  /// Exchange rate from local currency to base currency (for foreign currency conversion)
+  /// Only used when isBaseCurrency is false
+  /// Example: CNY -> VND rate = 3731.34 means 1 CNY = 3731.34 VND
+  final double? exchangeRateToBase;
+
+  /// Base currency symbol (e.g., '₫' for VND)
+  /// Only used when isBaseCurrency is false to show converted amount
+  final String? baseCurrencySymbol;
+
   const GrandTotalSection({
     super.key,
     required this.totalAmount,
@@ -37,6 +50,8 @@ class GrandTotalSection extends StatefulWidget {
     this.journalAmount,
     this.isLoadingJournal = false,
     this.onHistoryTap,
+    this.exchangeRateToBase,
+    this.baseCurrencySymbol,
   });
 
   @override
@@ -50,7 +65,23 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,###');
     final formattedAmount = '${widget.currencySymbol}${formatter.format(widget.totalAmount.toInt())}';
-    final hasJournalData = widget.isBaseCurrency && (widget.journalAmount != null || widget.isLoadingJournal);
+
+    // For foreign currency: check if we need to show converted amount for journal comparison
+    final isForeignCurrency = !widget.isBaseCurrency &&
+        widget.exchangeRateToBase != null &&
+        widget.exchangeRateToBase! > 0 &&
+        widget.baseCurrencySymbol != null;
+
+    // Calculate converted amount to base currency (for journal comparison)
+    final convertedAmountToBase = isForeignCurrency
+        ? widget.totalAmount * widget.exchangeRateToBase!
+        : widget.totalAmount;
+
+    // Show journal comparison if:
+    // 1. Base currency with journal data, OR
+    // 2. Foreign currency with exchange rate (to compare converted amount with journal)
+    final hasJournalData = (widget.journalAmount != null || widget.isLoadingJournal) &&
+        (widget.isBaseCurrency || isForeignCurrency);
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -77,13 +108,29 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                formattedAmount,
-                style: TossTextStyles.h2.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    formattedAmount,
+                    style: TossTextStyles.h2.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                  ),
+                  // Show converted base currency amount for foreign currencies
+                  if (isForeignCurrency) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${widget.baseCurrencySymbol}${formatter.format(convertedAmountToBase.toInt())}',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -128,7 +175,11 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               firstChild: const SizedBox.shrink(),
               secondChild: Padding(
                 padding: const EdgeInsets.only(top: TossSpacing.space2),
-                child: _buildExpandedDetails(formatter),
+                child: _buildExpandedDetails(
+                  formatter,
+                  isForeignCurrency: isForeignCurrency,
+                  convertedAmountToBase: convertedAmountToBase,
+                ),
               ),
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
@@ -171,7 +222,15 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
 
   /// Build expanded details section (Toss style)
   /// Shows Journal and Difference with left border indicator
-  Widget _buildExpandedDetails(NumberFormat formatter) {
+  ///
+  /// For foreign currencies:
+  /// - Uses convertedAmountToBase for difference calculation
+  /// - Shows both local currency amount and base currency conversion
+  Widget _buildExpandedDetails(
+    NumberFormat formatter, {
+    required bool isForeignCurrency,
+    required double convertedAmountToBase,
+  }) {
     if (widget.isLoadingJournal) {
       return const Padding(
         padding: EdgeInsets.only(left: 12),
@@ -186,18 +245,27 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       );
     }
 
-    final formattedJournal = '${widget.currencySymbol}${formatter.format(widget.journalAmount!.toInt())}';
-    final difference = widget.totalAmount - widget.journalAmount!;
+    // For foreign currency: use base currency symbol and converted amount
+    // For base currency: use local currency symbol and original amount
+    final comparisonSymbol = isForeignCurrency
+        ? widget.baseCurrencySymbol!
+        : widget.currencySymbol;
+    final comparisonAmount = isForeignCurrency
+        ? convertedAmountToBase
+        : widget.totalAmount;
+
+    final formattedJournal = '$comparisonSymbol${formatter.format(widget.journalAmount!.toInt())}';
+    final difference = comparisonAmount - widget.journalAmount!;
     final isBalanced = difference.abs() < 1;
 
     // Format difference with sign
     String formattedDifference;
     if (difference > 0) {
-      formattedDifference = '+${widget.currencySymbol}${formatter.format(difference.toInt())}';
+      formattedDifference = '+$comparisonSymbol${formatter.format(difference.toInt())}';
     } else if (difference < 0) {
-      formattedDifference = '-${widget.currencySymbol}${formatter.format(difference.abs().toInt())}';
+      formattedDifference = '-$comparisonSymbol${formatter.format(difference.abs().toInt())}';
     } else {
-      formattedDifference = '${widget.currencySymbol}${formatter.format(0)}';
+      formattedDifference = '$comparisonSymbol${formatter.format(0)}';
     }
 
     // Determine color for difference
