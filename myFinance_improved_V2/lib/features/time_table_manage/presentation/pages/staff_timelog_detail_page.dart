@@ -140,23 +140,23 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
     final hasCheckIn = confirmedCheckIn != '--:--:--';
     final hasCheckOut = confirmedCheckOut != '--:--:--';
 
-    debugPrint('[DEBUG] _isFullyConfirmed: hasCheckIn=$hasCheckIn, hasCheckOut=$hasCheckOut');
-    debugPrint('[DEBUG] confirmedCheckIn=$confirmedCheckIn, confirmedCheckOut=$confirmedCheckOut');
-    debugPrint('[DEBUG] shiftEndTime=${widget.staffRecord.shiftEndTime}');
-    debugPrint('[DEBUG] _isShiftStillInProgress=$_isShiftStillInProgress');
-
     // IMPORTANT: Check shift progress FIRST, before checking hasCheckIn/hasCheckOut
     // If shift is still in progress (hasn't ended yet), don't require confirmation yet
     // Treat as "confirmed" for now (no need to show "Need confirm")
     if (_isShiftStillInProgress) {
-      debugPrint('[DEBUG] Shift still in progress - returning true (no need confirm)');
       return true;
     }
 
     // Shift has ended - now check if we have both check-in and check-out
     if (!hasCheckIn || !hasCheckOut) return false;
 
-    // Shift has ended - now check late/overtime status for confirmation requirements
+    // If is_problem_solved = true from RPC, it's already confirmed by manager
+    if (widget.staffRecord.isProblemSolved) {
+      return true;
+    }
+
+    // Shift has ended - check if there are any unconfirmed problems
+    // Late or Overtime requires confirmation if not manually confirmed
     bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
     bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
     return checkInConfirmed && checkOutConfirmed;
@@ -347,16 +347,21 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       final inputCardV5UseCase = ref.read(inputCardV5UseCaseProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      // v5: isReportedSolved
-      // - confirm time이 변경되면 → true (문제 해결됨으로 처리)
+      // v5: isProblemSolved (for Late/Overtime time confirmation)
+      // - confirm time이 변경되면 → true (Late/Overtime 문제 해결됨으로 처리)
+      // - 시간 변경 안 했으면 → null (기존 값 유지)
+      bool? isProblemSolved;
+      if (isConfirmedTimeChanged) {
+        // Confirm time이 변경되면 Late/Overtime 문제 해결됨으로 처리
+        isProblemSolved = true;
+      }
+
+      // v5: isReportedSolved (for Report approval/rejection)
       // - Approve 클릭 → true
       // - Reject 클릭 → false
       // - 아무것도 안 바꿨으면 → 기존 값 전송
       bool? isReportedSolved;
-      if (isConfirmedTimeChanged) {
-        // Confirm time이 변경되면 문제 해결됨으로 처리
-        isReportedSolved = true;
-      } else if (widget.staffRecord.isReported) {
+      if (widget.staffRecord.isReported) {
         if (issueReportStatus == 'approved') {
           isReportedSolved = true;
         } else if (issueReportStatus == 'rejected') {
@@ -398,6 +403,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         shiftRequestId: shiftRequestId,
         confirmStartTime: confirmStartTime,
         confirmEndTime: confirmEndTime,
+        isProblemSolved: isProblemSolved,
         isReportedSolved: isReportedSolved,
         bonusAmount: bonusAmount.toDouble(),
         managerMemo: managerMemo,
@@ -495,11 +501,21 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           isFullyConfirmed: _isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          // Don't show "needs confirm" if shift is still in progress
-                          checkInNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
-                          checkOutNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
-                          isCheckInConfirmed: isCheckInManuallyConfirmed,
-                          isCheckOutConfirmed: isCheckOutManuallyConfirmed,
+                          // Don't show "needs confirm" if shift is still in progress or is_problem_solved = true
+                          // Red text: Late/Overtime AND not confirmed (is_problem_solved = false AND not manually confirmed)
+                          checkInNeedsConfirm: !_isShiftStillInProgress &&
+                              widget.staffRecord.isLate &&
+                              !widget.staffRecord.isProblemSolved &&
+                              !isCheckInManuallyConfirmed,
+                          checkOutNeedsConfirm: !_isShiftStillInProgress &&
+                              widget.staffRecord.isOvertime &&
+                              !widget.staffRecord.isProblemSolved &&
+                              !isCheckOutManuallyConfirmed,
+                          // Blue text: Late/Overtime AND confirmed (is_problem_solved = true OR manually confirmed)
+                          isCheckInConfirmed: widget.staffRecord.isLate &&
+                              (widget.staffRecord.isProblemSolved || isCheckInManuallyConfirmed),
+                          isCheckOutConfirmed: widget.staffRecord.isOvertime &&
+                              (widget.staffRecord.isProblemSolved || isCheckOutManuallyConfirmed),
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
                           // Hide status badge when shift is still in progress

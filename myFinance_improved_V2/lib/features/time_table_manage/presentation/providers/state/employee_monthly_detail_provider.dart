@@ -4,7 +4,6 @@
 /// Includes shifts, audit logs, summary, and salary information.
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
@@ -83,19 +82,12 @@ class EmployeeMonthlyDetailNotifier
 
     // Skip if already loaded (unless force refresh)
     if (!forceRefresh && state.dataByMonth.containsKey(cacheKey)) {
-      debugPrint('📦 [EmployeeMonthlyDetail] Cache hit for $cacheKey');
       return state.dataByMonth[cacheKey];
     }
 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      debugPrint('🔄 [EmployeeMonthlyDetail] Loading data:');
-      debugPrint('   userId: $userId');
-      debugPrint('   yearMonth: $yearMonth');
-      debugPrint('   companyId: $_companyId');
-      debugPrint('   timezone: $_timezone');
-
       final repository = _ref.read(timeTableRepositoryProvider);
       final data = await repository.getEmployeeMonthlyDetailLog(
         userId: userId,
@@ -113,17 +105,8 @@ class EmployeeMonthlyDetailNotifier
         isLoading: false,
       );
 
-      debugPrint('✅ [EmployeeMonthlyDetail] Loaded successfully:');
-      debugPrint('   shifts: ${data.shifts.length}');
-      debugPrint('   auditLogs: ${data.auditLogs.length}');
-      debugPrint('   unresolved: ${data.summary.unresolvedCount}');
-      debugPrint('   resolved: ${data.summary.resolvedCount}');
-
       return data;
-    } catch (e, stackTrace) {
-      debugPrint('❌ [EmployeeMonthlyDetail] Error: $e');
-      debugPrint('   StackTrace: $stackTrace');
-
+    } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -177,10 +160,6 @@ final employeeMonthlyDetailProvider = StateNotifierProvider<
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
   final timezone = DateTimeUtils.getLocalTimezone();
-
-  debugPrint('🔷 [employeeMonthlyDetailProvider] Initializing:');
-  debugPrint('   companyId: $companyId');
-  debugPrint('   timezone: $timezone');
 
   return EmployeeMonthlyDetailNotifier(ref, companyId, timezone);
 });

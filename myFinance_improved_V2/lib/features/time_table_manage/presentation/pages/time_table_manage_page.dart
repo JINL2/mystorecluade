@@ -127,25 +127,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final appState = ref.read(appStateProvider);
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
 
-    // 🔷 DEBUG: Log AppState values on page entry
-    debugPrint('🔷 [TimeTableManagePage] initState - AppState values:');
-    debugPrint('   companyChoosen: ${appState.companyChoosen}');
-    debugPrint('   storeChoosen: ${appState.storeChoosen}');
-    debugPrint('   companyName: ${appState.companyName}');
-    debugPrint('   storeName: ${appState.storeName}');
-    debugPrint('   selectedStoreId (local): $selectedStoreId');
-
     // ✅ Fetch initial data AFTER build is complete to avoid Provider lifecycle violation
     // ✅ Always force refresh on page entry to ensure fresh data from RPC
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // 🔷 DEBUG: Log before invalidating providers
-        final currentAppState = ref.read(appStateProvider);
-        debugPrint('🔷 [TimeTableManagePage] postFrameCallback - Invalidating providers:');
-        debugPrint('   companyChoosen: ${currentAppState.companyChoosen}');
-        debugPrint('   storeChoosen: ${currentAppState.storeChoosen}');
-        debugPrint('   selectedStoreId: $selectedStoreId');
-
         // Invalidate ALL providers to force fresh data on page entry
         // This is critical when company/store changes - providers cache companyId at creation time
         ref.invalidate(shiftMetadataProvider(selectedStoreId!));
