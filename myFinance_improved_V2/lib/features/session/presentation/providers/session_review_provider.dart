@@ -1,26 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/providers/session_repository_provider.dart';
+import '../../di/session_providers.dart';
+import '../../domain/usecases/get_session_review_items.dart';
+import '../../domain/usecases/submit_session.dart';
 import 'states/session_review_state.dart';
 
 /// Notifier for session review state management
 class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
   final Ref _ref;
+  final GetSessionReviewItems _getSessionReviewItems;
+  final SubmitSession _submitSession;
 
   SessionReviewNotifier({
     required Ref ref,
+    required GetSessionReviewItems getSessionReviewItems,
+    required SubmitSession submitSession,
     required String sessionId,
     required String sessionType,
     String? sessionName,
   })  : _ref = ref,
+        _getSessionReviewItems = getSessionReviewItems,
+        _submitSession = submitSession,
         super(SessionReviewState.initial(
           sessionId: sessionId,
           sessionType: sessionType,
           sessionName: sessionName,
         ),);
 
-  /// Load session items via Repository
+  /// Load session items via UseCase
   Future<void> loadSessionItems() async {
     if (state.isLoading) return;
 
@@ -28,7 +36,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
 
     try {
       final appState = _ref.read(appStateProvider);
-      final userId = appState.user['user_id']?.toString() ?? '';
+      final userId = appState.userId;
 
       if (userId.isEmpty) {
         state = state.copyWith(
@@ -38,8 +46,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
         return;
       }
 
-      final repository = _ref.read(sessionRepositoryProvider);
-      final response = await repository.getSessionReviewItems(
+      final response = await _getSessionReviewItems(
         sessionId: state.sessionId,
         userId: userId,
       );
@@ -78,7 +85,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
 
     try {
       final appState = _ref.read(appStateProvider);
-      final userId = appState.user['user_id']?.toString() ?? '';
+      final userId = appState.userId;
 
       if (userId.isEmpty) {
         state = state.copyWith(isSubmitting: false, error: 'User not found');
@@ -91,11 +98,10 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
                 productId: item.productId,
                 quantity: item.totalQuantity,
                 quantityRejected: item.totalRejected,
-              ))
+              ),)
           .toList();
 
-      final repository = _ref.read(sessionRepositoryProvider);
-      final response = await repository.submitSession(
+      final response = await _submitSession(
         sessionId: state.sessionId,
         userId: userId,
         items: submitItems,
@@ -124,8 +130,13 @@ typedef SessionReviewParams = ({
 final sessionReviewProvider = StateNotifierProvider.autoDispose
     .family<SessionReviewNotifier, SessionReviewState, SessionReviewParams>(
         (ref, params) {
+  final getSessionReviewItems = ref.watch(getSessionReviewItemsUseCaseProvider);
+  final submitSession = ref.watch(submitSessionUseCaseProvider);
+
   final notifier = SessionReviewNotifier(
     ref: ref,
+    getSessionReviewItems: getSessionReviewItems,
+    submitSession: submitSession,
     sessionId: params.sessionId,
     sessionType: params.sessionType,
     sessionName: params.sessionName,

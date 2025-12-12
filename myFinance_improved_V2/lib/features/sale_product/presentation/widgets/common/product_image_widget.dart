@@ -1,11 +1,19 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 
 /// Product image widget with fallback support
 ///
-/// Displays product image with error handling and fallback icon.
+/// Displays product image with caching, error handling and fallback icon.
 /// Used in both product list and cart views.
+///
+/// Features:
+/// - Memory caching (instant load for viewed images)
+/// - Disk caching (faster reload on app restart)
+/// - Placeholder during load
+/// - Error fallback icon
 class ProductImageWidget extends StatelessWidget {
   final String? imageUrl;
   final double size;
@@ -23,17 +31,43 @@ class ProductImageWidget extends StatelessWidget {
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        child: Image.network(
-          imageUrl!,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallback(),
+          memCacheWidth: (size * 2).toInt(),
+          memCacheHeight: (size * 2).toInt(),
+          placeholder: (context, url) => _buildPlaceholder(),
+          errorWidget: (context, url, error) => _buildFallback(),
+          fadeInDuration: const Duration(milliseconds: 150),
+          fadeOutDuration: const Duration(milliseconds: 150),
         ),
       );
     }
 
     return _buildFallback();
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: TossColors.gray100,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray300),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildFallback() {

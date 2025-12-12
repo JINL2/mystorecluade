@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/providers/session_repository_provider.dart';
+import '../../di/session_providers.dart';
 import '../../domain/entities/session_list_item.dart';
+import '../../domain/usecases/get_session_list.dart';
 
 /// State for session list
 class SessionListState {
@@ -50,33 +51,30 @@ class SessionListState {
 
 /// Notifier for session list state management
 class SessionListNotifier extends StateNotifier<SessionListState> {
-  final Ref _ref;
+  final GetSessionList _getSessionList;
   final String _companyId;
 
   SessionListNotifier({
-    required Ref ref,
+    required GetSessionList getSessionList,
     required String companyId,
     required String sessionType,
-  })  : _ref = ref,
+  })  : _getSessionList = getSessionList,
         _companyId = companyId,
         super(SessionListState.initial(sessionType));
 
-  /// Load sessions via Repository
+  /// Load sessions via UseCase
   Future<void> loadSessions() async {
     if (state.isLoading) return;
 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final repository = _ref.read(sessionRepositoryProvider);
-
       // For 'join' type, get all active sessions (no type filter)
       // For 'counting' or 'receiving', filter by type
-      final String? typeFilter = state.sessionType == 'join'
-          ? null
-          : state.sessionType;
+      final String? typeFilter =
+          state.sessionType == 'join' ? null : state.sessionType;
 
-      final response = await repository.getSessionList(
+      final response = await _getSessionList(
         companyId: _companyId,
         sessionType: typeFilter,
         isActive: true, // Only show active sessions
@@ -108,9 +106,10 @@ final sessionListProvider = StateNotifierProvider.autoDispose
     .family<SessionListNotifier, SessionListState, String>((ref, sessionType) {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
+  final getSessionList = ref.watch(getSessionListUseCaseProvider);
 
   final notifier = SessionListNotifier(
-    ref: ref,
+    getSessionList: getSessionList,
     companyId: companyId,
     sessionType: sessionType,
   );

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../providers/session_type_provider.dart';
 
@@ -69,16 +69,6 @@ class SessionPage extends ConsumerWidget {
                       'receiving';
                   context.push('/session/action/receiving');
                 },
-              ),
-              const SizedBox(height: TossSpacing.space4),
-
-              // Join Session Card
-              _SessionTypeCard(
-                icon: Icons.group_add_outlined,
-                title: 'Join Session',
-                subtitle: 'Join an existing inventory session',
-                color: TossColors.warning,
-                onTap: () => context.push('/session/list/join'),
               ),
             ],
           ),

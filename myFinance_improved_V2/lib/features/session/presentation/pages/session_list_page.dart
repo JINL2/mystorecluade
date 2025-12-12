@@ -87,7 +87,7 @@ class SessionListPage extends ConsumerWidget {
 
   void _onSessionTap(BuildContext context, WidgetRef ref, SessionListItem session) {
     final appState = ref.read(appStateProvider);
-    final currentUserId = appState.user['user_id']?.toString() ?? '';
+    final currentUserId = appState.userId;
     final isOwner = session.createdBy == currentUserId;
 
     context.push(

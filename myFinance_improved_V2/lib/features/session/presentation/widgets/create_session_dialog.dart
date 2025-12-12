@@ -9,8 +9,9 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../auth/di/auth_providers.dart';
 import '../../../auth/domain/entities/store_entity.dart';
-import '../../data/providers/session_repository_provider.dart';
+import '../../di/session_providers.dart';
 import '../../domain/entities/inventory_session.dart';
+import '../../domain/entities/shipment.dart';
 
 /// Dialog for creating a new session (Stock Count or Receiving)
 class CreateSessionDialog extends ConsumerStatefulWidget {
@@ -30,18 +31,23 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
   final _sessionNameController = TextEditingController();
   Store? _selectedStore;
   List<Store> _stores = [];
+  Shipment? _selectedShipment;
+  List<Shipment> _shipments = [];
   bool _isLoading = true;
+  bool _isLoadingShipments = false;
   bool _isCreating = false;
   String? _error;
 
   bool get _isCounting => widget.sessionType == 'counting';
+  bool get _isReceiving => widget.sessionType == 'receiving';
   Color get _typeColor =>
       _isCounting ? TossColors.primary : TossColors.success;
 
   @override
   void initState() {
     super.initState();
-    _loadStores();
+    _sessionNameController.text = 'Session1';
+    _loadData();
   }
 
   @override
@@ -50,10 +56,11 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     super.dispose();
   }
 
-  Future<void> _loadStores() async {
+  Future<void> _loadData() async {
     try {
       final appState = ref.read(appStateProvider);
-      final userId = appState.user['user_id']?.toString() ?? '';
+      final userId = appState.userId;
+      final companyId = appState.companyChoosen;
 
       if (userId.isEmpty) {
         setState(() {
@@ -63,6 +70,7 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
         return;
       }
 
+      // Load stores
       final userRepository = ref.read(userRepositoryProvider);
       final stores = await userRepository.getStores(userId);
 
@@ -76,6 +84,14 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
             orElse: () => stores.first,
           );
         }
+      });
+
+      // Load shipments for receiving type
+      if (_isReceiving && companyId.isNotEmpty) {
+        await _loadShipments(companyId);
+      }
+
+      setState(() {
         _isLoading = false;
       });
     } catch (e) {
@@ -86,9 +102,52 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     }
   }
 
+  Future<void> _loadShipments(String companyId) async {
+    setState(() {
+      _isLoadingShipments = true;
+    });
+
+    try {
+      final getShipmentList = ref.read(getShipmentListUseCaseProvider);
+
+      // Date range: 1 year ago to today (user's local time)
+      final now = DateTime.now();
+      final oneYearAgo = DateTime(now.year - 1, now.month, now.day);
+      final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+      // Fetch all shipments within date range (no status filter)
+      final response = await getShipmentList(
+        companyId: companyId,
+        startDate: oneYearAgo,
+        endDate: endOfToday,
+        limit: 500,
+      );
+
+      // Filter client-side: only show pending or process shipments
+      final filteredShipments = response.shipments
+          .where((s) => s.status == 'pending' || s.status == 'process')
+          .toList();
+
+      setState(() {
+        _shipments = filteredShipments;
+        _isLoadingShipments = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingShipments = false;
+      });
+    }
+  }
+
   Future<void> _createSession() async {
     if (_selectedStore == null) {
       setState(() => _error = 'Please select a store');
+      return;
+    }
+
+    // For receiving, shipment is required
+    if (_isReceiving && _selectedShipment == null) {
+      setState(() => _error = 'Please select a shipment');
       return;
     }
 
@@ -99,7 +158,7 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
 
     try {
       final appState = ref.read(appStateProvider);
-      final userId = appState.user['user_id']?.toString() ?? '';
+      final userId = appState.userId;
       final companyId = appState.companyChoosen;
 
       if (userId.isEmpty || companyId.isEmpty) {
@@ -110,8 +169,8 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
         return;
       }
 
-      final repository = ref.read(sessionRepositoryProvider);
-      final response = await repository.createSessionViaRpc(
+      final createSession = ref.read(createSessionUseCaseProvider);
+      final response = await createSession(
         companyId: companyId,
         storeId: _selectedStore!.id,
         userId: userId,
@@ -119,6 +178,7 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
         sessionName: _sessionNameController.text.trim().isNotEmpty
             ? _sessionNameController.text.trim()
             : null,
+        shipmentId: _selectedShipment?.shipmentId,
       );
 
       if (mounted) {
@@ -229,6 +289,20 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Shipment Selector (for receiving only)
+        if (_isReceiving) ...[
+          Text(
+            'Shipment',
+            style: TossTextStyles.bodySmall.copyWith(
+              fontWeight: FontWeight.w500,
+              color: TossColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          _buildShipmentSelector(),
+          const SizedBox(height: TossSpacing.space4),
+        ],
+
         // Store Selector
         Text(
           'Store',
@@ -253,7 +327,9 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
         TextField(
           controller: _sessionNameController,
           decoration: InputDecoration(
-            hintText: _isCounting ? 'e.g., December Stock Count' : 'e.g., Weekly Receiving',
+            hintText: _isCounting
+                ? 'e.g., December Stock Count'
+                : 'e.g., Weekly Receiving',
             hintStyle: TossTextStyles.body.copyWith(
               color: TossColors.textTertiary,
             ),
@@ -307,7 +383,8 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _isCreating ? null : () => Navigator.of(context).pop(),
+                onPressed:
+                    _isCreating ? null : () => Navigator.of(context).pop(),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -373,6 +450,37 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     );
   }
 
+  Future<void> _showShipmentSelector() async {
+    if (_shipments.isEmpty) {
+      setState(() => _error = 'No pending shipments available');
+      return;
+    }
+
+    final items = _shipments.map((shipment) {
+      return TossSelectionItem(
+        id: shipment.shipmentId,
+        title: shipment.shipmentNumber,
+        subtitle: '${shipment.supplierName} • ${shipment.itemCount} items',
+        isSelected: _selectedShipment?.shipmentId == shipment.shipmentId,
+      );
+    }).toList();
+
+    await TossSelectionBottomSheet.show<void>(
+      context: context,
+      title: 'Select Shipment',
+      items: items,
+      selectedId: _selectedShipment?.shipmentId,
+      showSubtitle: true,
+      onItemSelected: (item) {
+        final shipment = _shipments.firstWhere((s) => s.shipmentId == item.id);
+        setState(() {
+          _selectedShipment = shipment;
+          _error = null;
+        });
+      },
+    );
+  }
+
   Widget _buildStoreSelector() {
     return InkWell(
       onTap: _showStoreSelector,
@@ -407,6 +515,73 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
       ),
     );
   }
+
+  Widget _buildShipmentSelector() {
+    return InkWell(
+      onTap: _isLoadingShipments ? null : _showShipmentSelector,
+      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.gray50,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _isLoadingShipments
+                  ? Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Loading shipments...',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.textTertiary,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedShipment?.shipmentNumber ??
+                              'Select a shipment',
+                          style: TossTextStyles.body.copyWith(
+                            color: _selectedShipment != null
+                                ? TossColors.textPrimary
+                                : TossColors.textTertiary,
+                          ),
+                        ),
+                        if (_selectedShipment != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${_selectedShipment!.supplierName} • ${_selectedShipment!.itemCount} items',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              color: TossColors.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Shows the create session dialog and returns the created session response
@@ -416,7 +591,7 @@ Future<CreateSessionResponse?> showCreateSessionDialog(
 }) async {
   return showDialog<CreateSessionResponse>(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: true,
     builder: (context) => CreateSessionDialog(sessionType: sessionType),
   );
 }

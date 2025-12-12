@@ -1,6 +1,8 @@
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/session_item.dart';
+import '../../domain/entities/session_list_item.dart';
 import '../../domain/entities/session_review_item.dart';
+import '../../domain/entities/shipment.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../datasources/session_datasource.dart';
 
@@ -193,6 +195,57 @@ class SessionRepositoryImpl implements SessionRepository {
       sessionType: sessionType,
       sessionName: sessionName,
       shipmentId: shipmentId,
+    );
+  }
+
+  @override
+  Future<ShipmentListResponse> getShipmentList({
+    required String companyId,
+    String? search,
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    return _datasource.getShipmentList(
+      companyId: companyId,
+      search: search,
+      status: status,
+      supplierId: supplierId,
+      startDate: startDate,
+      endDate: endDate,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  @override
+  Future<ProductSearchResponse> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int limit = 20,
+  }) async {
+    return _datasource.searchProducts(
+      companyId: companyId,
+      storeId: storeId,
+      query: query,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<AddSessionItemsResponse> addSessionItems({
+    required String sessionId,
+    required String userId,
+    required List<SessionItemInput> items,
+  }) async {
+    return _datasource.addSessionItems(
+      sessionId: sessionId,
+      userId: userId,
+      items: items,
     );
   }
 }

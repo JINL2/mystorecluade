@@ -2,13 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/session_item.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../models/inventory_session_model.dart';
 import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
-
-export '../../domain/entities/session_list_item.dart';
+import '../models/shipment_model.dart';
 
 /// Provider for SessionDatasource
 final sessionDatasourceProvider = Provider<SessionDatasource>((ref) {
@@ -335,5 +335,147 @@ class SessionDatasource {
 
     final data = response['data'] as Map<String, dynamic>? ?? {};
     return CreateSessionResponseModel.fromJson(data);
+  }
+
+  /// Get shipment list via RPC (inventory_get_shipment_list)
+  /// For receiving session creation - select a shipment to receive
+  Future<ShipmentListResponseModel> getShipmentList({
+    required String companyId,
+    String? search,
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final params = <String, dynamic>{
+      'p_company_id': companyId,
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
+      'p_limit': limit,
+      'p_offset': offset,
+    };
+
+    if (search != null && search.isNotEmpty) {
+      params['p_search'] = search;
+    }
+    if (status != null) {
+      params['p_status'] = status;
+    }
+    if (supplierId != null) {
+      params['p_supplier_id'] = supplierId;
+    }
+    if (startDate != null) {
+      params['p_start_date'] = startDate.toIso8601String();
+    }
+    if (endDate != null) {
+      params['p_end_date'] = endDate.toIso8601String();
+    }
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_get_shipment_list',
+      params: params,
+    ).single();
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to get shipment list');
+    }
+
+    return ShipmentListResponseModel.fromJson(response);
+  }
+
+  /// Search products for session item selection via RPC (get_inventory_page_v3)
+  Future<ProductSearchResponse> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int limit = 20,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_inventory_page_v3',
+      params: {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_page': 1,
+        'p_limit': limit,
+        'p_search': query,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    // Parse response
+    Map<String, dynamic> dataToProcess;
+    if (response.containsKey('success')) {
+      if (response['success'] == true) {
+        dataToProcess = response['data'] as Map<String, dynamic>? ?? {};
+      } else {
+        throw Exception(response['error'] ?? 'Failed to search products');
+      }
+    } else {
+      dataToProcess = response;
+    }
+
+    final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
+    final products = productsJson.map((json) {
+      final map = json as Map<String, dynamic>;
+
+      // Parse image URL from various formats
+      String? imageUrl;
+      if (map['images'] is Map) {
+        final images = map['images'] as Map<String, dynamic>;
+        imageUrl = images['thumbnail']?.toString() ??
+            images['main_image']?.toString();
+      } else if (map['image_urls'] is List) {
+        final urls = map['image_urls'] as List;
+        if (urls.isNotEmpty) imageUrl = urls.first.toString();
+      } else {
+        imageUrl =
+            map['image_url']?.toString() ?? map['thumbnail']?.toString();
+      }
+
+      return ProductSearchResult(
+        productId: map['product_id']?.toString() ?? '',
+        productName: map['product_name']?.toString() ?? '',
+        sku: map['sku']?.toString(),
+        barcode: map['barcode']?.toString(),
+        imageUrl: imageUrl,
+        sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0,
+        currentStock: (map['current_stock'] as num?)?.toInt() ?? 0,
+      );
+    }).toList();
+
+    return ProductSearchResponse(
+      products: products,
+      totalCount: dataToProcess['total_count'] as int? ?? products.length,
+    );
+  }
+
+  /// Add multiple items to a session via RPC (inventory_add_session_items)
+  Future<AddSessionItemsResponse> addSessionItems({
+    required String sessionId,
+    required String userId,
+    required List<SessionItemInput> items,
+  }) async {
+    final itemsJson = items.map((item) => item.toJson()).toList();
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_add_session_items',
+      params: {
+        'p_session_id': sessionId,
+        'p_user_id': userId,
+        'p_items': itemsJson,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] == true) {
+      return AddSessionItemsResponse(
+        success: true,
+        message: response['message']?.toString(),
+        itemsAdded: (response['items_added'] as num?)?.toInt() ?? items.length,
+      );
+    } else {
+      throw Exception(response['error'] ?? 'Failed to add session items');
+    }
   }
 }
