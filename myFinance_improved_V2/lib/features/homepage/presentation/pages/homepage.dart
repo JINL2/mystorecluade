@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -34,9 +35,14 @@ class _HomepageState extends ConsumerState<Homepage> {
   bool _isLoggingOut = false;
   bool _isRefreshing = false;
   bool _alertShown = false; // Prevent showing alert multiple times per session
+  bool _versionChecked = false; // Prevent checking version multiple times
+  bool _updateDialogShown = false; // Prevent showing update dialog multiple times
 
   @override
   Widget build(BuildContext context) {
+    // 🔒 Check app version FIRST before loading any other data
+    _checkAppVersion();
+
     // Show loading view during logout
     if (_isLoggingOut) {
       return const Scaffold(
@@ -605,6 +611,38 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     }
+  }
+
+  /// Check app version against server and show update dialog if needed
+  ///
+  /// This is called BEFORE loading other homepage data.
+  /// If version doesn't match, shows a non-dismissible dialog and exits app on OK.
+  void _checkAppVersion() {
+    if (_versionChecked) return;
+
+    final versionAsync = ref.read(appVersionCheckProvider);
+
+    versionAsync.whenData((isUpToDate) {
+      if (!isUpToDate && !_updateDialogShown) {
+        _updateDialogShown = true;
+        _versionChecked = true;
+
+        // Show force update dialog after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            TossDialogs.showForceUpdateRequired(
+              context: context,
+              onOkPressed: () {
+                // Close the app
+                SystemNavigator.pop();
+              },
+            );
+          }
+        });
+      } else {
+        _versionChecked = true;
+      }
+    });
   }
 
   /// Check and show homepage alert if conditions are met

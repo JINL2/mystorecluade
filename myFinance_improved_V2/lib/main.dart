@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
@@ -24,6 +26,17 @@ Future<void> main() async {
 
   // Load environment variables
   await dotenv.load(fileName: '.env');
+
+  // 📱 앱 버전 정보 출력 (디버그 모드에서만)
+  if (kDebugMode) {
+    final packageInfo = await PackageInfo.fromPlatform();
+    debugPrint('═══════════════════════════════════════════');
+    debugPrint('📱 MyFinance App Started');
+    debugPrint('   Version: ${packageInfo.version}');
+    debugPrint('   Build Number: ${packageInfo.buildNumber}');
+    debugPrint('   Package: ${packageInfo.packageName}');
+    debugPrint('═══════════════════════════════════════════');
+  }
 
   // ✅ Initialize Sentry with error tracking
   await SentryConfig.init(() async {

@@ -55,4 +55,10 @@ abstract class HomepageRepository {
     required String userId,
     required bool isChecked,
   });
+
+  // === App Version Check ===
+
+  /// Check if app version matches server version
+  /// Returns true if up to date, false if update required
+  Future<bool> checkAppVersion();
 }
