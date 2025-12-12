@@ -8,7 +8,7 @@ class UserProfileDataSource {
     try {
       final result = await _supabase
           .from('users')
-          .select('user_id, first_name, last_name, email, user_phone_number, profile_image, created_at, updated_at')
+          .select('user_id, first_name, last_name, email, user_phone_number, date_of_birth, profile_image, created_at, updated_at')
           .eq('user_id', userId)
           .maybeSingle();
 

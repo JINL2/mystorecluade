@@ -58,14 +58,14 @@ class SettingsSection extends StatelessWidget {
             ),
           ),
 
-          // Settings Items
+          // Settings Items - Modern vibrant design with primary brand color
           TossListTile(
             title: 'Edit Profile',
             leading: Container(
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
@@ -88,12 +88,12 @@ class SettingsSection extends StatelessWidget {
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.info.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 Icons.notifications_outlined,
-                color: TossColors.info,
+                color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
@@ -111,12 +111,12 @@ class SettingsSection extends StatelessWidget {
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.success.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 Icons.security_outlined,
-                color: TossColors.success,
+                color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
@@ -134,12 +134,12 @@ class SettingsSection extends StatelessWidget {
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.warning.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 Icons.language,
-                color: TossColors.warning,
+                color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
