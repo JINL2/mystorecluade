@@ -70,8 +70,9 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   int penaltyAmount = 0;
   late int _initialPenaltyAmount;
 
-  // Controllers for bonus and memo text fields
+  // Controllers for bonus, deduct and memo text fields
   final TextEditingController _bonusController = TextEditingController();
+  final TextEditingController _deductController = TextEditingController();
   final TextEditingController _memoController = TextEditingController();
 
   // Memo state
@@ -95,7 +96,10 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   bool get isCheckOutChanged => confirmedCheckOut != _initialConfirmedCheckOut;
 
   /// Check if confirmed attendance section has any changes
-  bool get isConfirmedTimeChanged => isCheckInChanged || isCheckOutChanged;
+  /// Includes time changes OR manual confirmation (even if same time value)
+  bool get isConfirmedTimeChanged =>
+      isCheckInChanged || isCheckOutChanged ||
+      isCheckInManuallyConfirmed || isCheckOutManuallyConfirmed;
 
   /// Check if bonus amount has changed
   bool get isBonusChanged => bonusAmount != _initialBonusAmount;
@@ -216,7 +220,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
-  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount)}₫';
+  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount - penaltyAmount)}₫';
   String get penaltyDeduction => '${NumberFormat('#,###').format(penaltyAmount)}₫';
   String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount - penaltyAmount)}₫';
 
@@ -265,6 +269,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   @override
   void dispose() {
     _bonusController.dispose();
+    _deductController.dispose();
     _memoController.dispose();
     super.dispose();
   }
@@ -321,6 +326,10 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   void _onBonusChanged(int amount) {
     setState(() => bonusAmount = amount);
+  }
+
+  void _onDeductChanged(int amount) {
+    setState(() => penaltyAmount = amount);
   }
 
   // ============================================================================
@@ -398,6 +407,20 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         confirmEndTime = null;
       }
 
+      // Net bonus amount = Add bonus - Deduct (can be negative)
+      final netBonusAmount = bonusAmount - penaltyAmount;
+
+      debugPrint('[StaffTimelogDetail] ========== RPC PARAMS ==========');
+      debugPrint('[StaffTimelogDetail] bonusAmount: $bonusAmount');
+      debugPrint('[StaffTimelogDetail] penaltyAmount: $penaltyAmount');
+      debugPrint('[StaffTimelogDetail] netBonusAmount: $netBonusAmount');
+      debugPrint('[StaffTimelogDetail] confirmStartTime: $confirmStartTime');
+      debugPrint('[StaffTimelogDetail] confirmEndTime: $confirmEndTime');
+      debugPrint('[StaffTimelogDetail] isProblemSolved: $isProblemSolved');
+      debugPrint('[StaffTimelogDetail] isReportedSolved: $isReportedSolved');
+      debugPrint('[StaffTimelogDetail] managerMemo: $managerMemo');
+      debugPrint('[StaffTimelogDetail] ================================');
+
       final params = InputCardV5Params(
         managerId: managerId,
         shiftRequestId: shiftRequestId,
@@ -405,12 +428,13 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         confirmEndTime: confirmEndTime,
         isProblemSolved: isProblemSolved,
         isReportedSolved: isReportedSolved,
-        bonusAmount: bonusAmount.toDouble(),
+        bonusAmount: netBonusAmount.toDouble(),
         managerMemo: managerMemo,
         timezone: timezone,
       );
 
-      await inputCardV5UseCase.call(params);
+      final result = await inputCardV5UseCase.call(params);
+      debugPrint('[StaffTimelogDetail] RPC Result: $result');
 
       if (mounted) {
         setState(() {
@@ -418,6 +442,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
           _initialConfirmedCheckIn = confirmedCheckIn;
           _initialConfirmedCheckOut = confirmedCheckOut;
           _initialBonusAmount = bonusAmount;
+          _initialPenaltyAmount = penaltyAmount;
           _initialMemo = _memoController.text;
           if (issueReportStatus != null) {
             // Convert user selection to bool for storage
@@ -528,12 +553,14 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                   // Full-width gray divider before Adjustment section
                   const GrayDividerSpace(),
 
-                  // Section 2: Adjustment section (bonus only)
+                  // Section 2: Adjustment section (bonus and deduct)
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: AdjustmentSection(
                       bonusController: _bonusController,
+                      deductController: _deductController,
                       onBonusChanged: _onBonusChanged,
+                      onDeductChanged: _onDeductChanged,
                     ),
                   ),
 

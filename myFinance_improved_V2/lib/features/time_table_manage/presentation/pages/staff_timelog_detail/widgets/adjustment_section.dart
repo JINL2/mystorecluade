@@ -9,14 +9,19 @@ import '../../../../../../shared/themes/toss_text_styles.dart';
 ///
 /// Contains:
 /// - Add bonus text field
+/// - Deduct text field
 class AdjustmentSection extends StatefulWidget {
   final TextEditingController bonusController;
+  final TextEditingController deductController;
   final ValueChanged<int> onBonusChanged;
+  final ValueChanged<int> onDeductChanged;
 
   const AdjustmentSection({
     super.key,
     required this.bonusController,
+    required this.deductController,
     required this.onBonusChanged,
+    required this.onDeductChanged,
   });
 
   @override
@@ -25,10 +30,12 @@ class AdjustmentSection extends StatefulWidget {
 
 class _AdjustmentSectionState extends State<AdjustmentSection> {
   final FocusNode _bonusFocusNode = FocusNode();
+  final FocusNode _deductFocusNode = FocusNode();
 
   @override
   void dispose() {
     _bonusFocusNode.dispose();
+    _deductFocusNode.dispose();
     super.dispose();
   }
 
@@ -54,6 +61,15 @@ class _AdjustmentSectionState extends State<AdjustmentSection> {
           onChanged: widget.onBonusChanged,
           focusNode: _bonusFocusNode,
           onEditTap: () => _bonusFocusNode.requestFocus(),
+        ),
+
+        // Deduct text field
+        _AdjustmentTextField(
+          label: 'Deduct',
+          controller: widget.deductController,
+          onChanged: widget.onDeductChanged,
+          focusNode: _deductFocusNode,
+          onEditTap: () => _deductFocusNode.requestFocus(),
         ),
       ],
     );

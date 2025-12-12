@@ -131,6 +131,7 @@ class ConfirmedAttendanceCard extends StatelessWidget {
 }
 
 /// Editable time row with colored text and edit button
+/// Tap area includes both time value and edit icon for better UX
 class _EditableTimeRow extends StatelessWidget {
   final String label;
   final String value;
@@ -167,44 +168,52 @@ class _EditableTimeRow extends StatelessWidget {
             color: TossColors.gray600,
           ),
         ),
-        Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+        // Expanded tap area: includes time value and edit icon
+        InkWell(
+          onTap: onEdit,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: TossSpacing.space1,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  value,
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: timeColor,
-                    fontWeight: FontWeight.w600,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      value,
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: timeColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (isConfirmed) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Confirmed',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(width: 8),
+                const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: TossColors.gray600,
                   ),
                 ),
-                if (isConfirmed) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'Confirmed',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ],
             ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: onEdit,
-              borderRadius: const BorderRadius.all(Radius.circular(TossBorderRadius.full)),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(
-                  Icons.edit_outlined,
-                  size: 16,
-                  color: TossColors.gray600,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );

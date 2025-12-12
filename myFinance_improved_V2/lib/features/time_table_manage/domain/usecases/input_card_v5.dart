@@ -39,10 +39,7 @@ class InputCardV5 implements UseCase<Map<String, dynamic>, InputCardV5Params> {
       }
     }
 
-    // Validate bonus amount if provided
-    if (params.bonusAmount != null && params.bonusAmount! < 0) {
-      throw ArgumentError('Bonus amount cannot be negative');
-    }
+    // Note: bonusAmount can be negative (when Deduct > Add bonus)
 
     return await _repository.inputCardV5(
       managerId: params.managerId,
