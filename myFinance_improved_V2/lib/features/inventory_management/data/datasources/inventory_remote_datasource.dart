@@ -84,7 +84,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('get_inventory_page_v2', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v3', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -138,6 +138,7 @@ class InventoryRemoteDataSource {
   Future<ProductModel> createProduct({
     required String companyId,
     required String storeId,
+    required String createdBy,
     required String name,
     String? sku,
     String? barcode,
@@ -147,13 +148,16 @@ class InventoryRemoteDataSource {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
+    int? minStock,
+    int? maxStock,
     List<String>? imageUrls,
   }) async {
     try {
       final params = {
         'p_company_id': companyId,
-        'p_product_name': name,
         'p_store_id': storeId,
+        'p_created_by': createdBy,
+        'p_product_name': name,
         'p_sku': sku,
         'p_barcode': barcode,
         'p_category_id': categoryId,
@@ -162,13 +166,15 @@ class InventoryRemoteDataSource {
         'p_cost_price': costPrice,
         'p_selling_price': sellingPrice,
         'p_initial_quantity': initialQuantity,
+        'p_min_stock': minStock,
+        'p_max_stock': maxStock,
         'p_image_urls': imageUrls,
         'p_time': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_create_product_v2', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_product_v3', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -237,6 +243,7 @@ class InventoryRemoteDataSource {
     required String productId,
     required String companyId,
     required String storeId,
+    required String createdBy,
     String? sku,
     String? name,
     String? categoryId,
@@ -248,12 +255,14 @@ class InventoryRemoteDataSource {
     int? onHand,
     String? flowType,
     List<String>? imageUrls,
+    bool defaultPrice = false,
   }) async {
     try {
       final params = {
         'p_product_id': productId,
         'p_company_id': companyId,
         'p_store_id': storeId,
+        'p_created_by': createdBy,
         'p_sku': sku,
         'p_product_name': name,
         'p_category_id': categoryId,
@@ -265,12 +274,13 @@ class InventoryRemoteDataSource {
         'p_new_quantity': onHand,
         'p_flow_type': flowType,
         'p_image_urls': imageUrls,
-        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_default_price': defaultPrice,
+        'p_updated_at': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_edit_product_v2', params: params)
+          .rpc<Map<String, dynamic>>('inventory_edit_product_v4', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -311,7 +321,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_delete_product_v2',
+        'inventory_delete_product_v3',
         params: params,
       ).single();
 

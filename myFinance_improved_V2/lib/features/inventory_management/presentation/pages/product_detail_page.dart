@@ -13,7 +13,7 @@ import '../extensions/stock_status_extension.dart';
 import '../providers/inventory_providers.dart';
 
 /// Product Detail Page - Shows detailed product information
-class ProductDetailPage extends ConsumerWidget {
+class ProductDetailPage extends ConsumerStatefulWidget {
   final String productId;
 
   const ProductDetailPage({
@@ -22,19 +22,43 @@ class ProductDetailPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
+  Future<void> _navigateToEdit() async {
+    final result = await context.push<bool>(
+      '/inventoryManagement/editProduct/${widget.productId}',
+    );
+
+    // If edit was successful, refresh the list
+    if (result == true && mounted) {
+      await ref.read(inventoryPageProvider.notifier).refresh();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final productsState = ref.watch(inventoryPageProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
     // Find product in the list
     final product = productsState.products.firstWhere(
-      (p) => p.id == productId,
+      (p) => p.id == widget.productId,
       orElse: () => throw Exception('Product not found'),
     );
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Refresh inventory list when going back
+            ref.read(inventoryPageProvider.notifier).refresh();
+            context.pop();
+          },
+        ),
         title: Text(
           'Product Details',
           style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
@@ -46,13 +70,11 @@ class ProductDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              context.push('/inventoryManagement/editProduct/$productId');
-            },
+            onPressed: _navigateToEdit,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            onPressed: () => _showDeleteConfirmation(context, ref, product),
+            onPressed: () => _showDeleteConfirmation(product),
           ),
         ],
       ),
@@ -373,25 +395,21 @@ class ProductDetailPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDeleteConfirmation(
-    BuildContext context,
-    WidgetRef ref,
-    Product product,
-  ) async {
+  Future<void> _showDeleteConfirmation(Product product) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Product'),
         content: Text(
           'Are you sure you want to delete "${product.name}"?\n\nThis action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
               foregroundColor: TossColors.error,
             ),
@@ -401,100 +419,93 @@ class ProductDetailPage extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true && context.mounted) {
-      try {
-        // Get company ID
-        final appState = ref.read(appStateProvider);
-        final companyId = appState.companyChoosen as String?;
+    if (confirmed != true || !mounted) return;
 
-        if (companyId == null) {
-          if (context.mounted) {
-            await showDialog<void>(
-              context: context,
-              builder: (context) => TossDialog.error(
-                title: 'Company Not Selected',
-                message: 'Please select a company to delete products.',
-                primaryButtonText: 'OK',
-              ),
-            );
-          }
-          return;
-        }
+    try {
+      // Get company ID
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen as String?;
 
-        // Show loading indicator
-        if (context.mounted) {
-          showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        // Delete product
-        final repository = ref.read(inventoryRepositoryProvider);
-        final success = await repository.deleteProducts(
-          productIds: [product.id],
-          companyId: companyId,
+      if (companyId == null) {
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => TossDialog.error(
+            title: 'Company Not Selected',
+            message: 'Please select a company to delete products.',
+            primaryButtonText: 'OK',
+          ),
         );
-
-        // Close loading indicator
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
-
-        if (success) {
-          // Refresh inventory list
-          ref.read(inventoryPageProvider.notifier).refresh();
-
-          if (context.mounted) {
-            // Navigate back to inventory list first
-            context.pop();
-
-            // Show success dialog
-            if (context.mounted) {
-              await showDialog<void>(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => TossDialog.success(
-                  title: 'Product Deleted',
-                  message: '${product.name} has been successfully deleted.',
-                  primaryButtonText: 'OK',
-                  onPrimaryPressed: () => Navigator.pop(context),
-                ),
-              );
-            }
-          }
-        } else {
-          if (context.mounted) {
-            await showDialog<void>(
-              context: context,
-              builder: (context) => TossDialog.error(
-                title: 'Delete Failed',
-                message: 'Failed to delete product. Please try again.',
-                primaryButtonText: 'OK',
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        // Close loading indicator if still showing
-        if (context.mounted && Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-
-        if (context.mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => TossDialog.error(
-              title: 'Error',
-              message: e.toString().replaceAll('Exception:', '').trim(),
-              primaryButtonText: 'OK',
-            ),
-          );
-        }
+        return;
       }
+
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Delete product
+      final repository = ref.read(inventoryRepositoryProvider);
+      final success = await repository.deleteProducts(
+        productIds: [product.id],
+        companyId: companyId,
+      );
+
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      if (success) {
+        // Refresh inventory list
+        ref.read(inventoryPageProvider.notifier).refresh();
+
+        if (!mounted) return;
+        // Navigate back to inventory list first
+        context.pop();
+
+        // Show success dialog
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => TossDialog.success(
+            title: 'Product Deleted',
+            message: '${product.name} has been successfully deleted.',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.pop(ctx),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => TossDialog.error(
+            title: 'Delete Failed',
+            message: 'Failed to delete product. Please try again.',
+            primaryButtonText: 'OK',
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading indicator if still showing
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => TossDialog.error(
+          title: 'Error',
+          message: e.toString().replaceAll('Exception:', '').trim(),
+          primaryButtonText: 'OK',
+        ),
+      );
     }
   }
 }

@@ -8,12 +8,14 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../di/session_providers.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
 import '../widgets/create_session_dialog.dart';
 
 /// Session action page - shows session list with FAB for creating new sessions
-class SessionActionPage extends ConsumerWidget {
+class SessionActionPage extends ConsumerStatefulWidget {
   final String sessionType; // 'counting' or 'receiving'
 
   const SessionActionPage({
@@ -21,28 +23,35 @@ class SessionActionPage extends ConsumerWidget {
     required this.sessionType,
   });
 
+  @override
+  ConsumerState<SessionActionPage> createState() => _SessionActionPageState();
+}
+
+class _SessionActionPageState extends ConsumerState<SessionActionPage> {
+  bool _isJoining = false;
+
   String get _pageTitle {
-    return sessionType == 'counting' ? 'Stock Count' : 'Receiving';
+    return widget.sessionType == 'counting' ? 'Stock Count' : 'Receiving';
   }
 
   Color get _typeColor {
-    return sessionType == 'counting' ? TossColors.primary : TossColors.success;
+    return widget.sessionType == 'counting' ? TossColors.primary : TossColors.success;
   }
 
-  Future<void> _onCreateSessionTap(BuildContext context, WidgetRef ref) async {
+  Future<void> _onCreateSessionTap() async {
     final result = await showCreateSessionDialog(
       context,
-      sessionType: sessionType,
+      sessionType: widget.sessionType,
     );
 
-    if (result != null && context.mounted) {
+    if (result != null && mounted) {
       // Get store ID from app state for navigation
       final appState = ref.read(appStateProvider);
       final storeId = appState.storeChoosen;
 
       // Build query parameters for navigation
       final queryParams = <String, String>{
-        'sessionType': sessionType,
+        'sessionType': widget.sessionType,
         'storeId': storeId,
         'isOwner': 'true', // Creator is always the owner
       };
@@ -59,42 +68,87 @@ class SessionActionPage extends ConsumerWidget {
     }
   }
 
-  void _onSessionTap(BuildContext context, WidgetRef ref, SessionListItem session) {
+  Future<void> _onSessionTap(SessionListItem session) async {
+    if (_isJoining) return;
+
     final appState = ref.read(appStateProvider);
     final currentUserId = appState.userId;
     final isOwner = session.createdBy == currentUserId;
 
-    context.push(
-      '/session/detail/${session.sessionId}'
-      '?sessionType=${session.sessionType}'
-      '&storeId=${session.storeId}'
-      '&sessionName=${Uri.encodeComponent(session.sessionName)}'
-      '&isOwner=$isOwner',
-    );
+    setState(() => _isJoining = true);
+
+    try {
+      // Call inventory_join_session RPC
+      final joinSession = ref.read(joinSessionUseCaseProvider);
+      await joinSession(
+        sessionId: session.sessionId,
+        userId: currentUserId,
+      );
+
+      if (!mounted) return;
+
+      // Navigate to session detail page on success
+      context.push(
+        '/session/detail/${session.sessionId}'
+        '?sessionType=${session.sessionType}'
+        '&storeId=${session.storeId}'
+        '&sessionName=${Uri.encodeComponent(session.sessionName)}'
+        '&isOwner=$isOwner',
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      // Show error dialog
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => TossDialog.error(
+          title: 'Failed to Join',
+          message: e.toString().replaceFirst('Exception: ', ''),
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(ctx).pop(),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isJoining = false);
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(sessionListProvider(sessionType));
+  Widget build(BuildContext context) {
+    final state = ref.watch(sessionListProvider(widget.sessionType));
 
-    return Scaffold(
-      appBar: TossAppBar1(
-        title: _pageTitle,
-        secondaryActionIcon: Icons.refresh,
-        onSecondaryAction: () {
-          ref.read(sessionListProvider(sessionType).notifier).refresh();
-        },
-      ),
-      body: _buildBody(context, ref, state),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onCreateSessionTap(context, ref),
-        backgroundColor: _typeColor,
-        child: const Icon(Icons.add, color: TossColors.white),
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: TossAppBar1(
+            title: _pageTitle,
+            secondaryActionIcon: Icons.refresh,
+            onSecondaryAction: () {
+              ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+            },
+          ),
+          body: _buildBody(state),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _onCreateSessionTap,
+            backgroundColor: _typeColor,
+            child: const Icon(Icons.add, color: TossColors.white),
+          ),
+        ),
+        // Loading overlay when joining session
+        if (_isJoining)
+          Container(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, SessionListState state) {
+  Widget _buildBody(SessionListState state) {
     if (state.isLoading && state.sessions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -103,18 +157,18 @@ class SessionActionPage extends ConsumerWidget {
       return _ErrorView(
         error: state.error ?? 'Unknown error',
         onRetry: () {
-          ref.read(sessionListProvider(sessionType).notifier).refresh();
+          ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
         },
       );
     }
 
     if (state.isEmpty) {
-      return _EmptyView(sessionType: sessionType);
+      return _EmptyView(sessionType: widget.sessionType);
     }
 
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(sessionListProvider(sessionType).notifier).refresh();
+        await ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(TossSpacing.space4),
@@ -123,7 +177,7 @@ class SessionActionPage extends ConsumerWidget {
           final session = state.sessions[index];
           return _SessionCard(
             session: session,
-            onTap: () => _onSessionTap(context, ref, session),
+            onTap: () => _onSessionTap(session),
           );
         },
       ),

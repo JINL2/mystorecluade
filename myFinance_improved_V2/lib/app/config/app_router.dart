@@ -50,6 +50,9 @@ import '../../features/session/presentation/pages/session_action_page.dart';
 import '../../features/session/presentation/pages/session_list_page.dart';
 import '../../features/session/presentation/pages/session_detail_page.dart';
 import '../../features/session/presentation/pages/session_review_page.dart';
+import '../../features/session/presentation/pages/session_history_page.dart';
+import '../../features/session/presentation/pages/session_history_detail_page.dart';
+import '../../features/session/domain/entities/session_history_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -758,6 +761,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return SessionPage(feature: feature);
+        },
+      ),
+
+      // Session History Route (view past sessions) - Must be before dynamic routes
+      GoRoute(
+        path: '/session/history',
+        name: 'session-history',
+        builder: (context, state) => const SessionHistoryPage(),
+      ),
+
+      // Session History Detail Route
+      GoRoute(
+        path: '/session/history/detail',
+        name: 'session-history-detail',
+        builder: (context, state) {
+          final session = state.extra as SessionHistoryItem;
+          return SessionHistoryDetailPage(session: session);
         },
       ),
 

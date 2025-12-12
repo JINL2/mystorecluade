@@ -70,6 +70,18 @@ class SessionPage extends ConsumerWidget {
                   context.push('/session/action/receiving');
                 },
               ),
+              const SizedBox(height: TossSpacing.space4),
+
+              // History Card
+              _SessionTypeCard(
+                icon: Icons.history,
+                title: 'History',
+                subtitle: 'View past counting and receiving sessions',
+                color: TossColors.gray600,
+                onTap: () {
+                  context.push('/session/history');
+                },
+              ),
             ],
           ),
         ),

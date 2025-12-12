@@ -56,4 +56,31 @@ class SessionListItemModel extends SessionListItem {
       'created_at': createdAt,
     };
   }
+
+  SessionListItem toEntity() => this;
+}
+
+/// Model for SessionListResponse with JSON parsing
+class SessionListResponseModel extends SessionListResponse {
+  const SessionListResponseModel({
+    required super.sessions,
+    required super.totalCount,
+    required super.limit,
+    required super.offset,
+  });
+
+  factory SessionListResponseModel.fromJson(Map<String, dynamic> json) {
+    final dataList = (json['data'] as List<dynamic>? ?? [])
+        .map((e) => SessionListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return SessionListResponseModel(
+      sessions: dataList,
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      limit: (json['limit'] as num?)?.toInt() ?? 50,
+      offset: (json['offset'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  SessionListResponse toEntity() => this;
 }

@@ -28,6 +28,7 @@ abstract class InventoryRepository {
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
+    required String createdBy,
     required String name,
     String? sku,
     String? barcode,
@@ -37,6 +38,8 @@ abstract class InventoryRepository {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
+    int? minStock,
+    int? maxStock,
     List<String>? imageUrls,
   });
 
@@ -53,6 +56,7 @@ abstract class InventoryRepository {
     required String productId,
     required String companyId,
     required String storeId,
+    required String createdBy,
     String? sku,
     String? name,
     String? categoryId,
@@ -64,6 +68,7 @@ abstract class InventoryRepository {
     int? onHand,
     String? flowType,
     List<String>? imageUrls,
+    bool defaultPrice = false,
   });
 
   /// Delete products

@@ -1,4 +1,7 @@
+import '../../domain/entities/close_session_response.dart';
 import '../../domain/entities/inventory_session.dart';
+import '../../domain/entities/join_session_response.dart';
+import '../../domain/entities/session_history_item.dart';
 import '../../domain/entities/session_item.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../../domain/entities/session_review_item.dart';
@@ -246,6 +249,53 @@ class SessionRepositoryImpl implements SessionRepository {
       sessionId: sessionId,
       userId: userId,
       items: items,
+    );
+  }
+
+  @override
+  Future<JoinSessionResponse> joinSession({
+    required String sessionId,
+    required String userId,
+  }) async {
+    return _datasource.joinSession(
+      sessionId: sessionId,
+      userId: userId,
+    );
+  }
+
+  @override
+  Future<CloseSessionResponse> closeSession({
+    required String sessionId,
+    required String userId,
+    required String companyId,
+  }) async {
+    return _datasource.closeSession(
+      sessionId: sessionId,
+      userId: userId,
+      companyId: companyId,
+    );
+  }
+
+  @override
+  Future<SessionHistoryResponse> getSessionHistory({
+    required String companyId,
+    String? storeId,
+    String? sessionType,
+    bool? isActive,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 15,
+    int offset = 0,
+  }) async {
+    return _datasource.getSessionHistory(
+      companyId: companyId,
+      storeId: storeId,
+      sessionType: sessionType,
+      isActive: isActive,
+      startDate: startDate,
+      endDate: endDate,
+      limit: limit,
+      offset: offset,
     );
   }
 }

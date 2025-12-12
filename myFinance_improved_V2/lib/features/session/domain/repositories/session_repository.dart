@@ -1,4 +1,7 @@
+import '../entities/close_session_response.dart';
 import '../entities/inventory_session.dart';
+import '../entities/join_session_response.dart';
+import '../entities/session_history_item.dart';
 import '../entities/session_item.dart';
 import '../entities/session_list_item.dart';
 import '../entities/session_review_item.dart';
@@ -142,5 +145,33 @@ abstract class SessionRepository {
     required String sessionId,
     required String userId,
     required List<SessionItemInput> items,
+  });
+
+  /// Join an active session via RPC (inventory_join_session)
+  /// Returns success even if already joined
+  Future<JoinSessionResponse> joinSession({
+    required String sessionId,
+    required String userId,
+  });
+
+  /// Close a session without saving/submitting data via RPC (inventory_close_session)
+  /// Only session creator can close the session
+  Future<CloseSessionResponse> closeSession({
+    required String sessionId,
+    required String userId,
+    required String companyId,
+  });
+
+  /// Get session history via RPC (inventory_get_session_history)
+  /// Returns detailed session history including members and items
+  Future<SessionHistoryResponse> getSessionHistory({
+    required String companyId,
+    String? storeId,
+    String? sessionType,
+    bool? isActive,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 15,
+    int offset = 0,
   });
 }

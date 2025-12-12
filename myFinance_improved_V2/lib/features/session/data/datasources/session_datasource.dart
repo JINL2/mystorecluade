@@ -3,8 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/session_item.dart';
-import '../../domain/entities/session_list_item.dart';
+import '../models/close_session_response_model.dart';
 import '../models/inventory_session_model.dart';
+import '../models/join_session_response_model.dart';
+import '../models/product_search_model.dart';
+import '../models/session_history_item_model.dart';
 import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
@@ -200,7 +203,7 @@ class SessionDatasource {
   }
 
   /// Get session list via RPC (inventory_get_session_list)
-  Future<SessionListResponse> getSessionList({
+  Future<SessionListResponseModel> getSessionList({
     required String companyId,
     String? storeId,
     String? sessionType,
@@ -237,7 +240,7 @@ class SessionDatasource {
         .map((json) => SessionListItemModel.fromJson(json as Map<String, dynamic>))
         .toList();
 
-    return SessionListResponse(
+    return SessionListResponseModel(
       sessions: sessions,
       totalCount: response['total_count'] as int? ?? 0,
       limit: response['limit'] as int? ?? limit,
@@ -385,7 +388,7 @@ class SessionDatasource {
   }
 
   /// Search products for session item selection via RPC (get_inventory_page_v3)
-  Future<ProductSearchResponse> searchProducts({
+  Future<ProductSearchResponseModel> searchProducts({
     required String companyId,
     required String storeId,
     required String query,
@@ -416,42 +419,18 @@ class SessionDatasource {
     }
 
     final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
-    final products = productsJson.map((json) {
-      final map = json as Map<String, dynamic>;
+    final products = productsJson
+        .map((json) => ProductSearchResultModel.fromJson(json as Map<String, dynamic>))
+        .toList();
 
-      // Parse image URL from various formats
-      String? imageUrl;
-      if (map['images'] is Map) {
-        final images = map['images'] as Map<String, dynamic>;
-        imageUrl = images['thumbnail']?.toString() ??
-            images['main_image']?.toString();
-      } else if (map['image_urls'] is List) {
-        final urls = map['image_urls'] as List;
-        if (urls.isNotEmpty) imageUrl = urls.first.toString();
-      } else {
-        imageUrl =
-            map['image_url']?.toString() ?? map['thumbnail']?.toString();
-      }
-
-      return ProductSearchResult(
-        productId: map['product_id']?.toString() ?? '',
-        productName: map['product_name']?.toString() ?? '',
-        sku: map['sku']?.toString(),
-        barcode: map['barcode']?.toString(),
-        imageUrl: imageUrl,
-        sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0,
-        currentStock: (map['current_stock'] as num?)?.toInt() ?? 0,
-      );
-    }).toList();
-
-    return ProductSearchResponse(
+    return ProductSearchResponseModel(
       products: products,
       totalCount: dataToProcess['total_count'] as int? ?? products.length,
     );
   }
 
   /// Add multiple items to a session via RPC (inventory_add_session_items)
-  Future<AddSessionItemsResponse> addSessionItems({
+  Future<AddSessionItemsResponseModel> addSessionItems({
     required String sessionId,
     required String userId,
     required List<SessionItemInput> items,
@@ -469,7 +448,7 @@ class SessionDatasource {
     ).single();
 
     if (response['success'] == true) {
-      return AddSessionItemsResponse(
+      return AddSessionItemsResponseModel(
         success: true,
         message: response['message']?.toString(),
         itemsAdded: (response['items_added'] as num?)?.toInt() ?? items.length,
@@ -477,5 +456,96 @@ class SessionDatasource {
     } else {
       throw Exception(response['error'] ?? 'Failed to add session items');
     }
+  }
+
+  /// Join an active session via RPC (inventory_join_session)
+  /// Returns success even if already joined
+  Future<JoinSessionResponseModel> joinSession({
+    required String sessionId,
+    required String userId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_join_session',
+      params: {
+        'p_session_id': sessionId,
+        'p_user_id': userId,
+        'p_time': DateTimeUtils.toLocalWithOffset(DateTime.now()),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] == true) {
+      final data = response['data'] as Map<String, dynamic>? ?? {};
+      return JoinSessionResponseModel.fromJson(data);
+    } else {
+      throw Exception(response['error'] ?? 'Failed to join session');
+    }
+  }
+
+  /// Close a session without saving/submitting data via RPC (inventory_close_session)
+  /// Only session creator can close the session
+  Future<CloseSessionResponseModel> closeSession({
+    required String sessionId,
+    required String userId,
+    required String companyId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_close_session',
+      params: {
+        'p_session_id': sessionId,
+        'p_user_id': userId,
+        'p_company_id': companyId,
+        'p_time': DateTimeUtils.toLocalWithOffset(DateTime.now()),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] == true) {
+      final data = response['data'] as Map<String, dynamic>? ?? {};
+      return CloseSessionResponseModel.fromJson(data);
+    } else {
+      throw Exception(response['error'] ?? 'Failed to close session');
+    }
+  }
+
+  /// Get session history via RPC (inventory_get_session_history)
+  /// Returns detailed session history including members and items
+  Future<SessionHistoryResponseModel> getSessionHistory({
+    required String companyId,
+    String? storeId,
+    String? sessionType,
+    bool? isActive,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 15,
+    int offset = 0,
+  }) async {
+    final params = <String, dynamic>{
+      'p_company_id': companyId,
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
+      'p_limit': limit,
+      'p_offset': offset,
+    };
+
+    if (storeId != null) params['p_store_id'] = storeId;
+    if (sessionType != null) params['p_session_type'] = sessionType;
+    if (isActive != null) params['p_is_active'] = isActive;
+    if (startDate != null) {
+      params['p_start_date'] = DateTimeUtils.toLocalWithOffset(startDate);
+    }
+    if (endDate != null) {
+      params['p_end_date'] = DateTimeUtils.toLocalWithOffset(endDate);
+    }
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_get_session_history',
+      params: params,
+    ).single();
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to get session history');
+    }
+
+    return SessionHistoryResponseModel.fromJson(response);
   }
 }
