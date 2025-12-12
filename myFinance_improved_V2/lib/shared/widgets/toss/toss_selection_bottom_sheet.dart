@@ -128,6 +128,12 @@ class TossSelectionBottomSheet extends StatefulWidget {
   /// 🆕 Whether to enable haptic feedback on selection
   final bool enableHapticFeedback;
 
+  /// Whether to show icon/avatar for items
+  final bool showIcon;
+
+  /// Whether to show background highlight on selected item
+  final bool showSelectedBackground;
+
   const TossSelectionBottomSheet({
     super.key,
     required this.title,
@@ -141,9 +147,11 @@ class TossSelectionBottomSheet extends StatefulWidget {
     this.selectedFontWeight = FontWeight.w600,
     this.unselectedFontWeight = FontWeight.w400,
     this.unselectedIconColor = TossColors.gray600,
-    this.borderBottomWidth = 1.0,
+    this.borderBottomWidth = 0,  // Default: no divider
     this.checkIcon = LucideIcons.checkCircle,
     this.enableHapticFeedback = false,
+    this.showIcon = true,
+    this.showSelectedBackground = true,
   });
   
   @override
@@ -163,9 +171,11 @@ class TossSelectionBottomSheet extends StatefulWidget {
     FontWeight selectedFontWeight = FontWeight.w600,
     FontWeight unselectedFontWeight = FontWeight.w400,
     Color unselectedIconColor = TossColors.gray600,
-    double borderBottomWidth = 1.0,
+    double borderBottomWidth = 0,  // Default: no divider
     IconData checkIcon = LucideIcons.checkCircle,
     bool enableHapticFeedback = false,
+    bool showIcon = true,
+    bool showSelectedBackground = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -186,6 +196,8 @@ class TossSelectionBottomSheet extends StatefulWidget {
         borderBottomWidth: borderBottomWidth,
         checkIcon: checkIcon,
         enableHapticFeedback: enableHapticFeedback,
+        showIcon: showIcon,
+        showSelectedBackground: showSelectedBackground,
       ),
     );
   }
@@ -346,7 +358,9 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
           vertical: TossSpacing.space4,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.transparent,
+          color: (widget.showSelectedBackground && isSelected)
+              ? TossColors.primary.withValues(alpha: 0.05)
+              : TossColors.transparent,
           border: (isLast || widget.borderBottomWidth == 0)
               ? null
               : Border(
@@ -358,79 +372,80 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
         ),
         child: Row(
           children: [
-            // Avatar or Icon container
-            if (item.avatarUrl != null)
-              // Show avatar
-              Container(
-                width: TossSpacing.iconXL,
-                height: TossSpacing.iconXL,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray200,
-                    width: isSelected ? 2 : 1,
+            // Avatar or Icon container (only if showIcon is true)
+            if (widget.showIcon) ...[
+              if (item.avatarUrl != null)
+                // Show avatar
+                Container(
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray200,
+                      width: isSelected ? 2 : 1,
+                    ),
                   ),
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    item.avatarUrl!,
-                    width: TossSpacing.iconXL,
-                    height: TossSpacing.iconXL,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Show fallback icon ONLY when image fails to load
-                      return Container(
-                        width: TossSpacing.iconXL,
-                        height: TossSpacing.iconXL,
-                        color: TossColors.gray200,
-                        child: const Icon(
-                          Icons.person,
-                          size: 20,
-                          color: TossColors.gray500,
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      // Show placeholder while loading
-                      return Container(
-                        width: TossSpacing.iconXL,
-                        height: TossSpacing.iconXL,
-                        color: TossColors.gray200,
-                        child: const Center(
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
+                  child: ClipOval(
+                    child: Image.network(
+                      item.avatarUrl!,
+                      width: TossSpacing.iconXL,
+                      height: TossSpacing.iconXL,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Show fallback icon ONLY when image fails to load
+                        return Container(
+                          width: TossSpacing.iconXL,
+                          height: TossSpacing.iconXL,
+                          color: TossColors.gray200,
+                          child: const Icon(
+                            Icons.person,
+                            size: 20,
+                            color: TossColors.gray500,
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        // Show placeholder while loading
+                        return Container(
+                          width: TossSpacing.iconXL,
+                          height: TossSpacing.iconXL,
+                          color: TossColors.gray200,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
+                  ),
+                )
+              else
+                // Show icon container
+                Container(
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                      ? TossColors.primary.withValues(alpha: 0.1)
+                      : TossColors.gray50,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Icon(
+                    itemIcon,
+                    size: TossSpacing.iconSM,
+                    color: isSelected ? TossColors.primary : widget.unselectedIconColor,
                   ),
                 ),
-              )
-            else
-              // Show icon container
-              Container(
-                width: TossSpacing.iconXL,
-                height: TossSpacing.iconXL,
-                decoration: BoxDecoration(
-                  color: isSelected
-                    ? TossColors.primary.withValues(alpha: 0.1)
-                    : TossColors.gray50,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Icon(
-                  itemIcon,
-                  size: TossSpacing.iconSM,
-                  color: isSelected ? TossColors.primary : widget.unselectedIconColor,
-                ),
-              ),
-
-            const SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
+            ],
 
             // Content
             Expanded(

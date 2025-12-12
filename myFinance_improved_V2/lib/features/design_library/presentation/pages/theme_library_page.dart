@@ -39,6 +39,10 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_smart_action_bar.dar
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_time_picker.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_info_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_hover_circle_button.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_speed_dial.dart';
+import 'package:myfinance_improved/shared/widgets/toss/calendar_time_range.dart';
 
 /// Theme Library Page
 /// Visual showcase of all design system components
@@ -70,6 +74,9 @@ class _ThemeLibraryPageState extends State<ThemeLibraryPage> with SingleTickerPr
   int _quantity1 = 5;
   int _quantity2 = 10;
   int _quantity3 = 0;
+
+  // Calendar time range state
+  DateRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -141,6 +148,12 @@ class _ThemeLibraryPageState extends State<ThemeLibraryPage> with SingleTickerPr
             onQuantity3Changed: (value) {
               setState(() {
                 _quantity3 = value;
+              });
+            },
+            selectedDateRange: _selectedDateRange,
+            onDateRangeChanged: (range) {
+              setState(() {
+                _selectedDateRange = range;
               });
             },
           ),
@@ -1509,6 +1522,8 @@ class _TossWidgetsSection extends StatelessWidget {
     required this.onQuantity1Changed,
     required this.onQuantity2Changed,
     required this.onQuantity3Changed,
+    required this.selectedDateRange,
+    required this.onDateRangeChanged,
   });
 
   final TabController tabController;
@@ -1528,12 +1543,152 @@ class _TossWidgetsSection extends StatelessWidget {
   final ValueChanged<int> onQuantity1Changed;
   final ValueChanged<int> onQuantity2Changed;
   final ValueChanged<int> onQuantity3Changed;
+  final DateRange? selectedDateRange;
+  final ValueChanged<DateRange?> onDateRangeChanged;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // FAB & Dialog Components
+        _ComponentShowcase(
+          name: 'TossInfoDialog',
+          description: 'Simple informational dialog with bullet points for help content',
+          filename: 'toss_info_dialog.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Shows a dialog with title and bullet points. Perfect for help/info modals.',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              TossPrimaryButton(
+                text: 'Show Info Dialog',
+                onPressed: () {
+                  TossInfoDialog.show(
+                    context: context,
+                    title: 'What is an SKU?',
+                    bulletPoints: [
+                      'An SKU (Stock Keeping Unit) is a unique code used to identify an item.',
+                      'You can enter your own or have Storebase generate one for you.',
+                      'SKUs help you find items quickly and perform bulk actions in your inventory.',
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+
+        _ComponentShowcase(
+          name: 'TossHoverCircleButton',
+          description: 'Circular FAB with hover/press animation and haptic feedback',
+          filename: 'toss_hover_circle_button.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Factory constructors: .add(), .edit(), .chat()',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Wrap(
+                spacing: TossSpacing.space3,
+                runSpacing: TossSpacing.space2,
+                children: [
+                  Column(
+                    children: [
+                      TossHoverCircleButton.add(onPressed: () {}),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text('.add()', style: TossTextStyles.caption.copyWith(fontSize: 10)),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      TossHoverCircleButton.edit(onPressed: () {}),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text('.edit()', style: TossTextStyles.caption.copyWith(fontSize: 10)),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      TossHoverCircleButton.chat(onPressed: () {}),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text('.chat()', style: TossTextStyles.caption.copyWith(fontSize: 10)),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      TossHoverCircleButton(
+                        icon: Icons.star,
+                        onPressed: () {},
+                        backgroundColor: TossColors.success,
+                      ),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text('custom', style: TossTextStyles.caption.copyWith(fontSize: 10)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        _ComponentShowcase(
+          name: 'TossSpeedDial',
+          description: 'Expandable FAB that shows multiple actions with dark overlay',
+          filename: 'toss_speed_dial.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tap the FAB to reveal multiple action items. Uses Overlay for full-screen coverage.',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Row(
+                children: [
+                  Text(
+                    'Try it:',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  TossSpeedDial(
+                    actions: [
+                      TossSpeedDialAction(
+                        icon: Icons.add,
+                        label: 'Add New Product',
+                        onPressed: () {},
+                      ),
+                      TossSpeedDialAction(
+                        icon: Icons.download,
+                        label: 'Record Stock In',
+                        onPressed: () {},
+                      ),
+                      TossSpeedDialAction(
+                        icon: Icons.upload,
+                        label: 'Record Stock Out',
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
         // TossTabBar1
         _ComponentShowcase(
           name: 'TossTabBar1',
@@ -2022,6 +2177,43 @@ class _TossWidgetsSection extends StatelessWidget {
             time: selectedTime,
             placeholder: 'Select time',
             onTimeChanged: onTimeChanged,
+          ),
+        ),
+
+        // CalendarTimeRange
+        _ComponentShowcase(
+          name: 'CalendarTimeRange',
+          description: 'Calendar-based date range picker with start/end selection',
+          filename: 'calendar_time_range.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Selected Range: ${selectedDateRange?.toShortString() ?? 'None'}',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              TossPrimaryButton(
+                text: 'Select Date Range',
+                onPressed: () {
+                  CalendarTimeRange.show(
+                    context: context,
+                    initialRange: selectedDateRange,
+                    onRangeSelected: onDateRangeChanged,
+                  );
+                },
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                'Opens a bottom sheet with calendar for selecting start and end dates. '
+                'Supports clearing selection and prevents selecting future dates.',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+            ],
           ),
         ),
 
