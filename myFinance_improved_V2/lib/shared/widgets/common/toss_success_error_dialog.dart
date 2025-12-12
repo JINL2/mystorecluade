@@ -920,7 +920,7 @@ class TossDialogs {
         canPop: false,
         child: TossDialog.warning(
           title: 'Update Required',
-          message: 'Please update the app to continue using MyFinance.',
+          message: 'A new version is available. Please update the app.',
           icon: Icons.system_update,
           primaryButtonText: 'OK',
           onPrimaryPressed: onOkPressed,
