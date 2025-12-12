@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -8,8 +9,12 @@ import '../../../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../domain/entities/exchange_rate_data.dart';
 import '../helpers/payment_helpers.dart';
 
+// Import real-time exchange rate provider
+import '../../../../../register_denomination/presentation/providers/exchange_rate_provider.dart';
+
 /// Exchange rate panel showing converted amounts in different currencies
-class ExchangeRatePanel extends StatefulWidget {
+/// Uses real-time exchange rates from exchangerate-api.com
+class ExchangeRatePanel extends ConsumerStatefulWidget {
   final ExchangeRateData exchangeRateData;
   final double finalTotal;
 
@@ -20,10 +25,10 @@ class ExchangeRatePanel extends StatefulWidget {
   });
 
   @override
-  State<ExchangeRatePanel> createState() => _ExchangeRatePanelState();
+  ConsumerState<ExchangeRatePanel> createState() => _ExchangeRatePanelState();
 }
 
-class _ExchangeRatePanelState extends State<ExchangeRatePanel> {
+class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
   String? _selectedBaseCurrency;
   String? _selectedSecondaryCurrency;
   final TextEditingController _baseAmountController = TextEditingController();
@@ -62,43 +67,6 @@ class _ExchangeRatePanelState extends State<ExchangeRatePanel> {
     super.dispose();
   }
 
-  double _getExchangeRate() {
-    final baseCurrencyCode = widget.exchangeRateData.baseCurrency.currencyCode;
-
-    // Get rate for selected base currency (relative to original base currency)
-    // Rate meaning: 1 [currency] = [rate] [base_currency]
-    // e.g., 1 USD = 25000 VND (if VND is base currency, USD rate = 25000)
-    double selectedBaseRate = 1.0;
-    if (_selectedBaseCurrency != baseCurrencyCode) {
-      final baseRateData = widget.exchangeRateData.rates
-          .where((r) => r.currencyCode == _selectedBaseCurrency)
-          .firstOrNull;
-      selectedBaseRate = baseRateData?.rate ?? 1.0;
-    }
-
-    // Get rate for selected secondary currency (relative to original base currency)
-    double selectedSecondaryRate = 1.0;
-    if (_selectedSecondaryCurrency != baseCurrencyCode) {
-      final secondaryRateData = widget.exchangeRateData.rates
-          .where((r) => r.currencyCode == _selectedSecondaryCurrency)
-          .firstOrNull;
-      selectedSecondaryRate = secondaryRateData?.rate ?? 1.0;
-    }
-
-    // Calculate cross rate for conversion: selectedBase -> selectedSecondary
-    // To convert X of selectedBase to selectedSecondary:
-    // 1. Convert selectedBase to original base: X * selectedBaseRate
-    // 2. Convert original base to selectedSecondary: / selectedSecondaryRate
-    // So: X * (selectedBaseRate / selectedSecondaryRate)
-    //
-    // Example: VND → USD (base=VND, USD rate=25000)
-    // selectedBaseRate = 1 (VND is original base)
-    // selectedSecondaryRate = 25000 (USD)
-    // exchangeRate = 25000 / 1 = 25000
-    // 100,000 VND / 25000 = 4 USD ✓
-    return selectedSecondaryRate / selectedBaseRate;
-  }
-
   @override
   Widget build(BuildContext context) {
     // Convert base currency to ExchangeRate for unified handling
@@ -125,61 +93,113 @@ class _ExchangeRatePanelState extends State<ExchangeRatePanel> {
         .where((c) => c.currencyCode == _selectedSecondaryCurrency)
         .firstOrNull;
 
-    // Calculate amounts
-    final baseAmount = _customBaseAmount ?? widget.finalTotal;
-    final exchangeRate = _getExchangeRate();
-    final secondaryAmount =
-        _customSecondaryAmount ?? (baseAmount / exchangeRate);
+    // Fetch real-time exchange rate from API
+    final realTimeRateAsync = ref.watch(
+      exchangeRateProvider(
+        ExchangeRateParams(
+          baseCurrency: _selectedBaseCurrency ?? 'VND',
+          targetCurrency: _selectedSecondaryCurrency ?? 'KRW',
+        ),
+      ),
+    );
 
-    return TossWhiteCard(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      child: Column(
-        children: [
-          // Base currency row
-          _buildEditableCurrencyRow(
-            currencyCode: baseCurrencyData.currencyCode,
-            symbol: baseCurrencyData.symbol,
-            amount: baseAmount,
-            isBase: true,
-            controller: _baseAmountController,
-            focusNode: _baseAmountFocusNode,
-            onChanged: (value) {
-              final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
-              setState(() {
-                _customBaseAmount = parsed;
-                // Recalculate secondary based on new base
-                _customSecondaryAmount = parsed / exchangeRate;
-              });
-            },
-            onCurrencyTap: () => _showCurrencySelector(
-              allCurrencies,
-              isForBase: true,
-            ),
+    return realTimeRateAsync.when(
+      data: (realTimeRate) {
+        // Use real-time rate (1 base = X target)
+        final exchangeRate = realTimeRate ?? 1.0;
+        final baseAmount = _customBaseAmount ?? widget.finalTotal;
+        final secondaryAmount =
+            _customSecondaryAmount ?? (baseAmount * exchangeRate);
+
+        return TossWhiteCard(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          child: Column(
+            children: [
+              // Base currency row
+              _buildEditableCurrencyRow(
+                currencyCode: baseCurrencyData.currencyCode,
+                symbol: baseCurrencyData.symbol,
+                amount: baseAmount,
+                isBase: true,
+                controller: _baseAmountController,
+                focusNode: _baseAmountFocusNode,
+                onChanged: (value) {
+                  final parsed =
+                      double.tryParse(value.replaceAll(',', '')) ?? 0;
+                  setState(() {
+                    _customBaseAmount = parsed;
+                    // Recalculate secondary based on new base
+                    _customSecondaryAmount = parsed * exchangeRate;
+                  });
+                },
+                onCurrencyTap: () => _showCurrencySelector(
+                  allCurrencies,
+                  isForBase: true,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              // Secondary currency row
+              if (secondaryCurrencyData != null)
+                _buildEditableCurrencyRow(
+                  currencyCode: secondaryCurrencyData.currencyCode,
+                  symbol: secondaryCurrencyData.symbol,
+                  amount: secondaryAmount,
+                  isBase: false,
+                  controller: _secondaryAmountController,
+                  focusNode: _secondaryAmountFocusNode,
+                  onChanged: (value) {
+                    final parsed =
+                        double.tryParse(value.replaceAll(',', '')) ?? 0;
+                    setState(() {
+                      _customSecondaryAmount = parsed;
+                      // Recalculate base based on new secondary
+                      _customBaseAmount = parsed / exchangeRate;
+                    });
+                  },
+                  onCurrencyTap: () => _showCurrencySelector(
+                    allCurrencies,
+                    isForBase: false,
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(height: TossSpacing.space4),
-          // Secondary currency row
-          if (secondaryCurrencyData != null)
-            _buildEditableCurrencyRow(
-              currencyCode: secondaryCurrencyData.currencyCode,
-              symbol: secondaryCurrencyData.symbol,
-              amount: secondaryAmount,
-              isBase: false,
-              controller: _secondaryAmountController,
-              focusNode: _secondaryAmountFocusNode,
-              onChanged: (value) {
-                final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                setState(() {
-                  _customSecondaryAmount = parsed;
-                  // Recalculate base based on new secondary
-                  _customBaseAmount = parsed * exchangeRate;
-                });
-              },
-              onCurrencyTap: () => _showCurrencySelector(
-                allCurrencies,
-                isForBase: false,
+        );
+      },
+      loading: () => TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Loading real-time rates...',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray600,
               ),
             ),
-        ],
+          ],
+        ),
+      ),
+      error: (error, _) => TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 16, color: TossColors.error),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Failed to load rates',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.error,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -204,8 +204,8 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Minus button
-          _buildStepperButton(
-            icon: Icons.remove,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.lightImpact();
               if (widget.cartItem.quantity > 1) {
@@ -217,49 +217,66 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                 ref.read(cartProvider.notifier).removeItem(widget.cartItem.id);
               }
             },
-          ),
-          // Quantity input - inline editable TextField
-          Container(
-            width: 52,
-            height: 44,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.black.withValues(alpha: 0.12),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: EditableText(
-                controller: _quantityController,
-                focusNode: _focusNode,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                style: TossTextStyles.bodyMedium.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+            child: const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: Icon(
+                  Icons.remove,
+                  size: 20,
                   color: TossColors.textPrimary,
                 ),
-                cursorColor: TossColors.primary,
-                backgroundCursorColor: TossColors.gray200,
-                onSubmitted: (_) {
-                  _focusNode.unfocus();
-                },
+              ),
+            ),
+          ),
+          // Quantity input - inline editable TextField
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              _focusNode.requestFocus();
+            },
+            child: Container(
+              width: 52,
+              height: 44,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.black.withValues(alpha: 0.12),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: EditableText(
+                  controller: _quantityController,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(4),
+                  ],
+                  style: TossTextStyles.bodyMedium.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.textPrimary,
+                  ),
+                  cursorColor: TossColors.primary,
+                  backgroundCursorColor: TossColors.gray200,
+                  onSubmitted: (_) {
+                    _focusNode.unfocus();
+                  },
+                ),
               ),
             ),
           ),
           // Plus button
-          _buildStepperButton(
-            icon: Icons.add,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.lightImpact();
               ref.read(cartProvider.notifier).updateQuantity(
@@ -267,28 +284,19 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                     widget.cartItem.quantity + 1,
                   );
             },
+            child: const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: Icon(
+                  Icons.add,
+                  size: 20,
+                  color: TossColors.textPrimary,
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStepperButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 44,
-        height: 44,
-        child: Center(
-          child: Icon(
-            icon,
-            size: 20,
-            color: TossColors.textPrimary,
-          ),
-        ),
       ),
     );
   }

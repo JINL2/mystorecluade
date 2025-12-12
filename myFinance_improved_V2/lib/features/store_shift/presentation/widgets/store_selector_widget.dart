@@ -16,16 +16,30 @@ import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 class StoreSelectorWidget extends ConsumerWidget {
   const StoreSelectorWidget({super.key});
 
-  /// Extract stores from user data
-  List<dynamic> _extractStores(Map<String, dynamic> userData) {
+  /// Extract stores from user data for the selected company
+  List<dynamic> _extractStores(
+      Map<String, dynamic> userData, String selectedCompanyId) {
     if (userData.isEmpty) return [];
 
     try {
       final companies = userData['companies'] as List<dynamic>?;
       if (companies == null || companies.isEmpty) return [];
 
-      final firstCompany = companies[0] as Map<String, dynamic>;
-      final stores = firstCompany['stores'] as List<dynamic>?;
+      // Find the company that matches the selected company ID
+      Map<String, dynamic>? selectedCompany;
+      for (final company in companies) {
+        final companyMap = company as Map<String, dynamic>;
+        final companyId = companyMap['company_id'] as String? ?? '';
+        if (companyId == selectedCompanyId) {
+          selectedCompany = companyMap;
+          break;
+        }
+      }
+
+      // Fallback to first company if selected company not found
+      selectedCompany ??= companies[0] as Map<String, dynamic>;
+
+      final stores = selectedCompany['stores'] as List<dynamic>?;
       if (stores == null) return [];
 
       return stores;
@@ -56,8 +70,9 @@ class StoreSelectorWidget extends ConsumerWidget {
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () async {
-            // Extract stores from user data
-            final stores = _extractStores(appState.user);
+            // Extract stores from user data for the currently selected company
+            final stores =
+                _extractStores(appState.user, appState.companyChoosen);
 
             // Show store selector using TossSelectionBottomSheet
             final selectedItem =
