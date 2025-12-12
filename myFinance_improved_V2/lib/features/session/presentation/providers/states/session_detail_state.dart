@@ -8,6 +8,7 @@ class SelectedProduct {
   final String? barcode;
   final String? imageUrl;
   final int quantity;
+  final int quantityRejected;
   final double? unitPrice;
 
   const SelectedProduct({
@@ -17,8 +18,12 @@ class SelectedProduct {
     this.barcode,
     this.imageUrl,
     this.quantity = 1,
+    this.quantityRejected = 0,
     this.unitPrice,
   });
+
+  /// Total quantity (good + rejected)
+  int get totalQuantity => quantity + quantityRejected;
 
   SelectedProduct copyWith({
     String? productId,
@@ -27,6 +32,7 @@ class SelectedProduct {
     String? barcode,
     String? imageUrl,
     int? quantity,
+    int? quantityRejected,
     double? unitPrice,
   }) {
     return SelectedProduct(
@@ -36,6 +42,7 @@ class SelectedProduct {
       barcode: barcode ?? this.barcode,
       imageUrl: imageUrl ?? this.imageUrl,
       quantity: quantity ?? this.quantity,
+      quantityRejected: quantityRejected ?? this.quantityRejected,
       unitPrice: unitPrice ?? this.unitPrice,
     );
   }

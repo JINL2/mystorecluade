@@ -74,3 +74,28 @@ class InventorySession {
   @override
   int get hashCode => sessionId.hashCode;
 }
+
+/// Response from creating a session
+class CreateSessionResponse {
+  final String sessionId;
+  final String? sessionName;
+  final String sessionType;
+  final String? shipmentId;
+  final String? shipmentNumber;
+  final bool isActive;
+  final bool isFinal;
+  final String createdBy;
+  final String createdAt;
+
+  const CreateSessionResponse({
+    required this.sessionId,
+    this.sessionName,
+    required this.sessionType,
+    this.shipmentId,
+    this.shipmentNumber,
+    required this.isActive,
+    required this.isFinal,
+    required this.createdBy,
+    required this.createdAt,
+  });
+}

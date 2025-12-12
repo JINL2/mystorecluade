@@ -1,5 +1,6 @@
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/session_item.dart';
+import '../../domain/entities/session_review_item.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../datasources/session_datasource.dart';
 
@@ -146,5 +147,52 @@ class SessionRepositoryImpl implements SessionRepository {
     required String sessionId,
   }) async {
     return _datasource.completeSession(sessionId: sessionId);
+  }
+
+  @override
+  Future<SessionReviewResponse> getSessionReviewItems({
+    required String sessionId,
+    required String userId,
+  }) async {
+    return _datasource.getSessionReviewItems(
+      sessionId: sessionId,
+      userId: userId,
+    );
+  }
+
+  @override
+  Future<SessionSubmitResponse> submitSession({
+    required String sessionId,
+    required String userId,
+    required List<SessionSubmitItem> items,
+    bool isFinal = false,
+    String? notes,
+  }) async {
+    return _datasource.submitSession(
+      sessionId: sessionId,
+      userId: userId,
+      items: items.map((e) => e.toJson()).toList(),
+      isFinal: isFinal,
+      notes: notes,
+    );
+  }
+
+  @override
+  Future<CreateSessionResponse> createSessionViaRpc({
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required String sessionType,
+    String? sessionName,
+    String? shipmentId,
+  }) async {
+    return _datasource.createSessionViaRpc(
+      companyId: companyId,
+      storeId: storeId,
+      userId: userId,
+      sessionType: sessionType,
+      sessionName: sessionName,
+      shipmentId: shipmentId,
+    );
   }
 }

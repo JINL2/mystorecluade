@@ -183,9 +183,13 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
   }
 
-  /// Update product quantity
+  /// Update product quantity (good condition)
   void updateQuantity(String productId, int quantity) {
-    if (quantity <= 0) {
+    final product = state.getSelectedProduct(productId);
+    if (product == null) return;
+
+    // Remove if both quantities are zero
+    if (quantity <= 0 && product.quantityRejected <= 0) {
       removeProduct(productId);
       return;
     }
@@ -193,14 +197,37 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(
       selectedProducts: state.selectedProducts.map((p) {
         if (p.productId == productId) {
-          return p.copyWith(quantity: quantity);
+          return p.copyWith(quantity: quantity < 0 ? 0 : quantity);
         }
         return p;
       }).toList(),
     );
   }
 
-  /// Increment product quantity
+  /// Update rejected quantity
+  void updateQuantityRejected(String productId, int quantityRejected) {
+    final product = state.getSelectedProduct(productId);
+    if (product == null) return;
+
+    // Remove if both quantities are zero
+    if (quantityRejected <= 0 && product.quantity <= 0) {
+      removeProduct(productId);
+      return;
+    }
+
+    state = state.copyWith(
+      selectedProducts: state.selectedProducts.map((p) {
+        if (p.productId == productId) {
+          return p.copyWith(
+            quantityRejected: quantityRejected < 0 ? 0 : quantityRejected,
+          );
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  /// Increment product quantity (good condition)
   void incrementQuantity(String productId) {
     final product = state.getSelectedProduct(productId);
     if (product != null) {
@@ -208,11 +235,27 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     }
   }
 
-  /// Decrement product quantity
+  /// Decrement product quantity (good condition)
   void decrementQuantity(String productId) {
     final product = state.getSelectedProduct(productId);
     if (product != null) {
       updateQuantity(productId, product.quantity - 1);
+    }
+  }
+
+  /// Increment rejected quantity
+  void incrementQuantityRejected(String productId) {
+    final product = state.getSelectedProduct(productId);
+    if (product != null) {
+      updateQuantityRejected(productId, product.quantityRejected + 1);
+    }
+  }
+
+  /// Decrement rejected quantity
+  void decrementQuantityRejected(String productId) {
+    final product = state.getSelectedProduct(productId);
+    if (product != null) {
+      updateQuantityRejected(productId, product.quantityRejected - 1);
     }
   }
 
@@ -234,7 +277,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
       final items = state.selectedProducts.map((p) => {
         'product_id': p.productId,
         'quantity': p.quantity,
-        'quantity_rejected': 0,
+        'quantity_rejected': p.quantityRejected,
       }).toList();
 
       final response = await _client.rpc<Map<String, dynamic>>(

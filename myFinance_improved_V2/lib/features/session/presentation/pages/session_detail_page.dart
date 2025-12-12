@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -9,6 +10,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../providers/session_detail_provider.dart';
 import '../providers/states/session_detail_state.dart';
 
@@ -55,8 +57,6 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
   Color get _typeColor =>
       _isCounting ? TossColors.primary : TossColors.success;
-
-  String get _typeLabel => _isCounting ? 'stock count' : 'receiving';
 
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
@@ -276,17 +276,17 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final item = state.selectedProducts[index];
+        final notifier = ref.read(sessionDetailProvider(_params).notifier);
         return _SessionItemCard(
           item: item,
           onQuantityChanged: (newQuantity) {
-            ref
-                .read(sessionDetailProvider(_params).notifier)
-                .updateQuantity(item.productId, newQuantity);
+            notifier.updateQuantity(item.productId, newQuantity);
+          },
+          onQuantityRejectedChanged: (newQuantity) {
+            notifier.updateQuantityRejected(item.productId, newQuantity);
           },
           onDelete: () {
-            ref
-                .read(sessionDetailProvider(_params).notifier)
-                .removeProduct(item.productId);
+            notifier.removeProduct(item.productId);
           },
         );
       },
@@ -332,17 +332,14 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
                     ),
                   ),
                   const SizedBox(width: TossSpacing.space3),
-                  // Submit Button
+                  // Next Button - Always enabled for owner
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed:
-                          state.hasSelectedProducts ? _onSubmitPressed : null,
+                      onPressed: _onSubmitPressed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _typeColor,
                         foregroundColor: TossColors.white,
-                        disabledBackgroundColor: TossColors.gray300,
-                        disabledForegroundColor: TossColors.textTertiary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius:
@@ -351,12 +348,10 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Submit',
+                        'Next',
                         style: TossTextStyles.bodyMedium.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: state.hasSelectedProducts
-                              ? TossColors.white
-                              : TossColors.textTertiary,
+                          color: TossColors.white,
                         ),
                       ),
                     ),
@@ -437,12 +432,22 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
                             ),
                           ),
                           Text(
-                            'x${item.quantity}',
+                            '${item.quantity}',
                             style: TossTextStyles.bodySmall.copyWith(
                               fontWeight: FontWeight.w600,
                               color: TossColors.primary,
                             ),
                           ),
+                          if (item.quantityRejected > 0) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${item.quantityRejected})',
+                              style: TossTextStyles.bodySmall.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.error,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     );
@@ -506,9 +511,17 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
     final userId = appState.user['user_id']?.toString() ?? '';
 
     if (userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not found')),
-      );
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'User not found',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      }
       return;
     }
 
@@ -518,46 +531,35 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Items saved successfully')),
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.success(
+            title: 'Items Saved',
+            message: 'Items saved successfully',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.error ?? 'Failed to save items')),
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Save',
+            message: result.error ?? 'Failed to save items',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
         );
       }
     }
   }
 
   void _onSubmitPressed() {
-    final state = ref.read(sessionDetailProvider(_params));
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Submit Session?'),
-        content: Text(
-          'Are you sure you want to submit this $_typeLabel session with ${state.totalSelectedCount} items?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement actual submission
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Session submitted successfully')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _typeColor,
-            ),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
+    // Navigate to session review page
+    context.push(
+      '/session/review/${widget.sessionId}'
+      '?sessionType=${widget.sessionType}'
+      '&sessionName=${Uri.encodeComponent(widget.sessionName ?? '')}',
     );
   }
 }
@@ -663,15 +665,17 @@ class _SearchResultCard extends StatelessWidget {
   }
 }
 
-/// Session item card widget - inventory management style
+/// Session item card widget - inventory management style with dual quantity inputs
 class _SessionItemCard extends StatelessWidget {
   final SelectedProduct item;
   final ValueChanged<int> onQuantityChanged;
+  final ValueChanged<int> onQuantityRejectedChanged;
   final VoidCallback onDelete;
 
   const _SessionItemCard({
     required this.item,
     required this.onQuantityChanged,
+    required this.onQuantityRejectedChanged,
     required this.onDelete,
   });
 
@@ -679,104 +683,182 @@ class _SessionItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: TossColors.white,
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      child: Row(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Column(
         children: [
-          // Product Image
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: item.imageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                    child: Image.network(
-                      item.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
+          // Top Row: Image, Product Info, Delete Button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: TossColors.gray100,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: item.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        child: Image.network(
+                          item.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.image_outlined,
+                            color: TossColors.textTertiary,
+                            size: 24,
+                          ),
+                        ),
+                      )
+                    : const Icon(
                         Icons.image_outlined,
                         color: TossColors.textTertiary,
                         size: 24,
                       ),
-                    ),
-                  )
-                : const Icon(
-                    Icons.image_outlined,
-                    color: TossColors.textTertiary,
-                    size: 24,
-                  ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Product Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                if (item.sku != null)
-                  Text(
-                    item.sku!,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Quantity Controls
-          Row(
-            children: [
-              _QuantityButton(
-                icon: Icons.remove,
-                onTap: item.quantity > 1
-                    ? () => onQuantityChanged(item.quantity - 1)
-                    : null,
               ),
-              Container(
-                width: 40,
-                alignment: Alignment.center,
-                child: Text(
-                  '${item.quantity}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.textPrimary,
-                  ),
+              const SizedBox(width: TossSpacing.space3),
+
+              // Product Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.productName,
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    if (item.sku != null)
+                      Text(
+                        item.sku!,
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              _QuantityButton(
-                icon: Icons.add,
-                onTap: () => onQuantityChanged(item.quantity + 1),
+
+              // Delete Button
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(
+                  Icons.close,
+                  color: TossColors.textTertiary,
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
             ],
           ),
 
-          // Delete Button
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(
-              Icons.close,
-              color: TossColors.textTertiary,
-              size: 20,
+          const SizedBox(height: TossSpacing.space3),
+
+          // Bottom Row: Quantity Controls
+          Row(
+            children: [
+              // Good Quantity
+              Expanded(
+                child: _QuantityRow(
+                  label: 'Good',
+                  quantity: item.quantity,
+                  color: TossColors.primary,
+                  onDecrement: item.quantity > 0
+                      ? () => onQuantityChanged(item.quantity - 1)
+                      : null,
+                  onIncrement: () => onQuantityChanged(item.quantity + 1),
+                ),
+              ),
+
+              const SizedBox(width: TossSpacing.space3),
+
+              // Rejected Quantity
+              Expanded(
+                child: _QuantityRow(
+                  label: 'Rejected',
+                  quantity: item.quantityRejected,
+                  color: TossColors.error,
+                  onDecrement: item.quantityRejected > 0
+                      ? () => onQuantityRejectedChanged(item.quantityRejected - 1)
+                      : null,
+                  onIncrement: () => onQuantityRejectedChanged(item.quantityRejected + 1),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Quantity row with label and controls
+class _QuantityRow extends StatelessWidget {
+  final String label;
+  final int quantity;
+  final Color color;
+  final VoidCallback? onDecrement;
+  final VoidCallback onIncrement;
+
+  const _QuantityRow({
+    required this.label,
+    required this.quantity,
+    required this.color,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space2,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          // Label
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
             ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          const Spacer(),
+          // Controls
+          _QuantityButton(
+            icon: Icons.remove,
+            onTap: onDecrement,
+            small: true,
+          ),
+          Container(
+            width: 32,
+            alignment: Alignment.center,
+            child: Text(
+              '$quantity',
+              style: TossTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ),
+          _QuantityButton(
+            icon: Icons.add,
+            onTap: onIncrement,
+            small: true,
           ),
         ],
       ),
@@ -788,27 +870,32 @@ class _SessionItemCard extends StatelessWidget {
 class _QuantityButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
+  final bool small;
 
   const _QuantityButton({
     required this.icon,
     this.onTap,
+    this.small = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final size = small ? 28.0 : 32.0;
+    final iconSize = small ? 16.0 : 18.0;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       child: Container(
-        width: 32,
-        height: 32,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: onTap != null ? TossColors.gray200 : TossColors.gray100,
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         ),
         child: Icon(
           icon,
-          size: 18,
+          size: iconSize,
           color:
               onTap != null ? TossColors.textPrimary : TossColors.textTertiary,
         ),

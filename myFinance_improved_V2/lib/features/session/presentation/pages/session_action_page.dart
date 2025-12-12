@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../widgets/create_session_dialog.dart';
 
 /// Session action selection page - Create or Join
 class SessionActionPage extends ConsumerWidget {
@@ -29,6 +31,36 @@ class SessionActionPage extends ConsumerWidget {
 
   Color get _typeColor {
     return sessionType == 'counting' ? TossColors.primary : TossColors.success;
+  }
+
+  Future<void> _onCreateSessionTap(BuildContext context, WidgetRef ref) async {
+    final result = await showCreateSessionDialog(
+      context,
+      sessionType: sessionType,
+    );
+
+    if (result != null && context.mounted) {
+      // Get store ID from app state for navigation
+      final appState = ref.read(appStateProvider);
+      final storeId = appState.storeChoosen;
+
+      // Build query parameters for navigation
+      final queryParams = <String, String>{
+        'sessionType': sessionType,
+        'storeId': storeId,
+        'isOwner': 'true', // Creator is always the owner
+      };
+      if (result.sessionName != null && result.sessionName!.isNotEmpty) {
+        queryParams['sessionName'] = result.sessionName!;
+      }
+
+      final queryString = queryParams.entries
+          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+
+      // Navigate to session detail page with query parameters
+      context.push('/session/detail/${result.sessionId}?$queryString');
+    }
   }
 
   @override
@@ -66,7 +98,7 @@ class SessionActionPage extends ConsumerWidget {
                 title: 'Create Session',
                 subtitle: 'Start a new ${sessionType == 'counting' ? 'stock count' : 'receiving'} session',
                 color: _typeColor,
-                onTap: () => context.push('/session/create/$sessionType'),
+                onTap: () => _onCreateSessionTap(context, ref),
               ),
               const SizedBox(height: TossSpacing.space4),
 

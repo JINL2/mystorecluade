@@ -1,6 +1,7 @@
 import '../entities/inventory_session.dart';
 import '../entities/session_item.dart';
 import '../entities/session_list_item.dart';
+import '../entities/session_review_item.dart';
 
 /// Repository interface for session operations
 abstract class SessionRepository {
@@ -82,5 +83,35 @@ abstract class SessionRepository {
   /// Complete session and apply changes to inventory
   Future<InventorySession> completeSession({
     required String sessionId,
+  });
+
+  /// Get session items for review (aggregated by product with user breakdown)
+  /// Only session creator can call this
+  Future<SessionReviewResponse> getSessionReviewItems({
+    required String sessionId,
+    required String userId,
+  });
+
+  /// Submit session with confirmed items
+  /// Creates receiving record, updates inventory stock, and closes session
+  /// Only session creator can submit
+  Future<SessionSubmitResponse> submitSession({
+    required String sessionId,
+    required String userId,
+    required List<SessionSubmitItem> items,
+    bool isFinal = false,
+    String? notes,
+  });
+
+  /// Create a new session via RPC (inventory_create_session)
+  /// For counting: no shipmentId needed
+  /// For receiving: shipmentId is required
+  Future<CreateSessionResponse> createSessionViaRpc({
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required String sessionType,
+    String? sessionName,
+    String? shipmentId,
   });
 }
