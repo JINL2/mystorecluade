@@ -4,10 +4,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'app/app.dart';
 import 'core/monitoring/sentry_config.dart';
 import 'core/services/revenuecat_service.dart';
+import 'core/notifications/config/firebase_options.dart';
 import 'features/attendance/data/providers/attendance_data_providers.dart'
     as attendance_data;
 import 'features/attendance/domain/providers/attendance_repository_provider.dart'
@@ -40,11 +42,24 @@ Future<void> main() async {
 
   // ✅ Initialize Sentry with error tracking
   await SentryConfig.init(() async {
-    // Firebase is temporarily disabled
-    bool firebaseEnabled = false;
-
-    if (!firebaseEnabled) {
-      // Push notifications disabled - Firebase not available
+    // 🔥 Initialize Firebase
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      if (kDebugMode) {
+        debugPrint('🔥 Firebase initialized successfully');
+      }
+    } catch (e, stackTrace) {
+      await SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Firebase initialization failed',
+      );
+      if (kDebugMode) {
+        debugPrint('❌ Firebase initialization failed: $e');
+      }
+      // Continue running the app even if Firebase fails
     }
 
     // Initialize Supabase (always required)

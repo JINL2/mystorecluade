@@ -18,6 +18,65 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/user_profile.dart';
 import '../providers/user_profile_providers.dart';
 
+/// Uppercase text formatter: auto-converts input to uppercase
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
+  }
+}
+
+/// Smart bank account formatter: allows letters only for IBAN format
+class BankAccountFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.toUpperCase();
+
+    // If empty or just starting, allow any input
+    if (text.isEmpty) {
+      return TextEditingValue(
+        text: text,
+        selection: newValue.selection,
+      );
+    }
+
+    // Check if user is typing IBAN format (starts with 2 letters)
+    final startsWithTwoLetters = RegExp(r'^[A-Z]{1,2}$').hasMatch(text);
+    final isIBANFormat = text.length >= 2 && RegExp(r'^[A-Z]{2}').hasMatch(text);
+
+    // If starting with letters (IBAN), allow alphanumeric + spaces
+    if (startsWithTwoLetters || isIBANFormat) {
+      // IBAN format: allow letters, digits, and spaces
+      if (RegExp(r'^[A-Z0-9\s]*$').hasMatch(text)) {
+        return TextEditingValue(
+          text: text,
+          selection: newValue.selection,
+        );
+      }
+    } else {
+      // Regular account number: digits only
+      if (RegExp(r'^[0-9]*$').hasMatch(text)) {
+        return TextEditingValue(
+          text: text,
+          selection: newValue.selection,
+        );
+      }
+    }
+
+    // If invalid, keep old value
+    return oldValue;
+  }
+}
+
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
 
@@ -38,10 +97,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   bool _hasChanges = false;
   UserProfile? _profile;
 
+  // Date of birth state
+  DateTime? _selectedDateOfBirth;
+
   // Store original values to detect real changes
   String? _originalFirstName;
   String? _originalLastName;
   String? _originalPhoneNumber;
+  String? _originalDateOfBirth;
   String? _originalBankName;
   String? _originalBankAccount;
   String? _originalBankDescription;
@@ -104,6 +167,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _originalFirstName = _profile!.firstName ?? '';
         _originalLastName = _profile!.lastName ?? '';
         _originalPhoneNumber = _profile!.phoneNumber ?? '';
+        _originalDateOfBirth = _profile!.dateOfBirth ?? '';
+
+        // Parse date of birth if exists
+        if (_profile!.dateOfBirth?.isNotEmpty == true) {
+          try {
+            _selectedDateOfBirth = DateTime.parse(_profile!.dateOfBirth!);
+          } catch (e) {
+            _selectedDateOfBirth = null;
+          }
+        }
 
         // Store bank info
         _originalBankName = bankResponse?['user_bank_name']?.toString() ?? '';
@@ -111,12 +184,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _originalBankDescription = bankResponse?['description']?.toString() ?? '';
 
         // Set controller values
-        _firstNameController.text = _originalFirstName!;
-        _lastNameController.text = _originalLastName!;
-        _phoneNumberController.text = _originalPhoneNumber!;
-        _bankNameController.text = _originalBankName!;
-        _bankAccountController.text = _originalBankAccount!;
-        _bankDescriptionController.text = _originalBankDescription!;
+        _firstNameController.text = _originalFirstName ?? '';
+        _lastNameController.text = _originalLastName ?? '';
+        _phoneNumberController.text = _originalPhoneNumber ?? '';
+        _bankNameController.text = _originalBankName ?? '';
+        _bankAccountController.text = _originalBankAccount ?? '';
+        _bankDescriptionController.text = _originalBankDescription ?? '';
 
         // Add listeners
         _firstNameController.addListener(_onFieldChanged);
@@ -153,9 +226,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   void _onFieldChanged() {
+    final currentDob = _selectedDateOfBirth?.toIso8601String().split('T').first ?? '';
+
     final hasActualChanges = _firstNameController.text != (_originalFirstName ?? '') ||
         _lastNameController.text != (_originalLastName ?? '') ||
         _phoneNumberController.text != (_originalPhoneNumber ?? '') ||
+        currentDob != (_originalDateOfBirth ?? '') ||
         _bankNameController.text != (_originalBankName ?? '') ||
         _bankAccountController.text != (_originalBankAccount ?? '') ||
         _bankDescriptionController.text != (_originalBankDescription ?? '');
@@ -334,21 +410,59 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               },
                             ),
                             const SizedBox(height: TossSpacing.space4),
+                            _buildDatePickerField(),
+                            const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _phoneNumberController,
                               label: 'Phone Number',
-                              hintText: 'Enter your phone number',
+                              hintText: 'Enter phone number',
                               keyboardType: TextInputType.phone,
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                // Allow digits, +, -, (, ), and spaces for international formats
+                                FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-() ]')),
+                                LengthLimitingTextInputFormatter(20),
+                              ],
                               validator: (value) {
                                 if (value?.isNotEmpty == true) {
-                                  final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
-                                  if (!phoneRegex.hasMatch(value!)) {
-                                    return 'Please enter a valid phone number';
+                                  // Remove all formatting characters to validate
+                                  final digitsOnly = value!.replaceAll(RegExp(r'[^\d+]'), '');
+
+                                  // Must have at least some digits
+                                  if (digitsOnly.isEmpty) {
+                                    return 'Phone number must contain digits';
+                                  }
+
+                                  // International phone numbers: 8-15 digits (most countries)
+                                  // Count only actual digits, not + symbol
+                                  final digitCount = digitsOnly.replaceAll('+', '').length;
+
+                                  if (digitCount < 8) {
+                                    return 'Phone number must be at least 8 digits';
+                                  }
+
+                                  if (digitCount > 15) {
+                                    return 'Phone number must be at most 15 digits';
+                                  }
+
+                                  // Valid formats: +XXXXXXXXXXXX, XXXXXXXXXX, (XXX) XXX-XXXX
+                                  final validPattern = RegExp(r'^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$');
+                                  if (!validPattern.hasMatch(value)) {
+                                    return 'Invalid phone number format';
                                   }
                                 }
                                 return null;
+                              },
+                              onChanged: (value) {
+                                // Real-time validation
+                                if (value.isNotEmpty) {
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    if (mounted) {
+                                      _formKey.currentState?.validate();
+                                    }
+                                  });
+                                }
                               },
                             ),
                           ],
@@ -408,36 +522,127 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               hintText: 'Enter your bank name',
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                // Allow letters, spaces, hyphens, apostrophes, periods, ampersands, and accented characters
+                                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s\-'.&\u00C0-\u017F]")),
+                                LengthLimitingTextInputFormatter(100),
+                              ],
+                              validator: (value) {
+                                if (value?.isNotEmpty == true) {
+                                  // Must contain at least some letters
+                                  if (!RegExp(r'[a-zA-Z]').hasMatch(value!)) {
+                                    return 'Bank name must contain letters';
+                                  }
+
+                                  // Minimum length check
+                                  if (value.trim().length < 2) {
+                                    return 'Bank name must be at least 2 characters';
+                                  }
+
+                                  // Check for valid characters only (letters, spaces, and common punctuation)
+                                  if (!RegExp(r"^[a-zA-Z\s\-'.&\u00C0-\u017F]+$").hasMatch(value)) {
+                                    return 'Invalid characters in bank name';
+                                  }
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                // Real-time validation
+                                if (value.isNotEmpty) {
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    if (mounted) {
+                                      _formKey.currentState?.validate();
+                                    }
+                                  });
+                                }
+                              },
                             ),
                             const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _bankAccountController,
                               label: 'Bank Account Number',
-                              hintText: 'Enter your bank account number',
-                              keyboardType: TextInputType.number,
+                              hintText: 'Digits only (or IBAN starting with letters)',
+                              keyboardType: TextInputType.text,
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                BankAccountFormatter(),
+                                LengthLimitingTextInputFormatter(34),
+                              ],
                               validator: (value) {
                                 if (value?.isNotEmpty == true) {
-                                  final accountRegex = RegExp(r'^\d+$');
-                                  if (!accountRegex.hasMatch(value!)) {
-                                    return 'Account number should contain only digits';
+                                  final cleanValue = value!.replaceAll(' ', '').toUpperCase();
+
+                                  // International bank account formats:
+                                  // - Pure digits: 8-20 characters (USA, Vietnam, Korea, Japan, etc.)
+                                  // - IBAN: 15-34 alphanumeric (Europe)
+
+                                  if (cleanValue.length < 8) {
+                                    return 'Account number must be at least 8 characters';
                                   }
-                                  if (value.length < 8) {
-                                    return 'Account number should be at least 8 digits';
+
+                                  if (cleanValue.length > 34) {
+                                    return 'Account number must be at most 34 characters';
+                                  }
+
+                                  // Check if it's IBAN format (starts with 2 letters + 2 digits)
+                                  final isIBAN = RegExp(r'^[A-Z]{2}[0-9]{2}[A-Z0-9]+$').hasMatch(cleanValue);
+                                  // Check if it's pure digits (most Asian countries)
+                                  final isDigitsOnly = RegExp(r'^[0-9]+$').hasMatch(cleanValue);
+                                  // Check if it's alphanumeric (some banks)
+                                  final isAlphanumeric = RegExp(r'^[A-Z0-9]+$').hasMatch(cleanValue);
+
+                                  if (!isIBAN && !isDigitsOnly && !isAlphanumeric) {
+                                    return 'Invalid account number format';
                                   }
                                 }
                                 return null;
+                              },
+                              onChanged: (value) {
+                                // Real-time validation
+                                if (value.isNotEmpty) {
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    if (mounted) {
+                                      _formKey.currentState?.validate();
+                                    }
+                                  });
+                                }
                               },
                             ),
                             const SizedBox(height: TossSpacing.space4),
                             TossEnhancedTextField(
                               controller: _bankDescriptionController,
-                              label: 'Description',
-                              hintText: 'Enter description (optional)',
+                              label: 'Account Holder Name',
+                              hintText: 'Full name as shown on bank account',
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.done,
-                              maxLines: 2,
+                              autocorrect: false,
+                              inputFormatters: [
+                                UpperCaseTextFormatter(),
+                                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                              ],
+                              validator: (value) {
+                                if (value?.isNotEmpty == true) {
+                                  // Must contain only letters and spaces
+                                  if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!)) {
+                                    return 'Name must contain only letters and spaces';
+                                  }
+                                  if (value.trim().length < 2) {
+                                    return 'Name must be at least 2 characters';
+                                  }
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                // Real-time validation
+                                if (value.isNotEmpty) {
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    if (mounted) {
+                                      _formKey.currentState?.validate();
+                                    }
+                                  });
+                                }
+                              },
                             ),
                           ],
                         ),
@@ -564,15 +769,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      // Save profile via repository
+      // Save profile data (firstName, lastName, phoneNumber, dateOfBirth)
+      final currentDob = _selectedDateOfBirth?.toIso8601String().split('T').first ?? '';
+
       if (_firstNameController.text.trim() != (_originalFirstName ?? '') ||
           _lastNameController.text.trim() != (_originalLastName ?? '') ||
-          _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '')) {
-        await ref.read(myPageProvider.notifier).updateProfile(
-              firstName: _firstNameController.text.trim(),
-              lastName: _lastNameController.text.trim(),
-              phoneNumber: _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
-            );
+          _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '') ||
+          currentDob != (_originalDateOfBirth ?? '')) {
+
+        final updates = {
+          'first_name': _firstNameController.text.trim(),
+          'last_name': _lastNameController.text.trim(),
+          'user_phone_number': _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
+          'date_of_birth': currentDob.isEmpty ? null : currentDob,
+          'updated_at': DateTimeUtils.nowUtc(),
+        };
+
+        await Supabase.instance.client.from('users').update(updates).eq('user_id', userId);
       }
 
       // Save bank information (direct query as it's outside repository scope)
@@ -617,6 +830,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _originalFirstName = _firstNameController.text.trim();
         _originalLastName = _lastNameController.text.trim();
         _originalPhoneNumber = _phoneNumberController.text.trim();
+        _originalDateOfBirth = _selectedDateOfBirth?.toIso8601String().split('T').first ?? '';
         _originalBankName = _bankNameController.text.trim();
         _originalBankAccount = _bankAccountController.text.trim();
         _originalBankDescription = _bankDescriptionController.text.trim();
@@ -663,5 +877,239 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         });
       }
     }
+  }
+
+  Widget _buildDatePickerField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date of Birth',
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.gray700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        InkWell(
+          onTap: () => _showDatePickerBottomSheet(),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              border: Border.all(
+                color: TossColors.gray100,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedDateOfBirth != null
+                      ? _formatDate(_selectedDateOfBirth!)
+                      : 'Select date',
+                  style: TossTextStyles.body.copyWith(
+                    color: _selectedDateOfBirth != null
+                        ? TossColors.gray900
+                        : TossColors.gray500,
+                    fontWeight: _selectedDateOfBirth != null
+                        ? FontWeight.w500
+                        : FontWeight.w400,
+                  ),
+                ),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: TossColors.gray600,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  void _showDatePickerBottomSheet() {
+    final now = DateTime.now();
+    final initialDate = _selectedDateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
+
+    DateTime tempSelectedDate = initialDate;
+    int selectedYear = tempSelectedDate.year;
+    int selectedMonth = tempSelectedDate.month;
+    int selectedDay = tempSelectedDate.day;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final daysInMonth = DateTime(selectedYear, selectedMonth + 1, 0).day;
+            if (selectedDay > daysInMonth) {
+              selectedDay = daysInMonth;
+            }
+
+            return Container(
+              height: 400,
+              padding: const EdgeInsets.all(TossSpacing.space6),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancel',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Select Date',
+                        style: TossTextStyles.h3.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedDateOfBirth = DateTime(selectedYear, selectedMonth, selectedDay);
+                          });
+                          _onFieldChanged();
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Done',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TossSpacing.space4),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdown(
+                            items: List.generate(100, (i) => now.year - i)
+                                .map((y) => y.toString())
+                                .toList(),
+                            selectedValue: selectedYear.toString(),
+                            onChanged: (value) {
+                              setModalState(() {
+                                selectedYear = int.parse(value!);
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: _buildDropdown(
+                            items: [
+                              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                            ],
+                            selectedValue: [
+                              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                            ][selectedMonth - 1],
+                            onChanged: (value) {
+                              setModalState(() {
+                                selectedMonth = [
+                                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                                ].indexOf(value!) + 1;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: _buildDropdown(
+                            items: List.generate(daysInMonth, (i) => (i + 1).toString()),
+                            selectedValue: selectedDay.toString(),
+                            onChanged: (value) {
+                              setModalState(() {
+                                selectedDay = int.parse(value!);
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDropdown({
+    required List<String> items,
+    required String selectedValue,
+    required void Function(String?) onChanged,
+  }) {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        border: Border.all(color: TossColors.gray200),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: ListWheelScrollView.useDelegate(
+        itemExtent: 40,
+        physics: const FixedExtentScrollPhysics(),
+        diameterRatio: 1.5,
+        perspective: 0.002,
+        controller: FixedExtentScrollController(
+          initialItem: items.indexOf(selectedValue),
+        ),
+        onSelectedItemChanged: (index) {
+          onChanged(items[index]);
+        },
+        childDelegate: ListWheelChildBuilderDelegate(
+          builder: (context, index) {
+            if (index < 0 || index >= items.length) return null;
+            final isSelected = items[index] == selectedValue;
+            return Center(
+              child: Text(
+                items[index],
+                style: TossTextStyles.body.copyWith(
+                  fontSize: isSelected ? 18 : 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? TossColors.gray900 : TossColors.gray500,
+                ),
+              ),
+            );
+          },
+          childCount: items.length,
+        ),
+      ),
+    );
   }
 }

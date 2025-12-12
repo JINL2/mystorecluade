@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -15,6 +16,10 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 ///
 /// Shows current plan with enticing upgrade CTA.
 /// Design inspired by Spotify, Netflix, and modern SaaS apps.
+///
+/// ⚠️ IMPORTANT: This widget uses RevenueCat's actual subscription status
+/// via subscriptionProvider, NOT the database planType from AppState.
+/// This ensures UI accurately reflects the real subscription state.
 class SubscriptionSection extends ConsumerWidget {
   final VoidCallback? onTap;
 
@@ -26,8 +31,18 @@ class SubscriptionSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
-    final planType = appState.planType;
-    final isFreePlan = appState.isFreePlan;
+
+    // ✅ Use RevenueCat subscription status (source of truth)
+    final proStatusAsync = ref.watch(proStatusProvider);
+
+    // Handle loading state - show skeleton while fetching
+    if (proStatusAsync.isLoading) {
+      return _buildLoadingCard(context);
+    }
+
+    final isPro = proStatusAsync.valueOrNull ?? false;
+    final planType = isPro ? 'pro' : 'free';
+    final isFreePlan = !isPro;
 
     return GestureDetector(
       onTap: () {
@@ -513,5 +528,93 @@ class SubscriptionSection extends ConsumerWidget {
       default:
         return TossColors.gray500;
     }
+  }
+
+  /// Loading card shown while fetching subscription status from RevenueCat
+  Widget _buildLoadingCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.gray900.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header skeleton
+          Row(
+            children: [
+              // Icon placeholder
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: TossColors.gray100,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 120,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          // Loading indicator
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: TossColors.gray400,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Checking subscription...',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

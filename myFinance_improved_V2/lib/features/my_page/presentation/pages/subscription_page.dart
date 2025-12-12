@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:myfinance_improved/core/services/revenuecat_service.dart';
+import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -116,34 +117,44 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       final customerInfo = await RevenueCatService().getCustomerInfo();
 
       if (customerInfo != null && mounted) {
-        // Check if user has Pro entitlement
-        final proEntitlement = customerInfo.entitlements.active['STOREBASE Pro'];
-        final isPro = proEntitlement != null;
+        // Check for 'basic' and 'pro' entitlements
+        final proEntitlement = customerInfo.entitlements.active['pro'];
+        final basicEntitlement = customerInfo.entitlements.active['basic'];
+
+        final hasPro = proEntitlement != null;
+        final hasBasic = basicEntitlement != null;
+        final hasAnySubscription = hasPro || hasBasic;
 
         debugPrint('📊 Subscription Status:');
-        debugPrint('  - Is Pro: $isPro');
+        debugPrint('  - Has Pro: $hasPro');
+        debugPrint('  - Has Basic: $hasBasic');
         debugPrint('  - Active Entitlements: ${customerInfo.entitlements.active.keys}');
 
-        if (isPro) {
-          debugPrint('  - Product ID: ${proEntitlement.productIdentifier}');
-          debugPrint('  - Expires: ${proEntitlement.expirationDate}');
-          debugPrint('  - Will Renew: ${proEntitlement.willRenew}');
+        // Get active entitlement (pro takes priority)
+        final activeEntitlement = proEntitlement ?? basicEntitlement;
+
+        if (activeEntitlement != null) {
+          debugPrint('  - Product ID: ${activeEntitlement.productIdentifier}');
+          debugPrint('  - Expires: ${activeEntitlement.expirationDate}');
+          debugPrint('  - Will Renew: ${activeEntitlement.willRenew}');
         }
 
         setState(() {
-          _isProSubscriber = isPro;
-          if (isPro) {
-            _activeProductId = proEntitlement.productIdentifier;
-            _expirationDate = proEntitlement.expirationDate != null
-                ? DateTime.parse(proEntitlement.expirationDate!)
+          _isProSubscriber = hasAnySubscription;
+          if (hasAnySubscription && activeEntitlement != null) {
+            _activeProductId = activeEntitlement.productIdentifier;
+            _expirationDate = activeEntitlement.expirationDate != null
+                ? DateTime.parse(activeEntitlement.expirationDate!)
                 : null;
-            _willRenew = proEntitlement.willRenew;
+            _willRenew = activeEntitlement.willRenew;
 
-            // Auto-select the current plan
-            if (_activeProductId?.contains('annual') == true) {
+            // Auto-select the current plan based on entitlement
+            if (_activeProductId?.contains('annual') == true ||
+                _activeProductId?.contains('yearly') == true) {
               _isAnnual = true;
             }
-            _selectedPlanIndex = 1; // Pro
+            // Set selected plan index based on entitlement
+            _selectedPlanIndex = hasPro ? 1 : 0; // 1 = Pro, 0 = Basic
           }
         });
       }
@@ -256,11 +267,98 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     );
   }
 
+  /// Build current plan badge showing user's subscription status
+  Widget _buildCurrentPlanBadge() {
+    // Determine current plan text and colors
+    String planText;
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+
+    if (_isProSubscriber) {
+      // Check if it's Pro or Basic based on activeProductId
+      final isProPlan = _activeProductId?.contains('pro') == true;
+      if (isProPlan) {
+        planText = 'Pro Plan';
+        bgColor = const Color(0xFF3B82F6).withValues(alpha: 0.1);
+        textColor = const Color(0xFF3B82F6);
+        icon = LucideIcons.crown;
+      } else {
+        planText = 'Basic Plan';
+        bgColor = const Color(0xFF10B981).withValues(alpha: 0.1);
+        textColor = const Color(0xFF10B981);
+        icon = LucideIcons.checkCircle;
+      }
+    } else {
+      planText = 'Free Plan';
+      bgColor = TossColors.gray100;
+      textColor = TossColors.gray600;
+      icon = LucideIcons.user;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 8),
+          Text(
+            'Current: $planText',
+            style: TossTextStyles.body.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          if (_isProSubscriber && _expirationDate != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: textColor.withValues(alpha: 0.4),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _willRenew ? 'Renews ${_formatShortDate(_expirationDate!)}' : 'Expires ${_formatShortDate(_expirationDate!)}',
+              style: TossTextStyles.small.copyWith(
+                color: textColor.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Format date in short format (e.g., "Jan 15")
+  String _formatShortDate(DateTime date) {
+    return DateFormat('MMM d').format(date);
+  }
+
   Widget _buildHeroSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         children: [
+          // Current Plan Badge
+          _buildCurrentPlanBadge(),
+
+          const SizedBox(height: TossSpacing.space4),
+
           // App icon with shadow
           Container(
             width: 80,
@@ -418,11 +516,65 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Widget _buildPricingCards() {
+    // Watch subscription plans from database
+    final plansAsync = ref.watch(subscriptionPlansProvider);
+
+    return plansAsync.when(
+      loading: () => const SizedBox(
+        height: 260,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => _buildFallbackPricingCards(),
+      data: (dbPlans) {
+        // Filter to only Basic and Pro plans
+        final basicPlan = dbPlans.where((p) => p.planName == 'basic').firstOrNull;
+        final proPlan = dbPlans.where((p) => p.planName == 'pro').firstOrNull;
+
+        if (basicPlan == null || proPlan == null) {
+          return _buildFallbackPricingCards();
+        }
+
+        final plans = [
+          _PlanData(
+            name: basicPlan.displayName,
+            monthlyPrice: basicPlan.priceMonthly.toInt(),
+            annualPrice: basicPlan.annualPricePerMonth.round(),
+            tagline: basicPlan.description,
+            features: [
+              '${basicPlan.maxStores ?? "Unlimited"} Stores',
+              '${basicPlan.maxEmployees ?? "Unlimited"} Employees',
+              basicPlan.hasUnlimitedAI ? 'Unlimited AI' : '${basicPlan.aiDailyLimit} AI/day',
+            ],
+            color: const Color(0xFF10B981),
+            isPopular: false,
+          ),
+          _PlanData(
+            name: proPlan.displayName,
+            monthlyPrice: proPlan.priceMonthly.toInt(),
+            annualPrice: proPlan.annualPricePerMonth.round(),
+            tagline: 'Most Popular',
+            features: [
+              proPlan.hasUnlimitedStores ? 'Unlimited' : '${proPlan.maxStores} Stores',
+              proPlan.hasUnlimitedEmployees ? 'Unlimited' : '${proPlan.maxEmployees} Employees',
+              proPlan.hasUnlimitedAI ? 'Unlimited AI' : '${proPlan.aiDailyLimit} AI/day',
+            ],
+            color: const Color(0xFF3B82F6),
+            isPopular: true,
+          ),
+        ];
+
+        return _buildPricingCardsList(plans);
+      },
+    );
+  }
+
+  /// Fallback pricing cards when DB fetch fails
+  Widget _buildFallbackPricingCards() {
     final plans = [
       _PlanData(
         name: 'Basic',
-        monthlyPrice: 29,
-        annualPrice: 17, // ~40% off
+        monthlyPrice: 49,
+        annualPrice: 29,
         tagline: 'For small teams',
         features: ['5 Stores', '10 Employees', '20 AI/day'],
         color: const Color(0xFF10B981),
@@ -430,14 +582,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       ),
       _PlanData(
         name: 'Pro',
-        monthlyPrice: 79,
-        annualPrice: 49, // ~40% off
+        monthlyPrice: 149,
+        annualPrice: 89,
         tagline: 'Most Popular',
         features: ['Unlimited', 'Unlimited', 'Unlimited AI'],
         color: const Color(0xFF3B82F6),
         isPopular: true,
       ),
     ];
+    return _buildPricingCardsList(plans);
+  }
+
+  Widget _buildPricingCardsList(List<_PlanData> plans) {
 
     return SizedBox(
       height: 260,
@@ -628,9 +784,23 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   Widget _buildCTAButton() {
     // Check if user is already subscribed to Pro
     final isAlreadySubscribed = _isProSubscriber && _selectedPlanIndex == 1;
-    final price = _isAnnual
-        ? (_selectedPlanIndex == 0 ? 17 : 49)
-        : (_selectedPlanIndex == 0 ? 29 : 79);
+
+    // Get prices from database (with fallback)
+    final plansAsync = ref.watch(subscriptionPlansProvider);
+    final plans = plansAsync.valueOrNull ?? [];
+    final basicPlan = plans.where((p) => p.planName == 'basic').firstOrNull;
+    final proPlan = plans.where((p) => p.planName == 'pro').firstOrNull;
+
+    final int price;
+    if (_isAnnual) {
+      price = _selectedPlanIndex == 0
+          ? (basicPlan?.annualPricePerMonth.round() ?? 29)
+          : (proPlan?.annualPricePerMonth.round() ?? 89);
+    } else {
+      price = _selectedPlanIndex == 0
+          ? (basicPlan?.priceMonthly.toInt() ?? 49)
+          : (proPlan?.priceMonthly.toInt() ?? 149);
+    }
 
     // Determine button text based on subscription status
     String buttonText;
@@ -1103,20 +1273,35 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     // Map selection to package type
     // _selectedPlanIndex: 0 = Basic, 1 = Pro
     // _isAnnual: true = annual, false = monthly
-    PackageType targetType = _isAnnual ? PackageType.annual : PackageType.monthly;
+    final planName = _selectedPlanIndex == 0 ? 'basic' : 'pro';
+    final periodName = _isAnnual ? 'yearly' : 'monthly';
+    final targetIdentifier = '$planName.$periodName'; // e.g., 'basic.monthly', 'pro.yearly'
 
     // Debug log
     debugPrint('🛒 Subscribe clicked:');
-    debugPrint('  - _isAnnual: $_isAnnual');
-    debugPrint('  - targetType: ${targetType.name}');
+    debugPrint('  - Selected Plan: $planName');
+    debugPrint('  - Period: $periodName');
+    debugPrint('  - Target Identifier: $targetIdentifier');
     debugPrint('  - Available packages: ${_packages.length}');
 
-    // Find package from loaded packages
+    // Find package by identifier (RevenueCat package identifier format)
     for (final package in _packages) {
-      debugPrint('  - Checking: ${package.packageType.name} == ${targetType.name}?');
-      if (package.packageType == targetType) {
+      debugPrint('  - Checking: ${package.identifier} contains $targetIdentifier?');
+
+      // Match by package identifier (e.g., 'basic.monthly', 'pro.yearly')
+      if (package.identifier == targetIdentifier) {
         targetPackage = package;
         debugPrint('  ✅ Found matching package: ${package.storeProduct.identifier}');
+        break;
+      }
+
+      // Fallback: match by product ID
+      final productId = package.storeProduct.identifier.toLowerCase();
+      if (productId.contains(planName) &&
+          ((_isAnnual && (productId.contains('annual') || productId.contains('yearly'))) ||
+           (!_isAnnual && productId.contains('monthly')))) {
+        targetPackage = package;
+        debugPrint('  ✅ Found matching package by product ID: ${package.storeProduct.identifier}');
         break;
       }
     }

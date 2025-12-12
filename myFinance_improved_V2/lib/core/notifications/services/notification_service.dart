@@ -7,8 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/notification_config.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-import '../firebase_stub.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/notification_db_model.dart';
 import '../models/notification_payload.dart';
 import '../repositories/notification_repository.dart';
