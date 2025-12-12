@@ -381,9 +381,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               hintText: 'Enter your first name',
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                                LengthLimitingTextInputFormatter(50),
+                              ],
                               validator: (value) {
                                 if (value?.trim().isEmpty ?? true) {
                                   return 'Please enter your first name';
+                                }
+                                if (value!.trim().length < 2) {
+                                  return 'First name must be at least 2 characters';
+                                }
+                                if (RegExp(r'[0-9]').hasMatch(value)) {
+                                  return 'First name must not contain numbers';
                                 }
                                 return null;
                               },
@@ -395,9 +405,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               hintText: 'Enter your last name',
                               showKeyboardToolbar: true,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                                LengthLimitingTextInputFormatter(50),
+                              ],
                               validator: (value) {
                                 if (value?.trim().isEmpty ?? true) {
                                   return 'Please enter your last name';
+                                }
+                                if (value!.trim().length < 2) {
+                                  return 'Last name must be at least 2 characters';
+                                }
+                                if (RegExp(r'[0-9]').hasMatch(value)) {
+                                  return 'Last name must not contain numbers';
                                 }
                                 return null;
                               },

@@ -65,12 +65,16 @@ class StoreSettingItem {
   final String storeName;
   final bool isEnabled;
   final bool isOverridden; // 개별 설정 여부
+  final String? companyId; // For database-driven grouping
+  final String? companyName; // For display grouping
 
   StoreSettingItem({
     required this.storeId,
     required this.storeName,
     required this.isEnabled,
     required this.isOverridden,
+    this.companyId,
+    this.companyName,
   });
 }
 
@@ -295,6 +299,8 @@ class NotificationSettingsDataSource {
           storeName: store['store_name'] as String,
           isEnabled: enabled,
           isOverridden: prefsMap.containsKey(store['store_id']),
+          companyId: store['company_id'] as String?,
+          companyName: store['company_name'] as String?,
         );
       }).toList();
 
@@ -318,28 +324,38 @@ class NotificationSettingsDataSource {
   }) async {
     try {
       if (roleType == 'owner') {
-        // owner는 전체 store
+        // owner는 전체 store - with company info for grouping
         final res = await _supabase
             .from('stores')
-            .select('store_id, store_name')
+            .select('store_id, store_name, company_id, companies!inner(company_name)')
             .eq('company_id', companyId)
             .eq('is_deleted', false)
             .order('store_name');
 
-        return List<Map<String, dynamic>>.from(res);
+        return res.map((store) {
+          return {
+            'store_id': store['store_id'],
+            'store_name': store['store_name'],
+            'company_id': store['company_id'],
+            'company_name': (store['companies'] as Map?)?['company_name'] ?? 'Unknown',
+          };
+        }).toList();
       } else {
-        // owner 아니면 user_stores에서 가져오기
+        // owner 아니면 user_stores에서 가져오기 - with company info
         final res = await _supabase
             .from('user_stores')
-            .select('stores!inner(store_id, store_name)')
+            .select('stores!inner(store_id, store_name, company_id, companies!inner(company_name))')
             .eq('user_id', userId)
             .eq('is_deleted', false);
 
         return res.map((us) {
           final s = us['stores'] as Map<String, dynamic>;
+          final companies = s['companies'] as Map?;
           return {
             'store_id': s['store_id'],
             'store_name': s['store_name'],
+            'company_id': s['company_id'],
+            'company_name': companies?['company_name'] ?? 'Unknown',
           };
         }).toList();
       }
