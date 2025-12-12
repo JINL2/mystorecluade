@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -145,19 +144,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final repository = ref.read(userProfileRepositoryProvider);
       final profile = await repository.getUserProfile(userId);
 
-      // Query bank account from users_bank_account table
+      // Query bank account via repository
       Map<String, dynamic>? bankResponse;
       if (companyId.isNotEmpty) {
-        try {
-          bankResponse = await Supabase.instance.client
-              .from('users_bank_account')
-              .select('user_bank_name, user_account_number, description')
-              .eq('user_id', userId)
-              .eq('company_id', companyId)
-              .maybeSingle();
-        } catch (bankError) {
-          // Bank account fetch error (non-fatal)
-        }
+        bankResponse = await repository.getUserBankAccount(
+          userId: userId,
+          companyId: companyId,
+        );
       }
 
       if (profile != null) {
@@ -768,8 +761,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
+      final repository = ref.read(userProfileRepositoryProvider);
 
-      // Save profile data (firstName, lastName, phoneNumber, dateOfBirth)
+      // Save profile data via repository
       final currentDob = _selectedDateOfBirth?.toIso8601String().split('T').first ?? '';
 
       if (_firstNameController.text.trim() != (_originalFirstName ?? '') ||
@@ -777,18 +771,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '') ||
           currentDob != (_originalDateOfBirth ?? '')) {
 
-        final updates = {
-          'first_name': _firstNameController.text.trim(),
-          'last_name': _lastNameController.text.trim(),
-          'user_phone_number': _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
-          'date_of_birth': currentDob.isEmpty ? null : currentDob,
-          'updated_at': DateTimeUtils.nowUtc(),
-        };
-
-        await Supabase.instance.client.from('users').update(updates).eq('user_id', userId);
+        await repository.updateUserProfile(
+          userId: userId,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
+          dateOfBirth: currentDob.isEmpty ? null : currentDob,
+        );
       }
 
-      // Save bank information (direct query as it's outside repository scope)
+      // Save bank information via repository
       if (companyId.isNotEmpty) {
         if (_bankNameController.text.trim() != (_originalBankName ?? '') ||
             _bankAccountController.text.trim() != (_originalBankAccount ?? '') ||
@@ -796,31 +788,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           if (_bankNameController.text.trim().isNotEmpty ||
               _bankAccountController.text.trim().isNotEmpty ||
               _bankDescriptionController.text.trim().isNotEmpty) {
-            final existingBank = await Supabase.instance.client
-                .from('users_bank_account')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('company_id', companyId)
-                .maybeSingle();
-
-            if (existingBank != null) {
-              await Supabase.instance.client.from('users_bank_account').update({
-                'user_bank_name': _bankNameController.text.trim(),
-                'user_account_number': _bankAccountController.text.trim(),
-                'description': _bankDescriptionController.text.trim(),
-                'updated_at': DateTimeUtils.nowUtc(),
-              }).eq('user_id', userId).eq('company_id', companyId);
-            } else {
-              await Supabase.instance.client.from('users_bank_account').insert({
-                'user_id': userId,
-                'company_id': companyId,
-                'user_bank_name': _bankNameController.text.trim(),
-                'user_account_number': _bankAccountController.text.trim(),
-                'description': _bankDescriptionController.text.trim(),
-                'created_at': DateTimeUtils.nowUtc(),
-                'updated_at': DateTimeUtils.nowUtc(),
-              });
-            }
+            await repository.saveUserBankAccount(
+              userId: userId,
+              companyId: companyId,
+              bankName: _bankNameController.text.trim(),
+              accountNumber: _bankAccountController.text.trim(),
+              description: _bankDescriptionController.text.trim(),
+            );
           }
         }
       }

@@ -3,11 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../features/my_page/domain/repositories/user_profile_repository.dart';
+import '../../features/my_page/presentation/providers/user_profile_providers.dart';
 import 'auth_providers.dart';
 
 /// Locale state notifier
 class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier() : super(const Locale('en')) {
+  final UserProfileRepository? _repository;
+
+  LocaleNotifier({UserProfileRepository? repository})
+      : _repository = repository,
+        super(const Locale('en')) {
     _loadSavedLocale();
   }
 
@@ -34,32 +40,20 @@ class LocaleNotifier extends StateNotifier<Locale> {
     }
   }
 
-  /// Load locale from Supabase user profile
+  /// Load locale from database via repository
   Future<void> loadLocaleFromDatabase(String userId) async {
+    if (_repository == null) return;
+
     try {
-      // Fetch user's language preference from database
-      final userResponse = await Supabase.instance.client
-          .from('users')
-          .select('user_language')
-          .eq('user_id', userId)
-          .maybeSingle();
+      // Fetch user's language ID via repository
+      final userLanguageId = await _repository!.getUserLanguageId(userId);
 
-      if (userResponse != null && userResponse['user_language'] != null) {
-        final userLanguageId = userResponse['user_language'] as String;
+      if (userLanguageId != null) {
+        // Fetch language code via repository
+        final languageCode = await _repository!.getLanguageCode(userLanguageId);
 
-        // Fetch language details
-        final languageResponse = await Supabase.instance.client
-            .from('languages')
-            .select('language_code')
-            .eq('language_id', userLanguageId)
-            .maybeSingle();
-
-        if (languageResponse != null) {
-          final languageCode = languageResponse['language_code'] as String;
-
-          if (_locales.containsKey(languageCode)) {
-            await setLocale(languageCode);
-          }
+        if (languageCode != null && _locales.containsKey(languageCode)) {
+          await setLocale(languageCode);
         }
       }
     } catch (e) {
@@ -94,7 +88,8 @@ class LocaleNotifier extends StateNotifier<Locale> {
 
 /// Locale provider
 final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
-  final notifier = LocaleNotifier();
+  final repository = ref.watch(userProfileRepositoryProvider);
+  final notifier = LocaleNotifier(repository: repository);
 
   // Load locale from database when user is authenticated
   ref.listen<AsyncValue<User?>>(authStateProvider, (previous, next) {

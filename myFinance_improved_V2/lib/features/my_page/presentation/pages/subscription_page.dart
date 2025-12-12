@@ -111,15 +111,28 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
   }
 
+  /// Helper: Find entitlement by partial key match
+  EntitlementInfo? _findEntitlementByMatch(CustomerInfo customerInfo, String target) {
+    try {
+      final matchingKey = customerInfo.entitlements.active.keys.firstWhere(
+        (key) => key.toLowerCase().contains(target.toLowerCase()),
+      );
+      return customerInfo.entitlements.active[matchingKey];
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Load current subscription status from RevenueCat
   Future<void> _loadSubscriptionStatus() async {
     try {
       final customerInfo = await RevenueCatService().getCustomerInfo();
 
       if (customerInfo != null && mounted) {
-        // Check for 'basic' and 'pro' entitlements
-        final proEntitlement = customerInfo.entitlements.active['pro'];
-        final basicEntitlement = customerInfo.entitlements.active['basic'];
+        // Check for entitlements containing 'basic' or 'pro' (partial match)
+        // RevenueCat entitlement keys may be like 'storebase.pro.monthly'
+        final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
+        final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
 
         final hasPro = proEntitlement != null;
         final hasBasic = basicEntitlement != null;

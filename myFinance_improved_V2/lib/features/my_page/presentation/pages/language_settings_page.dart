@@ -7,10 +7,10 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../app/providers/locale_provider.dart';
+import '../providers/user_profile_providers.dart';
 
 class LanguageSettingsPage extends ConsumerStatefulWidget {
   const LanguageSettingsPage({super.key});
@@ -49,28 +49,19 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       if (authState == null) return;
 
       final userId = authState.id;
+      final repository = ref.read(userProfileRepositoryProvider);
 
-      // Step 1: Fetch all available languages from database
-      final languagesResponse = await Supabase.instance.client
-          .from('languages')
-          .select('language_id, language_code, language_name')
-          .inFilter('language_code', ['ko', 'en', 'vi']);
+      // Step 1: Fetch all available languages from repository
+      final languagesResponse = await repository.getLanguages();
 
-      if (languagesResponse != null) {
-        for (var lang in languagesResponse as List) {
-          _languageIds[lang['language_code'] as String] = lang['language_id'] as String;
-        }
+      for (var lang in languagesResponse) {
+        _languageIds[lang['language_code'] as String] = lang['language_id'] as String;
       }
 
       // Step 2: Fetch user's current language preference
-      final userResponse = await Supabase.instance.client
-          .from('users')
-          .select('user_language')
-          .eq('user_id', userId)
-          .maybeSingle();
+      final userLanguageId = await repository.getUserLanguageId(userId);
 
-      if (userResponse != null && userResponse['user_language'] != null) {
-        final userLanguageId = userResponse['user_language'] as String;
+      if (userLanguageId != null) {
         _selectedLanguageId = userLanguageId;
 
         // Find the language name from the ID
@@ -146,11 +137,12 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       }
       final userId = authState.id;
 
-      // Save to database
-      await Supabase.instance.client.from('users').update({
-        'user_language': languageId,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('user_id', userId);
+      // Save to database via repository
+      final repository = ref.read(userProfileRepositoryProvider);
+      await repository.updateUserLanguage(
+        userId: userId,
+        languageId: languageId,
+      );
 
       // Update app locale immediately
       await ref.read(localeProvider.notifier).setLocale(languageCode);
