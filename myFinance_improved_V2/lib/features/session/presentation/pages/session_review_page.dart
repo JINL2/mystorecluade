@@ -192,56 +192,21 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
   void _showConfirmDialog() {
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Submit Session?'),
-        content: Text(
-          'Are you sure you want to submit this ${_isCounting ? 'stock count' : 'receiving'} session? '
-          'This action cannot be undone.',
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    _executeSubmit();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _typeColor,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                  ),
-                  child: const Text('Submit'),
-                ),
-              ),
-            ],
-          ),
-        ],
+      builder: (dialogContext) => _SubmitConfirmDialog(
+        isCounting: _isCounting,
+        typeColor: _typeColor,
+        onSubmit: (isFinal) {
+          Navigator.pop(dialogContext);
+          _executeSubmit(isFinal);
+        },
       ),
     );
   }
 
-  Future<void> _executeSubmit() async {
+  Future<void> _executeSubmit(bool isFinal) async {
     final result = await ref
         .read(sessionReviewProvider(_params).notifier)
-        .submitSession(isFinal: true);
+        .submitSession(isFinal: isFinal);
 
     if (!mounted) return;
 
@@ -520,6 +485,146 @@ class _EmptyView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Submit confirmation dialog with is_final option
+class _SubmitConfirmDialog extends StatefulWidget {
+  final bool isCounting;
+  final Color typeColor;
+  final void Function(bool isFinal) onSubmit;
+
+  const _SubmitConfirmDialog({
+    required this.isCounting,
+    required this.typeColor,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_SubmitConfirmDialog> createState() => _SubmitConfirmDialogState();
+}
+
+class _SubmitConfirmDialogState extends State<_SubmitConfirmDialog> {
+  bool _isFinal = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Submit Session?'),
+      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Are you sure you want to submit this ${widget.isCounting ? 'stock count' : 'receiving'} session? '
+            'This action cannot be undone.',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.textSecondary,
+            ),
+          ),
+          if (!widget.isCounting) ...[
+            const SizedBox(height: TossSpacing.space4),
+            Container(
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(
+                  color: _isFinal ? widget.typeColor : TossColors.gray200,
+                  width: _isFinal ? 1.5 : 1,
+                ),
+              ),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _isFinal = !_isFinal;
+                  });
+                },
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                child: Padding(
+                  padding: const EdgeInsets.all(TossSpacing.space3),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: _isFinal,
+                          onChanged: (value) {
+                            setState(() {
+                              _isFinal = value ?? false;
+                            });
+                          },
+                          activeColor: widget.typeColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'No more deliveries expected',
+                              style: TossTextStyles.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: TossColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Check this only when this is the final delivery for this shipment',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => widget.onSubmit(_isFinal),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.typeColor,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                ),
+                child: const Text('Submit'),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

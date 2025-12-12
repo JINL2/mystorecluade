@@ -18,7 +18,13 @@ class SessionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const TossAppBar1(title: 'Inventory'),
+      appBar: TossAppBar1(
+        title: 'Inventory',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 24),
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
