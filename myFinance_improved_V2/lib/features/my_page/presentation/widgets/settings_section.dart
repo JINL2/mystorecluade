@@ -10,6 +10,7 @@ class SettingsSection extends StatelessWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onNotifications;
   final VoidCallback onPrivacySecurity;
+  final VoidCallback onLanguage;
   final VoidCallback onSignOut;
 
   const SettingsSection({
@@ -17,6 +18,7 @@ class SettingsSection extends StatelessWidget {
     required this.onEditProfile,
     required this.onNotifications,
     required this.onPrivacySecurity,
+    required this.onLanguage,
     required this.onSignOut,
   });
 
@@ -124,6 +126,29 @@ class SettingsSection extends StatelessWidget {
               size: TossSpacing.iconSM,
             ),
             onTap: onPrivacySecurity,
+          ),
+
+          TossListTile(
+            title: 'Language',
+            leading: Container(
+              width: TossSpacing.space10,
+              height: TossSpacing.space10,
+              decoration: BoxDecoration(
+                color: TossColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: const Icon(
+                Icons.language,
+                color: TossColors.warning,
+                size: TossSpacing.iconSM,
+              ),
+            ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: TossColors.gray400,
+              size: TossSpacing.iconSM,
+            ),
+            onTap: onLanguage,
           ),
 
           // Sign Out - Using TossListTile with destructive styling

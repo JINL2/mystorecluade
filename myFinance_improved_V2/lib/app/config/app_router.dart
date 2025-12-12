@@ -37,6 +37,7 @@ import '../../features/inventory_management/presentation/pages/inventory_managem
 import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
+import '../../features/my_page/presentation/pages/language_settings_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
@@ -612,6 +613,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/privacy-security',
         name: 'privacy-security',
         builder: (context, state) => const PrivacySecurityPage(),
+      ),
+      GoRoute(
+        path: '/language-settings',
+        name: 'language-settings',
+        builder: (context, state) => const LanguageSettingsPage(),
       ),
       GoRoute(
         path: '/subscription',
