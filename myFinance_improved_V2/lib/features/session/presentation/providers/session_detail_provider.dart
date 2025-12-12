@@ -1,33 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/utils/datetime_utils.dart';
+import '../../di/session_providers.dart';
+import '../../domain/entities/session_item.dart';
+import '../../domain/usecases/add_session_items.dart';
+import '../../domain/usecases/search_products.dart';
 import 'states/session_detail_state.dart';
 
 /// Notifier for session detail state management
 class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
-  final Ref _ref;
-  final SupabaseClient _client;
+  final SearchProducts _searchProducts;
+  final AddSessionItems _addSessionItems;
   final String _companyId;
 
   SessionDetailNotifier({
-    required Ref ref,
-    required SupabaseClient client,
+    required SearchProducts searchProducts,
+    required AddSessionItems addSessionItems,
     required String companyId,
     required String sessionId,
     required String sessionType,
     required String storeId,
     String? sessionName,
-  })  : _ref = ref,
-        _client = client,
+  })  : _searchProducts = searchProducts,
+        _addSessionItems = addSessionItems,
         _companyId = companyId,
         super(SessionDetailState.initial(
           sessionId: sessionId,
           sessionType: sessionType,
           storeId: storeId,
           sessionName: sessionName,
-        ));
+        ),);
 
   /// Search products by query
   Future<void> searchProducts(String query) async {
@@ -48,33 +50,23 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
 
     try {
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'get_inventory_page_v3',
-        params: {
-          'p_company_id': _companyId,
-          'p_store_id': state.storeId,
-          'p_page': 1,
-          'p_limit': 20,
-          'p_search': query,
-          'p_timezone': DateTimeUtils.getLocalTimezone(),
-        },
-      ).single();
+      final response = await _searchProducts(
+        companyId: _companyId,
+        storeId: state.storeId,
+        query: query,
+        limit: 20,
+      );
 
-      // Parse response
-      Map<String, dynamic> dataToProcess;
-      if (response.containsKey('success')) {
-        if (response['success'] == true) {
-          dataToProcess = response['data'] as Map<String, dynamic>? ?? {};
-        } else {
-          throw Exception(response['error'] ?? 'Failed to search products');
-        }
-      } else {
-        dataToProcess = response;
-      }
-
-      final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
-      final results = productsJson
-          .map((json) => SearchProductResult.fromJson(json as Map<String, dynamic>))
+      final results = response.products
+          .map((p) => SearchProductResult(
+                productId: p.productId,
+                productName: p.productName,
+                sku: p.sku,
+                barcode: p.barcode,
+                imageUrl: p.imageUrl,
+                sellingPrice: p.sellingPrice,
+                stockQuantity: p.currentStock,
+              ),)
           .toList();
 
       state = state.copyWith(
@@ -183,9 +175,13 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
   }
 
-  /// Update product quantity
+  /// Update product quantity (good condition)
   void updateQuantity(String productId, int quantity) {
-    if (quantity <= 0) {
+    final product = state.getSelectedProduct(productId);
+    if (product == null) return;
+
+    // Remove if both quantities are zero
+    if (quantity <= 0 && product.quantityRejected <= 0) {
       removeProduct(productId);
       return;
     }
@@ -193,14 +189,37 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(
       selectedProducts: state.selectedProducts.map((p) {
         if (p.productId == productId) {
-          return p.copyWith(quantity: quantity);
+          return p.copyWith(quantity: quantity < 0 ? 0 : quantity);
         }
         return p;
       }).toList(),
     );
   }
 
-  /// Increment product quantity
+  /// Update rejected quantity
+  void updateQuantityRejected(String productId, int quantityRejected) {
+    final product = state.getSelectedProduct(productId);
+    if (product == null) return;
+
+    // Remove if both quantities are zero
+    if (quantityRejected <= 0 && product.quantity <= 0) {
+      removeProduct(productId);
+      return;
+    }
+
+    state = state.copyWith(
+      selectedProducts: state.selectedProducts.map((p) {
+        if (p.productId == productId) {
+          return p.copyWith(
+            quantityRejected: quantityRejected < 0 ? 0 : quantityRejected,
+          );
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  /// Increment product quantity (good condition)
   void incrementQuantity(String productId) {
     final product = state.getSelectedProduct(productId);
     if (product != null) {
@@ -208,11 +227,27 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     }
   }
 
-  /// Decrement product quantity
+  /// Decrement product quantity (good condition)
   void decrementQuantity(String productId) {
     final product = state.getSelectedProduct(productId);
     if (product != null) {
       updateQuantity(productId, product.quantity - 1);
+    }
+  }
+
+  /// Increment rejected quantity
+  void incrementQuantityRejected(String productId) {
+    final product = state.getSelectedProduct(productId);
+    if (product != null) {
+      updateQuantityRejected(productId, product.quantityRejected + 1);
+    }
+  }
+
+  /// Decrement rejected quantity
+  void decrementQuantityRejected(String productId) {
+    final product = state.getSelectedProduct(productId);
+    if (product != null) {
+      updateQuantityRejected(productId, product.quantityRejected - 1);
     }
   }
 
@@ -221,7 +256,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(selectedProducts: []);
   }
 
-  /// Save items to session via RPC
+  /// Save items to session via UseCase
   Future<({bool success, String? error})> saveItems(String userId) async {
     if (state.selectedProducts.isEmpty) {
       return (success: false, error: 'No items to save');
@@ -230,24 +265,22 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      // Build items array for RPC
-      final items = state.selectedProducts.map((p) => {
-        'product_id': p.productId,
-        'quantity': p.quantity,
-        'quantity_rejected': 0,
-      }).toList();
+      // Build items for UseCase
+      final items = state.selectedProducts
+          .map((p) => SessionItemInput(
+                productId: p.productId,
+                quantity: p.quantity,
+                quantityRejected: p.quantityRejected,
+              ),)
+          .toList();
 
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_add_session_items',
-        params: {
-          'p_session_id': state.sessionId,
-          'p_user_id': userId,
-          'p_items': items,
-          'p_timezone': DateTimeUtils.getLocalTimezone(),
-        },
-      ).single();
+      final response = await _addSessionItems(
+        sessionId: state.sessionId,
+        userId: userId,
+        items: items,
+      );
 
-      if (response['success'] == true) {
+      if (response.success) {
         // Clear selected products after successful save
         state = state.copyWith(
           selectedProducts: [],
@@ -255,7 +288,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
         );
         return (success: true, error: null);
       } else {
-        final errorMsg = response['error']?.toString() ?? 'Failed to save items';
+        final errorMsg = response.message ?? 'Failed to save items';
         state = state.copyWith(isSaving: false, error: errorMsg);
         return (success: false, error: errorMsg);
       }
@@ -281,11 +314,12 @@ final sessionDetailProvider = StateNotifierProvider.autoDispose
         (ref, params) {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  final client = Supabase.instance.client;
+  final searchProducts = ref.watch(searchProductsUseCaseProvider);
+  final addSessionItems = ref.watch(addSessionItemsUseCaseProvider);
 
   return SessionDetailNotifier(
-    ref: ref,
-    client: client,
+    searchProducts: searchProducts,
+    addSessionItems: addSessionItems,
     companyId: companyId,
     sessionId: params.sessionId,
     sessionType: params.sessionType,

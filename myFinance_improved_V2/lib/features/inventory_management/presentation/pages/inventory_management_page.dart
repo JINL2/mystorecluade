@@ -12,6 +12,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/cached_product_image.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../shared/widgets/toss/toss_list_tile.dart';
@@ -394,24 +395,9 @@ class _InventoryManagementPageState
       title: product.name,
       subtitle: product.sku,
       showDivider: false,
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: TossColors.gray100,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-        child: product.images.isNotEmpty
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                child: Image.network(
-                  product.images.first,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
-                ),
-              )
-            : const Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+      leading: CachedProductImage(
+        imageUrl: product.images.isNotEmpty ? product.images.first : null,
+        size: 48,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,

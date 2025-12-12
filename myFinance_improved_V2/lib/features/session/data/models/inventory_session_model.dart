@@ -54,3 +54,32 @@ class InventorySessionModel extends InventorySession {
 
   InventorySession toEntity() => this;
 }
+
+/// Model for CreateSessionResponse with JSON serialization
+class CreateSessionResponseModel extends CreateSessionResponse {
+  const CreateSessionResponseModel({
+    required super.sessionId,
+    super.sessionName,
+    required super.sessionType,
+    super.shipmentId,
+    super.shipmentNumber,
+    required super.isActive,
+    required super.isFinal,
+    required super.createdBy,
+    required super.createdAt,
+  });
+
+  factory CreateSessionResponseModel.fromJson(Map<String, dynamic> json) {
+    return CreateSessionResponseModel(
+      sessionId: json['session_id']?.toString() ?? '',
+      sessionName: json['session_name']?.toString(),
+      sessionType: json['session_type']?.toString() ?? '',
+      shipmentId: json['shipment_id']?.toString(),
+      shipmentNumber: json['shipment_number']?.toString(),
+      isActive: json['is_active'] as bool? ?? true,
+      isFinal: json['is_final'] as bool? ?? false,
+      createdBy: json['created_by']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+}

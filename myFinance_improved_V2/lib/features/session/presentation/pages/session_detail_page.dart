@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -9,8 +10,13 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../dialogs/save_confirm_dialog.dart';
 import '../providers/session_detail_provider.dart';
 import '../providers/states/session_detail_state.dart';
+import '../widgets/session_detail/search_result_card.dart';
+import '../widgets/session_detail/session_detail_bottom_buttons.dart';
+import '../widgets/session_detail/session_item_card.dart';
 
 /// Session detail page - view and manage session items
 class SessionDetailPage extends ConsumerStatefulWidget {
@@ -56,8 +62,6 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
   Color get _typeColor =>
       _isCounting ? TossColors.primary : TossColors.success;
 
-  String get _typeLabel => _isCounting ? 'stock count' : 'receiving';
-
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 200), () {
@@ -75,23 +79,27 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
       ),
       body: Column(
         children: [
-          // Search Bar
           _buildSearchBar(state),
-
-          // Content Area
-          Expanded(
-            child: state.isInSearchMode
-                ? _buildSearchResults(state)
-                : state.selectedProducts.isEmpty
-                    ? _buildEmptyState()
-                    : _buildSelectedProductsList(state),
+          Expanded(child: _buildContent(state)),
+          SessionDetailBottomButtons(
+            isOwner: widget.isOwner,
+            typeColor: _typeColor,
+            onSavePressed: _onSavePressed,
+            onNextPressed: _onSubmitPressed,
           ),
-
-          // Bottom Action Buttons
-          _buildBottomButtons(state),
         ],
       ),
     );
+  }
+
+  Widget _buildContent(SessionDetailState state) {
+    if (state.isInSearchMode) {
+      return _buildSearchResults(state);
+    }
+    if (state.selectedProducts.isEmpty) {
+      return _buildEmptyState();
+    }
+    return _buildSelectedProductsList(state);
   }
 
   Widget _buildSearchBar(SessionDetailState state) {
@@ -151,66 +159,18 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
     }
 
     if (state.searchResults.isEmpty && state.searchQuery.isNotEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.search_off,
-                size: 64,
-                color: TossColors.textTertiary,
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'No products found',
-                style: TossTextStyles.h4.copyWith(
-                  color: TossColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'Try a different search term',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return _buildSearchEmptyState(
+        icon: Icons.search_off,
+        title: 'No products found',
+        subtitle: 'Try a different search term',
       );
     }
 
     if (state.searchResults.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.search,
-                size: 64,
-                color: TossColors.textTertiary,
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'Search for products',
-                style: TossTextStyles.h4.copyWith(
-                  color: TossColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'Type to search by name, SKU, or barcode',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return _buildSearchEmptyState(
+        icon: Icons.search,
+        title: 'Search for products',
+        subtitle: 'Type to search by name, SKU, or barcode',
       );
     }
 
@@ -222,7 +182,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         final product = state.searchResults[index];
         final isSelected = state.isProductSelected(product.productId);
 
-        return _SearchResultCard(
+        return SearchResultCard(
           product: product,
           isSelected: isSelected,
           onTap: () {
@@ -233,6 +193,35 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildSearchEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 64, color: TossColors.textTertiary),
+            const SizedBox(height: TossSpacing.space4),
+            Text(
+              title,
+              style: TossTextStyles.h4.copyWith(color: TossColors.textPrimary),
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            Text(
+              subtitle,
+              style:
+                  TossTextStyles.body.copyWith(color: TossColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -251,16 +240,13 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No items added yet',
-              style: TossTextStyles.h4.copyWith(
-                color: TossColors.textPrimary,
-              ),
+              style: TossTextStyles.h4.copyWith(color: TossColors.textPrimary),
             ),
             const SizedBox(height: TossSpacing.space2),
             Text(
               'Search for products to add items',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
+              style:
+                  TossTextStyles.body.copyWith(color: TossColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -276,114 +262,20 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final item = state.selectedProducts[index];
-        return _SessionItemCard(
+        final notifier = ref.read(sessionDetailProvider(_params).notifier);
+        return SessionItemCard(
           item: item,
           onQuantityChanged: (newQuantity) {
-            ref
-                .read(sessionDetailProvider(_params).notifier)
-                .updateQuantity(item.productId, newQuantity);
+            notifier.updateQuantity(item.productId, newQuantity);
+          },
+          onQuantityRejectedChanged: (newQuantity) {
+            notifier.updateQuantityRejected(item.productId, newQuantity);
           },
           onDelete: () {
-            ref
-                .read(sessionDetailProvider(_params).notifier)
-                .removeProduct(item.productId);
+            notifier.removeProduct(item.productId);
           },
         );
       },
-    );
-  }
-
-  Widget _buildBottomButtons(SessionDetailState state) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: widget.isOwner
-            ? Row(
-                children: [
-                  // Save Button
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _onSavePressed,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: TossColors.textPrimary,
-                        side: const BorderSide(color: TossColors.border),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                      ),
-                      child: Text(
-                        'Save',
-                        style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space3),
-                  // Submit Button
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed:
-                          state.hasSelectedProducts ? _onSubmitPressed : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _typeColor,
-                        foregroundColor: TossColors.white,
-                        disabledBackgroundColor: TossColors.gray300,
-                        disabledForegroundColor: TossColors.textTertiary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Submit',
-                        style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: state.hasSelectedProducts
-                              ? TossColors.white
-                              : TossColors.textTertiary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _onSavePressed,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TossColors.textPrimary,
-                    side: const BorderSide(color: TossColors.border),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                  ),
-                  child: Text(
-                    'Save',
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-      ),
     );
   }
 
@@ -397,118 +289,31 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
       return;
     }
 
-    showDialog<void>(
+    SaveConfirmDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Save Items?'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The following ${state.totalSelectedCount} item(s) will be saved:',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space3),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 300),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: state.selectedProducts.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, index) {
-                    final item = state.selectedProducts[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: TossSpacing.space2,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.productName,
-                              style: TossTextStyles.bodySmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            'x${item.quantity}',
-                            style: TossTextStyles.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: TossColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(
-          TossSpacing.space4,
-          0,
-          TossSpacing.space4,
-          TossSpacing.space4,
-        ),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TossColors.textPrimary,
-                    side: const BorderSide(color: TossColors.border),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    _executeSave();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _typeColor,
-                    foregroundColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text('Save'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      selectedProducts: state.selectedProducts,
+      totalSelectedCount: state.totalSelectedCount,
+      typeColor: _typeColor,
+      onConfirm: _executeSave,
     );
   }
 
   Future<void> _executeSave() async {
     final appState = ref.read(appStateProvider);
-    final userId = appState.user['user_id']?.toString() ?? '';
+    final userId = appState.userId;
 
     if (userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not found')),
-      );
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'User not found',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      }
       return;
     }
 
@@ -518,301 +323,34 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
     if (mounted) {
       if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Items saved successfully')),
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.success(
+            title: 'Items Saved',
+            message: 'Items saved successfully',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.error ?? 'Failed to save items')),
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Save',
+            message: result.error ?? 'Failed to save items',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
         );
       }
     }
   }
 
   void _onSubmitPressed() {
-    final state = ref.read(sessionDetailProvider(_params));
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Submit Session?'),
-        content: Text(
-          'Are you sure you want to submit this $_typeLabel session with ${state.totalSelectedCount} items?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement actual submission
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Session submitted successfully')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _typeColor,
-            ),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Search result card - inventory management style
-class _SearchResultCard extends StatelessWidget {
-  final SearchProductResult product;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SearchResultCard({
-    required this.product,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        color: isSelected
-            ? TossColors.primary.withValues(alpha: 0.05)
-            : TossColors.white,
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        child: Row(
-          children: [
-            // Product Image
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-              child: product.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      child: Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.image_outlined,
-                          color: TossColors.textTertiary,
-                          size: 24,
-                        ),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.image_outlined,
-                      color: TossColors.textTertiary,
-                      size: 24,
-                    ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-
-            // Product Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.productName,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      color: TossColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  if (product.sku != null)
-                    Text(
-                      product.sku!,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.textTertiary,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // Selection indicator
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: TossColors.primary,
-                size: 24,
-              )
-            else
-              const Icon(
-                Icons.add_circle_outline,
-                color: TossColors.textTertiary,
-                size: 24,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Session item card widget - inventory management style
-class _SessionItemCard extends StatelessWidget {
-  final SelectedProduct item;
-  final ValueChanged<int> onQuantityChanged;
-  final VoidCallback onDelete;
-
-  const _SessionItemCard({
-    required this.item,
-    required this.onQuantityChanged,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: TossColors.white,
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      child: Row(
-        children: [
-          // Product Image
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: item.imageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                    child: Image.network(
-                      item.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.image_outlined,
-                        color: TossColors.textTertiary,
-                        size: 24,
-                      ),
-                    ),
-                  )
-                : const Icon(
-                    Icons.image_outlined,
-                    color: TossColors.textTertiary,
-                    size: 24,
-                  ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Product Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                if (item.sku != null)
-                  Text(
-                    item.sku!,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Quantity Controls
-          Row(
-            children: [
-              _QuantityButton(
-                icon: Icons.remove,
-                onTap: item.quantity > 1
-                    ? () => onQuantityChanged(item.quantity - 1)
-                    : null,
-              ),
-              Container(
-                width: 40,
-                alignment: Alignment.center,
-                child: Text(
-                  '${item.quantity}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.textPrimary,
-                  ),
-                ),
-              ),
-              _QuantityButton(
-                icon: Icons.add,
-                onTap: () => onQuantityChanged(item.quantity + 1),
-              ),
-            ],
-          ),
-
-          // Delete Button
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(
-              Icons.close,
-              color: TossColors.textTertiary,
-              size: 20,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Quantity adjustment button
-class _QuantityButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _QuantityButton({
-    required this.icon,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: onTap != null ? TossColors.gray200 : TossColors.gray100,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color:
-              onTap != null ? TossColors.textPrimary : TossColors.textTertiary,
-        ),
-      ),
+    context.push(
+      '/session/review/${widget.sessionId}'
+      '?sessionType=${widget.sessionType}'
+      '&sessionName=${Uri.encodeComponent(widget.sessionName ?? '')}',
     );
   }
 }

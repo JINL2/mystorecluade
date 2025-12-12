@@ -70,3 +70,67 @@ class SessionItem {
   @override
   int get hashCode => itemId.hashCode;
 }
+
+/// Input for adding items to a session
+class SessionItemInput {
+  final String productId;
+  final int quantity;
+  final int quantityRejected;
+
+  const SessionItemInput({
+    required this.productId,
+    required this.quantity,
+    this.quantityRejected = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'product_id': productId,
+        'quantity': quantity,
+        'quantity_rejected': quantityRejected,
+      };
+}
+
+/// Response for adding session items
+class AddSessionItemsResponse {
+  final bool success;
+  final String? message;
+  final int itemsAdded;
+
+  const AddSessionItemsResponse({
+    required this.success,
+    this.message,
+    this.itemsAdded = 0,
+  });
+}
+
+/// Product search result for session
+class ProductSearchResult {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? barcode;
+  final String? imageUrl;
+  final double sellingPrice;
+  final int currentStock;
+
+  const ProductSearchResult({
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.barcode,
+    this.imageUrl,
+    this.sellingPrice = 0,
+    this.currentStock = 0,
+  });
+}
+
+/// Response for product search
+class ProductSearchResponse {
+  final List<ProductSearchResult> products;
+  final int totalCount;
+
+  const ProductSearchResponse({
+    required this.products,
+    this.totalCount = 0,
+  });
+}

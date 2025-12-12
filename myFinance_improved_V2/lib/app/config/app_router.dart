@@ -49,6 +49,7 @@ import '../../features/session/presentation/pages/session_page.dart';
 import '../../features/session/presentation/pages/session_action_page.dart';
 import '../../features/session/presentation/pages/session_list_page.dart';
 import '../../features/session/presentation/pages/session_detail_page.dart';
+import '../../features/session/presentation/pages/session_review_page.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/theme_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -804,6 +805,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             storeId: storeId,
             sessionName: sessionName,
             isOwner: isOwner,
+          );
+        },
+      ),
+
+      // Session Review Route (review counted items before final submission)
+      GoRoute(
+        path: '/session/review/:sessionId',
+        name: 'session-review',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final sessionName = state.uri.queryParameters['sessionName'];
+
+          return SessionReviewPage(
+            sessionId: sessionId,
+            sessionType: sessionType,
+            sessionName: sessionName,
           );
         },
       ),
