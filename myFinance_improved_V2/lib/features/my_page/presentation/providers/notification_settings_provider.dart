@@ -338,6 +338,18 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
 
       if (userId == null || companyId.isEmpty) return;
 
+      // Update all individual stores to match the new value
+      final updatedStoreSettings = state.settings!.storeSettings.map((s) {
+        return StoreSettingItem(
+          storeId: s.storeId,
+          storeName: s.storeName,
+          isEnabled: newValue,
+          isOverridden: false, // Reset override when using "All Stores"
+          companyId: s.companyId,
+          companyName: s.companyName,
+        );
+      }).toList();
+
       // 낙관적 업데이트
       state = state.copyWith(
         settings: StoreNotificationSettings(
@@ -345,7 +357,7 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
           featureName: state.settings!.featureName,
           description: state.settings!.description,
           allStoresEnabled: newValue,
-          storeSettings: state.settings!.storeSettings,
+          storeSettings: updatedStoreSettings,
         ),
       );
 
@@ -381,6 +393,8 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
             storeName: s.storeName,
             isEnabled: newValue,
             isOverridden: true,
+            companyId: s.companyId,
+            companyName: s.companyName,
           );
         }
         return s;

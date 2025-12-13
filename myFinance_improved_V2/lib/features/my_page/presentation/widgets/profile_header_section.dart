@@ -27,10 +27,7 @@ class ProfileHeaderSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space5,
-        vertical: TossSpacing.space4,
-      ),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -42,76 +39,89 @@ class ProfileHeaderSection extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
         children: [
-          // Avatar
-          Center(
-            child: ProfileAvatarSection(
-              profile: profile,
-              temporaryImageUrl: temporaryImageUrl,
-              onAvatarTap: onAvatarTap,
-            ),
+          // Avatar on left
+          ProfileAvatarSection(
+            profile: profile,
+            temporaryImageUrl: temporaryImageUrl,
+            onAvatarTap: onAvatarTap,
           ),
 
-          const SizedBox(height: TossSpacing.space6),
+          const SizedBox(width: TossSpacing.space4),
 
-          // Name
-          Text(
-            _getDisplayName(profile),
-            style: TossTextStyles.h2.copyWith(
-              fontWeight: FontWeight.w800,
-              color: TossColors.gray900,
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: TossSpacing.space3),
-
-          // Role badge
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space2,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-              ),
-              child: Text(
-                businessData?.userRole ?? profile.displayRole,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+          // Info on right
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Name
+                Text(
+                  _getDisplayName(profile),
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.gray900,
+                    fontSize: 20,
+                    height: 1.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
+
+                const SizedBox(height: TossSpacing.space1),
+
+                // Role badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: TossSpacing.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    businessData?.userRole ?? profile.displayRole,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+
+                // Company info
+                if (businessData?.companyName.isNotEmpty == true) ...[
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    businessData!.companyName,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+
+                if (businessData?.storeName.isNotEmpty == true) ...[
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    businessData!.storeName,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray600,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
           ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Company info
-          if (businessData?.companyName.isNotEmpty == true)
-            Text(
-              businessData!.companyName,
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-          if (businessData?.storeName.isNotEmpty == true) ...[
-            const SizedBox(height: TossSpacing.space1),
-            Text(
-              businessData!.storeName,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ],
       ),
     );

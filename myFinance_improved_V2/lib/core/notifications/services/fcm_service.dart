@@ -5,9 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 // import 'package:logger/logger.dart';
 import '../config/notification_config.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-import '../firebase_stub.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../repositories/notification_repository.dart';
 
 /// Service for managing Firebase Cloud Messaging

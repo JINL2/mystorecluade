@@ -10,6 +10,7 @@ class SettingsSection extends StatelessWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onNotifications;
   final VoidCallback onPrivacySecurity;
+  final VoidCallback onLanguage;
   final VoidCallback onSignOut;
 
   const SettingsSection({
@@ -17,6 +18,7 @@ class SettingsSection extends StatelessWidget {
     required this.onEditProfile,
     required this.onNotifications,
     required this.onPrivacySecurity,
+    required this.onLanguage,
     required this.onSignOut,
   });
 
@@ -56,14 +58,14 @@ class SettingsSection extends StatelessWidget {
             ),
           ),
 
-          // Settings Items
+          // Settings Items - Modern vibrant design with primary brand color
           TossListTile(
             title: 'Edit Profile',
             leading: Container(
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
@@ -86,12 +88,12 @@ class SettingsSection extends StatelessWidget {
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.info.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 Icons.notifications_outlined,
-                color: TossColors.info,
+                color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
@@ -109,12 +111,12 @@ class SettingsSection extends StatelessWidget {
               width: TossSpacing.space10,
               height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: TossColors.success.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 Icons.security_outlined,
-                color: TossColors.success,
+                color: TossColors.primary,
                 size: TossSpacing.iconSM,
               ),
             ),
@@ -124,6 +126,29 @@ class SettingsSection extends StatelessWidget {
               size: TossSpacing.iconSM,
             ),
             onTap: onPrivacySecurity,
+          ),
+
+          TossListTile(
+            title: 'Language',
+            leading: Container(
+              width: TossSpacing.space10,
+              height: TossSpacing.space10,
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: const Icon(
+                Icons.language,
+                color: TossColors.primary,
+                size: TossSpacing.iconSM,
+              ),
+            ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: TossColors.gray400,
+              size: TossSpacing.iconSM,
+            ),
+            onTap: onLanguage,
           ),
 
           // Sign Out - Using TossListTile with destructive styling

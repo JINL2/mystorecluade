@@ -29,8 +29,30 @@ class RevenueCatService {
   // TODO: Production 배포 시 false로 유지
   static const bool _useTestStore = false;
 
-  // Entitlement identifier
-  static const String _proEntitlementId = 'STOREBASE Pro';
+  // Entitlement identifiers (from RevenueCat)
+  // Note: RevenueCat uses format like 'storebase.pro.monthly', 'storebase.basic.monthly'
+  // We check for partial matches containing 'basic' or 'pro'
+  static const String _basicEntitlementId = 'basic';
+  static const String _proEntitlementId = 'pro';
+
+  /// Check if entitlement key contains the target identifier
+  static bool _hasEntitlement(Map<String, dynamic> entitlements, String targetId) {
+    return entitlements.keys.any((key) => key.toLowerCase().contains(targetId.toLowerCase()));
+  }
+
+  /// Get entitlement by partial match
+  static MapEntry<String, dynamic>? _getEntitlement(Map<String, dynamic> entitlements, String targetId) {
+    try {
+      return entitlements.entries.firstWhere(
+        (entry) => entry.key.toLowerCase().contains(targetId.toLowerCase()),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Offering identifier
+  static const String _offeringId = 'storebase';
 
   bool _isInitialized = false;
 
@@ -103,24 +125,54 @@ class RevenueCatService {
   }
 
   /// 사용 가능한 패키지(상품) 목록 가져오기
+  ///
+  /// RevenueCat의 'storebase' offering에서 패키지를 가져옵니다.
+  /// Package identifiers: basic.monthly, basic.yearly, pro.monthly, pro.yearly
   Future<List<Package>> getAvailablePackages() async {
     try {
+      debugPrint('🔍 [DEBUG] Fetching offerings...');
+      debugPrint('🔍 [DEBUG] Using offering ID: $_offeringId');
+
       Offerings offerings = await Purchases.getOfferings();
 
+      // Debug: Print all available offerings
+      debugPrint('🔍 [DEBUG] All offerings count: ${offerings.all.length}');
+      for (var entry in offerings.all.entries) {
+        debugPrint('🔍 [DEBUG] Offering: ${entry.key}');
+        debugPrint('🔍 [DEBUG]   - Packages: ${entry.value.availablePackages.length}');
+        for (var pkg in entry.value.availablePackages) {
+          debugPrint('🔍 [DEBUG]     - ${pkg.identifier}: ${pkg.storeProduct.identifier}');
+        }
+      }
+
+      debugPrint('🔍 [DEBUG] Current offering: ${offerings.current?.identifier ?? "null"}');
+
+      // Use 'storebase' offering specifically
+      final storebaseOffering = offerings.getOffering(_offeringId);
+      debugPrint('🔍 [DEBUG] Storebase offering: ${storebaseOffering?.identifier ?? "null"}');
+
+      if (storebaseOffering != null) {
+        debugPrint('📦 Storebase offering packages: ${storebaseOffering.availablePackages.length}');
+        for (var package in storebaseOffering.availablePackages) {
+          debugPrint('  - ${package.identifier}: ${package.storeProduct.priceString}');
+        }
+        return storebaseOffering.availablePackages;
+      }
+
+      // Fallback to current offering
       if (offerings.current != null) {
-        debugPrint(
-            '📦 Available packages: ${offerings.current!.availablePackages.length}');
+        debugPrint('📦 Current offering packages: ${offerings.current!.availablePackages.length}');
         for (var package in offerings.current!.availablePackages) {
-          debugPrint(
-              '  - ${package.packageType}: ${package.storeProduct.priceString}');
+          debugPrint('  - ${package.identifier}: ${package.storeProduct.priceString}');
         }
         return offerings.current!.availablePackages;
       }
 
       debugPrint('⚠️ No offerings available');
       return [];
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Failed to get offerings: $e');
+      debugPrint('❌ Stack trace: $stackTrace');
       return [];
     }
   }
@@ -175,14 +227,65 @@ class RevenueCatService {
     }
   }
 
-  /// 현재 구독 상태 확인
+  /// Check if any entitlement key contains the target string
+  bool _hasEntitlementMatch(CustomerInfo customerInfo, String target) {
+    return customerInfo.entitlements.active.keys.any(
+      (key) => key.toLowerCase().contains(target.toLowerCase()),
+    );
+  }
+
+  /// 현재 구독 상태 확인 (Basic 또는 Pro)
   Future<bool> checkProStatus() async {
     try {
       CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      return customerInfo.entitlements.active.containsKey(_proEntitlementId);
+      // Check if user has any entitlement containing 'basic' or 'pro'
+      final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
+      final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
+      debugPrint('🔍 checkProStatus: hasBasic=$hasBasic, hasPro=$hasPro');
+      debugPrint('   Active keys: ${customerInfo.entitlements.active.keys}');
+      return hasBasic || hasPro;
     } catch (e) {
       debugPrint('❌ Failed to check pro status: $e');
       return false;
+    }
+  }
+
+  /// Check if user has Basic entitlement
+  Future<bool> checkBasicStatus() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      return _hasEntitlementMatch(customerInfo, 'basic');
+    } catch (e) {
+      debugPrint('❌ Failed to check basic status: $e');
+      return false;
+    }
+  }
+
+  /// Check if user has Pro entitlement specifically
+  Future<bool> checkProOnlyStatus() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      return _hasEntitlementMatch(customerInfo, 'pro');
+    } catch (e) {
+      debugPrint('❌ Failed to check pro only status: $e');
+      return false;
+    }
+  }
+
+  /// Get current subscription tier: 'free', 'basic', or 'pro'
+  Future<String> getCurrentTier() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      // Pro takes priority over basic
+      if (_hasEntitlementMatch(customerInfo, 'pro')) {
+        return 'pro';
+      } else if (_hasEntitlementMatch(customerInfo, 'basic')) {
+        return 'basic';
+      }
+      return 'free';
+    } catch (e) {
+      debugPrint('❌ Failed to get current tier: $e');
+      return 'free';
     }
   }
 
@@ -196,10 +299,25 @@ class RevenueCatService {
     }
   }
 
-  /// 구독 상태를 Supabase와 동기화 (클라이언트 측 백업)
+  /// Find entitlement entry by partial key match
+  EntitlementInfo? _findEntitlementByKeyMatch(CustomerInfo customerInfo, String target) {
+    try {
+      final matchingKey = customerInfo.entitlements.active.keys.firstWhere(
+        (key) => key.toLowerCase().contains(target.toLowerCase()),
+      );
+      return customerInfo.entitlements.active[matchingKey];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 구독 상태를 Supabase와 동기화
   ///
-  /// 참고: 메인 동기화는 RevenueCat Webhook → Supabase Edge Function으로 처리됨
-  /// 이 메서드는 클라이언트 측에서 로컬 상태를 업데이트하는 용도입니다.
+  /// 이 메서드는 두 가지 역할을 합니다:
+  /// 1. RevenueCat 상태를 Supabase DB에 직접 동기화 (Webhook 백업)
+  /// 2. 로컬 상태 업데이트용 로깅
+  ///
+  /// Webhook이 실패하거나 Xcode 환경에서 작동하지 않을 때 백업으로 작동합니다.
   Future<void> _syncSubscriptionStatus(CustomerInfo customerInfo) async {
     try {
       final supabase = Supabase.instance.client;
@@ -207,26 +325,205 @@ class RevenueCatService {
 
       if (userId == null) return;
 
-      bool isPro = customerInfo.entitlements.active.containsKey(_proEntitlementId);
+      // Check for entitlements containing 'basic' or 'pro' (partial match)
+      final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
+      final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
+
+      // Determine current tier
+      String currentTier = 'free';
+      if (hasPro) {
+        currentTier = 'pro';
+      } else if (hasBasic) {
+        currentTier = 'basic';
+      }
 
       // 구독 정보 로깅 (디버그용)
       debugPrint('📊 Subscription Status:');
       debugPrint('  - User ID: $userId');
-      debugPrint('  - Is Pro: $isPro');
+      debugPrint('  - Current Tier: $currentTier');
+      debugPrint('  - Has Basic: $hasBasic');
+      debugPrint('  - Has Pro: $hasPro');
       debugPrint(
           '  - Active Entitlements: ${customerInfo.entitlements.active.keys}');
 
-      if (isPro) {
-        final entitlement = customerInfo.entitlements.active[_proEntitlementId]!;
-        debugPrint('  - Product ID: ${entitlement.productIdentifier}');
-        debugPrint('  - Expires: ${entitlement.expirationDate}');
-        debugPrint('  - Will Renew: ${entitlement.willRenew}');
+      String? productId;
+      String? expiresAt;
+      bool isTrial = false;
+
+      // Get entitlement details (pro takes priority over basic)
+      EntitlementInfo? entitlement;
+      if (hasPro) {
+        entitlement = _findEntitlementByKeyMatch(customerInfo, 'pro');
+      } else if (hasBasic) {
+        entitlement = _findEntitlementByKeyMatch(customerInfo, 'basic');
       }
 
-      // 참고: 실제 DB 업데이트는 Webhook에서 처리
-      // 여기서는 디버그 로깅만 수행
+      if (entitlement != null) {
+        productId = entitlement.productIdentifier;
+        expiresAt = entitlement.expirationDate;
+        isTrial = entitlement.periodType == PeriodType.trial;
+
+        debugPrint('  - Product ID: $productId');
+        debugPrint('  - Expires: $expiresAt');
+        debugPrint('  - Will Renew: ${entitlement.willRenew}');
+        debugPrint('  - Is Trial: $isTrial');
+      }
+
+      // ✅ Supabase DB에 구독 상태 동기화 (Webhook 백업)
+      await syncSubscriptionToDatabase(
+        userId: userId,
+        planType: currentTier,
+        productId: productId,
+        expiresAt: expiresAt,
+        isTrial: isTrial,
+      );
     } catch (e) {
       debugPrint('❌ Sync failed: $e');
+    }
+  }
+
+  /// Supabase DB에 구독 상태를 직접 업데이트
+  ///
+  /// Webhook이 작동하지 않는 환경(Xcode StoreKit)에서도
+  /// DB를 최신 상태로 유지합니다.
+  ///
+  /// planType: 'free', 'basic', or 'pro'
+  /// willRenew: 자동 갱신 여부 (취소하면 false)
+  Future<void> syncSubscriptionToDatabase({
+    required String userId,
+    required String planType,
+    String? productId,
+    String? expiresAt,
+    bool isTrial = false,
+    bool? willRenew,  // null이면 isActive로 기본값 설정
+  }) async {
+    try {
+      final supabase = Supabase.instance.client;
+
+      debugPrint('💾 Syncing subscription to Supabase DB...');
+      debugPrint('  - Plan Type: $planType');
+      debugPrint('  - Will Renew: $willRenew');
+
+      // Plan IDs from subscription_plans table
+      const planIds = {
+        'free': '499b821f-c0c3-4eaf-ba4e-c5aaaf9759be',
+        'basic': 'c484321e-99c6-4cd7-af77-e74c325acede',
+        'pro': '29e2647b-082b-45e9-b228-ac78fc87daec',
+      };
+
+      final planId = planIds[planType] ?? planIds['free']!;
+      final isActive = planType != 'free';
+      final autoRenew = willRenew ?? isActive;  // willRenew가 명시되지 않으면 isActive 사용
+      final now = DateTime.now().toUtc();
+
+      // Determine billing cycle from product ID
+      String billingCycle = 'monthly';
+      if (productId != null) {
+        if (productId.contains('yearly') || productId.contains('annual')) {
+          billingCycle = 'yearly';
+        }
+      }
+
+      // Parse expiration date
+      // ⚠️ Sandbox에서는 RevenueCat이 실제 기간(1달/1년)으로 반환하지만
+      // 실제 갱신은 5분/1시간마다 발생함. DB에는 RevenueCat 값 그대로 저장.
+      // (Sandbox 테스트 시 이 점 참고)
+      DateTime? expirationDate;
+      if (expiresAt != null) {
+        expirationDate = DateTime.tryParse(expiresAt);
+
+        // 🧪 DEBUG: Sandbox 환경에서는 실제 갱신 주기로 조정 (옵션)
+        // Monthly = 5분, Annual = 1시간
+        // 주석 해제하면 Sandbox 테스트 시 실제 갱신 시간 반영
+        /*
+        if (kDebugMode && expirationDate != null) {
+          final isAnnual = productId?.contains('yearly') == true ||
+                          productId?.contains('annual') == true;
+          if (isAnnual) {
+            expirationDate = now.add(const Duration(hours: 1));
+          } else {
+            expirationDate = now.add(const Duration(minutes: 5));
+          }
+          debugPrint('  - [Sandbox] Adjusted expiration: $expirationDate');
+        }
+        */
+      }
+
+      // Determine status: active, trialing, or canceled (based on willRenew)
+      String status;
+      if (!isActive) {
+        status = 'canceled';
+      } else if (isTrial) {
+        status = 'trialing';
+      } else if (autoRenew) {
+        status = 'active';
+      } else {
+        status = 'canceled';  // 취소 예정 (만료일까지 사용 가능)
+      }
+
+      // Check if user already has a subscription record
+      final existingRecord = await supabase
+          .from('subscription_user')
+          .select('subscription_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (existingRecord != null) {
+        // Update existing record
+        await supabase.from('subscription_user').update({
+          'plan_id': planId,
+          'status': status,
+          'billing_cycle': billingCycle,
+          'current_period_end': expirationDate?.toIso8601String(),
+          'expiration_date': expirationDate?.toIso8601String(),
+          'revenuecat_product_id': productId,
+          'revenuecat_store': Platform.isIOS ? 'APP_STORE' : 'PLAY_STORE',
+          'is_sandbox': kDebugMode,
+          'auto_renew_status': autoRenew,
+          'payment_provider': 'revenuecat',
+          'updated_at': now.toIso8601String(),
+        }).eq('user_id', userId);
+
+        debugPrint('✅ subscription_user table updated (existing record)');
+        debugPrint('  - Status: $status, Auto Renew: $autoRenew');
+      } else {
+        // Insert new record
+        await supabase.from('subscription_user').insert({
+          'user_id': userId,
+          'plan_id': planId,
+          'status': status,
+          'billing_cycle': billingCycle,
+          'current_period_start': now.toIso8601String(),
+          'current_period_end': expirationDate?.toIso8601String(),
+          'trial_start': isTrial ? now.toIso8601String() : null,
+          'trial_end': isTrial ? expirationDate?.toIso8601String() : null,
+          'expiration_date': expirationDate?.toIso8601String(),
+          'revenuecat_app_user_id': userId,
+          'revenuecat_product_id': productId,
+          'revenuecat_store': Platform.isIOS ? 'APP_STORE' : 'PLAY_STORE',
+          'is_sandbox': kDebugMode,
+          'auto_renew_status': autoRenew,
+          'payment_provider': 'revenuecat',
+          'created_at': now.toIso8601String(),
+          'updated_at': now.toIso8601String(),
+        });
+
+        debugPrint('✅ subscription_user table updated (new record)');
+        debugPrint('  - Status: $status, Auto Renew: $autoRenew');
+      }
+
+      // 2. companies 테이블도 업데이트 (이 유저가 소유한 회사들)
+      // companies 테이블은 inherited_plan_id (UUID)를 사용
+      await supabase.from('companies').update({
+        'inherited_plan_id': planId,
+        'plan_updated_at': now.toIso8601String(),
+        'updated_at': now.toIso8601String(),
+      }).eq('owner_id', userId);
+
+      debugPrint('✅ companies table updated for owner: $userId');
+    } catch (e) {
+      debugPrint('❌ Failed to sync subscription to DB: $e');
+      // 실패해도 앱은 계속 작동 (RevenueCat이 source of truth)
     }
   }
 
