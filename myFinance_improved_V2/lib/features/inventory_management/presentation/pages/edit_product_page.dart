@@ -145,14 +145,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen as String?;
     final storeId = appState.storeChoosen as String?;
+    final userId = appState.user['user_id'] as String?;
 
-    if (companyId == null || storeId == null) {
+    if (companyId == null || storeId == null || userId == null) {
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
         builder: (context) => TossDialog.error(
           title: 'Validation Error',
-          message: 'Company or store not selected',
+          message: 'Company, store, or user not selected',
           primaryButtonText: 'OK',
         ),
       );
@@ -227,11 +228,20 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       // Step 3: Combine existing URLs with newly uploaded URLs
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
 
-      // Step 4: Proceed with actual update (inventory_edit_product_v2)
+      // Parse quantity - only send if changed from original
+      final parsedOnHand = int.tryParse(_onHandController.text);
+      final originalOnHand = _product?.onHand;
+      // Only send onHand if quantity has changed
+      final onHand = (parsedOnHand != null && parsedOnHand != originalOnHand)
+          ? parsedOnHand
+          : null;
+
+      // Step 4: Proceed with actual update (inventory_edit_product_v4)
       final product = await repository.updateProduct(
         productId: widget.productId,
         companyId: companyId,
         storeId: storeId,
+        createdBy: userId,
         name: productName,
         sku: sku,
         categoryId: _selectedCategory?.id,
@@ -239,27 +249,28 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         unit: _selectedUnit,
         costPrice: costPrice,
         salePrice: salePrice,
+        onHand: onHand,
         imageUrls: allImageUrls.isNotEmpty ? allImageUrls : null,
       );
 
       if (product != null && mounted) {
-        // Refresh the inventory list
-        ref.read(inventoryPageProvider.notifier).refresh();
+        // Refresh the inventory list and wait for completion
+        await ref.read(inventoryPageProvider.notifier).refresh();
 
-        if (!context.mounted) return;
+        if (!mounted) return;
         await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (context) => TossDialog.success(
+          builder: (ctx) => TossDialog.success(
             title: 'Product Updated',
             message: 'Product updated successfully',
             primaryButtonText: 'OK',
           ),
         );
 
-        // Navigate back
+        // Navigate directly to inventory page (skip product detail)
         if (mounted) {
-          context.pop();
+          context.go('/inventoryManagement');
         }
       } else if (mounted) {
         await showDialog<bool>(

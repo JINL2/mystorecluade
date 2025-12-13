@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -506,7 +507,8 @@ class TimeTableDatasource {
   /// - [shiftRequestId] - Shift request ID to update
   /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
   /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
-  /// - [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
+  /// - [isProblemSolved] - Problem solved status (for Late/Overtime), null to keep existing
+  /// - [isReportedSolved] - Report solved status (for employee reports), null to keep existing
   /// - [bonusAmount] - Bonus amount, null to keep existing
   /// - [managerMemo] - Manager memo text, null to keep existing (new in v5)
   /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
@@ -515,25 +517,33 @@ class TimeTableDatasource {
     required String shiftRequestId,
     String? confirmStartTime,
     String? confirmEndTime,
+    bool? isProblemSolved,
     bool? isReportedSolved,
     double? bonusAmount,
     String? managerMemo,
     required String timezone,
   }) async {
     try {
+      final rpcParams = {
+        'p_manager_id': managerId,
+        'p_shift_request_id': shiftRequestId,
+        'p_confirm_start_time': confirmStartTime,
+        'p_confirm_end_time': confirmEndTime,
+        'p_is_problem_solved': isProblemSolved,
+        'p_is_reported_solved': isReportedSolved,
+        'p_bonus_amount': bonusAmount,
+        'p_manager_memo': managerMemo,
+        'p_timezone': timezone,
+      };
+
+      debugPrint('[Datasource] inputCardV5 RPC params: $rpcParams');
+
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_input_card_v5',
-        params: {
-          'p_manager_id': managerId,
-          'p_shift_request_id': shiftRequestId,
-          'p_confirm_start_time': confirmStartTime,
-          'p_confirm_end_time': confirmEndTime,
-          'p_is_reported_solved': isReportedSolved,
-          'p_bonus_amount': bonusAmount,
-          'p_manager_memo': managerMemo,
-          'p_timezone': timezone,
-        },
+        params: rpcParams,
       );
+
+      debugPrint('[Datasource] inputCardV5 RPC response: $response');
 
       if (response == null) {
         return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};

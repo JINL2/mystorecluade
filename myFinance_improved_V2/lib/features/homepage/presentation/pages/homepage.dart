@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
@@ -633,8 +634,28 @@ class _HomepageState extends ConsumerState<Homepage> {
           if (mounted) {
             TossDialogs.showForceUpdateRequired(
               context: context,
-              onOkPressed: () {
-                // Close the app
+              onOkPressed: () async {
+                debugPrint('🔄 Update button pressed - opening App Store...');
+
+                // Try App Store app first, fallback to web App Store
+                const appStoreUrl = 'itms-apps://';
+                const webAppStoreUrl = 'https://apps.apple.com';
+
+                final Uri url = Uri.parse(appStoreUrl);
+                final canLaunch = await canLaunchUrl(url);
+                debugPrint('🔄 canLaunchUrl (itms-apps): $canLaunch');
+
+                if (canLaunch) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                  debugPrint('🔄 App Store opened');
+                } else {
+                  // Fallback for simulator - open web App Store
+                  debugPrint('🔄 Fallback to web App Store...');
+                  final Uri webUrl = Uri.parse(webAppStoreUrl);
+                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                }
+
+                // Exit app after opening store (Android only, iOS ignores this)
                 SystemNavigator.pop();
               },
             );

@@ -218,7 +218,7 @@ abstract class TimeTableRepository {
   /// Input card data (manager updates shift) using v5 RPC
   ///
   /// Uses manager_shift_input_card_v5 RPC
-  /// - Simplified parameters: confirm times, report solved status, bonus amount, manager memo
+  /// - Simplified parameters: confirm times, problem/report solved status, bonus amount, manager memo
   /// - Times must be in user's LOCAL timezone (HH:mm:ss format)
   /// - RPC converts local times to UTC internally
   ///
@@ -226,7 +226,8 @@ abstract class TimeTableRepository {
   /// [shiftRequestId] - Shift request ID to update
   /// [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
   /// [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
-  /// [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
+  /// [isProblemSolved] - Problem solved status (for Late/Overtime), null to keep existing
+  /// [isReportedSolved] - Report solved status (for employee reports), null to keep existing
   /// [bonusAmount] - Bonus amount, null to keep existing
   /// [managerMemo] - Manager memo text, null to keep existing (new in v5)
   /// [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
@@ -237,6 +238,7 @@ abstract class TimeTableRepository {
     required String shiftRequestId,
     String? confirmStartTime,
     String? confirmEndTime,
+    bool? isProblemSolved,
     bool? isReportedSolved,
     double? bonusAmount,
     String? managerMemo,

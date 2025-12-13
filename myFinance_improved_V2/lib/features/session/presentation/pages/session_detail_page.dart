@@ -10,7 +10,9 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../di/session_providers.dart';
 import '../dialogs/save_confirm_dialog.dart';
 import '../providers/session_detail_provider.dart';
 import '../providers/states/session_detail_state.dart';
@@ -42,6 +44,7 @@ class SessionDetailPage extends ConsumerStatefulWidget {
 class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
+  bool _isClosing = false;
 
   SessionDetailParams get _params => (
         sessionId: widget.sessionId,
@@ -69,6 +72,93 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
     });
   }
 
+  void _onCloseSessionPressed() {
+    TossConfirmCancelDialog.show(
+      context: context,
+      title: 'Close Session?',
+      message: 'Are you sure you want to close this session?\n\nAll unsaved data will be lost and cannot be recovered.',
+      confirmButtonText: 'Close',
+      cancelButtonText: 'Cancel',
+      isDangerousAction: true,
+      onConfirm: () {
+        Navigator.of(context).pop(); // Close dialog
+        _executeCloseSession();
+      },
+      onCancel: () {
+        Navigator.of(context).pop(); // Close dialog
+      },
+    );
+  }
+
+  Future<void> _executeCloseSession() async {
+    if (_isClosing) return;
+
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+    final companyId = appState.companyChoosen;
+
+    if (userId.isEmpty || companyId.isEmpty) {
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'User or company information not found',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isClosing = true);
+
+    try {
+      final closeSession = ref.read(closeSessionUseCaseProvider);
+      await closeSession(
+        sessionId: widget.sessionId,
+        userId: userId,
+        companyId: companyId,
+      );
+
+      if (!mounted) return;
+
+      // Show success and navigate back to entry point
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => TossDialog.success(
+          title: 'Session Closed',
+          message: 'The session has been closed successfully.',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () {
+            Navigator.of(ctx).pop(); // Close dialog
+            // Pop twice: detail → action list → entry point
+            context.pop();
+            context.pop();
+          },
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => TossDialog.error(
+          title: 'Failed to Close',
+          message: e.toString().replaceFirst('Exception: ', ''),
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(ctx).pop(),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isClosing = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(sessionDetailProvider(_params));
@@ -76,6 +166,23 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
     return Scaffold(
       appBar: TossAppBar1(
         title: widget.sessionName ?? 'Session Detail',
+        actions: [
+          // Close button - only visible for session owner
+          if (widget.isOwner)
+            Padding(
+              padding: const EdgeInsets.only(right: TossSpacing.space3),
+              child: TextButton(
+                onPressed: _onCloseSessionPressed,
+                child: Text(
+                  'Close',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [

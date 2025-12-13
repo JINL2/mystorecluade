@@ -2,10 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/providers/session_repository_provider.dart';
 import '../domain/usecases/add_session_items.dart';
+import '../domain/usecases/close_session.dart';
 import '../domain/usecases/create_session.dart';
+import '../domain/usecases/get_session_history.dart';
 import '../domain/usecases/get_session_list.dart';
 import '../domain/usecases/get_session_review_items.dart';
 import '../domain/usecases/get_shipment_list.dart';
+import '../domain/usecases/join_session.dart';
 import '../domain/usecases/search_products.dart';
 import '../domain/usecases/submit_session.dart';
 
@@ -50,4 +53,22 @@ final createSessionUseCaseProvider = Provider<CreateSession>((ref) {
 final getShipmentListUseCaseProvider = Provider<GetShipmentList>((ref) {
   final repository = ref.watch(sessionRepositoryProvider);
   return GetShipmentList(repository);
+});
+
+/// Provider for JoinSession UseCase
+final joinSessionUseCaseProvider = Provider<JoinSession>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return JoinSession(repository);
+});
+
+/// Provider for CloseSession UseCase
+final closeSessionUseCaseProvider = Provider<CloseSession>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return CloseSession(repository);
+});
+
+/// Provider for GetSessionHistory UseCase
+final getSessionHistoryUseCaseProvider = Provider<GetSessionHistory>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return GetSessionHistory(repository);
 });

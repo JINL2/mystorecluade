@@ -18,7 +18,13 @@ class SessionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const TossAppBar1(title: 'Inventory'),
+      appBar: TossAppBar1(
+        title: 'Inventory',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 24),
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
@@ -68,6 +74,18 @@ class SessionPage extends ConsumerWidget {
                   ref.read(selectedSessionTypeProvider.notifier).state =
                       'receiving';
                   context.push('/session/action/receiving');
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+
+              // History Card
+              _SessionTypeCard(
+                icon: Icons.history,
+                title: 'History',
+                subtitle: 'View past counting and receiving sessions',
+                color: TossColors.gray600,
+                onTap: () {
+                  context.push('/session/history');
                 },
               ),
             ],
