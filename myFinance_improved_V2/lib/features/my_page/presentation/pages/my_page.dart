@@ -177,6 +177,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                                         onEditProfile: _navigateToEditProfile,
                                         onNotifications: _navigateToNotifications,
                                         onPrivacySecurity: _navigateToPrivacySecurity,
+                                        onLanguage: _navigateToLanguage,
                                         onSignOut: _handleSignOut,
                                       ),
                                     ),
@@ -423,6 +424,11 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   void _navigateToPrivacySecurity() {
     HapticFeedback.lightImpact();
     context.push('/privacy-security');
+  }
+
+  void _navigateToLanguage() {
+    HapticFeedback.lightImpact();
+    context.push('/language-settings');
   }
 
   void _handleSignOut() async {

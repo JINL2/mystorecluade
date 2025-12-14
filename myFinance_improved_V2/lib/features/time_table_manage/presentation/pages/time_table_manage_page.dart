@@ -3,12 +3,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
@@ -48,9 +47,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   String? _featureName;
   String? _featureId;
   bool _featureInfoExtracted = false;
-
-  // AI Chat session ID - persists while page is active
-  late final String _aiChatSessionId;
 
   // ✅ Removed: monthlyShiftStatusList, loadedMonths, isLoadingShiftStatus
   // Now managed by monthlyShiftStatusProvider
@@ -116,9 +112,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         }
       }
     });
-
-    // Generate AI Chat session ID - persists for entire page lifecycle
-    _aiChatSessionId = const Uuid().v4();
 
     // Extract feature info once
     _extractFeatureInfo();
@@ -287,7 +280,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             featureName: _featureName ?? 'Time Table Manage',
             pageContext: _buildPageContext(managerOverviewDataByMonth),
             featureId: _featureId,
-            sessionId: _aiChatSessionId,
           );
         },
       ),

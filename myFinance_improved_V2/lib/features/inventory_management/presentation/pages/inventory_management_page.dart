@@ -7,22 +7,23 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/providers/app_state.dart';
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/cached_product_image.dart';
+import '../../../../shared/widgets/common/toss_speed_dial.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_white_card.dart';
-import '../../../../shared/widgets/toss/toss_list_tile.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
+import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
 import '../providers/states/inventory_page_state.dart';
+import '../widgets/inventory_product_card.dart';
+import '../widgets/move_stock_dialog.dart';
+import 'inventory_search_page.dart';
 
 /// Inventory Management Page
-/// 재고 관리 메인 페이지
 class InventoryManagementPage extends ConsumerStatefulWidget {
   const InventoryManagementPage({super.key});
 
@@ -39,6 +40,12 @@ class _InventoryManagementPageState
 
   // Sorting (client-side only, RPC does not support sorting)
   _SortOption? _currentSort; // null = database default order
+
+  // Filter selections
+  String _selectedAvailability = 'All products';
+  String _selectedLocation = 'Lux1';
+  String _selectedBrand = 'All brands';
+  String _selectedCategory = 'All categories';
 
   @override
   void initState() {
@@ -85,135 +92,74 @@ class _InventoryManagementPageState
     final pageState = ref.watch(inventoryPageProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(TossIcons.back),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Product',
-          style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: TossColors.gray100,
-        foregroundColor: TossColors.black,
-      ),
-      body: _buildSimpleProductList(pageState),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/inventoryManagement/addProduct');
-        },
-        backgroundColor: TossColors.primary,
-        child: const Icon(TossIcons.add, color: TossColors.white),
-      ),
+      backgroundColor: TossColors.white,
+      appBar: _buildAppBar(),
+      body: _buildBody(pageState),
+      floatingActionButton: _buildFloatingAddButton(),
     );
   }
 
-  Widget _buildSearchFilterSection() {
-    return Column(
-      children: [
-        // Filter and Sort Controls
-        Container(
-          margin: const EdgeInsets.fromLTRB(
-            TossSpacing.space4,
-            TossSpacing.space3,
-            TossSpacing.space4,
-            TossSpacing.space2,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space3,
-            vertical: TossSpacing.space2,
-          ),
-          decoration: BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.black.withValues(alpha: 0.02),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              _showSortOptionsSheet();
-            },
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space2,
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.swap_vert_rounded,
-                    size: 22,
-                    color: TossColors.gray600,
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: Text(
-                      _getSortLabel(),
-                      style: TossTextStyles.labelLarge.copyWith(
-                        color: TossColors.gray700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 20,
-                    color: TossColors.gray500,
-                  ),
-                ],
-              ),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: TossColors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: IconButton(
+        onPressed: () => context.pop(),
+        icon: const Icon(
+          Icons.arrow_back,
+          color: TossColors.gray900,
+          size: 22,
+        ),
+      ),
+      title: Text(
+        'Inventory',
+        style: TossTextStyles.titleMedium.copyWith(
+          fontWeight: FontWeight.w700,
+          color: TossColors.gray900,
+        ),
+      ),
+      titleSpacing: 0,
+      actions: [
+        _buildAppBarIconButton(Icons.search, () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const InventorySearchPage(),
             ),
-          ),
-        ),
-
-        // Search Field
-        Container(
-          margin: const EdgeInsets.fromLTRB(
-            TossSpacing.space4,
-            TossSpacing.space2,
-            TossSpacing.space4,
-            TossSpacing.space3,
-          ),
-          child: TossSearchField(
-            controller: _searchController,
-            hintText: 'Search products...',
-            onChanged: (value) {
-              _onSearchChanged();
-            },
-          ),
-        ),
+          );
+        }),
+        _buildAppBarIconButton(Icons.swap_vert, () {
+          HapticFeedback.lightImpact();
+          _showSortOptionsSheet();
+        }),
+        _buildAppBarIconButton(Icons.history, () {
+          // Handle history tap
+        }),
+        const SizedBox(width: 4),
       ],
     );
   }
 
-  Widget _buildSimpleProductList(InventoryPageState pageState) {
+  Widget _buildAppBarIconButton(IconData icon, VoidCallback onTap) {
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(
+        icon,
+        color: TossColors.gray900,
+        size: 22,
+      ),
+      splashRadius: 20,
+    );
+  }
+
+  Widget _buildBody(InventoryPageState pageState) {
     // Apply local sorting
     List<Product> displayProducts = _applyLocalSort(pageState.products);
 
-    // Calculate total item count: header + search/filter + products + loading indicator + bottom padding
-    // Index 0: Search/Filter section
-    // Index 1: Products header (only if products exist)
-    // Index 2 to N+1: Product items
-    // Index N+2: Loading indicator (if loading more)
-    // Index N+3: Bottom padding
-
     if (displayProducts.isEmpty && !pageState.isLoading) {
-      // Empty state
       return Column(
         children: [
-          _buildSearchFilterSection(),
+          _buildFilterSection(pageState),
           Expanded(
             child: Center(
               child: Column(
@@ -240,10 +186,9 @@ class _InventoryManagementPageState
     }
 
     if (pageState.isLoading && displayProducts.isEmpty) {
-      // Initial loading state
       return Column(
         children: [
-          _buildSearchFilterSection(),
+          _buildFilterSection(pageState),
           const Expanded(
             child: Center(
               child: CircularProgressIndicator(),
@@ -253,121 +198,41 @@ class _InventoryManagementPageState
       );
     }
 
-    // Product list with infinite scroll
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        // Search and Filter Section
-        SliverToBoxAdapter(
-          child: _buildSearchFilterSection(),
-        ),
-
-        // Products Card with Header
-        SliverToBoxAdapter(
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(
-              TossSpacing.space4,
-              0,
-              TossSpacing.space4,
-              0,
-            ),
-            child: TossWhiteCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  // Section Header
-                  Container(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: TossColors.gray100,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_rounded,
-                          color: TossColors.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        Text(
-                          'Products',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: TossColors.primary.withValues(alpha: 0.1),
-                            borderRadius:
-                                BorderRadius.circular(TossBorderRadius.sm),
-                          ),
-                          child: Text(
-                            '${pageState.pagination.total} items',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Product List Items
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final product = displayProducts[index];
-              return Container(
-                margin: EdgeInsets.fromLTRB(
-                  TossSpacing.space4,
-                  0,
-                  TossSpacing.space4,
-                  index == displayProducts.length - 1 ? 0 : 0,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.surface,
-                  borderRadius: index == displayProducts.length - 1
-                      ? const BorderRadius.only(
-                          bottomLeft: Radius.circular(TossBorderRadius.lg),
-                          bottomRight: Radius.circular(TossBorderRadius.lg),
-                        )
-                      : null,
-                ),
-                child: Column(
-                  children: [
-                    _buildProductListTile(product),
-                    if (index < displayProducts.length - 1)
-                      const Divider(
-                        height: 1,
-                        color: TossColors.gray100,
-                        indent: TossSpacing.space4,
-                        endIndent: TossSpacing.space4,
-                      ),
-                  ],
-                ),
-              );
+        // Sticky filter section
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _FilterHeaderDelegate(
+            pageState: pageState,
+            selectedAvailability: _selectedAvailability,
+            selectedLocation: _selectedLocation,
+            selectedBrand: _selectedBrand,
+            selectedCategory: _selectedCategory,
+            onFilterTap: (filter) {
+              _showFilterBottomSheet(filter);
             },
-            childCount: displayProducts.length,
           ),
         ),
-
+        // Product list
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final product = displayProducts[index];
+                final currencySymbol = pageState.currency?.symbol ?? '\$';
+                return InventoryProductCard(
+                  product: product,
+                  currencySymbol: currencySymbol,
+                  onTransferTap: () => _showMoveStockDialog(product),
+                );
+              },
+              childCount: displayProducts.length,
+            ),
+          ),
+        ),
         // Loading More Indicator
         if (pageState.isLoadingMore)
           const SliverToBoxAdapter(
@@ -378,52 +243,219 @@ class _InventoryManagementPageState
               ),
             ),
           ),
+      ],
+    );
+  }
 
-        // Bottom padding to prevent FAB overlap
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 80),
+  Widget _buildFilterSection(InventoryPageState pageState) {
+    return Container(
+      color: TossColors.white,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Filter pills row
+          SizedBox(
+            height: 56,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildFilterPill('Availability', _selectedAvailability),
+                const SizedBox(width: 8),
+                _buildFilterPill('Location', _selectedLocation),
+                const SizedBox(width: 8),
+                _buildFilterPill('Brand', _selectedBrand),
+                const SizedBox(width: 8),
+                _buildFilterPill('Categories', _selectedCategory),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Summary text
+          Text(
+            'Total on hand: ${pageState.pagination.total} items · Total value: ${_formatCurrency(_calculateTotalValue(pageState.products))}',
+            style: TossTextStyles.caption.copyWith(
+              fontWeight: FontWeight.w500,
+              color: TossColors.gray600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Divider
+          Container(
+            height: 1,
+            color: TossColors.gray100,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterPill(String title, String subtitle) {
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: () {
+          _showFilterBottomSheet(title);
+        },
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TossTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: TossColors.gray600,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingAddButton() {
+    return TossSpeedDial(
+      actions: [
+        TossSpeedDialAction(
+          icon: Icons.add,
+          label: 'Add New Product',
+          onPressed: () {
+            context.push('/inventoryManagement/addProduct');
+          },
+        ),
+        TossSpeedDialAction(
+          icon: Icons.download_outlined,
+          label: 'Record Stock In',
+          onPressed: () {
+            context.pushNamed('stockIn');
+          },
+        ),
+        TossSpeedDialAction(
+          icon: Icons.format_list_numbered,
+          label: 'Start Inventory Count',
+          onPressed: () {
+            context.pushNamed('inventoryCount');
+          },
         ),
       ],
     );
   }
 
-  Widget _buildProductListTile(Product product) {
-    final pageState = ref.watch(inventoryPageProvider);
-    final currencySymbol = pageState.currency?.symbol ?? '';
+  void _showFilterBottomSheet(String filterType) {
+    final options = _getFilterOptions(filterType);
+    final currentSelection = _getCurrentFilterSelection(filterType);
 
-    return TossListTile(
-      title: product.name,
-      subtitle: product.sku,
-      showDivider: false,
-      leading: CachedProductImage(
-        imageUrl: product.images.isNotEmpty ? product.images.first : null,
-        size: 48,
-      ),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$currencySymbol${_formatCurrency(product.salePrice)}',
-            style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray900,
+    TossBottomSheet.show(
+      context: context,
+      title: filterType,
+      content: ListView.separated(
+        shrinkWrap: true,
+        itemCount: options.length,
+        separatorBuilder: (context, index) => const Divider(
+          height: 1,
+          color: TossColors.gray100,
+        ),
+        itemBuilder: (context, index) {
+          final option = options[index];
+          final isSelected = option == currentSelection;
+
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              option,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? TossColors.primary : TossColors.gray900,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            product.onHand.toString(),
-            style: TossTextStyles.body.copyWith(
-              color: _getStockColor(product),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+            trailing: isSelected
+                ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                : null,
+            onTap: () {
+              setState(() {
+                _setFilterSelection(filterType, option);
+              });
+              Navigator.pop(context);
+            },
+          );
+        },
       ),
-      onTap: () {
-        context.push('/inventoryManagement/product/${product.id}');
-      },
     );
+  }
+
+  String _getCurrentFilterSelection(String filterType) {
+    switch (filterType) {
+      case 'Availability':
+        return _selectedAvailability;
+      case 'Location':
+        return _selectedLocation;
+      case 'Brand':
+        return _selectedBrand;
+      case 'Categories':
+        return _selectedCategory;
+      default:
+        return '';
+    }
+  }
+
+  void _setFilterSelection(String filterType, String value) {
+    switch (filterType) {
+      case 'Availability':
+        _selectedAvailability = value;
+      case 'Location':
+        _selectedLocation = value;
+      case 'Brand':
+        _selectedBrand = value;
+      case 'Categories':
+        _selectedCategory = value;
+    }
+  }
+
+  List<String> _getFilterOptions(String filterType) {
+    switch (filterType) {
+      case 'Availability':
+        return ['All products', 'In stock', 'Out of stock', 'Low stock'];
+      case 'Location':
+        return ['Lux1', 'Lux2', 'Warehouse A', 'Warehouse B'];
+      case 'Brand':
+        return ['All brands', 'Louis Vuitton', 'Gucci', 'Prada', 'Chanel'];
+      case 'Categories':
+        return ['All categories', 'Bags', 'Belts', 'Accessories', 'Clothing'];
+      default:
+        return ['All'];
+    }
+  }
+
+  double _calculateTotalValue(List<Product> products) {
+    return products.fold(0.0, (sum, product) => sum + (product.onHand * product.salePrice));
   }
 
   String _formatCurrency(double value) {
@@ -433,21 +465,105 @@ class _InventoryManagementPageState
     );
   }
 
-  Color _getStockColor(Product product) {
-    if (product.onHand == 0) return TossColors.error;
-    final status = product.getStockStatus();
-    switch (status) {
-      case StockStatus.critical:
-        return TossColors.error;
-      case StockStatus.low:
-        return TossColors.warning;
-      case StockStatus.normal:
-        return TossColors.success;
-      case StockStatus.excess:
-        return TossColors.info;
-      case StockStatus.outOfStock:
-        return TossColors.error;
+  /// Get all stores for the current company from AppState
+  List<StoreLocation> _getCompanyStores(AppState appState, Product product) {
+    final currentCompanyId = appState.companyChoosen;
+    final currentStoreId = appState.storeChoosen;
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
+
+    // Find current company using safe lookup
+    Map<String, dynamic>? company;
+    for (final c in companies) {
+      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
+        company = c;
+        break;
+      }
     }
+
+    if (company == null) {
+      // Fallback: return single location with product's on-hand quantity
+      return [
+        StoreLocation(
+          id: currentStoreId,
+          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          stock: product.onHand,
+          isCurrentStore: true,
+        ),
+      ];
+    }
+
+    final storesList = company['stores'] as List<dynamic>? ?? [];
+
+    if (storesList.isEmpty) {
+      // No stores found, return single location
+      return [
+        StoreLocation(
+          id: currentStoreId,
+          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          stock: product.onHand,
+          isCurrentStore: true,
+        ),
+      ];
+    }
+
+    // Convert stores to StoreLocation
+    return storesList.map((store) {
+      final storeMap = store as Map<String, dynamic>;
+      final storeId = storeMap['store_id'] as String? ?? '';
+      final storeName = storeMap['store_name'] as String? ?? 'Unknown Store';
+      final isCurrentStore = storeId == currentStoreId;
+
+      return StoreLocation(
+        id: storeId,
+        name: storeName,
+        // For now, show on-hand qty for current store, 0 for others
+        stock: isCurrentStore ? product.onHand : 0,
+        isCurrentStore: isCurrentStore,
+      );
+    }).toList();
+  }
+
+  void _showMoveStockDialog(Product product) {
+    final appState = ref.read(appStateProvider);
+    final allStores = _getCompanyStores(appState, product);
+
+    // Find current store as the default "from" location
+    final currentStoreId = appState.storeChoosen;
+    StoreLocation? fromLocation;
+    for (final store in allStores) {
+      if (store.id == currentStoreId) {
+        fromLocation = store;
+        break;
+      }
+    }
+    fromLocation ??= allStores.isNotEmpty ? allStores.first : null;
+
+    if (fromLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No stores available'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    MoveStockDialog.show(
+      context: context,
+      productName: product.name,
+      fromLocation: fromLocation,
+      allStores: allStores,
+      onSubmit: (fromStore, toStore, quantity) {
+        // TODO: Implement move stock API call
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+    );
   }
 
   String _getSortLabel() {
@@ -497,44 +613,13 @@ class _InventoryManagementPageState
   }
 
   void _showSortOptionsSheet() {
-    showModalBottomSheet<void>(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
-        ),
+      title: 'Sort By',
+      content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
-            Container(
-              width: 48,
-              height: 4,
-              margin: const EdgeInsets.only(top: TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-
-            // Header
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space4),
-              child: Text(
-                'Sort By',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-
-            // Sort Options
             _buildSortOption('Name (A-Z)', _SortOption.nameAsc),
             _buildSortOption('Name (Z-A)', _SortOption.nameDesc),
             _buildSortOption('Price (Low to High)', _SortOption.priceAsc),
@@ -542,10 +627,6 @@ class _InventoryManagementPageState
             _buildSortOption('Stock (Low to High)', _SortOption.stockAsc),
             _buildSortOption('Stock (High to Low)', _SortOption.stockDesc),
             _buildSortOption('Value (High to Low)', _SortOption.valueDesc),
-
-            SizedBox(
-              height: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
-            ),
           ],
         ),
       ),
@@ -555,6 +636,9 @@ class _InventoryManagementPageState
   Widget _buildSortOption(String label, _SortOption option) {
     final isSelected = _currentSort == option;
     return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      contentPadding: EdgeInsets.zero,
       title: Text(
         label,
         style: TossTextStyles.body.copyWith(
@@ -563,7 +647,7 @@ class _InventoryManagementPageState
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: TossColors.primary)
+          ? const Icon(Icons.check, color: TossColors.primary, size: 20)
           : null,
       onTap: () {
         setState(() {
@@ -577,6 +661,141 @@ class _InventoryManagementPageState
         Navigator.pop(context);
       },
     );
+  }
+}
+
+/// Sticky header delegate for filters
+class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final InventoryPageState pageState;
+  final String selectedAvailability;
+  final String selectedLocation;
+  final String selectedBrand;
+  final String selectedCategory;
+  final Function(String) onFilterTap;
+
+  _FilterHeaderDelegate({
+    required this.pageState,
+    required this.selectedAvailability,
+    required this.selectedLocation,
+    required this.selectedBrand,
+    required this.selectedCategory,
+    required this.onFilterTap,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: TossColors.white,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Filter pills row
+          SizedBox(
+            height: 56,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildFilterPill('Availability', selectedAvailability),
+                const SizedBox(width: 8),
+                _buildFilterPill('Location', selectedLocation),
+                const SizedBox(width: 8),
+                _buildFilterPill('Brand', selectedBrand),
+                const SizedBox(width: 8),
+                _buildFilterPill('Categories', selectedCategory),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Summary text
+          Text(
+            'Total on hand: ${pageState.pagination.total} items · Total value: ${_formatCurrency(_calculateTotalValue())}',
+            style: TossTextStyles.caption.copyWith(
+              fontWeight: FontWeight.w500,
+              color: TossColors.gray600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Divider
+          Container(
+            height: 1,
+            color: TossColors.gray100,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterPill(String title, String subtitle) {
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: () => onFilterTap(title),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TossTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: TossColors.gray600,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _calculateTotalValue() {
+    return pageState.products.fold(0.0, (sum, product) => sum + (product.onHand * product.salePrice));
+  }
+
+  String _formatCurrency(double value) {
+    return value.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
+
+  @override
+  double get maxExtent => 120;
+
+  @override
+  double get minExtent => 120;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
   }
 }
 

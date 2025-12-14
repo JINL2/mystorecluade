@@ -132,14 +132,14 @@ class RevenueCard extends ConsumerWidget {
                       children: [
                         Icon(
                           revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
-                          color: revenue.isIncreased ? TossColors.error : TossColors.success,
+                          color: revenue.isIncreased ? TossColors.primary : TossColors.error,
                           size: 16,
                         ),
                         const SizedBox(width: TossSpacing.space1),
                         Text(
                           '${revenue.isIncreased ? '' : '-'}${revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
                           style: TossTextStyles.caption.copyWith(
-                            color: revenue.isIncreased ? TossColors.error : TossColors.success,
+                            color: revenue.isIncreased ? TossColors.primary : TossColors.error,
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                           ),

@@ -46,8 +46,7 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? bankName,
-    String? bankAccountNumber,
+    String? dateOfBirth,
     String? profileImage,
   }) async {
     state = state.copyWith(isUpdating: true, errorMessage: null);
@@ -62,8 +61,7 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
         firstName: firstName,
         lastName: lastName,
         phoneNumber: phoneNumber,
-        bankName: bankName,
-        bankAccountNumber: bankAccountNumber,
+        dateOfBirth: dateOfBirth,
         profileImage: profileImage,
       );
 
@@ -78,6 +76,53 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
         errorMessage: e.toString(),
       );
       return false;
+    }
+  }
+
+  /// 은행 계좌 정보 저장 (직접 Repository 호출)
+  Future<bool> saveBankAccount({
+    required String companyId,
+    required String bankName,
+    required String accountNumber,
+    required String description,
+  }) async {
+    state = state.copyWith(isUpdating: true, errorMessage: null);
+
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      await _repository.saveUserBankAccount(
+        userId: userId,
+        companyId: companyId,
+        bankName: bankName,
+        accountNumber: accountNumber,
+        description: description,
+      );
+
+      state = state.copyWith(isUpdating: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isUpdating: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// 은행 계좌 정보 조회
+  Future<Map<String, dynamic>?> getBankAccount(String companyId) async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return null;
+
+      return await _repository.getUserBankAccount(
+        userId: userId,
+        companyId: companyId,
+      );
+    } catch (e) {
+      return null;
     }
   }
 
@@ -166,8 +211,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? bankName,
-    String? bankAccountNumber,
+    String? dateOfBirth,
     String? profileImage,
   }) async {
     state = state.copyWith(
@@ -183,8 +227,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
         firstName: firstName,
         lastName: lastName,
         phoneNumber: phoneNumber,
-        bankName: bankName,
-        bankAccountNumber: bankAccountNumber,
+        dateOfBirth: dateOfBirth,
         profileImage: profileImage,
       );
 
@@ -193,6 +236,36 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
         isEditing: false,
         errorMessage: null,
       );
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// 은행 계좌 정보 저장
+  Future<bool> saveBankAccount({
+    required String userId,
+    required String companyId,
+    required String bankName,
+    required String accountNumber,
+    required String description,
+  }) async {
+    state = state.copyWith(isSaving: true, errorMessage: null);
+
+    try {
+      await _repository.saveUserBankAccount(
+        userId: userId,
+        companyId: companyId,
+        bankName: bankName,
+        accountNumber: accountNumber,
+        description: description,
+      );
+
+      state = state.copyWith(isSaving: false);
       return true;
     } catch (e) {
       state = state.copyWith(

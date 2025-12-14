@@ -102,6 +102,8 @@ class _TossSearchFieldState extends State<TossSearchField> {
       focusNode: _focusNode,
       enabled: widget.enabled,
       autofocus: widget.autofocus,
+      textCapitalization: TextCapitalization.none,
+      autocorrect: false,
       onSubmitted: widget.onSubmitted,
       style: TossTextStyles.bodyLarge.copyWith(
         color: TossColors.gray900,

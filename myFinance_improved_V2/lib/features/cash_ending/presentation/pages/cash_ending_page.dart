@@ -3,12 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
@@ -57,16 +56,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   String? _featureId;
   bool _featureInfoExtracted = false;
 
-  // AI Chat session ID - persists while page is active
-  late final String _aiChatSessionId;
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
-    // Generate AI Chat session ID
-    _aiChatSessionId = const Uuid().v4();
 
     // Listen to tab changes
     _tabController.addListener(() {
@@ -223,7 +216,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       ),
       floatingActionButton: AiChatFab(
         featureName: _featureName ?? 'Cash Ending',
-        sessionId: _aiChatSessionId,
         pageContext: _buildPageContext(state),
         featureId: _featureId,
       ),

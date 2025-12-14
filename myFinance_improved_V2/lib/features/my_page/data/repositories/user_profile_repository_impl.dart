@@ -58,8 +58,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? bankName,
-    String? bankAccountNumber,
+    String? dateOfBirth,
     String? profileImage,
   }) async {
     try {
@@ -68,8 +67,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       if (firstName != null) updates['first_name'] = firstName;
       if (lastName != null) updates['last_name'] = lastName;
       if (phoneNumber != null) updates['user_phone_number'] = phoneNumber;
-      if (bankName != null) updates['bank_name'] = bankName;
-      if (bankAccountNumber != null) updates['bank_account_number'] = bankAccountNumber;
+      if (dateOfBirth != null) updates['date_of_birth'] = dateOfBirth;
       if (profileImage != null) updates['profile_image'] = profileImage;
 
       updates['updated_at'] = DateTimeUtils.nowUtc();
@@ -107,5 +105,59 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     } catch (e) {
       throw Exception('Failed to remove profile image: $e');
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getUserBankAccount({
+    required String userId,
+    required String companyId,
+  }) async {
+    return await _userProfileDataSource.getUserBankAccount(
+      userId: userId,
+      companyId: companyId,
+    );
+  }
+
+  @override
+  Future<bool> saveUserBankAccount({
+    required String userId,
+    required String companyId,
+    required String bankName,
+    required String accountNumber,
+    required String description,
+  }) async {
+    return await _userProfileDataSource.saveUserBankAccount(
+      userId: userId,
+      companyId: companyId,
+      bankName: bankName,
+      accountNumber: accountNumber,
+      description: description,
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLanguages() async {
+    return await _userProfileDataSource.getLanguages();
+  }
+
+  @override
+  Future<String?> getUserLanguageId(String userId) async {
+    return await _userProfileDataSource.getUserLanguageId(userId);
+  }
+
+  @override
+  Future<String?> getLanguageCode(String languageId) async {
+    return await _userProfileDataSource.getLanguageCode(languageId);
+  }
+
+  @override
+  Future<bool> updateUserLanguage({
+    required String userId,
+    required String languageId,
+  }) async {
+    return await _userProfileDataSource.updateUserLanguage(
+      userId: userId,
+      languageId: languageId,
+    );
   }
 }

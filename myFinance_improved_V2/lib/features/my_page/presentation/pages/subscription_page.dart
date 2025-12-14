@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:myfinance_improved/core/services/revenuecat_service.dart';
+import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -42,7 +46,9 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   String? _errorMessage;
 
   // Current subscription state from RevenueCat
-  bool _isProSubscriber = false;
+  bool _hasActiveSubscription = false;  // Any paid subscription (Basic or Pro)
+  bool _isProPlan = false;              // Specifically Pro plan
+  bool _isBasicPlan = false;            // Specifically Basic plan
   String? _activeProductId;
   DateTime? _expirationDate;
   bool _willRenew = false;
@@ -110,46 +116,104 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
   }
 
+  /// Helper: Find entitlement by partial key match
+  EntitlementInfo? _findEntitlementByMatch(CustomerInfo customerInfo, String target) {
+    try {
+      final matchingKey = customerInfo.entitlements.active.keys.firstWhere(
+        (key) => key.toLowerCase().contains(target.toLowerCase()),
+      );
+      return customerInfo.entitlements.active[matchingKey];
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Load current subscription status from RevenueCat
   Future<void> _loadSubscriptionStatus() async {
     try {
       final customerInfo = await RevenueCatService().getCustomerInfo();
 
       if (customerInfo != null && mounted) {
-        // Check if user has Pro entitlement
-        final proEntitlement = customerInfo.entitlements.active['STOREBASE Pro'];
-        final isPro = proEntitlement != null;
+        // Check for entitlements containing 'basic' or 'pro' (partial match)
+        // RevenueCat entitlement keys may be like 'storebase.pro.monthly'
+        final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
+        final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
+
+        final hasPro = proEntitlement != null;
+        final hasBasic = basicEntitlement != null;
+        final hasAnySubscription = hasPro || hasBasic;
 
         debugPrint('📊 Subscription Status:');
-        debugPrint('  - Is Pro: $isPro');
+        debugPrint('  - Has Pro: $hasPro');
+        debugPrint('  - Has Basic: $hasBasic');
         debugPrint('  - Active Entitlements: ${customerInfo.entitlements.active.keys}');
 
-        if (isPro) {
-          debugPrint('  - Product ID: ${proEntitlement.productIdentifier}');
-          debugPrint('  - Expires: ${proEntitlement.expirationDate}');
-          debugPrint('  - Will Renew: ${proEntitlement.willRenew}');
+        // Get active entitlement (pro takes priority)
+        final activeEntitlement = proEntitlement ?? basicEntitlement;
+
+        if (activeEntitlement != null) {
+          debugPrint('  - Product ID: ${activeEntitlement.productIdentifier}');
+          debugPrint('  - Expires: ${activeEntitlement.expirationDate}');
+          debugPrint('  - Will Renew: ${activeEntitlement.willRenew}');
         }
 
         setState(() {
-          _isProSubscriber = isPro;
-          if (isPro) {
-            _activeProductId = proEntitlement.productIdentifier;
-            _expirationDate = proEntitlement.expirationDate != null
-                ? DateTime.parse(proEntitlement.expirationDate!)
-                : null;
-            _willRenew = proEntitlement.willRenew;
+          _hasActiveSubscription = hasAnySubscription;
+          _isProPlan = hasPro;
+          _isBasicPlan = hasBasic && !hasPro;  // Basic only if not Pro
 
-            // Auto-select the current plan
-            if (_activeProductId?.contains('annual') == true) {
+          if (hasAnySubscription && activeEntitlement != null) {
+            _activeProductId = activeEntitlement.productIdentifier;
+            _expirationDate = activeEntitlement.expirationDate != null
+                ? DateTime.parse(activeEntitlement.expirationDate!)
+                : null;
+            _willRenew = activeEntitlement.willRenew;
+
+            // Auto-select the current plan based on entitlement
+            if (_activeProductId?.contains('annual') == true ||
+                _activeProductId?.contains('yearly') == true) {
               _isAnnual = true;
+            } else {
+              _isAnnual = false;
             }
-            _selectedPlanIndex = 1; // Pro
+            // Set selected plan index based on entitlement
+            _selectedPlanIndex = hasPro ? 1 : 0; // 1 = Pro, 0 = Basic
           }
         });
       }
     } catch (e) {
       debugPrint('❌ Failed to load subscription status: $e');
     }
+  }
+
+  /// Get the current subscription tier name
+  String get _currentPlanName {
+    if (_isProPlan) return 'Pro';
+    if (_isBasicPlan) return 'Basic';
+    return 'Free';
+  }
+
+  /// Check if the selected plan is the same as current subscription
+  bool get _isSelectedPlanSameAsCurrent {
+    if (!_hasActiveSubscription) return false;
+    // _selectedPlanIndex: 0 = Basic, 1 = Pro
+    if (_selectedPlanIndex == 0 && _isBasicPlan) return true;
+    if (_selectedPlanIndex == 1 && _isProPlan) return true;
+    return false;
+  }
+
+  /// Check if selected plan is an upgrade from current
+  bool get _isUpgrade {
+    if (!_hasActiveSubscription) return false;
+    // Basic user selecting Pro = upgrade
+    return _isBasicPlan && _selectedPlanIndex == 1;
+  }
+
+  /// Check if selected plan is a downgrade from current
+  bool get _isDowngrade {
+    if (!_hasActiveSubscription) return false;
+    // Pro user selecting Basic = downgrade
+    return _isProPlan && _selectedPlanIndex == 0;
   }
 
   @override
@@ -256,11 +320,94 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     );
   }
 
+  /// Build current plan badge showing user's subscription status
+  Widget _buildCurrentPlanBadge() {
+    // Determine current plan text and colors
+    String planText;
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+
+    if (_isProPlan) {
+      planText = 'Pro Plan';
+      bgColor = const Color(0xFF3B82F6).withValues(alpha: 0.1);
+      textColor = const Color(0xFF3B82F6);
+      icon = LucideIcons.crown;
+    } else if (_isBasicPlan) {
+      planText = 'Basic Plan';
+      bgColor = const Color(0xFF10B981).withValues(alpha: 0.1);
+      textColor = const Color(0xFF10B981);
+      icon = LucideIcons.checkCircle;
+    } else {
+      planText = 'Free Plan';
+      bgColor = TossColors.gray100;
+      textColor = TossColors.gray600;
+      icon = LucideIcons.user;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 8),
+          Text(
+            'Current: $planText',
+            style: TossTextStyles.body.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          if (_hasActiveSubscription && _expirationDate != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: textColor.withValues(alpha: 0.4),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _willRenew ? 'Renews ${_formatShortDate(_expirationDate!)}' : 'Expires ${_formatShortDate(_expirationDate!)}',
+              style: TossTextStyles.small.copyWith(
+                color: textColor.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Format date in short format (e.g., "Jan 15")
+  String _formatShortDate(DateTime date) {
+    return DateFormat('MMM d').format(date);
+  }
+
   Widget _buildHeroSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         children: [
+          // Current Plan Badge
+          _buildCurrentPlanBadge(),
+
+          const SizedBox(height: TossSpacing.space4),
+
           // App icon with shadow
           Container(
             width: 80,
@@ -418,11 +565,65 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Widget _buildPricingCards() {
+    // Watch subscription plans from database
+    final plansAsync = ref.watch(subscriptionPlansProvider);
+
+    return plansAsync.when(
+      loading: () => const SizedBox(
+        height: 260,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => _buildFallbackPricingCards(),
+      data: (dbPlans) {
+        // Filter to only Basic and Pro plans
+        final basicPlan = dbPlans.where((p) => p.planName == 'basic').firstOrNull;
+        final proPlan = dbPlans.where((p) => p.planName == 'pro').firstOrNull;
+
+        if (basicPlan == null || proPlan == null) {
+          return _buildFallbackPricingCards();
+        }
+
+        final plans = [
+          _PlanData(
+            name: basicPlan.displayName,
+            monthlyPrice: basicPlan.priceMonthly.toInt(),
+            annualPrice: basicPlan.annualPricePerMonth.round(),
+            tagline: basicPlan.description,
+            features: [
+              '${basicPlan.maxStores ?? "Unlimited"} Stores',
+              '${basicPlan.maxEmployees ?? "Unlimited"} Employees',
+              basicPlan.hasUnlimitedAI ? 'Unlimited AI' : '${basicPlan.aiDailyLimit} AI/day',
+            ],
+            color: const Color(0xFF10B981),
+            isPopular: false,
+          ),
+          _PlanData(
+            name: proPlan.displayName,
+            monthlyPrice: proPlan.priceMonthly.toInt(),
+            annualPrice: proPlan.annualPricePerMonth.round(),
+            tagline: 'Most Popular',
+            features: [
+              proPlan.hasUnlimitedStores ? 'Unlimited' : '${proPlan.maxStores} Stores',
+              proPlan.hasUnlimitedEmployees ? 'Unlimited' : '${proPlan.maxEmployees} Employees',
+              proPlan.hasUnlimitedAI ? 'Unlimited AI' : '${proPlan.aiDailyLimit} AI/day',
+            ],
+            color: const Color(0xFF3B82F6),
+            isPopular: true,
+          ),
+        ];
+
+        return _buildPricingCardsList(plans);
+      },
+    );
+  }
+
+  /// Fallback pricing cards when DB fetch fails
+  Widget _buildFallbackPricingCards() {
     final plans = [
       _PlanData(
         name: 'Basic',
-        monthlyPrice: 29,
-        annualPrice: 17, // ~40% off
+        monthlyPrice: 49,
+        annualPrice: 29,
         tagline: 'For small teams',
         features: ['5 Stores', '10 Employees', '20 AI/day'],
         color: const Color(0xFF10B981),
@@ -430,14 +631,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       ),
       _PlanData(
         name: 'Pro',
-        monthlyPrice: 79,
-        annualPrice: 49, // ~40% off
+        monthlyPrice: 149,
+        annualPrice: 89,
         tagline: 'Most Popular',
         features: ['Unlimited', 'Unlimited', 'Unlimited AI'],
         color: const Color(0xFF3B82F6),
         isPopular: true,
       ),
     ];
+    return _buildPricingCardsList(plans);
+  }
+
+  Widget _buildPricingCardsList(List<_PlanData> plans) {
 
     return SizedBox(
       height: 260,
@@ -449,7 +654,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           final plan = plans[index];
           final isSelected = _selectedPlanIndex == index;
           // Check if this plan is the user's current active subscription
-          final isCurrentPlan = index == 1 && _isProSubscriber; // Pro is index 1
+          final isCurrentPlan = (index == 0 && _isBasicPlan) || (index == 1 && _isProPlan);
           final price = _isAnnual ? plan.annualPrice : plan.monthlyPrice;
 
           return GestureDetector(
@@ -626,46 +831,82 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Widget _buildCTAButton() {
-    // Check if user is already subscribed to Pro
-    final isAlreadySubscribed = _isProSubscriber && _selectedPlanIndex == 1;
-    final price = _isAnnual
-        ? (_selectedPlanIndex == 0 ? 17 : 49)
-        : (_selectedPlanIndex == 0 ? 29 : 79);
+    // Get prices from database (with fallback)
+    final plansAsync = ref.watch(subscriptionPlansProvider);
+    final plans = plansAsync.valueOrNull ?? [];
+    final basicPlan = plans.where((p) => p.planName == 'basic').firstOrNull;
+    final proPlan = plans.where((p) => p.planName == 'pro').firstOrNull;
 
-    // Determine button text based on subscription status
-    String buttonText;
-    if (isAlreadySubscribed) {
-      if (_willRenew) {
-        buttonText = 'Subscribed ✓';
-      } else {
-        buttonText = 'Subscription Expires Soon';
-      }
+    final int price;
+    if (_isAnnual) {
+      price = _selectedPlanIndex == 0
+          ? (basicPlan?.annualPricePerMonth.round() ?? 29)
+          : (proPlan?.annualPricePerMonth.round() ?? 89);
     } else {
-      buttonText = 'Start 7-Day Free Trial';
+      price = _selectedPlanIndex == 0
+          ? (basicPlan?.priceMonthly.toInt() ?? 49)
+          : (proPlan?.priceMonthly.toInt() ?? 149);
     }
+
+    // Determine button state and text
+    final bool canPurchase;
+    final String buttonText;
+    final Color buttonColor;
+    final bool showGradient;
+
+    if (_isSelectedPlanSameAsCurrent) {
+      // Same plan as current subscription
+      canPurchase = false;
+      buttonText = _willRenew ? 'Current Plan ✓' : 'Expires ${_formatShortDate(_expirationDate!)}';
+      buttonColor = TossColors.gray200;
+      showGradient = false;
+    } else if (_isUpgrade) {
+      // Upgrading from Basic to Pro
+      canPurchase = true;
+      buttonText = 'Upgrade to Pro';
+      buttonColor = const Color(0xFF3B82F6);
+      showGradient = true;
+    } else if (_isDowngrade) {
+      // Downgrading from Pro to Basic (not recommended)
+      canPurchase = false;
+      buttonText = 'Manage in Settings';
+      buttonColor = TossColors.gray300;
+      showGradient = false;
+    } else {
+      // New subscription (free user)
+      canPurchase = true;
+      buttonText = 'Start 7-Day Free Trial';
+      buttonColor = _selectedPlanIndex == 1 ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
+      showGradient = true;
+    }
+
+    // Banner color based on current plan
+    final Color bannerColor = _isProPlan
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF10B981);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         children: [
           // Subscription info banner (if already subscribed)
-          if (_isProSubscriber) ...[
+          if (_hasActiveSubscription) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(TossSpacing.space3),
               margin: const EdgeInsets.only(bottom: TossSpacing.space3),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: bannerColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                  color: bannerColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    LucideIcons.checkCircle,
-                    color: Color(0xFF10B981),
+                  Icon(
+                    _isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
+                    color: bannerColor,
                     size: 20,
                   ),
                   const SizedBox(width: TossSpacing.space2),
@@ -674,10 +915,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'You\'re a Pro subscriber!',
+                          'You\'re a $_currentPlanName subscriber!',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF10B981),
+                            color: bannerColor,
                           ),
                         ),
                         if (_expirationDate != null) ...[
@@ -701,8 +942,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
           // Main CTA
           GestureDetector(
-            onTap: (isAlreadySubscribed || _isPurchasing || _isLoadingPackages)
-                ? null
+            onTap: (!canPurchase || _isPurchasing || _isLoadingPackages)
+                ? (_isDowngrade ? _openAppStoreSubscriptionSettings : null)
                 : () {
                     HapticFeedback.mediumImpact();
                     _handleSubscribe();
@@ -712,29 +953,26 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 18),
               decoration: BoxDecoration(
-                gradient: (isAlreadySubscribed || _isPurchasing)
-                    ? null
-                    : LinearGradient(
+                gradient: (showGradient && !_isPurchasing)
+                    ? LinearGradient(
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: _selectedPlanIndex == 1
                             ? [const Color(0xFF3B82F6), const Color(0xFF8B5CF6)]
                             : [const Color(0xFF10B981), const Color(0xFF059669)],
-                      ),
-                color: (isAlreadySubscribed || _isPurchasing) ? TossColors.gray200 : null,
+                      )
+                    : null,
+                color: (!showGradient || _isPurchasing) ? buttonColor : null,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: (isAlreadySubscribed || _isPurchasing)
-                    ? null
-                    : [
+                boxShadow: (showGradient && !_isPurchasing)
+                    ? [
                         BoxShadow(
-                          color: (_selectedPlanIndex == 1
-                                  ? const Color(0xFF3B82F6)
-                                  : const Color(0xFF10B981))
-                              .withValues(alpha: 0.4),
+                          color: buttonColor.withValues(alpha: 0.4),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
-                      ],
+                      ]
+                    : null,
               ),
               child: Center(
                 child: _isPurchasing
@@ -749,7 +987,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
                     : Text(
                         buttonText,
                         style: TossTextStyles.bodyLarge.copyWith(
-                          color: isAlreadySubscribed ? TossColors.gray500 : Colors.white,
+                          color: canPurchase ? Colors.white : TossColors.gray500,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                         ),
@@ -760,10 +998,12 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Price reminder
-          if (!isAlreadySubscribed && !_isPurchasing)
+          // Price reminder (only for new subscriptions or upgrades)
+          if (canPurchase && !_isPurchasing)
             Text(
-              'Then \$$price/month${_isAnnual ? ' (billed annually)' : ''}',
+              _hasActiveSubscription
+                  ? 'Prorated amount will be charged'
+                  : 'Then \$$price/month${_isAnnual ? ' (billed annually)' : ''}',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
               ),
@@ -790,6 +1030,91 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
               ),
             ),
           ),
+
+          // 🧪 Sandbox Test: DEBUG buttons (DEBUG only)
+          if (kDebugMode && _hasActiveSubscription) ...[
+            const SizedBox(height: TossSpacing.space2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Sync Button - RevenueCat → DB 동기화
+                GestureDetector(
+                  onTap: _isPurchasing
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          _handleSyncToDatabase();
+                        },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.refreshCw,
+                          size: 14,
+                          color: Colors.blue,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '🔄 Sync DB',
+                          style: TossTextStyles.caption.copyWith(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Cancel Button - iOS 관리 시트 열기
+                GestureDetector(
+                  onTap: _isPurchasing
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          _handleCancelSubscription();
+                        },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: TossColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: TossColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.settings,
+                          size: 14,
+                          color: TossColors.error,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '⚙️ Manage',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.error,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1103,20 +1428,35 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     // Map selection to package type
     // _selectedPlanIndex: 0 = Basic, 1 = Pro
     // _isAnnual: true = annual, false = monthly
-    PackageType targetType = _isAnnual ? PackageType.annual : PackageType.monthly;
+    final planName = _selectedPlanIndex == 0 ? 'basic' : 'pro';
+    final periodName = _isAnnual ? 'yearly' : 'monthly';
+    final targetIdentifier = '$planName.$periodName'; // e.g., 'basic.monthly', 'pro.yearly'
 
     // Debug log
     debugPrint('🛒 Subscribe clicked:');
-    debugPrint('  - _isAnnual: $_isAnnual');
-    debugPrint('  - targetType: ${targetType.name}');
+    debugPrint('  - Selected Plan: $planName');
+    debugPrint('  - Period: $periodName');
+    debugPrint('  - Target Identifier: $targetIdentifier');
     debugPrint('  - Available packages: ${_packages.length}');
 
-    // Find package from loaded packages
+    // Find package by identifier (RevenueCat package identifier format)
     for (final package in _packages) {
-      debugPrint('  - Checking: ${package.packageType.name} == ${targetType.name}?');
-      if (package.packageType == targetType) {
+      debugPrint('  - Checking: ${package.identifier} contains $targetIdentifier?');
+
+      // Match by package identifier (e.g., 'basic.monthly', 'pro.yearly')
+      if (package.identifier == targetIdentifier) {
         targetPackage = package;
         debugPrint('  ✅ Found matching package: ${package.storeProduct.identifier}');
+        break;
+      }
+
+      // Fallback: match by product ID
+      final productId = package.storeProduct.identifier.toLowerCase();
+      if (productId.contains(planName) &&
+          ((_isAnnual && (productId.contains('annual') || productId.contains('yearly'))) ||
+           (!_isAnnual && productId.contains('monthly')))) {
+        targetPackage = package;
+        debugPrint('  ✅ Found matching package by product ID: ${package.storeProduct.identifier}');
         break;
       }
     }
@@ -1126,6 +1466,40 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       debugPrint('  ❌ No matching package found!');
       _showErrorDialog('No subscription package found. Please try again later.');
       return;
+    }
+
+    // ✅ Check if user already has this subscription
+    // This prevents duplicate purchases in Xcode StoreKit testing
+    try {
+      final customerInfo = await Purchases.getCustomerInfo();
+      final activeEntitlements = customerInfo.entitlements.active;
+
+      // Check if already subscribed to the selected plan
+      final isAlreadySubscribed = activeEntitlements.entries.any((entry) {
+        final entitlementId = entry.key.toLowerCase();
+        return entitlementId.contains(planName);
+      });
+
+      if (isAlreadySubscribed) {
+        debugPrint('  ⚠️ Already subscribed to $planName plan!');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('You already have an active $planName subscription. Use "Manage" to modify it.'),
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: 'Manage',
+                textColor: Colors.white,
+                onPressed: _handleCancelSubscription,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint('  ⚠️ Could not check existing subscription: $e');
+      // Continue with purchase attempt - RevenueCat will handle duplicates
     }
 
     // Start purchase
@@ -1138,8 +1512,9 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         setState(() => _isPurchasing = false);
 
         if (success) {
-          // Purchase successful!
-          _showSuccessDialog();
+          // Purchase successful! Refresh UI immediately
+          await _refreshSubscriptionState();
+          _showSuccessDialog(planName);
         } else {
           // Purchase cancelled by user
           // No need to show error - user cancelled intentionally
@@ -1161,9 +1536,25 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
   }
 
-  void _showSuccessDialog() {
-    // Refresh subscription status after purchase
-    _loadSubscriptionStatus();
+  /// Refresh subscription state after purchase - updates both local state and Riverpod providers
+  Future<void> _refreshSubscriptionState() async {
+    debugPrint('🔄 Refreshing subscription state after purchase...');
+
+    // 1. Refresh local page state from RevenueCat
+    await _loadSubscriptionStatus();
+
+    // 2. Invalidate Riverpod providers so other screens update too
+    ref.invalidate(proStatusProvider);
+    ref.invalidate(subscriptionProvider);
+    ref.invalidate(customerInfoProvider);
+
+    debugPrint('✅ Subscription state refreshed');
+  }
+
+  void _showSuccessDialog(String planName) {
+    final isPro = planName == 'pro';
+    final planDisplayName = isPro ? 'Pro' : 'Basic';
+    final planColor = isPro ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
 
     showDialog(
       context: context,
@@ -1177,26 +1568,26 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: planColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                LucideIcons.checkCircle,
-                color: Color(0xFF10B981),
+              child: Icon(
+                isPro ? LucideIcons.crown : LucideIcons.checkCircle,
+                color: planColor,
                 size: 24,
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Welcome to Pro!',
-                style: TextStyle(fontSize: 18),
+                'Welcome to $planDisplayName!',
+                style: const TextStyle(fontSize: 18),
               ),
             ),
           ],
         ),
-        content: const Text(
-          'Your subscription is now active. Enjoy all Pro features!',
+        content: Text(
+          'Your $planDisplayName subscription is now active. Enjoy all the features!',
         ),
         actions: [
           TextButton(
@@ -1246,6 +1637,27 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     );
   }
 
+  /// Open App Store subscription management settings
+  Future<void> _openAppStoreSubscriptionSettings() async {
+    try {
+      // Deep link to App Store subscription management
+      const url = 'https://apps.apple.com/account/subscriptions';
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('❌ Error opening subscription settings: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please manage your subscription in Settings > Apple ID > Subscriptions'),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _handleRestorePurchases() async {
     setState(() => _isPurchasing = true);
 
@@ -1256,7 +1668,9 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         setState(() => _isPurchasing = false);
 
         if (success) {
-          _showSuccessDialog();
+          // Refresh subscription state after restore
+          await _refreshSubscriptionState();
+          _showRestoreSuccessDialog();
         } else {
           showDialog(
             context: context,
@@ -1285,6 +1699,292 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         _showErrorDialog('Failed to restore purchases. Please try again.');
       }
     }
+  }
+
+  void _showRestoreSuccessDialog() {
+    final planColor = _isProPlan ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: planColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
+                color: planColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Purchases Restored!',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Your $_currentPlanName subscription has been restored successfully.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it!'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 🧪 DEBUG ONLY: Cancel subscription for sandbox testing
+  /// Triggers iOS subscription management sheet by attempting to purchase the same product
+  Future<void> _handleCancelSubscription() async {
+    // Find the current subscription package to trigger management sheet
+    if (_activeProductId == null) {
+      _showErrorDialog('No active subscription found');
+      return;
+    }
+
+    setState(() => _isPurchasing = true);
+
+    try {
+      debugPrint('🔄 Opening iOS Subscription Management Sheet...');
+      debugPrint('  - Active Product: $_activeProductId');
+
+      // Find the package matching current subscription
+      Package? currentPackage;
+      for (final package in _packages) {
+        if (package.storeProduct.identifier == _activeProductId) {
+          currentPackage = package;
+          break;
+        }
+      }
+
+      if (currentPackage != null) {
+        // Attempt to purchase the same product - iOS will show management sheet
+        debugPrint('  - Triggering purchase for: ${currentPackage.storeProduct.identifier}');
+        try {
+          await Purchases.purchasePackage(currentPackage);
+        } catch (e) {
+          // Expected - user will cancel from management sheet
+          debugPrint('  - User returned from management sheet: $e');
+        }
+      } else {
+        debugPrint('  - Package not found in list');
+        // Try to find any package to trigger the sheet
+        if (_packages.isNotEmpty) {
+          try {
+            await Purchases.purchasePackage(_packages.first);
+          } catch (e) {
+            debugPrint('  - User returned from management sheet: $e');
+          }
+        } else {
+          _showErrorDialog('No packages available');
+          return;
+        }
+      }
+
+      // After returning from management sheet, sync state from RevenueCat
+      await _syncAfterManagementSheet();
+
+    } catch (e) {
+      debugPrint('❌ Cancel error: $e');
+      if (mounted) {
+        _showErrorDialog('Failed: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPurchasing = false);
+      }
+    }
+  }
+
+  /// 🔄 DEBUG ONLY: Sync RevenueCat state to Database
+  /// Fetches latest subscription state from RevenueCat and syncs to Supabase
+  Future<void> _handleSyncToDatabase() async {
+    setState(() => _isPurchasing = true);
+
+    try {
+      debugPrint('🔄 [Sync Button] Invalidating RevenueCat cache...');
+      // ⚠️ 캐시 무효화 - 서버에서 최신 데이터 가져오기
+      await Purchases.invalidateCustomerInfoCache();
+
+      debugPrint('🔄 [Sync Button] Fetching latest state from RevenueCat...');
+      final customerInfo = await Purchases.getCustomerInfo();
+
+      final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
+      debugPrint('  - Active entitlements: ${customerInfo.entitlements.active.keys}');
+
+      final userId = Supabase.instance.client.auth.currentUser!.id;
+
+      if (hasActiveEntitlements) {
+        // Get active entitlement info
+        final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
+        final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
+        final activeEntitlement = proEntitlement ?? basicEntitlement;
+
+        if (activeEntitlement != null) {
+          final planType = proEntitlement != null ? 'pro' : 'basic';
+          final willRenew = activeEntitlement.willRenew;
+          final productId = activeEntitlement.productIdentifier;
+          final expiresAt = activeEntitlement.expirationDate;
+          final isTrial = activeEntitlement.periodType == PeriodType.trial;
+
+          debugPrint('  - Plan: $planType');
+          debugPrint('  - Will Renew: $willRenew');
+          debugPrint('  - Product ID: $productId');
+          debugPrint('  - Expires: $expiresAt');
+
+          // Sync to DB
+          await RevenueCatService().syncSubscriptionToDatabase(
+            userId: userId,
+            planType: planType,
+            productId: productId,
+            expiresAt: expiresAt,
+            isTrial: isTrial,
+            willRenew: willRenew,
+          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(willRenew
+                    ? '✅ Synced: $planType (Auto-renew ON)'
+                    : '⚠️ Synced: $planType (Canceled, expires ${_formatShortDate(DateTime.parse(expiresAt!))})'),
+                backgroundColor: willRenew ? Colors.green : Colors.orange,
+              ),
+            );
+          }
+        }
+      } else {
+        // No active subscription - sync as free
+        await RevenueCatService().syncSubscriptionToDatabase(
+          userId: userId,
+          planType: 'free',
+          productId: null,
+          expiresAt: null,
+          isTrial: false,
+          willRenew: false,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Synced: Free plan'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+
+      // Refresh local UI state
+      await _refreshSubscriptionState();
+
+    } catch (e) {
+      debugPrint('❌ [Sync Button] Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Sync failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPurchasing = false);
+      }
+    }
+  }
+
+  /// Sync subscription state after returning from iOS management sheet
+  /// This correctly handles willRenew status for canceled subscriptions
+  Future<void> _syncAfterManagementSheet() async {
+    debugPrint('🔄 Syncing subscription state from RevenueCat...');
+    final customerInfo = await Purchases.getCustomerInfo();
+
+    // Check for active entitlements
+    final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
+
+    debugPrint('  - Active entitlements: ${customerInfo.entitlements.active.keys}');
+    debugPrint('  - Has active: $hasActiveEntitlements');
+
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+
+    if (hasActiveEntitlements) {
+      // Still has active subscription - check willRenew status
+      final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
+      final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
+      final activeEntitlement = proEntitlement ?? basicEntitlement;
+
+      if (activeEntitlement != null) {
+        final planType = proEntitlement != null ? 'pro' : 'basic';
+        final willRenew = activeEntitlement.willRenew;
+        final productId = activeEntitlement.productIdentifier;
+        final expiresAt = activeEntitlement.expirationDate;
+        final isTrial = activeEntitlement.periodType == PeriodType.trial;
+
+        debugPrint('  - Plan: $planType');
+        debugPrint('  - Will Renew: $willRenew');
+        debugPrint('  - Product ID: $productId');
+        debugPrint('  - Expires: $expiresAt');
+        debugPrint('  - Is Trial: $isTrial');
+
+        // Sync to DB with correct willRenew status
+        await RevenueCatService().syncSubscriptionToDatabase(
+          userId: userId,
+          planType: planType,
+          productId: productId,
+          expiresAt: expiresAt,
+          isTrial: isTrial,
+          willRenew: willRenew,  // 이게 핵심! 취소 상태 반영
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(willRenew
+                  ? '✅ Subscription active (Auto-renew ON)'
+                  : '⚠️ Subscription canceled (expires ${_formatShortDate(DateTime.parse(expiresAt!))})'),
+              backgroundColor: willRenew ? Colors.green : Colors.orange,
+            ),
+          );
+        }
+      }
+    } else {
+      // No active subscription - reset to free
+      await RevenueCatService().syncSubscriptionToDatabase(
+        userId: userId,
+        planType: 'free',
+        productId: null,
+        expiresAt: null,
+        isTrial: false,
+        willRenew: false,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Synced: Now on Free plan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+
+    // Refresh UI
+    await _refreshSubscriptionState();
   }
 }
 

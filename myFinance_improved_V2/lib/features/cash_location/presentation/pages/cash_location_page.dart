@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/domain/entities/feature.dart';
@@ -12,7 +11,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/ai_chat/ai_chat_fab.dart';
+import 'package:myfinance_improved/shared/widgets/ai_chat/ai_chat.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
@@ -46,9 +45,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   String? _featureName;
   String? _featureId;
   bool _featureInfoExtracted = false;
-
-  // AI Chat session ID - persists while page is active
-  final String _aiChatSessionId = const Uuid().v4();
 
   @override
   void initState() {
@@ -368,7 +364,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       ),
       floatingActionButton: AiChatFab(
         featureName: _featureName ?? 'Cash Control',
-        sessionId: _aiChatSessionId,
         pageContext: _buildPageContext(companyId, storeId),
         featureId: _featureId,
       ),

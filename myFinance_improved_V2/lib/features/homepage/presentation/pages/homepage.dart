@@ -6,10 +6,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
+import '../../../../core/notifications/services/token_manager.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_badge.dart';
@@ -163,6 +165,9 @@ class _HomepageState extends ConsumerState<Homepage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: TossColors.surface,
+      floatingActionButton: const AiChatFab(
+        featureName: 'Homepage',
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () => _handleRefresh(),
@@ -747,6 +752,15 @@ class _HomepageState extends ConsumerState<Homepage> {
       // Invalidate salary-related providers
       ref.invalidate(userSalaryProvider);
       ref.invalidate(userShiftStatsProvider);
+
+      // 🔥 Ensure FCM token is registered/refreshed
+      try {
+        await TokenManager().ensureTokenRegistered();
+        debugPrint('🔔 FCM token checked on refresh');
+      } catch (e) {
+        debugPrint('⚠️ FCM token check failed: $e');
+        // Don't fail the refresh if FCM fails
+      }
 
       // Wait for essential provider to reload (others will load in background)
       await ref.read(userCompaniesProvider.future);
