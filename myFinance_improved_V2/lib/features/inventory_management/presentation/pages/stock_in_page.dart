@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_badge.dart';
+import 'stock_in_detail_page.dart';
 
 /// Stock In Page (Record Stock In)
 class StockInPage extends ConsumerStatefulWidget {
@@ -302,7 +303,20 @@ class _StockInPageState extends ConsumerState<StockInPage> {
   }
 
   void _onItemTap(_StockInRecord item) {
-    // TODO: Navigate to stock in detail page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StockInDetailPage(
+          stockInId: item.id,
+          shipmentCode: item.shipmentCode,
+          location: item.location,
+          startedAt: item.date,
+          status: item.status == _StockInStatus.inProgress ? 'inProgress' : 'done',
+          arrivalPercentage: item.arrivalPercentage,
+          memo: item.memo,
+        ),
+      ),
+    );
   }
 
   Widget _buildStatusBadge(_StockInStatus status) {

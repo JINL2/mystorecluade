@@ -12,9 +12,50 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 
-/// New Inventory Count Page
+/// Result returned when editing an inventory count
+class InventoryCountEditResult {
+  final String title;
+  final String? locationId;
+  final String? locationName;
+  final String? memo;
+
+  const InventoryCountEditResult({
+    required this.title,
+    this.locationId,
+    this.locationName,
+    this.memo,
+  });
+}
+
+/// New Inventory Count Page (also used for editing)
 class NewInventoryCountPage extends ConsumerStatefulWidget {
-  const NewInventoryCountPage({super.key});
+  /// Whether this page is in edit mode
+  final bool isEditMode;
+
+  /// The ID of the inventory count being edited (only used in edit mode)
+  final String? countId;
+
+  /// Pre-filled title for edit mode
+  final String? initialTitle;
+
+  /// Pre-filled location ID for edit mode
+  final String? initialLocationId;
+
+  /// Pre-filled location name for edit mode
+  final String? initialLocationName;
+
+  /// Pre-filled memo for edit mode
+  final String? initialMemo;
+
+  const NewInventoryCountPage({
+    super.key,
+    this.isEditMode = false,
+    this.countId,
+    this.initialTitle,
+    this.initialLocationId,
+    this.initialLocationName,
+    this.initialMemo,
+  });
 
   @override
   ConsumerState<NewInventoryCountPage> createState() =>
@@ -28,6 +69,18 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
   String? _selectedLocationName;
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill data if in edit mode
+    if (widget.isEditMode) {
+      _titleController.text = widget.initialTitle ?? '';
+      _memoController.text = widget.initialMemo ?? '';
+      _selectedLocationId = widget.initialLocationId;
+      _selectedLocationName = widget.initialLocationName;
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _memoController.dispose();
@@ -36,8 +89,11 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final canCreate =
-        _titleController.text.isNotEmpty && _selectedLocationId != null;
+    // In edit mode, allow saving if we have a location name (even without ID)
+    // In create mode, require both title and location ID
+    final hasLocation = _selectedLocationId != null ||
+        (widget.isEditMode && _selectedLocationName != null);
+    final canCreate = _titleController.text.isNotEmpty && hasLocation;
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -67,14 +123,14 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
               ),
             ),
           ),
-          // Create button
+          // Create/Save button
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(TossSpacing.space4),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: canCreate ? _onCreate : null,
+                  onPressed: canCreate ? _onSubmit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         canCreate ? TossColors.primary : TossColors.gray300,
@@ -86,7 +142,7 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
                     elevation: 0,
                   ),
                   child: Text(
-                    'Create',
+                    widget.isEditMode ? 'Save' : 'Create',
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.white,
@@ -115,7 +171,7 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
         ),
       ),
       title: Text(
-        'New Inventory Count',
+        widget.isEditMode ? 'Edit Inventory Count' : 'New Inventory Count',
         style: TossTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.w700,
           color: TossColors.gray900,
@@ -297,15 +353,30 @@ class _NewInventoryCountPageState extends ConsumerState<NewInventoryCountPage> {
     }).toList();
   }
 
-  void _onCreate() {
-    // TODO: Implement create inventory count API call
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Inventory count "${_titleController.text}" created'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _onSubmit() {
+    if (widget.isEditMode) {
+      // Return the edited data to the previous page
+      Navigator.pop(
+        context,
+        InventoryCountEditResult(
+          title: _titleController.text.trim(),
+          locationId: _selectedLocationId,
+          locationName: _selectedLocationName,
+          memo: _memoController.text.trim().isEmpty
+              ? null
+              : _memoController.text.trim(),
+        ),
+      );
+    } else {
+      // TODO: Implement create inventory count API call
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Inventory count "${_titleController.text}" created'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
 

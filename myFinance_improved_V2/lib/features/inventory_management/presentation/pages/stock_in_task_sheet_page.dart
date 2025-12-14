@@ -1,5 +1,5 @@
-// Presentation Page: Task Sheet Detail
-// Page for counting inventory items in a task sheet
+// Presentation Page: Stock In Task Sheet Detail
+// Page for counting stock in items in a task sheet (with rejected quantity support)
 
 import 'dart:async';
 
@@ -15,8 +15,8 @@ import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
 
-/// Result returned when exiting the task sheet detail page
-class TaskSheetResult {
+/// Result returned when exiting the stock in task sheet page
+class StockInTaskSheetResult {
   final bool isCompleted;
   final bool isDraft;
   final int itemsCount;
@@ -25,7 +25,7 @@ class TaskSheetResult {
   final Map<String, int> countedQuantities;
   final Map<String, int> rejectedQuantities;
 
-  const TaskSheetResult({
+  const StockInTaskSheetResult({
     this.isCompleted = false,
     this.isDraft = false,
     this.itemsCount = 0,
@@ -36,14 +36,14 @@ class TaskSheetResult {
   });
 }
 
-/// Task Sheet Detail Page for counting inventory items
-class TaskSheetDetailPage extends ConsumerStatefulWidget {
+/// Stock In Task Sheet Page for counting items with rejected quantity support
+class StockInTaskSheetPage extends ConsumerStatefulWidget {
   final String taskSheetId;
   final String taskSheetName;
   final Map<String, int> initialCountedQuantities;
   final Map<String, int> initialRejectedQuantities;
 
-  const TaskSheetDetailPage({
+  const StockInTaskSheetPage({
     super.key,
     required this.taskSheetId,
     required this.taskSheetName,
@@ -52,11 +52,11 @@ class TaskSheetDetailPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TaskSheetDetailPage> createState() =>
-      _TaskSheetDetailPageState();
+  ConsumerState<StockInTaskSheetPage> createState() =>
+      _StockInTaskSheetPageState();
 }
 
-class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
+class _StockInTaskSheetPageState extends ConsumerState<StockInTaskSheetPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _searchDebounceTimer;
@@ -79,6 +79,7 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
     super.initState();
     // Initialize counted quantities from passed data
     _countedQuantities = Map<String, int>.from(widget.initialCountedQuantities);
+    // Initialize rejected quantities from passed data
     _rejectedQuantities = Map<String, int>.from(widget.initialRejectedQuantities);
     // Initialize with all products
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -155,9 +156,9 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
     }).toList();
   }
 
-  void _setQuantity(String productId, int quantity, {int rejected = 0}) {
+  void _setQuantities(String productId, int counted, int rejected) {
     setState(() {
-      _countedQuantities[productId] = quantity;
+      _countedQuantities[productId] = counted;
       _rejectedQuantities[productId] = rejected;
     });
   }
@@ -172,8 +173,8 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
         product: product,
         initialQuantity: currentQty,
         initialRejected: currentRejected,
-        onSubmit: (quantity, rejected) {
-          _setQuantity(product.id, quantity, rejected: rejected);
+        onSubmit: (counted, rejected) {
+          _setQuantities(product.id, counted, rejected);
         },
       ),
     );
@@ -183,7 +184,7 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
     // Return result with draft status
     Navigator.pop(
       context,
-      TaskSheetResult(
+      StockInTaskSheetResult(
         isDraft: true,
         itemsCount: _itemsCounted,
         totalQuantity: _totalQuantity,
@@ -195,10 +196,10 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
   }
 
   void _completeCounting() {
-    // Return result with completed status - user can go back and continue counting if needed
+    // Return result with completed status
     Navigator.pop(
       context,
-      TaskSheetResult(
+      StockInTaskSheetResult(
         isCompleted: true,
         itemsCount: _itemsCounted,
         totalQuantity: _totalQuantity,
@@ -340,7 +341,6 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
 
   Widget _buildProductItem(Product product) {
     final countedQty = _countedQuantities[product.id] ?? 0;
-    final rejectedQty = _rejectedQuantities[product.id] ?? 0;
     final hasCount = countedQty > 0;
 
     return GestureDetector(
@@ -409,7 +409,7 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
                 ],
               ),
             ),
-            // Quantity with rejected
+            // Quantity
             GestureDetector(
               onTap: () => _showQuantityInputDialog(product),
               child: Container(
@@ -417,28 +417,13 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
                   horizontal: TossSpacing.space3,
                   vertical: TossSpacing.space2,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$countedQty',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: hasCount ? TossColors.primary : TossColors.gray400,
-                        fontSize: 18,
-                      ),
-                    ),
-                    if (rejectedQty > 0)
-                      Text(
-                        '-$rejectedQty',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.error,
-                          fontSize: 18,
-                        ),
-                      ),
-                  ],
+                child: Text(
+                  '$countedQty',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: hasCount ? TossColors.primary : TossColors.gray400,
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ),
@@ -507,8 +492,7 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
                   itemBuilder: (context, index) {
                     final product = countedProducts[index];
                     final qty = _countedQuantities[product.id] ?? 0;
-                    final rejected = _rejectedQuantities[product.id] ?? 0;
-                    return _buildCountedItemRow(product, qty, rejected);
+                    return _buildCountedItemRow(product, qty);
                   },
                 ),
               ),
@@ -575,7 +559,7 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
     );
   }
 
-  Widget _buildCountedItemRow(Product product, int quantity, int rejected) {
+  Widget _buildCountedItemRow(Product product, int quantity) {
     return GestureDetector(
       onTap: () => _showQuantityInputDialog(product),
       child: Container(
@@ -633,27 +617,13 @@ class _TaskSheetDetailPageState extends ConsumerState<TaskSheetDetailPage> {
                 ],
               ),
             ),
-            // Quantity with rejected
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$quantity',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.primary,
-                  ),
-                ),
-                if (rejected > 0)
-                  Text(
-                    '-$rejected',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.error,
-                    ),
-                  ),
-              ],
+            // Quantity only (no edit icon)
+            Text(
+              '$quantity',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.primary,
+              ),
             ),
           ],
         ),
@@ -667,7 +637,7 @@ class _StockInQuantityDialog extends StatefulWidget {
   final Product product;
   final int initialQuantity;
   final int initialRejected;
-  final void Function(int quantity, int rejected) onSubmit;
+  final void Function(int counted, int rejected) onSubmit;
 
   const _StockInQuantityDialog({
     required this.product,
@@ -690,7 +660,8 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
     super.initState();
     _quantity = widget.initialQuantity;
     _rejected = widget.initialRejected;
-    _showRejected = widget.initialRejected > 0;
+    // Show rejected section if there's already a rejected value
+    _showRejected = widget.initialRejected != 0;
   }
 
   @override
@@ -706,8 +677,9 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Title
             Text(
-              'Enter Count Quantity',
+              'Enter Stock In Quantity',
               style: TossTextStyles.h3.copyWith(
                 fontWeight: FontWeight.w700,
                 color: TossColors.gray900,
@@ -715,17 +687,17 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
+            // Product name
             Text(
               widget.product.name,
               style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
+                color: TossColors.gray500,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            // Product SKU
             Text(
               widget.product.sku,
               style: TossTextStyles.caption.copyWith(
@@ -734,7 +706,7 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            // Main quantity input using TossQuantityStepper
+            // Quantity input using TossQuantityStepper
             TossQuantityStepper(
               initialValue: _quantity,
               minValue: 0,
@@ -752,9 +724,6 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
               onTap: () {
                 setState(() {
                   _showRejected = !_showRejected;
-                  if (!_showRejected) {
-                    _rejected = 0;
-                  }
                 });
               },
               behavior: HitTestBehavior.opaque,
@@ -770,17 +739,17 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
                   const SizedBox(width: 4),
                   Icon(
                     _showRejected
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    color: TossColors.gray400,
                     size: 20,
-                    color: TossColors.gray500,
                   ),
                 ],
               ),
             ),
             // Rejected quantity input (expandable)
             if (_showRejected) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _RejectedQuantityStepper(
                 initialValue: _rejected,
                 minValue: 0,
@@ -792,36 +761,53 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
               ),
             ],
             const SizedBox(height: 24),
+            // Action buttons
             Row(
               children: [
+                // Cancel button
                 Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Cancel',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray600,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Cancel',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.gray700,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
+                // Submit button
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
+                  child: GestureDetector(
+                    onTap: () {
                       widget.onSubmit(_quantity, _rejected);
                       Navigator.pop(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      foregroundColor: TossColors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: TossColors.primary,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Submit',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.white,
+                        ),
+                      ),
                     ),
-                    child: const Text('Submit'),
                   ),
                 ),
               ],
@@ -833,7 +819,7 @@ class _StockInQuantityDialogState extends State<_StockInQuantityDialog> {
   }
 }
 
-/// Custom red-styled quantity stepper for rejected items (same size as TossQuantityStepper)
+/// Rejected quantity stepper with red styling
 class _RejectedQuantityStepper extends StatefulWidget {
   final int initialValue;
   final int minValue;
@@ -851,25 +837,38 @@ class _RejectedQuantityStepper extends StatefulWidget {
 
 class _RejectedQuantityStepperState extends State<_RejectedQuantityStepper> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   late int _quantity;
 
   @override
   void initState() {
     super.initState();
     _quantity = widget.initialValue;
-    _controller = TextEditingController(text: '$_quantity');
+    _controller = TextEditingController(text: '-$_quantity');
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus && _quantity == 0) {
+      _controller.text = '-';
+    } else if (!_focusNode.hasFocus) {
+      _controller.text = '-$_quantity';
+    }
   }
 
   void _increment() {
     setState(() {
       _quantity++;
-      _controller.text = '$_quantity';
+      _controller.text = '-$_quantity';
     });
     widget.onChanged(_quantity);
   }
@@ -878,20 +877,22 @@ class _RejectedQuantityStepperState extends State<_RejectedQuantityStepper> {
     if (_quantity > widget.minValue) {
       setState(() {
         _quantity--;
-        _controller.text = '$_quantity';
+        _controller.text = '-$_quantity';
       });
       widget.onChanged(_quantity);
     }
   }
 
   void _onTextChanged(String value) {
-    if (value.isEmpty) {
+    // Remove the minus sign for parsing
+    final cleanValue = value.replaceAll('-', '');
+    if (cleanValue.isEmpty) {
       setState(() {
         _quantity = 0;
       });
       widget.onChanged(_quantity);
     } else {
-      final parsed = int.tryParse(value);
+      final parsed = int.tryParse(cleanValue);
       if (parsed != null && parsed >= widget.minValue) {
         setState(() {
           _quantity = parsed;
@@ -906,36 +907,20 @@ class _RejectedQuantityStepperState extends State<_RejectedQuantityStepper> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Minus button (red) - same size as TossQuantityStepper
-        GestureDetector(
+        // Minus button
+        _buildQuantityButton(
+          icon: Icons.remove,
           onTap: _decrement,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: TossColors.error,
-                width: 2,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.remove,
-              size: 24,
-              color: TossColors.error,
-            ),
-          ),
         ),
-        // Quantity input - same style as TossQuantityStepper
+        // Quantity input
         Expanded(
           child: TextField(
             controller: _controller,
+            focusNode: _focusNode,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: TossTextStyles.h2.copyWith(
-              color: TossColors.error,
+              color: TossColors.loss,
             ),
             decoration: const InputDecoration(
               border: InputBorder.none,
@@ -946,29 +931,39 @@ class _RejectedQuantityStepperState extends State<_RejectedQuantityStepper> {
             onChanged: _onTextChanged,
           ),
         ),
-        // Plus button (red) - same size as TossQuantityStepper
-        GestureDetector(
+        // Plus button
+        _buildQuantityButton(
+          icon: Icons.add,
           onTap: _increment,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: TossColors.error,
-                width: 2,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.add,
-              size: 24,
-              color: TossColors.error,
-            ),
-          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: TossColors.loss,
+            width: 2,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          icon,
+          size: 24,
+          color: TossColors.loss,
+        ),
+      ),
     );
   }
 }

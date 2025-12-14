@@ -1,5 +1,5 @@
-// Presentation Page: Inventory Count Detail
-// Page for viewing and managing inventory count session details
+// Presentation Page: Stock In Detail
+// Page for viewing and managing stock in record details
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,50 +10,51 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_badge.dart';
-import 'new_inventory_count_page.dart';
-import 'task_sheet_detail_page.dart';
+import 'stock_in_task_sheet_page.dart';
 
-/// Inventory Count Detail Page
-class InventoryCountDetailPage extends ConsumerStatefulWidget {
-  final String countId;
-  final String title;
+/// Stock In Detail Page
+class StockInDetailPage extends ConsumerStatefulWidget {
+  final String stockInId;
+  final String shipmentCode;
   final String location;
   final DateTime startedAt;
   final String status;
+  final int arrivalPercentage;
   final String? memo;
 
-  const InventoryCountDetailPage({
+  const StockInDetailPage({
     super.key,
-    required this.countId,
-    required this.title,
+    required this.stockInId,
+    required this.shipmentCode,
     required this.location,
     required this.startedAt,
     required this.status,
+    required this.arrivalPercentage,
     this.memo,
   });
 
   @override
-  ConsumerState<InventoryCountDetailPage> createState() =>
-      _InventoryCountDetailPageState();
+  ConsumerState<StockInDetailPage> createState() => _StockInDetailPageState();
 }
 
-class _InventoryCountDetailPageState
-    extends ConsumerState<InventoryCountDetailPage> {
+class _StockInDetailPageState extends ConsumerState<StockInDetailPage> {
   // Mock task sheets data
   final List<_TaskSheet> _taskSheets = [];
 
   // Editable state variables
-  late String _title;
+  late String _shipmentCode;
   late String _location;
   String? _locationId;
   String? _memo;
+  late int _arrivalPercentage;
 
   @override
   void initState() {
     super.initState();
-    _title = widget.title;
+    _shipmentCode = widget.shipmentCode;
     _location = widget.location;
     _memo = widget.memo;
+    _arrivalPercentage = widget.arrivalPercentage;
   }
 
   @override
@@ -93,7 +94,7 @@ class _InventoryCountDetailPageState
         ),
       ),
       title: Text(
-        'Count Details',
+        'Stock In Details',
         style: TossTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.w700,
           color: TossColors.gray900,
@@ -122,10 +123,10 @@ class _InventoryCountDetailPageState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Title
+          // Title (Shipment Code)
           Expanded(
             child: Text(
-              _title,
+              _shipmentCode,
               style: TossTextStyles.titleLarge.copyWith(
                 fontWeight: FontWeight.w700,
                 color: TossColors.gray900,
@@ -167,10 +168,10 @@ class _InventoryCountDetailPageState
             child: _buildStatusBadge(),
           ),
           const SizedBox(height: TossSpacing.space3),
-          // Started row
+          // Arrival row
           _buildDetailRow(
-            label: 'Started',
-            value: _formatDateTime(widget.startedAt),
+            label: 'Arrival',
+            value: '$_arrivalPercentage%',
           ),
           const SizedBox(height: TossSpacing.space3),
           // Location row
@@ -179,15 +180,14 @@ class _InventoryCountDetailPageState
             value: _location,
           ),
           const SizedBox(height: TossSpacing.space3),
-          // Items row
+          // Started row
           _buildDetailRow(
-            label: 'Items',
-            value: 'All items',
+            label: 'Started',
+            value: _formatDateTime(widget.startedAt),
           ),
           const SizedBox(height: TossSpacing.space3),
           // Memo row
-          if (_memo != null && _memo!.isNotEmpty)
-            _buildMemoRow(context),
+          _buildMemoRow(context),
           const SizedBox(height: TossSpacing.space4),
         ],
       ),
@@ -227,8 +227,10 @@ class _InventoryCountDetailPageState
   }
 
   Widget _buildMemoRow(BuildContext context) {
+    final hasMemo = _memo != null && _memo!.isNotEmpty;
+
     return GestureDetector(
-      onTap: () => _showFullMemo(context),
+      onTap: hasMemo ? () => _showFullMemo(context) : null,
       behavior: HitTestBehavior.opaque,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,20 +246,22 @@ class _InventoryCountDetailPageState
           ),
           Expanded(
             child: Text(
-              _memo!,
+              hasMemo ? _memo! : '-',
               style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
+                color: hasMemo ? TossColors.gray900 : TossColors.gray400,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: TossSpacing.space2),
-          const Icon(
-            Icons.chevron_right,
-            color: TossColors.gray400,
-            size: 20,
-          ),
+          if (hasMemo) ...[
+            const SizedBox(width: TossSpacing.space2),
+            const Icon(
+              Icons.chevron_right,
+              color: TossColors.gray400,
+              size: 20,
+            ),
+          ],
         ],
       ),
     );
@@ -371,7 +375,7 @@ class _InventoryCountDetailPageState
       ),
       child: Center(
         child: Text(
-          'Add a task sheet to start your inventory count.',
+          'Add a task sheet to start your stock in counting session.',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray500,
           ),
@@ -459,7 +463,7 @@ class _InventoryCountDetailPageState
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.person_outline,
                           size: 16,
                           color: TossColors.gray500,
@@ -576,47 +580,22 @@ class _InventoryCountDetailPageState
     Navigator.of(context).pop();
   }
 
-  void _onEdit() async {
-    final result = await Navigator.push<InventoryCountEditResult>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NewInventoryCountPage(
-          isEditMode: true,
-          countId: widget.countId,
-          initialTitle: _title,
-          initialLocationId: _locationId,
-          initialLocationName: _location,
-          initialMemo: _memo,
-        ),
+  void _onEdit() {
+    // TODO: Navigate to edit stock in page
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Edit stock in record'),
+        duration: Duration(seconds: 2),
       ),
     );
-
-    if (result != null && mounted) {
-      setState(() {
-        _title = result.title;
-        if (result.locationName != null) {
-          _location = result.locationName!;
-        }
-        _locationId = result.locationId;
-        _memo = result.memo;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Inventory count updated'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   void _onDelete() {
-    // TODO: Implement delete inventory count
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Inventory Count'),
-        content: const Text('Are you sure you want to delete this inventory count?'),
+        title: const Text('Delete Stock In Record'),
+        content: const Text('Are you sure you want to delete this stock in record?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -628,7 +607,7 @@ class _InventoryCountDetailPageState
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Inventory count deleted'),
+                  content: Text('Stock in record deleted'),
                   duration: Duration(seconds: 2),
                 ),
               );
@@ -777,14 +756,14 @@ class _InventoryCountDetailPageState
   }
 
   void _onTaskSheetTap(_TaskSheet taskSheet) async {
-    final result = await Navigator.push<TaskSheetResult>(
+    final result = await Navigator.push<StockInTaskSheetResult>(
       context,
       MaterialPageRoute(
-        builder: (context) => TaskSheetDetailPage(
+        builder: (context) => StockInTaskSheetPage(
           taskSheetId: taskSheet.id,
           taskSheetName: taskSheet.name,
           initialCountedQuantities: taskSheet.countedQuantities,
-          initialRejectedQuantities: const {},
+          initialRejectedQuantities: taskSheet.rejectedQuantities,
         ),
       ),
     );
@@ -812,11 +791,13 @@ class _InventoryCountDetailPageState
             name: taskSheet.name,
             itemsCount: result.itemsCount,
             quantity: result.totalQuantity,
+            rejected: result.totalRejected,
             status: newStatus,
             assignee: taskSheet.assignee,
             startedAt: taskSheet.startedAt,
             completedAt: completedAt,
             countedQuantities: Map<String, int>.from(result.countedQuantities),
+            rejectedQuantities: Map<String, int>.from(result.rejectedQuantities),
           );
         }
       });
@@ -837,24 +818,30 @@ class _TaskSheet {
   final String name;
   final int itemsCount;
   final int quantity;
+  final int rejected;
   final TaskSheetStatus status;
   final String assignee;
   final DateTime startedAt;
   final DateTime? completedAt;
   final Map<String, int>? _countedQuantities;
+  final Map<String, int>? _rejectedQuantities;
 
   // Getter that provides a fallback for null values (handles hot reload issues)
   Map<String, int> get countedQuantities => _countedQuantities ?? const {};
+  Map<String, int> get rejectedQuantities => _rejectedQuantities ?? const {};
 
   _TaskSheet({
     required this.id,
     required this.name,
     required this.itemsCount,
     required this.quantity,
+    this.rejected = 0,
     required this.status,
     required this.assignee,
     required this.startedAt,
     this.completedAt,
     Map<String, int>? countedQuantities,
-  }) : _countedQuantities = countedQuantities ?? const {};
+    Map<String, int>? rejectedQuantities,
+  })  : _countedQuantities = countedQuantities ?? const {},
+        _rejectedQuantities = rejectedQuantities ?? const {};
 }

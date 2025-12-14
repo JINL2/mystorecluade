@@ -14,9 +14,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/toss/toss_icon_button.dart';
-import '../../../../shared/widgets/toss/toss_quantity_stepper.dart';
 import '../../domain/entities/product.dart';
-import '../extensions/stock_status_extension.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'product_transactions_page.dart';
@@ -36,7 +34,6 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   bool _hasStockFilter = true;
-  String? _expandedLocationId;
 
   @override
   Widget build(BuildContext context) {
@@ -389,6 +386,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   Widget _buildLocationsSection(Product product) {
     final appState = ref.watch(appStateProvider);
     final stores = _getCompanyStores(appState, product);
+    // Find current store for Move Stock dialog
+    final currentStore = stores.firstWhere(
+      (s) => s.isCurrentStore,
+      orElse: () => stores.first,
+    );
+
+    // Filter stores based on toggle
+    final filteredStores = _hasStockFilter
+        ? stores.where((s) => s.stock > 0).toList()
+        : stores;
 
     return Column(
       children: [
@@ -396,15 +403,17 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
           child: Column(
             children: [
-              // Section header
+              // Section header - "Move Stock" with toggle
               Padding(
                 padding: const EdgeInsets.only(
-                    top: TossSpacing.space6, bottom: TossSpacing.space3),
+                  top: TossSpacing.space6,
+                  bottom: TossSpacing.space3,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${stores.length} locations',
+                      'Move Stock',
                       style: TossTextStyles.titleLarge.copyWith(
                         color: TossColors.gray900,
                       ),
@@ -433,11 +442,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   ],
                 ),
               ),
-              // Location rows
-              ...(_hasStockFilter
-                      ? stores.where((l) => l.stock > 0)
-                      : stores)
-                  .map((location) => _buildLocationRow(location, product)),
+              // Store rows
+              ...filteredStores.map((store) => _buildStoreRow(store, product, stores)),
             ],
           ),
         ),
@@ -445,6 +451,111 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         _buildRecentTransactionsButton(product),
         const SizedBox(height: TossSpacing.space4),
       ],
+    );
+  }
+
+  Widget _buildToggle(bool isOn) {
+    return Container(
+      width: 34,
+      height: 20,
+      decoration: BoxDecoration(
+        color: isOn ? TossColors.primary : TossColors.gray200,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      padding: const EdgeInsets.all(2),
+      alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: 14,
+        height: 14,
+        decoration: const BoxDecoration(
+          color: TossColors.white,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoreRow(StoreLocation store, Product product, List<StoreLocation> allStores) {
+    return GestureDetector(
+      onTap: () => _showMoveStockDialog(context, product, store, allStores),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left side - store icon and name
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.store_outlined,
+                    size: 18,
+                    color: TossColors.gray900,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  // Store name with "This store" badge
+                  Flexible(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: store.name,
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: TossColors.gray900,
+                            ),
+                          ),
+                          if (store.isCurrentStore)
+                            TextSpan(
+                              text: ' · This store',
+                              style: TossTextStyles.bodySmall.copyWith(
+                                fontWeight: FontWeight.w400,
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Right side - stock badge and chevron
+            Row(
+              children: [
+                Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: store.stock > 0
+                        ? TossColors.primarySurface
+                        : TossColors.gray100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${store.stock}',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: store.stock > 0
+                          ? TossColors.primary
+                          : TossColors.gray400,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: TossColors.gray500,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -508,230 +619,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         isCurrentStore: isCurrentStore,
       );
     }).toList();
-  }
-
-  Widget _buildToggle(bool isOn) {
-    return Container(
-      width: 34,
-      height: 20,
-      decoration: BoxDecoration(
-        color: isOn ? TossColors.primary : TossColors.gray200,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      padding: const EdgeInsets.all(2),
-      alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        width: 14,
-        height: 14,
-        decoration: const BoxDecoration(
-          color: TossColors.white,
-          shape: BoxShape.circle,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLocationRow(StoreLocation location, Product product) {
-    final isExpanded = _expandedLocationId == location.id;
-    final appState = ref.watch(appStateProvider);
-    final allStores = _getCompanyStores(appState, product);
-
-    return Column(
-      children: [
-        // Main row - store info
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _expandedLocationId = isExpanded ? null : location.id;
-            });
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Left side - store icon (animated) and name
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Animated store icon - slides out when expanded
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        width: isExpanded ? 0 : 18,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 150),
-                          opacity: isExpanded ? 0 : 1,
-                          child: Icon(
-                            Icons.store_outlined,
-                            size: 18,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: isExpanded ? 0 : TossSpacing.space2,
-                      ),
-                      // Store name with "This store" badge
-                      Flexible(
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: location.name,
-                                style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: TossColors.gray900,
-                                ),
-                              ),
-                              if (location.isCurrentStore)
-                                TextSpan(
-                                  text: ' · This store',
-                                  style: TossTextStyles.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    color: TossColors.gray600,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Right side - stock badge and chevron
-                Row(
-                  children: [
-                    Container(
-                      height: 28,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: TossColors.primarySurface,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${location.stock}',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Animated chevron - rotates when expanded
-                    AnimatedRotation(
-                      duration: const Duration(milliseconds: 200),
-                      turns: isExpanded ? 0.25 : 0,
-                      child: Icon(
-                        Icons.chevron_right,
-                        size: 18,
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        // Expandable action items
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 200),
-          crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          firstChild: const SizedBox.shrink(),
-          secondChild: Column(
-            children: [
-              _buildActionRow(
-                icon: Icons.download_outlined,
-                label: 'Record Stock In',
-                onTap: () {
-                  setState(() {
-                    _expandedLocationId = null;
-                  });
-                  _showStockInDialog(context, product, location);
-                },
-              ),
-              _buildActionRow(
-                icon: Icons.swap_horiz,
-                label: 'Move Stock',
-                onTap: () {
-                  setState(() {
-                    _expandedLocationId = null;
-                  });
-                  _showMoveStockDialog(context, product, location, allStores);
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionRow({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 48),
-        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: TossColors.gray600,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Text(
-                  label,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ],
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: TossColors.gray500,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showStockInDialog(BuildContext context, Product product, StoreLocation location) {
-    showDialog(
-      context: context,
-      builder: (context) => _StockInDialog(
-        productName: product.name,
-        currentStock: location.stock,
-        onSubmit: (quantity) {
-          // TODO: Implement stock in API call
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Added $quantity units to ${location.name}'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        },
-      ),
-    );
   }
 
   void _showMoveStockDialog(
@@ -978,118 +865,5 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         }
       }
     }
-  }
-}
-
-/// Stock In Dialog Widget
-class _StockInDialog extends StatefulWidget {
-  final String productName;
-  final int currentStock;
-  final void Function(int quantity) onSubmit;
-
-  const _StockInDialog({
-    required this.productName,
-    required this.currentStock,
-    required this.onSubmit,
-  });
-
-  @override
-  State<_StockInDialog> createState() => _StockInDialogState();
-}
-
-class _StockInDialogState extends State<_StockInDialog> {
-  int _quantity = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Title
-            Text(
-              'Enter Stock In Quantity',
-              style: TossTextStyles.titleLarge.copyWith(
-                color: TossColors.gray900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Product name
-            Text(
-              widget.productName,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Quantity stepper
-            TossQuantityStepper(
-              initialValue: 0,
-              previousValue: widget.currentStock,
-              onChanged: (value) {
-                setState(() {
-                  _quantity = value;
-                });
-              },
-            ),
-            const SizedBox(height: 24),
-            // Action buttons
-            Row(
-              children: [
-                // Cancel button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Submit button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _quantity > 0 ? () => widget.onSubmit(_quantity) : null,
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: _quantity > 0 ? TossColors.primary : TossColors.gray300,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Submit',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
