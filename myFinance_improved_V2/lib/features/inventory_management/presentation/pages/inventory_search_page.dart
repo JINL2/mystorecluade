@@ -4,14 +4,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/providers/app_state.dart';
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
+import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/value_objects/pagination_params.dart';
+import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/inventory_product_card.dart';
+import '../widgets/move_stock_dialog.dart';
 
 /// Inventory Search Page
 class InventorySearchPage extends ConsumerStatefulWidget {
@@ -29,6 +36,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
   List<Product> _searchResults = [];
   bool _isSearching = false;
   String _searchQuery = '';
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
@@ -59,7 +67,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
     });
   }
 
-  void _performSearch(String query) {
+  Future<void> _performSearch(String query) async {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -68,28 +76,40 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
       return;
     }
 
-    final pageState = ref.read(inventoryPageProvider);
-    final allProducts = pageState.products;
-
-    final results = allProducts.where((product) {
-      final nameLower = product.name.toLowerCase();
-      final skuLower = product.sku.toLowerCase();
-      final queryLower = query.toLowerCase();
-
-      return nameLower.contains(queryLower) || skuLower.contains(queryLower);
-    }).toList();
-
     setState(() {
-      _searchResults = results;
-      _isSearching = false;
+      _isSearching = true;
     });
+
+    try {
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(inventoryRepositoryProvider);
+
+      final result = await repository.getProducts(
+        companyId: appState.companyChoosen,
+        storeId: appState.storeChoosen,
+        pagination: const PaginationParams(page: 1, limit: 100),
+        filter: ProductFilter(searchQuery: query),
+      );
+
+      if (mounted) {
+        setState(() {
+          _searchResults = result?.products ?? [];
+          _currencySymbol = result?.currency.symbol ?? '\$';
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _searchResults = [];
+          _isSearching = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final pageState = ref.watch(inventoryPageProvider);
-    final currencySymbol = pageState.currency?.symbol ?? '\$';
-
     return Scaffold(
       backgroundColor: TossColors.white,
       body: SafeArea(
@@ -97,7 +117,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
           children: [
             _buildSearchHeader(),
             Expanded(
-              child: _buildSearchResults(currencySymbol),
+              child: _buildSearchResults(_currencySymbol),
             ),
           ],
         ),
@@ -189,9 +209,140 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
         return InventoryProductCard(
           product: product,
           currencySymbol: currencySymbol,
+          onTap: () {
+            // Add product to provider so ProductDetailPage can find it
+            ref.read(inventoryPageProvider.notifier).addProductIfNotExists(product);
+            context.push('/inventoryManagement/product/${product.id}');
+          },
+          onTransferTap: () => _showMoveStockDialog(product),
         );
       },
     );
+  }
+
+  void _showMoveStockDialog(Product product) {
+    final appState = ref.read(appStateProvider);
+    final allStores = _getCompanyStores(appState, product);
+
+    // Find current store as the default "from" location
+    final currentStoreId = appState.storeChoosen;
+    StoreLocation? fromLocation;
+    for (final store in allStores) {
+      if (store.id == currentStoreId) {
+        fromLocation = store;
+        break;
+      }
+    }
+    fromLocation ??= allStores.isNotEmpty ? allStores.first : null;
+
+    if (fromLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No stores available'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    MoveStockDialog.show(
+      context: context,
+      productName: product.name,
+      productId: product.id,
+      fromLocation: fromLocation,
+      allStores: allStores,
+      onSubmit: (fromStore, toStore, quantity) async {
+        Navigator.pop(context);
+
+        try {
+          final repository = ref.read(inventoryRepositoryProvider);
+          final result = await repository.moveProduct(
+            companyId: appState.companyChoosen,
+            fromStoreId: fromStore.id,
+            toStoreId: toStore.id,
+            productId: product.id,
+            quantity: quantity,
+            updatedBy: appState.userId,
+            notes: 'Move ${product.sku}',
+          );
+
+          if (result != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
+                backgroundColor: TossColors.success,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            // Refresh search results
+            _performSearch(_searchQuery);
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to move stock: $e'),
+                backgroundColor: TossColors.error,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+    );
+  }
+
+  List<StoreLocation> _getCompanyStores(AppState appState, Product product) {
+    final currentCompanyId = appState.companyChoosen;
+    final currentStoreId = appState.storeChoosen;
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
+
+    // Find current company using safe lookup
+    Map<String, dynamic>? company;
+    for (final c in companies) {
+      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
+        company = c;
+        break;
+      }
+    }
+
+    if (company == null) {
+      // Fallback: return single location with product's on-hand quantity
+      return [
+        StoreLocation(
+          id: currentStoreId,
+          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          stock: product.onHand,
+          isCurrentStore: true,
+        ),
+      ];
+    }
+
+    final storesList = company['stores'] as List<dynamic>? ?? [];
+
+    if (storesList.isEmpty) {
+      // No stores found, return single location
+      return [
+        StoreLocation(
+          id: currentStoreId,
+          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          stock: product.onHand,
+          isCurrentStore: true,
+        ),
+      ];
+    }
+
+    // Convert stores list to StoreLocation list
+    return storesList.map((store) {
+      final storeMap = store as Map<String, dynamic>;
+      final storeId = storeMap['store_id'] as String? ?? '';
+      return StoreLocation(
+        id: storeId,
+        name: storeMap['store_name'] as String? ?? 'Unknown Store',
+        stock: product.onHand,
+        isCurrentStore: storeId == currentStoreId,
+      );
+    }).toList();
   }
 
   Widget _buildEmptyState({

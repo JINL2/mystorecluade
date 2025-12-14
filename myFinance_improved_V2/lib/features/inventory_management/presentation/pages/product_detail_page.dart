@@ -37,6 +37,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    print('🔴 [ProductDetailPage] build called - productId: ${widget.productId}');
     final productsState = ref.watch(inventoryPageProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
@@ -630,6 +632,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     MoveStockDialog.show(
       context: context,
       productName: product.name,
+      productId: product.id,
       fromLocation: fromLocation,
       allStores: allStores,
       onSubmit: (fromStore, toStore, quantity) {
@@ -657,6 +660,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         // Button
         GestureDetector(
           onTap: () {
+            // ignore: avoid_print
+            print('🔴 [ProductDetail] Recent transactions tapped - navigating to ProductTransactionsPage');
+            // ignore: avoid_print
+            print('🔴 [ProductDetail] Product ID: ${product.id}, Name: ${product.name}');
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => ProductTransactionsPage(product: product),
@@ -732,7 +739,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                _showDeleteConfirmation(context, ref, product);
+                _showDeleteConfirmation(product);
               },
             ),
             const SizedBox(height: TossSpacing.space2),

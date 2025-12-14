@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
+import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/image_file.dart';
 import '../models/inventory_metadata_model.dart';
 import '../models/product_model.dart';
@@ -73,7 +74,9 @@ class InventoryRemoteDataSource {
     String? stockStatus,
   }) async {
     try {
-      // Build params - use get_inventory_page_v2 with timezone support
+      // Build params - use get_inventory_page_v3 with timezone support
+      // Note: categoryId, brandId, stockStatus are not supported by RPC
+      // Filtering is handled client-side in the presentation layer
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
@@ -484,6 +487,159 @@ class InventoryRemoteDataSource {
     }
   }
 
+  /// Move product between stores
+  /// Calls inventory_move_product_v3 RPC
+  Future<MoveProductResult> moveProduct({
+    required String companyId,
+    required String fromStoreId,
+    required String toStoreId,
+    required String productId,
+    required int quantity,
+    required String updatedBy,
+    required String notes,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_from_store_id': fromStoreId,
+        'p_to_store_id': toStoreId,
+        'p_items': [
+          {
+            'product_id': productId,
+            'quantity': quantity,
+          },
+        ],
+        'p_updated_by': updatedBy,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_notes': notes,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_move_product_v3', params: params)
+          .single();
+
+      if (response['success'] == true) {
+        return MoveProductResult.fromJson(response['data'] as Map<String, dynamic>);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to move product',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to move product: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Get product stock by stores
+  /// Calls inventory_product_stock_stores RPC
+  Future<ProductStockStoresResult> getProductStockByStores({
+    required String companyId,
+    required List<String> productIds,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_product_ids': productIds,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_product_stock_stores', params: params)
+          .single();
+
+      if (response['success'] == true) {
+        return ProductStockStoresResult.fromJson(response['data'] as Map<String, dynamic>);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to get product stock',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get product stock by stores: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Get product history
+  /// Calls inventory_product_history RPC
+  Future<ProductHistoryResult> getProductHistory({
+    required String companyId,
+    required String storeId,
+    required String productId,
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_product_id': productId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_page': page,
+        'p_page_size': pageSize,
+      };
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getProductHistory params: $params');
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_product_history', params: params)
+          .single();
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getProductHistory response: $response');
+
+      if (response['success'] == true) {
+        return ProductHistoryResult.fromJson(response);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to get product history',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] PostgrestException: ${e.message}');
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] Exception: $e');
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get product history: $e',
+        details: e,
+      );
+    }
+  }
+
   /// Get correct MIME type for image extension
   /// Handles jpg -> jpeg conversion for standard compliance
   String _getMimeType(String extension) {
@@ -651,6 +807,200 @@ class EditValidations {
       productExists: json['product_exists'] as bool? ?? false,
       nameAvailable: json['name_available'] as bool? ?? true,
       skuAvailable: json['sku_available'] as bool? ?? true,
+    );
+  }
+}
+
+/// Result from inventory_product_stock_stores RPC
+class ProductStockStoresResult {
+  final List<ProductStockInfo> products;
+  final ProductStockSummary summary;
+
+  ProductStockStoresResult({
+    required this.products,
+    required this.summary,
+  });
+
+  factory ProductStockStoresResult.fromJson(Map<String, dynamic> json) {
+    final productsJson = json['products'] as List<dynamic>? ?? [];
+    return ProductStockStoresResult(
+      products: productsJson
+          .map((p) => ProductStockInfo.fromJson(p as Map<String, dynamic>))
+          .toList(),
+      summary: ProductStockSummary.fromJson(
+        json['summary'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+}
+
+/// Product stock info with stores
+class ProductStockInfo {
+  final String productId;
+  final String productName;
+  final String sku;
+  final int totalQuantity;
+  final int storesWithStock;
+  final List<StoreStockInfo> stores;
+
+  ProductStockInfo({
+    required this.productId,
+    required this.productName,
+    required this.sku,
+    required this.totalQuantity,
+    required this.storesWithStock,
+    required this.stores,
+  });
+
+  factory ProductStockInfo.fromJson(Map<String, dynamic> json) {
+    final storesJson = json['stores'] as List<dynamic>? ?? [];
+    return ProductStockInfo(
+      productId: json['product_id'] as String? ?? '',
+      productName: json['product_name'] as String? ?? '',
+      sku: json['sku'] as String? ?? '',
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      storesWithStock: (json['stores_with_stock'] as num?)?.toInt() ?? 0,
+      stores: storesJson
+          .map((s) => StoreStockInfo.fromJson(s as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Store stock info
+class StoreStockInfo {
+  final String storeId;
+  final String storeName;
+  final String storeCode;
+  final int quantityOnHand;
+  final int quantityAvailable;
+  final int quantityReserved;
+
+  StoreStockInfo({
+    required this.storeId,
+    required this.storeName,
+    required this.storeCode,
+    required this.quantityOnHand,
+    required this.quantityAvailable,
+    required this.quantityReserved,
+  });
+
+  factory StoreStockInfo.fromJson(Map<String, dynamic> json) {
+    return StoreStockInfo(
+      storeId: json['store_id'] as String? ?? '',
+      storeName: json['store_name'] as String? ?? '',
+      storeCode: json['store_code'] as String? ?? '',
+      quantityOnHand: (json['quantity_on_hand'] as num?)?.toInt() ?? 0,
+      quantityAvailable: (json['quantity_available'] as num?)?.toInt() ?? 0,
+      quantityReserved: (json['quantity_reserved'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Summary of product stock query
+class ProductStockSummary {
+  final int totalProductsRequested;
+  final int totalProductsFound;
+  final int totalStores;
+  final int grandTotalQuantity;
+
+  ProductStockSummary({
+    required this.totalProductsRequested,
+    required this.totalProductsFound,
+    required this.totalStores,
+    required this.grandTotalQuantity,
+  });
+
+  factory ProductStockSummary.fromJson(Map<String, dynamic> json) {
+    return ProductStockSummary(
+      totalProductsRequested: (json['total_products_requested'] as num?)?.toInt() ?? 0,
+      totalProductsFound: (json['total_products_found'] as num?)?.toInt() ?? 0,
+      totalStores: (json['total_stores'] as num?)?.toInt() ?? 0,
+      grandTotalQuantity: (json['grand_total_quantity'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Result from inventory_product_history RPC
+class ProductHistoryResult {
+  final List<ProductHistoryItem> data;
+  final int totalCount;
+  final int page;
+  final int pageSize;
+  final int totalPages;
+
+  ProductHistoryResult({
+    required this.data,
+    required this.totalCount,
+    required this.page,
+    required this.pageSize,
+    required this.totalPages,
+  });
+
+  factory ProductHistoryResult.fromJson(Map<String, dynamic> json) {
+    final dataJson = json['data'] as List<dynamic>? ?? [];
+    return ProductHistoryResult(
+      data: dataJson
+          .map((item) => ProductHistoryItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      pageSize: (json['page_size'] as num?)?.toInt() ?? 20,
+      totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Individual history item from product history
+class ProductHistoryItem {
+  final String eventType;
+  final String eventDate;
+  final String localEventDate;
+  final int? quantityBefore;
+  final int? quantityAfter;
+  final int? quantityChange;
+  final double? priceBefore;
+  final double? priceAfter;
+  final String? fromStoreName;
+  final String? toStoreName;
+  final String? referenceNumber;
+  final String? notes;
+  final String? userName;
+  final String? userAvatar;
+
+  ProductHistoryItem({
+    required this.eventType,
+    required this.eventDate,
+    required this.localEventDate,
+    this.quantityBefore,
+    this.quantityAfter,
+    this.quantityChange,
+    this.priceBefore,
+    this.priceAfter,
+    this.fromStoreName,
+    this.toStoreName,
+    this.referenceNumber,
+    this.notes,
+    this.userName,
+    this.userAvatar,
+  });
+
+  factory ProductHistoryItem.fromJson(Map<String, dynamic> json) {
+    return ProductHistoryItem(
+      eventType: json['event_type'] as String? ?? '',
+      eventDate: json['event_date'] as String? ?? '',
+      localEventDate: json['local_event_date'] as String? ?? '',
+      quantityBefore: (json['quantity_before'] as num?)?.toInt(),
+      quantityAfter: (json['quantity_after'] as num?)?.toInt(),
+      quantityChange: (json['quantity_change'] as num?)?.toInt(),
+      priceBefore: (json['price_before'] as num?)?.toDouble(),
+      priceAfter: (json['price_after'] as num?)?.toDouble(),
+      fromStoreName: json['from_store_name'] as String?,
+      toStoreName: json['to_store_name'] as String?,
+      referenceNumber: json['reference_number'] as String?,
+      notes: json['notes'] as String?,
+      userName: json['user_name'] as String?,
+      userAvatar: json['user_avatar'] as String?,
     );
   }
 }

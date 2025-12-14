@@ -2,12 +2,15 @@
 // Reusable dialog for moving stock between stores
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_quantity_stepper.dart';
+import '../../di/inventory_providers.dart';
 
 /// Store location data class for Move Stock Dialog
 class StoreLocation {
@@ -22,11 +25,22 @@ class StoreLocation {
     required this.stock,
     this.isCurrentStore = false,
   });
+
+  /// Create a copy with updated stock
+  StoreLocation copyWith({int? stock}) {
+    return StoreLocation(
+      id: id,
+      name: name,
+      stock: stock ?? this.stock,
+      isCurrentStore: isCurrentStore,
+    );
+  }
 }
 
 /// Move Stock Dialog Widget
-class MoveStockDialog extends StatefulWidget {
+class MoveStockDialog extends ConsumerStatefulWidget {
   final String productName;
+  final String productId;
   final StoreLocation fromLocation;
   final List<StoreLocation> allStores;
   final void Function(StoreLocation from, StoreLocation to, int quantity) onSubmit;
@@ -34,6 +48,7 @@ class MoveStockDialog extends StatefulWidget {
   const MoveStockDialog({
     super.key,
     required this.productName,
+    required this.productId,
     required this.fromLocation,
     required this.allStores,
     required this.onSubmit,
@@ -43,6 +58,7 @@ class MoveStockDialog extends StatefulWidget {
   static Future<void> show({
     required BuildContext context,
     required String productName,
+    required String productId,
     required StoreLocation fromLocation,
     required List<StoreLocation> allStores,
     required void Function(StoreLocation from, StoreLocation to, int quantity) onSubmit,
@@ -51,6 +67,7 @@ class MoveStockDialog extends StatefulWidget {
       context: context,
       builder: (context) => MoveStockDialog(
         productName: productName,
+        productId: productId,
         fromLocation: fromLocation,
         allStores: allStores,
         onSubmit: onSubmit,
@@ -59,24 +76,82 @@ class MoveStockDialog extends StatefulWidget {
   }
 
   @override
-  State<MoveStockDialog> createState() => _MoveStockDialogState();
+  ConsumerState<MoveStockDialog> createState() => _MoveStockDialogState();
 }
 
-class _MoveStockDialogState extends State<MoveStockDialog> {
+class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
   late StoreLocation _fromStore;
   late StoreLocation _toStore;
   int _quantity = 0;
+  bool _isLoading = true;
+  List<StoreLocation> _storesWithRealStock = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize from/to stores
+    // Initialize from/to stores with passed data first
     _fromStore = widget.fromLocation;
 
     // Find a different store for "To" (first store that's not the from store)
     final otherStores =
         widget.allStores.where((s) => s.id != _fromStore.id).toList();
     _toStore = otherStores.isNotEmpty ? otherStores.first : _fromStore;
+    _storesWithRealStock = widget.allStores;
+
+    // Load real stock data from RPC
+    _loadStockData();
+  }
+
+  Future<void> _loadStockData() async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(inventoryRepositoryProvider);
+
+      final result = await repository.getProductStockByStores(
+        companyId: appState.companyChoosen,
+        productIds: [widget.productId],
+      );
+
+      if (result != null && result.products.isNotEmpty && mounted) {
+        final productStock = result.products.first;
+
+        // Update stores with real stock data from RPC
+        final finalStores = widget.allStores.map((store) {
+          try {
+            final storeStock = productStock.stores.firstWhere(
+              (s) => s.storeId == store.id,
+            );
+            return store.copyWith(stock: storeStock.quantityOnHand);
+          } catch (_) {
+            return store;
+          }
+        }).toList();
+
+        setState(() {
+          _storesWithRealStock = finalStores;
+          // Update from/to stores with real stock
+          _fromStore = finalStores.firstWhere(
+            (s) => s.id == _fromStore.id,
+            orElse: () => _fromStore,
+          );
+          _toStore = finalStores.firstWhere(
+            (s) => s.id == _toStore.id,
+            orElse: () => _toStore,
+          );
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _swapStores() {
@@ -91,7 +166,8 @@ class _MoveStockDialogState extends State<MoveStockDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = _quantity > 0 && _fromStore.id != _toStore.id;
+    // Allow any quantity (including negative stock), only require different stores
+    final canSubmit = _quantity != 0 && _fromStore.id != _toStore.id;
 
     return Dialog(
       backgroundColor: TossColors.white,
@@ -164,10 +240,10 @@ class _MoveStockDialogState extends State<MoveStockDialog> {
               onTap: () => _showStorePickerSheet(isFrom: false),
             ),
             const SizedBox(height: 24),
-            // Quantity stepper
+            // Quantity stepper (no max limit - allow negative stock)
             TossQuantityStepper(
               initialValue: 0,
-              maxValue: _fromStore.stock,
+              maxValue: 999999,
               previousValue: _fromStore.stock,
               stockChangeMode: StockChangeMode.subtract,
               onChanged: (value) {
@@ -268,21 +344,30 @@ class _MoveStockDialogState extends State<MoveStockDialog> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Stock badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: TossColors.primarySurface,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${store.stock}',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.primary,
-                      ),
-                    ),
-                  ),
+                  // Stock badge with loading state
+                  _isLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: TossColors.primary,
+                          ),
+                        )
+                      : Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: TossColors.primarySurface,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${store.stock}',
+                            style: TossTextStyles.bodySmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.primary,
+                            ),
+                          ),
+                        ),
                 ],
               ),
             ),
@@ -298,7 +383,8 @@ class _MoveStockDialogState extends State<MoveStockDialog> {
   }
 
   void _showStorePickerSheet({required bool isFrom}) {
-    final availableStores = widget.allStores.where((s) {
+    // Use stores with real stock data
+    final availableStores = _storesWithRealStock.where((s) {
       // If picking "From", exclude current "To" store
       // If picking "To", exclude current "From" store
       return isFrom ? s.id != _toStore.id : s.id != _fromStore.id;

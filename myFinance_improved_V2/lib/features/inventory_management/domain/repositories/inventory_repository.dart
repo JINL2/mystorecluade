@@ -97,6 +97,32 @@ abstract class InventoryRepository {
     required String companyId,
     required List<ImageFile> images,
   });
+
+  /// Move product between stores
+  Future<MoveProductResult?> moveProduct({
+    required String companyId,
+    required String fromStoreId,
+    required String toStoreId,
+    required String productId,
+    required int quantity,
+    required String updatedBy,
+    required String notes,
+  });
+
+  /// Get product stock by stores
+  Future<ProductStockByStoresResult?> getProductStockByStores({
+    required String companyId,
+    required List<String> productIds,
+  });
+
+  /// Get product history
+  Future<ProductHistoryPageResult?> getProductHistory({
+    required String companyId,
+    required String storeId,
+    required String productId,
+    required int page,
+    required int pageSize,
+  });
 }
 
 /// Product Page Result
@@ -128,5 +154,120 @@ class EditCheckResult {
     required this.productExists,
     required this.nameAvailable,
     required this.skuAvailable,
+  });
+}
+
+/// Move Product Result - result from inventory_move_product_v3 RPC
+class MoveProductResult {
+  final String transferId;
+  final String transferNumber;
+  final int itemsCount;
+  final int totalQuantity;
+
+  const MoveProductResult({
+    required this.transferId,
+    required this.transferNumber,
+    required this.itemsCount,
+    required this.totalQuantity,
+  });
+
+  factory MoveProductResult.fromJson(Map<String, dynamic> json) {
+    return MoveProductResult(
+      transferId: json['transfer_id'] as String? ?? '',
+      transferNumber: json['transfer_number'] as String? ?? '',
+      itemsCount: json['items_count'] as int? ?? 0,
+      totalQuantity: json['total_quantity'] as int? ?? 0,
+    );
+  }
+}
+
+/// Product Stock By Stores Result - result from inventory_product_stock_stores RPC
+class ProductStockByStoresResult {
+  final List<ProductStoreStock> products;
+
+  const ProductStockByStoresResult({
+    required this.products,
+  });
+}
+
+/// Product with store-specific stock information
+class ProductStoreStock {
+  final String productId;
+  final String productName;
+  final String sku;
+  final int totalQuantity;
+  final List<StoreStock> stores;
+
+  const ProductStoreStock({
+    required this.productId,
+    required this.productName,
+    required this.sku,
+    required this.totalQuantity,
+    required this.stores,
+  });
+}
+
+/// Store stock information
+class StoreStock {
+  final String storeId;
+  final String storeName;
+  final int quantityOnHand;
+
+  const StoreStock({
+    required this.storeId,
+    required this.storeName,
+    required this.quantityOnHand,
+  });
+}
+
+/// Product History Page Result - paginated history from inventory_product_history RPC
+class ProductHistoryPageResult {
+  final List<ProductHistoryEntry> entries;
+  final int totalCount;
+  final int page;
+  final int pageSize;
+  final int totalPages;
+
+  const ProductHistoryPageResult({
+    required this.entries,
+    required this.totalCount,
+    required this.page,
+    required this.pageSize,
+    required this.totalPages,
+  });
+}
+
+/// Individual product history entry
+class ProductHistoryEntry {
+  final String eventType;
+  final String eventDate;
+  final String localEventDate;
+  final int? quantityBefore;
+  final int? quantityAfter;
+  final int? quantityChange;
+  final double? priceBefore;
+  final double? priceAfter;
+  final String? fromStoreName;
+  final String? toStoreName;
+  final String? referenceNumber;
+  final String? notes;
+  final String? userName;
+  final String? userAvatar;
+
+  const ProductHistoryEntry({
+    required this.eventType,
+    required this.eventDate,
+    required this.localEventDate,
+    this.quantityBefore,
+    this.quantityAfter,
+    this.quantityChange,
+    this.priceBefore,
+    this.priceAfter,
+    this.fromStoreName,
+    this.toStoreName,
+    this.referenceNumber,
+    this.notes,
+    this.userName,
+    this.userAvatar,
   });
 }
