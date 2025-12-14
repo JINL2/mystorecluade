@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/cache/auth_data_cache.dart';
+import '../../../../core/notifications/services/token_manager.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/toss/toss_badge.dart';
+import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../domain/providers/repository_providers.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
 import '../widgets/feature_grid.dart';
@@ -27,15 +35,32 @@ class Homepage extends ConsumerStatefulWidget {
 class _HomepageState extends ConsumerState<Homepage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoggingOut = false;
+  bool _isRefreshing = false;
+  bool _alertShown = false; // Prevent showing alert multiple times per session
+  bool _versionChecked = false; // Prevent checking version multiple times
+  bool _updateDialogShown = false; // Prevent showing update dialog multiple times
 
   @override
   Widget build(BuildContext context) {
+    // 🔒 Check app version FIRST before loading any other data
+    _checkAppVersion();
+
     // Show loading view during logout
     if (_isLoggingOut) {
       return const Scaffold(
         backgroundColor: TossColors.surface,
         body: TossLoadingView(
           message: 'Logging out...',
+        ),
+      );
+    }
+
+    // Show loading view during refresh
+    if (_isRefreshing) {
+      return const Scaffold(
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(
+          message: 'Refreshing...',
         ),
       );
     }
@@ -67,6 +92,9 @@ class _HomepageState extends ConsumerState<Homepage> {
             ),
           );
         }
+
+        // Check and show homepage alert
+        _checkAndShowAlert();
 
         return _buildHomepage();
       },
@@ -239,17 +267,30 @@ class _HomepageState extends ConsumerState<Homepage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Company name (large, on top) - Title Medium: 15px/Bold
-                                Text(
-                                  companyName,
-                                  style: TossTextStyles.bodyLarge.copyWith(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: TossColors.textPrimary,
-                                    height: 1.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                // Company name (large, on top) with subscription badge
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        companyName,
+                                        style: TossTextStyles.bodyLarge.copyWith(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: TossColors.textPrimary,
+                                          height: 1.2,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    // Subscription Badge
+                                    SubscriptionBadge.fromPlanType(
+                                      appState.planType,
+                                      compact: true,
+                                    ),
+                                  ],
                                 ),
 
                                 // Store name (small, on bottom)
@@ -574,42 +615,168 @@ class _HomepageState extends ConsumerState<Homepage> {
     }
   }
 
+  /// Check app version against server and show update dialog if needed
+  ///
+  /// This is called BEFORE loading other homepage data.
+  /// If version doesn't match, shows a non-dismissible dialog and exits app on OK.
+  void _checkAppVersion() {
+    if (_versionChecked) return;
+
+    final versionAsync = ref.read(appVersionCheckProvider);
+
+    versionAsync.whenData((isUpToDate) {
+      if (!isUpToDate && !_updateDialogShown) {
+        _updateDialogShown = true;
+        _versionChecked = true;
+
+        // Show force update dialog after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            TossDialogs.showForceUpdateRequired(
+              context: context,
+              onOkPressed: () async {
+                debugPrint('🔄 Update button pressed - opening App Store...');
+
+                // Try App Store app first, fallback to web App Store
+                const appStoreUrl = 'itms-apps://';
+                const webAppStoreUrl = 'https://apps.apple.com';
+
+                final Uri url = Uri.parse(appStoreUrl);
+                final canLaunch = await canLaunchUrl(url);
+                debugPrint('🔄 canLaunchUrl (itms-apps): $canLaunch');
+
+                if (canLaunch) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                  debugPrint('🔄 App Store opened');
+                } else {
+                  // Fallback for simulator - open web App Store
+                  debugPrint('🔄 Fallback to web App Store...');
+                  final Uri webUrl = Uri.parse(webAppStoreUrl);
+                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                }
+
+                // Exit app after opening store (Android only, iOS ignores this)
+                SystemNavigator.pop();
+              },
+            );
+          }
+        });
+      } else {
+        _versionChecked = true;
+      }
+    });
+  }
+
+  /// Check and show homepage alert if conditions are met
+  ///
+  /// Shows alert only if:
+  /// - is_show = true
+  /// - is_checked = false
+  /// - Alert hasn't been shown in this session
+  void _checkAndShowAlert() {
+    if (_alertShown) return;
+
+    final alertAsync = ref.read(homepageAlertProvider);
+
+    alertAsync.whenData((alert) {
+      // Check conditions: is_show = true AND is_checked = false
+      if (alert.shouldDisplay && !_alertShown) {
+        _alertShown = true;
+
+        // Show dialog after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) => _HomepageAlertDialog(
+                message: alert.content ?? '',
+                onDontShowAgain: (bool isChecked) {
+                  // Call RPC to update is_checked (true = don't show again, false = show again)
+                  _responseHomepageAlert(isChecked);
+                },
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  /// Call homepage_response_alert RPC to update is_checked status
+  Future<void> _responseHomepageAlert(bool isChecked) async {
+    final userId = ref.read(appStateProvider).userId;
+    if (userId.isEmpty) return;
+
+    final repository = ref.read(homepageRepositoryProvider);
+    await repository.responseHomepageAlert(
+      userId: userId,
+      isChecked: isChecked,
+    );
+  }
+
   Future<void> _handleRefresh() async {
     final appStateNotifier = ref.read(appStateProvider.notifier);
+
+    // Show loading view
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+      });
+    }
 
     try {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
+
+      // Reset alert shown flag to allow showing again after refresh
+      _alertShown = false;
+
+      // Invalidate homepage alert cache (6-hour cache)
+      final userId = ref.read(appStateProvider).userId;
+      if (userId.isNotEmpty) {
+        AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
+      }
 
       // Invalidate all homepage providers to refresh data
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       ref.invalidate(quickAccessFeaturesProvider);
       ref.invalidate(revenueProvider);
+      ref.invalidate(homepageAlertProvider);
 
-      // Wait for providers to reload and update AppState
-      await Future.wait([
-        ref.read(userCompaniesProvider.future),
-        ref.read(categoriesWithFeaturesProvider.future),
-      ]);
+      // Invalidate salary-related providers
+      ref.invalidate(userSalaryProvider);
+      ref.invalidate(userShiftStatsProvider);
 
+      // 🔥 Ensure FCM token is registered/refreshed
+      try {
+        await TokenManager().ensureTokenRegistered();
+        debugPrint('🔔 FCM token checked on refresh');
+      } catch (e) {
+        debugPrint('⚠️ FCM token check failed: $e');
+        // Don't fail the refresh if FCM fails
+      }
+
+      // Wait for essential provider to reload (others will load in background)
+      await ref.read(userCompaniesProvider.future);
+
+      // Hide loading view
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Data refreshed successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        setState(() {
+          _isRefreshing = false;
+        });
       }
     } catch (e) {
+      // Hide loading view on error
+      debugPrint('🔴 [Refresh] Error: $e');
       if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to refresh data'),
+            content: Text('Failed to refresh: $e'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -619,6 +786,75 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     }
+  }
+}
+
+/// Homepage Alert Dialog with "Don't show again" checkbox
+class _HomepageAlertDialog extends StatefulWidget {
+  final String message;
+  final void Function(bool dontShow) onDontShowAgain;
+
+  const _HomepageAlertDialog({
+    required this.message,
+    required this.onDontShowAgain,
+  });
+
+  @override
+  State<_HomepageAlertDialog> createState() => _HomepageAlertDialogState();
+}
+
+class _HomepageAlertDialogState extends State<_HomepageAlertDialog> {
+  bool _dontShowAgain = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TossDialog(
+      title: 'Notice',
+      message: widget.message,
+      type: TossDialogType.info,
+      icon: Icons.info_outline,
+      iconColor: TossColors.info,
+      primaryButtonText: 'OK',
+      onPrimaryPressed: () {
+        widget.onDontShowAgain(_dontShowAgain);
+        Navigator.of(context).pop();
+      },
+      customContent: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _dontShowAgain,
+              onChanged: (value) {
+                setState(() {
+                  _dontShowAgain = value ?? false;
+                });
+              },
+              activeColor: TossColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _dontShowAgain = !_dontShowAgain;
+              });
+            },
+            child: Text(
+              "Don't show again",
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

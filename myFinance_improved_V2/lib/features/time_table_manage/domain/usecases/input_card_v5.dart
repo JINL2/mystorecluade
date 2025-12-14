@@ -39,16 +39,14 @@ class InputCardV5 implements UseCase<Map<String, dynamic>, InputCardV5Params> {
       }
     }
 
-    // Validate bonus amount if provided
-    if (params.bonusAmount != null && params.bonusAmount! < 0) {
-      throw ArgumentError('Bonus amount cannot be negative');
-    }
+    // Note: bonusAmount can be negative (when Deduct > Add bonus)
 
     return await _repository.inputCardV5(
       managerId: params.managerId,
       shiftRequestId: params.shiftRequestId,
       confirmStartTime: params.confirmStartTime,
       confirmEndTime: params.confirmEndTime,
+      isProblemSolved: params.isProblemSolved,
       isReportedSolved: params.isReportedSolved,
       bonusAmount: params.bonusAmount,
       managerMemo: params.managerMemo,
@@ -63,7 +61,8 @@ class InputCardV5Params {
   final String shiftRequestId;
   final String? confirmStartTime;  // HH:mm:ss format, null to keep existing
   final String? confirmEndTime;    // HH:mm:ss format, null to keep existing
-  final bool? isReportedSolved;    // null to keep existing (renamed from isProblemSolved)
+  final bool? isProblemSolved;     // null to keep existing (for Late/Overtime time confirmation)
+  final bool? isReportedSolved;    // null to keep existing (for Report approval/rejection)
   final double? bonusAmount;       // null to keep existing
   final String? managerMemo;       // null to keep existing (new in v5)
   final String timezone;
@@ -73,6 +72,7 @@ class InputCardV5Params {
     required this.shiftRequestId,
     this.confirmStartTime,
     this.confirmEndTime,
+    this.isProblemSolved,
     this.isReportedSolved,
     this.bonusAmount,
     this.managerMemo,
@@ -87,6 +87,7 @@ class InputCardV5Params {
         other.shiftRequestId == shiftRequestId &&
         other.confirmStartTime == confirmStartTime &&
         other.confirmEndTime == confirmEndTime &&
+        other.isProblemSolved == isProblemSolved &&
         other.isReportedSolved == isReportedSolved &&
         other.bonusAmount == bonusAmount &&
         other.managerMemo == managerMemo &&
@@ -99,6 +100,7 @@ class InputCardV5Params {
       shiftRequestId.hashCode ^
       confirmStartTime.hashCode ^
       confirmEndTime.hashCode ^
+      isProblemSolved.hashCode ^
       isReportedSolved.hashCode ^
       bonusAmount.hashCode ^
       managerMemo.hashCode ^

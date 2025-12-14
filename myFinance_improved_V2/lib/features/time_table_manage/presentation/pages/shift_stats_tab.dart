@@ -14,6 +14,7 @@ import '../providers/states/time_table_state.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
+import 'employee_detail_page.dart';
 import 'reliability_rankings_page.dart';
 
 /// Period options for Store Health section
@@ -173,6 +174,19 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   ),
                   // This list is used for "See All" - pass company employees
                   allEmployeesList: companyEmployeesList,
+                  // Navigate to employee detail page when tapped
+                  onEmployeeTap: (employee) {
+                    HapticFeedback.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => EmployeeDetailPage(
+                          employee: employee,
+                          storeId: storeId,
+                        ),
+                      ),
+                    );
+                  },
                   // Navigate to new page with current tab info
                   onSeeAllTapWithTab: (selectedTab) {
                     HapticFeedback.selectionClick();
@@ -476,20 +490,14 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     final userData = appState.user;
     final companies = (userData['companies'] as List<dynamic>?) ?? [];
 
-    // Get stores from selected company
+    // Get stores from selected company only (no fallback to prevent showing wrong company's stores)
     List<dynamic> stores = [];
-    if (companies.isNotEmpty) {
-      try {
-        final selectedCompany = companies.firstWhere(
-          (c) =>
-              (c as Map<String, dynamic>)['company_id'] ==
-              appState.companyChoosen,
-        ) as Map<String, dynamic>;
-        stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
-      } catch (e) {
-        if (companies.isNotEmpty) {
-          final firstCompany = companies.first as Map<String, dynamic>;
-          stores = (firstCompany['stores'] as List<dynamic>?) ?? [];
+    if (companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
+      for (final company in companies) {
+        final companyMap = company as Map<String, dynamic>;
+        if (companyMap['company_id']?.toString() == appState.companyChoosen) {
+          stores = (companyMap['stores'] as List<dynamic>?) ?? [];
+          break;
         }
       }
     }

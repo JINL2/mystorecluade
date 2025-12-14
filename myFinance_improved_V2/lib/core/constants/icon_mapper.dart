@@ -203,6 +203,8 @@ class IconMapper {
 
       // Notifications & Communication
       'bell': LucideIcons.bell,
+      'BellRing': LucideIcons.bellRing,
+      'bellRing': LucideIcons.bellRing,
       'bellSlash': LucideIcons.bellOff,
       'envelope': LucideIcons.mail,
       'envelopeOpen': LucideIcons.mailOpen,

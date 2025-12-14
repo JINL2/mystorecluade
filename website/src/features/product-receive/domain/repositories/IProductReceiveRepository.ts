@@ -3,57 +3,124 @@
  * Repository interface for product receive operations
  */
 
-import { Order } from '../entities/Order';
-import { OrderProduct } from '../entities/OrderProduct';
-import { ReceiveResult } from '../entities/ReceiveResult';
-
-export interface ReceiveItem {
-  productId: string;
-  quantityReceived: number;
-}
-
-export interface RepositoryResult<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+import type {
+  SearchProductResult,
+  SessionItemsResult,
+  SaveItem,
+  SubmitItem,
+  SubmitResult,
+  Currency,
+  Counterparty,
+  Shipment,
+  ShipmentDetail,
+  Session,
+  CreateSessionResult,
+  JoinSessionResult,
+} from '../entities';
 
 export interface IProductReceiveRepository {
   /**
-   * Get list of orders for a company
-   */
-  getOrders(companyId: string): Promise<RepositoryResult<Order[]>>;
-
-  /**
-   * Get products in a specific order
-   */
-  getOrderProducts(
-    companyId: string,
-    orderId: string
-  ): Promise<RepositoryResult<OrderProduct[]>>;
-
-  /**
-   * Search products by SKU or name for autocomplete
+   * Search products by query (SKU, barcode, or name)
    */
   searchProducts(
-    orderId: string,
-    searchTerm: string
-  ): Promise<RepositoryResult<OrderProduct[]>>;
-
-  /**
-   * Get current user ID from session
-   */
-  getCurrentUserId(): Promise<RepositoryResult<string>>;
-
-  /**
-   * Submit received items
-   */
-  submitReceive(
     companyId: string,
     storeId: string,
-    orderId: string,
+    query: string,
+    page?: number,
+    limit?: number
+  ): Promise<SearchProductResult>;
+
+  /**
+   * Add items to a receiving session
+   */
+  addSessionItems(
+    sessionId: string,
     userId: string,
-    items: ReceiveItem[],
-    notes?: string | null
-  ): Promise<RepositoryResult<ReceiveResult>>;
+    items: SaveItem[]
+  ): Promise<void>;
+
+  /**
+   * Get all items in a receiving session
+   */
+  getSessionItems(
+    sessionId: string,
+    userId: string
+  ): Promise<SessionItemsResult>;
+
+  /**
+   * Submit a receiving session
+   */
+  submitSession(
+    sessionId: string,
+    userId: string,
+    items: SubmitItem[],
+    isFinal: boolean
+  ): Promise<SubmitResult>;
+
+  /**
+   * Get base currency for company
+   */
+  getBaseCurrency(companyId: string): Promise<Currency>;
+
+  /**
+   * Get counterparties (suppliers) for company
+   */
+  getCounterparties(companyId: string): Promise<Counterparty[]>;
+
+  /**
+   * Get shipment list with filters
+   */
+  getShipmentList(params: {
+    companyId: string;
+    timezone: string;
+    searchQuery?: string;
+    fromDate?: string;
+    toDate?: string;
+    statusFilter?: string;
+    supplierFilter?: string;
+  }): Promise<{ shipments: Shipment[]; totalCount: number }>;
+
+  /**
+   * Get shipment detail
+   */
+  getShipmentDetail(params: {
+    shipmentId: string;
+    companyId: string;
+    timezone: string;
+  }): Promise<ShipmentDetail>;
+
+  /**
+   * Get session list for shipment
+   */
+  getSessionList(params: {
+    companyId: string;
+    shipmentId: string;
+    sessionType: string;
+    isActive: boolean;
+    timezone: string;
+  }): Promise<Session[]>;
+
+  /**
+   * Create a new receiving session
+   */
+  createSession(params: {
+    companyId: string;
+    storeId: string;
+    userId: string;
+    sessionType: string;
+    shipmentId: string;
+    sessionName?: string;
+    time: string;
+    timezone: string;
+  }): Promise<CreateSessionResult>;
+
+  /**
+   * Join an existing session
+   */
+  joinSession(params: {
+    sessionId: string;
+    userId: string;
+    time: string;
+    timezone: string;
+  }): Promise<JoinSessionResult>;
 }

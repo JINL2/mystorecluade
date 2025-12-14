@@ -43,5 +43,5 @@ final shiftMetadataProvider =
   return await useCase(GetShiftMetadataParams(
     storeId: storeId,
     timezone: timezone,
-  ));
+  ),);
 });

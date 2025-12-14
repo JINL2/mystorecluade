@@ -1,363 +1,291 @@
 /**
- * ProductReceivePage
- * Main page for product receiving
+ * ProductReceivePage Component
+ * Shows shipment list and receiving progress using inventory_get_shipment_list
+ * Click on shipment to view detail with inventory_get_shipment_detail
  */
 
-import React, { useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
-import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
-import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
-import { useAppState } from '@/app/providers/app_state_provider';
-import { useProductReceive } from '../../hooks/useProductReceive';
-import { OrderSelector } from '../../components/OrderSelector';
-import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
-import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
+import { LeftFilter } from '@/shared/components/common/LeftFilter';
+import type { FilterSection } from '@/shared/components/common/LeftFilter';
+import { SelectorModal } from '@/shared/components/common/SelectorModal';
+import type { SelectorOption } from '@/shared/components/common/SelectorModal/SelectorModal.types';
+import { useProductReceiveList } from '../../hooks/useProductReceiveList';
+import { useReceiveSessionModal } from '../../hooks/useReceiveSessionModal';
+import { SHIPMENT_STATUS_OPTIONS } from './ProductReceivePage.types';
+import {
+  CreateSessionModal,
+  JoinSessionModal,
+  DateFilterContent,
+  CustomDatePickerModal,
+  ShipmentsTable,
+} from './components';
 import styles from './ProductReceivePage.module.css';
 
 export const ProductReceivePage: React.FC = () => {
-  const { currentCompany, currentStore, setCurrentStore } = useAppState();
-  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
+  const datePickerRef = useRef<HTMLDivElement>(null);
 
   const {
-    orders,
-    selectedOrder,
-    selectOrder,
-    loadingOrders,
-    filteredProducts,
-    productSearchTerm,
-    setProductSearchTerm,
-    scannedItems,
-    skuInput,
-    handleSkuInput,
-    autocompleteResults,
-    showAutocomplete,
-    setShowAutocomplete,
-    addScannedItem,
-    updateScannedQuantity,
-    removeScannedItem,
-    clearAllScanned,
-    submitReceive,
-    submitting,
-    error,
-  } = useProductReceive(
-    currentCompany?.company_id || '',
-    currentStore?.store_id || null
-  );
+    currency,
+    shipments,
+    shipmentsLoading,
+    selectedShipmentId,
+    shipmentDetail,
+    detailLoading,
+    searchQuery,
+    datePreset,
+    fromDate,
+    toDate,
+    showDatePicker,
+    tempFromDate,
+    tempToDate,
+    shipmentStatusFilter,
+    supplierFilter,
+    supplierOptions,
+    handleSearchChange,
+    selectShipmentStatus,
+    clearShipmentStatusFilter,
+    selectSupplierFilter,
+    clearSupplierFilter,
+    handlePresetChange,
+    handleApplyCustomDate,
+    handleCancelCustomDate,
+    handleSetTodayDate,
+    setTempFromDate,
+    setTempToDate,
+    loadShipmentDetail,
+    clearSelectedShipment,
+  } = useProductReceiveList();
 
-  const handleSubmit = async () => {
-    const result = await submitReceive();
-    if (result.success) {
-      showSuccess({
-        message: 'Products received successfully!',
-        autoCloseDuration: 2000,
-      });
+  const {
+    stores,
+    showSessionModal,
+    showCreateSessionModal,
+    selectedStoreId,
+    setSelectedStoreId,
+    sessionName,
+    setSessionName,
+    isCreatingSession,
+    createSessionError,
+    showJoinSessionModal,
+    existingSessions,
+    sessionsLoading,
+    sessionsError,
+    selectedSessionId,
+    setSelectedSessionId,
+    isJoiningSession,
+    handleStartReceive,
+    handleSessionSelect,
+    handleJoinSession,
+    handleCreateSession,
+    handleCloseSessionModal,
+    handleCloseCreateSessionModal,
+    handleCloseJoinSessionModal,
+  } = useReceiveSessionModal({ shipmentDetail, shipments });
+
+  // Click outside to close date picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        handleCancelCustomDate();
+      }
+    };
+
+    if (showDatePicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDatePicker, handleCancelCustomDate]);
+
+  // Session modal options
+  const sessionOptions: SelectorOption[] = [
+    {
+      id: 'create_session',
+      label: 'Create New Session',
+      variant: 'primary',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
+      ),
+    },
+    {
+      id: 'join_session',
+      label: 'Join Existing Session',
+      variant: 'outline',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+  ];
+
+  // LeftFilter sections configuration
+  const filterSections: FilterSection[] = [
+    {
+      id: 'shipmentDate',
+      title: 'Shipped Date',
+      type: 'custom',
+      defaultExpanded: true,
+      customContent: (
+        <DateFilterContent
+          datePreset={datePreset}
+          fromDate={fromDate}
+          toDate={toDate}
+          onPresetChange={handlePresetChange}
+        />
+      ),
+    },
+    {
+      id: 'shipmentStatus',
+      title: 'Shipment Status',
+      type: 'radio',
+      defaultExpanded: true,
+      options: SHIPMENT_STATUS_OPTIONS,
+      selectedValues: shipmentStatusFilter || '',
+      onSelect: selectShipmentStatus,
+      onClear: clearShipmentStatusFilter,
+    },
+    {
+      id: 'supplier',
+      title: 'Supplier',
+      type: 'radio',
+      defaultExpanded: true,
+      options: supplierOptions,
+      selectedValues: supplierFilter || '',
+      onSelect: selectSupplierFilter,
+      onClear: clearSupplierFilter,
+    },
+  ];
+
+  // Handle shipment row click
+  const handleShipmentClick = (shipmentId: string) => {
+    if (selectedShipmentId === shipmentId) {
+      clearSelectedShipment();
+    } else {
+      loadShipmentDetail(shipmentId);
     }
   };
-
-  // Show error message when error occurs
-  useEffect(() => {
-    if (error) {
-      showError({
-        message: error,
-      });
-    }
-  }, [error, showError]);
-
-  // Calculate progress
-  const totalItems = selectedOrder?.totalItems || 0;
-  const receivedItems = selectedOrder?.receivedItems || 0;
-  const remainingItems = selectedOrder?.remainingItems || 0;
-  const progressPercentage = totalItems > 0 ? Math.round((receivedItems / totalItems) * 100) : 0;
-
-  // Debug log
-  console.log('📊 Progress Debug:', {
-    selectedOrder,
-    totalItems,
-    receivedItems,
-    remainingItems,
-    progressPercentage,
-    orderItems: selectedOrder?.items?.length || 0
-  });
-
-  // Progress ring SVG calculations
-  const radius = 28;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
-
-  if (!currentCompany) {
-    return (
-      <>
-        <Navbar activeItem="product" />
-        <div className={styles.pageLayout}>
-          <div className={styles.container}>
-            <div className={styles.emptyState}>
-              <p>Please select a company to receive products</p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
       <Navbar activeItem="product" />
       <div className={styles.pageLayout}>
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Product Receive</h1>
-            <p className={styles.subtitle}>Scan and receive products from purchase orders</p>
-          </div>
+        <div className={styles.sidebarWrapper}>
+          <LeftFilter sections={filterSections} width={240} topOffset={64} />
+        </div>
 
-          <div className={styles.controls}>
-            {/* Store Selector */}
-            <StoreSelector
-              stores={currentCompany.stores || []}
-              selectedStoreId={currentStore?.store_id || null}
-              onStoreSelect={(storeId) => {
-                if (storeId) {
-                  const store = currentCompany.stores?.find(s => s.store_id === storeId);
-                  setCurrentStore(store || null);
-                } else {
-                  setCurrentStore(null);
-                }
-              }}
-              showAllStoresOption={false}
-            />
-
-            {/* Order Selector */}
-            <OrderSelector
-              orders={orders}
-              selectedOrder={selectedOrder}
-              onSelectOrder={selectOrder}
-              loading={loadingOrders}
-            />
-          </div>
-
-          {loadingOrders ? (
-            <LoadingAnimation size="large" fullscreen />
-          ) : !selectedOrder ? (
-            <div className={styles.placeholder}>
-              <div className={styles.placeholderIcon}>
-                <svg fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-                </svg>
-              </div>
-              <h3>Select a Purchase Order</h3>
-              <p>Choose an order above to begin receiving products</p>
+        <div className={styles.mainContent}>
+          <div className={styles.container}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>Product Receives</h1>
+              <p className={styles.subtitle}>Track receiving progress for shipments</p>
             </div>
-          ) : (
-            <div className={styles.content}>
-              {/* Left Column: Order Details */}
-              <div className={styles.orderDetailsCard}>
-                <div className={styles.orderSummary}>
-                  <h2 className={styles.orderTitle}>Order Progress</h2>
-                  <div className={styles.progressContainer}>
-                    <div className={styles.progressRing}>
-                      <svg width="60" height="60">
-                        <circle
-                          className={styles.progressRingCircle}
-                          cx="30"
-                          cy="30"
-                          r={radius}
-                        />
-                        <circle
-                          className={styles.progressRingProgress}
-                          cx="30"
-                          cy="30"
-                          r={radius}
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeDashoffset}
-                        />
-                      </svg>
-                      <div className={styles.progressRingText}>{progressPercentage}%</div>
-                    </div>
-                    <div className={styles.progressStats}>
-                      <div className={styles.progressStat}>
-                        <span className={styles.progressStatLabel}>Received</span>
-                        <span className={styles.progressStatValue}>{receivedItems}</span>
-                      </div>
-                      <div className={styles.progressStat}>
-                        <span className={styles.progressStatLabel}>Remaining</span>
-                        <span className={styles.progressStatValue}>{remainingItems}</span>
-                      </div>
-                      <div className={styles.progressStat}>
-                        <span className={styles.progressStatLabel}>Total</span>
-                        <span className={styles.progressStatValue}>{totalItems}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Products in Order List */}
-                <div className={styles.productListSection}>
-                  <h3 className={styles.productListTitle}>Products in Order</h3>
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    value={productSearchTerm}
-                    onChange={(e) => setProductSearchTerm(e.target.value)}
-                    className={styles.productSearch}
-                  />
-                  <div className={styles.productList}>
-                    {filteredProducts.map((product) => {
-                      const productProgress = product.quantityOrdered > 0
-                        ? Math.round((product.quantityReceived / product.quantityOrdered) * 100)
-                        : 0;
-
-                      return (
-                        <div key={product.productId} className={styles.productItem}>
-                          <div className={styles.productItemHeader}>
-                            <span className={styles.productItemName}>{product.productName}</span>
-                            <span
-                              className={styles.productItemProgress}
-                              style={{
-                                color: productProgress === 100 ? 'var(--toss-green-500)' : 'var(--text-secondary)'
-                              }}
-                            >
-                              {product.quantityReceived}/{product.quantityOrdered}
-                            </span>
-                          </div>
-                          <div className={styles.productItemSku}>{product.sku}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Scanner + Scanned Items */}
-              <div className={styles.rightColumn}>
-                {/* SKU Scanner */}
-                <div className={styles.scannerCard}>
-                  <h2 className={styles.sectionTitle}>Scan Product</h2>
-                  <div className={styles.skuInputWrapper}>
+            <div className={styles.contentCard}>
+              <div className={styles.receiveHeader}>
+                <div className={styles.receiveTitleSection}>
+                  <h2 className={styles.receiveListTitle}>Shipments</h2>
+                  <div className={styles.receiveSearchWrapper}>
+                    <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
                     <input
                       type="text"
-                      value={skuInput}
-                      onChange={(e) => handleSkuInput(e.target.value)}
-                      onFocus={() => skuInput && setShowAutocomplete(true)}
-                      placeholder="Scan or type SKU / Product name"
-                      className={styles.skuInput}
-                      autoFocus
+                      className={styles.receiveSearch}
+                      placeholder="Search shipments..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
                     />
-                    {showAutocomplete && autocompleteResults.length > 0 && (
-                      <div className={styles.autocomplete}>
-                        {autocompleteResults.map((product) => (
-                          <div
-                            key={product.productId}
-                            className={styles.autocompleteItem}
-                            onClick={() => {
-                              addScannedItem(product);
-                              setShowAutocomplete(false);
-                            }}
-                          >
-                            <div>
-                              <div className={styles.productName}>{product.productName}</div>
-                              <div className={styles.productSku}>{product.sku}</div>
-                            </div>
-                            <div className={styles.productStock}>
-                              Remaining: {product.quantityRemaining}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                </div>
-
-                {/* Scanned Items */}
-                <div className={styles.scannedCard}>
-                  <div className={styles.scannedHeader}>
-                    <h2 className={styles.sectionTitle}>Scanned Items</h2>
-                    <span className={styles.badge}>{scannedItems.length} items</span>
-                  </div>
-
-                  {scannedItems.length === 0 ? (
-                    <div className={styles.emptyScanned}>No items scanned yet</div>
-                  ) : (
-                    <>
-                      <div className={styles.scannedList}>
-                        {scannedItems.map((item) => (
-                          <div key={item.sku} className={styles.scannedItem}>
-                            <div className={styles.itemInfo}>
-                              <div className={styles.itemName}>{item.productName}</div>
-                              <div className={styles.itemSku}>{item.sku}</div>
-                            </div>
-                            <div className={styles.itemActions}>
-                              <div className={styles.quantityControls}>
-                                <button
-                                  onClick={() =>
-                                    updateScannedQuantity(item.sku, item.count - 1)
-                                  }
-                                  className={styles.qtyBtn}
-                                >
-                                  -
-                                </button>
-                                <span className={styles.qty}>{item.count}</span>
-                                <button
-                                  onClick={() =>
-                                    updateScannedQuantity(item.sku, item.count + 1)
-                                  }
-                                  className={styles.qtyBtn}
-                                >
-                                  +
-                                </button>
-                              </div>
-                              <button
-                                onClick={() => removeScannedItem(item.sku)}
-                                className={styles.removeBtn}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className={styles.actions}>
-                        <button
-                          onClick={clearAllScanned}
-                          className={styles.btnSecondary}
-                          disabled={submitting}
-                        >
-                          Clear All
-                        </button>
-                        <button
-                          onClick={handleSubmit}
-                          className={styles.btnPrimary}
-                          disabled={submitting || scannedItems.length === 0}
-                        >
-                          {submitting ? (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                              <LoadingAnimation size="small" />
-                              <span>Submitting...</span>
-                            </div>
-                          ) : (
-                            'Submit Receive'
-                          )}
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
+
+              <ShipmentsTable
+                shipments={shipments}
+                shipmentsLoading={shipmentsLoading}
+                selectedShipmentId={selectedShipmentId}
+                shipmentDetail={shipmentDetail}
+                detailLoading={detailLoading}
+                currency={currency}
+                searchQuery={searchQuery}
+                onShipmentClick={handleShipmentClick}
+                onStartReceive={handleStartReceive}
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Unified Error/Success Message */}
-      <ErrorMessage
-        variant={messageState.variant}
-        message={messageState.message}
-        title={messageState.title}
-        isOpen={messageState.isOpen}
-        onClose={closeMessage}
-        confirmText={messageState.confirmText}
-        onConfirm={messageState.onConfirm}
-        autoCloseDuration={messageState.autoCloseDuration}
+      {/* Custom Date Picker Modal */}
+      <CustomDatePickerModal
+        isOpen={showDatePicker}
+        tempFromDate={tempFromDate}
+        tempToDate={tempToDate}
+        datePickerRef={datePickerRef as React.RefObject<HTMLDivElement>}
+        onFromDateChange={setTempFromDate}
+        onToDateChange={setTempToDate}
+        onSetToday={handleSetTodayDate}
+        onCancel={handleCancelCustomDate}
+        onApply={handleApplyCustomDate}
+      />
+
+      {/* Session Selection Modal */}
+      <SelectorModal
+        isOpen={showSessionModal}
+        onClose={handleCloseSessionModal}
+        onSelect={handleSessionSelect}
+        variant="info"
+        title="Start Receiving"
+        message="Choose how you want to receive items for this shipment."
+        options={sessionOptions}
+        cancelText="Cancel"
+        headerIcon={
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#0064FF">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" fill="none" stroke="white" strokeWidth="1.5" />
+            <line x1="12" y1="22.08" x2="12" y2="12" stroke="white" strokeWidth="1.5" />
+          </svg>
+        }
+      />
+
+      {/* Create Session Modal */}
+      <CreateSessionModal
+        isOpen={showCreateSessionModal}
+        stores={stores}
+        selectedStoreId={selectedStoreId}
+        sessionName={sessionName}
+        isCreating={isCreatingSession}
+        error={createSessionError}
+        onSelectStore={setSelectedStoreId}
+        onSessionNameChange={setSessionName}
+        onClose={handleCloseCreateSessionModal}
+        onCreate={handleCreateSession}
+      />
+
+      {/* Join Session Modal */}
+      <JoinSessionModal
+        isOpen={showJoinSessionModal}
+        sessions={existingSessions}
+        selectedSessionId={selectedSessionId}
+        isLoading={sessionsLoading}
+        isJoining={isJoiningSession}
+        error={sessionsError}
+        onSelectSession={setSelectedSessionId}
+        onClose={handleCloseJoinSessionModal}
+        onJoin={handleJoinSession}
       />
     </>
   );
 };
+
+export default ProductReceivePage;

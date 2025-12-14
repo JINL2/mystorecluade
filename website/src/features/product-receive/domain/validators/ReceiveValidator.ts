@@ -3,213 +3,149 @@
  * Validation rules for product receiving operations
  */
 
-import { ScannedItem } from '../entities/ScannedItem';
-import { OrderProduct } from '../entities/OrderProduct';
-import { Order } from '../entities/Order';
+import type { SaveItem, SubmitItem } from '../entities';
 
-export interface ValidationError {
-  field: string;
-  message: string;
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
 }
 
-/**
- * Product Receive Validation Rules
- */
 export class ReceiveValidator {
   /**
-   * Validate a single scanned item against order product
+   * Validate a single save item
    */
-  static validateScannedItem(
-    item: ScannedItem,
-    orderProduct: OrderProduct
-  ): ValidationError[] {
-    const errors: ValidationError[] = [];
+  static validateSaveItem(item: SaveItem): ValidationResult {
+    const errors: string[] = [];
 
-    // Check if quantity is positive
-    if (item.count <= 0) {
-      errors.push({
-        field: 'quantity',
-        message: 'Quantity must be greater than 0',
-      });
+    if (!item.productId || item.productId.trim() === '') {
+      errors.push('Product ID is required');
     }
 
-    // Check if quantity exceeds remaining quantity
-    if (item.count > orderProduct.quantityRemaining) {
-      errors.push({
-        field: 'quantity',
-        message: `Cannot receive ${item.count} items. Only ${orderProduct.quantityRemaining} items remaining in order`,
-      });
+    if (item.quantity < 0) {
+      errors.push('Quantity cannot be negative');
     }
 
-    // Check if SKU matches
-    if (item.sku !== orderProduct.sku) {
-      errors.push({
-        field: 'sku',
-        message: 'SKU mismatch',
-      });
+    if (item.quantityRejected < 0) {
+      errors.push('Rejected quantity cannot be negative');
     }
 
-    return errors;
+    if (item.quantityRejected > item.quantity) {
+      errors.push('Rejected quantity cannot exceed total quantity');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 
   /**
-   * Validate all scanned items before submission
+   * Validate multiple save items
    */
-  static validateSubmission(
-    scannedItems: ScannedItem[],
-    order: Order | null,
-    orderProducts: OrderProduct[]
-  ): ValidationError[] {
-    const errors: ValidationError[] = [];
+  static validateSaveItems(items: SaveItem[]): ValidationResult {
+    const errors: string[] = [];
 
-    // Check if order is selected
-    if (!order) {
-      errors.push({
-        field: 'order',
-        message: 'No order selected. Please select an order first',
-      });
-      return errors;
+    if (items.length === 0) {
+      errors.push('At least one item is required');
     }
 
-    // Check if order is receivable
-    if (!order.isReceivable) {
-      errors.push({
-        field: 'order',
-        message: `Order status "${order.status}" is not receivable. Only pending or partial orders can receive products`,
-      });
-    }
-
-    // Check if there are scanned items
-    if (scannedItems.length === 0) {
-      errors.push({
-        field: 'items',
-        message: 'No items scanned. Please scan at least one product',
-      });
-      return errors;
-    }
-
-    // Validate each scanned item
-    for (const scannedItem of scannedItems) {
-      // Find matching product in order
-      const orderProduct = orderProducts.find((p) => p.sku === scannedItem.sku);
-
-      if (!orderProduct) {
-        errors.push({
-          field: `item_${scannedItem.sku}`,
-          message: `Product ${scannedItem.sku} is not in this order`,
+    items.forEach((item, index) => {
+      const result = this.validateSaveItem(item);
+      if (!result.isValid) {
+        result.errors.forEach((error) => {
+          errors.push(`Item ${index + 1}: ${error}`);
         });
-        continue;
       }
+    });
 
-      // Validate item quantity
-      const itemErrors = this.validateScannedItem(scannedItem, orderProduct);
-      errors.push(...itemErrors);
-    }
-
-    return errors;
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 
   /**
-   * Validate SKU input
+   * Validate a single submit item
    */
-  static validateSKUInput(sku: string): ValidationError | null {
-    const trimmedSku = sku.trim();
+  static validateSubmitItem(item: SubmitItem): ValidationResult {
+    const errors: string[] = [];
 
-    if (!trimmedSku) {
-      return {
-        field: 'sku',
-        message: 'SKU cannot be empty',
-      };
+    if (!item.productId || item.productId.trim() === '') {
+      errors.push('Product ID is required');
     }
 
-    if (trimmedSku.length < 2) {
-      return {
-        field: 'sku',
-        message: 'SKU must be at least 2 characters',
-      };
+    if (item.quantity < 0) {
+      errors.push('Quantity cannot be negative');
     }
 
-    // Check for invalid characters (optional - adjust based on your SKU format)
-    const validSkuPattern = /^[a-zA-Z0-9-_]+$/;
-    if (!validSkuPattern.test(trimmedSku)) {
-      return {
-        field: 'sku',
-        message: 'SKU contains invalid characters. Only letters, numbers, hyphens, and underscores are allowed',
-      };
+    if (item.quantityRejected < 0) {
+      errors.push('Rejected quantity cannot be negative');
     }
 
-    return null;
+    if (item.quantityRejected > item.quantity) {
+      errors.push('Rejected quantity cannot exceed total quantity');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 
   /**
-   * Validate quantity input
+   * Validate multiple submit items
    */
-  static validateQuantity(
-    quantity: number,
-    maxQuantity: number
-  ): ValidationError | null {
-    if (quantity <= 0) {
-      return {
-        field: 'quantity',
-        message: 'Quantity must be greater than 0',
-      };
+  static validateSubmitItems(items: SubmitItem[]): ValidationResult {
+    const errors: string[] = [];
+
+    if (items.length === 0) {
+      errors.push('At least one item is required for submission');
     }
 
-    if (!Number.isInteger(quantity)) {
-      return {
-        field: 'quantity',
-        message: 'Quantity must be a whole number',
-      };
+    items.forEach((item, index) => {
+      const result = this.validateSubmitItem(item);
+      if (!result.isValid) {
+        result.errors.forEach((error) => {
+          errors.push(`Item ${index + 1}: ${error}`);
+        });
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Validate session ID
+   */
+  static validateSessionId(sessionId: string): ValidationResult {
+    const errors: string[] = [];
+
+    if (!sessionId || sessionId.trim() === '') {
+      errors.push('Session ID is required');
     }
 
-    if (quantity > maxQuantity) {
-      return {
-        field: 'quantity',
-        message: `Quantity cannot exceed ${maxQuantity}`,
-      };
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Validate search query
+   */
+  static validateSearchQuery(query: string, minLength: number = 1): ValidationResult {
+    const errors: string[] = [];
+
+    if (!query || query.trim().length < minLength) {
+      errors.push(`Search query must be at least ${minLength} character(s)`);
     }
 
-    return null;
-  }
-
-  /**
-   * Check if product is in order
-   */
-  static isProductInOrder(sku: string, orderProducts: OrderProduct[]): boolean {
-    return orderProducts.some((p) => p.sku === sku);
-  }
-
-  /**
-   * Get remaining quantity for a product
-   */
-  static getRemainingQuantity(
-    sku: string,
-    orderProducts: OrderProduct[]
-  ): number {
-    const product = orderProducts.find((p) => p.sku === sku);
-    return product ? product.quantityRemaining : 0;
-  }
-
-  /**
-   * Check if all products in order are fully received
-   */
-  static isOrderFullyReceived(orderProducts: OrderProduct[]): boolean {
-    return orderProducts.every((p) => p.isFullyReceived);
-  }
-
-  /**
-   * Calculate total quantity to be received
-   */
-  static calculateTotalQuantity(scannedItems: ScannedItem[]): number {
-    return scannedItems.reduce((sum, item) => sum + item.count, 0);
-  }
-
-  /**
-   * Check for duplicate SKUs in scanned items
-   */
-  static hasDuplicateSKUs(scannedItems: ScannedItem[]): boolean {
-    const skus = scannedItems.map((item) => item.sku);
-    const uniqueSkus = new Set(skus);
-    return skus.length !== uniqueSkus.size;
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 }

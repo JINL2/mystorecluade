@@ -115,3 +115,70 @@ enum BadgeStatus {
   info,
   neutral,
 }
+
+/// Subscription Plan Badge
+///
+/// Displays subscription plan as a small badge.
+/// Colors: Free=Gray, Basic=Green, Pro=Blue
+class SubscriptionBadge extends StatelessWidget {
+  final String planType;
+  final bool compact;
+
+  const SubscriptionBadge({
+    super.key,
+    required this.planType,
+    this.compact = false,
+  });
+
+  /// Create badge from plan type string
+  factory SubscriptionBadge.fromPlanType(String? planType, {bool compact = false}) {
+    return SubscriptionBadge(
+      planType: planType ?? 'free',
+      compact: compact,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TossBadge(
+      label: _displayName,
+      backgroundColor: _backgroundColor,
+      textColor: _textColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? TossSpacing.space1 + 2 : TossSpacing.space2,
+        vertical: compact ? 2 : TossSpacing.space1 - 2,
+      ),
+      border: _isFree ? Border.all(color: TossColors.gray300, width: 1) : null,
+    );
+  }
+
+  bool get _isFree => planType.toLowerCase() == 'free';
+  bool get _isBasic => planType.toLowerCase() == 'basic';
+
+  String get _displayName {
+    switch (planType.toLowerCase()) {
+      case 'basic':
+        return 'Basic';
+      case 'pro':
+        return 'Pro';
+      default:
+        return 'Free';
+    }
+  }
+
+  Color get _backgroundColor {
+    if (_isFree) {
+      return TossColors.gray100;
+    } else if (_isBasic) {
+      return TossColors.success;
+    }
+    return TossColors.info;
+  }
+
+  Color get _textColor {
+    if (_isFree) {
+      return TossColors.gray600;
+    }
+    return Colors.white;
+  }
+}

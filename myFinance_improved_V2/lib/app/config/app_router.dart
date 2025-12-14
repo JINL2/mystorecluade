@@ -42,13 +42,23 @@ import '../../features/inventory_management/presentation/pages/stock_in_page.dar
 import '../../features/inventory_management/presentation/pages/new_stock_in_record_page.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
+import '../../features/my_page/presentation/pages/language_settings_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/my_page/presentation/pages/subscription_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
+import '../../features/session/presentation/pages/session_page.dart';
+import '../../features/session/presentation/pages/session_action_page.dart';
+import '../../features/session/presentation/pages/session_list_page.dart';
+import '../../features/session/presentation/pages/session_detail_page.dart';
+import '../../features/session/presentation/pages/session_review_page.dart';
+import '../../features/session/presentation/pages/session_history_page.dart';
+import '../../features/session/presentation/pages/session_history_detail_page.dart';
+import '../../features/session/domain/entities/session_history_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/design_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -612,6 +622,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'privacy-security',
         builder: (context, state) => const PrivacySecurityPage(),
       ),
+      GoRoute(
+        path: '/language-settings',
+        name: 'language-settings',
+        builder: (context, state) => const LanguageSettingsPage(),
+      ),
+      GoRoute(
+        path: '/subscription',
+        name: 'subscription',
+        builder: (context, state) => const SubscriptionPage(),
+      ),
 
       // Store Shift Route
       GoRoute(
@@ -782,6 +802,98 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return ReportControlPage(feature: feature);
+        },
+      ),
+
+      // Session Route
+      GoRoute(
+        path: '/session',
+        name: 'session',
+        builder: (context, state) {
+          final feature = state.extra;
+          return SessionPage(feature: feature);
+        },
+      ),
+
+      // Session History Route (view past sessions) - Must be before dynamic routes
+      GoRoute(
+        path: '/session/history',
+        name: 'session-history',
+        builder: (context, state) => const SessionHistoryPage(),
+      ),
+
+      // Session History Detail Route
+      GoRoute(
+        path: '/session/history/detail',
+        name: 'session-history-detail',
+        builder: (context, state) {
+          final session = state.extra as SessionHistoryItem;
+          return SessionHistoryDetailPage(session: session);
+        },
+      ),
+
+      // Session Action Route (Create or Join)
+      GoRoute(
+        path: '/session/action/:sessionType',
+        name: 'session-action',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionActionPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session List Route (for joining sessions)
+      GoRoute(
+        path: '/session/list/:sessionType',
+        name: 'session-list',
+        builder: (context, state) {
+          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
+          return SessionListPage(sessionType: sessionType);
+        },
+      ),
+
+      // Session Detail Route (after creating/joining a session)
+      GoRoute(
+        path: '/session/detail/:sessionId',
+        name: 'session-detail',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          final sessionName = state.uri.queryParameters['sessionName'];
+          final isOwnerParam = state.uri.queryParameters['isOwner'];
+          final isOwner = isOwnerParam == 'true';
+
+          // Debug logs
+          debugPrint('🔍 [Router] Full URI: ${state.uri}');
+          debugPrint('🔍 [Router] Query params: ${state.uri.queryParameters}');
+          debugPrint('🔍 [Router] isOwner param raw: $isOwnerParam');
+          debugPrint('🔍 [Router] isOwner parsed: $isOwner');
+
+          return SessionDetailPage(
+            sessionId: sessionId,
+            sessionType: sessionType,
+            storeId: storeId,
+            sessionName: sessionName,
+            isOwner: isOwner,
+          );
+        },
+      ),
+
+      // Session Review Route (review counted items before final submission)
+      GoRoute(
+        path: '/session/review/:sessionId',
+        name: 'session-review',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final sessionName = state.uri.queryParameters['sessionName'];
+
+          return SessionReviewPage(
+            sessionId: sessionId,
+            sessionType: sessionType,
+            sessionName: sessionName,
+          );
         },
       ),
     ],

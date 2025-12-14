@@ -12,6 +12,8 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 // Domain Layer
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
+// Homepage - Providers (for userCompaniesProvider)
+import '../../../homepage/presentation/providers/homepage_providers.dart';
 // Presentation - Providers
 import '../providers/current_user_provider.dart';
 import '../providers/usecase_providers.dart';
@@ -389,9 +391,14 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       // ✅ Auto-select the newly joined company
       final companies = filteredResponse['companies'] as List?;
       if (companies != null && companies.isNotEmpty) {
-        final firstCompany = companies.first as Map<String, dynamic>;
-        final companyId = firstCompany['company_id'] as String;
-        final companyName = firstCompany['company_name'] as String;
+        // Find the joined company (the one matching company.id)
+        final joinedCompany = companies.firstWhere(
+          (c) => (c as Map<String, dynamic>)['company_id'] == company.id,
+          orElse: () => companies.first,
+        ) as Map<String, dynamic>;
+
+        final companyId = joinedCompany['company_id'] as String;
+        final companyName = joinedCompany['company_name'] as String;
 
         ref.read(appStateProvider.notifier).selectCompany(
           companyId,
@@ -399,7 +406,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         );
 
         // Auto-select first store if available
-        final stores = firstCompany['stores'] as List?;
+        final stores = joinedCompany['stores'] as List?;
         if (stores != null && stores.isNotEmpty) {
           final firstStore = stores.first as Map<String, dynamic>;
           final storeId = firstStore['store_id'] as String;
@@ -412,12 +419,20 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         }
       }
 
+      // ✅ Invalidate userCompaniesProvider to refresh data from server (background)
+      ref.invalidate(userCompaniesProvider);
+
       if (mounted) {
         // Show success dialog
         final shouldNavigate = await _showSuccessDialog(company.name);
 
         if (shouldNavigate == true && mounted) {
-          context.go('/');
+          // Small delay for smooth transition (same as create_business_page)
+          await Future.delayed(const Duration(milliseconds: 300));
+
+          if (mounted) {
+            context.go('/');
+          }
         }
       }
     } on ValidationException catch (e) {

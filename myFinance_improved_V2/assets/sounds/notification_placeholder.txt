@@ -1,0 +1,19 @@
+Placeholder for notification.mp3
+
+To add a notification sound:
+1. Find a pleasant, gentle notification sound (soft chime, water drop, bell)
+2. Keep duration under 1 second
+3. Save as notification.mp3in this folder
+4. Recommended sources:
+   - Freesound.org (CC0 license)
+   - Zapsplat.com (free sound effects)
+   - Apple System Sounds (gentle, familiar)
+
+Characteristics of pleasant notification sounds:
+- Short duration (0.3-0.8 seconds)
+- Gentle attack (no sudden loud starts)
+- Natural tones (bells, chimes, marimba, water drop)
+- Mid-range frequency (not too high-pitched)
+- Clean finish (no harsh ending)
+
+Example search terms: "gentle notification", "soft chime", "water drop", "positive notification"

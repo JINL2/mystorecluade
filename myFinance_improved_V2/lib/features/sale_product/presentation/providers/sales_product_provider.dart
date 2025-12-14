@@ -19,7 +19,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   final Ref ref;
   final SalesProductRepository _repository;
 
-  static const int _defaultPageSize = 10;
+  static const int _defaultPageSize = 15;
 
   SalesProductNotifier(this.ref, this._repository) : super(const SalesProductState()) {
     loadProducts();

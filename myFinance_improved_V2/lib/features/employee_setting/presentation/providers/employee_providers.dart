@@ -6,6 +6,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
+import '../../domain/entities/shift_audit_log.dart';
 import '../../domain/usecases/search_and_sort_employees_usecase.dart';
 import 'employee_notifier.dart';
 import 'states/employee_state.dart';
@@ -159,6 +160,27 @@ final salaryUpdatesStreamProvider = StreamProvider<List<EmployeeSalary>>((ref) {
 });
 
 // ============================================================================
+// Owner Check Provider
+// ============================================================================
+
+/// Check if the current user is the owner of the selected company
+final isCurrentUserOwnerProvider = FutureProvider.autoDispose<bool>((ref) async {
+  try {
+    final repository = ref.read(employeeRepositoryProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      return false;
+    }
+
+    return await repository.isCurrentUserOwner(companyId);
+  } catch (e) {
+    return false;
+  }
+});
+
+// ============================================================================
 // Roles Providers
 // ============================================================================
 
@@ -219,4 +241,59 @@ EmployeeSortOption _convertToSortOption(String? sortOption) {
     default:
       return EmployeeSortOption.name;
   }
+}
+
+// ============================================================================
+// Shift Audit Log Providers
+// ============================================================================
+
+/// Provider for employee shift audit logs with pagination support
+/// Usage: ref.watch(employeeShiftAuditLogsProvider(EmployeeAuditLogParams(...)))
+final employeeShiftAuditLogsProvider = FutureProvider.autoDispose
+    .family<List<ShiftAuditLog>, EmployeeAuditLogParams>((ref, params) async {
+  try {
+    final repository = ref.read(employeeRepositoryProvider);
+
+    if (params.userId.isEmpty || params.companyId.isEmpty) {
+      return [];
+    }
+
+    return await repository.getEmployeeShiftAuditLogs(
+      userId: params.userId,
+      companyId: params.companyId,
+      limit: params.limit,
+      offset: params.offset,
+    );
+  } catch (e) {
+    return [];
+  }
+});
+
+/// Parameters for shift audit log provider
+class EmployeeAuditLogParams {
+  final String userId;
+  final String companyId;
+  final int limit;
+  final int offset;
+
+  const EmployeeAuditLogParams({
+    required this.userId,
+    required this.companyId,
+    this.limit = 20,
+    this.offset = 0,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EmployeeAuditLogParams &&
+          runtimeType == other.runtimeType &&
+          userId == other.userId &&
+          companyId == other.companyId &&
+          limit == other.limit &&
+          offset == other.offset;
+
+  @override
+  int get hashCode =>
+      userId.hashCode ^ companyId.hashCode ^ limit.hashCode ^ offset.hashCode;
 }

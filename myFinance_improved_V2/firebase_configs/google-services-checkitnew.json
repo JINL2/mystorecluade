@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "302273857936",
+    "project_id": "test-fee59",
+    "storage_bucket": "test-fee59.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302273857936:android:f60d8b7ac13d60b9204b15",
+        "android_client_info": {
+          "package_name": "com.mycompany.challangers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEbAkMil3ot2OaPihRkenlHNIn8d5OGZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302273857936:android:c8c8459da7fe5432204b15",
+        "android_client_info": {
+          "package_name": "com.mycompany.checkitnew"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEbAkMil3ot2OaPihRkenlHNIn8d5OGZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302273857936:android:dc8d991de502537f204b15",
+        "android_client_info": {
+          "package_name": "com.mycompany.checkitversion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEbAkMil3ot2OaPihRkenlHNIn8d5OGZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

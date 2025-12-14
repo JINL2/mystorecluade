@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/notifications/services/notification_service.dart';
+import '../core/notifications/services/token_manager.dart';
 import '../shared/themes/app_theme.dart';
 import 'config/app_router.dart';
 
@@ -46,15 +49,25 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
   }
 
   /// Initialize app components
-  void _initializeApp() {
-    // TODO: Initialize notifications when needed
-    // ref.read(notificationProvider.notifier).initialize();
+  Future<void> _initializeApp() async {
+    // Initialize notification service (includes FCM & TokenManager)
+    try {
+      await NotificationService().initialize();
+      if (kDebugMode) {
+        debugPrint('🔔 NotificationService initialized');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ NotificationService initialization failed: $e');
+      }
+      // Continue running the app even if notifications fail
+    }
   }
 
   /// Handle app resume
   void _handleAppResume() {
-    // TODO: Handle app resume logic
-    // ref.read(notificationProvider.notifier).handleAppResume();
+    // Handle token validation when app resumes
+    TokenManager().handleAppLifecycleState(AppLifecycleState.resumed);
   }
 
   @override

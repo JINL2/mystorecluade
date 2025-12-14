@@ -42,7 +42,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check permission if requiredFeatureId is specified
   if (requiredFeatureId) {
-    const hasAccess = permissions.includes(requiredFeatureId);
+    // Debug log - 현재 선택된 회사와 그 회사의 권한 확인
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const selectedCompanyId = localStorage.getItem('companyChoosen');
+    const selectedCompany = userData?.companies?.find(
+      (c: any) => c.company_id === selectedCompanyId
+    );
+    const companyPermissions = selectedCompany?.role?.permissions || [];
+
+// localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
+    const hasAccess = companyPermissions.includes(requiredFeatureId);
 
     if (!hasAccess) {
       // Show error message and redirect after auto-close

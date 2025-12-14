@@ -507,7 +507,8 @@ class TimeTableDatasource {
   /// - [shiftRequestId] - Shift request ID to update
   /// - [confirmStartTime] - Confirmed start time (HH:mm:ss format), null to keep existing
   /// - [confirmEndTime] - Confirmed end time (HH:mm:ss format), null to keep existing
-  /// - [isReportedSolved] - Report solved status, null to keep existing (renamed from isProblemSolved in v4)
+  /// - [isProblemSolved] - Problem solved status (for Late/Overtime), null to keep existing
+  /// - [isReportedSolved] - Report solved status (for employee reports), null to keep existing
   /// - [bonusAmount] - Bonus amount, null to keep existing
   /// - [managerMemo] - Manager memo text, null to keep existing (new in v5)
   /// - [timezone] - User's local timezone (e.g., "Asia/Ho_Chi_Minh")
@@ -516,60 +517,91 @@ class TimeTableDatasource {
     required String shiftRequestId,
     String? confirmStartTime,
     String? confirmEndTime,
+    bool? isProblemSolved,
     bool? isReportedSolved,
     double? bonusAmount,
     String? managerMemo,
     required String timezone,
   }) async {
     try {
-      // DEBUG: Log request parameters
-      debugPrint('🔷 [inputCardV5] REQUEST:');
-      debugPrint('   managerId=$managerId');
-      debugPrint('   shiftRequestId=$shiftRequestId');
-      debugPrint('   confirmStartTime=$confirmStartTime');
-      debugPrint('   confirmEndTime=$confirmEndTime');
-      debugPrint('   isReportedSolved=$isReportedSolved');
-      debugPrint('   bonusAmount=$bonusAmount');
-      debugPrint('   managerMemo=$managerMemo');
-      debugPrint('   timezone=$timezone');
+      final rpcParams = {
+        'p_manager_id': managerId,
+        'p_shift_request_id': shiftRequestId,
+        'p_confirm_start_time': confirmStartTime,
+        'p_confirm_end_time': confirmEndTime,
+        'p_is_problem_solved': isProblemSolved,
+        'p_is_reported_solved': isReportedSolved,
+        'p_bonus_amount': bonusAmount,
+        'p_manager_memo': managerMemo,
+        'p_timezone': timezone,
+      };
+
+      debugPrint('[Datasource] inputCardV5 RPC params: $rpcParams');
 
       final response = await _supabase.rpc<dynamic>(
         'manager_shift_input_card_v5',
-        params: {
-          'p_manager_id': managerId,
-          'p_shift_request_id': shiftRequestId,
-          'p_confirm_start_time': confirmStartTime,
-          'p_confirm_end_time': confirmEndTime,
-          'p_is_reported_solved': isReportedSolved,
-          'p_bonus_amount': bonusAmount,
-          'p_manager_memo': managerMemo,
-          'p_timezone': timezone,
-        },
+        params: rpcParams,
       );
 
-      // DEBUG: Log response
-      debugPrint('🔶 [inputCardV5] RESPONSE: $response');
-      debugPrint('   response type: ${response.runtimeType}');
+      debugPrint('[Datasource] inputCardV5 RPC response: $response');
 
       if (response == null) {
-        debugPrint('❌ [inputCardV5] NULL response');
         return {'success': false, 'error': 'NULL_RESPONSE', 'message': 'No response from server'};
       }
 
       if (response is Map<String, dynamic>) {
-        debugPrint('✅ [inputCardV5] Success: ${response['success']}');
-        if (response['error'] != null) {
-          debugPrint('❌ [inputCardV5] Error: ${response['error']} - ${response['message']}');
-        }
         return response;
       }
 
-      debugPrint('❌ [inputCardV5] Invalid response format');
       return {'success': false, 'error': 'INVALID_RESPONSE', 'message': 'Invalid response format'};
     } catch (e, stackTrace) {
-      debugPrint('❌ [inputCardV5] EXCEPTION: $e');
       throw TimeTableException(
         'Failed to input card v5: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Get employee monthly detail log
+  ///
+  /// Uses get_employee_monthly_detail_log RPC
+  /// - Returns comprehensive monthly data including shifts, audit logs, summary, salary
+  /// - p_year_month: Format 'YYYY-MM' (e.g., '2024-12')
+  /// - p_timezone: User's local timezone for date conversions
+  Future<Map<String, dynamic>> getEmployeeMonthlyDetailLog({
+    required String userId,
+    required String companyId,
+    required String yearMonth,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_employee_monthly_detail_log',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_year_month': yearMonth,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response == null) {
+        return {'success': false, 'error': 'NULL_RESPONSE'};
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+
+      return {'success': false, 'error': 'INVALID_RESPONSE'};
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to fetch employee monthly detail: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

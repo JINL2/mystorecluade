@@ -1,4 +1,5 @@
 import '../entities/category_with_features.dart';
+import '../entities/homepage_alert.dart';
 import '../entities/revenue.dart';
 import '../entities/top_feature.dart';
 import '../entities/user_with_companies.dart';
@@ -43,4 +44,21 @@ abstract class HomepageRepository {
     required String companyId,
     String? categoryId,
   });
+
+  // === Alert Operations ===
+
+  /// Fetch homepage alert for user
+  Future<HomepageAlert> getHomepageAlert({required String userId});
+
+  /// Update user's alert response (is_checked)
+  Future<bool> responseHomepageAlert({
+    required String userId,
+    required bool isChecked,
+  });
+
+  // === App Version Check ===
+
+  /// Check if app version matches server version
+  /// Returns true if up to date, false if update required
+  Future<bool> checkAppVersion();
 }

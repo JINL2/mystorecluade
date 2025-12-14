@@ -131,9 +131,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     // ✅ Always force refresh on page entry to ensure fresh data from RPC
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Invalidate providers to force fresh data on page entry
+        // Invalidate ALL providers to force fresh data on page entry
+        // This is critical when company/store changes - providers cache companyId at creation time
         ref.invalidate(shiftMetadataProvider(selectedStoreId!));
         ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
+        ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
+        ref.invalidate(managerOverviewProvider(selectedStoreId!));
+        ref.invalidate(managerCardsProvider(selectedStoreId!));
+
         // Fetch with forceRefresh to ensure fresh data from RPC
         fetchMonthlyShiftStatus(forceRefresh: true);
         // Also fetch overview data - force refresh to get latest data
@@ -438,9 +443,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       storeName: storeName,
     );
 
-    // Invalidate providers to force fresh data
+    // Invalidate ALL providers to force fresh data with new store
     ref.invalidate(shiftMetadataProvider(newStoreId));
     ref.invalidate(reliabilityScoreProvider(newStoreId));
+    ref.invalidate(monthlyShiftStatusProvider(newStoreId));
+    ref.invalidate(managerOverviewProvider(newStoreId));
+    ref.invalidate(managerCardsProvider(newStoreId));
 
     // Fetch data for the new store
     await fetchMonthlyShiftStatus(forceRefresh: true);

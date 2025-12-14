@@ -231,6 +231,12 @@ class _BankTabState extends ConsumerState<BankTab> {
     final currencyCode = selectedCurrency?.currencyCode ?? '';
     final currencySymbol = selectedCurrency?.symbol ?? '';
 
+    // Check if selected currency is base currency
+    final isSelectedCurrencyBaseCurrency = selectedCurrency?.isBaseCurrency ?? true;
+
+    // Get exchange rate to base currency (for foreign currency conversion)
+    final exchangeRateToBase = selectedCurrency?.exchangeRateToBase ?? 1.0;
+
     // Calculate current bank amount from input
     final bankAmount = double.tryParse(
       _bankAmountController.text.replaceAll(',', ''),
@@ -247,13 +253,17 @@ class _BankTabState extends ConsumerState<BankTab> {
         const SizedBox(height: TossSpacing.space4),
 
         // Grand Total with Journal and Difference
+        // For foreign currencies: show converted amount and compare with Journal in base currency
         GrandTotalSection(
           totalAmount: bankAmount,
           currencySymbol: currencySymbol,
           label: 'Bank Balance $currencyCode',
-          isBaseCurrency: true,
+          isBaseCurrency: isSelectedCurrencyBaseCurrency,
           journalAmount: state.bankLocationJournalAmount,
           isLoadingJournal: state.isLoadingBankJournalAmount,
+          // Pass exchange rate and base currency info for foreign currency conversion
+          exchangeRateToBase: isSelectedCurrencyBaseCurrency ? null : exchangeRateToBase,
+          baseCurrencySymbol: isSelectedCurrencyBaseCurrency ? null : state.baseCurrencySymbol,
           onHistoryTap: state.selectedBankLocationId != null
               ? () => _navigateToAccountDetail(state, bankAmount, currencySymbol)
               : null,

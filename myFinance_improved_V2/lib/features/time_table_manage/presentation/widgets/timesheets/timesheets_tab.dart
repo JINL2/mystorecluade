@@ -129,7 +129,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     return '$startDay-$endDay $month';
   }
 
-  /// Get week label
+  /// Get week label (e.g., "This week", "Next week", "Last week", or "Week 52")
   String _getWeekLabel() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -155,15 +155,28 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     if (_currentWeekStart.year == previousWeekStart.year &&
         _currentWeekStart.month == previousWeekStart.month &&
         _currentWeekStart.day == previousWeekStart.day) {
-      return 'Previous week';
+      return 'Last week';
     }
 
-    // Otherwise, return "Week of [date]"
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return 'Week of ${_currentWeekStart.day} ${months[_currentWeekStart.month - 1]}';
+    // Otherwise, return "Week [number]" (ISO week number)
+    final weekNumber = _getIsoWeekNumber(_currentWeekStart);
+    return 'Week $weekNumber';
+  }
+
+  /// Calculate ISO week number (1-53)
+  /// ISO 8601: Week 1 is the week containing the first Thursday of the year
+  int _getIsoWeekNumber(DateTime date) {
+    // Find the Thursday of the current week
+    final thursday = date.add(Duration(days: 4 - date.weekday));
+
+    // Find January 1st of that Thursday's year
+    final jan1 = DateTime(thursday.year, 1, 1);
+
+    // Calculate the number of days from Jan 1 to the Thursday
+    final daysDiff = thursday.difference(jan1).inDays;
+
+    // Week number is (days / 7) + 1
+    return (daysDiff / 7).floor() + 1;
   }
 
   /// Change week
@@ -980,18 +993,14 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     final userData = appState.user;
     final companies = (userData['companies'] as List<dynamic>?) ?? [];
 
-    // Get stores from selected company
+    // Get stores from selected company only (no fallback to prevent showing wrong company's stores)
     List<dynamic> stores = [];
-    if (companies.isNotEmpty) {
-      try {
-        final selectedCompany = companies.firstWhere(
-          (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
-        ) as Map<String, dynamic>;
-        stores = (selectedCompany['stores'] as List<dynamic>?) ?? [];
-      } catch (e) {
-        if (companies.isNotEmpty) {
-          final firstCompany = companies.first as Map<String, dynamic>;
-          stores = (firstCompany['stores'] as List<dynamic>?) ?? [];
+    if (companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
+      for (final company in companies) {
+        final companyMap = company as Map<String, dynamic>;
+        if (companyMap['company_id']?.toString() == appState.companyChoosen) {
+          stores = (companyMap['stores'] as List<dynamic>?) ?? [];
+          break;
         }
       }
     }

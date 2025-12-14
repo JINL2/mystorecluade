@@ -309,14 +309,15 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen as String?;
     final storeId = appState.storeChoosen as String?;
+    final userId = appState.user['user_id'] as String?;
 
-    if (companyId == null || storeId == null) {
+    if (companyId == null || storeId == null || userId == null) {
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
         builder: (context) => TossDialog.error(
           title: 'Validation Error',
-          message: 'Company or store not selected',
+          message: 'Company, store, or user not selected',
           primaryButtonText: 'OK',
         ),
       );

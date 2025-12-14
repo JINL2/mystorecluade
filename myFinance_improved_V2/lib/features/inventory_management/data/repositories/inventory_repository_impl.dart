@@ -100,6 +100,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
+    required String createdBy,
     required String name,
     String? sku,
     String? barcode,
@@ -109,12 +110,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
     double? costPrice,
     double? sellingPrice,
     int? initialQuantity,
+    int? minStock,
+    int? maxStock,
     List<String>? imageUrls,
   }) async {
     try {
       final model = await _remoteDataSource.createProduct(
         companyId: companyId,
         storeId: storeId,
+        createdBy: createdBy,
         name: name,
         sku: sku,
         barcode: barcode,
@@ -124,6 +128,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
         costPrice: costPrice,
         sellingPrice: sellingPrice,
         initialQuantity: initialQuantity,
+        minStock: minStock,
+        maxStock: maxStock,
         imageUrls: imageUrls,
       );
       return model.toEntity();
@@ -173,6 +179,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     required String productId,
     required String companyId,
     required String storeId,
+    required String createdBy,
     String? sku,
     String? name,
     String? categoryId,
@@ -184,12 +191,14 @@ class InventoryRepositoryImpl implements InventoryRepository {
     int? onHand,
     String? flowType,
     List<String>? imageUrls,
+    bool defaultPrice = false,
   }) async {
     try {
       final model = await _remoteDataSource.updateProduct(
         productId: productId,
         companyId: companyId,
         storeId: storeId,
+        createdBy: createdBy,
         sku: sku,
         name: name,
         categoryId: categoryId,
@@ -201,6 +210,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
         onHand: onHand,
         flowType: flowType,
         imageUrls: imageUrls,
+        defaultPrice: defaultPrice,
       );
       return model.toEntity();
     } catch (e) {

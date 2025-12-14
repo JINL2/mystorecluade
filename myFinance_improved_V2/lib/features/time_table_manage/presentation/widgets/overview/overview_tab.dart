@@ -93,7 +93,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final stores = _extractStores(appState.user);
+    final stores = _extractStores(appState.user, appState.companyChoosen);
 
     // Watch monthly shift status for current activity data
     final monthlyStatusState = widget.selectedStoreId != null
@@ -429,42 +429,87 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           );
         }
 
-        // Late: is_late = true
-        if (card.isLate) {
-          items.add(createStaffAttentionItem(
-            type: AttentionType.late,
-            subtext: '${card.lateMinute} mins late',
-          ));
+        // Check each problem type - each gets its own card
+        // is_problem_solved = true → hide Late, Overtime, No check-in, No check-out, Early check-out
+        // is_reported_solved = true → hide Reported
+
+        // 1. Late: is_late = true AND is_problem_solved = false
+        if (card.isLate && !card.isProblemSolved) {
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.late,
+              subtext: '${card.lateMinute} mins late',
+            ),
+          );
         }
 
-        // Problem: is_problem = true AND is_problem_solved = false AND is_reported = false
-        // Skip if isReported is true (will be shown as Reported instead)
-        if (card.hasProblem && !card.isProblemSolved && !card.isReported) {
-          items.add(createStaffAttentionItem(
-            type: AttentionType.problem,
-            subtext: card.problemType ?? 'Has problem',
-          ));
+        // 2. Reported: is_reported = true AND is_reported_solved != true (null or false)
+        if (card.isReported && card.isReportedSolved != true) {
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.reported,
+              subtext: card.reportReason ?? 'Reported',
+            ),
+          );
         }
 
-        // Reported: is_reported = true AND is_problem_solved = false
-        if (card.isReported && !card.isProblemSolved) {
-          items.add(createStaffAttentionItem(
-            type: AttentionType.reported,
-            subtext: card.reportReason ?? 'Reported',
-          ));
-        }
-
-        // Overtime: is_overtime = true
-        if (card.isOverTime) {
+        // 3. Overtime: is_overtime = true AND is_problem_solved = false
+        if (card.isOverTime && !card.isProblemSolved) {
           final hours = card.overTimeMinute ~/ 60;
           final mins = card.overTimeMinute % 60;
           final overtimeStr = hours > 0
               ? (mins > 0 ? '$hours hrs $mins mins overtime' : '$hours hrs overtime')
               : '${card.overTimeMinute} mins overtime';
-          items.add(createStaffAttentionItem(
-            type: AttentionType.overtime,
-            subtext: overtimeStr,
-          ));
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.overtime,
+              subtext: overtimeStr,
+            ),
+          );
+        }
+
+        // 4. No check-in: actual_start = null AND is_problem_solved = false (shift has ended)
+        if (card.actualStartTime == null &&
+            !card.isProblemSolved &&
+            shiftEndTime != null &&
+            DateTime.now().isAfter(shiftEndTime)) {
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.noCheckIn,
+              subtext: 'No check-in recorded',
+            ),
+          );
+        }
+
+        // 5. No check-out: actual_start exists AND actual_end = null AND is_problem_solved = false (shift has ended)
+        if (card.actualStartTime != null &&
+            card.actualEndTime == null &&
+            !card.isProblemSolved &&
+            shiftEndTime != null &&
+            DateTime.now().isAfter(shiftEndTime)) {
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.noCheckOut,
+              subtext: 'No check-out recorded',
+            ),
+          );
+        }
+
+        // 6. Early check-out: actual_end < current shift's end time AND is_problem_solved = false
+        // NOTE: Use currentShiftEndTime (this shift's end time), NOT shiftEndTime (consecutive end time)
+        final currentShiftEnd = _parseShiftEndTime(card.shiftEndTime);
+        if (card.actualStartTime != null &&
+            card.actualEndTime != null &&
+            !card.isProblemSolved &&
+            currentShiftEnd != null &&
+            card.actualEndTime!.isBefore(currentShiftEnd)) {
+          final diffMinutes = currentShiftEnd.difference(card.actualEndTime!).inMinutes;
+          items.add(
+            createStaffAttentionItem(
+              type: AttentionType.earlyCheckOut,
+              subtext: '$diffMinutes mins early',
+            ),
+          );
         }
       }
     }
@@ -834,19 +879,26 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     return shiftEndTimes.last;
   }
 
-  /// Extract stores from user data
-  List<dynamic> _extractStores(Map<String, dynamic> userData) {
-    if (userData.isEmpty) return [];
+  /// Extract stores from user data for the currently selected company
+  List<dynamic> _extractStores(Map<String, dynamic> userData, String selectedCompanyId) {
+    if (userData.isEmpty || selectedCompanyId.isEmpty) return [];
 
     try {
       final companies = userData['companies'] as List<dynamic>?;
       if (companies == null || companies.isEmpty) return [];
 
-      final firstCompany = companies[0] as Map<String, dynamic>;
-      final stores = firstCompany['stores'] as List<dynamic>?;
-      if (stores == null) return [];
+      // Find the company matching the selected company ID
+      for (final company in companies) {
+        final companyMap = company as Map<String, dynamic>;
+        final companyId = companyMap['company_id']?.toString() ?? '';
+        if (companyId == selectedCompanyId) {
+          final stores = companyMap['stores'] as List<dynamic>?;
+          return stores ?? [];
+        }
+      }
 
-      return stores;
+      // Fallback: if no matching company found, return empty
+      return [];
     } catch (e) {
       return [];
     }
