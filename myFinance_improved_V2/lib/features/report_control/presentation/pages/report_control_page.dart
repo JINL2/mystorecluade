@@ -2,12 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
@@ -40,9 +39,6 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
   String? _featureId;
   bool _featureInfoExtracted = false;
 
-  // AI Chat session ID - persists while page is active
-  late final String _aiChatSessionId;
-
   // Tab controller
   late TabController _tabController;
 
@@ -52,9 +48,6 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
 
     // Initialize report templates (once)
     TemplateInitializer.initialize();
-
-    // Generate AI Chat session ID
-    _aiChatSessionId = const Uuid().v4();
 
     // Initialize tab controller
     _tabController = TabController(length: 2, vsync: this);
@@ -234,7 +227,6 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
       ),
       floatingActionButton: AiChatFab(
         featureName: _featureName ?? 'Report Control',
-        sessionId: _aiChatSessionId,
         pageContext: _buildPageContext(),
         featureId: _featureId,
       ),

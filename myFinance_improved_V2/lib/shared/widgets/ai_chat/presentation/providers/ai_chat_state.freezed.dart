@@ -18,10 +18,12 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$AiChatState {
   List<ChatMessage> get messages => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
-  bool get isLoadingHistory => throw _privateConstructorUsedError;
+  String get streamingText => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>>? get currentResultData =>
+      throw _privateConstructorUsedError;
+  String? get sessionId => throw _privateConstructorUsedError;
   bool get hasUnreadResponse => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
-  String get sessionId => throw _privateConstructorUsedError;
 
   /// Create a copy of AiChatState
   /// with the given fields replaced by the non-null parameter values.
@@ -39,10 +41,11 @@ abstract class $AiChatStateCopyWith<$Res> {
   $Res call(
       {List<ChatMessage> messages,
       bool isLoading,
-      bool isLoadingHistory,
+      String streamingText,
+      List<Map<String, dynamic>>? currentResultData,
+      String? sessionId,
       bool hasUnreadResponse,
-      String? error,
-      String sessionId});
+      String? error});
 }
 
 /// @nodoc
@@ -62,10 +65,11 @@ class _$AiChatStateCopyWithImpl<$Res, $Val extends AiChatState>
   $Res call({
     Object? messages = null,
     Object? isLoading = null,
-    Object? isLoadingHistory = null,
+    Object? streamingText = null,
+    Object? currentResultData = freezed,
+    Object? sessionId = freezed,
     Object? hasUnreadResponse = null,
     Object? error = freezed,
-    Object? sessionId = null,
   }) {
     return _then(_value.copyWith(
       messages: null == messages
@@ -76,10 +80,18 @@ class _$AiChatStateCopyWithImpl<$Res, $Val extends AiChatState>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
-      isLoadingHistory: null == isLoadingHistory
-          ? _value.isLoadingHistory
-          : isLoadingHistory // ignore: cast_nullable_to_non_nullable
-              as bool,
+      streamingText: null == streamingText
+          ? _value.streamingText
+          : streamingText // ignore: cast_nullable_to_non_nullable
+              as String,
+      currentResultData: freezed == currentResultData
+          ? _value.currentResultData
+          : currentResultData // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      sessionId: freezed == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
       hasUnreadResponse: null == hasUnreadResponse
           ? _value.hasUnreadResponse
           : hasUnreadResponse // ignore: cast_nullable_to_non_nullable
@@ -88,10 +100,6 @@ class _$AiChatStateCopyWithImpl<$Res, $Val extends AiChatState>
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
               as String?,
-      sessionId: null == sessionId
-          ? _value.sessionId
-          : sessionId // ignore: cast_nullable_to_non_nullable
-              as String,
     ) as $Val);
   }
 }
@@ -107,10 +115,11 @@ abstract class _$$AiChatStateImplCopyWith<$Res>
   $Res call(
       {List<ChatMessage> messages,
       bool isLoading,
-      bool isLoadingHistory,
+      String streamingText,
+      List<Map<String, dynamic>>? currentResultData,
+      String? sessionId,
       bool hasUnreadResponse,
-      String? error,
-      String sessionId});
+      String? error});
 }
 
 /// @nodoc
@@ -128,10 +137,11 @@ class __$$AiChatStateImplCopyWithImpl<$Res>
   $Res call({
     Object? messages = null,
     Object? isLoading = null,
-    Object? isLoadingHistory = null,
+    Object? streamingText = null,
+    Object? currentResultData = freezed,
+    Object? sessionId = freezed,
     Object? hasUnreadResponse = null,
     Object? error = freezed,
-    Object? sessionId = null,
   }) {
     return _then(_$AiChatStateImpl(
       messages: null == messages
@@ -142,10 +152,18 @@ class __$$AiChatStateImplCopyWithImpl<$Res>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
-      isLoadingHistory: null == isLoadingHistory
-          ? _value.isLoadingHistory
-          : isLoadingHistory // ignore: cast_nullable_to_non_nullable
-              as bool,
+      streamingText: null == streamingText
+          ? _value.streamingText
+          : streamingText // ignore: cast_nullable_to_non_nullable
+              as String,
+      currentResultData: freezed == currentResultData
+          ? _value._currentResultData
+          : currentResultData // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      sessionId: freezed == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
       hasUnreadResponse: null == hasUnreadResponse
           ? _value.hasUnreadResponse
           : hasUnreadResponse // ignore: cast_nullable_to_non_nullable
@@ -154,10 +172,6 @@ class __$$AiChatStateImplCopyWithImpl<$Res>
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
               as String?,
-      sessionId: null == sessionId
-          ? _value.sessionId
-          : sessionId // ignore: cast_nullable_to_non_nullable
-              as String,
     ));
   }
 }
@@ -168,11 +182,13 @@ class _$AiChatStateImpl implements _AiChatState {
   const _$AiChatStateImpl(
       {final List<ChatMessage> messages = const [],
       this.isLoading = false,
-      this.isLoadingHistory = true,
+      this.streamingText = '',
+      final List<Map<String, dynamic>>? currentResultData,
+      this.sessionId,
       this.hasUnreadResponse = false,
-      this.error,
-      required this.sessionId})
-      : _messages = messages;
+      this.error})
+      : _messages = messages,
+        _currentResultData = currentResultData;
 
   final List<ChatMessage> _messages;
   @override
@@ -188,18 +204,29 @@ class _$AiChatStateImpl implements _AiChatState {
   final bool isLoading;
   @override
   @JsonKey()
-  final bool isLoadingHistory;
+  final String streamingText;
+  final List<Map<String, dynamic>>? _currentResultData;
+  @override
+  List<Map<String, dynamic>>? get currentResultData {
+    final value = _currentResultData;
+    if (value == null) return null;
+    if (_currentResultData is EqualUnmodifiableListView)
+      return _currentResultData;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  @override
+  final String? sessionId;
   @override
   @JsonKey()
   final bool hasUnreadResponse;
   @override
   final String? error;
-  @override
-  final String sessionId;
 
   @override
   String toString() {
-    return 'AiChatState(messages: $messages, isLoading: $isLoading, isLoadingHistory: $isLoadingHistory, hasUnreadResponse: $hasUnreadResponse, error: $error, sessionId: $sessionId)';
+    return 'AiChatState(messages: $messages, isLoading: $isLoading, streamingText: $streamingText, currentResultData: $currentResultData, sessionId: $sessionId, hasUnreadResponse: $hasUnreadResponse, error: $error)';
   }
 
   @override
@@ -210,13 +237,15 @@ class _$AiChatStateImpl implements _AiChatState {
             const DeepCollectionEquality().equals(other._messages, _messages) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
-            (identical(other.isLoadingHistory, isLoadingHistory) ||
-                other.isLoadingHistory == isLoadingHistory) &&
+            (identical(other.streamingText, streamingText) ||
+                other.streamingText == streamingText) &&
+            const DeepCollectionEquality()
+                .equals(other._currentResultData, _currentResultData) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
             (identical(other.hasUnreadResponse, hasUnreadResponse) ||
                 other.hasUnreadResponse == hasUnreadResponse) &&
-            (identical(other.error, error) || other.error == error) &&
-            (identical(other.sessionId, sessionId) ||
-                other.sessionId == sessionId));
+            (identical(other.error, error) || other.error == error));
   }
 
   @override
@@ -224,10 +253,11 @@ class _$AiChatStateImpl implements _AiChatState {
       runtimeType,
       const DeepCollectionEquality().hash(_messages),
       isLoading,
-      isLoadingHistory,
+      streamingText,
+      const DeepCollectionEquality().hash(_currentResultData),
+      sessionId,
       hasUnreadResponse,
-      error,
-      sessionId);
+      error);
 
   /// Create a copy of AiChatState
   /// with the given fields replaced by the non-null parameter values.
@@ -242,23 +272,26 @@ abstract class _AiChatState implements AiChatState {
   const factory _AiChatState(
       {final List<ChatMessage> messages,
       final bool isLoading,
-      final bool isLoadingHistory,
+      final String streamingText,
+      final List<Map<String, dynamic>>? currentResultData,
+      final String? sessionId,
       final bool hasUnreadResponse,
-      final String? error,
-      required final String sessionId}) = _$AiChatStateImpl;
+      final String? error}) = _$AiChatStateImpl;
 
   @override
   List<ChatMessage> get messages;
   @override
   bool get isLoading;
   @override
-  bool get isLoadingHistory;
+  String get streamingText;
+  @override
+  List<Map<String, dynamic>>? get currentResultData;
+  @override
+  String? get sessionId;
   @override
   bool get hasUnreadResponse;
   @override
   String? get error;
-  @override
-  String get sessionId;
 
   /// Create a copy of AiChatState
   /// with the given fields replaced by the non-null parameter values.

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../themes/toss_border_radius.dart';
-import '../../themes/toss_colors.dart';
-import '../../themes/toss_spacing.dart';
+import '../../../../themes/toss_border_radius.dart';
+import '../../../../themes/toss_colors.dart';
+import '../../../../themes/toss_spacing.dart';
 
 class TypingIndicator extends StatelessWidget {
   const TypingIndicator({super.key});

@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../domain/entities/chat_message.dart';
+import '../../domain/models/chat_message.dart';
 
 part 'ai_chat_state.freezed.dart';
 
@@ -9,9 +9,10 @@ class AiChatState with _$AiChatState {
   const factory AiChatState({
     @Default([]) List<ChatMessage> messages,
     @Default(false) bool isLoading,
-    @Default(true) bool isLoadingHistory,
+    @Default('') String streamingText,
+    List<Map<String, dynamic>>? currentResultData,
+    String? sessionId,
     @Default(false) bool hasUnreadResponse,
     String? error,
-    required String sessionId,
   }) = _AiChatState;
 }

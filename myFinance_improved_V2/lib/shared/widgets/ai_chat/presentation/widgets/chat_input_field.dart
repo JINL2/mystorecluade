@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../themes/toss_colors.dart';
-import '../../themes/toss_spacing.dart';
+import '../../../../themes/toss_colors.dart';
+import '../../../../themes/toss_spacing.dart';
 
 class ChatInputField extends StatefulWidget {
   final void Function(String) onSend;

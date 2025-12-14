@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/ai_chat/presentation/providers/ai_chat_providers.dart';
-import '../../themes/toss_colors.dart';
+import '../../../../themes/toss_colors.dart';
+import '../providers/ai_chat_provider.dart';
 import 'ai_chat_bottom_sheet.dart';
 
 class AiChatFab extends ConsumerStatefulWidget {
   final String featureName;
   final Map<String, dynamic>? pageContext;
   final String? featureId;
-  final String sessionId;
 
   const AiChatFab({
     super.key,
     required this.featureName,
-    required this.sessionId,
     this.pageContext,
     this.featureId,
   });
@@ -79,26 +77,26 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(aiChatProvider(widget.sessionId));
+    // Use featureName as the provider key
+    final state = ref.watch(aiChatProvider(widget.featureName));
 
     return FloatingActionButton(
       onPressed: () {
         // Mark as read when opening
-        ref.read(aiChatProvider(widget.sessionId).notifier).setChatOpen(true);
+        ref.read(aiChatProvider(widget.featureName).notifier).setChatOpen(true);
 
-        showModalBottomSheet(
+        showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (context) => AiChatBottomSheet(
             featureName: widget.featureName,
-            sessionId: widget.sessionId,
             pageContext: widget.pageContext,
             featureId: widget.featureId,
           ),
         ).then((_) {
           // Mark as closed when bottom sheet is dismissed
-          ref.read(aiChatProvider(widget.sessionId).notifier).setChatOpen(false);
+          ref.read(aiChatProvider(widget.featureName).notifier).setChatOpen(false);
         });
       },
       backgroundColor: state.hasUnreadResponse
