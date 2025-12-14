@@ -116,15 +116,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     super.dispose();
   }
 
-  Future<void> _pickImages() async {
-    final images = await ProductImagePicker.pickImagesWithValidation(context);
-    if (images.isNotEmpty) {
-      setState(() {
-        _selectedImages.addAll(images);
-      });
-    }
-  }
-
   void _removeNewImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
@@ -554,7 +545,19 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
               ProductImagePicker(
                 selectedImages: _selectedImages,
                 existingImageUrls: _existingImageUrls,
-                onPickImages: _pickImages,
+                onImageSourceSelected: (source) async {
+                  List<XFile> images;
+                  if (source == ImageSourceOption.gallery) {
+                    images = await ProductImagePicker.pickFromGalleryWithValidation(context);
+                  } else {
+                    images = await ProductImagePicker.takePhotoWithValidation(context);
+                  }
+                  if (images.isNotEmpty && mounted) {
+                    setState(() {
+                      _selectedImages.addAll(images);
+                    });
+                  }
+                },
                 onRemoveNewImage: _removeNewImage,
                 onRemoveExistingImage: _removeExistingImage,
               ),

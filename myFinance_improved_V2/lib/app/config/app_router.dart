@@ -33,8 +33,13 @@ import '../../features/employee_setting/presentation/pages/employee_setting_page
 import '../../features/homepage/presentation/pages/homepage.dart';
 import '../../features/inventory_management/presentation/pages/add_product_page.dart';
 import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_count_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_count_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
+import '../../features/inventory_management/presentation/pages/new_inventory_count_page.dart';
 import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/stock_in_page.dart';
+import '../../features/inventory_management/presentation/pages/new_stock_in_record_page.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/language_settings_page.dart';
@@ -55,7 +60,7 @@ import '../../features/session/presentation/pages/session_history_page.dart';
 import '../../features/session/presentation/pages/session_history_detail_page.dart';
 import '../../features/session/domain/entities/session_history_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
-import '../../features/theme_library/presentation/pages/theme_library_page.dart';
+import '../../features/design_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
@@ -710,6 +715,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final productId = state.pathParameters['productId']!;
               return EditProductPage(productId: productId);
+            },
+          ),
+          GoRoute(
+            path: 'inventoryCount',
+            name: 'inventoryCount',
+            builder: (context, state) => const InventoryCountPage(),
+          ),
+          GoRoute(
+            path: 'stockIn',
+            name: 'stockIn',
+            builder: (context, state) => const StockInPage(),
+          ),
+          GoRoute(
+            path: 'newStockInRecord',
+            name: 'newStockInRecord',
+            builder: (context, state) => const NewStockInRecordPage(),
+          ),
+          GoRoute(
+            path: 'newInventoryCount',
+            name: 'newInventoryCount',
+            builder: (context, state) => const NewInventoryCountPage(),
+          ),
+          GoRoute(
+            path: 'inventoryCountDetail',
+            name: 'inventoryCountDetail',
+            builder: (context, state) {
+              final extra = state.extra;
+              if (extra is! Map<String, dynamic>) {
+                return const Scaffold(
+                  body: Center(child: Text('Invalid parameters')),
+                );
+              }
+              return InventoryCountDetailPage(
+                countId: extra['countId'] as String,
+                title: extra['title'] as String,
+                location: extra['location'] as String,
+                startedAt: extra['startedAt'] as DateTime,
+                status: extra['status'] as String,
+                memo: extra['memo'] as String?,
+              );
             },
           ),
         ],

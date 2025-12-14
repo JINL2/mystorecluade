@@ -28,7 +28,7 @@ class TossListTile extends StatefulWidget {
     this.selected = false,
     this.backgroundColor,
     this.contentPadding,
-    this.showDivider = true,
+    this.showDivider = false,  // Default: no divider (set true if needed)
     this.animateOnTap = true,
   });
   
