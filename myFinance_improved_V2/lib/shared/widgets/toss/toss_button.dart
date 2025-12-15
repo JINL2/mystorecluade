@@ -193,67 +193,64 @@ class _TossButtonState extends State<TossButton>
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
             onTapCancel: _handleTapCancel,
+            onTap: widget.isEnabled && !widget.isLoading && !_isProcessing
+                ? _handleTap
+                : null,
             child: SizedBox(
               width: widget.fullWidth ? double.infinity : null,
               child: Material(
                 color: TossColors.transparent,
-                child: InkWell(
-                  onTap: widget.isEnabled && !widget.isLoading && !_isProcessing
-                      ? _handleTap 
-                      : null,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space4,
-                      vertical: TossSpacing.space3,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space4,
+                    vertical: TossSpacing.space3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getBackgroundColor(),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    border: Border.all(
+                      color: _getBorderColor(),
+                      width: _getBorderColor() != TossColors.transparent ? 1 : 0,
                     ),
-                    decoration: BoxDecoration(
-                      color: _getBackgroundColor(),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      border: Border.all(
-                        color: _getBorderColor(),
-                        width: _getBorderColor() != TossColors.transparent ? 1 : 0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (widget.isLoading) ...[
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _getTextColor(),
-                              ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.isLoading) ...[
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _getTextColor(),
                             ),
-                          ),
-                          const SizedBox(width: TossSpacing.space2),
-                        ] else if (widget.leadingIcon != null) ...[
-                          IconTheme(
-                            data: IconThemeData(
-                              color: _getTextColor(),
-                              size: 16,
-                            ),
-                            child: widget.leadingIcon!,
-                          ),
-                          const SizedBox(width: TossSpacing.space2),
-                        ],
-                        Flexible(
-                          child: Text(
-                            widget.text,
-                            style: TossTextStyles.body.copyWith(
-                              color: _getTextColor(),
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
                           ),
                         ),
+                        const SizedBox(width: TossSpacing.space2),
+                      ] else if (widget.leadingIcon != null) ...[
+                        IconTheme(
+                          data: IconThemeData(
+                            color: _getTextColor(),
+                            size: 16,
+                          ),
+                          child: widget.leadingIcon!,
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
                       ],
-                    ),
+                      Flexible(
+                        child: Text(
+                          widget.text,
+                          style: TossTextStyles.body.copyWith(
+                            color: _getTextColor(),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

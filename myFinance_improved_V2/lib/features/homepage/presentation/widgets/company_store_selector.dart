@@ -546,10 +546,10 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
               },
             ),
             const Divider(height: 1),
-            // Create store option
+            // Add store option (create or join)
             ListTile(
               leading: const Icon(LucideIcons.plus, size: 20),
-              title: const Text('Create Store'),
+              title: const Text('Add Store'),
               onTap: () {
                 Navigator.pop(bottomSheetContext);
                 _showStoreActionsBottomSheet(context, ref, company);
@@ -790,19 +790,24 @@ class _CompanyActionsSheet extends StatelessWidget {
     // Close the actions sheet first
     context.pop();
 
-    // Show join by code sheet
-    showModalBottomSheet(
-      context: parentContext,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
-      builder: (context) => const JoinByCodeSheet(
-        title: 'Join Company',
-        subtitle: 'Enter company invite code',
-      ),
-    ).then((result) {
-      if (result != null && result is JoinResult) {
-        _refreshDataAfterJoin(result);
+    // Use a small delay to ensure the previous sheet is fully closed
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (parentContext.mounted) {
+        // Show join by code sheet
+        showModalBottomSheet(
+          context: parentContext,
+          isScrollControlled: true,
+          backgroundColor: TossColors.transparent,
+          elevation: 0,
+          builder: (context) => const JoinByCodeSheet(
+            title: 'Join Company',
+            subtitle: 'Enter company invite code',
+          ),
+        ).then((result) {
+          if (result != null && result is JoinResult) {
+            _refreshDataAfterJoin(result);
+          }
+        });
       }
     });
   }
@@ -1043,19 +1048,24 @@ class _StoreActionsSheet extends StatelessWidget {
     // Close the actions sheet first
     context.pop();
 
-    // Show join by code sheet
-    showModalBottomSheet(
-      context: parentContext,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
-      builder: (context) => const JoinByCodeSheet(
-        title: 'Join Store',
-        subtitle: 'Enter store invite code',
-      ),
-    ).then((result) {
-      if (result != null && result is JoinResult) {
-        _refreshDataAfterJoin(result);
+    // Use a small delay to ensure the previous sheet is fully closed
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (parentContext.mounted) {
+        // Show join by code sheet
+        showModalBottomSheet(
+          context: parentContext,
+          isScrollControlled: true,
+          backgroundColor: TossColors.transparent,
+          elevation: 0,
+          builder: (context) => const JoinByCodeSheet(
+            title: 'Join Store',
+            subtitle: 'Enter store invite code',
+          ),
+        ).then((result) {
+          if (result != null && result is JoinResult) {
+            _refreshDataAfterJoin(result);
+          }
+        });
       }
     });
   }
