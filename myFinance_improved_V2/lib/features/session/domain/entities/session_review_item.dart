@@ -40,26 +40,47 @@ class SessionReviewSummary {
   final int totalProducts;
   final int totalQuantity;
   final int totalRejected;
+  final int totalParticipants;
 
   const SessionReviewSummary({
     required this.totalProducts,
     required this.totalQuantity,
     required this.totalRejected,
+    this.totalParticipants = 0,
   });
 
   /// Get net quantity (total - rejected)
   int get netQuantity => totalQuantity - totalRejected;
 }
 
+/// Session participant (from inventory_get_session_items RPC)
+class SessionParticipant {
+  final String userId;
+  final String userName;
+  final String? userProfileImage;
+  final int productCount;
+  final int totalScanned;
+
+  const SessionParticipant({
+    required this.userId,
+    required this.userName,
+    this.userProfileImage,
+    required this.productCount,
+    required this.totalScanned,
+  });
+}
+
 /// Response wrapper for session review items
 class SessionReviewResponse {
   final String sessionId;
   final List<SessionReviewItem> items;
+  final List<SessionParticipant> participants;
   final SessionReviewSummary summary;
 
   const SessionReviewResponse({
     required this.sessionId,
     required this.items,
+    required this.participants,
     required this.summary,
   });
 }

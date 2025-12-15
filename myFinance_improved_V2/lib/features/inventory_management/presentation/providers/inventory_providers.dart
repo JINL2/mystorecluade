@@ -171,6 +171,9 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Load base currency first
+      await _loadBaseCurrency();
+
       final filter = ProductFilter(
         searchQuery: state.searchQuery,
         categoryId: state.selectedCategoryId,
@@ -212,6 +215,22 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         isLoading: false,
         error: e.toString(),
       );
+    }
+  }
+
+  /// Load base currency from get_base_currency RPC
+  Future<void> _loadBaseCurrency() async {
+    if (companyId == null) return;
+
+    try {
+      final result = await repository.getBaseCurrency(companyId: companyId!);
+      if (result != null) {
+        state = state.copyWith(baseCurrency: result.baseCurrency);
+      }
+    } catch (e) {
+      // Log error but don't fail the whole operation
+      // ignore: avoid_print
+      print('[InventoryPageNotifier] Failed to load base currency: $e');
     }
   }
 

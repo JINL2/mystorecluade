@@ -5,6 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../domain/entities/inventory_metadata.dart';
 import '../../../domain/entities/product.dart';
+import '../../../domain/repositories/inventory_repository.dart';
 import '../../../domain/value_objects/pagination_params.dart';
 
 part 'inventory_page_state.freezed.dart';
@@ -44,6 +45,9 @@ class InventoryPageState with _$InventoryPageState {
 
     // Currency info
     Currency? currency,
+
+    // Base currency info from get_base_currency RPC
+    BaseCurrencyInfo? baseCurrency,
   }) = _InventoryPageState;
 
 

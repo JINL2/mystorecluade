@@ -122,23 +122,42 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
     // ✅ Fetch initial data AFTER build is complete to avoid Provider lifecycle violation
     // ✅ Always force refresh on page entry to ensure fresh data from RPC
+    // This ensures data from other devices is visible when navigating to this page
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Invalidate ALL providers to force fresh data on page entry
-        // This is critical when company/store changes - providers cache companyId at creation time
-        ref.invalidate(shiftMetadataProvider(selectedStoreId!));
-        ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
-        ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
-        ref.invalidate(managerOverviewProvider(selectedStoreId!));
-        ref.invalidate(managerCardsProvider(selectedStoreId!));
-
-        // Fetch with forceRefresh to ensure fresh data from RPC
-        fetchMonthlyShiftStatus(forceRefresh: true);
-        // Also fetch overview data - force refresh to get latest data
-        fetchManagerOverview(forceRefresh: true);
-        fetchManagerCards(forceRefresh: true);
+        _forceRefreshAllData();
       });
     }
+  }
+
+  /// Force refresh all data providers on page entry
+  ///
+  /// This is critical for cross-device data sync:
+  /// - When user A creates a schedule on device 1
+  /// - User B on device 2 should see it when entering this page
+  /// - Without force refresh, cached/stale data would be shown
+  void _forceRefreshAllData() {
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
+
+    // 1. Invalidate ALL providers to clear cached state
+    // This ensures fresh provider instances with current companyId
+    ref.invalidate(shiftMetadataProvider(selectedStoreId!));
+    ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
+    ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
+    ref.invalidate(managerOverviewProvider(selectedStoreId!));
+    ref.invalidate(managerCardsProvider(selectedStoreId!));
+
+    // 2. Trigger FutureProviders to actually fetch data
+    // FutureProvider only executes when watched/read, invalidate alone won't trigger fetch
+    // Using read() after invalidate to trigger immediate fetch
+    ref.read(shiftMetadataProvider(selectedStoreId!));
+    ref.read(reliabilityScoreProvider(selectedStoreId!));
+
+    // 3. StateNotifierProviders need explicit loadMonth calls
+    // These have their own caching logic with forceRefresh parameter
+    fetchMonthlyShiftStatus(forceRefresh: true);
+    fetchManagerOverview(forceRefresh: true);
+    fetchManagerCards(forceRefresh: true);
   }
 
   void _extractFeatureInfo() {
@@ -442,7 +461,11 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     ref.invalidate(managerOverviewProvider(newStoreId));
     ref.invalidate(managerCardsProvider(newStoreId));
 
-    // Fetch data for the new store
+    // Trigger FutureProviders to fetch immediately after invalidate
+    ref.read(shiftMetadataProvider(newStoreId));
+    ref.read(reliabilityScoreProvider(newStoreId));
+
+    // Fetch data for the new store (StateNotifierProviders)
     await fetchMonthlyShiftStatus(forceRefresh: true);
     await fetchManagerOverview(forceRefresh: true);
     await fetchManagerCards(forceRefresh: true);
