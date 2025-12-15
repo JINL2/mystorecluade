@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../di/session_providers.dart';
+import '../../../../shared/widgets/toss/toss_badge.dart';
+import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
-import '../widgets/create_session_dialog.dart';
+import 'create_session_page.dart';
+import 'session_count_detail_page.dart';
 
-/// Session action page - shows session list with FAB for creating new sessions
+/// Session action page - shows session list with app bar add button
+/// Design matches stock_in_page.dart
 class SessionActionPage extends ConsumerStatefulWidget {
   final String sessionType; // 'counting' or 'receiving'
 
@@ -28,20 +28,18 @@ class SessionActionPage extends ConsumerStatefulWidget {
 }
 
 class _SessionActionPageState extends ConsumerState<SessionActionPage> {
-  bool _isJoining = false;
-
   String get _pageTitle {
     return widget.sessionType == 'counting' ? 'Stock Count' : 'Receiving';
   }
 
-  Color get _typeColor {
-    return widget.sessionType == 'counting' ? TossColors.primary : TossColors.success;
-  }
+  bool get _isCounting => widget.sessionType == 'counting';
 
   Future<void> _onCreateSessionTap() async {
-    final result = await showCreateSessionDialog(
-      context,
-      sessionType: widget.sessionType,
+    // Navigate to create session page (full page instead of dialog)
+    final result = await Navigator.of(context).push<CreateSessionResponse>(
+      MaterialPageRoute(
+        builder: (context) => CreateSessionPage(sessionType: widget.sessionType),
+      ),
     );
 
     if (result != null && mounted) {
@@ -68,82 +66,72 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
     }
   }
 
-  Future<void> _onSessionTap(SessionListItem session) async {
-    if (_isJoining) return;
-
+  void _onSessionTap(SessionListItem session) {
     final appState = ref.read(appStateProvider);
     final currentUserId = appState.userId;
     final isOwner = session.createdBy == currentUserId;
 
-    setState(() => _isJoining = true);
-
-    try {
-      // Call inventory_join_session RPC
-      final joinSession = ref.read(joinSessionUseCaseProvider);
-      await joinSession(
-        sessionId: session.sessionId,
-        userId: currentUserId,
-      );
-
-      if (!mounted) return;
-
-      // Navigate to session detail page on success
-      context.push(
-        '/session/detail/${session.sessionId}'
-        '?sessionType=${session.sessionType}'
-        '&storeId=${session.storeId}'
-        '&sessionName=${Uri.encodeComponent(session.sessionName)}'
-        '&isOwner=$isOwner',
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      // Show error dialog
-      showDialog<void>(
-        context: context,
-        builder: (ctx) => TossDialog.error(
-          title: 'Failed to Join',
-          message: e.toString().replaceFirst('Exception: ', ''),
-          primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(ctx).pop(),
+    // Navigate to session count detail page (matches stock_in_detail_page design)
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) => SessionCountDetailPage(
+          sessionId: session.sessionId,
+          sessionName: session.sessionName,
+          sessionType: session.sessionType,
+          storeId: session.storeId,
+          storeName: session.storeName,
+          isActive: session.isActive,
+          createdAt: session.createdAt,
+          isOwner: isOwner,
         ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isJoining = false);
-      }
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(sessionListProvider(widget.sessionType));
+    final hasData = !state.isEmpty;
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: TossAppBar1(
-            title: _pageTitle,
-            secondaryActionIcon: Icons.refresh,
-            onSecondaryAction: () {
-              ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
-            },
-          ),
-          body: _buildBody(state),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _onCreateSessionTap,
-            backgroundColor: _typeColor,
-            child: const Icon(Icons.add, color: TossColors.white),
-          ),
+    return Scaffold(
+      backgroundColor: TossColors.white,
+      appBar: _buildAppBar(hasData),
+      body: _buildBody(state),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(bool hasData) {
+    return AppBar(
+      backgroundColor: TossColors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: IconButton(
+        onPressed: () => Navigator.of(context).maybePop(),
+        icon: const Icon(
+          Icons.close,
+          color: TossColors.gray900,
+          size: 22,
         ),
-        // Loading overlay when joining session
-        if (_isJoining)
-          Container(
-            color: Colors.black.withValues(alpha: 0.3),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+      ),
+      title: Text(
+        _pageTitle,
+        style: TossTextStyles.titleMedium.copyWith(
+          fontWeight: FontWeight.w700,
+          color: TossColors.gray900,
+        ),
+      ),
+      titleSpacing: 0,
+      actions: [
+        IconButton(
+          onPressed: hasData ? _onCreateSessionTap : null,
+          icon: Icon(
+            Icons.add,
+            color: hasData ? TossColors.gray900 : TossColors.gray300,
+            size: 24,
           ),
+          splashRadius: 20,
+        ),
+        const SizedBox(width: 4),
       ],
     );
   }
@@ -163,23 +151,248 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
     }
 
     if (state.isEmpty) {
-      return _EmptyView(sessionType: widget.sessionType);
+      return _buildEmptyState();
     }
 
+    return _buildSessionList(state.sessions);
+  }
+
+  Widget _buildEmptyState() {
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icons based on session type
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Left icon
+                  Icon(
+                    _isCounting
+                        ? Icons.inventory_2_outlined
+                        : Icons.local_shipping_outlined,
+                    size: 48,
+                    color: TossColors.gray400,
+                  ),
+                  const SizedBox(width: 12),
+                  // Arrow icon
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 24,
+                    color: TossColors.gray400,
+                  ),
+                  const SizedBox(width: 12),
+                  // Right icon
+                  Icon(
+                    _isCounting
+                        ? Icons.fact_check_outlined
+                        : Icons.storefront_outlined,
+                    size: 48,
+                    color: TossColors.gray400,
+                  ),
+                ],
+              ),
+              const SizedBox(height: TossSpacing.space6),
+              // Description text
+              Text(
+                _isCounting
+                    ? 'Verify and adjust inventory quantities.\nCompare system records with actual stock.'
+                    : 'Count the arrived stock and confirm it matches\nthe shipment order.',
+                textAlign: TextAlign.center,
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space6),
+              // Start button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onCreateSessionTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TossColors.primary,
+                    foregroundColor: TossColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isCounting ? 'Start Stock Count' : 'Start Receiving',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSessionList(List<SessionListItem> sessions) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
       },
       child: ListView.builder(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        itemCount: state.sessions.length,
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        itemCount: sessions.length,
         itemBuilder: (context, index) {
-          final session = state.sessions[index];
-          return _SessionCard(
-            session: session,
-            onTap: () => _onSessionTap(session),
-          );
+          final session = sessions[index];
+          return _buildSessionItem(session);
         },
+      ),
+    );
+  }
+
+  Widget _buildSessionItem(SessionListItem session) {
+    // Parse createdAt string to extract day and month
+    String dateStr = '';
+    try {
+      final dateTime = DateTime.parse(session.createdAt);
+      final day = dateTime.day.toString().padLeft(2, '0');
+      final month = dateTime.month.toString().padLeft(2, '0');
+      dateStr = '$day.$month';
+    } catch (_) {
+      dateStr = session.createdAt.length >= 10
+          ? '${session.createdAt.substring(8, 10)}.${session.createdAt.substring(5, 7)}'
+          : '';
+    }
+
+    return GestureDetector(
+      onTap: () => _onSessionTap(session),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date column
+            SizedBox(
+              width: 48,
+              child: Text(
+                dateStr,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            // Content column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Session name
+                  Text(
+                    session.sessionName,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // Store name
+                  Text(
+                    session.storeName,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  // User row
+                  Row(
+                    children: [
+                      // User avatar
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: const BoxDecoration(
+                          color: TossColors.gray200,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            session.createdByName.isNotEmpty
+                                ? session.createdByName[0].toUpperCase()
+                                : '?',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // User name
+                      Text(
+                        session.createdByName,
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      // Member count
+                      const Icon(
+                        Icons.people_outline,
+                        size: 12,
+                        color: TossColors.gray400,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${session.memberCount}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Right column: Status badge and type
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Status badge
+                TossStatusBadge(
+                  label: session.isActive ? 'In progress' : 'Done',
+                  status: session.isActive
+                      ? BadgeStatus.success
+                      : BadgeStatus.info,
+                ),
+                const SizedBox(height: 4),
+                // Session type label
+                Text(
+                  _isCounting ? 'Stock Count' : 'Receiving',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -232,223 +445,6 @@ class _ErrorView extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Empty view
-class _EmptyView extends StatelessWidget {
-  final String sessionType;
-
-  const _EmptyView({required this.sessionType});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.inbox_outlined,
-              size: 64,
-              color: TossColors.textTertiary,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'No sessions yet',
-              style: TossTextStyles.h4.copyWith(
-                color: TossColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              'Tap + to create a new ${sessionType == 'counting' ? 'stock count' : 'receiving'} session',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Session card
-class _SessionCard extends StatelessWidget {
-  final SessionListItem session;
-  final VoidCallback onTap;
-
-  const _SessionCard({
-    required this.session,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      elevation: 0,
-      color: TossColors.gray50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getTypeColor().withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Icon(
-                  _getTypeIcon(),
-                  color: _getTypeColor(),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      session.sessionName,
-                      style: TossTextStyles.bodyMedium.copyWith(
-                        color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: TossSpacing.space1),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.store_outlined,
-                          size: 14,
-                          color: TossColors.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            session.storeName,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: TossSpacing.space1),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getTypeColor().withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            _getTypeLabel(),
-                            style: TossTextStyles.small.copyWith(
-                              color: _getTypeColor(),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: TossSpacing.space1),
-                    Row(
-                      children: [
-                        _InfoChip(
-                          icon: Icons.people_outline,
-                          label: '${session.memberCount}',
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        _InfoChip(
-                          icon: Icons.person_outline,
-                          label: session.createdByName,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Arrow
-              const Icon(
-                Icons.chevron_right,
-                color: TossColors.textTertiary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  IconData _getTypeIcon() {
-    return session.isCounting
-        ? Icons.inventory_2_outlined
-        : Icons.local_shipping_outlined;
-  }
-
-  Color _getTypeColor() {
-    return session.isCounting ? TossColors.primary : TossColors.success;
-  }
-
-  String _getTypeLabel() {
-    return session.isCounting ? 'Stock Count' : 'Receiving';
-  }
-}
-
-/// Info chip
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 12,
-          color: TossColors.textTertiary,
-        ),
-        const SizedBox(width: 2),
-        Text(
-          label,
-          style: TossTextStyles.small.copyWith(
-            color: TossColors.textTertiary,
-          ),
-        ),
-      ],
     );
   }
 }

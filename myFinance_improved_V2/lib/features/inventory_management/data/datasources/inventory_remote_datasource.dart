@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/inventory_exceptions.dart';
+import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/image_file.dart';
 import '../models/inventory_metadata_model.dart';
 import '../models/product_model.dart';
@@ -73,7 +74,9 @@ class InventoryRemoteDataSource {
     String? stockStatus,
   }) async {
     try {
-      // Build params - use get_inventory_page_v2 with timezone support
+      // Build params - use get_inventory_page_v3 with timezone support
+      // Note: categoryId, brandId, stockStatus are not supported by RPC
+      // Filtering is handled client-side in the presentation layer
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
@@ -135,6 +138,7 @@ class InventoryRemoteDataSource {
   }
 
   /// Create new product
+  /// Calls inventory_create_product_v3 RPC
   Future<ProductModel> createProduct({
     required String companyId,
     required String storeId,
@@ -168,7 +172,8 @@ class InventoryRemoteDataSource {
         'p_initial_quantity': initialQuantity,
         'p_min_stock': minStock,
         'p_max_stock': maxStock,
-        'p_image_urls': imageUrls,
+        // p_image_urls expects JSONB array - pass List directly, Supabase will handle conversion
+        'p_image_urls': imageUrls ?? [],
         'p_time': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
@@ -180,14 +185,29 @@ class InventoryRemoteDataSource {
       if (response['success'] == true) {
         return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
       } else {
-        final error = response['error'] as Map<String, dynamic>?;
-        if (error?['code'] == 'DUPLICATE_SKU') {
+        // RPC returns error code at top level: { success: false, error: "message", code: "CODE" }
+        final errorCode = response['code'] as String?;
+        final errorMessage = response['error'] as String?;
+
+        if (errorCode == 'DUPLICATE_SKU') {
           throw DuplicateSKUException(sku: sku ?? '');
         }
+        if (errorCode == 'DUPLICATE_BARCODE') {
+          throw InventoryRepositoryException(
+            message: 'Barcode already exists',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'TOO_MANY_IMAGES') {
+          throw InventoryRepositoryException(
+            message: 'Maximum 3 image URLs allowed',
+            code: errorCode,
+          );
+        }
         throw InventoryRepositoryException(
-          message: error?['message']?.toString() ?? 'Failed to create product',
-          code: error?['code']?.toString(),
-          details: error,
+          message: errorMessage ?? 'Failed to create product',
+          code: errorCode,
+          details: response,
         );
       }
     } on PostgrestException catch (e) {
@@ -484,6 +504,159 @@ class InventoryRemoteDataSource {
     }
   }
 
+  /// Move product between stores
+  /// Calls inventory_move_product_v3 RPC
+  Future<MoveProductResult> moveProduct({
+    required String companyId,
+    required String fromStoreId,
+    required String toStoreId,
+    required String productId,
+    required int quantity,
+    required String updatedBy,
+    required String notes,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_from_store_id': fromStoreId,
+        'p_to_store_id': toStoreId,
+        'p_items': [
+          {
+            'product_id': productId,
+            'quantity': quantity,
+          },
+        ],
+        'p_updated_by': updatedBy,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_notes': notes,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_move_product_v3', params: params)
+          .single();
+
+      if (response['success'] == true) {
+        return MoveProductResult.fromJson(response['data'] as Map<String, dynamic>);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to move product',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to move product: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Get product stock by stores
+  /// Calls inventory_product_stock_stores RPC
+  Future<ProductStockStoresResult> getProductStockByStores({
+    required String companyId,
+    required List<String> productIds,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_product_ids': productIds,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_product_stock_stores', params: params)
+          .single();
+
+      if (response['success'] == true) {
+        return ProductStockStoresResult.fromJson(response['data'] as Map<String, dynamic>);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to get product stock',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get product stock by stores: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Get product history
+  /// Calls inventory_product_history RPC
+  Future<ProductHistoryResult> getProductHistory({
+    required String companyId,
+    required String storeId,
+    required String productId,
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_product_id': productId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_page': page,
+        'p_page_size': pageSize,
+      };
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getProductHistory params: $params');
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_product_history', params: params)
+          .single();
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getProductHistory response: $response');
+
+      if (response['success'] == true) {
+        return ProductHistoryResult.fromJson(response);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to get product history',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] PostgrestException: ${e.message}');
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] Exception: $e');
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get product history: $e',
+        details: e,
+      );
+    }
+  }
+
   /// Get correct MIME type for image extension
   /// Handles jpg -> jpeg conversion for standard compliance
   String _getMimeType(String extension) {
@@ -503,6 +676,100 @@ class InventoryRemoteDataSource {
         return 'image/heif';
       default:
         return 'image/$extension';
+    }
+  }
+
+  /// Check if product can be created (validates before creation)
+  /// Calls inventory_check_create RPC
+  ///
+  /// Function signature:
+  /// inventory_check_create(
+  ///   p_company_id uuid,
+  ///   p_product_name varchar,  -- REQUIRED
+  ///   p_sku varchar DEFAULT NULL,
+  ///   p_barcode varchar DEFAULT NULL,
+  ///   p_category_id uuid DEFAULT NULL,
+  ///   p_brand_id uuid DEFAULT NULL,
+  ///   p_store_id uuid DEFAULT NULL
+  /// )
+  Future<CreateValidationResult> checkCreateProduct({
+    required String companyId,
+    required String productName,
+    String? storeId,
+    String? sku,
+    String? barcode,
+    String? categoryId,
+    String? brandId,
+  }) async {
+    try {
+      // Build params matching actual function signature
+      final params = <String, dynamic>{
+        'p_company_id': companyId,
+        'p_product_name': productName,
+        'p_sku': (sku != null && sku.isNotEmpty) ? sku : null,
+        'p_barcode': (barcode != null && barcode.isNotEmpty) ? barcode : null,
+        'p_category_id': categoryId,
+        'p_brand_id': brandId,
+        'p_store_id': storeId,
+      };
+
+      // ignore: avoid_print
+      print('[checkCreateProduct] Calling inventory_check_create RPC');
+      // ignore: avoid_print
+      print('[checkCreateProduct] params: $params');
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_check_create', params: params)
+          .single();
+
+      // ignore: avoid_print
+      print('[checkCreateProduct] response: $response');
+
+      return CreateValidationResult.fromJson(response);
+    } on PostgrestException catch (e) {
+      // ignore: avoid_print
+      print('[checkCreateProduct] PostgrestException: ${e.message}, code: ${e.code}, details: ${e.details}');
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('[checkCreateProduct] Error: $e');
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to validate product creation: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Get base currency for company
+  /// Calls get_base_currency RPC
+  Future<BaseCurrencyResponse> getBaseCurrency({
+    required String companyId,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('get_base_currency', params: params)
+          .single();
+
+      return BaseCurrencyResponse.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get base currency: $e',
+        details: e,
+      );
     }
   }
 }
@@ -651,6 +918,379 @@ class EditValidations {
       productExists: json['product_exists'] as bool? ?? false,
       nameAvailable: json['name_available'] as bool? ?? true,
       skuAvailable: json['sku_available'] as bool? ?? true,
+    );
+  }
+}
+
+/// Result from inventory_product_stock_stores RPC
+class ProductStockStoresResult {
+  final List<ProductStockInfo> products;
+  final ProductStockSummary summary;
+
+  ProductStockStoresResult({
+    required this.products,
+    required this.summary,
+  });
+
+  factory ProductStockStoresResult.fromJson(Map<String, dynamic> json) {
+    final productsJson = json['products'] as List<dynamic>? ?? [];
+    return ProductStockStoresResult(
+      products: productsJson
+          .map((p) => ProductStockInfo.fromJson(p as Map<String, dynamic>))
+          .toList(),
+      summary: ProductStockSummary.fromJson(
+        json['summary'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+}
+
+/// Product stock info with stores
+class ProductStockInfo {
+  final String productId;
+  final String productName;
+  final String sku;
+  final int totalQuantity;
+  final int storesWithStock;
+  final List<StoreStockInfo> stores;
+
+  ProductStockInfo({
+    required this.productId,
+    required this.productName,
+    required this.sku,
+    required this.totalQuantity,
+    required this.storesWithStock,
+    required this.stores,
+  });
+
+  factory ProductStockInfo.fromJson(Map<String, dynamic> json) {
+    final storesJson = json['stores'] as List<dynamic>? ?? [];
+    return ProductStockInfo(
+      productId: json['product_id'] as String? ?? '',
+      productName: json['product_name'] as String? ?? '',
+      sku: json['sku'] as String? ?? '',
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      storesWithStock: (json['stores_with_stock'] as num?)?.toInt() ?? 0,
+      stores: storesJson
+          .map((s) => StoreStockInfo.fromJson(s as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Store stock info
+class StoreStockInfo {
+  final String storeId;
+  final String storeName;
+  final String storeCode;
+  final int quantityOnHand;
+  final int quantityAvailable;
+  final int quantityReserved;
+
+  StoreStockInfo({
+    required this.storeId,
+    required this.storeName,
+    required this.storeCode,
+    required this.quantityOnHand,
+    required this.quantityAvailable,
+    required this.quantityReserved,
+  });
+
+  factory StoreStockInfo.fromJson(Map<String, dynamic> json) {
+    return StoreStockInfo(
+      storeId: json['store_id'] as String? ?? '',
+      storeName: json['store_name'] as String? ?? '',
+      storeCode: json['store_code'] as String? ?? '',
+      quantityOnHand: (json['quantity_on_hand'] as num?)?.toInt() ?? 0,
+      quantityAvailable: (json['quantity_available'] as num?)?.toInt() ?? 0,
+      quantityReserved: (json['quantity_reserved'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Summary of product stock query
+class ProductStockSummary {
+  final int totalProductsRequested;
+  final int totalProductsFound;
+  final int totalStores;
+  final int grandTotalQuantity;
+
+  ProductStockSummary({
+    required this.totalProductsRequested,
+    required this.totalProductsFound,
+    required this.totalStores,
+    required this.grandTotalQuantity,
+  });
+
+  factory ProductStockSummary.fromJson(Map<String, dynamic> json) {
+    return ProductStockSummary(
+      totalProductsRequested: (json['total_products_requested'] as num?)?.toInt() ?? 0,
+      totalProductsFound: (json['total_products_found'] as num?)?.toInt() ?? 0,
+      totalStores: (json['total_stores'] as num?)?.toInt() ?? 0,
+      grandTotalQuantity: (json['grand_total_quantity'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Result from inventory_product_history RPC
+class ProductHistoryResult {
+  final List<ProductHistoryItem> data;
+  final int totalCount;
+  final int page;
+  final int pageSize;
+  final int totalPages;
+
+  ProductHistoryResult({
+    required this.data,
+    required this.totalCount,
+    required this.page,
+    required this.pageSize,
+    required this.totalPages,
+  });
+
+  factory ProductHistoryResult.fromJson(Map<String, dynamic> json) {
+    final dataJson = json['data'] as List<dynamic>? ?? [];
+    return ProductHistoryResult(
+      data: dataJson
+          .map((item) => ProductHistoryItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      pageSize: (json['page_size'] as num?)?.toInt() ?? 20,
+      totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Individual history item from product history
+class ProductHistoryItem {
+  final String eventType;
+  final String eventDate;
+  final String localEventDate;
+  final int? quantityBefore;
+  final int? quantityAfter;
+  final int? quantityChange;
+  final double? priceBefore;
+  final double? priceAfter;
+  final String? fromStoreName;
+  final String? toStoreName;
+  final String? referenceNumber;
+  final String? notes;
+  final String? userName;
+  final String? userAvatar;
+
+  ProductHistoryItem({
+    required this.eventType,
+    required this.eventDate,
+    required this.localEventDate,
+    this.quantityBefore,
+    this.quantityAfter,
+    this.quantityChange,
+    this.priceBefore,
+    this.priceAfter,
+    this.fromStoreName,
+    this.toStoreName,
+    this.referenceNumber,
+    this.notes,
+    this.userName,
+    this.userAvatar,
+  });
+
+  factory ProductHistoryItem.fromJson(Map<String, dynamic> json) {
+    return ProductHistoryItem(
+      eventType: json['event_type'] as String? ?? '',
+      eventDate: json['event_date'] as String? ?? '',
+      localEventDate: json['local_event_date'] as String? ?? '',
+      quantityBefore: (json['quantity_before'] as num?)?.toInt(),
+      quantityAfter: (json['quantity_after'] as num?)?.toInt(),
+      quantityChange: (json['quantity_change'] as num?)?.toInt(),
+      priceBefore: (json['price_before'] as num?)?.toDouble(),
+      priceAfter: (json['price_after'] as num?)?.toDouble(),
+      fromStoreName: json['from_store_name'] as String?,
+      toStoreName: json['to_store_name'] as String?,
+      referenceNumber: json['reference_number'] as String?,
+      notes: json['notes'] as String?,
+      userName: json['user_name'] as String?,
+      userAvatar: json['user_avatar'] as String?,
+    );
+  }
+}
+
+/// Base Currency Response from get_base_currency RPC
+class BaseCurrencyResponse {
+  final BaseCurrencyData baseCurrency;
+  final List<CompanyCurrencyData> companyCurrencies;
+
+  BaseCurrencyResponse({
+    required this.baseCurrency,
+    required this.companyCurrencies,
+  });
+
+  factory BaseCurrencyResponse.fromJson(Map<String, dynamic> json) {
+    final baseCurrencyJson = json['base_currency'] as Map<String, dynamic>? ?? {};
+    final companyCurrenciesJson = json['company_currencies'] as List? ?? [];
+
+    return BaseCurrencyResponse(
+      baseCurrency: BaseCurrencyData.fromJson(baseCurrencyJson),
+      companyCurrencies: companyCurrenciesJson
+          .map((c) => CompanyCurrencyData.fromJson(c as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Base Currency Data
+class BaseCurrencyData {
+  final String? currencyId;
+  final String? currencyCode;
+  final String? currencyName;
+  final String? symbol;
+  final String? flagEmoji;
+
+  BaseCurrencyData({
+    this.currencyId,
+    this.currencyCode,
+    this.currencyName,
+    this.symbol,
+    this.flagEmoji,
+  });
+
+  factory BaseCurrencyData.fromJson(Map<String, dynamic> json) {
+    return BaseCurrencyData(
+      currencyId: json['currency_id'] as String?,
+      currencyCode: json['currency_code'] as String?,
+      currencyName: json['currency_name'] as String?,
+      symbol: json['symbol'] as String?,
+      flagEmoji: json['flag_emoji'] as String?,
+    );
+  }
+
+  String get displaySymbol => symbol ?? currencyCode ?? '';
+}
+
+/// Company Currency Data with exchange rate
+class CompanyCurrencyData {
+  final String? currencyId;
+  final String? currencyCode;
+  final String? currencyName;
+  final String? symbol;
+  final String? flagEmoji;
+  final double? exchangeRateToBase;
+  final String? rateDate;
+  final List<DenominationData> denominations;
+
+  CompanyCurrencyData({
+    this.currencyId,
+    this.currencyCode,
+    this.currencyName,
+    this.symbol,
+    this.flagEmoji,
+    this.exchangeRateToBase,
+    this.rateDate,
+    this.denominations = const [],
+  });
+
+  factory CompanyCurrencyData.fromJson(Map<String, dynamic> json) {
+    final denominationsJson = json['denominations'] as List? ?? [];
+    return CompanyCurrencyData(
+      currencyId: json['currency_id'] as String?,
+      currencyCode: json['currency_code'] as String?,
+      currencyName: json['currency_name'] as String?,
+      symbol: json['symbol'] as String?,
+      flagEmoji: json['flag_emoji'] as String?,
+      exchangeRateToBase: (json['exchange_rate_to_base'] as num?)?.toDouble(),
+      rateDate: json['rate_date'] as String?,
+      denominations: denominationsJson
+          .map((d) => DenominationData.fromJson(d as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Denomination Data
+class DenominationData {
+  final String? denominationId;
+  final double? value;
+
+  DenominationData({
+    this.denominationId,
+    this.value,
+  });
+
+  factory DenominationData.fromJson(Map<String, dynamic> json) {
+    return DenominationData(
+      denominationId: json['denomination_id'] as String?,
+      value: (json['value'] as num?)?.toDouble(),
+    );
+  }
+}
+
+/// Create Validation Result from inventory_check_create RPC
+class CreateValidationResult {
+  final bool success;
+  final String? message;
+  final String? errorCode;
+  final String? errorMessage;
+  final CreateValidationData? data;
+
+  CreateValidationResult({
+    required this.success,
+    this.message,
+    this.errorCode,
+    this.errorMessage,
+    this.data,
+  });
+
+  factory CreateValidationResult.fromJson(Map<String, dynamic> json) {
+    return CreateValidationResult(
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String?,
+      errorCode: json['code'] as String?,
+      errorMessage: json['error'] as String?,
+      data: json['data'] != null
+          ? CreateValidationData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
+/// Data from successful create validation
+class CreateValidationData {
+  final String sku;
+  final String barcode;
+  final AutoGeneratedFlags autoGenerated;
+
+  CreateValidationData({
+    required this.sku,
+    required this.barcode,
+    required this.autoGenerated,
+  });
+
+  factory CreateValidationData.fromJson(Map<String, dynamic> json) {
+    return CreateValidationData(
+      sku: json['sku'] as String? ?? '',
+      barcode: json['barcode'] as String? ?? '',
+      autoGenerated: AutoGeneratedFlags.fromJson(
+        json['auto_generated'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+}
+
+/// Auto-generated flags indicating which fields were auto-generated
+class AutoGeneratedFlags {
+  final bool sku;
+  final bool barcode;
+
+  AutoGeneratedFlags({
+    required this.sku,
+    required this.barcode,
+  });
+
+  factory AutoGeneratedFlags.fromJson(Map<String, dynamic> json) {
+    return AutoGeneratedFlags(
+      sku: json['sku'] as bool? ?? false,
+      barcode: json['barcode'] as bool? ?? false,
     );
   }
 }

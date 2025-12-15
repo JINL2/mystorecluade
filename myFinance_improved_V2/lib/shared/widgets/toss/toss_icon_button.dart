@@ -161,12 +161,16 @@ class TossIconButton extends StatelessWidget {
     Key? key,
     VoidCallback? onPressed,
     Color? color,
+    double? size,
+    EdgeInsetsGeometry? padding,
   }) {
     return TossIconButton(
       key: key,
       icon: Icons.edit_outlined,
       onPressed: onPressed,
       color: color ?? TossColors.textSecondary,
+      size: size,
+      padding: padding,
       tooltip: 'Edit',
     );
   }

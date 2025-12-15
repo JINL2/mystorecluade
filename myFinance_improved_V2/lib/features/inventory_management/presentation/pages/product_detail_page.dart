@@ -15,6 +15,7 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/toss/toss_icon_button.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/repositories/inventory_repository.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'product_transactions_page.dart';
@@ -34,9 +35,61 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   bool _hasStockFilter = true;
+  List<StoreStock>? _storeStocks;
+  bool _isLoadingStocks = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoreStocks();
+  }
+
+  Future<void> _loadStoreStocks() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      setState(() {
+        _isLoadingStocks = false;
+      });
+      return;
+    }
+
+    try {
+      final repository = ref.read(inventoryRepositoryProvider);
+      final result = await repository.getProductStockByStores(
+        companyId: companyId,
+        productIds: [widget.productId],
+      );
+
+      if (mounted) {
+        if (result != null && result.products.isNotEmpty) {
+          setState(() {
+            _storeStocks = result.products.first.stores;
+            _isLoadingStocks = false;
+          });
+        } else {
+          setState(() {
+            _storeStocks = [];
+            _isLoadingStocks = false;
+          });
+        }
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[ProductDetailPage] Error loading store stocks: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingStocks = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    print('🔴 [ProductDetailPage] build called - productId: ${widget.productId}');
     final productsState = ref.watch(inventoryPageProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
@@ -108,13 +161,35 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
             ],
           ),
-          // Right side - edit and more buttons
+          // Right side - edit, history, and more buttons
           Row(
             children: [
               TossIconButton.edit(
+                size: 26,
+                padding: const EdgeInsets.all(12),
                 onPressed: () {
                   context.push('/inventoryManagement/editProduct/${widget.productId}');
                 },
+              ),
+              // Transaction history button
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (context) => ProductTransactionsPage(product: product),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.history,
+                    size: 26,
+                    color: TossColors.gray900,
+                  ),
+                ),
               ),
               TossIconButton.more(
                 onPressed: () => _showMoreOptions(context, ref, product),
@@ -127,107 +202,96 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   Widget _buildProductHeader(BuildContext context, Product product) {
-    return GestureDetector(
-      onTap: () {
-        context.push('/inventoryManagement/editProduct/${widget.productId}');
-      },
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          TossSpacing.space4,
-          TossSpacing.space6,
-          TossSpacing.space4,
-          TossSpacing.space5,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product image
-            _buildProductImage(product),
-            const SizedBox(width: TossSpacing.space4),
-            // Product info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // SKU with copy button
-                  Row(
-                    children: [
-                      Text(
-                        product.sku,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray600,
-                        ),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        TossSpacing.space6,
+        TossSpacing.space4,
+        TossSpacing.space5,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product image
+          _buildProductImage(product),
+          const SizedBox(width: TossSpacing.space4),
+          // Product info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // SKU with copy button
+                Row(
+                  children: [
+                    Text(
+                      product.sku,
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.gray600,
                       ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: product.sku));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('SKU copied to clipboard'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.copy_outlined,
-                          size: 18,
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Product name
-                  Text(
-                    product.name,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: TossColors.gray900,
                     ),
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  // Quantity badge
-                  Row(
-                    children: [
-                      Container(
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: TossColors.primary,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '${product.onHand}',
-                          style: TossTextStyles.bodyMedium.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.white,
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: product.sku));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('SKU copied to clipboard'),
+                            duration: Duration(seconds: 1),
                           ),
-                        ),
+                        );
+                      },
+                      child: Icon(
+                        Icons.copy_outlined,
+                        size: 18,
+                        color: TossColors.gray500,
                       ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        'On-hand qty',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Product name
+                Text(
+                  product.name,
+                  style: TossTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: TossColors.gray900,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: TossSpacing.space4),
+                // Quantity badge
+                Row(
+                  children: [
+                    Container(
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: TossColors.primary,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${product.onHand}',
+                        style: TossTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'On-hand qty',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            // Chevron
-            Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: TossColors.gray500,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -385,7 +449,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   Widget _buildLocationsSection(Product product) {
     final appState = ref.watch(appStateProvider);
-    final stores = _getCompanyStores(appState, product);
+    final currentStoreId = appState.storeChoosen;
+
+    // Use RPC data if available, otherwise fallback to AppState
+    final stores = _buildStoreLocations(appState, product, currentStoreId);
+
     // Find current store for Move Stock dialog
     final currentStore = stores.firstWhere(
       (s) => s.isCurrentStore,
@@ -442,16 +510,44 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   ],
                 ),
               ),
-              // Store rows
-              ...filteredStores.map((store) => _buildStoreRow(store, product, stores)),
+              // Loading indicator or store rows
+              if (_isLoadingStocks)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else
+                ...filteredStores.map((store) => _buildStoreRow(store, product, stores)),
             ],
           ),
         ),
-        // Recent transactions button - full width dividers
-        _buildRecentTransactionsButton(product),
         const SizedBox(height: TossSpacing.space4),
       ],
     );
+  }
+
+  /// Build store locations from RPC data or fallback to AppState
+  List<StoreLocation> _buildStoreLocations(AppState appState, Product product, String currentStoreId) {
+    // If we have RPC data, use it
+    if (_storeStocks != null && _storeStocks!.isNotEmpty) {
+      return _storeStocks!.map((stock) {
+        return StoreLocation(
+          id: stock.storeId,
+          name: stock.storeName,
+          stock: stock.quantityOnHand,
+          isCurrentStore: stock.storeId == currentStoreId,
+        );
+      }).toList();
+    }
+
+    // Fallback to AppState-based method
+    return _getCompanyStores(appState, product);
   }
 
   Widget _buildToggle(bool isOn) {
@@ -630,6 +726,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     MoveStockDialog.show(
       context: context,
       productName: product.name,
+      productId: product.id,
       fromLocation: fromLocation,
       allStores: allStores,
       onSubmit: (fromStore, toStore, quantity) {
@@ -642,57 +739,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildRecentTransactionsButton(Product product) {
-    return Column(
-      children: [
-        // Top divider
-        Container(
-          height: 1,
-          color: TossColors.gray200,
-          margin: const EdgeInsets.only(bottom: 10),
-        ),
-        // Button
-        GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ProductTransactionsPage(product: product),
-              ),
-            );
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.history,
-                  size: 20,
-                  color: TossColors.gray600,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Text(
-                  'Recent transactions',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        // Bottom divider
-        Container(
-          height: 1,
-          color: TossColors.gray200,
-          margin: const EdgeInsets.only(top: 10),
-        ),
-      ],
     );
   }
 

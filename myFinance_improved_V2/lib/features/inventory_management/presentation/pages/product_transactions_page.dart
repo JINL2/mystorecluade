@@ -8,7 +8,9 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/calendar_time_range.dart';
+import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/repositories/inventory_repository.dart';
 
 /// Product Transactions Page - Shows history of stock movements
 class ProductTransactionsPage extends ConsumerStatefulWidget {
@@ -30,17 +32,103 @@ class _ProductTransactionsPageState
   String _selectedStoreName = '';
   DateRange? _selectedDateRange;
 
+  // Transaction data state
+  List<ProductHistoryEntry> _transactions = [];
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalCount = 0;
+  static const int _pageSize = 20;
+
   @override
   void initState() {
     super.initState();
+    // ignore: avoid_print
+    print('🔴 [ProductTransactions] initState called - product: ${widget.product.id}');
     // Initialize with current store
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] postFrameCallback called');
       final appState = ref.read(appStateProvider);
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] storeId: ${appState.storeChoosen}, companyId: ${appState.companyChoosen}');
       setState(() {
         _selectedStoreId = appState.storeChoosen;
         _selectedStoreName = appState.storeName;
       });
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] About to call _loadTransactions');
+      _loadTransactions();
     });
+  }
+
+  Future<void> _loadTransactions({bool refresh = false}) async {
+    // ignore: avoid_print
+    print('🔴 [ProductTransactions] _loadTransactions called, refresh: $refresh');
+    if (refresh) {
+      setState(() {
+        _currentPage = 1;
+        _isLoading = true;
+      });
+    }
+
+    try {
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(inventoryRepositoryProvider);
+
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] Loading history for product: ${widget.product.id}');
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] Store: $_selectedStoreId, Company: ${appState.companyChoosen}');
+
+      final result = await repository.getProductHistory(
+        companyId: appState.companyChoosen,
+        storeId: _selectedStoreId.isNotEmpty ? _selectedStoreId : appState.storeChoosen,
+        productId: widget.product.id,
+        page: _currentPage,
+        pageSize: _pageSize,
+      );
+
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] Result: ${result?.entries.length ?? 0} entries, totalCount: ${result?.totalCount ?? 0}');
+
+      if (mounted && result != null) {
+        setState(() {
+          if (refresh || _currentPage == 1) {
+            _transactions = result.entries;
+          } else {
+            _transactions.addAll(result.entries);
+          }
+          _totalPages = result.totalPages;
+          _totalCount = result.totalCount;
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] ERROR: $e');
+      // ignore: avoid_print
+      print('🔴 [ProductTransactions] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || _currentPage >= _totalPages) return;
+
+    setState(() {
+      _isLoadingMore = true;
+      _currentPage++;
+    });
+
+    await _loadTransactions();
   }
 
   @override
@@ -49,9 +137,6 @@ class _ProductTransactionsPageState
 
     // Get stores list
     final stores = _getCompanyStores(appState);
-
-    // Mock transactions data - TODO: Replace with actual API data
-    final transactions = _getMockTransactions();
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -64,18 +149,68 @@ class _ProductTransactionsPageState
             _buildProductInfo(),
             // Transactions list
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                ),
-                itemCount: transactions.length,
-                itemBuilder: (context, index) {
-                  return _buildTransactionItem(transactions[index]);
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _transactions.isEmpty
+                      ? _buildEmptyState()
+                      : NotificationListener<ScrollNotification>(
+                          onNotification: (scrollInfo) {
+                            if (scrollInfo.metrics.pixels >=
+                                    scrollInfo.metrics.maxScrollExtent - 200 &&
+                                !_isLoadingMore &&
+                                _currentPage < _totalPages) {
+                              _loadMore();
+                            }
+                            return false;
+                          },
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space4,
+                            ),
+                            itemCount: _transactions.length + (_isLoadingMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == _transactions.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(child: CircularProgressIndicator()),
+                                );
+                              }
+                              return _buildTransactionItem(_transactions[index]);
+                            },
+                          ),
+                        ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.history,
+            size: 64,
+            color: TossColors.gray400,
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          Text(
+            'No transactions yet',
+            style: TossTextStyles.h4.copyWith(
+              color: TossColors.gray700,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            'Transaction history will appear here',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -184,7 +319,11 @@ class _ProductTransactionsPageState
     );
   }
 
-  Widget _buildTransactionItem(_Transaction transaction) {
+  Widget _buildTransactionItem(ProductHistoryEntry transaction) {
+    final eventType = _parseEventType(transaction.eventType);
+    final isTransfer = transaction.eventType == 'stock_transfer_out' ||
+        transaction.eventType == 'stock_transfer_in';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Row(
@@ -194,7 +333,7 @@ class _ProductTransactionsPageState
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Icon(
-              _getTransactionIcon(transaction.type),
+              _getTransactionIcon(eventType),
               size: 20,
               color: TossColors.gray600,
             ),
@@ -207,7 +346,7 @@ class _ProductTransactionsPageState
               children: [
                 // Type title
                 Text(
-                  _getTransactionTitle(transaction.type),
+                  _getTransactionTitle(eventType),
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
@@ -216,137 +355,157 @@ class _ProductTransactionsPageState
                 const SizedBox(height: 4),
                 // Date and time
                 Text(
-                  transaction.dateTime,
+                  transaction.localEventDate,
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 // Location info
-                if (transaction.type == _TransactionType.moveStock)
+                if (isTransfer && transaction.fromStoreName != null && transaction.toStoreName != null)
                   Row(
                     children: [
                       Text(
-                        transaction.fromStore ?? '',
+                        transaction.fromStoreName ?? '',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray600,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(
+                      const Icon(
                         Icons.arrow_forward,
                         size: 12,
                         color: TossColors.gray500,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        transaction.toStore ?? '',
+                        transaction.toStoreName ?? '',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray600,
                         ),
                       ),
                     ],
                   )
-                else
+                else if (transaction.notes != null && transaction.notes!.isNotEmpty)
                   Text(
-                    transaction.store,
+                    transaction.notes!,
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),
                   ),
                 const SizedBox(height: 8),
                 // User info
-                Row(
-                  children: [
-                    // Avatar
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: TossColors.gray200,
-                        shape: BoxShape.circle,
-                        image: transaction.userAvatar != null
-                            ? DecorationImage(
-                                image: NetworkImage(transaction.userAvatar!),
-                                fit: BoxFit.cover,
+                if (transaction.userName != null && transaction.userName!.isNotEmpty)
+                  Row(
+                    children: [
+                      // Avatar
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: TossColors.gray200,
+                          shape: BoxShape.circle,
+                          image: transaction.userAvatar != null
+                              ? DecorationImage(
+                                  image: NetworkImage(transaction.userAvatar!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: transaction.userAvatar == null
+                            ? Center(
+                                child: Text(
+                                  transaction.userName!.isNotEmpty
+                                      ? transaction.userName![0].toUpperCase()
+                                      : 'U',
+                                  style: TossTextStyles.caption.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
                               )
                             : null,
                       ),
-                      child: transaction.userAvatar == null
-                          ? Center(
-                              child: Text(
-                                transaction.userName.isNotEmpty
-                                    ? transaction.userName[0].toUpperCase()
-                                    : 'U',
-                                style: TossTextStyles.caption.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: TossColors.gray600,
-                                ),
-                              ),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
+                      Text(
+                        transaction.userName!,
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.gray700,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          // Quantity change
+          if (transaction.quantityBefore != null && transaction.quantityAfter != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Qty',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      transaction.userName,
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray700,
+                      '${transaction.quantityBefore}',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: TossColors.gray500,
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: TossColors.primarySurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${transaction.quantityAfter}',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.primary,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-          ),
-          // Quantity change
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Qty',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${transaction.qtyBefore}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 14,
-                    color: TossColors.gray500,
-                  ),
-                  const SizedBox(width: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: TossColors.primarySurface,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${transaction.qtyAfter}',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     );
+  }
+
+  _TransactionType _parseEventType(String eventType) {
+    switch (eventType) {
+      case 'stock_sale':
+        return _TransactionType.sell;
+      case 'stock_refund':
+        return _TransactionType.stockIn;
+      case 'stock_receipt':
+        return _TransactionType.stockIn;
+      case 'stock_transfer_out':
+      case 'stock_transfer_in':
+        return _TransactionType.moveStock;
+      case 'stock_adjustment':
+        return _TransactionType.editStock;
+      default:
+        return _TransactionType.editStock;
+    }
   }
 
   void _showStorePicker(BuildContext context, List<_StoreOption> stores) {
@@ -416,6 +575,8 @@ class _ProductTransactionsPageState
                           _selectedStoreId = store.id;
                           _selectedStoreName = store.name;
                         });
+                        // Reload transactions with new store
+                        _loadTransactions(refresh: true);
                       },
                     );
                   },
@@ -499,61 +660,6 @@ class _ProductTransactionsPageState
         return 'Sell';
     }
   }
-
-  // Mock data - TODO: Replace with actual API call
-  List<_Transaction> _getMockTransactions() {
-    return [
-      _Transaction(
-        type: _TransactionType.moveStock,
-        dateTime: 'Oct 12, 2025 · 14:32',
-        store: 'Lux 1',
-        fromStore: 'Lux 1',
-        toStore: 'Lux 2',
-        userName: 'Alex Nguyen',
-        userAvatar: null,
-        qtyBefore: 12,
-        qtyAfter: 8,
-      ),
-      _Transaction(
-        type: _TransactionType.stockIn,
-        dateTime: 'Oct 10, 2025 · 09:05',
-        store: 'Lux 1',
-        userName: 'Jamie Lee',
-        userAvatar: null,
-        qtyBefore: 3,
-        qtyAfter: 15,
-      ),
-      _Transaction(
-        type: _TransactionType.editStock,
-        dateTime: 'Oct 8, 2025 · 18:47',
-        store: 'Lux 1',
-        userName: 'Morgan Park',
-        userAvatar: null,
-        qtyBefore: 10,
-        qtyAfter: 9,
-      ),
-      _Transaction(
-        type: _TransactionType.moveStock,
-        dateTime: 'Oct 5, 2025 · 11:20',
-        store: 'Lux 1',
-        fromStore: 'Lux 1',
-        toStore: 'Warehouse',
-        userName: 'Taylor Kim',
-        userAvatar: null,
-        qtyBefore: 20,
-        qtyAfter: 5,
-      ),
-      _Transaction(
-        type: _TransactionType.sell,
-        dateTime: 'Oct 3, 2025 · 16:10',
-        store: 'Lux 1',
-        userName: 'Jordan Blake',
-        userAvatar: null,
-        qtyBefore: 15,
-        qtyAfter: 12,
-      ),
-    ];
-  }
 }
 
 enum _TransactionType {
@@ -561,30 +667,6 @@ enum _TransactionType {
   stockIn,
   editStock,
   sell,
-}
-
-class _Transaction {
-  final _TransactionType type;
-  final String dateTime;
-  final String store;
-  final String? fromStore;
-  final String? toStore;
-  final String userName;
-  final String? userAvatar;
-  final int qtyBefore;
-  final int qtyAfter;
-
-  _Transaction({
-    required this.type,
-    required this.dateTime,
-    required this.store,
-    this.fromStore,
-    this.toStore,
-    required this.userName,
-    this.userAvatar,
-    required this.qtyBefore,
-    required this.qtyAfter,
-  });
 }
 
 class _StoreOption {

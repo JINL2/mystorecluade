@@ -67,20 +67,23 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     _selectedDate = widget.selectedDate;
     _currentWeekStart = _getWeekStart(_selectedDate);
 
-    // Load shift data for current month
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMonthData();
-    });
+    // Note: Data loading is handled by parent page (time_table_manage_page.dart)
+    // Parent calls fetchMonthlyShiftStatus(forceRefresh: true) on page entry
+    // We don't load data here to avoid duplicate RPC calls and race conditions
   }
 
   /// Load shift data for current month
-  void _loadMonthData() {
+  ///
+  /// [forceRefresh]: If true, always fetch fresh data from RPC.
+  /// Used when navigating to a different month that may not be cached.
+  void _loadMonthData({bool forceRefresh = false}) {
     if (widget.selectedStoreId == null) return;
 
     // Load monthly shift status (employee data for shifts)
-    // Provider handles caching internally - won't re-fetch if already loaded
+    // Only force refresh when explicitly requested (e.g., month change)
     ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
       month: _selectedDate,
+      forceRefresh: forceRefresh,
     );
 
     // Note: shiftMetadataProvider is NOT invalidated here
@@ -96,12 +99,14 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         _selectedDate = widget.selectedDate;
         _currentWeekStart = _getWeekStart(_selectedDate);
       });
+      // Date changed within same store - load if month changed
+      // Provider caching handles duplicate month requests
       _loadMonthData();
     }
 
-    // Reload if store changed
+    // Reload if store changed - force refresh to get new store's data
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
-      _loadMonthData();
+      _loadMonthData(forceRefresh: true);
     }
   }
 

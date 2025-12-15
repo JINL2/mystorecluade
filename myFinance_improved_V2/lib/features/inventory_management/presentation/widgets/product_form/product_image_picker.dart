@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -212,6 +215,7 @@ class ProductImagePicker extends StatelessWidget {
   }
 
   /// Static helper method to pick images from gallery with size validation
+  /// Applies double compression (80% → 80%) for optimal file size
   static Future<List<XFile>> pickFromGalleryWithValidation(
     BuildContext context, {
     int maxSizeBytes = 10 * 1024 * 1024, // 10MB default
@@ -219,6 +223,7 @@ class ProductImagePicker extends StatelessWidget {
   }) async {
     final ImagePicker picker = ImagePicker();
     try {
+      // First compression by image_picker
       final List<XFile> images = await picker.pickMultiImage(
         maxWidth: 1920,
         maxHeight: 1920,
@@ -227,7 +232,13 @@ class ProductImagePicker extends StatelessWidget {
 
       if (images.isEmpty) return [];
 
-      return _validateImageSizes(context, images, maxSizeBytes);
+      // Second compression using flutter_image_compress
+      final List<XFile> doubleCompressedImages = await _applySecondCompression(
+        images,
+        imageQuality,
+      );
+
+      return _validateImageSizes(context, doubleCompressedImages, maxSizeBytes);
     } catch (e) {
       if (context.mounted) {
         await showDialog<bool>(
@@ -245,6 +256,7 @@ class ProductImagePicker extends StatelessWidget {
   }
 
   /// Static helper method to take photo from camera with size validation
+  /// Applies double compression (80% → 80%) for optimal file size
   static Future<List<XFile>> takePhotoWithValidation(
     BuildContext context, {
     int maxSizeBytes = 10 * 1024 * 1024, // 10MB default
@@ -252,6 +264,7 @@ class ProductImagePicker extends StatelessWidget {
   }) async {
     final ImagePicker picker = ImagePicker();
     try {
+      // First compression by image_picker
       final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1920,
@@ -261,7 +274,13 @@ class ProductImagePicker extends StatelessWidget {
 
       if (image == null) return [];
 
-      return _validateImageSizes(context, [image], maxSizeBytes);
+      // Second compression using flutter_image_compress
+      final List<XFile> doubleCompressedImages = await _applySecondCompression(
+        [image],
+        imageQuality,
+      );
+
+      return _validateImageSizes(context, doubleCompressedImages, maxSizeBytes);
     } catch (e) {
       if (context.mounted) {
         await showDialog<bool>(
@@ -276,6 +295,37 @@ class ProductImagePicker extends StatelessWidget {
       }
       return [];
     }
+  }
+
+  /// Apply second compression to images using flutter_image_compress
+  static Future<List<XFile>> _applySecondCompression(
+    List<XFile> images,
+    int quality,
+  ) async {
+    final List<XFile> compressedImages = [];
+    final tempDir = await getTemporaryDirectory();
+
+    for (int i = 0; i < images.length; i++) {
+      final image = images[i];
+      final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+
+      final XFile? compressedFile = await FlutterImageCompress.compressAndGetFile(
+        image.path,
+        targetPath,
+        quality: quality,
+        minWidth: 1920,
+        minHeight: 1920,
+      );
+
+      if (compressedFile != null) {
+        compressedImages.add(compressedFile);
+      } else {
+        // If compression fails, use original image
+        compressedImages.add(image);
+      }
+    }
+
+    return compressedImages;
   }
 
   /// Validate image sizes and show error for oversized images

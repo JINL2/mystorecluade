@@ -59,6 +59,21 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Product? _product;
 
+  // Original values for change detection
+  String _originalName = '';
+  String _originalSku = '';
+  String _originalBarcode = '';
+  String _originalSalePrice = '';
+  String _originalCostPrice = '';
+  String _originalDescription = '';
+  String _originalOnHand = '';
+  String _originalWeight = '';
+  String? _originalUnit;
+  bool _originalIsActive = true;
+  String? _originalCategoryId;
+  String? _originalBrandId;
+  List<String> _originalImageUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -85,6 +100,21 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _isActive = _product!.isActive;
     _existingImageUrls = List.from(_product!.images);
 
+    // Store original values for change detection
+    _originalName = _product!.name;
+    _originalSku = _product!.sku;
+    _originalBarcode = _product!.barcode ?? '';
+    _originalSalePrice = _product!.salePrice.toStringAsFixed(0);
+    _originalCostPrice = _product!.costPrice.toStringAsFixed(0);
+    _originalDescription = _product!.description ?? '';
+    _originalOnHand = _product!.onHand.toString();
+    _originalWeight = (_product!.weight ?? 0).toString();
+    _originalUnit = _product!.unit;
+    _originalIsActive = _product!.isActive;
+    _originalCategoryId = _product!.categoryId;
+    _originalBrandId = _product!.brandId;
+    _originalImageUrls = List.from(_product!.images);
+
     // Load metadata to find category and brand
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final metadataState = ref.read(inventoryMetadataProvider);
@@ -101,6 +131,40 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         });
       }
     });
+  }
+
+  /// Check if any field has been modified from original values
+  bool get _hasChanges {
+    // Text field changes
+    if (_nameController.text != _originalName) return true;
+    if (_productNumberController.text != _originalSku) return true;
+    if (_barcodeController.text != _originalBarcode) return true;
+    if (_salePriceController.text != _originalSalePrice) return true;
+    if (_costPriceController.text != _originalCostPrice) return true;
+    if (_descriptionController.text != _originalDescription) return true;
+    if (_onHandController.text != _originalOnHand) return true;
+    if (_weightController.text != _originalWeight) return true;
+
+    // Selection changes
+    if (_selectedUnit != _originalUnit) return true;
+    if (_isActive != _originalIsActive) return true;
+    if (_selectedCategory?.id != _originalCategoryId) return true;
+    if (_selectedBrand?.id != _originalBrandId) return true;
+
+    // Image changes
+    if (_selectedImages.isNotEmpty) return true;
+    if (!_listEquals(_existingImageUrls, _originalImageUrls)) return true;
+
+    return false;
+  }
+
+  /// Helper to compare two string lists
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   @override
@@ -512,11 +576,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             )
           else
             TextButton(
-              onPressed: _saveProduct,
+              onPressed: _hasChanges ? _saveProduct : null,
               child: Text(
                 'Save',
                 style: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.primary,
+                  color: _hasChanges ? TossColors.primary : TossColors.gray400,
                   fontWeight: FontWeight.w600,
                 ),
               ),

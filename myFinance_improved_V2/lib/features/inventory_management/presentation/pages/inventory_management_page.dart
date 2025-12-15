@@ -16,6 +16,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_speed_dial.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
+import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
 import '../providers/states/inventory_page_state.dart';
@@ -43,15 +44,24 @@ class _InventoryManagementPageState
 
   // Filter selections
   String _selectedAvailability = 'All products';
-  String _selectedLocation = 'Lux1';
+  String _selectedLocation = 'All locations'; // Will be updated from AppState in initState
   String _selectedBrand = 'All brands';
   String _selectedCategory = 'All categories';
 
   @override
   void initState() {
     super.initState();
-    // Load initial data
-    Future.microtask(() => ref.read(inventoryPageProvider.notifier).refresh());
+    // Set initial location from AppState
+    final appState = ref.read(appStateProvider);
+    _selectedLocation = appState.storeName.isNotEmpty
+        ? appState.storeName
+        : 'All locations';
+    // Load initial data and metadata
+    Future.microtask(() {
+      ref.read(inventoryPageProvider.notifier).refresh();
+      // Trigger metadata provider to load (it auto-initializes on first read)
+      ref.read(inventoryMetadataProvider);
+    });
     // Add scroll listener for infinite scroll
     _scrollController.addListener(_onScroll);
   }
@@ -90,6 +100,8 @@ class _InventoryManagementPageState
   @override
   Widget build(BuildContext context) {
     final pageState = ref.watch(inventoryPageProvider);
+    // Watch metadata provider to keep it alive and get brands/categories
+    ref.watch(inventoryMetadataProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -153,8 +165,9 @@ class _InventoryManagementPageState
   }
 
   Widget _buildBody(InventoryPageState pageState) {
-    // Apply local sorting
-    List<Product> displayProducts = _applyLocalSort(pageState.products);
+    // Apply local filtering and sorting (RPC doesn't support brand/category/stock filters)
+    List<Product> displayProducts = _applyLocalFilters(pageState.products);
+    displayProducts = _applyLocalSort(displayProducts);
 
     if (displayProducts.isEmpty && !pageState.isLoading) {
       return Column(
@@ -430,13 +443,123 @@ class _InventoryManagementPageState
     switch (filterType) {
       case 'Availability':
         _selectedAvailability = value;
+        _onAvailabilityChanged(value);
       case 'Location':
         _selectedLocation = value;
+        // Update AppState with new store selection and refresh inventory
+        _onLocationChanged(value);
       case 'Brand':
         _selectedBrand = value;
+        _onBrandChanged(value);
       case 'Categories':
         _selectedCategory = value;
+        _onCategoryChanged(value);
     }
+  }
+
+  /// Handle availability filter change
+  void _onAvailabilityChanged(String availability) {
+    String? stockStatus;
+    switch (availability) {
+      case 'In stock':
+        stockStatus = 'normal';
+      case 'Out of stock':
+        stockStatus = 'out_of_stock';
+      case 'Low stock':
+        stockStatus = 'low';
+      default:
+        stockStatus = null; // All products
+    }
+    ref.read(inventoryPageProvider.notifier).setStockStatus(stockStatus);
+  }
+
+  /// Handle brand filter change
+  void _onBrandChanged(String brandName) {
+    if (brandName == 'All brands') {
+      ref.read(inventoryPageProvider.notifier).setBrand(null);
+      return;
+    }
+
+    // Find brand ID by name from metadata
+    final metadataState = ref.read(inventoryMetadataProvider);
+    final brands = metadataState.metadata?.brands ?? [];
+
+    for (final brand in brands) {
+      if (brand.name == brandName) {
+        ref.read(inventoryPageProvider.notifier).setBrand(brand.id);
+        return;
+      }
+    }
+  }
+
+  /// Handle category filter change
+  void _onCategoryChanged(String categoryName) {
+    if (categoryName == 'All categories') {
+      ref.read(inventoryPageProvider.notifier).setCategory(null);
+      return;
+    }
+
+    // Find category ID by name from metadata
+    final metadataState = ref.read(inventoryMetadataProvider);
+    final categories = metadataState.metadata?.categories ?? [];
+
+    for (final category in categories) {
+      if (category.name == categoryName) {
+        ref.read(inventoryPageProvider.notifier).setCategory(category.id);
+        return;
+      }
+    }
+  }
+
+  /// Handle location (store) change - update AppState and refresh inventory
+  void _onLocationChanged(String storeName) {
+    final appState = ref.read(appStateProvider);
+    final storeInfo = _getStoreIdByName(storeName);
+
+    if (storeInfo != null && storeInfo['store_id'] != appState.storeChoosen) {
+      // Update AppState with new store selection
+      ref.read(appStateProvider.notifier).selectStore(
+        storeInfo['store_id']!,
+        storeName: storeInfo['store_name'],
+      );
+
+      // Refresh inventory data for the new store
+      ref.read(inventoryPageProvider.notifier).refresh();
+    }
+  }
+
+  /// Get store_id by store name from AppState
+  Map<String, String>? _getStoreIdByName(String storeName) {
+    final appState = ref.read(appStateProvider);
+    final currentCompanyId = appState.companyChoosen;
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
+
+    // Find current company
+    Map<String, dynamic>? company;
+    for (final c in companies) {
+      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
+        company = c;
+        break;
+      }
+    }
+
+    if (company == null) return null;
+
+    final storesList = company['stores'] as List<dynamic>? ?? [];
+
+    // Find store by name
+    for (final store in storesList) {
+      final storeMap = store as Map<String, dynamic>;
+      final name = storeMap['store_name'] as String? ?? '';
+      if (name == storeName) {
+        return {
+          'store_id': storeMap['store_id'] as String? ?? '',
+          'store_name': name,
+        };
+      }
+    }
+
+    return null;
   }
 
   List<String> _getFilterOptions(String filterType) {
@@ -444,14 +567,73 @@ class _InventoryManagementPageState
       case 'Availability':
         return ['All products', 'In stock', 'Out of stock', 'Low stock'];
       case 'Location':
-        return ['Lux1', 'Lux2', 'Warehouse A', 'Warehouse B'];
+        return _getStoreOptions();
       case 'Brand':
-        return ['All brands', 'Louis Vuitton', 'Gucci', 'Prada', 'Chanel'];
+        return _getBrandOptions();
       case 'Categories':
-        return ['All categories', 'Bags', 'Belts', 'Accessories', 'Clothing'];
+        return _getCategoryOptions();
       default:
         return ['All'];
     }
+  }
+
+  /// Get brand options from inventory metadata
+  List<String> _getBrandOptions() {
+    final metadataState = ref.read(inventoryMetadataProvider);
+    final brands = metadataState.metadata?.brands ?? [];
+
+    if (brands.isEmpty) {
+      return ['All brands'];
+    }
+
+    return ['All brands', ...brands.map((brand) => brand.name)];
+  }
+
+  /// Get category options from inventory metadata
+  List<String> _getCategoryOptions() {
+    final metadataState = ref.read(inventoryMetadataProvider);
+    final categories = metadataState.metadata?.categories ?? [];
+
+    if (categories.isEmpty) {
+      return ['All categories'];
+    }
+
+    return ['All categories', ...categories.map((category) => category.name)];
+  }
+
+  /// Get store options from AppState for Location filter
+  List<String> _getStoreOptions() {
+    final appState = ref.read(appStateProvider);
+    final currentCompanyId = appState.companyChoosen;
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
+
+    // Find current company
+    Map<String, dynamic>? company;
+    for (final c in companies) {
+      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
+        company = c;
+        break;
+      }
+    }
+
+    if (company == null) {
+      // Fallback: return current store name only
+      return [appState.storeName.isNotEmpty ? appState.storeName : 'All locations'];
+    }
+
+    final storesList = company['stores'] as List<dynamic>? ?? [];
+
+    if (storesList.isEmpty) {
+      return [appState.storeName.isNotEmpty ? appState.storeName : 'All locations'];
+    }
+
+    // Extract store names
+    final storeNames = storesList.map((store) {
+      final storeMap = store as Map<String, dynamic>;
+      return storeMap['store_name'] as String? ?? 'Unknown Store';
+    }).toList();
+
+    return storeNames;
   }
 
   double _calculateTotalValue(List<Product> products) {
@@ -551,17 +733,47 @@ class _InventoryManagementPageState
     MoveStockDialog.show(
       context: context,
       productName: product.name,
+      productId: product.id,
       fromLocation: fromLocation,
       allStores: allStores,
-      onSubmit: (fromStore, toStore, quantity) {
-        // TODO: Implement move stock API call
+      onSubmit: (fromStore, toStore, quantity) async {
+        // Call inventory_move_product_v3 RPC
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+
+        try {
+          final repository = ref.read(inventoryRepositoryProvider);
+          final result = await repository.moveProduct(
+            companyId: appState.companyChoosen,
+            fromStoreId: fromStore.id,
+            toStoreId: toStore.id,
+            productId: product.id,
+            quantity: quantity,
+            updatedBy: appState.userId,
+            notes: 'Move ${product.sku}',
+          );
+
+          if (result != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
+                backgroundColor: TossColors.success,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            // Refresh inventory data
+            ref.read(inventoryPageProvider.notifier).refresh();
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to move stock: $e'),
+                backgroundColor: TossColors.error,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
       },
     );
   }
@@ -582,6 +794,51 @@ class _InventoryManagementPageState
       case _SortField.value:
         return 'Value (High to Low)';
     }
+  }
+
+  /// Apply client-side filtering for brand, category, and stock status
+  /// RPC does not support these filters, so we filter locally
+  List<Product> _applyLocalFilters(List<Product> products) {
+    if (products.isEmpty) return products;
+
+    return products.where((product) {
+      // Brand filter
+      if (_selectedBrand != 'All brands') {
+        if (product.brandName != _selectedBrand) {
+          return false;
+        }
+      }
+
+      // Category filter
+      if (_selectedCategory != 'All categories') {
+        if (product.categoryName != _selectedCategory) {
+          return false;
+        }
+      }
+
+      // Availability (stock status) filter
+      if (_selectedAvailability != 'All products') {
+        final stockStatus = product.getStockStatus();
+        switch (_selectedAvailability) {
+          case 'In stock':
+            // Include normal, excess, and low stock (anything with stock > 0)
+            if (stockStatus == StockStatus.outOfStock) {
+              return false;
+            }
+          case 'Out of stock':
+            if (stockStatus != StockStatus.outOfStock) {
+              return false;
+            }
+          case 'Low stock':
+            // Include low and critical stock
+            if (stockStatus != StockStatus.low && stockStatus != StockStatus.critical) {
+              return false;
+            }
+        }
+      }
+
+      return true;
+    }).toList();
   }
 
   List<Product> _applyLocalSort(List<Product> products) {

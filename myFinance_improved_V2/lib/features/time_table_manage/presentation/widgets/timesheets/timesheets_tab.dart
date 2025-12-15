@@ -55,10 +55,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       selectedFilter = widget.initialFilter;
     }
 
-    // Load data for current month
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMonthData();
-    });
+    // Note: Data loading is handled by parent page (time_table_manage_page.dart)
+    // Parent calls fetchManagerCards(forceRefresh: true) on page entry
+    // We don't load data here to avoid duplicate RPC calls and race conditions
   }
 
   /// Set the filter programmatically (called from parent)
@@ -73,9 +72,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
   @override
   void didUpdateWidget(TimesheetsTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reload data if store changed
+    // Reload data if store changed - force refresh to get new store's data
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
-      _loadMonthData();
+      _loadMonthData(forceRefresh: true);
     }
     // Update filter if initialFilter changed
     if (widget.initialFilter != null && widget.initialFilter != oldWidget.initialFilter) {
