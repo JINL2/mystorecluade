@@ -3,27 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_item.dart';
-import '../../domain/usecases/add_session_items.dart';
-import '../../domain/usecases/search_products.dart';
+import '../../domain/usecases/get_inventory_page.dart';
+import '../../domain/usecases/get_user_session_items.dart';
+import '../../domain/usecases/update_session_items.dart';
 import 'states/session_detail_state.dart';
 
 /// Notifier for session detail state management
 class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
-  final SearchProducts _searchProducts;
-  final AddSessionItems _addSessionItems;
+  final UpdateSessionItems _updateSessionItems;
+  final GetInventoryPage _getInventoryPage;
+  final GetUserSessionItems _getUserSessionItems;
   final String _companyId;
+  final String _userId;
+
+  static const int _pageLimit = 15;
 
   SessionDetailNotifier({
-    required SearchProducts searchProducts,
-    required AddSessionItems addSessionItems,
+    required UpdateSessionItems updateSessionItems,
+    required GetInventoryPage getInventoryPage,
+    required GetUserSessionItems getUserSessionItems,
     required String companyId,
+    required String userId,
     required String sessionId,
     required String sessionType,
     required String storeId,
     String? sessionName,
-  })  : _searchProducts = searchProducts,
-        _addSessionItems = addSessionItems,
+  })  : _updateSessionItems = updateSessionItems,
+        _getInventoryPage = getInventoryPage,
+        _getUserSessionItems = getUserSessionItems,
         _companyId = companyId,
+        _userId = userId,
         super(SessionDetailState.initial(
           sessionId: sessionId,
           sessionType: sessionType,
@@ -31,30 +40,66 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
           sessionName: sessionName,
         ),);
 
-  /// Search products by query
-  Future<void> searchProducts(String query) async {
-    if (query.isEmpty) {
-      state = state.copyWith(
-        searchResults: [],
-        searchQuery: '',
-        isSearching: false,
-        error: null,
-      );
-      return;
-    }
+  /// Load user's existing session items (previously added items)
+  /// Called on page init to populate selectedProducts with existing items
+  Future<void> loadExistingItems() async {
+    if (state.isLoadingItems) return;
 
     state = state.copyWith(
-      searchQuery: query,
-      isSearching: true,
+      isLoadingItems: true,
       error: null,
     );
 
     try {
-      final response = await _searchProducts(
+      final response = await _getUserSessionItems(
+        sessionId: state.sessionId,
+        userId: _userId,
+      );
+
+      if (response.hasItems) {
+        // Convert aggregated items to SelectedProduct list
+        final aggregated = response.aggregatedByProduct;
+        final selectedProducts = aggregated.values.map((item) {
+          return SelectedProduct(
+            productId: item.productId,
+            productName: item.productName,
+            sku: item.sku,
+            imageUrl: item.imageUrl,
+            quantity: item.totalQuantity,
+            quantityRejected: item.totalRejected,
+          );
+        }).toList();
+
+        state = state.copyWith(
+          selectedProducts: selectedProducts,
+          isLoadingItems: false,
+        );
+      } else {
+        state = state.copyWith(isLoadingItems: false);
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingItems: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Load initial inventory list
+  Future<void> loadInventory() async {
+    if (state.isLoadingInventory) return;
+
+    state = state.copyWith(
+      isLoadingInventory: true,
+      error: null,
+    );
+
+    try {
+      final response = await _getInventoryPage(
         companyId: _companyId,
         storeId: state.storeId,
-        query: query,
-        limit: 20,
+        page: 1,
+        limit: _pageLimit,
       );
 
       final results = response.products
@@ -66,16 +111,162 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ),)
+              ))
+          .toList();
+
+      state = state.copyWith(
+        inventoryProducts: results,
+        isLoadingInventory: false,
+        currentPage: 1,
+        hasMoreInventory: response.hasNext,
+        totalInventoryCount: response.totalCount,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingInventory: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Load more inventory items (infinite scroll)
+  Future<void> loadMoreInventory() async {
+    if (state.isLoadingMoreInventory || !state.hasMoreInventory) return;
+
+    state = state.copyWith(isLoadingMoreInventory: true);
+
+    try {
+      final nextPage = state.currentPage + 1;
+      final response = await _getInventoryPage(
+        companyId: _companyId,
+        storeId: state.storeId,
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        page: nextPage,
+        limit: _pageLimit,
+      );
+
+      final newResults = response.products
+          .map((p) => SearchProductResult(
+                productId: p.productId,
+                productName: p.productName,
+                sku: p.sku,
+                barcode: p.barcode,
+                imageUrl: p.imageUrl,
+                sellingPrice: p.sellingPrice,
+                stockQuantity: p.currentStock,
+              ))
+          .toList();
+
+      state = state.copyWith(
+        inventoryProducts: [...state.inventoryProducts, ...newResults],
+        isLoadingMoreInventory: false,
+        currentPage: nextPage,
+        hasMoreInventory: response.hasNext,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingMoreInventory: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Search products by query (uses get_inventory_page_v3 with search param)
+  Future<void> searchProducts(String query) async {
+    if (query.isEmpty) {
+      // Clear search and show inventory list
+      state = state.copyWith(
+        searchResults: [],
+        searchQuery: '',
+        isSearching: false,
+        isSearchModeActive: false,
+        error: null,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      searchQuery: query,
+      isSearching: true,
+      isSearchModeActive: true,
+      error: null,
+    );
+
+    try {
+      final response = await _getInventoryPage(
+        companyId: _companyId,
+        storeId: state.storeId,
+        search: query,
+        page: 1,
+        limit: _pageLimit,
+      );
+
+      final results = response.products
+          .map((p) => SearchProductResult(
+                productId: p.productId,
+                productName: p.productName,
+                sku: p.sku,
+                barcode: p.barcode,
+                imageUrl: p.imageUrl,
+                sellingPrice: p.sellingPrice,
+                stockQuantity: p.currentStock,
+              ))
           .toList();
 
       state = state.copyWith(
         searchResults: results,
         isSearching: false,
+        currentPage: 1,
+        hasMoreInventory: response.hasNext,
+        totalInventoryCount: response.totalCount,
       );
     } catch (e) {
       state = state.copyWith(
         isSearching: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Load more search results (infinite scroll for search)
+  Future<void> loadMoreSearchResults() async {
+    if (state.isLoadingMoreInventory ||
+        !state.hasMoreInventory ||
+        state.searchQuery.isEmpty) return;
+
+    state = state.copyWith(isLoadingMoreInventory: true);
+
+    try {
+      final nextPage = state.currentPage + 1;
+      final response = await _getInventoryPage(
+        companyId: _companyId,
+        storeId: state.storeId,
+        search: state.searchQuery,
+        page: nextPage,
+        limit: _pageLimit,
+      );
+
+      final newResults = response.products
+          .map((p) => SearchProductResult(
+                productId: p.productId,
+                productName: p.productName,
+                sku: p.sku,
+                barcode: p.barcode,
+                imageUrl: p.imageUrl,
+                sellingPrice: p.sellingPrice,
+                stockQuantity: p.currentStock,
+              ))
+          .toList();
+
+      state = state.copyWith(
+        searchResults: [...state.searchResults, ...newResults],
+        isLoadingMoreInventory: false,
+        currentPage: nextPage,
+        hasMoreInventory: response.hasNext,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingMoreInventory: false,
         error: e.toString(),
       );
     }
@@ -256,7 +447,8 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(selectedProducts: []);
   }
 
-  /// Save items to session via UseCase
+  /// Save items to session via UseCase (uses inventory_update_session_item RPC)
+  /// This RPC updates existing items, inserts new ones, and consolidates duplicates
   Future<({bool success, String? error})> saveItems(String userId) async {
     if (state.selectedProducts.isEmpty) {
       return (success: false, error: 'No items to save');
@@ -274,7 +466,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
               ),)
           .toList();
 
-      final response = await _addSessionItems(
+      final response = await _updateSessionItems(
         sessionId: state.sessionId,
         userId: userId,
         items: items,
@@ -288,7 +480,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
         );
         return (success: true, error: null);
       } else {
-        final errorMsg = response.message ?? 'Failed to save items';
+        const errorMsg = 'Failed to save items';
         state = state.copyWith(isSaving: false, error: errorMsg);
         return (success: false, error: errorMsg);
       }
@@ -314,13 +506,17 @@ final sessionDetailProvider = StateNotifierProvider.autoDispose
         (ref, params) {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  final searchProducts = ref.watch(searchProductsUseCaseProvider);
-  final addSessionItems = ref.watch(addSessionItemsUseCaseProvider);
+  final userId = appState.userId;
+  final updateSessionItems = ref.watch(updateSessionItemsUseCaseProvider);
+  final getInventoryPage = ref.watch(getInventoryPageUseCaseProvider);
+  final getUserSessionItems = ref.watch(getUserSessionItemsUseCaseProvider);
 
   return SessionDetailNotifier(
-    searchProducts: searchProducts,
-    addSessionItems: addSessionItems,
+    updateSessionItems: updateSessionItems,
+    getInventoryPage: getInventoryPage,
+    getUserSessionItems: getUserSessionItems,
     companyId: companyId,
+    userId: userId,
     sessionId: params.sessionId,
     sessionType: params.sessionType,
     storeId: params.storeId,

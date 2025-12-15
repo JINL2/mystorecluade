@@ -63,6 +63,9 @@ class _SessionCountDetailPageState
   // Join session state
   bool _isJoining = false;
 
+  // Delete session state
+  bool _isDeleting = false;
+
   bool get _isCounting => widget.sessionType == 'counting';
 
   @override
@@ -152,25 +155,25 @@ class _SessionCountDetailPageState
               ),
             ),
           ),
-          // Edit button
-          GestureDetector(
-            onTap: _onEdit,
-            child: const Icon(
-              Icons.edit_outlined,
-              color: TossColors.gray600,
-              size: 22,
+          // Delete button (only visible to session owner)
+          if (widget.isOwner)
+            GestureDetector(
+              onTap: _isDeleting ? null : _onDelete,
+              child: _isDeleting
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: TossColors.loss,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.delete_outline,
+                      color: TossColors.loss,
+                      size: 22,
+                    ),
             ),
-          ),
-          const SizedBox(width: TossSpacing.space4),
-          // Delete button
-          GestureDetector(
-            onTap: _onDelete,
-            child: const Icon(
-              Icons.delete_outline,
-              color: TossColors.gray600,
-              size: 22,
-            ),
-          ),
         ],
       ),
     );
@@ -345,6 +348,13 @@ class _SessionCountDetailPageState
     );
   }
 
+  /// Check if current user has already joined the session
+  bool get _hasCurrentUserJoined {
+    final appState = ref.read(appStateProvider);
+    final currentUserId = appState.userId;
+    return _sessionUsers.any((user) => user.id == currentUserId);
+  }
+
   Widget _buildSessionUserSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,24 +372,50 @@ class _SessionCountDetailPageState
                   color: TossColors.gray900,
                 ),
               ),
-              GestureDetector(
-                onTap: _isJoining ? null : _onJoinSession,
-                child: _isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: TossColors.primary,
-                        ),
-                      )
-                    : Text(
-                        '+ Join',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+              Row(
+                children: [
+                  // Refresh button
+                  GestureDetector(
+                    onTap: _isLoadingUsers ? null : _loadSessionUsers,
+                    child: _isLoadingUsers
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TossColors.gray400,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.refresh,
+                            color: TossColors.gray500,
+                            size: 22,
+                          ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  // Join button - disabled if current user already joined
+                  GestureDetector(
+                    onTap: (_isJoining || _hasCurrentUserJoined) ? null : _onJoinSession,
+                    child: _isJoining
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TossColors.primary,
+                            ),
+                          )
+                        : Text(
+                            '+ Join',
+                            style: TossTextStyles.body.copyWith(
+                              color: _hasCurrentUserJoined
+                                  ? TossColors.gray400
+                                  : TossColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -559,17 +595,12 @@ class _SessionCountDetailPageState
   }
 
   void _onSubmit() {
-    // Save progress and go back to the previous page
-    Navigator.of(context).pop();
-  }
-
-  void _onEdit() {
-    // TODO: Navigate to edit session page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Edit session'),
-        duration: Duration(seconds: 2),
-      ),
+    // Navigate to review page with storeId for stock lookup
+    context.push(
+      '/session/review/${widget.sessionId}'
+      '?sessionType=${widget.sessionType}'
+      '&sessionName=${Uri.encodeComponent(_sessionName)}'
+      '&storeId=${widget.storeId}',
     );
   }
 
@@ -636,11 +667,11 @@ class _SessionCountDetailPageState
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_isCounting ? 'Delete Count Session' : 'Delete Receiving Session'),
+        title: Text(_isCounting ? 'Close Count Session' : 'Close Receiving Session'),
         content: Text(
           _isCounting
-              ? 'Are you sure you want to delete this count session?'
-              : 'Are you sure you want to delete this receiving session?',
+              ? 'Are you sure you want to close this count session?'
+              : 'Are you sure you want to close this receiving session?',
         ),
         actions: [
           TextButton(
@@ -650,26 +681,69 @@ class _SessionCountDetailPageState
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _isCounting
-                        ? 'Count session deleted'
-                        : 'Receiving session deleted',
-                  ),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              _executeDelete();
             },
             child: const Text(
-              'Delete',
+              'Close',
               style: TextStyle(color: TossColors.loss),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _executeDelete() async {
+    if (_isDeleting) return;
+
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final userId = appState.userId;
+
+    if (companyId.isEmpty || userId.isEmpty) return;
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final closeSession = ref.read(closeSessionUseCaseProvider);
+      await closeSession(
+        sessionId: widget.sessionId,
+        companyId: companyId,
+        userId: userId,
+      );
+
+      if (!mounted) return;
+
+      // Show success message and navigate back
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isCounting
+                ? 'Count session closed'
+                : 'Receiving session closed',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Navigate back to session list
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isDeleting = false);
+
+      // Show error dialog
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => TossDialog.error(
+          title: 'Failed to Delete',
+          message: e.toString().replaceFirst('Exception: ', ''),
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(ctx).pop(),
+        ),
+      );
+    }
   }
 
   Future<void> _onJoinSession() async {
@@ -736,14 +810,19 @@ class _SessionCountDetailPageState
     }
   }
 
-  void _onSessionUserTap(_SessionUser user) {
+  Future<void> _onSessionUserTap(_SessionUser user) async {
     // Navigate to session detail page (counting/receiving page)
-    context.push(
+    await context.push<bool>(
       '/session/detail/${widget.sessionId}'
       '?sessionType=${widget.sessionType}'
       '&storeId=${widget.storeId}'
       '&sessionName=${Uri.encodeComponent(_sessionName)}',
     );
+
+    // Always refresh data when returning from detail page
+    if (mounted) {
+      _loadSessionUsers();
+    }
   }
 }
 

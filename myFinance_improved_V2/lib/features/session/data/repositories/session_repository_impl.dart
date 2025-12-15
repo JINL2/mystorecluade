@@ -6,6 +6,8 @@ import '../../domain/entities/session_item.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../../domain/entities/session_review_item.dart';
 import '../../domain/entities/shipment.dart';
+import '../../domain/entities/update_session_items_response.dart';
+import '../../domain/entities/user_session_items.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../datasources/session_datasource.dart';
 
@@ -225,6 +227,23 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
+  Future<ProductSearchResponse> getInventoryPage({
+    required String companyId,
+    required String storeId,
+    String? search,
+    int page = 1,
+    int limit = 15,
+  }) async {
+    return _datasource.getInventoryPage(
+      companyId: companyId,
+      storeId: storeId,
+      search: search,
+      page: page,
+      limit: limit,
+    );
+  }
+
+  @override
   Future<ProductSearchResponse> searchProducts({
     required String companyId,
     required String storeId,
@@ -297,5 +316,44 @@ class SessionRepositoryImpl implements SessionRepository {
       limit: limit,
       offset: offset,
     );
+  }
+
+  @override
+  Future<Map<String, int>> getProductStockByStore({
+    required String companyId,
+    required String storeId,
+    required List<String> productIds,
+  }) async {
+    return _datasource.getProductStockByStore(
+      companyId: companyId,
+      storeId: storeId,
+      productIds: productIds,
+    );
+  }
+
+  @override
+  Future<UserSessionItemsResponse> getUserSessionItems({
+    required String sessionId,
+    required String userId,
+  }) async {
+    final model = await _datasource.getUserSessionItems(
+      sessionId: sessionId,
+      userId: userId,
+    );
+    return model.toEntity();
+  }
+
+  @override
+  Future<UpdateSessionItemsResponse> updateSessionItems({
+    required String sessionId,
+    required String userId,
+    required List<SessionItemInput> items,
+  }) async {
+    final model = await _datasource.updateSessionItems(
+      sessionId: sessionId,
+      userId: userId,
+      items: items,
+    );
+    return model.toEntity();
   }
 }

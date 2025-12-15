@@ -1,0 +1,213 @@
+import '../../domain/entities/user_session_items.dart';
+
+/// Model for inventory_get_user_session_items RPC response
+/// Returns individual item records (no grouping by product_id)
+
+/// Individual item added by user in a session
+class UserSessionItemModel {
+  final String itemId;
+  final String productId;
+  final String productName;
+  final String? sku;
+  final List<String>? imageUrls;
+  final int quantity;
+  final int quantityRejected;
+  final String? notes;
+  final String createdAt;
+
+  const UserSessionItemModel({
+    required this.itemId,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.imageUrls,
+    required this.quantity,
+    required this.quantityRejected,
+    this.notes,
+    required this.createdAt,
+  });
+
+  factory UserSessionItemModel.fromJson(Map<String, dynamic> json) {
+    // Parse image_urls - can be a list or null
+    List<String>? imageUrls;
+    final rawImageUrls = json['image_urls'];
+    if (rawImageUrls is List) {
+      imageUrls = rawImageUrls.map((e) => e.toString()).toList();
+    }
+
+    return UserSessionItemModel(
+      itemId: json['item_id']?.toString() ?? '',
+      productId: json['product_id']?.toString() ?? '',
+      productName: json['product_name']?.toString() ?? '',
+      sku: json['sku']?.toString(),
+      imageUrls: imageUrls,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      quantityRejected: (json['quantity_rejected'] as num?)?.toInt() ?? 0,
+      notes: json['notes']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+
+  /// Get first image URL or null
+  String? get imageUrl => imageUrls?.isNotEmpty == true ? imageUrls!.first : null;
+
+  /// Convert to domain entity
+  UserSessionItem toEntity() {
+    return UserSessionItem(
+      itemId: itemId,
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      imageUrls: imageUrls,
+      quantity: quantity,
+      quantityRejected: quantityRejected,
+      notes: notes,
+      createdAt: createdAt,
+    );
+  }
+}
+
+/// Summary of user's session items (Model)
+class UserSessionItemsSummaryModel {
+  final int totalItems;
+  final int totalProducts;
+  final int totalQuantity;
+  final int totalRejected;
+
+  const UserSessionItemsSummaryModel({
+    required this.totalItems,
+    required this.totalProducts,
+    required this.totalQuantity,
+    required this.totalRejected,
+  });
+
+  factory UserSessionItemsSummaryModel.fromJson(Map<String, dynamic> json) {
+    return UserSessionItemsSummaryModel(
+      totalItems: (json['total_items'] as num?)?.toInt() ?? 0,
+      totalProducts: (json['total_products'] as num?)?.toInt() ?? 0,
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  /// Convert to domain entity
+  UserSessionItemsSummary toEntity() {
+    return UserSessionItemsSummary(
+      totalItems: totalItems,
+      totalProducts: totalProducts,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+    );
+  }
+}
+
+/// Response model for inventory_get_user_session_items RPC
+class UserSessionItemsResponseModel {
+  final String sessionId;
+  final String userId;
+  final List<UserSessionItemModel> items;
+  final UserSessionItemsSummaryModel summary;
+
+  const UserSessionItemsResponseModel({
+    required this.sessionId,
+    required this.userId,
+    required this.items,
+    required this.summary,
+  });
+
+  factory UserSessionItemsResponseModel.fromJson(Map<String, dynamic> json) {
+    final itemsList = json['items'] as List<dynamic>? ?? [];
+    final items = itemsList
+        .map((e) => UserSessionItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final summaryJson = json['summary'] as Map<String, dynamic>? ?? {};
+
+    return UserSessionItemsResponseModel(
+      sessionId: json['session_id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      items: items,
+      summary: UserSessionItemsSummaryModel.fromJson(summaryJson),
+    );
+  }
+
+  /// Check if user has any items
+  bool get hasItems => items.isNotEmpty;
+
+  /// Convert to domain entity
+  UserSessionItemsResponse toEntity() {
+    return UserSessionItemsResponse(
+      sessionId: sessionId,
+      userId: userId,
+      items: items.map((e) => e.toEntity()).toList(),
+      summary: summary.toEntity(),
+    );
+  }
+
+  /// Get aggregated items by product_id (Model version)
+  /// Groups multiple item records for same product into one with summed quantities
+  Map<String, AggregatedUserSessionItemModel> get aggregatedByProduct {
+    final result = <String, AggregatedUserSessionItemModel>{};
+
+    for (final item in items) {
+      if (result.containsKey(item.productId)) {
+        final existing = result[item.productId]!;
+        result[item.productId] = AggregatedUserSessionItemModel(
+          productId: item.productId,
+          productName: item.productName,
+          sku: item.sku,
+          imageUrl: item.imageUrl,
+          totalQuantity: existing.totalQuantity + item.quantity,
+          totalRejected: existing.totalRejected + item.quantityRejected,
+          itemIds: [...existing.itemIds, item.itemId],
+        );
+      } else {
+        result[item.productId] = AggregatedUserSessionItemModel(
+          productId: item.productId,
+          productName: item.productName,
+          sku: item.sku,
+          imageUrl: item.imageUrl,
+          totalQuantity: item.quantity,
+          totalRejected: item.quantityRejected,
+          itemIds: [item.itemId],
+        );
+      }
+    }
+
+    return result;
+  }
+}
+
+/// Aggregated item (grouped by product_id) - Model version
+class AggregatedUserSessionItemModel {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? imageUrl;
+  final int totalQuantity;
+  final int totalRejected;
+  final List<String> itemIds;
+
+  const AggregatedUserSessionItemModel({
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.imageUrl,
+    required this.totalQuantity,
+    required this.totalRejected,
+    required this.itemIds,
+  });
+
+  /// Convert to domain entity
+  AggregatedUserSessionItem toEntity() {
+    return AggregatedUserSessionItem(
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      imageUrl: imageUrl,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+      itemIds: itemIds,
+    );
+  }
+}

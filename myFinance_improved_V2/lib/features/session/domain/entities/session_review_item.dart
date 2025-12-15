@@ -18,21 +18,42 @@ class SessionReviewItem {
   final String productId;
   final String productName;
   final String? sku;
+  final String? imageUrl;
+  final String? brand;
+  final String? category;
   final int totalQuantity;
   final int totalRejected;
+  final int previousStock;
   final List<ScannedByUser> scannedBy;
+  /// Session type: 'counting' or 'receiving'
+  /// Used to calculate newStock and stockChange differently
+  final String sessionType;
 
   const SessionReviewItem({
     required this.productId,
     required this.productName,
     this.sku,
+    this.imageUrl,
+    this.brand,
+    this.category,
     required this.totalQuantity,
     required this.totalRejected,
+    this.previousStock = 0,
     required this.scannedBy,
+    this.sessionType = 'receiving',
   });
 
   /// Get net quantity (total - rejected)
   int get netQuantity => totalQuantity - totalRejected;
+
+  /// Get new stock after session
+  /// Both counting and receiving add netQuantity to existing stock
+  /// - Counting: previousStock + netQuantity (adding counted items to existing stock)
+  /// - Receiving: previousStock + netQuantity (adding received items to existing stock)
+  int get newStock => previousStock + netQuantity;
+
+  /// Get stock change (difference between new and previous)
+  int get stockChange => newStock - previousStock;
 }
 
 /// Summary of session items
