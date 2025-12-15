@@ -732,7 +732,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                _showDeleteConfirmation(context, ref, product);
+                _showDeleteConfirmation(product);
               },
             ),
             const SizedBox(height: TossSpacing.space2),

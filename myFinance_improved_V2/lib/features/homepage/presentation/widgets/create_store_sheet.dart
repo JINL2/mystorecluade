@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/store_state.dart';
 
@@ -134,10 +136,28 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
           // Hide loading
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-          // Close bottom sheet and return store
+          // 1. AppState 즉시 업데이트 (UI 반영)
+          final appStateNotifier = ref.read(appStateProvider.notifier);
+          appStateNotifier.addNewStoreToCompany(
+            companyId: widget.companyId,
+            storeId: store.id,
+            storeName: store.name,
+            storeCode: store.code,
+          );
+
+          // 2. 새로 생성한 스토어를 선택
+          appStateNotifier.selectStore(
+            store.id,
+            storeName: store.name,
+          );
+
+          // 3. Provider invalidate (백그라운드에서 서버 최신 데이터 재조회)
+          ref.invalidate(userCompaniesProvider);
+
+          // 4. Close bottom sheet and return store
           Navigator.of(context).pop(store);
 
-          // Show success message
+          // 5. Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(

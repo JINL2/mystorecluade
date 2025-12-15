@@ -620,17 +620,25 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   }
 
   void _handleJoinCompany(BuildContext context, WidgetRef ref) {
+    // Store the parent context before popping
+    final parentContext = this.context;
     Navigator.of(context).pop(); // Close company actions sheet
-    InputBottomSheet.show(
-      context,
-      title: 'Join Company',
-      subtitle: 'Enter company invite code',
-      inputLabel: 'Company Code',
-      buttonText: 'Join Company',
-      onSubmit: (code) async {
-        await _joinCompany(context, ref, code);
-      },
-    );
+
+    // Use a small delay to ensure the previous sheet is fully closed
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (parentContext.mounted) {
+        InputBottomSheet.show(
+          parentContext,
+          title: 'Join Company',
+          subtitle: 'Enter company invite code',
+          inputLabel: 'Company Code',
+          buttonText: 'Join Company',
+          onSubmit: (code) async {
+            await _joinCompany(parentContext, ref, code);
+          },
+        );
+      }
+    });
   }
 
   void _handleCreateStore(BuildContext context, WidgetRef ref, Company company) {
@@ -639,17 +647,25 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   }
 
   void _handleJoinStore(BuildContext context, WidgetRef ref) {
+    // Store the parent context before popping
+    final parentContext = this.context;
     Navigator.of(context).pop(); // Close store actions sheet
-    InputBottomSheet.show(
-      context,
-      title: 'Join Store',
-      subtitle: 'Enter store invite code',
-      inputLabel: 'Store Code',
-      buttonText: 'Join Store',
-      onSubmit: (code) async {
-        await _joinStore(context, ref, code);
-      },
-    );
+
+    // Use a small delay to ensure the previous sheet is fully closed
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (parentContext.mounted) {
+        InputBottomSheet.show(
+          parentContext,
+          title: 'Join Store',
+          subtitle: 'Enter store invite code',
+          inputLabel: 'Store Code',
+          buttonText: 'Join Store',
+          onSubmit: (code) async {
+            await _joinStore(parentContext, ref, code);
+          },
+        );
+      }
+    });
   }
 
   void _showCreateCompanyBottomSheet(BuildContext context, WidgetRef ref) {

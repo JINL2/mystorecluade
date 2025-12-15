@@ -21,6 +21,8 @@ JoinResultModel _$JoinResultModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$JoinResultModel {
   bool get success => throw _privateConstructorUsedError;
+  String? get type => throw _privateConstructorUsedError;
+  String? get message => throw _privateConstructorUsedError;
   @JsonKey(name: 'company_id')
   String? get companyId => throw _privateConstructorUsedError;
   @JsonKey(name: 'company_name')
@@ -30,7 +32,7 @@ mixin _$JoinResultModel {
   @JsonKey(name: 'store_name')
   String? get storeName => throw _privateConstructorUsedError;
   @JsonKey(name: 'role_assigned')
-  String? get roleAssigned => throw _privateConstructorUsedError;
+  bool get roleAssignedFlag => throw _privateConstructorUsedError;
 
   /// Serializes this JoinResultModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,11 +52,13 @@ abstract class $JoinResultModelCopyWith<$Res> {
   @useResult
   $Res call(
       {bool success,
+      String? type,
+      String? message,
       @JsonKey(name: 'company_id') String? companyId,
       @JsonKey(name: 'company_name') String? companyName,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'store_name') String? storeName,
-      @JsonKey(name: 'role_assigned') String? roleAssigned});
+      @JsonKey(name: 'role_assigned') bool roleAssignedFlag});
 }
 
 /// @nodoc
@@ -73,17 +77,27 @@ class _$JoinResultModelCopyWithImpl<$Res, $Val extends JoinResultModel>
   @override
   $Res call({
     Object? success = null,
+    Object? type = freezed,
+    Object? message = freezed,
     Object? companyId = freezed,
     Object? companyName = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
-    Object? roleAssigned = freezed,
+    Object? roleAssignedFlag = null,
   }) {
     return _then(_value.copyWith(
       success: null == success
           ? _value.success
           : success // ignore: cast_nullable_to_non_nullable
               as bool,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
       companyId: freezed == companyId
           ? _value.companyId
           : companyId // ignore: cast_nullable_to_non_nullable
@@ -100,10 +114,10 @@ class _$JoinResultModelCopyWithImpl<$Res, $Val extends JoinResultModel>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
-      roleAssigned: freezed == roleAssigned
-          ? _value.roleAssigned
-          : roleAssigned // ignore: cast_nullable_to_non_nullable
-              as String?,
+      roleAssignedFlag: null == roleAssignedFlag
+          ? _value.roleAssignedFlag
+          : roleAssignedFlag // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -118,11 +132,13 @@ abstract class _$$JoinResultModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {bool success,
+      String? type,
+      String? message,
       @JsonKey(name: 'company_id') String? companyId,
       @JsonKey(name: 'company_name') String? companyName,
       @JsonKey(name: 'store_id') String? storeId,
       @JsonKey(name: 'store_name') String? storeName,
-      @JsonKey(name: 'role_assigned') String? roleAssigned});
+      @JsonKey(name: 'role_assigned') bool roleAssignedFlag});
 }
 
 /// @nodoc
@@ -139,17 +155,27 @@ class __$$JoinResultModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? success = null,
+    Object? type = freezed,
+    Object? message = freezed,
     Object? companyId = freezed,
     Object? companyName = freezed,
     Object? storeId = freezed,
     Object? storeName = freezed,
-    Object? roleAssigned = freezed,
+    Object? roleAssignedFlag = null,
   }) {
     return _then(_$JoinResultModelImpl(
       success: null == success
           ? _value.success
           : success // ignore: cast_nullable_to_non_nullable
               as bool,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
       companyId: freezed == companyId
           ? _value.companyId
           : companyId // ignore: cast_nullable_to_non_nullable
@@ -166,10 +192,10 @@ class __$$JoinResultModelImplCopyWithImpl<$Res>
           ? _value.storeName
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
-      roleAssigned: freezed == roleAssigned
-          ? _value.roleAssigned
-          : roleAssigned // ignore: cast_nullable_to_non_nullable
-              as String?,
+      roleAssignedFlag: null == roleAssignedFlag
+          ? _value.roleAssignedFlag
+          : roleAssignedFlag // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -179,11 +205,13 @@ class __$$JoinResultModelImplCopyWithImpl<$Res>
 class _$JoinResultModelImpl extends _JoinResultModel {
   const _$JoinResultModelImpl(
       {this.success = false,
+      this.type,
+      this.message,
       @JsonKey(name: 'company_id') this.companyId,
       @JsonKey(name: 'company_name') this.companyName,
       @JsonKey(name: 'store_id') this.storeId,
       @JsonKey(name: 'store_name') this.storeName,
-      @JsonKey(name: 'role_assigned') this.roleAssigned})
+      @JsonKey(name: 'role_assigned') this.roleAssignedFlag = false})
       : super._();
 
   factory _$JoinResultModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -192,6 +220,10 @@ class _$JoinResultModelImpl extends _JoinResultModel {
   @override
   @JsonKey()
   final bool success;
+  @override
+  final String? type;
+  @override
+  final String? message;
   @override
   @JsonKey(name: 'company_id')
   final String? companyId;
@@ -206,11 +238,11 @@ class _$JoinResultModelImpl extends _JoinResultModel {
   final String? storeName;
   @override
   @JsonKey(name: 'role_assigned')
-  final String? roleAssigned;
+  final bool roleAssignedFlag;
 
   @override
   String toString() {
-    return 'JoinResultModel(success: $success, companyId: $companyId, companyName: $companyName, storeId: $storeId, storeName: $storeName, roleAssigned: $roleAssigned)';
+    return 'JoinResultModel(success: $success, type: $type, message: $message, companyId: $companyId, companyName: $companyName, storeId: $storeId, storeName: $storeName, roleAssignedFlag: $roleAssignedFlag)';
   }
 
   @override
@@ -219,6 +251,8 @@ class _$JoinResultModelImpl extends _JoinResultModel {
         (other.runtimeType == runtimeType &&
             other is _$JoinResultModelImpl &&
             (identical(other.success, success) || other.success == success) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.message, message) || other.message == message) &&
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
             (identical(other.companyName, companyName) ||
@@ -226,14 +260,14 @@ class _$JoinResultModelImpl extends _JoinResultModel {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.storeName, storeName) ||
                 other.storeName == storeName) &&
-            (identical(other.roleAssigned, roleAssigned) ||
-                other.roleAssigned == roleAssigned));
+            (identical(other.roleAssignedFlag, roleAssignedFlag) ||
+                other.roleAssignedFlag == roleAssignedFlag));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, success, companyId, companyName,
-      storeId, storeName, roleAssigned);
+  int get hashCode => Object.hash(runtimeType, success, type, message,
+      companyId, companyName, storeId, storeName, roleAssignedFlag);
 
   /// Create a copy of JoinResultModel
   /// with the given fields replaced by the non-null parameter values.
@@ -255,11 +289,13 @@ class _$JoinResultModelImpl extends _JoinResultModel {
 abstract class _JoinResultModel extends JoinResultModel {
   const factory _JoinResultModel(
           {final bool success,
+          final String? type,
+          final String? message,
           @JsonKey(name: 'company_id') final String? companyId,
           @JsonKey(name: 'company_name') final String? companyName,
           @JsonKey(name: 'store_id') final String? storeId,
           @JsonKey(name: 'store_name') final String? storeName,
-          @JsonKey(name: 'role_assigned') final String? roleAssigned}) =
+          @JsonKey(name: 'role_assigned') final bool roleAssignedFlag}) =
       _$JoinResultModelImpl;
   const _JoinResultModel._() : super._();
 
@@ -268,6 +304,10 @@ abstract class _JoinResultModel extends JoinResultModel {
 
   @override
   bool get success;
+  @override
+  String? get type;
+  @override
+  String? get message;
   @override
   @JsonKey(name: 'company_id')
   String? get companyId;
@@ -282,7 +322,7 @@ abstract class _JoinResultModel extends JoinResultModel {
   String? get storeName;
   @override
   @JsonKey(name: 'role_assigned')
-  String? get roleAssigned;
+  bool get roleAssignedFlag;
 
   /// Create a copy of JoinResultModel
   /// with the given fields replaced by the non-null parameter values.

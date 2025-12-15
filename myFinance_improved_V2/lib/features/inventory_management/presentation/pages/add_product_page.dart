@@ -335,6 +335,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       final product = await repository.createProduct(
         companyId: companyId,
         storeId: storeId,
+        createdBy: userId,
         name: productName,
         sku: _sku?.trim().isEmpty ?? true ? _generateSKU() : _sku!.trim(),
         barcode: null,
