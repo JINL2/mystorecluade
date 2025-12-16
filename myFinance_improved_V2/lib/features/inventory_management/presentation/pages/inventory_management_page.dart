@@ -368,14 +368,14 @@ class _InventoryManagementPageState
           icon: Icons.download_outlined,
           label: 'Record Stock In',
           onPressed: () {
-            context.pushNamed('stockIn');
+            context.push('/session/action/receiving');
           },
         ),
         TossSpeedDialAction(
           icon: Icons.format_list_numbered,
           label: 'Start Inventory Count',
           onPressed: () {
-            context.pushNamed('inventoryCount');
+            context.push('/session/action/counting');
           },
         ),
       ],
