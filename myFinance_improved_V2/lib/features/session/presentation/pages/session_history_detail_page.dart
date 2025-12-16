@@ -213,46 +213,158 @@ class SessionHistoryDetailPage extends StatelessWidget {
   }
 
   Widget _buildStatisticsSummary() {
+    final hasConfirmed = session.hasConfirmed;
+
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space5),
       color: TossColors.gray50,
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Products',
-              session.totalItemsCount.toString(),
-              Icons.inventory_2_outlined,
-              TossColors.primary,
-            ),
+          // Main stats row
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Products',
+                  session.totalItemsCount.toString(),
+                  Icons.inventory_2_outlined,
+                  TossColors.primary,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: _buildStatCard(
+                  hasConfirmed ? 'Confirmed' : 'Scanned',
+                  session.totalQuantity.toString(),
+                  Icons.numbers,
+                  TossColors.success,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: _buildStatCard(
+                  'Rejected',
+                  session.totalRejected.toString(),
+                  Icons.error_outline,
+                  TossColors.error,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: _buildStatCard(
+                  'Members',
+                  session.memberCount.toString(),
+                  Icons.group_outlined,
+                  TossColors.info,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: _buildStatCard(
-              'Total Qty',
-              session.totalQuantity.toString(),
-              Icons.numbers,
-              TossColors.success,
+
+          // Show scanned vs confirmed comparison if finalized
+          if (hasConfirmed && session.totalScannedQuantity != session.totalConfirmedQuantity) ...[
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(color: TossColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.edit, size: 16, color: TossColors.primary),
+                  const SizedBox(width: TossSpacing.space2),
+                  Text(
+                    'Manager adjusted: ',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    '${session.totalScannedQuantity} → ${session.totalConfirmedQuantity}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                    ),
+                    child: Text(
+                      '${(session.totalConfirmedQuantity ?? 0) - session.totalScannedQuantity >= 0 ? '+' : ''}${(session.totalConfirmedQuantity ?? 0) - session.totalScannedQuantity}',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: _buildStatCard(
-              'Rejected',
-              session.totalRejected.toString(),
-              Icons.error_outline,
-              TossColors.error,
+          ],
+
+          // Show difference for counting sessions
+          if (session.isCounting && session.totalDifference != null) ...[
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(
+                  color: session.totalDifference! < 0
+                      ? TossColors.error.withValues(alpha: 0.3)
+                      : session.totalDifference! > 0
+                          ? TossColors.success.withValues(alpha: 0.3)
+                          : TossColors.gray200,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    session.totalDifference! < 0
+                        ? Icons.trending_down
+                        : session.totalDifference! > 0
+                            ? Icons.trending_up
+                            : Icons.check_circle_outline,
+                    size: 16,
+                    color: session.totalDifference! < 0
+                        ? TossColors.error
+                        : session.totalDifference! > 0
+                            ? TossColors.success
+                            : TossColors.textSecondary,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Text(
+                    'Stock Difference: ',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    '${session.totalDifference! >= 0 ? '+' : ''}${session.totalDifference}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: session.totalDifference! < 0
+                          ? TossColors.error
+                          : session.totalDifference! > 0
+                              ? TossColors.success
+                              : TossColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: _buildStatCard(
-              'Members',
-              session.memberCount.toString(),
-              Icons.group_outlined,
-              TossColors.info,
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -516,6 +628,9 @@ class SessionHistoryDetailPage extends StatelessWidget {
   }
 
   Widget _buildItemCard(SessionHistoryItemDetail item) {
+    final hasConfirmed = item.hasConfirmed;
+    final wasEdited = item.wasEdited;
+
     return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,
@@ -524,7 +639,9 @@ class SessionHistoryDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray100),
+        border: Border.all(
+          color: wasEdited ? TossColors.primary.withValues(alpha: 0.3) : TossColors.gray100,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,12 +656,45 @@ class SessionHistoryDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.productName,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.textPrimary,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.productName,
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (wasEdited)
+                            Container(
+                              margin: const EdgeInsets.only(left: TossSpacing.space2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space2,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: TossColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.edit, size: 10, color: TossColors.primary),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    'Edited',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.primary,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                       if (item.sku != null && item.sku!.isNotEmpty)
                         Text(
@@ -560,24 +710,45 @@ class SessionHistoryDetailPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    // Show final quantity (confirmed if available)
                     Row(
                       children: [
                         Text(
-                          'Qty: ',
+                          hasConfirmed ? 'Confirmed: ' : 'Qty: ',
                           style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.textTertiary,
                           ),
                         ),
                         Text(
-                          '${item.totalQuantity}',
+                          '${item.finalQuantity}',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: TossColors.success,
+                            color: wasEdited ? TossColors.primary : TossColors.success,
                           ),
                         ),
                       ],
                     ),
-                    if (item.totalRejected > 0)
+                    // Show scanned if different from confirmed
+                    if (wasEdited)
+                      Row(
+                        children: [
+                          Text(
+                            'Scanned: ',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.textTertiary,
+                            ),
+                          ),
+                          Text(
+                            '${item.scannedQuantity}',
+                            style: TossTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: TossColors.textSecondary,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (item.finalRejected > 0)
                       Row(
                         children: [
                           Text(
@@ -587,7 +758,7 @@ class SessionHistoryDetailPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${item.totalRejected}',
+                            '${item.finalRejected}',
                             style: TossTextStyles.bodySmall.copyWith(
                               fontWeight: FontWeight.w600,
                               color: TossColors.error,
@@ -600,6 +771,61 @@ class SessionHistoryDetailPage extends StatelessWidget {
               ],
             ),
           ),
+
+          // Counting specific: Expected vs Difference
+          if (session.isCounting && item.quantityExpected != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space2,
+              ),
+              decoration: const BoxDecoration(
+                color: TossColors.white,
+                border: Border(
+                  top: BorderSide(color: TossColors.gray100),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'Expected: ${item.quantityExpected}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (item.quantityDifference != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space2,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: item.quantityDifference! < 0
+                            ? TossColors.error.withValues(alpha: 0.1)
+                            : item.quantityDifference! > 0
+                                ? TossColors.success.withValues(alpha: 0.1)
+                                : TossColors.gray100,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      ),
+                      child: Text(
+                        'Diff: ${item.quantityDifference! >= 0 ? '+' : ''}${item.quantityDifference}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: item.quantityDifference! < 0
+                              ? TossColors.error
+                              : item.quantityDifference! > 0
+                                  ? TossColors.success
+                                  : TossColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
 
           // Scanned by breakdown
           if (item.scannedBy.isNotEmpty) ...[

@@ -90,11 +90,15 @@ class SessionListPage extends ConsumerWidget {
     final currentUserId = appState.userId;
     final isOwner = session.createdBy == currentUserId;
 
+    // Navigate to session count detail page (session info page)
     context.push(
-      '/session/detail/${session.sessionId}'
+      '/session/count-detail/${session.sessionId}'
       '?sessionType=${session.sessionType}'
       '&storeId=${session.storeId}'
       '&sessionName=${Uri.encodeComponent(session.sessionName)}'
+      '&storeName=${Uri.encodeComponent(session.storeName)}'
+      '&isActive=${session.isActive}'
+      '&createdAt=${Uri.encodeComponent(session.createdAt)}'
       '&isOwner=$isOwner',
     );
   }

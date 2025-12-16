@@ -34,9 +34,14 @@ class SessionReviewItemModel extends SessionReviewItem {
     required super.productId,
     required super.productName,
     super.sku,
+    super.imageUrl,
+    super.brand,
+    super.category,
     required super.totalQuantity,
     required super.totalRejected,
+    super.previousStock,
     required super.scannedBy,
+    super.sessionType,
   });
 
   factory SessionReviewItemModel.fromJson(Map<String, dynamic> json) {
@@ -45,13 +50,31 @@ class SessionReviewItemModel extends SessionReviewItem {
             .toList() ??
         [];
 
+    // Handle image URL from various formats
+    String? imageUrl;
+    if (json['images'] is Map) {
+      final images = json['images'] as Map<String, dynamic>;
+      imageUrl = images['thumbnail']?.toString() ?? images['main_image']?.toString();
+    } else if (json['image_urls'] is List) {
+      final urls = json['image_urls'] as List;
+      if (urls.isNotEmpty) imageUrl = urls.first.toString();
+    } else {
+      imageUrl = json['image_url']?.toString() ?? json['thumbnail']?.toString();
+    }
+
     return SessionReviewItemModel(
       productId: json['product_id']?.toString() ?? '',
       productName: json['product_name']?.toString() ?? '',
       sku: json['sku']?.toString(),
+      imageUrl: imageUrl,
+      brand: json['brand']?.toString(),
+      category: json['category']?.toString(),
       totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
       totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
+      previousStock: (json['previous_stock'] as num?)?.toInt() ??
+                     (json['current_stock'] as num?)?.toInt() ?? 0,
       scannedBy: scannedByList,
+      sessionType: json['session_type']?.toString() ?? 'receiving',
     );
   }
 
@@ -60,8 +83,13 @@ class SessionReviewItemModel extends SessionReviewItem {
       'product_id': productId,
       'product_name': productName,
       'sku': sku,
+      'image_url': imageUrl,
+      'brand': brand,
+      'category': category,
       'total_quantity': totalQuantity,
       'total_rejected': totalRejected,
+      'previous_stock': previousStock,
+      'session_type': sessionType,
       'scanned_by': scannedBy
           .map((e) => (e as ScannedByUserModel).toJson())
           .toList(),

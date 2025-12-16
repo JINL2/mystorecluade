@@ -10,15 +10,25 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../providers/session_review_provider.dart';
 import '../providers/states/session_review_state.dart';
 
-/// Session review page - Review counted items before final submission
-/// Design matches BoxHero's "Review Inventory Changes" page
-class SessionReviewPage extends ConsumerStatefulWidget {
+/// Filter types for receiving review items
+enum ReceivingFilter {
+  all,
+  overReceived,
+  underReceived,
+  mismatchAccepted,
+  fullyMatched,
+  rejected,
+}
+
+/// Session Receiving Review Page
+/// Design matches "Review Stock In vs Order" mockup with table format
+class SessionReceivingReviewPage extends ConsumerStatefulWidget {
   final String sessionId;
   final String sessionType;
   final String? sessionName;
   final String storeId;
 
-  const SessionReviewPage({
+  const SessionReceivingReviewPage({
     super.key,
     required this.sessionId,
     required this.sessionType,
@@ -27,11 +37,14 @@ class SessionReviewPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SessionReviewPage> createState() => _SessionReviewPageState();
+  ConsumerState<SessionReceivingReviewPage> createState() =>
+      _SessionReceivingReviewPageState();
 }
 
-class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
+class _SessionReceivingReviewPageState
+    extends ConsumerState<SessionReceivingReviewPage> {
   final TextEditingController _searchController = TextEditingController();
+  ReceivingFilter _activeFilter = ReceivingFilter.all;
 
   SessionReviewParams get _params => (
         sessionId: widget.sessionId,
@@ -39,8 +52,6 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
         sessionName: widget.sessionName,
         storeId: widget.storeId,
       );
-
-  bool get _isCounting => widget.sessionType == 'counting';
 
   @override
   void dispose() {
@@ -68,7 +79,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text(
-        'Review Inventory Changes',
+        'Review Stock In vs Order',
         style: TossTextStyles.h4.copyWith(
           color: TossColors.textPrimary,
           fontWeight: FontWeight.w600,
@@ -101,7 +112,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
     }
 
     if (!state.hasItems) {
-      return _EmptyView(sessionType: widget.sessionType);
+      return const _EmptyView();
     }
 
     return Column(
@@ -109,24 +120,27 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
         // Search Bar
         _buildSearchBar(state),
 
-        // Filter Tabs
-        _buildFilterTabs(state),
+        // Filter Tabs (scrollable)
+        _buildFilterTabs(),
 
         // Summary Stats
         _buildSummaryStats(state),
 
-        // Items List
+        // Table Header
+        _buildTableHeader(),
+
+        // Items List (table rows)
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
               await ref.read(sessionReviewProvider(_params).notifier).refresh();
             },
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-              itemCount: state.filteredItems.length,
+              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+              itemCount: _getFilteredItems(state).length,
               itemBuilder: (context, index) {
-                final item = state.filteredItems[index];
-                return _ReviewItemCard(item: item, params: _params);
+                final item = _getFilteredItems(state)[index];
+                return _ReceivingItemRow(item: item, params: _params);
               },
             ),
           ),
@@ -136,6 +150,42 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
         _buildBottomButton(state),
       ],
     );
+  }
+
+  /// Get filtered items based on receiving filter
+  List<SessionReviewItem> _getFilteredItems(SessionReviewState state) {
+    var items = state.items;
+
+    // Apply search filter first
+    if (_searchController.text.isNotEmpty) {
+      final query = _searchController.text.toLowerCase();
+      items = items.where((item) {
+        return item.productName.toLowerCase().contains(query) ||
+            (item.sku?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    // Apply receiving filter
+    switch (_activeFilter) {
+      case ReceivingFilter.all:
+        return items;
+      case ReceivingFilter.overReceived:
+        // Received more than shipped (netQuantity > previousStock means over)
+        // In receiving context: previousStock is shipped quantity
+        return items.where((item) => item.netQuantity > item.previousStock).toList();
+      case ReceivingFilter.underReceived:
+        // Received less than shipped
+        return items.where((item) => item.netQuantity < item.previousStock && item.totalRejected == 0).toList();
+      case ReceivingFilter.mismatchAccepted:
+        // Has accepted items but quantity differs
+        return items.where((item) => item.netQuantity != item.previousStock && item.netQuantity > 0).toList();
+      case ReceivingFilter.fullyMatched:
+        // Received exactly what was shipped
+        return items.where((item) => item.netQuantity == item.previousStock && item.totalRejected == 0).toList();
+      case ReceivingFilter.rejected:
+        // Has rejected items
+        return items.where((item) => item.totalRejected > 0).toList();
+    }
   }
 
   Widget _buildSearchBar(SessionReviewState state) {
@@ -150,10 +200,10 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
-          ref.read(sessionReviewProvider(_params).notifier).setSearchQuery(value);
+          setState(() {});
         },
         decoration: InputDecoration(
-          hintText: 'You can search by name, product code, product type,...',
+          hintText: 'Search by product name or SKU...',
           hintStyle: TossTextStyles.body.copyWith(
             color: TossColors.textTertiary,
           ),
@@ -162,7 +212,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
             color: TossColors.textTertiary,
             size: 20,
           ),
-          suffixIcon: state.searchQuery.isNotEmpty
+          suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(
                     Icons.close,
@@ -171,7 +221,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
                   ),
                   onPressed: () {
                     _searchController.clear();
-                    ref.read(sessionReviewProvider(_params).notifier).clearSearch();
+                    setState(() {});
                   },
                 )
               : null,
@@ -198,114 +248,173 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
     );
   }
 
-  Widget _buildFilterTabs(SessionReviewState state) {
+  Widget _buildFilterTabs() {
     return Container(
       color: TossColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Row(
-        children: [
-          _FilterTab(
-            label: 'All',
-            isActive: state.activeFilter == ReviewFilter.all,
-            onTap: () {
-              ref.read(sessionReviewProvider(_params).notifier).setFilter(ReviewFilter.all);
-            },
-          ),
-          _FilterTab(
-            label: 'Increased',
-            isActive: state.activeFilter == ReviewFilter.increased,
-            color: TossColors.success,
-            onTap: () {
-              ref.read(sessionReviewProvider(_params).notifier).setFilter(ReviewFilter.increased);
-            },
-          ),
-          _FilterTab(
-            label: 'Decreased',
-            isActive: state.activeFilter == ReviewFilter.decreased,
-            color: TossColors.loss,
-            onTap: () {
-              ref.read(sessionReviewProvider(_params).notifier).setFilter(ReviewFilter.decreased);
-            },
-          ),
-          _FilterTab(
-            label: 'Unchanged',
-            isActive: state.activeFilter == ReviewFilter.unchanged,
-            onTap: () {
-              ref.read(sessionReviewProvider(_params).notifier).setFilter(ReviewFilter.unchanged);
-            },
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _FilterChip(
+              label: 'All',
+              isActive: _activeFilter == ReceivingFilter.all,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.all),
+            ),
+            _FilterChip(
+              label: 'Over Received',
+              isActive: _activeFilter == ReceivingFilter.overReceived,
+              color: TossColors.primary,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.overReceived),
+            ),
+            _FilterChip(
+              label: 'Under Received',
+              isActive: _activeFilter == ReceivingFilter.underReceived,
+              color: TossColors.loss,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.underReceived),
+            ),
+            _FilterChip(
+              label: 'Mismatch (Accepted)',
+              isActive: _activeFilter == ReceivingFilter.mismatchAccepted,
+              color: TossColors.warning,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.mismatchAccepted),
+            ),
+            _FilterChip(
+              label: 'Fully Matched',
+              isActive: _activeFilter == ReceivingFilter.fullyMatched,
+              color: TossColors.success,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.fullyMatched),
+            ),
+            _FilterChip(
+              label: 'Rejected',
+              isActive: _activeFilter == ReceivingFilter.rejected,
+              color: TossColors.error,
+              onTap: () => setState(() => _activeFilter = ReceivingFilter.rejected),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSummaryStats(SessionReviewState state) {
-    final summary = state.summary;
-    if (summary == null) return const SizedBox.shrink();
+    // Calculate summary stats using effective (edited) quantities
+    int totalShipped = 0;
+    int totalReceived = 0;
+    int totalAccepted = 0;
+    int totalRejected = 0;
+    bool hasEdits = state.hasEdits;
+
+    for (final item in state.items) {
+      totalShipped += item.previousStock; // In receiving, previousStock = shipped qty
+      // Use effective quantity (edited value if exists)
+      final effectiveQty = state.getEffectiveQuantity(item.productId, item.totalQuantity);
+      totalReceived += effectiveQty;
+      totalAccepted += effectiveQty - item.totalRejected;
+      totalRejected += item.totalRejected;
+    }
+
+    final remaining = totalShipped - totalAccepted;
 
     return Container(
       color: TossColors.white,
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space4,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _SummaryItem(label: 'Total Shipped', value: '$totalShipped'),
+            _buildVerticalDivider(),
+            _SummaryItem(
+              label: hasEdits ? 'Received*' : 'Received',
+              value: '$totalReceived',
+              color: TossColors.primary,
+            ),
+            _buildVerticalDivider(),
+            _SummaryItem(
+              label: hasEdits ? 'Accepted*' : 'Accepted',
+              value: '$totalAccepted',
+              color: TossColors.success,
+            ),
+            _buildVerticalDivider(),
+            _SummaryItem(label: 'Rejected', value: '$totalRejected', color: TossColors.loss),
+            _buildVerticalDivider(),
+            _SummaryItem(
+              label: 'Remaining',
+              value: '$remaining',
+              color: remaining > 0 ? TossColors.warning : TossColors.textSecondary,
+            ),
+            if (hasEdits) ...[
+              _buildVerticalDivider(),
+              const Icon(Icons.edit, size: 14, color: TossColors.primary),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Container(
+        width: 1,
+        height: 32,
+        color: TossColors.gray200,
+      ),
+    );
+  }
+
+  Widget _buildTableHeader() {
+    return Container(
+      color: TossColors.gray50,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
         vertical: TossSpacing.space3,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text(
-            'Items Counted: ',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textSecondary,
+          // Product column (expanded)
+          const Expanded(
+            flex: 2,
+            child: Text(
+              'Product',
+              style: TextStyle(
+                fontSize: 13,
+                color: TossColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            '${summary.totalProducts}',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          _buildDivider(),
-          Text(
-            'Total Quantity: ',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textSecondary,
-            ),
-          ),
-          Text(
-            '${summary.totalQuantity}',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          _buildDivider(),
-          Text(
-            'Items Changed: ',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textSecondary,
-            ),
-          ),
-          Text(
-            '${state.itemsChangedCount}',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          // Number columns - fixed width each
+          _buildHeaderCell('Shipped'),
+          _buildHeaderCell('Received'),
+          _buildHeaderCell('Accepted'),
+          _buildHeaderCell('Rejected'),
+          // Edit column
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+  Widget _buildHeaderCell(String text) {
+    return SizedBox(
+      width: 52,
       child: Text(
-        '|',
-        style: TossTextStyles.caption.copyWith(
-          color: TossColors.gray300,
+        text,
+        style: const TextStyle(
+          fontSize: 10,
+          color: TossColors.textSecondary,
+          fontWeight: FontWeight.w500,
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -363,7 +472,6 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => _SubmitConfirmDialog(
-        isCounting: _isCounting,
         onSubmit: (isFinal) {
           Navigator.pop(dialogContext);
           _executeSubmit(isFinal);
@@ -391,7 +499,6 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
           primaryButtonText: 'OK',
           onPrimaryPressed: () {
             Navigator.of(ctx).pop();
-            // Navigate back to session entry point
             context.go('/session');
           },
         ),
@@ -410,14 +517,51 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
   }
 }
 
-/// Filter tab widget
-class _FilterTab extends StatelessWidget {
+/// Summary item widget
+class _SummaryItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? color;
+
+  const _SummaryItem({
+    required this.label,
+    required this.value,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.small.copyWith(
+            color: TossColors.textTertiary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TossTextStyles.bodyMedium.copyWith(
+            color: color ?? TossColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Filter chip widget
+class _FilterChip extends StatelessWidget {
   final String label;
   final bool isActive;
   final Color? color;
   final VoidCallback onTap;
 
-  const _FilterTab({
+  const _FilterChip({
     required this.label,
     required this.isActive,
     this.color,
@@ -456,12 +600,12 @@ class _FilterTab extends StatelessWidget {
   }
 }
 
-/// Review item card - shows stock changes
-class _ReviewItemCard extends ConsumerWidget {
+/// Receiving item row - table format
+class _ReceivingItemRow extends ConsumerWidget {
   final SessionReviewItem item;
   final SessionReviewParams params;
 
-  const _ReviewItemCard({
+  const _ReceivingItemRow({
     required this.item,
     required this.params,
   });
@@ -471,7 +615,7 @@ class _ReviewItemCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _ItemDetailBottomSheet(
+      builder: (context) => _ReceivingItemDetailBottomSheet(
         item: item,
         params: params,
       ),
@@ -486,7 +630,7 @@ class _ReviewItemCard extends ConsumerWidget {
 
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => _EditQuantityDialog(
+      builder: (dialogContext) => _EditReceivingQuantityDialog(
         item: item,
         currentQuantity: currentQuantity,
         onSave: (newQuantity) {
@@ -504,167 +648,139 @@ class _ReviewItemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(sessionReviewProvider(params));
     final isEdited = state.isEdited(item.productId);
-    final effectiveNewStock = state.getEffectiveNewStock(item);
-    final effectiveStockChange = state.getEffectiveStockChange(item);
+    final effectiveQuantity = state.getEffectiveQuantity(
+      item.productId,
+      item.totalQuantity,
+    );
 
-    // Determine change color based on effective values
-    Color changeColor;
-    String changePrefix = '';
-    if (effectiveStockChange > 0) {
-      changeColor = TossColors.success;
-      changePrefix = '+';
-    } else if (effectiveStockChange < 0) {
-      changeColor = TossColors.loss;
-      changePrefix = '';
-    } else {
-      changeColor = TossColors.textSecondary;
+    // Calculate status colors using effective quantities
+    final shipped = item.previousStock;
+    final received = effectiveQuantity;
+    final rejected = item.totalRejected;
+    final accepted = received - rejected;
+
+    // Determine row status color
+    Color? receivedColor;
+    Color? acceptedColor;
+
+    if (accepted > shipped) {
+      // Over received - blue
+      receivedColor = TossColors.primary;
+      acceptedColor = TossColors.primary;
+    } else if (accepted < shipped && rejected == 0) {
+      // Under received - red
+      receivedColor = TossColors.loss;
+      acceptedColor = TossColors.loss;
+    } else if (accepted == shipped && rejected == 0) {
+      // Fully matched - green
+      acceptedColor = TossColors.success;
     }
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _showDetailBottomSheet(context, ref),
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space1,
-        ),
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(color: TossColors.gray100),
-        ),
-        child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      color: TossColors.white,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space4,
+      ),
+      child: Row(
         children: [
-          // Product Image
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                ? ClipRRect(
+          // Product info (with image)
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                // Product image
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                    child: Image.network(
-                      item.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
+                  ),
+                  child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          child: Image.network(
+                            item.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.inventory_2_outlined,
+                                color: TossColors.textTertiary,
+                                size: 20,
+                              );
+                            },
+                          ),
+                        )
+                      : const Icon(
                           Icons.inventory_2_outlined,
                           color: TossColors.textTertiary,
-                          size: 24,
-                        );
-                      },
-                    ),
-                  )
-                : const Icon(
-                    Icons.inventory_2_outlined,
-                    color: TossColors.textTertiary,
-                    size: 24,
-                  ),
-          ),
-
-          const SizedBox(width: TossSpacing.space3),
-
-          // Product Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                          size: 20,
+                        ),
                 ),
-                const SizedBox(height: 2),
-                if (item.sku != null) ...[
-                  Text(
-                    item.sku!,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
+                const SizedBox(width: TossSpacing.space3),
+                // Product name and SKU
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.productName,
+                        style: TossTextStyles.bodyMedium.copyWith(
+                          color: TossColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (item.sku != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.sku!,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.textTertiary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-                if (item.brand != null || item.category != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    [item.brand, item.category].whereType<String>().join(' · '),
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
-                  ),
-                ],
+                ),
               ],
             ),
           ),
-
-          const SizedBox(width: TossSpacing.space3),
-
-          // Stock Change Display
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Previous → New stock display
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${item.previousStock}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 14,
-                    color: TossColors.textTertiary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$effectiveNewStock',
-                    style: TossTextStyles.body.copyWith(
-                      color: isEdited ? TossColors.primary : TossColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+          // Number columns - match header layout
+          _buildDataCell('$shipped', TossColors.textSecondary, false),
+          // Received column - show edited state
+          SizedBox(
+            width: 52,
+            child: Text(
+              '$received',
+              style: TextStyle(
+                fontSize: 14,
+                color: isEdited
+                    ? TossColors.primary
+                    : (receivedColor ?? TossColors.textPrimary),
+                fontWeight: (isEdited || receivedColor != null)
+                    ? FontWeight.w600
+                    : FontWeight.normal,
               ),
-              const SizedBox(height: 4),
-              // Change indicator
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space2,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: changeColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Text(
-                  '$changePrefix$effectiveStockChange',
-                  style: TossTextStyles.caption.copyWith(
-                    color: changeColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+              textAlign: TextAlign.center,
+            ),
           ),
-
-          const SizedBox(width: TossSpacing.space2),
-
-          // Edit button - separate column on the right
+          _buildDataCell('$accepted', acceptedColor ?? TossColors.textPrimary, acceptedColor != null),
+          _buildDataCell('$rejected', rejected > 0 ? TossColors.loss : TossColors.textSecondary, rejected > 0),
+          // Edit button
           GestureDetector(
             onTap: () => _showEditDialog(context, ref, state),
             child: Container(
-              padding: const EdgeInsets.all(8),
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.only(left: 8),
               decoration: BoxDecoration(
                 color: isEdited
                     ? TossColors.primary.withValues(alpha: 0.1)
@@ -677,13 +793,28 @@ class _ReviewItemCard extends ConsumerWidget {
               ),
               child: Icon(
                 Icons.edit,
-                size: 16,
+                size: 14,
                 color: isEdited ? TossColors.primary : TossColors.textSecondary,
               ),
             ),
           ),
         ],
       ),
+      ),
+    );
+  }
+
+  Widget _buildDataCell(String text, Color color, bool isBold) {
+    return SizedBox(
+      width: 52,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: color,
+          fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -742,9 +873,7 @@ class _ErrorView extends StatelessWidget {
 
 /// Empty view
 class _EmptyView extends StatelessWidget {
-  final String sessionType;
-
-  const _EmptyView({required this.sessionType});
+  const _EmptyView();
 
   @override
   Widget build(BuildContext context) {
@@ -761,7 +890,7 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: TossSpacing.space4),
             Text(
-              'No items counted yet',
+              'No items received yet',
               style: TossTextStyles.h4.copyWith(
                 color: TossColors.textPrimary,
               ),
@@ -783,11 +912,9 @@ class _EmptyView extends StatelessWidget {
 
 /// Submit confirmation dialog with is_final option
 class _SubmitConfirmDialog extends StatefulWidget {
-  final bool isCounting;
   final void Function(bool isFinal) onSubmit;
 
   const _SubmitConfirmDialog({
-    required this.isCounting,
     required this.onSubmit,
   });
 
@@ -801,85 +928,83 @@ class _SubmitConfirmDialogState extends State<_SubmitConfirmDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Submit Session?'),
+      title: const Text('Submit Receiving Session?'),
       contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Are you sure you want to submit this ${widget.isCounting ? 'stock count' : 'receiving'} session? '
+            'Are you sure you want to submit this receiving session? '
             'This action cannot be undone.',
             style: TossTextStyles.body.copyWith(
               color: TossColors.textSecondary,
             ),
           ),
-          if (!widget.isCounting) ...[
-            const SizedBox(height: TossSpacing.space4),
-            Container(
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(
-                  color: _isFinal ? TossColors.success : TossColors.gray200,
-                  width: _isFinal ? 1.5 : 1,
-                ),
+          const SizedBox(height: TossSpacing.space4),
+          Container(
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(
+                color: _isFinal ? TossColors.success : TossColors.gray200,
+                width: _isFinal ? 1.5 : 1,
               ),
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    _isFinal = !_isFinal;
-                  });
-                },
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                child: Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space3),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Checkbox(
-                          value: _isFinal,
-                          onChanged: (value) {
-                            setState(() {
-                              _isFinal = value ?? false;
-                            });
-                          },
-                          activeColor: TossColors.success,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+            ),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _isFinal = !_isFinal;
+                });
+              },
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              child: Padding(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _isFinal,
+                        onChanged: (value) {
+                          setState(() {
+                            _isFinal = value ?? false;
+                          });
+                        },
+                        activeColor: TossColors.success,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'No more deliveries expected',
+                            style: TossTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: TossColors.textPrimary,
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'No more deliveries expected',
-                              style: TossTextStyles.bodyMedium.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: TossColors.textPrimary,
-                              ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Check this only when this is the final delivery for this shipment',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.textTertiary,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Check this only when this is the final delivery for this shipment',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ],
       ),
       actionsPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -919,23 +1044,25 @@ class _SubmitConfirmDialogState extends State<_SubmitConfirmDialog> {
   }
 }
 
-/// Edit quantity dialog for manager override
-class _EditQuantityDialog extends StatefulWidget {
+/// Edit quantity dialog for receiving review (manager override)
+class _EditReceivingQuantityDialog extends StatefulWidget {
   final SessionReviewItem item;
   final int currentQuantity;
   final void Function(int) onSave;
 
-  const _EditQuantityDialog({
+  const _EditReceivingQuantityDialog({
     required this.item,
     required this.currentQuantity,
     required this.onSave,
   });
 
   @override
-  State<_EditQuantityDialog> createState() => _EditQuantityDialogState();
+  State<_EditReceivingQuantityDialog> createState() =>
+      _EditReceivingQuantityDialogState();
 }
 
-class _EditQuantityDialogState extends State<_EditQuantityDialog> {
+class _EditReceivingQuantityDialogState
+    extends State<_EditReceivingQuantityDialog> {
   late TextEditingController _controller;
   late int _quantity;
 
@@ -971,10 +1098,12 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
   @override
   Widget build(BuildContext context) {
     final isChanged = _quantity != widget.item.totalQuantity;
+    final shipped = widget.item.previousStock;
+    final newAccepted = _quantity - widget.item.totalRejected;
 
     return AlertDialog(
       title: Text(
-        'Edit Count',
+        'Edit Received Count',
         style: TossTextStyles.h4.copyWith(
           fontWeight: FontWeight.w600,
         ),
@@ -1003,7 +1132,7 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
           ],
           const SizedBox(height: TossSpacing.space4),
 
-          // Original count info
+          // Shipped info
           Container(
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
@@ -1013,18 +1142,41 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Original Count',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.textSecondary,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Shipped',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      '$shipped',
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${widget.item.totalQuantity}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Original Received',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      '${widget.item.totalQuantity}',
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1034,7 +1186,7 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
 
           // Quantity editor
           Text(
-            'New Count',
+            'New Received Count',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.textSecondary,
             ),
@@ -1063,7 +1215,8 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
                   textAlign: TextAlign.center,
                   style: TossTextStyles.h3.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isChanged ? TossColors.primary : TossColors.textPrimary,
+                    color:
+                        isChanged ? TossColors.primary : TossColors.textPrimary,
                   ),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
@@ -1073,13 +1226,15 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       borderSide: BorderSide(
-                        color: isChanged ? TossColors.primary : TossColors.gray200,
+                        color:
+                            isChanged ? TossColors.primary : TossColors.gray200,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       borderSide: BorderSide(
-                        color: isChanged ? TossColors.primary : TossColors.gray200,
+                        color:
+                            isChanged ? TossColors.primary : TossColors.gray200,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -1110,7 +1265,8 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
-                  child: const Icon(Icons.add, size: 20, color: TossColors.primary),
+                  child:
+                      const Icon(Icons.add, size: 20, color: TossColors.primary),
                 ),
               ),
             ],
@@ -1128,20 +1284,37 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
                 color: TossColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: TossColors.primary,
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: Text(
-                      'Changed from ${widget.item.totalQuantity} to $_quantity (${_quantity - widget.item.totalQuantity >= 0 ? '+' : ''}${_quantity - widget.item.totalQuantity})',
-                      style: TossTextStyles.caption.copyWith(
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
                         color: TossColors.primary,
                       ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Text(
+                          'Received: ${widget.item.totalQuantity} → $_quantity',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Accepted will be: $newAccepted (Shipped: $shipped)',
+                    style: TossTextStyles.caption.copyWith(
+                      color: newAccepted > shipped
+                          ? TossColors.primary
+                          : (newAccepted < shipped
+                              ? TossColors.loss
+                              : TossColors.success),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -1187,12 +1360,12 @@ class _EditQuantityDialogState extends State<_EditQuantityDialog> {
   }
 }
 
-/// Item detail bottom sheet - shows scanned by users info
-class _ItemDetailBottomSheet extends ConsumerWidget {
+/// Receiving item detail bottom sheet - shows scanned by users info
+class _ReceivingItemDetailBottomSheet extends ConsumerWidget {
   final SessionReviewItem item;
   final SessionReviewParams params;
 
-  const _ItemDetailBottomSheet({
+  const _ReceivingItemDetailBottomSheet({
     required this.item,
     required this.params,
   });
@@ -1205,20 +1378,27 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
       item.productId,
       item.totalQuantity,
     );
-    final effectiveNewStock = state.getEffectiveNewStock(item);
-    final effectiveStockChange = state.getEffectiveStockChange(item);
 
-    // Determine change color based on effective values
-    Color changeColor;
-    String changePrefix = '';
-    if (effectiveStockChange > 0) {
-      changeColor = TossColors.success;
-      changePrefix = '+';
-    } else if (effectiveStockChange < 0) {
-      changeColor = TossColors.loss;
-      changePrefix = '';
+    final shipped = item.previousStock;
+    final received = effectiveQuantity;
+    final rejected = item.totalRejected;
+    final accepted = received - rejected;
+
+    // Determine status
+    String status;
+    Color statusColor;
+    if (accepted > shipped) {
+      status = 'Over Received';
+      statusColor = TossColors.primary;
+    } else if (accepted < shipped && rejected == 0) {
+      status = 'Under Received';
+      statusColor = TossColors.loss;
+    } else if (rejected > 0) {
+      status = 'Partially Rejected';
+      statusColor = TossColors.warning;
     } else {
-      changeColor = TossColors.textSecondary;
+      status = 'Fully Matched';
+      statusColor = TossColors.success;
     }
 
     return Container(
@@ -1245,7 +1425,7 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
                 ),
               ),
 
-              // Header
+              // Header with product info
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
@@ -1322,10 +1502,15 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
 
               const Divider(height: 1, color: TossColors.gray100),
 
-              // Edited indicator
-              if (isEdited) ...[
+              // Edited indicator banner
+              if (isEdited)
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                  margin: const EdgeInsets.fromLTRB(
+                    TossSpacing.space4,
+                    TossSpacing.space3,
+                    TossSpacing.space4,
+                    0,
+                  ),
                   padding: const EdgeInsets.all(TossSpacing.space3),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
@@ -1334,11 +1519,15 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.edit, size: 16, color: TossColors.primary),
+                      const Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: TossColors.primary,
+                      ),
                       const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Text(
-                          'Manager edited count: ${item.totalQuantity} → $effectiveQuantity',
+                          'Manager edited: ${item.totalQuantity} → $effectiveQuantity',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.primary,
                             fontWeight: FontWeight.w500,
@@ -1348,77 +1537,78 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: TossSpacing.space2),
-              ],
 
-              // Stock Summary Card
+              // Status Badge
               Container(
                 margin: const EdgeInsets.all(TossSpacing.space4),
-                padding: const EdgeInsets.all(TossSpacing.space4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space3,
+                  vertical: TossSpacing.space2,
+                ),
                 decoration: BoxDecoration(
-                  color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildStockColumn('Previous', '${item.previousStock}', TossColors.textSecondary),
-                    const Icon(Icons.arrow_forward, color: TossColors.textTertiary, size: 20),
-                    _buildStockColumn(
-                      'New',
-                      '$effectiveNewStock',
-                      isEdited ? TossColors.primary : TossColors.textPrimary,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space3,
-                        vertical: TossSpacing.space2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: changeColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      child: Text(
-                        '$changePrefix$effectiveStockChange',
-                        style: TossTextStyles.h4.copyWith(
-                          color: changeColor,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    Text(
+                      status,
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    if (isEdited) ...[
+                      const SizedBox(width: TossSpacing.space2),
+                      Icon(
+                        Icons.edit,
+                        size: 14,
+                        color: statusColor,
+                      ),
+                    ],
                   ],
                 ),
               ),
 
-              // Quantity Summary
+              // Receiving Summary Cards
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: Row(
                   children: [
                     Expanded(
                       child: _buildSummaryCard(
-                        isEdited ? 'Edited Count' : 'Total Counted',
-                        '$effectiveQuantity',
-                        isEdited ? TossColors.primary : TossColors.primary,
-                        isEdited ? Icons.edit : Icons.add_box_outlined,
+                        'Shipped',
+                        '$shipped',
+                        TossColors.textSecondary,
+                        Icons.local_shipping_outlined,
                       ),
                     ),
-                    const SizedBox(width: TossSpacing.space3),
+                    const SizedBox(width: TossSpacing.space2),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Received',
+                        '$received',
+                        TossColors.primary,
+                        Icons.download_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Accepted',
+                        '$accepted',
+                        TossColors.success,
+                        Icons.check_circle_outline,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
                     Expanded(
                       child: _buildSummaryCard(
                         'Rejected',
-                        '${item.totalRejected}',
+                        '$rejected',
                         TossColors.loss,
                         Icons.cancel_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space3),
-                    Expanded(
-                      child: _buildSummaryCard(
-                        'Net Quantity',
-                        '${effectiveQuantity - item.totalRejected}',
-                        TossColors.success,
-                        Icons.check_circle_outline,
                       ),
                     ),
                   ],
@@ -1475,41 +1665,20 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildStockColumn(String label, String value, Color valueColor) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.textTertiary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TossTextStyles.h4.copyWith(
-            color: valueColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSummaryCard(String label, String value, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: color),
+          Icon(icon, size: 18, color: color),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TossTextStyles.h4.copyWith(
+            style: TossTextStyles.bodyMedium.copyWith(
               color: color,
               fontWeight: FontWeight.w700,
             ),
@@ -1517,7 +1686,7 @@ class _ItemDetailBottomSheet extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: color,
             ),
             textAlign: TextAlign.center,
