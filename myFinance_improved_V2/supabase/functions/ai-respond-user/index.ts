@@ -690,8 +690,16 @@ ${formatFeatures()}
 3. Use timezone from companies table - NEVER hardcode
 4. ⛔ NEVER use CROSS JOIN or FULL OUTER JOIN
 5. ⛔ Generate ONLY ONE SELECT statement (no semicolons)
-6. ⭐ USE ONLY columns documented above. Do NOT guess column names.
-7. Use ::integer cast for EXTRACT in MAKE_DATE
+6. Use ::integer cast for EXTRACT in MAKE_DATE
+
+## ⛔⛔⛔ CRITICAL: COLUMN USAGE RULES ⛔⛔⛔
+- ONLY use columns that are EXPLICITLY documented in the IMPORTANT COLUMNS section above
+- If a column is NOT listed above, it DOES NOT EXIST - DO NOT use it!
+- ⛔ NEVER guess or assume column names based on your training data
+- ⛔ NEVER use: entry_date_utc (use issue_date_utc instead)
+- ⛔ NEVER use: is_deleted on tables that don't have it (check ai_usage_hint for "⛔ is_deleted 없음")
+- ⛔ journal_lines has NO company_id - JOIN to journal_entries for company_id filter
+- READ the ai_usage_hint carefully - it tells you what NOT to use
 
 ## OUTPUT FORMAT (JSON only)
 For DATA queries:
