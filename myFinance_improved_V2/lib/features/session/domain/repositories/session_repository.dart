@@ -3,6 +3,8 @@ import '../entities/inventory_session.dart';
 import '../entities/join_session_response.dart';
 import '../entities/session_history_item.dart';
 import '../entities/session_item.dart';
+import '../entities/update_session_items_response.dart';
+import '../entities/user_session_items.dart';
 import '../entities/session_list_item.dart';
 import '../entities/session_review_item.dart';
 import '../entities/shipment.dart';
@@ -132,6 +134,16 @@ abstract class SessionRepository {
     int offset = 0,
   });
 
+  /// Get inventory products with pagination
+  /// For initial loading and infinite scroll
+  Future<ProductSearchResponse> getInventoryPage({
+    required String companyId,
+    required String storeId,
+    String? search,
+    int page = 1,
+    int limit = 15,
+  });
+
   /// Search products for session item selection
   Future<ProductSearchResponse> searchProducts({
     required String companyId,
@@ -173,5 +185,31 @@ abstract class SessionRepository {
     DateTime? endDate,
     int limit = 15,
     int offset = 0,
+  });
+
+  /// Get product stock by store via RPC (inventory_product_stock_stores)
+  /// Returns stock quantity for each product in the specified store
+  Future<Map<String, int>> getProductStockByStore({
+    required String companyId,
+    required String storeId,
+    required List<String> productIds,
+  });
+
+  /// Get individual items added by a specific user in a session
+  /// Returns each item_id separately (no grouping by product_id)
+  /// via RPC (inventory_get_user_session_items)
+  Future<UserSessionItemsResponse> getUserSessionItems({
+    required String sessionId,
+    required String userId,
+  });
+
+  /// Update or insert session items via RPC (inventory_update_session_item)
+  /// - Existing products: Consolidates multiple items into one and updates quantity
+  /// - New products: Inserts new item
+  /// - Products not in items: Keeps as-is (no deletion)
+  Future<UpdateSessionItemsResponse> updateSessionItems({
+    required String sessionId,
+    required String userId,
+    required List<SessionItemInput> items,
   });
 }

@@ -62,6 +62,14 @@ class SessionDetailState {
   // Locally selected products (before saving)
   final List<SelectedProduct> selectedProducts;
 
+  // Inventory list state (for initial display)
+  final List<SearchProductResult> inventoryProducts;
+  final bool isLoadingInventory;
+  final bool isLoadingMoreInventory;
+  final int currentPage;
+  final bool hasMoreInventory;
+  final int totalInventoryCount;
+
   // Search state
   final List<SearchProductResult> searchResults;
   final bool isSearching;
@@ -80,6 +88,12 @@ class SessionDetailState {
     this.sessionItems = const [],
     this.isLoadingItems = false,
     this.selectedProducts = const [],
+    this.inventoryProducts = const [],
+    this.isLoadingInventory = false,
+    this.isLoadingMoreInventory = false,
+    this.currentPage = 1,
+    this.hasMoreInventory = true,
+    this.totalInventoryCount = 0,
     this.searchResults = const [],
     this.isSearching = false,
     this.searchQuery = '',
@@ -110,6 +124,12 @@ class SessionDetailState {
     List<SessionItem>? sessionItems,
     bool? isLoadingItems,
     List<SelectedProduct>? selectedProducts,
+    List<SearchProductResult>? inventoryProducts,
+    bool? isLoadingInventory,
+    bool? isLoadingMoreInventory,
+    int? currentPage,
+    bool? hasMoreInventory,
+    int? totalInventoryCount,
     List<SearchProductResult>? searchResults,
     bool? isSearching,
     String? searchQuery,
@@ -125,6 +145,12 @@ class SessionDetailState {
       sessionItems: sessionItems ?? this.sessionItems,
       isLoadingItems: isLoadingItems ?? this.isLoadingItems,
       selectedProducts: selectedProducts ?? this.selectedProducts,
+      inventoryProducts: inventoryProducts ?? this.inventoryProducts,
+      isLoadingInventory: isLoadingInventory ?? this.isLoadingInventory,
+      isLoadingMoreInventory: isLoadingMoreInventory ?? this.isLoadingMoreInventory,
+      currentPage: currentPage ?? this.currentPage,
+      hasMoreInventory: hasMoreInventory ?? this.hasMoreInventory,
+      totalInventoryCount: totalInventoryCount ?? this.totalInventoryCount,
       searchResults: searchResults ?? this.searchResults,
       isSearching: isSearching ?? this.isSearching,
       searchQuery: searchQuery ?? this.searchQuery,

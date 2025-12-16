@@ -22,7 +22,6 @@ import '../../features/auth/presentation/pages/complete_profile_page.dart';
 import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
-import '../../features/cash_location/presentation/pages/account_settings_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
 import '../../features/counter_party/presentation/pages/counter_party_page.dart';
 import '../../features/counter_party/presentation/pages/debt_account_settings_page.dart';
@@ -50,7 +49,9 @@ import '../../features/session/presentation/pages/session_page.dart';
 import '../../features/session/presentation/pages/session_action_page.dart';
 import '../../features/session/presentation/pages/session_list_page.dart';
 import '../../features/session/presentation/pages/session_detail_page.dart';
+import '../../features/session/presentation/pages/session_count_detail_page.dart';
 import '../../features/session/presentation/pages/session_review_page.dart';
+import '../../features/session/presentation/pages/session_receiving_review_page.dart';
 import '../../features/session/presentation/pages/session_history_page.dart';
 import '../../features/session/presentation/pages/session_history_detail_page.dart';
 import '../../features/session/domain/entities/session_history_item.dart';
@@ -807,6 +808,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Session Count Detail Route (session info page with users)
+      GoRoute(
+        path: '/session/count-detail/:sessionId',
+        name: 'session-count-detail',
+        builder: (context, state) {
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          final sessionName = state.uri.queryParameters['sessionName'] ?? '';
+          final storeName = state.uri.queryParameters['storeName'] ?? '';
+          final isActiveParam = state.uri.queryParameters['isActive'];
+          final isActive = isActiveParam == 'true';
+          final createdAt = state.uri.queryParameters['createdAt'] ?? '';
+          final memo = state.uri.queryParameters['memo'];
+          final isOwnerParam = state.uri.queryParameters['isOwner'];
+          final isOwner = isOwnerParam == 'true';
+
+          return SessionCountDetailPage(
+            sessionId: sessionId,
+            sessionName: sessionName,
+            sessionType: sessionType,
+            storeId: storeId,
+            storeName: storeName,
+            isActive: isActive,
+            createdAt: createdAt,
+            memo: memo,
+            isOwner: isOwner,
+          );
+        },
+      ),
+
       // Session Detail Route (after creating/joining a session)
       GoRoute(
         path: '/session/detail/:sessionId',
@@ -836,6 +868,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Session Review Route (review counted items before final submission)
+      // Routes to different pages based on session type:
+      // - counting: SessionReviewPage (card-style review)
+      // - receiving: SessionReceivingReviewPage (table-style with Shipped/Received/Accepted/Rejected)
       GoRoute(
         path: '/session/review/:sessionId',
         name: 'session-review',
@@ -843,11 +878,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final sessionId = state.pathParameters['sessionId'] ?? '';
           final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
           final sessionName = state.uri.queryParameters['sessionName'];
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
 
+          // Use different review page based on session type
+          if (sessionType == 'receiving') {
+            return SessionReceivingReviewPage(
+              sessionId: sessionId,
+              sessionType: sessionType,
+              sessionName: sessionName,
+              storeId: storeId,
+            );
+          }
+
+          // Default: counting session uses original review page
           return SessionReviewPage(
             sessionId: sessionId,
             sessionType: sessionType,
             sessionName: sessionName,
+            storeId: storeId,
           );
         },
       ),

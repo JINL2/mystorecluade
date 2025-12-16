@@ -12,6 +12,8 @@ import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
 import '../models/shipment_model.dart';
+import '../models/update_session_items_response_model.dart';
+import '../models/user_session_items_model.dart';
 
 /// Provider for SessionDatasource
 final sessionDatasourceProvider = Provider<SessionDatasource>((ref) {
@@ -271,6 +273,58 @@ class SessionDatasource {
     return SessionReviewResponseModel.fromJson(data);
   }
 
+  /// Get product stock by store via RPC (inventory_product_stock_stores)
+  /// Returns stock quantity for each product in the specified store
+  Future<Map<String, int>> getProductStockByStore({
+    required String companyId,
+    required String storeId,
+    required List<String> productIds,
+  }) async {
+    if (productIds.isEmpty) {
+      return {};
+    }
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_product_stock_stores',
+      params: {
+        'p_company_id': companyId,
+        'p_product_ids': productIds,
+      },
+    ).single();
+
+    if (response['success'] != true) {
+      final error = response['error'] as Map<String, dynamic>?;
+      throw Exception(error?['message'] ?? 'Failed to get product stock');
+    }
+
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+    final products = data['products'] as List<dynamic>? ?? [];
+
+    // Build a map of productId -> stock quantity for the specified store
+    final stockMap = <String, int>{};
+    for (final product in products) {
+      final productMap = product as Map<String, dynamic>;
+      final productId = productMap['product_id']?.toString() ?? '';
+      final stores = productMap['stores'] as List<dynamic>? ?? [];
+
+      // Find the stock for the specified store
+      for (final store in stores) {
+        final storeMap = store as Map<String, dynamic>;
+        if (storeMap['store_id']?.toString() == storeId) {
+          stockMap[productId] = (storeMap['quantity_on_hand'] as num?)?.toInt() ?? 0;
+          break;
+        }
+      }
+
+      // If store not found, default to 0
+      if (!stockMap.containsKey(productId)) {
+        stockMap[productId] = 0;
+      }
+    }
+
+    return stockMap;
+  }
+
   /// Submit session with confirmed items via RPC (inventory_submit_session)
   /// Creates receiving record, updates inventory stock, and closes session
   /// Only session creator can submit
@@ -387,23 +441,30 @@ class SessionDatasource {
     return ShipmentListResponseModel.fromJson(response);
   }
 
-  /// Search products for session item selection via RPC (get_inventory_page_v3)
-  Future<ProductSearchResponseModel> searchProducts({
+  /// Get inventory products with pagination via RPC (get_inventory_page_v3)
+  /// Used for initial loading (no search) and search functionality
+  Future<ProductSearchResponseModel> getInventoryPage({
     required String companyId,
     required String storeId,
-    required String query,
-    int limit = 20,
+    String? search,
+    int page = 1,
+    int limit = 15,
   }) async {
+    final params = <String, dynamic>{
+      'p_company_id': companyId,
+      'p_store_id': storeId,
+      'p_page': page,
+      'p_limit': limit,
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
+    };
+
+    if (search != null && search.isNotEmpty) {
+      params['p_search'] = search;
+    }
+
     final response = await _client.rpc<Map<String, dynamic>>(
       'get_inventory_page_v3',
-      params: {
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-        'p_page': 1,
-        'p_limit': limit,
-        'p_search': query,
-        'p_timezone': DateTimeUtils.getLocalTimezone(),
-      },
+      params: params,
     ).single();
 
     // Parse response
@@ -412,20 +473,29 @@ class SessionDatasource {
       if (response['success'] == true) {
         dataToProcess = response['data'] as Map<String, dynamic>? ?? {};
       } else {
-        throw Exception(response['error'] ?? 'Failed to search products');
+        throw Exception(response['error'] ?? 'Failed to get inventory');
       }
     } else {
       dataToProcess = response;
     }
 
-    final productsJson = dataToProcess['products'] as List<dynamic>? ?? [];
-    final products = productsJson
-        .map((json) => ProductSearchResultModel.fromJson(json as Map<String, dynamic>))
-        .toList();
+    return ProductSearchResponseModel.fromJson(dataToProcess);
+  }
 
-    return ProductSearchResponseModel(
-      products: products,
-      totalCount: dataToProcess['total_count'] as int? ?? products.length,
+  /// Search products for session item selection via RPC (get_inventory_page_v3)
+  /// This is a convenience method that calls getInventoryPage with search query
+  Future<ProductSearchResponseModel> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int limit = 20,
+  }) async {
+    return getInventoryPage(
+      companyId: companyId,
+      storeId: storeId,
+      search: query,
+      page: 1,
+      limit: limit,
     );
   }
 
@@ -505,6 +575,60 @@ class SessionDatasource {
       return CloseSessionResponseModel.fromJson(data);
     } else {
       throw Exception(response['error'] ?? 'Failed to close session');
+    }
+  }
+
+  /// Get individual user session items via RPC (inventory_get_user_session_items)
+  /// Returns each item_id separately (no grouping by product_id)
+  /// Used for showing previously added items when user enters session detail page
+  Future<UserSessionItemsResponseModel> getUserSessionItems({
+    required String sessionId,
+    required String userId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_get_user_session_items',
+      params: {
+        'p_session_id': sessionId,
+        'p_user_id': userId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to get user session items');
+    }
+
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+    return UserSessionItemsResponseModel.fromJson(data);
+  }
+
+  /// Update or insert session items via RPC (inventory_update_session_item)
+  /// - Existing products: Consolidates multiple items into one and updates quantity
+  /// - New products: Inserts new item
+  /// - Products not in items: Keeps as-is (no deletion)
+  Future<UpdateSessionItemsResponseModel> updateSessionItems({
+    required String sessionId,
+    required String userId,
+    required List<SessionItemInput> items,
+  }) async {
+    final itemsJson = items.map((item) => item.toJson()).toList();
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_update_session_item',
+      params: {
+        'p_session_id': sessionId,
+        'p_user_id': userId,
+        'p_items': itemsJson,
+        'p_time': DateTimeUtils.toLocalWithOffset(DateTime.now()),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] == true) {
+      final data = response['data'] as Map<String, dynamic>? ?? {};
+      return UpdateSessionItemsResponseModel.fromJson(data, response['message']?.toString());
+    } else {
+      throw Exception(response['error'] ?? 'Failed to update session items');
     }
   }
 

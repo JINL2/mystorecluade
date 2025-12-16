@@ -110,6 +110,8 @@ class ProductSearchResult {
   final String? sku;
   final String? barcode;
   final String? imageUrl;
+  final String? brandName;
+  final String? categoryName;
   final double sellingPrice;
   final int currentStock;
 
@@ -119,18 +121,28 @@ class ProductSearchResult {
     this.sku,
     this.barcode,
     this.imageUrl,
+    this.brandName,
+    this.categoryName,
     this.sellingPrice = 0,
     this.currentStock = 0,
   });
 }
 
-/// Response for product search
+/// Response for product search with pagination
 class ProductSearchResponse {
   final List<ProductSearchResult> products;
   final int totalCount;
+  final int page;
+  final int limit;
+  final int totalPages;
+  final bool hasNext;
 
   const ProductSearchResponse({
     required this.products,
     this.totalCount = 0,
+    this.page = 1,
+    this.limit = 20,
+    this.totalPages = 1,
+    this.hasNext = false,
   });
 }

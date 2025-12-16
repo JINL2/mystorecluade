@@ -44,9 +44,13 @@ class SessionHistoryItemDetailModel extends SessionHistoryItemDetail {
     required super.productId,
     required super.productName,
     super.sku,
-    required super.totalQuantity,
-    required super.totalRejected,
+    required super.scannedQuantity,
+    required super.scannedRejected,
     required super.scannedBy,
+    super.confirmedQuantity,
+    super.confirmedRejected,
+    super.quantityExpected,
+    super.quantityDifference,
   });
 
   factory SessionHistoryItemDetailModel.fromJson(Map<String, dynamic> json) {
@@ -58,9 +62,16 @@ class SessionHistoryItemDetailModel extends SessionHistoryItemDetail {
       productId: json['product_id']?.toString() ?? '',
       productName: json['product_name']?.toString() ?? '',
       sku: json['sku']?.toString(),
-      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
-      totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
+      // Scanned by employees
+      scannedQuantity: (json['scanned_quantity'] as num?)?.toInt() ?? 0,
+      scannedRejected: (json['scanned_rejected'] as num?)?.toInt() ?? 0,
       scannedBy: scannedByList,
+      // Confirmed by manager (nullable)
+      confirmedQuantity: (json['confirmed_quantity'] as num?)?.toInt(),
+      confirmedRejected: (json['confirmed_rejected'] as num?)?.toInt(),
+      // Counting specific
+      quantityExpected: (json['quantity_expected'] as num?)?.toInt(),
+      quantityDifference: (json['quantity_difference'] as num?)?.toInt(),
     );
   }
 }
@@ -85,9 +96,11 @@ class SessionHistoryItemModel extends SessionHistoryItem {
     required super.members,
     required super.memberCount,
     required super.items,
-    required super.totalItemsCount,
-    required super.totalQuantity,
-    required super.totalRejected,
+    required super.totalScannedQuantity,
+    required super.totalScannedRejected,
+    super.totalConfirmedQuantity,
+    super.totalConfirmedRejected,
+    super.totalDifference,
   });
 
   factory SessionHistoryItemModel.fromJson(Map<String, dynamic> json) {
@@ -117,9 +130,14 @@ class SessionHistoryItemModel extends SessionHistoryItem {
       members: membersList,
       memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
       items: itemsList,
-      totalItemsCount: (json['total_items_count'] as num?)?.toInt() ?? 0,
-      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
-      totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
+      // Scanned totals
+      totalScannedQuantity: (json['total_scanned_quantity'] as num?)?.toInt() ?? 0,
+      totalScannedRejected: (json['total_scanned_rejected'] as num?)?.toInt() ?? 0,
+      // Confirmed totals (nullable)
+      totalConfirmedQuantity: (json['total_confirmed_quantity'] as num?)?.toInt(),
+      totalConfirmedRejected: (json['total_confirmed_rejected'] as num?)?.toInt(),
+      // Counting specific
+      totalDifference: (json['total_difference'] as num?)?.toInt(),
     );
   }
 }
