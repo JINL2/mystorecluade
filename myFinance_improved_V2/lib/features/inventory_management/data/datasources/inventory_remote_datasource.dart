@@ -657,6 +657,60 @@ class InventoryRemoteDataSource {
     }
   }
 
+  /// Get inventory history for the entire store
+  Future<InventoryHistoryResult> getInventoryHistory({
+    required String companyId,
+    required String storeId,
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_page': page,
+        'p_page_size': pageSize,
+      };
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getInventoryHistory params: $params');
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>('inventory_history', params: params)
+          .single();
+
+      // ignore: avoid_print
+      print('[InventoryDatasource] getInventoryHistory response: $response');
+
+      if (response['success'] == true) {
+        return InventoryHistoryResult.fromJson(response);
+      } else {
+        final error = response['error'] as Map<String, dynamic>?;
+        throw InventoryRepositoryException(
+          message: error?['message']?.toString() ?? 'Failed to get inventory history',
+          code: error?['code']?.toString(),
+          details: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] PostgrestException: ${e.message}');
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('[InventoryDatasource] Exception: $e');
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get inventory history: $e',
+        details: e,
+      );
+    }
+  }
+
   /// Get correct MIME type for image extension
   /// Handles jpg -> jpeg conversion for standard compliance
   String _getMimeType(String extension) {
@@ -1064,54 +1118,139 @@ class ProductHistoryResult {
 
 /// Individual history item from product history
 class ProductHistoryItem {
+  final String logId;
+  final String eventCategory;
   final String eventType;
-  final String eventDate;
-  final String localEventDate;
   final int? quantityBefore;
   final int? quantityAfter;
   final int? quantityChange;
-  final double? priceBefore;
-  final double? priceAfter;
+  // Price fields
+  final double? costBefore;
+  final double? costAfter;
+  final double? sellingPriceBefore;
+  final double? sellingPriceAfter;
+  final double? minPriceBefore;
+  final double? minPriceAfter;
+  // Product fields
+  final String? nameBefore;
+  final String? nameAfter;
+  final String? skuBefore;
+  final String? skuAfter;
+  final String? barcodeBefore;
+  final String? barcodeAfter;
+  final String? brandIdBefore;
+  final String? brandIdAfter;
+  final String? brandNameBefore;
+  final String? brandNameAfter;
+  final String? categoryIdBefore;
+  final String? categoryIdAfter;
+  final String? categoryNameBefore;
+  final String? categoryNameAfter;
+  final double? weightBefore;
+  final double? weightAfter;
+  // Reference fields
+  final String? invoiceId;
+  final String? invoiceNumber;
+  final String? transferId;
+  final String? fromStoreId;
   final String? fromStoreName;
+  final String? toStoreId;
   final String? toStoreName;
-  final String? referenceNumber;
+  // Other fields
+  final String? reason;
   final String? notes;
-  final String? userName;
-  final String? userAvatar;
+  final String? createdBy;
+  final String? createdUser;
+  final String? createdUserProfileImage;
+  final String createdAt;
 
   ProductHistoryItem({
+    required this.logId,
+    required this.eventCategory,
     required this.eventType,
-    required this.eventDate,
-    required this.localEventDate,
     this.quantityBefore,
     this.quantityAfter,
     this.quantityChange,
-    this.priceBefore,
-    this.priceAfter,
+    this.costBefore,
+    this.costAfter,
+    this.sellingPriceBefore,
+    this.sellingPriceAfter,
+    this.minPriceBefore,
+    this.minPriceAfter,
+    this.nameBefore,
+    this.nameAfter,
+    this.skuBefore,
+    this.skuAfter,
+    this.barcodeBefore,
+    this.barcodeAfter,
+    this.brandIdBefore,
+    this.brandIdAfter,
+    this.brandNameBefore,
+    this.brandNameAfter,
+    this.categoryIdBefore,
+    this.categoryIdAfter,
+    this.categoryNameBefore,
+    this.categoryNameAfter,
+    this.weightBefore,
+    this.weightAfter,
+    this.invoiceId,
+    this.invoiceNumber,
+    this.transferId,
+    this.fromStoreId,
     this.fromStoreName,
+    this.toStoreId,
     this.toStoreName,
-    this.referenceNumber,
+    this.reason,
     this.notes,
-    this.userName,
-    this.userAvatar,
+    this.createdBy,
+    this.createdUser,
+    this.createdUserProfileImage,
+    required this.createdAt,
   });
 
   factory ProductHistoryItem.fromJson(Map<String, dynamic> json) {
     return ProductHistoryItem(
+      logId: json['log_id'] as String? ?? '',
+      eventCategory: json['event_category'] as String? ?? '',
       eventType: json['event_type'] as String? ?? '',
-      eventDate: json['event_date'] as String? ?? '',
-      localEventDate: json['local_event_date'] as String? ?? '',
       quantityBefore: (json['quantity_before'] as num?)?.toInt(),
       quantityAfter: (json['quantity_after'] as num?)?.toInt(),
       quantityChange: (json['quantity_change'] as num?)?.toInt(),
-      priceBefore: (json['price_before'] as num?)?.toDouble(),
-      priceAfter: (json['price_after'] as num?)?.toDouble(),
+      costBefore: (json['cost_before'] as num?)?.toDouble(),
+      costAfter: (json['cost_after'] as num?)?.toDouble(),
+      sellingPriceBefore: (json['selling_price_before'] as num?)?.toDouble(),
+      sellingPriceAfter: (json['selling_price_after'] as num?)?.toDouble(),
+      minPriceBefore: (json['min_price_before'] as num?)?.toDouble(),
+      minPriceAfter: (json['min_price_after'] as num?)?.toDouble(),
+      nameBefore: json['name_before'] as String?,
+      nameAfter: json['name_after'] as String?,
+      skuBefore: json['sku_before'] as String?,
+      skuAfter: json['sku_after'] as String?,
+      barcodeBefore: json['barcode_before'] as String?,
+      barcodeAfter: json['barcode_after'] as String?,
+      brandIdBefore: json['brand_id_before'] as String?,
+      brandIdAfter: json['brand_id_after'] as String?,
+      brandNameBefore: json['brand_name_before'] as String?,
+      brandNameAfter: json['brand_name_after'] as String?,
+      categoryIdBefore: json['category_id_before'] as String?,
+      categoryIdAfter: json['category_id_after'] as String?,
+      categoryNameBefore: json['category_name_before'] as String?,
+      categoryNameAfter: json['category_name_after'] as String?,
+      weightBefore: (json['weight_before'] as num?)?.toDouble(),
+      weightAfter: (json['weight_after'] as num?)?.toDouble(),
+      invoiceId: json['invoice_id'] as String?,
+      invoiceNumber: json['invoice_number'] as String?,
+      transferId: json['transfer_id'] as String?,
+      fromStoreId: json['from_store_id'] as String?,
       fromStoreName: json['from_store_name'] as String?,
+      toStoreId: json['to_store_id'] as String?,
       toStoreName: json['to_store_name'] as String?,
-      referenceNumber: json['reference_number'] as String?,
+      reason: json['reason'] as String?,
       notes: json['notes'] as String?,
-      userName: json['user_name'] as String?,
-      userAvatar: json['user_avatar'] as String?,
+      createdBy: json['created_by'] as String?,
+      createdUser: json['created_user'] as String?,
+      createdUserProfileImage: json['created_user_profile_image'] as String?,
+      createdAt: json['created_at'] as String? ?? '',
     );
   }
 }
@@ -1291,6 +1430,196 @@ class AutoGeneratedFlags {
     return AutoGeneratedFlags(
       sku: json['sku'] as bool? ?? false,
       barcode: json['barcode'] as bool? ?? false,
+    );
+  }
+}
+
+/// Inventory History Result from inventory_history RPC
+class InventoryHistoryResult {
+  final List<InventoryHistoryItem> data;
+  final int totalCount;
+  final int page;
+  final int pageSize;
+  final int totalPages;
+
+  InventoryHistoryResult({
+    required this.data,
+    required this.totalCount,
+    required this.page,
+    required this.pageSize,
+    required this.totalPages,
+  });
+
+  factory InventoryHistoryResult.fromJson(Map<String, dynamic> json) {
+    final dataJson = json['data'] as List<dynamic>? ?? [];
+    return InventoryHistoryResult(
+      data: dataJson
+          .map((item) => InventoryHistoryItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      pageSize: (json['page_size'] as num?)?.toInt() ?? 20,
+      totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Individual history item from inventory history (includes product info)
+class InventoryHistoryItem {
+  final String logId;
+  final String eventCategory;
+  final String eventType;
+  // Product info
+  final String? productId;
+  final String? productName;
+  final String? productSku;
+  final String? productImage;
+  // Store info
+  final String? storeId;
+  final String? storeName;
+  // Quantity fields
+  final int? quantityBefore;
+  final int? quantityAfter;
+  final int? quantityChange;
+  // Price fields
+  final double? costBefore;
+  final double? costAfter;
+  final double? sellingPriceBefore;
+  final double? sellingPriceAfter;
+  final double? minPriceBefore;
+  final double? minPriceAfter;
+  // Product change fields
+  final String? nameBefore;
+  final String? nameAfter;
+  final String? skuBefore;
+  final String? skuAfter;
+  final String? barcodeBefore;
+  final String? barcodeAfter;
+  final String? brandIdBefore;
+  final String? brandIdAfter;
+  final String? brandNameBefore;
+  final String? brandNameAfter;
+  final String? categoryIdBefore;
+  final String? categoryIdAfter;
+  final String? categoryNameBefore;
+  final String? categoryNameAfter;
+  final double? weightBefore;
+  final double? weightAfter;
+  // Reference fields
+  final String? invoiceId;
+  final String? invoiceNumber;
+  final String? transferId;
+  final String? fromStoreId;
+  final String? fromStoreName;
+  final String? toStoreId;
+  final String? toStoreName;
+  // Other fields
+  final String? reason;
+  final String? notes;
+  final String? createdBy;
+  final String? createdUser;
+  final String? createdUserProfileImage;
+  final String createdAt;
+
+  InventoryHistoryItem({
+    required this.logId,
+    required this.eventCategory,
+    required this.eventType,
+    this.productId,
+    this.productName,
+    this.productSku,
+    this.productImage,
+    this.storeId,
+    this.storeName,
+    this.quantityBefore,
+    this.quantityAfter,
+    this.quantityChange,
+    this.costBefore,
+    this.costAfter,
+    this.sellingPriceBefore,
+    this.sellingPriceAfter,
+    this.minPriceBefore,
+    this.minPriceAfter,
+    this.nameBefore,
+    this.nameAfter,
+    this.skuBefore,
+    this.skuAfter,
+    this.barcodeBefore,
+    this.barcodeAfter,
+    this.brandIdBefore,
+    this.brandIdAfter,
+    this.brandNameBefore,
+    this.brandNameAfter,
+    this.categoryIdBefore,
+    this.categoryIdAfter,
+    this.categoryNameBefore,
+    this.categoryNameAfter,
+    this.weightBefore,
+    this.weightAfter,
+    this.invoiceId,
+    this.invoiceNumber,
+    this.transferId,
+    this.fromStoreId,
+    this.fromStoreName,
+    this.toStoreId,
+    this.toStoreName,
+    this.reason,
+    this.notes,
+    this.createdBy,
+    this.createdUser,
+    this.createdUserProfileImage,
+    required this.createdAt,
+  });
+
+  factory InventoryHistoryItem.fromJson(Map<String, dynamic> json) {
+    return InventoryHistoryItem(
+      logId: json['log_id'] as String? ?? '',
+      eventCategory: json['event_category'] as String? ?? '',
+      eventType: json['event_type'] as String? ?? '',
+      productId: json['product_id'] as String?,
+      productName: json['product_name'] as String?,
+      productSku: json['product_sku'] as String?,
+      productImage: json['product_image'] as String?,
+      storeId: json['store_id'] as String?,
+      storeName: json['store_name'] as String?,
+      quantityBefore: (json['quantity_before'] as num?)?.toInt(),
+      quantityAfter: (json['quantity_after'] as num?)?.toInt(),
+      quantityChange: (json['quantity_change'] as num?)?.toInt(),
+      costBefore: (json['cost_before'] as num?)?.toDouble(),
+      costAfter: (json['cost_after'] as num?)?.toDouble(),
+      sellingPriceBefore: (json['selling_price_before'] as num?)?.toDouble(),
+      sellingPriceAfter: (json['selling_price_after'] as num?)?.toDouble(),
+      minPriceBefore: (json['min_price_before'] as num?)?.toDouble(),
+      minPriceAfter: (json['min_price_after'] as num?)?.toDouble(),
+      nameBefore: json['name_before'] as String?,
+      nameAfter: json['name_after'] as String?,
+      skuBefore: json['sku_before'] as String?,
+      skuAfter: json['sku_after'] as String?,
+      barcodeBefore: json['barcode_before'] as String?,
+      barcodeAfter: json['barcode_after'] as String?,
+      brandIdBefore: json['brand_id_before'] as String?,
+      brandIdAfter: json['brand_id_after'] as String?,
+      brandNameBefore: json['brand_name_before'] as String?,
+      brandNameAfter: json['brand_name_after'] as String?,
+      categoryIdBefore: json['category_id_before'] as String?,
+      categoryIdAfter: json['category_id_after'] as String?,
+      categoryNameBefore: json['category_name_before'] as String?,
+      categoryNameAfter: json['category_name_after'] as String?,
+      weightBefore: (json['weight_before'] as num?)?.toDouble(),
+      weightAfter: (json['weight_after'] as num?)?.toDouble(),
+      invoiceId: json['invoice_id'] as String?,
+      invoiceNumber: json['invoice_number'] as String?,
+      transferId: json['transfer_id'] as String?,
+      fromStoreId: json['from_store_id'] as String?,
+      fromStoreName: json['from_store_name'] as String?,
+      toStoreId: json['to_store_id'] as String?,
+      toStoreName: json['to_store_name'] as String?,
+      reason: json['reason'] as String?,
+      notes: json['notes'] as String?,
+      createdBy: json['created_by'] as String?,
+      createdUser: json['created_user'] as String?,
+      createdUserProfileImage: json['created_user_profile_image'] as String?,
+      createdAt: json['created_at'] as String? ?? '',
     );
   }
 }

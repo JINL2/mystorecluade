@@ -1,0 +1,126 @@
+import '../../domain/entities/invoice_detail.dart';
+
+/// Invoice Detail Model for get_invoice_detail RPC response
+class InvoiceDetailModel {
+  final String invoiceId;
+  final String invoiceNumber;
+  final DateTime saleDate;
+  final String status;
+  final String paymentMethod;
+  final String paymentStatus;
+  final String? cashLocationId;
+  final String? cashLocationName;
+  final String? cashLocationType;
+  final Map<String, dynamic> store;
+  final Map<String, dynamic>? customer;
+  final Map<String, dynamic>? createdBy;
+  final DateTime createdAt;
+  final Map<String, dynamic> amounts;
+  final List<Map<String, dynamic>> items;
+
+  InvoiceDetailModel({
+    required this.invoiceId,
+    required this.invoiceNumber,
+    required this.saleDate,
+    required this.status,
+    required this.paymentMethod,
+    required this.paymentStatus,
+    this.cashLocationId,
+    this.cashLocationName,
+    this.cashLocationType,
+    required this.store,
+    this.customer,
+    this.createdBy,
+    required this.createdAt,
+    required this.amounts,
+    required this.items,
+  });
+
+  /// Parse datetime string that is already in local time
+  static DateTime _parseLocalDateTime(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return DateTime.now();
+    try {
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+
+  /// Create from JSON (RPC response)
+  factory InvoiceDetailModel.fromJson(Map<String, dynamic> json) {
+    final cashLocation = json['cash_location'] as Map<String, dynamic>?;
+    final itemsList = json['items'] as List<dynamic>? ?? [];
+
+    return InvoiceDetailModel(
+      invoiceId: json['invoice_id']?.toString() ?? '',
+      invoiceNumber: json['invoice_number']?.toString() ?? '',
+      saleDate: _parseLocalDateTime(json['sale_date']?.toString()),
+      status: json['status']?.toString() ?? 'draft',
+      paymentMethod: json['payment_method']?.toString() ?? 'cash',
+      paymentStatus: json['payment_status']?.toString() ?? 'pending',
+      cashLocationId: cashLocation?['cash_location_id']?.toString(),
+      cashLocationName: cashLocation?['location_name']?.toString(),
+      cashLocationType: cashLocation?['location_type']?.toString(),
+      store: json['store'] as Map<String, dynamic>? ?? {},
+      customer: json['customer'] as Map<String, dynamic>?,
+      createdBy: json['created_by'] as Map<String, dynamic>?,
+      createdAt: _parseLocalDateTime(json['created_at']?.toString()),
+      amounts: json['amounts'] as Map<String, dynamic>? ?? {},
+      items: itemsList.map((e) => e as Map<String, dynamic>).toList(),
+    );
+  }
+
+  /// Convert to domain entity
+  InvoiceDetail toEntity() {
+    return InvoiceDetail(
+      invoiceId: invoiceId,
+      invoiceNumber: invoiceNumber,
+      saleDate: saleDate,
+      status: status,
+      paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
+      cashLocationId: cashLocationId,
+      cashLocationName: cashLocationName,
+      cashLocationType: cashLocationType,
+      storeId: store['store_id']?.toString() ?? '',
+      storeName: store['store_name']?.toString() ?? '',
+      storeCode: store['store_code']?.toString() ?? '',
+      customerId: customer?['customer_id']?.toString(),
+      customerName: customer?['name']?.toString(),
+      customerPhone: customer?['phone']?.toString(),
+      customerType: customer?['type']?.toString(),
+      createdById: createdBy?['user_id']?.toString(),
+      createdByName: createdBy?['name']?.toString(),
+      createdByEmail: createdBy?['email']?.toString(),
+      createdByProfileImage: createdBy?['profile_image']?.toString(),
+      createdAt: createdAt,
+      subtotal: (amounts['subtotal'] as num?)?.toDouble() ?? 0.0,
+      taxAmount: (amounts['tax_amount'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (amounts['discount_amount'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (amounts['total_amount'] as num?)?.toDouble() ?? 0.0,
+      totalCost: (amounts['total_cost'] as num?)?.toDouble() ?? 0.0,
+      profit: (amounts['profit'] as num?)?.toDouble() ?? 0.0,
+      items: items.map((item) => _itemToEntity(item)).toList(),
+    );
+  }
+
+  /// Convert item JSON to entity
+  InvoiceDetailItem _itemToEntity(Map<String, dynamic> json) {
+    return InvoiceDetailItem(
+      invoiceItemId: json['invoice_item_id']?.toString() ?? '',
+      productId: json['product_id']?.toString() ?? '',
+      productName: json['product_name']?.toString() ?? '',
+      sku: json['sku']?.toString(),
+      barcode: json['barcode']?.toString(),
+      productImage: json['product_image']?.toString(),
+      brandName: json['brand_name']?.toString(),
+      categoryName: json['category_name']?.toString(),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      unitPrice: (json['unit_price'] as num?)?.toDouble() ?? 0.0,
+      unitCost: (json['unit_cost'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
+      totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      totalCost: (json['total_cost'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}

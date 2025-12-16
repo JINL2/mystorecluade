@@ -28,6 +28,7 @@ class CreateSalesJournalUseCase {
   /// - [lineDescription]: Line item description
   /// - [cashLocationId]: Cash location ID
   /// - [totalCost]: Total cost of goods sold
+  /// - [invoiceId]: Invoice ID to link journal entry
   ///
   /// Returns: Future that completes when journal is created
   Future<void> execute({
@@ -39,6 +40,7 @@ class CreateSalesJournalUseCase {
     required String lineDescription,
     required String cashLocationId,
     required double totalCost,
+    required String invoiceId,
   }) async {
     // Validate input parameters
     if (companyId.isEmpty) {
@@ -61,6 +63,10 @@ class CreateSalesJournalUseCase {
       throw ArgumentError('Cash location ID cannot be empty');
     }
 
+    if (invoiceId.isEmpty) {
+      throw ArgumentError('Invoice ID cannot be empty');
+    }
+
     // Create journal entry with configured account IDs
     await _repository.createSalesJournalEntry(
       companyId: companyId,
@@ -75,6 +81,7 @@ class CreateSalesJournalUseCase {
       cogsAccountId: AccountConfig.cogsAccountId,
       inventoryAccountId: AccountConfig.inventoryAccountId,
       totalCost: totalCost,
+      invoiceId: invoiceId,
     );
   }
 }

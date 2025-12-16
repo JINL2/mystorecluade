@@ -139,6 +139,14 @@ abstract class InventoryRepository {
   Future<BaseCurrencyResult?> getBaseCurrency({
     required String companyId,
   });
+
+  /// Get inventory history for the entire store
+  Future<InventoryHistoryPageResult?> getInventoryHistory({
+    required String companyId,
+    required String storeId,
+    required int page,
+    required int pageSize,
+  });
 }
 
 /// Product Page Result
@@ -276,36 +284,94 @@ class ProductHistoryPageResult {
 
 /// Individual product history entry
 class ProductHistoryEntry {
+  final String logId;
+  final String eventCategory;
   final String eventType;
-  final String eventDate;
-  final String localEventDate;
   final int? quantityBefore;
   final int? quantityAfter;
   final int? quantityChange;
-  final double? priceBefore;
-  final double? priceAfter;
+  // Price fields
+  final double? costBefore;
+  final double? costAfter;
+  final double? sellingPriceBefore;
+  final double? sellingPriceAfter;
+  final double? minPriceBefore;
+  final double? minPriceAfter;
+  // Product fields
+  final String? nameBefore;
+  final String? nameAfter;
+  final String? skuBefore;
+  final String? skuAfter;
+  final String? barcodeBefore;
+  final String? barcodeAfter;
+  final String? brandIdBefore;
+  final String? brandIdAfter;
+  final String? brandNameBefore;
+  final String? brandNameAfter;
+  final String? categoryIdBefore;
+  final String? categoryIdAfter;
+  final String? categoryNameBefore;
+  final String? categoryNameAfter;
+  final double? weightBefore;
+  final double? weightAfter;
+  // Reference fields
+  final String? invoiceId;
+  final String? invoiceNumber;
+  final String? transferId;
+  final String? fromStoreId;
   final String? fromStoreName;
+  final String? toStoreId;
   final String? toStoreName;
-  final String? referenceNumber;
+  // Other fields
+  final String? reason;
   final String? notes;
-  final String? userName;
-  final String? userAvatar;
+  final String? createdBy;
+  final String? createdUser;
+  final String? createdUserProfileImage;
+  final String createdAt;
 
   const ProductHistoryEntry({
+    required this.logId,
+    required this.eventCategory,
     required this.eventType,
-    required this.eventDate,
-    required this.localEventDate,
     this.quantityBefore,
     this.quantityAfter,
     this.quantityChange,
-    this.priceBefore,
-    this.priceAfter,
+    this.costBefore,
+    this.costAfter,
+    this.sellingPriceBefore,
+    this.sellingPriceAfter,
+    this.minPriceBefore,
+    this.minPriceAfter,
+    this.nameBefore,
+    this.nameAfter,
+    this.skuBefore,
+    this.skuAfter,
+    this.barcodeBefore,
+    this.barcodeAfter,
+    this.brandIdBefore,
+    this.brandIdAfter,
+    this.brandNameBefore,
+    this.brandNameAfter,
+    this.categoryIdBefore,
+    this.categoryIdAfter,
+    this.categoryNameBefore,
+    this.categoryNameAfter,
+    this.weightBefore,
+    this.weightAfter,
+    this.invoiceId,
+    this.invoiceNumber,
+    this.transferId,
+    this.fromStoreId,
     this.fromStoreName,
+    this.toStoreId,
     this.toStoreName,
-    this.referenceNumber,
+    this.reason,
     this.notes,
-    this.userName,
-    this.userAvatar,
+    this.createdBy,
+    this.createdUser,
+    this.createdUserProfileImage,
+    required this.createdAt,
   });
 }
 
@@ -357,5 +423,130 @@ class CompanyCurrencyInfo {
     this.flagEmoji,
     this.exchangeRateToBase,
     this.rateDate,
+  });
+}
+
+/// Inventory History Page Result - paginated history from inventory_history RPC
+class InventoryHistoryPageResult {
+  final List<InventoryHistoryEntry> entries;
+  final int totalCount;
+  final int page;
+  final int pageSize;
+  final int totalPages;
+
+  const InventoryHistoryPageResult({
+    required this.entries,
+    required this.totalCount,
+    required this.page,
+    required this.pageSize,
+    required this.totalPages,
+  });
+}
+
+/// Individual inventory history entry (includes product info)
+class InventoryHistoryEntry {
+  final String logId;
+  final String eventCategory;
+  final String eventType;
+  // Product info
+  final String? productId;
+  final String? productName;
+  final String? productSku;
+  final String? productImage;
+  // Store info
+  final String? storeId;
+  final String? storeName;
+  // Quantity fields
+  final int? quantityBefore;
+  final int? quantityAfter;
+  final int? quantityChange;
+  // Price fields
+  final double? costBefore;
+  final double? costAfter;
+  final double? sellingPriceBefore;
+  final double? sellingPriceAfter;
+  final double? minPriceBefore;
+  final double? minPriceAfter;
+  // Product change fields
+  final String? nameBefore;
+  final String? nameAfter;
+  final String? skuBefore;
+  final String? skuAfter;
+  final String? barcodeBefore;
+  final String? barcodeAfter;
+  final String? brandIdBefore;
+  final String? brandIdAfter;
+  final String? brandNameBefore;
+  final String? brandNameAfter;
+  final String? categoryIdBefore;
+  final String? categoryIdAfter;
+  final String? categoryNameBefore;
+  final String? categoryNameAfter;
+  final double? weightBefore;
+  final double? weightAfter;
+  // Reference fields
+  final String? invoiceId;
+  final String? invoiceNumber;
+  final String? transferId;
+  final String? fromStoreId;
+  final String? fromStoreName;
+  final String? toStoreId;
+  final String? toStoreName;
+  // Other fields
+  final String? reason;
+  final String? notes;
+  final String? createdBy;
+  final String? createdUser;
+  final String? createdUserProfileImage;
+  final String createdAt;
+
+  const InventoryHistoryEntry({
+    required this.logId,
+    required this.eventCategory,
+    required this.eventType,
+    this.productId,
+    this.productName,
+    this.productSku,
+    this.productImage,
+    this.storeId,
+    this.storeName,
+    this.quantityBefore,
+    this.quantityAfter,
+    this.quantityChange,
+    this.costBefore,
+    this.costAfter,
+    this.sellingPriceBefore,
+    this.sellingPriceAfter,
+    this.minPriceBefore,
+    this.minPriceAfter,
+    this.nameBefore,
+    this.nameAfter,
+    this.skuBefore,
+    this.skuAfter,
+    this.barcodeBefore,
+    this.barcodeAfter,
+    this.brandIdBefore,
+    this.brandIdAfter,
+    this.brandNameBefore,
+    this.brandNameAfter,
+    this.categoryIdBefore,
+    this.categoryIdAfter,
+    this.categoryNameBefore,
+    this.categoryNameAfter,
+    this.weightBefore,
+    this.weightAfter,
+    this.invoiceId,
+    this.invoiceNumber,
+    this.transferId,
+    this.fromStoreId,
+    this.fromStoreName,
+    this.toStoreId,
+    this.toStoreName,
+    this.reason,
+    this.notes,
+    this.createdBy,
+    this.createdUser,
+    this.createdUserProfileImage,
+    required this.createdAt,
   });
 }

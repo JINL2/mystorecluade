@@ -119,6 +119,7 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     required String cogsAccountId,
     required String inventoryAccountId,
     required double totalCost,
+    required String invoiceId,
   }) async {
     final entryDateUtc = DateTimeUtils.toRpcFormat(DateTime.now());
 
@@ -161,10 +162,11 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       'p_entry_date_utc': entryDateUtc,
       'p_lines': refundJournalLines,
       'p_store_id': storeId,
+      'p_invoice_id': invoiceId,
     };
 
     await _client.rpc<dynamic>(
-      'insert_journal_with_everything_utc',
+      'insert_journal_with_everything_v2',
       params: refundJournalParams,
     );
 
@@ -197,10 +199,11 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         'p_entry_date_utc': entryDateUtc,
         'p_lines': cogsReversalLines,
         'p_store_id': storeId,
+        'p_invoice_id': invoiceId,
       };
 
       await _client.rpc<dynamic>(
-        'insert_journal_with_everything_utc',
+        'insert_journal_with_everything_v2',
         params: cogsReversalParams,
       );
     }
