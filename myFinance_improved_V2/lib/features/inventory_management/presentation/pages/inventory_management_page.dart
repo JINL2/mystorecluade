@@ -22,6 +22,7 @@ import '../providers/inventory_providers.dart';
 import '../providers/states/inventory_page_state.dart';
 import '../widgets/inventory_product_card.dart';
 import '../widgets/move_stock_dialog.dart';
+import 'inventory_history_page.dart';
 import 'inventory_search_page.dart';
 
 /// Inventory Management Page
@@ -145,7 +146,12 @@ class _InventoryManagementPageState
           _showSortOptionsSheet();
         }),
         _buildAppBarIconButton(Icons.history, () {
-          // Handle history tap
+          HapticFeedback.lightImpact();
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (context) => const InventoryHistoryPage(),
+            ),
+          );
         }),
         const SizedBox(width: 4),
       ],

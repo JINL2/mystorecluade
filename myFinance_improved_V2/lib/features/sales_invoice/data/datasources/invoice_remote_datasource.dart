@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/invoice_exceptions.dart';
 import '../../domain/value_objects/invoice_filter.dart';
+import '../models/invoice_detail_model.dart';
 import '../models/invoice_page_response_model.dart';
 
 /// Invoice remote data source
@@ -60,7 +61,7 @@ class InvoiceRemoteDataSource {
 
   /// Refund invoice(s)
   ///
-  /// Calls the `inventory_refund_invoice_v2` RPC function
+  /// Calls the `inventory_refund_invoice_v3` RPC function
   Future<Map<String, dynamic>> refundInvoice({
     required List<String> invoiceIds,
     required String userId,
@@ -72,7 +73,7 @@ class InvoiceRemoteDataSource {
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_refund_invoice_v2',
+        'inventory_refund_invoice_v3',
         params: {
           'p_invoice_ids': invoiceIds,
           'p_refund_date': refundDateStr,
@@ -93,6 +94,48 @@ class InvoiceRemoteDataSource {
       if (e is InvoiceException) rethrow;
       throw InvoiceDataException(
         'Failed to process refund: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  /// Get invoice detail by ID
+  Future<InvoiceDetailModel> getInvoiceDetail({
+    required String invoiceId,
+  }) async {
+    try {
+      debugPrint('📋 [InvoiceDetail] Fetching detail for invoice: $invoiceId');
+
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_invoice_detail',
+        params: {
+          'p_invoice_id': invoiceId,
+          'p_timezone': DateTimeUtils.getLocalTimezone(),
+        },
+      );
+
+      debugPrint('📋 [InvoiceDetail] Response received');
+
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        throw InvoiceNotFoundException('Invoice not found: $invoiceId');
+      }
+
+      // Debug: Log item count
+      final items = data['items'] as List<dynamic>?;
+      debugPrint('📋 [InvoiceDetail] Items count: ${items?.length ?? 0}');
+
+      return InvoiceDetailModel.fromJson(data);
+    } on PostgrestException catch (e) {
+      throw InvoiceNetworkException(
+        'Failed to load invoice detail: ${e.message}',
+        code: e.code,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is InvoiceException) rethrow;
+      throw InvoiceDataException(
+        'Failed to parse invoice detail: $e',
         originalError: e,
       );
     }

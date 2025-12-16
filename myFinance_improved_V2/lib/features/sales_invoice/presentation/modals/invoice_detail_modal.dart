@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -8,18 +10,20 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/invoice.dart';
+import '../../domain/entities/invoice_detail.dart';
+import '../providers/invoice_detail_provider.dart';
 
 /// Invoice Detail Modal
 ///
 /// Displays invoice details in a bottom sheet modal with the following features:
 /// - Quick summary with total amount and status
 /// - Customer information
-/// - Items summary
+/// - Items list with product details
 /// - Payment information
 /// - Store information
 /// - Created by information
 /// - Refund action for completed invoices
-class InvoiceDetailModal extends StatelessWidget {
+class InvoiceDetailModal extends ConsumerStatefulWidget {
   final Invoice invoice;
   final String? currencySymbol;
   final void Function(Invoice invoice)? onRefundPressed;
@@ -52,9 +56,24 @@ class InvoiceDetailModal extends StatelessWidget {
   }
 
   @override
+  ConsumerState<InvoiceDetailModal> createState() => _InvoiceDetailModalState();
+}
+
+class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
+  @override
+  void initState() {
+    super.initState();
+    // Load invoice detail when modal opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(invoiceDetailProvider.notifier).loadDetail(widget.invoice.invoiceId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final detailState = ref.watch(invoiceDetailProvider);
     final currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
-    final symbol = currencySymbol ?? '';
+    final symbol = widget.currencySymbol ?? '';
 
     return Container(
       decoration: const BoxDecoration(
@@ -87,7 +106,7 @@ class InvoiceDetailModal extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        invoice.invoiceNumber,
+                        widget.invoice.invoiceNumber,
                         style: TossTextStyles.h3.copyWith(
                           fontWeight: FontWeight.bold,
                           color: TossColors.gray900,
@@ -95,7 +114,7 @@ class InvoiceDetailModal extends StatelessWidget {
                       ),
                       const SizedBox(height: TossSpacing.space1),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(invoice.saleDate),
+                        DateFormat('dd/MM/yyyy HH:mm').format(widget.invoice.saleDate),
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray600,
                         ),
@@ -117,144 +136,442 @@ class InvoiceDetailModal extends StatelessWidget {
 
           // Content
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(TossSpacing.space4),
-              child: Column(
-                children: [
-                  // Quick Summary
-                  _buildQuickSummary(currencyFormat, symbol),
+            child: detailState.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : detailState.error != null
+                    ? _buildErrorState(detailState.error!)
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        child: Column(
+                          children: [
+                            // Quick Summary
+                            _buildQuickSummary(currencyFormat, symbol),
 
-                  const SizedBox(height: TossSpacing.space4),
+                            const SizedBox(height: TossSpacing.space4),
 
-                  // Customer Info
-                  _buildInfoCard(
-                    icon: Icons.person,
-                    title: 'Customer',
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          invoice.customer?.name ?? 'Walk-in Customer',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        if (invoice.customer?.phone != null) ...[
-                          const SizedBox(height: TossSpacing.space1),
-                          Text(
-                            invoice.customer!.phone!,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
+                            // Customer Info
+                            _buildInfoCard(
+                              icon: Icons.person,
+                              title: 'Customer',
+                              content: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    detailState.detail?.customerName ??
+                                        widget.invoice.customer?.name ??
+                                        'Walk-in Customer',
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: TossColors.gray900,
+                                    ),
+                                  ),
+                                  if (detailState.detail?.customerPhone != null ||
+                                      widget.invoice.customer?.phone != null) ...[
+                                    const SizedBox(height: TossSpacing.space1),
+                                    Text(
+                                      detailState.detail?.customerPhone ??
+                                          widget.invoice.customer!.phone!,
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.gray600,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
 
-                  const SizedBox(height: TossSpacing.space3),
+                            const SizedBox(height: TossSpacing.space3),
 
-                  // Items Summary
-                  _buildInfoCard(
-                    icon: Icons.shopping_cart,
-                    title: 'Items',
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${invoice.itemsSummary.itemCount} products',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        Text(
-                          'Qty: ${invoice.itemsSummary.totalQuantity}',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                            // Items Section
+                            if (detailState.detail != null) ...[
+                              _buildItemsSection(detailState.detail!, currencyFormat, symbol),
+                              const SizedBox(height: TossSpacing.space3),
+                            ] else ...[
+                              // Fallback to summary if detail not loaded
+                              _buildInfoCard(
+                                icon: Icons.shopping_cart,
+                                title: 'Items',
+                                content: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${widget.invoice.itemsSummary.itemCount} products',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray900,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Qty: ${widget.invoice.itemsSummary.totalQuantity}',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: TossSpacing.space3),
+                            ],
 
-                  const SizedBox(height: TossSpacing.space3),
-
-                  // Payment Info
-                  _buildInfoCard(
-                    icon: Icons.payment,
-                    title: 'Payment',
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          invoice.paymentMethod,
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: invoice.isPaid
-                                ? TossColors.success.withValues(alpha: 0.1)
-                                : TossColors.warning.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                          ),
-                          child: Text(
-                            invoice.paymentStatus,
-                            style: TossTextStyles.caption.copyWith(
-                              color: invoice.isPaid
-                                  ? TossColors.success
-                                  : TossColors.warning,
-                              fontWeight: FontWeight.w600,
+                            // Payment Info
+                            _buildInfoCard(
+                              icon: Icons.payment,
+                              title: 'Payment',
+                              content: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    detailState.detail?.paymentMethod ?? widget.invoice.paymentMethod,
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.gray900,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: TossSpacing.space2,
+                                      vertical: TossSpacing.space1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: widget.invoice.isPaid
+                                          ? TossColors.success.withValues(alpha: 0.1)
+                                          : TossColors.warning.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                                    ),
+                                    child: Text(
+                                      detailState.detail?.paymentStatus ?? widget.invoice.paymentStatus,
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: widget.invoice.isPaid
+                                            ? TossColors.success
+                                            : TossColors.warning,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+
+                            const SizedBox(height: TossSpacing.space3),
+
+                            // Store Info
+                            _buildInfoCard(
+                              icon: Icons.store,
+                              title: 'Store',
+                              content: Text(
+                                detailState.detail?.storeName ?? widget.invoice.storeName,
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
+                                ),
+                              ),
+                            ),
+
+                            // Created By Info
+                            if (detailState.detail?.createdByName != null ||
+                                widget.invoice.createdByName != null) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              _buildCreatedByCard(detailState.detail),
+                            ],
+
+                            const SizedBox(height: TossSpacing.space4),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: TossSpacing.space3),
-
-                  // Store Info
-                  _buildInfoCard(
-                    icon: Icons.store,
-                    title: 'Store',
-                    content: Text(
-                      invoice.storeName,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
                       ),
-                    ),
-                  ),
+          ),
 
-                  if (invoice.createdByName != null) ...[
-                    const SizedBox(height: TossSpacing.space3),
-                    _buildInfoCard(
-                      icon: Icons.person_outline,
-                      title: 'Created By',
-                      content: Text(
-                        invoice.createdByName!,
+          // Refund Button (only for completed invoices)
+          if (widget.invoice.isCompleted && widget.onRefundPressed != null)
+            _buildRefundButton(context, currencyFormat, symbol),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: TossColors.error),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'Failed to load details',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray900),
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            Text(
+              error,
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: TossSpacing.space4),
+            TextButton(
+              onPressed: () {
+                ref.read(invoiceDetailProvider.notifier).loadDetail(widget.invoice.invoiceId);
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemsSection(InvoiceDetail detail, NumberFormat formatter, String symbol) {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: TossColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart,
+                    size: 18,
+                    color: TossColors.primary,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Items',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text(
+                        '${detail.itemCount} products • Qty: ${detail.totalQuantity}',
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.gray900,
                         ),
                       ),
-                    ),
-                  ],
-
-                  const SizedBox(height: TossSpacing.space4),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
+          const Divider(height: 1, color: TossColors.gray200),
+          // Items list
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: detail.items.length,
+            separatorBuilder: (_, __) => const Divider(height: 1, color: TossColors.gray200),
+            itemBuilder: (context, index) {
+              final item = detail.items[index];
+              return _buildItemRow(item, formatter, symbol);
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-          // Refund Button (only for completed invoices)
-          if (invoice.isCompleted && onRefundPressed != null)
-            _buildRefundButton(context, currencyFormat, symbol),
+  Widget _buildItemRow(InvoiceDetailItem item, NumberFormat formatter, String symbol) {
+    return Padding(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            child: Container(
+              width: 48,
+              height: 48,
+              color: TossColors.gray100,
+              child: item.productImage != null && item.productImage!.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: item.productImage!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const Center(
+                        child: Icon(Icons.inventory_2, size: 24, color: TossColors.gray400),
+                      ),
+                      errorWidget: (_, __, ___) => const Center(
+                        child: Icon(Icons.inventory_2, size: 24, color: TossColors.gray400),
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.inventory_2, size: 24, color: TossColors.gray400),
+                    ),
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          // Product info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.productName,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                if (item.sku != null || item.barcode != null)
+                  Text(
+                    item.sku ?? item.barcode ?? '',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                if (item.brandName != null || item.categoryName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      [item.brandName, item.categoryName]
+                          .where((e) => e != null)
+                          .join(' • '),
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          // Quantity and price
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$symbol${formatter.format(item.totalPrice)}',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'x${item.quantity} @ $symbol${formatter.format(item.unitPrice)}',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreatedByCard(InvoiceDetail? detail) {
+    final name = detail?.createdByName ?? widget.invoice.createdByName;
+    final email = detail?.createdByEmail ?? widget.invoice.createdByEmail;
+    final profileImage = detail?.createdByProfileImage;
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Row(
+        children: [
+          // Profile image or icon
+          if (profileImage != null && profileImage.isNotEmpty)
+            ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: profileImage,
+                width: 36,
+                height: 36,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: TossColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 18,
+                    color: TossColors.primary,
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: TossColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 18,
+                    color: TossColors.primary,
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: TossColors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_outline,
+                size: 18,
+                color: TossColors.primary,
+              ),
+            ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Created By',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  name ?? 'Unknown',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                if (email != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    email,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -371,7 +688,7 @@ class InvoiceDetailModal extends StatelessWidget {
                   ),
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    '$symbol${formatter.format(invoice.amounts.totalAmount)}',
+                    '$symbol${formatter.format(widget.invoice.amounts.totalAmount)}',
                     style: TossTextStyles.h3.copyWith(
                       fontWeight: FontWeight.bold,
                       color: TossColors.error,
@@ -382,7 +699,7 @@ class InvoiceDetailModal extends StatelessWidget {
             ),
             const SizedBox(height: TossSpacing.space3),
             Text(
-              'Invoice: ${invoice.invoiceNumber}',
+              'Invoice: ${widget.invoice.invoiceNumber}',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
               ),
@@ -403,7 +720,7 @@ class InvoiceDetailModal extends StatelessWidget {
             onPressed: () {
               Navigator.pop(dialogContext); // Close dialog
               Navigator.pop(context); // Close bottom sheet
-              onRefundPressed?.call(invoice);
+              widget.onRefundPressed?.call(widget.invoice);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: TossColors.error,
@@ -425,22 +742,22 @@ class InvoiceDetailModal extends StatelessWidget {
     IconData statusIcon;
     String statusText;
 
-    if (invoice.isCompleted) {
+    if (widget.invoice.isCompleted) {
       statusColor = TossColors.success;
       statusIcon = Icons.check_circle;
       statusText = 'Completed';
-    } else if (invoice.isDraft) {
+    } else if (widget.invoice.isDraft) {
       statusColor = TossColors.warning;
       statusIcon = Icons.schedule;
       statusText = 'Draft';
-    } else if (invoice.isCancelled) {
+    } else if (widget.invoice.isCancelled) {
       statusColor = TossColors.error;
       statusIcon = Icons.cancel;
       statusText = 'Cancelled';
     } else {
       statusColor = TossColors.gray600;
       statusIcon = Icons.info;
-      statusText = invoice.status;
+      statusText = widget.invoice.status;
     }
 
     return Container(
@@ -472,14 +789,14 @@ class InvoiceDetailModal extends StatelessWidget {
                   ),
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    '$symbol${formatter.format(invoice.amounts.totalAmount)}',
+                    '$symbol${formatter.format(widget.invoice.amounts.totalAmount)}',
                     style: TossTextStyles.h2.copyWith(
                       fontWeight: FontWeight.bold,
                       color: TossColors.primary,
                     ),
                   ),
                   // Total Cost (if available)
-                  if (invoice.amounts.totalCost > 0) ...[
+                  if (widget.invoice.amounts.totalCost > 0) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Row(
                       children: [
@@ -490,7 +807,7 @@ class InvoiceDetailModal extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '$symbol${formatter.format(invoice.amounts.totalCost)}',
+                          '$symbol${formatter.format(widget.invoice.amounts.totalCost)}',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
                             fontWeight: FontWeight.w500,
@@ -531,7 +848,7 @@ class InvoiceDetailModal extends StatelessWidget {
             ],
           ),
 
-          if (invoice.amounts.discountAmount > 0 || invoice.amounts.taxAmount > 0) ...[
+          if (widget.invoice.amounts.discountAmount > 0 || widget.invoice.amounts.taxAmount > 0) ...[
             const SizedBox(height: TossSpacing.space3),
             const Divider(height: 1, color: TossColors.gray200),
             const SizedBox(height: TossSpacing.space3),
@@ -540,17 +857,17 @@ class InvoiceDetailModal extends StatelessWidget {
               children: [
                 _buildAmountDetail(
                   'Subtotal',
-                  '$symbol${formatter.format(invoice.amounts.subtotal)}',
+                  '$symbol${formatter.format(widget.invoice.amounts.subtotal)}',
                 ),
-                if (invoice.amounts.taxAmount > 0)
+                if (widget.invoice.amounts.taxAmount > 0)
                   _buildAmountDetail(
                     'Tax',
-                    '$symbol${formatter.format(invoice.amounts.taxAmount)}',
+                    '$symbol${formatter.format(widget.invoice.amounts.taxAmount)}',
                   ),
-                if (invoice.amounts.discountAmount > 0)
+                if (widget.invoice.amounts.discountAmount > 0)
                   _buildAmountDetail(
                     'Discount',
-                    '-$symbol${formatter.format(invoice.amounts.discountAmount)}',
+                    '-$symbol${formatter.format(widget.invoice.amounts.discountAmount)}',
                     color: TossColors.success,
                   ),
               ],

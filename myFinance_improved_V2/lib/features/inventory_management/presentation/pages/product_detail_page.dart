@@ -93,11 +93,21 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final productsState = ref.watch(inventoryPageProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    // Find product in the list
-    final product = productsState.products.firstWhere(
-      (p) => p.id == widget.productId,
-      orElse: () => throw Exception('Product not found'),
+    // Find product in the list (return null if not found during refresh)
+    final product = productsState.products.cast<Product?>().firstWhere(
+      (p) => p?.id == widget.productId,
+      orElse: () => null,
     );
+
+    // Show loading state if product not found (during refresh)
+    if (product == null) {
+      return const TossScaffold(
+        backgroundColor: TossColors.white,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -729,17 +739,72 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       productId: product.id,
       fromLocation: fromLocation,
       allStores: allStores,
-      onSubmit: (fromStore, toStore, quantity) {
-        // TODO: Implement move stock API call
+      onSubmit: (fromStore, toStore, quantity) async {
+        // Close dialog first
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
-            duration: const Duration(seconds: 2),
-          ),
+
+        // Call move stock RPC
+        await _executeMoveStock(
+          context: context,
+          product: product,
+          fromStore: fromStore,
+          toStore: toStore,
+          quantity: quantity,
         );
       },
     );
+  }
+
+  Future<void> _executeMoveStock({
+    required BuildContext context,
+    required Product product,
+    required StoreLocation fromStore,
+    required StoreLocation toStore,
+    required int quantity,
+  }) async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(inventoryRepositoryProvider);
+
+      final result = await repository.moveProduct(
+        companyId: appState.companyChoosen,
+        fromStoreId: fromStore.id,
+        toStoreId: toStore.id,
+        productId: product.id,
+        quantity: quantity,
+        updatedBy: appState.userId,
+        notes: 'Transfer from ${fromStore.name} to ${toStore.name}',
+      );
+
+      if (result != null && mounted) {
+        // Show success message first
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
+              backgroundColor: TossColors.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Refresh store stocks
+        await _loadStoreStocks();
+
+        // Refresh inventory list (use refresh instead of invalidate to avoid losing current product)
+        ref.read(inventoryPageProvider.notifier).refresh();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Move failed: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   String _formatCurrency(double value) {

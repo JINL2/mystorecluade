@@ -30,6 +30,7 @@ abstract class SalesJournalRepository {
     required String cogsAccountId,
     required String inventoryAccountId,
     required double totalCost,
+    required String invoiceId,
   });
 
   /// Create a refund journal entry for refunded sales transaction

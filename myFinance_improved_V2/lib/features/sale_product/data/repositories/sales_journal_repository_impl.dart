@@ -26,8 +26,9 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     required String cogsAccountId,
     required String inventoryAccountId,
     required double totalCost,
+    required String invoiceId,
   }) async {
-    final entryDateUtc = DateTimeUtils.toRpcFormat(DateTime.now());
+    final entryDate = DateTimeUtils.toRpcFormat(DateTime.now());
 
     // ============================================================
     // RPC Call 1: Cash Sales Journal Entry
@@ -53,17 +54,19 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     ];
 
     final salesJournalParams = {
-      'p_base_amount': amount,
       'p_company_id': companyId,
-      'p_created_by': userId,
-      'p_description': description,
-      'p_entry_date_utc': entryDateUtc,
-      'p_lines': salesJournalLines,
       'p_store_id': storeId,
+      'p_time': entryDate,
+      'p_description': description,
+      'p_lines': salesJournalLines,
+      'p_created_by': userId,
+      'p_counterparty_id': null,
+      'p_if_cash_location_id': null,
+      'p_invoice_id': invoiceId,
     };
 
     await _client.rpc<dynamic>(
-      'insert_journal_with_everything_utc',
+      'insert_journal_with_everything_v2',
       params: salesJournalParams,
     );
 
@@ -89,17 +92,19 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       ];
 
       final cogsJournalParams = {
-        'p_base_amount': totalCost,
         'p_company_id': companyId,
-        'p_created_by': userId,
-        'p_description': 'COGS - $description',
-        'p_entry_date_utc': entryDateUtc,
-        'p_lines': cogsJournalLines,
         'p_store_id': storeId,
+        'p_time': entryDate,
+        'p_description': 'COGS - $description',
+        'p_lines': cogsJournalLines,
+        'p_created_by': userId,
+        'p_counterparty_id': null,
+        'p_if_cash_location_id': null,
+        'p_invoice_id': invoiceId,
       };
 
       await _client.rpc<dynamic>(
-        'insert_journal_with_everything_utc',
+        'insert_journal_with_everything_v2',
         params: cogsJournalParams,
       );
     }

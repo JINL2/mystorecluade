@@ -463,12 +463,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     String storeId,
     String userId,
   ) async {
+    final invoiceId = result.invoiceId;
     final invoiceNumber = result.invoiceNumber ?? 'Unknown';
     final totalAmount = result.totalAmount ?? 0;
 
     // Create journal entry for the cash sales transaction
     try {
-      if (paymentState.selectedCashLocation != null) {
+      if (paymentState.selectedCashLocation != null && invoiceId != null) {
         final journalDescription = _buildJournalDescription(
           paymentState,
           invoiceNumber,
@@ -486,6 +487,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               lineDescription: journalDescription,
               cashLocationId: paymentState.selectedCashLocation!.id,
               totalCost: totalCost,
+              invoiceId: invoiceId,
             );
       }
     } catch (journalError) {

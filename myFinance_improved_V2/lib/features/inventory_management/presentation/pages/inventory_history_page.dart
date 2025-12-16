@@ -9,31 +9,24 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/calendar_time_range.dart';
 import '../../di/inventory_providers.dart';
-import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
 
-/// Product Transactions Page - Shows history of stock movements
-class ProductTransactionsPage extends ConsumerStatefulWidget {
-  final Product product;
-
-  const ProductTransactionsPage({
-    super.key,
-    required this.product,
-  });
+/// Inventory History Page - Shows history of all stock movements in the store
+class InventoryHistoryPage extends ConsumerStatefulWidget {
+  const InventoryHistoryPage({super.key});
 
   @override
-  ConsumerState<ProductTransactionsPage> createState() =>
-      _ProductTransactionsPageState();
+  ConsumerState<InventoryHistoryPage> createState() =>
+      _InventoryHistoryPageState();
 }
 
-class _ProductTransactionsPageState
-    extends ConsumerState<ProductTransactionsPage> {
+class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
   String _selectedStoreId = '';
   String _selectedStoreName = '';
   DateRange? _selectedDateRange;
 
-  // Transaction data state
-  List<ProductHistoryEntry> _transactions = [];
+  // History data state
+  List<InventoryHistoryEntry> _historyEntries = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
   int _currentPage = 1;
@@ -44,28 +37,18 @@ class _ProductTransactionsPageState
   @override
   void initState() {
     super.initState();
-    // ignore: avoid_print
-    print('🔴 [ProductTransactions] initState called - product: ${widget.product.id}');
     // Initialize with current store
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] postFrameCallback called');
       final appState = ref.read(appStateProvider);
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] storeId: ${appState.storeChoosen}, companyId: ${appState.companyChoosen}');
       setState(() {
         _selectedStoreId = appState.storeChoosen;
         _selectedStoreName = appState.storeName;
       });
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] About to call _loadTransactions');
-      _loadTransactions();
+      _loadHistory();
     });
   }
 
-  Future<void> _loadTransactions({bool refresh = false}) async {
-    // ignore: avoid_print
-    print('🔴 [ProductTransactions] _loadTransactions called, refresh: $refresh');
+  Future<void> _loadHistory({bool refresh = false}) async {
     if (refresh) {
       setState(() {
         _currentPage = 1;
@@ -77,28 +60,19 @@ class _ProductTransactionsPageState
       final appState = ref.read(appStateProvider);
       final repository = ref.read(inventoryRepositoryProvider);
 
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Loading history for product: ${widget.product.id}');
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Store: $_selectedStoreId, Company: ${appState.companyChoosen}');
-
-      final result = await repository.getProductHistory(
+      final result = await repository.getInventoryHistory(
         companyId: appState.companyChoosen,
         storeId: _selectedStoreId.isNotEmpty ? _selectedStoreId : appState.storeChoosen,
-        productId: widget.product.id,
         page: _currentPage,
         pageSize: _pageSize,
       );
 
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Result: ${result?.entries.length ?? 0} entries, totalCount: ${result?.totalCount ?? 0}');
-
       if (mounted && result != null) {
         setState(() {
           if (refresh || _currentPage == 1) {
-            _transactions = result.entries;
+            _historyEntries = result.entries;
           } else {
-            _transactions.addAll(result.entries);
+            _historyEntries.addAll(result.entries);
           }
           _totalPages = result.totalPages;
           _totalCount = result.totalCount;
@@ -106,11 +80,7 @@ class _ProductTransactionsPageState
           _isLoadingMore = false;
         });
       }
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] ERROR: $e');
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -128,16 +98,16 @@ class _ProductTransactionsPageState
       _currentPage++;
     });
 
-    await _loadTransactions();
+    await _loadHistory();
   }
 
-  /// Filter transactions by date range (client-side filtering)
-  List<ProductHistoryEntry> _getFilteredTransactions() {
+  /// Filter entries by date range (client-side filtering)
+  List<InventoryHistoryEntry> _getFilteredEntries() {
     if (_selectedDateRange == null) {
-      return _transactions;
+      return _historyEntries;
     }
 
-    return _transactions.where((entry) {
+    return _historyEntries.where((entry) {
       final entryDate = _parseCreatedAt(entry.createdAt);
       if (entryDate == null) return true; // Include if can't parse
 
@@ -190,7 +160,7 @@ class _ProductTransactionsPageState
     final stores = _getCompanyStores(appState);
 
     // Apply date filter
-    final filteredTransactions = _getFilteredTransactions();
+    final filteredEntries = _getFilteredEntries();
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -199,8 +169,6 @@ class _ProductTransactionsPageState
           children: [
             // Top bar with store selector
             _buildTopBar(context, stores),
-            // Product info
-            _buildProductInfo(),
             // Date range indicator
             if (_selectedDateRange != null)
               Container(
@@ -239,11 +207,11 @@ class _ProductTransactionsPageState
                   ],
                 ),
               ),
-            // Transactions list
+            // History list
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : filteredTransactions.isEmpty
+                  : filteredEntries.isEmpty
                       ? _buildEmptyState()
                       : NotificationListener<ScrollNotification>(
                           onNotification: (scrollInfo) {
@@ -259,15 +227,15 @@ class _ProductTransactionsPageState
                             padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space4,
                             ),
-                            itemCount: filteredTransactions.length + (_isLoadingMore ? 1 : 0),
+                            itemCount: filteredEntries.length + (_isLoadingMore ? 1 : 0),
                             itemBuilder: (context, index) {
-                              if (index == filteredTransactions.length) {
+                              if (index == filteredEntries.length) {
                                 return const Padding(
                                   padding: EdgeInsets.all(16.0),
                                   child: Center(child: CircularProgressIndicator()),
                                 );
                               }
-                              return _buildTransactionItem(filteredTransactions[index]);
+                              return _buildHistoryItem(filteredEntries[index]);
                             },
                           ),
                         ),
@@ -290,14 +258,14 @@ class _ProductTransactionsPageState
           ),
           const SizedBox(height: TossSpacing.space3),
           Text(
-            'No transactions yet',
+            'No history yet',
             style: TossTextStyles.h4.copyWith(
               color: TossColors.gray700,
             ),
           ),
           const SizedBox(height: TossSpacing.space1),
           Text(
-            'Transaction history will appear here',
+            'Inventory history will appear here',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray500,
             ),
@@ -390,45 +358,39 @@ class _ProductTransactionsPageState
     );
   }
 
-  Widget _buildProductInfo() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${widget.product.name} · Qty in-store: ${widget.product.onHand} · Qty total: ${widget.product.onHand}',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionItem(ProductHistoryEntry transaction) {
-    final eventType = _parseEventType(transaction.eventType);
-    final isTransfer = transaction.eventType == 'stock_transfer_out' ||
-        transaction.eventType == 'stock_transfer_in';
+  Widget _buildHistoryItem(InventoryHistoryEntry entry) {
+    final eventType = _parseEventType(entry.eventType);
+    final isTransfer = entry.eventType == 'stock_transfer_out' ||
+        entry.eventType == 'stock_transfer_in';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon - aligned with title top
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              _getTransactionIcon(eventType),
-              size: 20,
-              color: TossColors.gray600,
+          // Product image
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(8),
+              image: entry.productImage != null
+                  ? DecorationImage(
+                      image: NetworkImage(entry.productImage!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
+            child: entry.productImage == null
+                ? Center(
+                    child: Icon(
+                      Icons.inventory_2_outlined,
+                      size: 24,
+                      color: TossColors.gray400,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: TossSpacing.space3),
           // Content
@@ -436,107 +398,134 @@ class _ProductTransactionsPageState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Type title
+                // Product name
                 Text(
-                  _getTransactionTitle(eventType),
+                  entry.productName ?? 'Unknown Product',
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                // SKU
+                if (entry.productSku != null && entry.productSku!.isNotEmpty)
+                  Text(
+                    entry.productSku!,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                // Event type with icon
+                Row(
+                  children: [
+                    Icon(
+                      _getTransactionIcon(eventType),
+                      size: 14,
+                      color: TossColors.gray600,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getTransactionTitle(eventType),
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 // Date and time
                 Text(
-                  _formatCreatedAt(transaction.createdAt),
-                  style: TossTextStyles.bodySmall.copyWith(
+                  _formatCreatedAt(entry.createdAt),
+                  style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray500,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // Location info
-                if (isTransfer && transaction.fromStoreName != null && transaction.toStoreName != null)
-                  Row(
-                    children: [
-                      Text(
-                        transaction.fromStoreName ?? '',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray600,
+                // Location info for transfers
+                if (isTransfer && entry.fromStoreName != null && entry.toStoreName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          entry.fromStoreName ?? '',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 12,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        transaction.toStoreName ?? '',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray600,
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 12,
+                          color: TossColors.gray500,
                         ),
-                      ),
-                    ],
-                  )
-                else if (transaction.notes != null && transaction.notes!.isNotEmpty)
-                  Text(
-                    transaction.notes!,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray600,
+                        const SizedBox(width: 4),
+                        Text(
+                          entry.toStoreName ?? '',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                const SizedBox(height: 8),
                 // User info
-                if (transaction.createdUser != null && transaction.createdUser!.isNotEmpty)
-                  Row(
-                    children: [
-                      // Avatar
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: TossColors.gray200,
-                          shape: BoxShape.circle,
-                          image: transaction.createdUserProfileImage != null
-                              ? DecorationImage(
-                                  image: NetworkImage(transaction.createdUserProfileImage!),
-                                  fit: BoxFit.cover,
+                if (entry.createdUser != null && entry.createdUser!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: TossColors.gray200,
+                            shape: BoxShape.circle,
+                            image: entry.createdUserProfileImage != null
+                                ? DecorationImage(
+                                    image: NetworkImage(entry.createdUserProfileImage!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                          ),
+                          child: entry.createdUserProfileImage == null
+                              ? Center(
+                                  child: Text(
+                                    entry.createdUser!.isNotEmpty
+                                        ? entry.createdUser![0].toUpperCase()
+                                        : 'U',
+                                    style: TossTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: TossColors.gray600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 )
                               : null,
                         ),
-                        child: transaction.createdUserProfileImage == null
-                            ? Center(
-                                child: Text(
-                                  transaction.createdUser!.isNotEmpty
-                                      ? transaction.createdUser![0].toUpperCase()
-                                      : 'U',
-                                  style: TossTextStyles.caption.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: TossColors.gray600,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        transaction.createdUser!,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray700,
+                        const SizedBox(width: 6),
+                        Text(
+                          entry.createdUser!,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray700,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
               ],
             ),
           ),
           // Quantity change - only show if quantity changed
-          if (transaction.quantityBefore != null &&
-              transaction.quantityAfter != null &&
-              transaction.quantityBefore != transaction.quantityAfter)
+          if (entry.quantityBefore != null &&
+              entry.quantityAfter != null &&
+              entry.quantityBefore != entry.quantityAfter)
             Builder(
               builder: (context) {
-                final isIncrease = transaction.quantityAfter! > transaction.quantityBefore!;
+                final isIncrease = entry.quantityAfter! > entry.quantityBefore!;
                 final changeColor = isIncrease ? TossColors.primary : TossColors.error;
 
                 return Column(
@@ -544,7 +533,7 @@ class _ProductTransactionsPageState
                   children: [
                     // Before quantity (gray, on top)
                     Text(
-                      '${transaction.quantityBefore}',
+                      '${entry.quantityBefore}',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -561,7 +550,7 @@ class _ProductTransactionsPageState
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${transaction.quantityAfter}',
+                          '${entry.quantityAfter}',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             color: changeColor,
@@ -663,8 +652,8 @@ class _ProductTransactionsPageState
                           _selectedStoreId = store.id;
                           _selectedStoreName = store.name;
                         });
-                        // Reload transactions with new store
-                        _loadTransactions(refresh: true);
+                        // Reload history with new store
+                        _loadHistory(refresh: true);
                       },
                     );
                   },
@@ -686,7 +675,7 @@ class _ProductTransactionsPageState
         setState(() {
           _selectedDateRange = range;
         });
-        // Client-side filtering is applied in _getFilteredTransactions()
+        // Client-side filtering is applied in _getFilteredEntries()
       },
     );
   }
@@ -762,7 +751,6 @@ class _ProductTransactionsPageState
 
       if (dateParts.length != 3 || timeParts.length < 2) return createdAt;
 
-      final year = int.parse(dateParts[0]);
       final month = int.parse(dateParts[1]);
       final day = int.parse(dateParts[2]);
       final hour = timeParts[0];
@@ -775,7 +763,7 @@ class _ProductTransactionsPageState
       ];
 
       final monthName = months[month - 1];
-      return '$monthName $day, $year · $hour:$minute';
+      return '$monthName $day · $hour:$minute';
     } catch (e) {
       return createdAt;
     }

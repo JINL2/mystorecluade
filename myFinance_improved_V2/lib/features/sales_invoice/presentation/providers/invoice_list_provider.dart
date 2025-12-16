@@ -181,7 +181,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     }
 
     // 1. Process the inventory refund
-    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v2 RPC...');
+    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v3 RPC...');
     final result = await _repository.refundInvoice(
       invoiceIds: [invoice.invoiceId],
       userId: userId,
@@ -197,7 +197,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     debugPrint('🔄 [Refund] - result.success: ${result.success}');
 
     if (result.success) {
-      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_utc RPC...');
+      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_v2 RPC...');
       debugPrint('📤 [Refund] Journal Params:');
       debugPrint('📤 [Refund] - companyId: $companyId');
       debugPrint('📤 [Refund] - storeId: $storeId');
@@ -209,6 +209,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       debugPrint('📤 [Refund] - cogsAccountId: $_cogsAccountId');
       debugPrint('📤 [Refund] - inventoryAccountId: $_inventoryAccountId');
       debugPrint('📤 [Refund] - totalCost: ${invoice.amounts.totalCost}');
+      debugPrint('📤 [Refund] - invoiceId: ${invoice.invoiceId}');
 
       try {
         final journalRepository = _ref.read(salesJournalRepositoryProvider);
@@ -226,6 +227,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
           cogsAccountId: _cogsAccountId,
           inventoryAccountId: _inventoryAccountId,
           totalCost: invoice.amounts.totalCost,
+          invoiceId: invoice.invoiceId,
         );
         debugPrint('✅ [Refund] Step 2: Journal entries created successfully (Refund + COGS Reversal)');
       } catch (e) {

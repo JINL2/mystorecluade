@@ -156,6 +156,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     required String lineDescription,
     required String cashLocationId,
     required double totalCost,
+    required String invoiceId,
   }) async {
     await _createSalesJournalUseCase.execute(
       companyId: companyId,
@@ -166,6 +167,7 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       lineDescription: lineDescription,
       cashLocationId: cashLocationId,
       totalCost: totalCost,
+      invoiceId: invoiceId,
     );
   }
 }

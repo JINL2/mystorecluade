@@ -98,6 +98,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
       final result = CreateInvoiceResult(
         success: response['success'] as bool? ?? false,
+        invoiceId: response['invoice_id']?.toString(),
         invoiceNumber: response['invoice_number']?.toString(),
         totalAmount: (response['total_amount'] as num?)?.toDouble(),
         warnings: response['warnings'] != null

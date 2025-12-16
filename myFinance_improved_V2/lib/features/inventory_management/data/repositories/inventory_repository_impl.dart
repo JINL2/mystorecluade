@@ -443,20 +443,47 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
       // Convert datasource model to domain entity
       final entries = result.data.map((item) => ProductHistoryEntry(
+        logId: item.logId,
+        eventCategory: item.eventCategory,
         eventType: item.eventType,
-        eventDate: item.eventDate,
-        localEventDate: item.localEventDate,
         quantityBefore: item.quantityBefore,
         quantityAfter: item.quantityAfter,
         quantityChange: item.quantityChange,
-        priceBefore: item.priceBefore,
-        priceAfter: item.priceAfter,
+        costBefore: item.costBefore,
+        costAfter: item.costAfter,
+        sellingPriceBefore: item.sellingPriceBefore,
+        sellingPriceAfter: item.sellingPriceAfter,
+        minPriceBefore: item.minPriceBefore,
+        minPriceAfter: item.minPriceAfter,
+        nameBefore: item.nameBefore,
+        nameAfter: item.nameAfter,
+        skuBefore: item.skuBefore,
+        skuAfter: item.skuAfter,
+        barcodeBefore: item.barcodeBefore,
+        barcodeAfter: item.barcodeAfter,
+        brandIdBefore: item.brandIdBefore,
+        brandIdAfter: item.brandIdAfter,
+        brandNameBefore: item.brandNameBefore,
+        brandNameAfter: item.brandNameAfter,
+        categoryIdBefore: item.categoryIdBefore,
+        categoryIdAfter: item.categoryIdAfter,
+        categoryNameBefore: item.categoryNameBefore,
+        categoryNameAfter: item.categoryNameAfter,
+        weightBefore: item.weightBefore,
+        weightAfter: item.weightAfter,
+        invoiceId: item.invoiceId,
+        invoiceNumber: item.invoiceNumber,
+        transferId: item.transferId,
+        fromStoreId: item.fromStoreId,
         fromStoreName: item.fromStoreName,
+        toStoreId: item.toStoreId,
         toStoreName: item.toStoreName,
-        referenceNumber: item.referenceNumber,
+        reason: item.reason,
         notes: item.notes,
-        userName: item.userName,
-        userAvatar: item.userAvatar,
+        createdBy: item.createdBy,
+        createdUser: item.createdUser,
+        createdUserProfileImage: item.createdUserProfileImage,
+        createdAt: item.createdAt,
       )).toList();
 
       return ProductHistoryPageResult(
@@ -511,6 +538,88 @@ class InventoryRepositoryImpl implements InventoryRepository {
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
         message: 'Failed to get base currency: $e',
+        details: e,
+      );
+    }
+  }
+
+  @override
+  Future<InventoryHistoryPageResult?> getInventoryHistory({
+    required String companyId,
+    required String storeId,
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final result = await _remoteDataSource.getInventoryHistory(
+        companyId: companyId,
+        storeId: storeId,
+        page: page,
+        pageSize: pageSize,
+      );
+
+      // Convert datasource model to domain entity
+      final entries = result.data.map((item) => InventoryHistoryEntry(
+        logId: item.logId,
+        eventCategory: item.eventCategory,
+        eventType: item.eventType,
+        productId: item.productId,
+        productName: item.productName,
+        productSku: item.productSku,
+        productImage: item.productImage,
+        storeId: item.storeId,
+        storeName: item.storeName,
+        quantityBefore: item.quantityBefore,
+        quantityAfter: item.quantityAfter,
+        quantityChange: item.quantityChange,
+        costBefore: item.costBefore,
+        costAfter: item.costAfter,
+        sellingPriceBefore: item.sellingPriceBefore,
+        sellingPriceAfter: item.sellingPriceAfter,
+        minPriceBefore: item.minPriceBefore,
+        minPriceAfter: item.minPriceAfter,
+        nameBefore: item.nameBefore,
+        nameAfter: item.nameAfter,
+        skuBefore: item.skuBefore,
+        skuAfter: item.skuAfter,
+        barcodeBefore: item.barcodeBefore,
+        barcodeAfter: item.barcodeAfter,
+        brandIdBefore: item.brandIdBefore,
+        brandIdAfter: item.brandIdAfter,
+        brandNameBefore: item.brandNameBefore,
+        brandNameAfter: item.brandNameAfter,
+        categoryIdBefore: item.categoryIdBefore,
+        categoryIdAfter: item.categoryIdAfter,
+        categoryNameBefore: item.categoryNameBefore,
+        categoryNameAfter: item.categoryNameAfter,
+        weightBefore: item.weightBefore,
+        weightAfter: item.weightAfter,
+        invoiceId: item.invoiceId,
+        invoiceNumber: item.invoiceNumber,
+        transferId: item.transferId,
+        fromStoreId: item.fromStoreId,
+        fromStoreName: item.fromStoreName,
+        toStoreId: item.toStoreId,
+        toStoreName: item.toStoreName,
+        reason: item.reason,
+        notes: item.notes,
+        createdBy: item.createdBy,
+        createdUser: item.createdUser,
+        createdUserProfileImage: item.createdUserProfileImage,
+        createdAt: item.createdAt,
+      )).toList();
+
+      return InventoryHistoryPageResult(
+        entries: entries,
+        totalCount: result.totalCount,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to get inventory history: $e',
         details: e,
       );
     }

@@ -74,6 +74,7 @@ class InvoiceItem {
 /// Create invoice result
 class CreateInvoiceResult {
   final bool success;
+  final String? invoiceId;
   final String? invoiceNumber;
   final double? totalAmount;
   final List<String>? warnings;
@@ -81,6 +82,7 @@ class CreateInvoiceResult {
 
   const CreateInvoiceResult({
     required this.success,
+    this.invoiceId,
     this.invoiceNumber,
     this.totalAmount,
     this.warnings,

@@ -49,6 +49,7 @@ abstract class SalesJournalRepository {
   /// - [cogsAccountId]: Account ID for COGS (for COGS reversal)
   /// - [inventoryAccountId]: Account ID for inventory (for COGS reversal)
   /// - [totalCost]: Total cost of goods sold (for COGS reversal)
+  /// - [invoiceId]: Invoice ID to link the journal entry with the invoice
   Future<void> createRefundJournalEntry({
     required String companyId,
     required String storeId,
@@ -62,5 +63,6 @@ abstract class SalesJournalRepository {
     required String cogsAccountId,
     required String inventoryAccountId,
     required double totalCost,
+    required String invoiceId,
   });
 }
