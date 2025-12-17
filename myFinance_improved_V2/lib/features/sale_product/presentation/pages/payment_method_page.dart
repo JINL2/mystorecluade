@@ -469,6 +469,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     // Create journal entry for the cash sales transaction
     try {
+      print('📒 [JOURNAL] Starting journal entry creation...');
+      print('📒 [JOURNAL] selectedCashLocation: ${paymentState.selectedCashLocation}');
+      print('📒 [JOURNAL] invoiceId: $invoiceId');
+
       if (paymentState.selectedCashLocation != null && invoiceId != null) {
         final journalDescription = _buildJournalDescription(
           paymentState,
@@ -477,6 +481,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
         // Calculate total cost for COGS entry
         final totalCost = _getTotalCost();
+
+        print('📒 [JOURNAL] Calling createSalesJournalEntry...');
+        print('📒 [JOURNAL] amount: $totalAmount, totalCost: $totalCost');
+        print('📒 [JOURNAL] cashLocationId: ${paymentState.selectedCashLocation!.id}');
 
         await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
               companyId: companyId,
@@ -489,8 +497,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               totalCost: totalCost,
               invoiceId: invoiceId,
             );
+        print('✅ [JOURNAL] Journal entry created successfully!');
+      } else {
+        print('⚠️ [JOURNAL] Skipped - selectedCashLocation: ${paymentState.selectedCashLocation != null}, invoiceId: ${invoiceId != null}');
       }
     } catch (journalError) {
+      print('❌ [JOURNAL] Error creating journal entry: $journalError');
       // Journal entry creation failed but don't fail the whole transaction
     }
 
