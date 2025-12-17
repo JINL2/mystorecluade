@@ -374,16 +374,16 @@ class _InventoryManagementPageState
           icon: Icons.download_outlined,
           label: 'Record Stock In',
           onPressed: () {
-            // Navigate to Receiving session list
-            context.push('/session/list/receiving');
+            // Navigate to Receiving session action page
+            context.push('/session/action/receiving');
           },
         ),
         TossSpeedDialAction(
           icon: Icons.format_list_numbered,
           label: 'Start Inventory Count',
           onPressed: () {
-            // Navigate to Stock Count session list
-            context.push('/session/list/counting');
+            // Navigate to Stock Count session action page
+            context.push('/session/action/counting');
           },
         ),
       ],
