@@ -1,14 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/features/homepage/data/models/store_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for store operations
 /// Handles all direct Supabase communication for store feature
 abstract class StoreRemoteDataSource {
-  /// Create a new store with optional operational settings
+  /// Create a new store using create_store RPC
   ///
-  /// Steps:
-  /// 1. INSERT stores (auto-generates store_code)
-  /// 2. Verify/CREATE user_stores (links user)
+  /// The RPC handles:
+  /// - Store creation with auto-generated store_code
+  /// - Permission validation internally
   ///
   /// Returns [StoreModel] on success
   /// Throws exception on error (PostgrestException, etc.)
@@ -21,17 +22,6 @@ abstract class StoreRemoteDataSource {
     int? paymentTime,
     int? allowedDistance,
   });
-
-  /// Check if user has permission to create stores
-  /// Checks: Owner OR store_management feature permission
-  Future<bool> verifyStoreCreationPermission(String companyId);
-
-  /// Check if store name already exists in company
-  /// Used for duplicate validation
-  Future<bool> checkDuplicateStoreName(String storeName, String companyId);
-
-  /// Verify company exists and is not deleted
-  Future<bool> verifyCompanyExists(String companyId);
 }
 
 class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
@@ -55,6 +45,12 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     }
 
     // Call create_store RPC
+    debugPrint('🏪 [CreateStore] Calling RPC with:');
+    debugPrint('🏪 [CreateStore] p_company_id: $companyId');
+    debugPrint('🏪 [CreateStore] p_store_name: $storeName');
+    debugPrint('🏪 [CreateStore] p_store_address: $storeAddress');
+    debugPrint('🏪 [CreateStore] p_store_phone: $storePhone');
+
     final result = await supabaseClient.rpc<Map<String, dynamic>>(
       'create_store',
       params: {
@@ -65,11 +61,16 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       },
     );
 
+    debugPrint('🏪 [CreateStore] RPC Result: $result');
+
     if (result['success'] != true) {
-      throw Exception(result['error'] ?? 'Failed to create store');
+      final errorMessage = result['message'] ?? result['error'] ?? 'Failed to create store';
+      debugPrint('❌ [CreateStore] Error: $errorMessage');
+      throw Exception(errorMessage);
     }
 
     final data = result['data'] as Map<String, dynamic>;
+    debugPrint('✅ [CreateStore] Success: store_id=${data['store_id']}, store_code=${data['store_code']}');
 
     return StoreModel(
       id: data['store_id'] as String,
@@ -82,66 +83,5 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       paymentTime: paymentTime,
       allowedDistance: allowedDistance,
     );
-  }
-
-  @override
-  Future<bool> verifyStoreCreationPermission(String companyId) async {
-    final userId = supabaseClient.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    // Check if user is company owner
-    final companyOwner = await supabaseClient
-        .from('companies')
-        .select('owner_id')
-        .eq('company_id', companyId)
-        .eq('is_deleted', false)
-        .maybeSingle();
-
-    if (companyOwner == null) {
-      throw Exception('Company not found');
-    }
-
-    if (companyOwner['owner_id'] == userId) {
-      return true;
-    }
-
-    // Check if user has store creation permissions through roles
-    final userPermissions = await supabaseClient.rpc<bool>(
-      'check_user_feature_permission',
-      params: {
-        'p_user_id': userId,
-        'p_company_id': companyId,
-        'p_feature_name': 'store_management',
-      },
-    );
-
-    return userPermissions == true;
-  }
-
-  @override
-  Future<bool> checkDuplicateStoreName(
-      String storeName, String companyId,) async {
-    final response = await supabaseClient
-        .from('stores')
-        .select('store_id')
-        .eq('company_id', companyId)
-        .ilike('store_name', storeName)
-        .eq('is_deleted', false);
-
-    return (response as List).isNotEmpty;
-  }
-
-  @override
-  Future<bool> verifyCompanyExists(String companyId) async {
-    final response = await supabaseClient
-        .from('companies')
-        .select('company_id')
-        .eq('company_id', companyId)
-        .eq('is_deleted', false)
-        .maybeSingle();
-
-    return response != null;
   }
 }
