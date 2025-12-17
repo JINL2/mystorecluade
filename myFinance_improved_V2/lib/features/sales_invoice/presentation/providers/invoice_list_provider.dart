@@ -28,6 +28,10 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
   Future<void> loadInvoices() async {
     if (state.isLoading) return;
 
+    debugPrint('📋 [InvoiceList] loadInvoices() START');
+    debugPrint('📋 [InvoiceList] Current page: ${state.currentPage}');
+    debugPrint('📋 [InvoiceList] Current invoices count: ${state.invoices.length}');
+
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -35,7 +39,11 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
+      debugPrint('📋 [InvoiceList] companyId: $companyId');
+      debugPrint('📋 [InvoiceList] storeId: $storeId');
+
       if (companyId.isEmpty || storeId.isEmpty) {
+        debugPrint('❌ [InvoiceList] Error: Company or store not selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Company or store not selected',
@@ -51,11 +59,22 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         page: state.currentPage,
       );
 
+      debugPrint('📋 [InvoiceList] Filter: period=${state.selectedPeriod}, sortBy=${state.sortBy}, page=${state.currentPage}');
+
       final result = await _repository.getInvoices(
         companyId: companyId,
         storeId: storeId,
         filter: filter,
       );
+
+      debugPrint('📋 [InvoiceList] Result: ${result.invoices.length} invoices');
+      debugPrint('📋 [InvoiceList] Pagination: page=${result.pagination.page}, total=${result.pagination.total}, hasNext=${result.pagination.hasNext}');
+
+      // Debug: Log each invoice
+      for (int i = 0; i < result.invoices.length; i++) {
+        final inv = result.invoices[i];
+        debugPrint('📋 [InvoiceList] Invoice[$i]: ${inv.invoiceNumber} - ${inv.dateString} - status=${inv.status}');
+      }
 
       state = state.copyWith(
         isLoading: false,
@@ -63,7 +82,11 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         response: result,
         error: null,
       );
+
+      debugPrint('📋 [InvoiceList] State updated: ${state.invoices.length} invoices');
+      debugPrint('📋 [InvoiceList] loadInvoices() END');
     } catch (e) {
+      debugPrint('❌ [InvoiceList] Error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
