@@ -47,7 +47,6 @@ import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../features/session/presentation/pages/session_page.dart';
 import '../../features/session/presentation/pages/session_action_page.dart';
-import '../../features/session/presentation/pages/session_list_page.dart';
 import '../../features/session/presentation/pages/session_detail_page.dart';
 import '../../features/session/presentation/pages/session_count_detail_page.dart';
 import '../../features/session/presentation/pages/session_review_page.dart';
@@ -795,16 +794,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final sessionType = state.pathParameters['sessionType'] ?? 'counting';
           return SessionActionPage(sessionType: sessionType);
-        },
-      ),
-
-      // Session List Route (for joining sessions)
-      GoRoute(
-        path: '/session/list/:sessionType',
-        name: 'session-list',
-        builder: (context, state) {
-          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
-          return SessionListPage(sessionType: sessionType);
         },
       ),
 
