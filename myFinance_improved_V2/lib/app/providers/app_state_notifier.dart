@@ -9,6 +9,7 @@
 /// ✅ LOCATION: lib/app/providers/app_state_notifier.dart
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_state.dart';
@@ -241,17 +242,26 @@ class AppStateNotifier extends StateNotifier<AppState> {
     required String storeName,
     String? storeCode,
   }) {
+    debugPrint('🏪 [AppState] addNewStoreToCompany called');
+    debugPrint('🏪 [AppState] companyId: $companyId, storeId: $storeId, storeName: $storeName');
+
     final userCopy = Map<String, dynamic>.from(state.user);
     final companiesList = List<dynamic>.from(userCopy['companies'] as List<dynamic>? ?? []);
+
+    debugPrint('🏪 [AppState] Companies count: ${companiesList.length}');
 
     // Find the company and add store to it
     final companyIndex = companiesList.indexWhere(
       (company) => (company as Map<String, dynamic>)['company_id'] == companyId,
     );
 
+    debugPrint('🏪 [AppState] Found company at index: $companyIndex');
+
     if (companyIndex != -1) {
       final companyCopy = Map<String, dynamic>.from(companiesList[companyIndex] as Map<String, dynamic>);
       final storesList = List<dynamic>.from(companyCopy['stores'] as List<dynamic>? ?? []);
+
+      debugPrint('🏪 [AppState] Existing stores count: ${storesList.length}');
 
       // Add new store to the list
       storesList.insert(0, {
@@ -264,7 +274,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
       companiesList[companyIndex] = companyCopy;
       userCopy['companies'] = companiesList;
 
+      debugPrint('🏪 [AppState] New stores count: ${storesList.length}');
       state = state.copyWith(user: userCopy);
+      debugPrint('✅ [AppState] Store added successfully');
+    } else {
+      debugPrint('❌ [AppState] Company not found!');
     }
   }
 

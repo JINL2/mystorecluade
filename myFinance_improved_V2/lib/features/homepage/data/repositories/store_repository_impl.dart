@@ -23,33 +23,8 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
     int? paymentTime,
     int? allowedDistance,
   }) async {
-    // Validation checks (returns early on failure)
-    final companyExists =
-        await remoteDataSource.verifyCompanyExists(companyId);
-    if (!companyExists) {
-      return const Left(NotFoundFailure(
-        message: 'Selected company no longer exists',
-        code: 'COMPANY_NOT_FOUND',
-      ),);
-    }
-
-    final hasPermission =
-        await remoteDataSource.verifyStoreCreationPermission(companyId);
-    if (!hasPermission) {
-      return const Left(PermissionFailure(
-        message: 'You do not have permission to create stores for this company',
-        code: 'INSUFFICIENT_PERMISSIONS',
-      ),);
-    }
-
-    final isDuplicate =
-        await remoteDataSource.checkDuplicateStoreName(storeName, companyId);
-    if (isDuplicate) {
-      return const Left(ValidationFailure(
-        message: 'A store with this name already exists in your company',
-        code: 'DUPLICATE_STORE_NAME',
-      ),);
-    }
+    // Note: Permission checks are handled by the create_store RPC
+    // The RPC validates company ownership and permissions internally
 
     // Execute with automatic error handling
     return executeWithErrorHandling(

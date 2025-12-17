@@ -122,14 +122,21 @@ export const useOrderCreate = () => {
   const [suppliers, setSuppliers] = useState<Counterparty[]>(suppliersFromState || []);
   const [suppliersLoading, setSuppliersLoading] = useState(false);
 
-  // Convert suppliers to TossSelector options format with INTERNAL badge
-  const supplierOptions: SupplierOption[] = suppliers.map((supplier) => ({
-    value: supplier.counterparty_id,
-    label: supplier.name,
-    description: supplier.is_internal ? 'INTERNAL' : undefined,
-    descriptionBgColor: supplier.is_internal ? 'rgba(107, 114, 128, 0.15)' : undefined,
-    descriptionColor: supplier.is_internal ? 'rgb(107, 114, 128)' : undefined,
-  }));
+  // Convert suppliers to TossSelector options format with INTERNAL/SUPPLIER badges
+  const supplierOptions: SupplierOption[] = suppliers.map((supplier) => {
+    const isSupplier = supplier.type === 'Suppliers';
+    const badges: string[] = [];
+    if (supplier.is_internal) badges.push('INTERNAL');
+    if (isSupplier) badges.push('SUPPLIER');
+
+    return {
+      value: supplier.counterparty_id,
+      label: supplier.name,
+      description: badges.length > 0 ? badges.join(' · ') : undefined,
+      descriptionBgColor: badges.length > 0 ? 'rgba(107, 114, 128, 0.15)' : undefined,
+      descriptionColor: badges.length > 0 ? 'rgb(107, 114, 128)' : undefined,
+    };
+  });
 
   // Handle add product (combines addProduct with clearSearch)
   const handleAddProduct = useCallback(
@@ -331,11 +338,23 @@ export const useOrderCreate = () => {
         rpcParams.p_notes = note.trim();
       }
 
-      console.log('📦 Creating order with params:', rpcParams);
+      console.log('📦 Creating order with params:', JSON.stringify(rpcParams, null, 2));
+      console.log('📦 Order items detail:', JSON.stringify(items, null, 2));
+      console.log('📦 Supplier type:', supplierType);
+      console.log('📦 Selected supplier:', selectedSupplier);
+      console.log('📦 One-time supplier info:', supplierInfo);
 
       const { data, error } = await supabase.rpc('inventory_create_order_v2', rpcParams);
 
       console.log('📦 inventory_create_order_v2 response:', { data, error });
+      if (error) {
+        console.error('📦 RPC Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+      }
 
       if (error) {
         throw error;
