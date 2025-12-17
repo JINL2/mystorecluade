@@ -63,6 +63,8 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       'p_counterparty_id': null,
       'p_if_cash_location_id': null,
       'p_invoice_id': invoiceId,
+      'p_base_amount': amount,
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
     await _client.rpc<dynamic>(
@@ -101,6 +103,8 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         'p_counterparty_id': null,
         'p_if_cash_location_id': null,
         'p_invoice_id': invoiceId,
+        'p_base_amount': totalCost,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       await _client.rpc<dynamic>(

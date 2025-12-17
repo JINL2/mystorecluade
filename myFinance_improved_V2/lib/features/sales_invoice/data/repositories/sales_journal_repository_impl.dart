@@ -159,10 +159,11 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       'p_company_id': companyId,
       'p_created_by': userId,
       'p_description': description,
-      'p_entry_date_utc': entryDateUtc,
+      'p_time': entryDateUtc,
       'p_lines': refundJournalLines,
       'p_store_id': storeId,
       'p_invoice_id': invoiceId,
+      'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
     await _client.rpc<dynamic>(
@@ -196,10 +197,11 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         'p_company_id': companyId,
         'p_created_by': userId,
         'p_description': 'COGS Reversal - $description',
-        'p_entry_date_utc': entryDateUtc,
+        'p_time': entryDateUtc,
         'p_lines': cogsReversalLines,
         'p_store_id': storeId,
         'p_invoice_id': invoiceId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       await _client.rpc<dynamic>(
