@@ -165,6 +165,168 @@
   justify-content: flex-end;
 }
 
+/* Custom Store Dropdown with Stock Info */
+.storeDropdownContainer {
+  position: relative;
+  width: 100%;
+}
+
+.storeDropdownControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.storeDropdownControl:hover {
+  border-color: #adb5bd;
+}
+
+.storeDropdownControl.open {
+  border-color: #0064FF;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.storeIcon {
+  width: 18px;
+  height: 18px;
+  color: #868e96;
+  flex-shrink: 0;
+}
+
+.storeLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stockBadge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1971c2;
+  flex-shrink: 0;
+}
+
+.stockBadge.stockZero {
+  color: #868e96;
+}
+
+.stockBadge.stockNegative {
+  color: #dc3545;
+}
+
+.dropdownArrow {
+  width: 20px;
+  height: 20px;
+  color: #868e96;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.storeDropdownControl.open .dropdownArrow {
+  transform: rotate(180deg);
+}
+
+.storeDropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 2px solid #0064FF;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.storeOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.storeOption:hover {
+  background-color: #f1f3f5;
+}
+
+.storeOption.selected {
+  background-color: #e7f5ff;
+}
+
+.storeOptionName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storeOption.selected .storeOptionName {
+  color: #1971c2;
+  font-weight: 600;
+}
+
+.checkIcon {
+  width: 18px;
+  height: 18px;
+  color: #1971c2;
+  flex-shrink: 0;
+}
+
+.loadingText {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #868e96;
+}
+
+/* Stock Info Row for Products - Current Stock */
+.stockInfoRow {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.stockLabel {
+  font-size: 12px;
+  color: #6C757D;
+  font-weight: 400;
+}
+
+/* After Quantity Row - Separate Section */
+.afterQuantityRow {
+  display: flex;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #dee2e6;
+}
+
+.afterLabel {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .modalContent {
@@ -193,5 +355,9 @@
 
   .quantityInput {
     width: 100%;
+  }
+
+  .stockInfoRow {
+    gap: 8px;
   }
 }

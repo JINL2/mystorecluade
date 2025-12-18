@@ -49,6 +49,7 @@ export const useExcelOperations = ({
   setCurrentPage,
 }: ExcelOperationsProps) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingSample, setIsExportingSample] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [showPriceTypeModal, setShowPriceTypeModal] = useState(false);
   const [selectedPriceType, setSelectedPriceType] = useState<PriceType>(null);
@@ -91,6 +92,34 @@ export const useExcelOperations = ({
       }
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  /**
+   * Handle export sample Excel template (headers only)
+   */
+  const handleExportSampleExcel = async () => {
+    // Prevent multiple simultaneous exports
+    if (isExportingSample) {
+      return;
+    }
+
+    setIsExportingSample(true);
+
+    try {
+      // Export sample template with headers only
+      await excelExportManager.exportSampleExcel(currencyCode);
+
+      // Show success notification
+      showNotification('success', 'Successfully exported sample template!');
+    } catch (error) {
+      // Don't show error notification if user cancelled
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (!errorMessage.includes('cancelled')) {
+        showNotification('error', 'Failed to export sample template. Please try again.');
+      }
+    } finally {
+      setIsExportingSample(false);
     }
   };
 
@@ -262,9 +291,11 @@ export const useExcelOperations = ({
 
   return {
     isExporting,
+    isExportingSample,
     isImporting,
     fileInputRef,
     handleExportExcel,
+    handleExportSampleExcel,
     handleImportExcel,
     handleImportClick,
     // Price type modal

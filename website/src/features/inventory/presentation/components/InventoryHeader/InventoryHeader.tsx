@@ -21,6 +21,7 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
   selectedCount,
   isExporting,
   isImporting,
+  isExportingSample,
   totalItems,
   filterType,
   selectedBrandFilter,
@@ -31,10 +32,11 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
   onMoveSelected,
   onExport,
   onImport,
+  onExportSample,
   onAddProduct,
   onFilterChange,
-  onBrandFilterChange,
-  onCategoryFilterChange,
+  onBrandFilterToggle,
+  onCategoryFilterToggle,
   fileInputRef,
   onFileChange,
 }) => {
@@ -74,13 +76,13 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
         <div className={styles.mobileFilterWrapper}>
           <FilterDropdown
             filterType={filterType}
-            selectedBrandFilter={selectedBrandFilter}
-            selectedCategoryFilter={selectedCategoryFilter}
+            selectedBrandFilter={selectedBrandFilter.size > 0 ? Array.from(selectedBrandFilter)[0] : null}
+            selectedCategoryFilter={selectedCategoryFilter.size > 0 ? Array.from(selectedCategoryFilter)[0] : null}
             brands={brands}
             categories={categories}
             onFilterChange={onFilterChange}
-            onBrandFilterChange={onBrandFilterChange}
-            onCategoryFilterChange={onCategoryFilterChange}
+            onBrandFilterChange={(brand) => brand && onBrandFilterToggle(brand)}
+            onCategoryFilterChange={(category) => category && onCategoryFilterToggle(category)}
           />
         </div>
       </div>
@@ -90,70 +92,70 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
         <div className={styles.actionButtons}>
           <TossButton
             variant="secondary"
-            size="md"
+            size="sm"
             onClick={onMoveSelected}
             disabled={selectedCount === 0}
             icon={
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6,13H14L10.5,16.5L11.92,17.92L17.84,12L11.92,6.08L10.5,7.5L14,11H6V13M20,6V18H11V20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4H11V6H20Z"/>
               </svg>
             }
             iconPosition="left"
           >
-            {selectedCount > 0 ? `Move ${selectedCount} Product${selectedCount > 1 ? 's' : ''}` : 'Move Product'}
+            {selectedCount > 0 ? `Move ${selectedCount}` : 'Move'}
           </TossButton>
 
           <TossButton
             variant="error"
-            size="md"
+            size="sm"
             onClick={onDelete}
             disabled={selectedCount === 0}
             icon={
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
               </svg>
             }
             iconPosition="left"
           >
-            {selectedCount > 0 ? `Delete ${selectedCount} Product${selectedCount > 1 ? 's' : ''}` : 'Delete Product'}
+            {selectedCount > 0 ? `Delete ${selectedCount}` : 'Delete'}
           </TossButton>
 
           <TossButton
             variant="secondary"
-            size="md"
+            size="sm"
             onClick={onExport}
             disabled={isExporting}
             icon={
               isExporting ? (
                 <LoadingAnimation size="small" />
               ) : (
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                 </svg>
               )
             }
             iconPosition="left"
           >
-            {isExporting ? 'Exporting...' : 'Export Excel'}
+            {isExporting ? 'Exporting' : 'Export'}
           </TossButton>
 
           <TossButton
             variant="secondary"
-            size="md"
+            size="sm"
             onClick={onImport}
             disabled={isImporting}
             icon={
               isImporting ? (
                 <LoadingAnimation size="small" />
               ) : (
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V16H9L12,19L15,16H13V13M13,9V3.5L18.5,9H13Z"/>
                 </svg>
               )
             }
             iconPosition="left"
           >
-            {isImporting ? 'Importing...' : 'Import Excel'}
+            {isImporting ? 'Importing' : 'Import'}
           </TossButton>
 
           {/* Hidden file input for import */}
@@ -166,17 +168,36 @@ export const InventoryHeader: React.FC<InventoryHeaderProps> = ({
           />
 
           <TossButton
+            variant="secondary"
+            size="sm"
+            onClick={onExportSample}
+            disabled={isExportingSample}
+            icon={
+              isExportingSample ? (
+                <LoadingAnimation size="small" />
+              ) : (
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+              )
+            }
+            iconPosition="left"
+          >
+            {isExportingSample ? 'Exporting' : 'Sample'}
+          </TossButton>
+
+          <TossButton
             variant="primary"
-            size="md"
+            size="sm"
             onClick={onAddProduct}
             icon={
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
               </svg>
             }
             iconPosition="left"
           >
-            Add Product
+            Add
           </TossButton>
         </div>
       </div>

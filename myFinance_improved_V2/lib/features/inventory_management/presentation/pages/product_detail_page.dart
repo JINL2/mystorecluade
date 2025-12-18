@@ -740,11 +740,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       fromLocation: fromLocation,
       allStores: allStores,
       onSubmit: (fromStore, toStore, quantity) async {
-        // Close dialog first
-        Navigator.pop(context);
-
-        // Call move stock RPC
-        await _executeMoveStock(
+        // Call move stock RPC - dialog handles its own loading state and closing
+        return await _executeMoveStock(
           context: context,
           product: product,
           fromStore: fromStore,
@@ -755,7 +752,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
   }
 
-  Future<void> _executeMoveStock({
+  Future<bool> _executeMoveStock({
     required BuildContext context,
     required Product product,
     required StoreLocation fromStore,
@@ -777,13 +774,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       );
 
       if (result != null && mounted) {
-        // Show success message first
+        // Show success dialog
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
-              backgroundColor: TossColors.primary,
-              duration: const Duration(seconds: 2),
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => TossDialog.success(
+              title: 'Stock Moved',
+              message: 'Moved $quantity units from ${fromStore.name} to ${toStore.name}',
+              primaryButtonText: 'OK',
             ),
           );
         }
@@ -793,17 +792,22 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
         // Refresh inventory list (use refresh instead of invalidate to avoid losing current product)
         ref.read(inventoryPageProvider.notifier).refresh();
+        return true;
       }
+      return false;
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Move failed: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
+        // Show error dialog
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (ctx) => TossDialog.error(
+            title: 'Move Failed',
+            message: e.toString().replaceAll('Exception:', '').trim(),
           ),
         );
       }
+      return false;
     }
   }
 

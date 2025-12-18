@@ -43,7 +43,8 @@ class MoveStockDialog extends ConsumerStatefulWidget {
   final String productId;
   final StoreLocation fromLocation;
   final List<StoreLocation> allStores;
-  final void Function(StoreLocation from, StoreLocation to, int quantity) onSubmit;
+  /// Returns true on success, false on failure
+  final Future<bool> Function(StoreLocation from, StoreLocation to, int quantity) onSubmit;
 
   const MoveStockDialog({
     super.key,
@@ -61,7 +62,7 @@ class MoveStockDialog extends ConsumerStatefulWidget {
     required String productId,
     required StoreLocation fromLocation,
     required List<StoreLocation> allStores,
-    required void Function(StoreLocation from, StoreLocation to, int quantity) onSubmit,
+    required Future<bool> Function(StoreLocation from, StoreLocation to, int quantity) onSubmit,
   }) {
     return showDialog(
       context: context,
@@ -84,6 +85,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
   late StoreLocation _toStore;
   int _quantity = 0;
   bool _isLoading = true;
+  bool _isSubmitting = false;
   List<StoreLocation> _storesWithRealStock = [];
 
   @override
@@ -162,6 +164,28 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
       // Reset quantity when swapping since available stock changes
       _quantity = 0;
     });
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_isSubmitting) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final success = await widget.onSubmit(_fromStore, _toStore, _quantity);
+      if (mounted) {
+        Navigator.pop(context, success);
+      }
+    } catch (e) {
+      // On error, reset submitting state and keep dialog open
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -281,21 +305,30 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 // Submit button
                 Expanded(
                   child: GestureDetector(
-                    onTap: canSubmit ? () => widget.onSubmit(_fromStore, _toStore, _quantity) : null,
+                    onTap: canSubmit && !_isSubmitting ? _handleSubmit : null,
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: canSubmit ? TossColors.primary : TossColors.gray300,
+                        color: canSubmit && !_isSubmitting ? TossColors.primary : TossColors.gray300,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        'Submit',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.white,
-                        ),
-                      ),
+                      child: _isSubmitting
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: TossColors.white,
+                              ),
+                            )
+                          : Text(
+                              'Submit',
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.white,
+                              ),
+                            ),
                     ),
                   ),
                 ),

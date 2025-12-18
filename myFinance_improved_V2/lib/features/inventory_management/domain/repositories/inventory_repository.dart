@@ -154,11 +154,15 @@ class ProductPageResult {
   final List<Product> products;
   final PaginationResult pagination;
   final Currency currency;
+  final double serverTotalValue;
+  final int filteredCount;
 
   const ProductPageResult({
     required this.products,
     required this.pagination,
     required this.currency,
+    this.serverTotalValue = 0.0,
+    this.filteredCount = 0,
   });
 }
 

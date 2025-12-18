@@ -62,7 +62,7 @@ class InventoryRemoteDataSource {
   }
 
   /// Get paginated list of products
-  /// Note: Sorting is handled client-side as RPC does not support sort parameters
+  /// Uses get_inventory_page_v4 with server-side filtering support
   Future<ProductPageResponse> getProducts({
     required String companyId,
     required String storeId,
@@ -71,12 +71,10 @@ class InventoryRemoteDataSource {
     String? search,
     String? categoryId,
     String? brandId,
-    String? stockStatus,
+    String? availability,
   }) async {
     try {
-      // Build params - use get_inventory_page_v3 with timezone support
-      // Note: categoryId, brandId, stockStatus are not supported by RPC
-      // Filtering is handled client-side in the presentation layer
+      // Build params - use get_inventory_page_v4 with server-side filtering
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
@@ -84,10 +82,13 @@ class InventoryRemoteDataSource {
         'p_limit': limit,
         'p_search': search ?? '',
         'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_availability': availability,
+        'p_brand_id': brandId,
+        'p_category_id': categoryId,
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('get_inventory_page_v3', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v4', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -120,6 +121,11 @@ class InventoryRemoteDataSource {
             'code': null,
             'name': null,
             'symbol': null,
+          };
+      dataToProcess['summary'] = dataToProcess['summary'] ??
+          {
+            'total_value': 0.0,
+            'filtered_count': 0,
           };
 
       return ProductPageResponse.fromJson(dataToProcess);
@@ -833,11 +839,13 @@ class ProductPageResponse {
   final List<ProductModel> products;
   final PaginationData pagination;
   final CurrencyData currency;
+  final InventorySummaryData summary;
 
   ProductPageResponse({
     required this.products,
     required this.pagination,
     required this.currency,
+    required this.summary,
   });
 
   factory ProductPageResponse.fromJson(Map<String, dynamic> json) {
@@ -852,10 +860,32 @@ class ProductPageResponse {
     final currencyJson = json['currency'] as Map<String, dynamic>? ?? {};
     final currency = CurrencyData.fromJson(currencyJson);
 
+    final summaryJson = json['summary'] as Map<String, dynamic>? ?? {};
+    final summary = InventorySummaryData.fromJson(summaryJson);
+
     return ProductPageResponse(
       products: products,
       pagination: pagination,
       currency: currency,
+      summary: summary,
+    );
+  }
+}
+
+/// Summary data from get_inventory_page_v4
+class InventorySummaryData {
+  final double totalValue;
+  final int filteredCount;
+
+  InventorySummaryData({
+    required this.totalValue,
+    required this.filteredCount,
+  });
+
+  factory InventorySummaryData.fromJson(Map<String, dynamic> json) {
+    return InventorySummaryData(
+      totalValue: (json['total_value'] as num?)?.toDouble() ?? 0.0,
+      filteredCount: (json['filtered_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

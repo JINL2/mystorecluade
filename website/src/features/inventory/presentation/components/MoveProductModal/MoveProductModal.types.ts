@@ -10,5 +10,5 @@ export interface MoveProductModalProps {
   currentStock: number;
   sourceStoreId: string;
   companyId: string;
-  onMove?: (targetStoreId: string, quantity: number, notes: string) => Promise<void>;
+  onMove?: (targetStoreId: string, quantity: number, notes: string, sourceStoreId?: string) => Promise<void>;
 }

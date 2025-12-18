@@ -123,9 +123,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
 
   const {
     isExporting,
+    isExportingSample,
     isImporting,
     fileInputRef,
     handleExportExcel,
+    handleExportSampleExcel,
     handleImportExcel,
     handleImportClick,
     // Price type modal
@@ -379,6 +381,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 selectedCount={selectedProducts.size}
                 isExporting={isExporting}
                 isImporting={isImporting}
+                isExportingSample={isExportingSample}
                 totalItems={inventory.length}
                 filterType={filterType}
                 selectedBrandFilter={selectedBrandFilter}
@@ -391,12 +394,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 }}
                 onExport={handleExportExcel}
                 onImport={handleImportClick}
+                onExportSample={handleExportSampleExcel}
                 onAddProduct={handleAddProduct}
                 onFilterChange={setFilterType}
                 onBrandFilterToggle={toggleBrandFilter}
                 onCategoryFilterToggle={toggleCategoryFilter}
-                onClearBrandFilter={clearBrandFilter}
-                onClearCategoryFilter={clearCategoryFilter}
                 fileInputRef={fileInputRef}
                 onFileChange={handleImportExcel}
               />
@@ -487,10 +489,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         currentStock={selectedProductForMove?.currentStock || 0}
         sourceStoreId={selectedStoreId || ''}
         companyId={companyId}
-        onMove={async (targetStoreId, quantity, notes) => {
+        onMove={async (targetStoreId, quantity, notes, fromStoreId) => {
+          // Use the fromStoreId from modal if provided, otherwise fallback to selectedStoreId
+          const effectiveSourceStoreId = fromStoreId || selectedStoreId;
+
           console.log('Move Debug:', {
             selectedProductForMove,
-            selectedStoreId,
+            effectiveSourceStoreId,
             companyId,
             userId,
             targetStoreId,
@@ -498,10 +503,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
             notes
           });
 
-          if (!selectedProductForMove?.productId || !selectedStoreId || !companyId || !userId) {
+          if (!selectedProductForMove?.productId || !effectiveSourceStoreId || !companyId || !userId) {
             console.error('Missing values:', {
               hasProductId: !!selectedProductForMove?.productId,
-              hasSelectedStoreId: !!selectedStoreId,
+              hasSourceStoreId: !!effectiveSourceStoreId,
               hasCompanyId: !!companyId,
               hasUserId: !!userId
             });
@@ -511,7 +516,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
 
           const result = await moveProduct(
             companyId,
-            selectedStoreId,
+            effectiveSourceStoreId,
             targetStoreId,
             selectedProductForMove.productId,
             quantity,
@@ -546,8 +551,10 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         })}
         sourceStoreId={selectedStoreId || ''}
         companyId={companyId}
-        onMove={async (targetStoreId, items, notes) => {
-          if (!selectedStoreId || !companyId || !userId) {
+        onMove={async (targetStoreId, items, notes, sourceStoreId) => {
+          // Use sourceStoreId from modal if provided, otherwise fall back to selectedStoreId
+          const fromStoreId = sourceStoreId || selectedStoreId;
+          if (!fromStoreId || !companyId || !userId) {
             showNotification('error', 'Missing required information');
             return;
           }
@@ -560,7 +567,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           for (const item of items) {
             const result = await moveProduct(
               companyId,
-              selectedStoreId,
+              fromStoreId,
               targetStoreId,
               item.productId,
               item.quantity,
