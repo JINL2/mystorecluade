@@ -50,9 +50,10 @@ class SaveBankBalanceUseCase {
       throw ValidationException('At least one currency is required');
     }
 
-    // Rule 5: Must have data
-    if (!bankBalance.hasData) {
-      throw ValidationException('Bank balance must have data (at least one currency with amount > 0)');
+    // Rule 5: User must have explicitly entered a value (including 0)
+    // This distinguishes between "not entered" vs "explicitly set to 0"
+    if (!bankBalance.hasInput) {
+      throw ValidationException('Please enter a bank balance amount');
     }
   }
 }

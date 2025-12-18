@@ -25,6 +25,8 @@ class TemplateLineFactory {
     required String accountCategoryTag,
     required bool isDebit,
     String? description,
+    // Account code for expense account identification (5000-9999)
+    String? accountCode,
     // Cash account parameters
     String? cashLocationId,
     String? cashLocationName,
@@ -40,6 +42,7 @@ class TemplateLineFactory {
       'account_id': accountId,
       'account_name': accountName,
       'category_tag': accountCategoryTag,
+      'account_code': accountCode, // For expense account detection (5000-9999)
       'amount': '0', // Template default, filled in when used
       'debit': '0',
       'credit': '0',
@@ -91,6 +94,7 @@ class TemplateLineFactory {
     String? debitAccountId,
     String? debitAccountName,
     String? debitCategoryTag,
+    String? debitAccountCode, // Account code for expense detection
     String? debitCashLocationId,
     String? debitCashLocationName,
     String? debitCounterpartyId,
@@ -101,6 +105,7 @@ class TemplateLineFactory {
     String? creditAccountId,
     String? creditAccountName,
     String? creditCategoryTag,
+    String? creditAccountCode, // Account code for expense detection
     String? creditCashLocationId,
     String? creditCashLocationName,
     String? creditCounterpartyId,
@@ -119,6 +124,7 @@ class TemplateLineFactory {
         accountId: debitAccountId,
         accountName: debitAccountName,
         accountCategoryTag: debitCategoryTag ?? 'other',  // ✅ Default to 'other' if null
+        accountCode: debitAccountCode,
         isDebit: true,
         description: 'Debit entry - $templateName',
         cashLocationId: debitCashLocationId,
@@ -137,6 +143,7 @@ class TemplateLineFactory {
         accountId: creditAccountId,
         accountName: creditAccountName,
         accountCategoryTag: creditCategoryTag ?? 'other',  // ✅ Default to 'other' if null
+        accountCode: creditAccountCode,
         isDebit: false,
         description: 'Credit entry - $templateName',
         cashLocationId: creditCashLocationId,

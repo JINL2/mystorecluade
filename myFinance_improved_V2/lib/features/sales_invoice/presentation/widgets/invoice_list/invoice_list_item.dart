@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/ai/index.dart';
 import '../../../domain/entities/invoice.dart';
 import '../../modals/invoice_detail_modal.dart';
 import '../../providers/invoice_list_provider.dart';
@@ -91,27 +92,7 @@ class InvoiceListItem extends ConsumerWidget {
                   // AI description (optional, amber AI style)
                   if (invoice.hasAiDescription) ...[
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          size: 12,
-                          color: Colors.amber.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            invoice.aiDescription!,
-                            style: TossTextStyles.caption.copyWith(
-                              fontSize: 12,
-                              color: Colors.amber.shade700,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                    AiDescriptionRow(text: invoice.aiDescription!),
                   ],
                 ],
               ),

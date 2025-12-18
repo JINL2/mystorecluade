@@ -366,9 +366,9 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 70,
       );
 
       if (pickedFile != null) {

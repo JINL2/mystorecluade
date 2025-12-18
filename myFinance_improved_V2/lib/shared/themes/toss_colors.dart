@@ -70,4 +70,5 @@ class TossColors {
   static const Color shimmer = Color(0xFFF1F3F5);        // Loading
   static const Color shadow = Color(0x0A000000);         // 4% black
   static const Color transparent = Color(0x00000000);    // Fully transparent
+
 }

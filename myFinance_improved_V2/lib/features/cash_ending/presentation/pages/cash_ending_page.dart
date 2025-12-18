@@ -465,6 +465,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // Get amount from widget using type-safe getter
     final amount = _getBankTabAmount();
 
+    // Check if user has explicitly entered a value
+    // Empty string means user hasn't typed anything
+    final isExplicitlySet = amount.isNotEmpty;
+
     // Parse amount (remove commas if any) as integer
     final amountText = amount.replaceAll(',', '');
     final totalAmount = int.tryParse(amountText) ?? 0;
@@ -498,6 +502,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ],
         ),
       ],
+      // Track if user explicitly entered a value (including 0)
+      isExplicitlySet: isExplicitlySet,
     );
 
     // Save via BankTabProvider

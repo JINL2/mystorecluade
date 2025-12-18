@@ -46,9 +46,9 @@ class _AttachmentPickerSectionState
           JournalEntryState.maxAttachments - state.attachmentCount;
 
       final images = await _picker.pickMultiImage(
-        maxWidth: 1200,
-        maxHeight: 1600,
-        imageQuality: 85, // Slightly higher quality for picking, compress later
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 70,
         limit: availableSlots,
       );
 
@@ -80,9 +80,9 @@ class _AttachmentPickerSectionState
     try {
       final image = await _picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: 1200,
-        maxHeight: 1600,
-        imageQuality: 85,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 70,
       );
 
       if (image != null) {

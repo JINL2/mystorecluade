@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/ai/index.dart';
 
 import '../../../transaction_history/domain/entities/transaction.dart'
     show TransactionAttachment;
@@ -252,28 +253,7 @@ class JournalDetailSheet extends StatelessWidget {
               Container(height: 1, color: TossColors.gray200),
               const SizedBox(height: TossSpacing.space3),
             ],
-            Row(
-              children: [
-                Icon(Icons.auto_awesome, size: 14, color: Colors.amber.shade600),
-                const SizedBox(width: TossSpacing.space2),
-                Text(
-                  'AI Summary',
-                  style: TossTextStyles.caption.copyWith(
-                    color: Colors.amber.shade700,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space1),
-            Text(
-              flow.journalAiDescription!,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 14,
-                color: TossColors.gray700,
-              ),
-            ),
+            AiDescriptionInline(text: flow.journalAiDescription!),
           ],
         ],
       ),

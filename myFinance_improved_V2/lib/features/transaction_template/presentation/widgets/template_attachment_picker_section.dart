@@ -53,9 +53,9 @@ class _TemplateAttachmentPickerSectionState
           TemplateAttachment.maxAttachments - widget.attachments.length;
 
       final images = await _picker.pickMultiImage(
-        maxWidth: 1200,
-        maxHeight: 1600,
-        imageQuality: 85,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 70,
         limit: availableSlots,
       );
 
@@ -86,9 +86,9 @@ class _TemplateAttachmentPickerSectionState
     try {
       final image = await _picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: 1200,
-        maxHeight: 1600,
-        imageQuality: 85,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 70,
       );
 
       if (image != null) {

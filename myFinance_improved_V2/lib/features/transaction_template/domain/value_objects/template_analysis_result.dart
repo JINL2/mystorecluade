@@ -61,8 +61,13 @@ class TemplateAnalysisResult extends Equatable {
     }
 
     // 3. Check counterparty requirements (payable/receivable accounts)
-    if (_needsCounterpartySelection(data, template)) {
+    // - Internal counterparty (has linked_company_id): needs counterparty_cash_location
+    // - External counterparty (no linked_company_id): only needs counterparty selection
+    final counterpartyRequirements = _analyzeCounterpartyRequirements(data, template);
+    if (counterpartyRequirements.needsCounterparty) {
       missingItems.add('counterparty');
+    }
+    if (counterpartyRequirements.needsCounterpartyCashLocation) {
       missingItems.add('counterparty_cash_location');
     }
 
@@ -137,9 +142,28 @@ class TemplateAnalysisResult extends Equatable {
   }
 
   /// Check if any cash account lacks cash_location_id
+  /// Also checks for expense account transactions with cash accounts
   static bool _needsCashLocationSelection(List data, Map tags) {
+    // Check for expense account with cash account combination
+    // Expense accounts have account_code 5000-9999
+    bool hasExpenseAccountWithCode = false;
+    bool hasCashAccount = false;
+
     for (var entry in data) {
-      if (entry['category_tag'] == 'cash') {
+      final categoryTag = entry['category_tag'];
+      final accountCode = entry['account_code']?.toString();
+
+      // Check for expense account by account_code (5000-9999)
+      if (accountCode != null && accountCode.isNotEmpty) {
+        final code = int.tryParse(accountCode);
+        if (code != null && code >= 5000 && code <= 9999) {
+          hasExpenseAccountWithCode = true;
+        }
+      }
+
+      // Check for cash account
+      if (categoryTag == 'cash') {
+        hasCashAccount = true;
         final cashLocationId = entry['cash_location_id'];
         if (cashLocationId == null || cashLocationId == '' || cashLocationId == 'none') {
           // Check if pre-selected in tags
@@ -151,24 +175,74 @@ class TemplateAnalysisResult extends Equatable {
         }
       }
     }
+
+    // NEW: If expense account (with account_code) + cash account, ALWAYS show cash location selector
+    // This allows user to select where the cash comes from for expense transactions
+    // Only applies when account_code exists (new templates), legacy templates without account_code are skipped
+    //
+    // IMPORTANT: Even if cash_location_id is already set in template, we still show the selector
+    // because expense transactions often need different cash sources each time (e.g., different wallets)
+    if (hasExpenseAccountWithCode && hasCashAccount) {
+      return true;
+    }
+
     return false;
   }
 
-  /// Check for payable/receivable without counterparty cash location
-  static bool _needsCounterpartySelection(List data, Map<String, dynamic> template) {
+  /// Analyze counterparty requirements based on template data
+  /// Returns what's needed: counterparty selection, counterparty_cash_location, or both
+  static _CounterpartyRequirements _analyzeCounterpartyRequirements(
+    List data,
+    Map<String, dynamic> template,
+  ) {
+    bool needsCounterparty = false;
+    bool needsCounterpartyCashLocation = false;
+
     for (var entry in data) {
       final categoryTag = entry['category_tag'];
       if (categoryTag == 'payable' || categoryTag == 'receivable') {
+        // Check if counterparty is already set
+        final counterpartyId = entry['counterparty_id'] ?? template['counterparty_id'];
+        final hasCounterparty = counterpartyId != null &&
+            counterpartyId.toString().isNotEmpty &&
+            counterpartyId.toString() != 'none';
+
+        // Check if this is an internal counterparty (has linked_company_id)
+        final linkedCompanyId = entry['linked_company_id'];
+        final isInternal = linkedCompanyId != null &&
+            linkedCompanyId.toString().isNotEmpty &&
+            linkedCompanyId.toString() != 'none';
+
+        // Check if counterparty_cash_location is already set
         final entryCashLoc = entry['counterparty_cash_location_id'];
         final templateCashLoc = template['counterparty_cash_location_id'];
+        final hasCounterpartyCashLocation = (entryCashLoc != null &&
+                entryCashLoc.toString().isNotEmpty &&
+                entryCashLoc.toString() != 'none') ||
+            (templateCashLoc != null &&
+                templateCashLoc.toString().isNotEmpty &&
+                templateCashLoc.toString() != 'none');
 
-        if ((entryCashLoc == null || entryCashLoc == '' || entryCashLoc == 'none') &&
-            (templateCashLoc == null || templateCashLoc == '' || templateCashLoc == 'none')) {
-          return true;
+        // Determine what's needed
+        if (isInternal) {
+          // Internal counterparty: locked, but may need cash location
+          if (!hasCounterpartyCashLocation) {
+            needsCounterpartyCashLocation = true;
+          }
+          // Internal counterparty is locked - don't show counterparty selector
+        } else {
+          // External counterparty: ALWAYS show selector so user can change it
+          // Similar to cash_location - user may want to select different counterparty each time
+          needsCounterparty = true;
+          // External counterparty doesn't need counterparty_cash_location
         }
       }
     }
-    return false;
+
+    return _CounterpartyRequirements(
+      needsCounterparty: needsCounterparty,
+      needsCounterpartyCashLocation: needsCounterpartyCashLocation,
+    );
   }
 
   /// Check if template has debt accounts (payable/receivable)
@@ -320,4 +394,15 @@ class TemplateAnalysisResult extends Equatable {
       'complexity: $complexity, '
       'missingFields: $missingFields, '
       'isReady: $isReady)';
+}
+
+/// Helper class for counterparty requirements analysis
+class _CounterpartyRequirements {
+  final bool needsCounterparty;
+  final bool needsCounterpartyCashLocation;
+
+  const _CounterpartyRequirements({
+    required this.needsCounterparty,
+    required this.needsCounterpartyCashLocation,
+  });
 }

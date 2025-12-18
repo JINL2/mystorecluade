@@ -416,7 +416,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   String _formatCurrency(double amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
-    return '$symbol${formatter.format(amount.abs().round())}';
+    final isNegative = amount < 0;
+    final formattedAmount = formatter.format(amount.abs().round());
+    return '${isNegative ? "-" : ""}$symbol$formattedAmount';
   }
   
   String _formatCurrencyWithSign(double amount, [String? currencySymbol]) {

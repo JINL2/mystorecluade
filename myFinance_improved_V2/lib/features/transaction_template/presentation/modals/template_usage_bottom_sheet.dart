@@ -20,6 +20,7 @@ import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
@@ -35,6 +36,9 @@ import '../../domain/value_objects/template_analysis_result.dart';
 import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
 import 'edit_template_bottom_sheet.dart';
+// 🧮 Exchange rate calculator
+import '../../../journal_input/presentation/widgets/exchange_rate_calculator.dart';
+import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 
 /// Custom TextInputFormatter for thousand separators (000,000 format)
 class ThousandSeparatorInputFormatter extends TextInputFormatter {
@@ -278,6 +282,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // 🔄 Loading state for transaction creation
   bool _isSubmitting = false;
 
+  // 🧮 Multiple currencies check for calculator button
+  bool _hasMultipleCurrencies = false;
+
+  // 🏢 Internal counterparty check - if true, counterparty cannot be changed
+  bool _isInternalCounterparty = false;
+  String? _counterpartyName;
+
   @override
   void initState() {
     super.initState();
@@ -285,9 +296,108 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Analyze template to determine required fields
     _analysis = TemplateAnalysisResult.analyze(widget.template);
 
+    // Initialize counterparty from template if exists
+    _selectedCounterpartyId = widget.template['counterparty_id']?.toString();
+    _selectedCounterpartyCashLocationId = widget.template['counterparty_cash_location_id']?.toString();
+
+    // Check if counterparty is internal (has counterparty_cash_location_id means internal)
+    // Internal = has linked company, requires counterparty_cash_location_id
+    // External = no linked company, counterparty can be changed freely
+    final tags = widget.template['tags'] as Map<String, dynamic>? ?? {};
+    _isInternalCounterparty = _selectedCounterpartyCashLocationId != null &&
+                              _selectedCounterpartyCashLocationId!.isNotEmpty &&
+                              _selectedCounterpartyCashLocationId != 'none';
+
+    // Get counterparty name from tags or data for display
+    _counterpartyName = tags['counterparty_name']?.toString();
+    if (_counterpartyName == null || _counterpartyName!.isEmpty) {
+      // Try to get from data entries
+      final data = widget.template['data'] as List? ?? [];
+      for (var entry in data) {
+        final cpName = entry['counterparty_name']?.toString();
+        if (cpName != null && cpName.isNotEmpty) {
+          _counterpartyName = cpName;
+          break;
+        }
+      }
+    }
+
+    // Initialize cash location from template data if exists
+    final data = widget.template['data'] as List? ?? [];
+    for (var entry in data) {
+      if (entry['category_tag'] == 'cash' && entry['cash_location_id'] != null) {
+        final cashLocId = entry['cash_location_id']?.toString();
+        if (cashLocId != null && cashLocId.isNotEmpty && cashLocId != 'none') {
+          _selectedMyCashLocationId = cashLocId;
+          break;
+        }
+      }
+    }
+
     // Add listeners for real-time validation
     _amountController.addListener(_validateAmountField);
     _amountController.addListener(_notifyValidityChange);
+
+    // Check for multiple currencies (for calculator button)
+    _checkForMultipleCurrencies();
+  }
+
+  /// Check if company has multiple currencies for exchange rate calculator
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(Legacy.appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+      return;
+    }
+
+    try {
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+
+      if (mounted) {
+        setState(() {
+          _hasMultipleCurrencies = exchangeRates.length > 1;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasMultipleCurrencies = false;
+        });
+      }
+    }
+  }
+
+  /// Show exchange rate calculator bottom sheet
+  void _showExchangeRateCalculator() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      isDismissible: true,
+      enableDrag: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: ExchangeRateCalculator(
+          initialAmount: _amountController.text.replaceAll(',', ''),
+          onAmountSelected: (amount) {
+            final formatter = NumberFormat('#,##0.##', 'en_US');
+            final numericValue = double.tryParse(amount) ?? 0;
+            setState(() {
+              _amountController.text = formatter.format(numericValue);
+            });
+          },
+        ),
+      ),
+    );
   }
 
   /// Notify parent of form validity changes
@@ -562,10 +672,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           _buildCashLocationSelector(),
         ],
 
-        // Counterparty selector (if needed)
-        if (_analysis.missingItems.contains('counterparty')) ...[
+        // Counterparty section:
+        // - Internal counterparty: show locked display (cannot change)
+        // - External counterparty OR no counterparty set: show selector
+        if (_analysis.missingItems.contains('counterparty') ||
+            _analysis.missingItems.contains('counterparty_cash_location')) ...[
           const SizedBox(height: TossSpacing.space3),
-          _buildCounterpartySelector(),
+          if (_isInternalCounterparty)
+            _buildLockedCounterpartyDisplay()
+          else
+            _buildCounterpartySelector(),
         ],
 
         // 📎 Attachments section
@@ -593,25 +709,64 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds amount input field with validation
+  /// Builds amount input field with validation and optional calculator button
   Widget _buildAmountField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TossTextField(
-          controller: _amountController,
-          label: 'Amount',
-          isRequired: true, // 🔧 Shows red asterisk
-          hintText: 'Enter amount (e.g., 1,000,000)',
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-            ThousandSeparatorInputFormatter(),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: TossTextField(
+                controller: _amountController,
+                label: 'Amount',
+                isRequired: true, // 🔧 Shows red asterisk
+                hintText: 'Enter amount (e.g., 1,000,000)',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                  ThousandSeparatorInputFormatter(),
+                ],
+                onChanged: (value) {
+                  // Real-time validation happens via listener
+                  setState(() {});
+                },
+              ),
+            ),
+            // 🧮 Exchange rate calculator button (only if multiple currencies)
+            if (_hasMultipleCurrencies) ...[
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                decoration: BoxDecoration(
+                  color: TossColors.primary,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                  boxShadow: [
+                    BoxShadow(
+                      color: TossColors.primary.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: TossColors.transparent,
+                  child: InkWell(
+                    onTap: _showExchangeRateCalculator,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                    child: Container(
+                      padding: const EdgeInsets.all(TossSpacing.space3),
+                      child: const Icon(
+                        Icons.calculate_outlined,
+                        color: TossColors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
-          onChanged: (value) {
-            // Real-time validation happens via listener
-            setState(() {});
-          },
         ),
         if (_amountError != null) ...[
           const SizedBox(height: TossSpacing.space1),
@@ -687,7 +842,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds counterparty selector
+  /// Builds counterparty selector with validation
   Widget _buildCounterpartySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -712,15 +867,128 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
+        AutonomousCounterpartySelector(
+          selectedCounterpartyId: _selectedCounterpartyId,
+          // External template = show only external counterparties
+          // This prevents selecting internal companies for external transactions
+          isInternal: false,
+          onChanged: (counterpartyId) {
+            setState(() {
+              _selectedCounterpartyId = counterpartyId;
+              _validateCounterpartyField();
+            });
+          },
+        ),
+        if (_counterpartyError != null) ...[
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            _counterpartyError!,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Builds locked counterparty display for internal counterparties
+  /// Internal counterparties cannot be changed because they require
+  /// counterparty_cash_location_id which is already set in the template
+  Widget _buildLockedCounterpartyDisplay() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Counterparty',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: TossSpacing.space1,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.lock_outline,
+                    size: 12,
+                    color: TossColors.gray500,
+                  ),
+                  const SizedBox(width: TossSpacing.space1),
+                  Text(
+                    'Internal',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space2),
         Container(
           padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray300),
+            color: TossColors.gray50,
+            border: Border.all(color: TossColors.gray200),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
-          child: Text(
-            'Counterparty selector (to be implemented)',
-            style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space2),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: const Icon(
+                  Icons.business,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _counterpartyName ?? 'Internal Counterparty',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray900,
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space1),
+                    Text(
+                      'Linked company account',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.lock,
+                color: TossColors.gray400,
+                size: 18,
+              ),
+            ],
           ),
         ),
       ],

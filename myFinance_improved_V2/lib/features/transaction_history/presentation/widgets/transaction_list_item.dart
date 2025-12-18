@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/ai/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/transaction.dart';
@@ -110,27 +111,10 @@ class TransactionListItem extends ConsumerWidget {
           if (transaction.aiDescription != null && transaction.aiDescription!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: TossSpacing.space2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    size: 12,
-                    color: Colors.amber.shade600,
-                  ),
-                  const SizedBox(width: TossSpacing.space1),
-                  Expanded(
-                    child: Text(
-                      transaction.aiDescription!,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
-                        fontSize: 11,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+              child: AiDescriptionRow(
+                text: transaction.aiDescription!,
+                maxLines: 2,
+                alignment: CrossAxisAlignment.start,
               ),
             ),
           

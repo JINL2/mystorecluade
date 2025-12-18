@@ -36,6 +36,7 @@ class AccountData with _$AccountData {
     required String type, // asset, liability, equity, income, expense
     String? categoryTag,
     String? expenseNature, // fixed, variable
+    String? accountCode, // Account code (e.g., 5000-9999 for expense accounts)
     @Default(0) int transactionCount,
     Map<String, dynamic>? additionalData,
   }) = _AccountData;
@@ -69,6 +70,15 @@ class AccountData with _$AccountData {
   bool get isCash => categoryTag?.toLowerCase() == 'cash';
   bool get isPayable => categoryTag?.toLowerCase() == 'payable';
   bool get isReceivable => categoryTag?.toLowerCase() == 'receivable';
+
+  /// Check if account is an expense account based on account_code (5000-9999)
+  /// Returns false if accountCode is null (legacy data compatibility)
+  bool get isExpenseByCode {
+    if (accountCode == null || accountCode!.isEmpty) return false;
+    final code = int.tryParse(accountCode!);
+    if (code == null) return false;
+    return code >= 5000 && code <= 9999;
+  }
 }
 
 // =====================================================
