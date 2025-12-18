@@ -536,38 +536,28 @@ class _ProductTransactionsPageState
               transaction.quantityBefore != transaction.quantityAfter)
             Builder(
               builder: (context) {
-                final isIncrease = transaction.quantityAfter! > transaction.quantityBefore!;
+                final change = transaction.quantityAfter! - transaction.quantityBefore!;
+                final isIncrease = change > 0;
                 final changeColor = isIncrease ? TossColors.primary : TossColors.error;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // Before quantity (gray, on top)
+                    // Change amount (colored, prominent)
                     Text(
-                      '${transaction.quantityBefore}',
+                      '${isIncrease ? '+' : ''}$change',
                       style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray500,
+                        fontWeight: FontWeight.w700,
+                        color: changeColor,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // After quantity with arrow (colored, below)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 14,
-                          color: changeColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${transaction.quantityAfter}',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: changeColor,
-                          ),
-                        ),
-                      ],
+                    // Before → After (gray, subtle)
+                    Text(
+                      '${transaction.quantityBefore} → ${transaction.quantityAfter}',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.gray500,
+                      ),
                     ),
                   ],
                 );

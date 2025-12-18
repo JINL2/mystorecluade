@@ -673,6 +673,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                     _showUnitSelector(metadataState.metadata!);
                   }
                 },
+                onChanged: (_) => setState(() {}),
               ),
 
               const SizedBox(height: 80), // Bottom padding
