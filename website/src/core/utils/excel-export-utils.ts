@@ -291,6 +291,38 @@ class ExcelExportManager {
   }
 
   /**
+   * Extract cell value, handling Rich Text objects
+   * @param cell - ExcelJS cell object
+   * @returns Plain text value or null
+   */
+  private getCellValue(cell: any): string | number | null {
+    const value = cell.value;
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    // Handle Rich Text objects (formatted text in Excel)
+    if (typeof value === 'object' && value.richText) {
+      // Concatenate all text parts from Rich Text
+      return value.richText.map((part: any) => part.text || '').join('');
+    }
+
+    // Handle hyperlink objects
+    if (typeof value === 'object' && value.text) {
+      return value.text;
+    }
+
+    // Handle formula results
+    if (typeof value === 'object' && value.result !== undefined) {
+      return value.result;
+    }
+
+    // Return primitive values as-is
+    return value;
+  }
+
+  /**
    * Parse Excel file and extract product data
    * @param file - Excel file to parse
    * @returns Promise with array of product data
@@ -315,27 +347,28 @@ class ExcelExportManager {
     worksheet.eachRow((row: any, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip header row
 
-      // Get cell values by column number
+      // Get cell values by column number (using helper to handle Rich Text)
       const productData = {
-        sku: row.getCell(1).value || null, // Column A - SKU
-        barcode: row.getCell(2).value || null, // Column B - Barcode
-        product_name: row.getCell(3).value || '', // Column C - Product Name
-        category: row.getCell(4).value || null, // Column D - Category
-        brand: row.getCell(5).value || null, // Column E - Brand
-        unit: row.getCell(6).value || 'piece', // Column F - Unit
-        cost_price: parseFloat(row.getCell(7).value) || 0, // Column G - Cost Price
-        selling_price: parseFloat(row.getCell(8).value) || 0, // Column H - Selling Price
-        current_stock: parseFloat(row.getCell(9).value) || 0, // Column I - Current Stock
-        status: row.getCell(10).value || 'Active', // Column J - Status
+        sku: this.getCellValue(row.getCell(1)), // Column A - SKU
+        barcode: this.getCellValue(row.getCell(2)), // Column B - Barcode
+        product_name: this.getCellValue(row.getCell(3)), // Column C - Product Name (null preserves existing)
+        category: this.getCellValue(row.getCell(4)), // Column D - Category
+        brand: this.getCellValue(row.getCell(5)), // Column E - Brand
+        unit: this.getCellValue(row.getCell(6)) || 'piece', // Column F - Unit
+        cost_price: this.getCellValue(row.getCell(7)), // Column G - Cost Price (parsed later)
+        selling_price: this.getCellValue(row.getCell(8)), // Column H - Selling Price (parsed later)
+        current_stock: this.getCellValue(row.getCell(9)), // Column I - Current Stock (parsed later)
+        status: this.getCellValue(row.getCell(10)) || 'Active', // Column J - Status
         image_urls: null as any, // Will be populated below from columns K, L, M
       };
 
       // Data validation and cleaning
-      if (productData.product_name) {
+      // Allow rows with either product_name (new product) or sku (existing product update)
+      if (productData.product_name || productData.sku) {
         // Convert all string fields to proper strings
         if (productData.sku !== null) productData.sku = String(productData.sku).trim();
         if (productData.barcode !== null) productData.barcode = String(productData.barcode).trim();
-        if (productData.product_name) productData.product_name = String(productData.product_name).trim();
+        if (productData.product_name !== null) productData.product_name = String(productData.product_name).trim();
         if (productData.category !== null) productData.category = String(productData.category).trim();
         if (productData.brand !== null) productData.brand = String(productData.brand).trim();
         if (productData.unit) productData.unit = String(productData.unit).toLowerCase().trim();
@@ -344,13 +377,24 @@ class ExcelExportManager {
         // Convert empty strings to null
         if (productData.sku === '') productData.sku = null;
         if (productData.barcode === '') productData.barcode = null;
+        if (productData.product_name === '') productData.product_name = null;
         if (productData.category === '') productData.category = null;
         if (productData.brand === '') productData.brand = null;
 
-        // Ensure numeric values are numbers
-        productData.cost_price = isNaN(productData.cost_price) ? 0 : productData.cost_price;
-        productData.selling_price = isNaN(productData.selling_price) ? 0 : productData.selling_price;
-        productData.current_stock = isNaN(productData.current_stock) ? 0 : productData.current_stock;
+        // Parse numeric values - null/empty stays null (RPC will preserve existing values)
+        const costValue = productData.cost_price;
+        const sellingValue = productData.selling_price;
+        const stockValue = productData.current_stock;
+
+        // Handle both number and string values
+        const parsedCost = typeof costValue === 'number' ? costValue : parseFloat(String(costValue));
+        const parsedSelling = typeof sellingValue === 'number' ? sellingValue : parseFloat(String(sellingValue));
+        const parsedStock = typeof stockValue === 'number' ? stockValue : parseFloat(String(stockValue));
+
+        // Only set value if it's a valid number, otherwise null (preserve existing)
+        productData.cost_price = (!isNaN(parsedCost) && costValue !== null && costValue !== '') ? parsedCost : null;
+        productData.selling_price = (!isNaN(parsedSelling) && sellingValue !== null && sellingValue !== '') ? parsedSelling : null;
+        productData.current_stock = (!isNaN(parsedStock) && stockValue !== null && stockValue !== '') ? parsedStock : null;
 
         // Process image URLs from columns K, L, M (image1, image2, image3)
         const imageUrls: string[] = [];
@@ -369,8 +413,12 @@ class ExcelExportManager {
           imageUrls.push(String(image3).trim());
         }
 
-        // Set image_urls array (RPC expects array, not null)
-        productData.image_urls = imageUrls;
+        // Set image_urls - undefined if empty (won't be sent to RPC, preserves existing), array if has values
+        // Note: null causes "cannot get array length of a scalar" error in RPC
+        if (imageUrls.length > 0) {
+          productData.image_urls = imageUrls;
+        }
+        // If no images, leave as null (initialized value) - will be filtered out below
 
         products.push(productData);
       }

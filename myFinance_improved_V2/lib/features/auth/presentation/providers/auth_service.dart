@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
 // Domain Layer
 import '../../domain/entities/user_entity.dart';
@@ -134,19 +135,24 @@ class AuthService {
   ///
   /// Enterprise-grade logout with complete cleanup:
   /// 1. Clears session state
-  /// 2. Executes logout UseCase (Supabase signOut)
-  /// 3. Invalidates all providers automatically
-  /// 4. Clears local cache and storage
+  /// 2. Clears AppState and SharedPreferences cache
+  /// 3. Executes logout UseCase (Supabase signOut)
+  /// 4. Invalidates all providers automatically
+  /// 5. Clears local cache and storage
   ///
   /// This method ensures complete cleanup without manual invalidation.
   Future<void> signOut() async {
     // 1. Clear session first
     await _ref.read(sessionManagerProvider.notifier).clearSession();
 
-    // 2. Execute logout UseCase
+    // 2. Clear AppState and SharedPreferences (company/store selection cache)
+    // This prevents previous user's data from showing on next login
+    _ref.read(appStateProvider.notifier).signOut();
+
+    // 3. Execute logout UseCase
     await _logoutUseCase.execute();
 
-    // 3. Invalidate all providers automatically
+    // 4. Invalidate all providers automatically
     // This is safer than manual invalidation as it catches all providers
     final container = _ref.container;
     final allProviders = container.getAllProviderElements();
