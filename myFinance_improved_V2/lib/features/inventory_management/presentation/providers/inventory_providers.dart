@@ -201,6 +201,8 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
           products: result.products,
           pagination: result.pagination,
           currency: result.currency,
+          serverTotalValue: result.serverTotalValue,
+          filteredCount: result.filteredCount,
           isLoading: false,
           error: null,
         );

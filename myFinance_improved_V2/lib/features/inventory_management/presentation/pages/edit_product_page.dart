@@ -323,9 +323,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           ),
         );
 
-        // Navigate directly to inventory page (skip product detail)
+        // Navigate back to inventory page
+        // Pop twice: edit page -> product detail -> inventory page
         if (mounted) {
-          context.go('/inventoryManagement');
+          // First pop: close edit page
+          context.pop();
+          // Second pop: close product detail page (if came from there)
+          if (context.canPop()) {
+            context.pop();
+          }
         }
       } else if (mounted) {
         await showDialog<bool>(

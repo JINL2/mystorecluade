@@ -15,6 +15,7 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_speed_dial.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
@@ -290,9 +291,9 @@ class _InventoryManagementPageState
             ),
           ),
           const SizedBox(height: 12),
-          // Summary text
+          // Summary text - uses server-provided total value from v4 RPC
           Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${_formatCurrency(_calculateTotalValue(pageState.products))}',
+            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
             style: TossTextStyles.caption.copyWith(
               fontWeight: FontWeight.w500,
               color: TossColors.gray600,
@@ -644,10 +645,6 @@ class _InventoryManagementPageState
     return storeNames;
   }
 
-  double _calculateTotalValue(List<Product> products) {
-    return products.fold(0.0, (sum, product) => sum + (product.onHand * product.salePrice));
-  }
-
   String _formatCurrency(double value) {
     return value.toStringAsFixed(0).replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -746,8 +743,6 @@ class _InventoryManagementPageState
       allStores: allStores,
       onSubmit: (fromStore, toStore, quantity) async {
         // Call inventory_move_product_v3 RPC
-        Navigator.pop(context);
-
         try {
           final repository = ref.read(inventoryRepositoryProvider);
           final result = await repository.moveProduct(
@@ -761,26 +756,34 @@ class _InventoryManagementPageState
           );
 
           if (result != null && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
-                backgroundColor: TossColors.success,
-                duration: const Duration(seconds: 2),
+            // Show success dialog
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => TossDialog.success(
+                title: 'Stock Moved',
+                message: 'Moved $quantity units from ${fromStore.name} to ${toStore.name}',
+                primaryButtonText: 'OK',
               ),
             );
             // Refresh inventory data
             ref.read(inventoryPageProvider.notifier).refresh();
+            return true;
           }
+          return false;
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to move stock: $e'),
-                backgroundColor: TossColors.error,
-                duration: const Duration(seconds: 3),
+            // Show error dialog
+            await showDialog(
+              context: context,
+              barrierDismissible: true,
+              builder: (ctx) => TossDialog.error(
+                title: 'Move Failed',
+                message: e.toString().replaceAll('Exception:', '').trim(),
               ),
             );
           }
+          return false;
         }
       },
     );
@@ -973,9 +976,9 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
           const SizedBox(height: 12),
-          // Summary text
+          // Summary text - uses server-provided total value from v4 RPC
           Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${_formatCurrency(_calculateTotalValue())}',
+            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
             style: TossTextStyles.caption.copyWith(
               fontWeight: FontWeight.w500,
               color: TossColors.gray600,
@@ -1039,10 +1042,6 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
         ),
       ),
     );
-  }
-
-  double _calculateTotalValue() {
-    return pageState.products.fold(0.0, (sum, product) => sum + (product.onHand * product.salePrice));
   }
 
   String _formatCurrency(double value) {

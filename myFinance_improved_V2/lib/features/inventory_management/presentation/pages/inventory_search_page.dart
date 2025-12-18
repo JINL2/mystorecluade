@@ -11,6 +11,7 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
@@ -252,8 +253,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
       fromLocation: fromLocation,
       allStores: allStores,
       onSubmit: (fromStore, toStore, quantity) async {
-        Navigator.pop(context);
-
+        // Dialog handles its own loading state and closing
         try {
           final repository = ref.read(inventoryRepositoryProvider);
           final result = await repository.moveProduct(
@@ -267,26 +267,34 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
           );
 
           if (result != null && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
-                backgroundColor: TossColors.success,
-                duration: const Duration(seconds: 2),
+            // Show success dialog
+            await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => TossDialog.success(
+                title: 'Stock Moved',
+                message: 'Moved $quantity units from ${fromStore.name} to ${toStore.name}',
+                primaryButtonText: 'OK',
               ),
             );
             // Refresh search results
             _performSearch(_searchQuery);
+            return true;
           }
+          return false;
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to move stock: $e'),
-                backgroundColor: TossColors.error,
-                duration: const Duration(seconds: 3),
+            // Show error dialog
+            await showDialog<bool>(
+              context: context,
+              barrierDismissible: true,
+              builder: (ctx) => TossDialog.error(
+                title: 'Move Failed',
+                message: e.toString().replaceAll('Exception:', '').trim(),
               ),
             );
           }
+          return false;
         }
       },
     );
