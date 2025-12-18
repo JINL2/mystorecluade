@@ -11,6 +11,7 @@ import type { ExcelTabContentProps } from './ExcelTabContent.types';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { CounterpartyCashLocationModal } from './CounterpartyCashLocationModal';
 import { RecentTransactionHistory } from '../RecentTransactionHistory';
+import { TemplateSelector } from '../TemplateSelector';
 import { useExcelTab } from '../../hooks/useExcelTab';
 import styles from './ExcelTabContent.module.css';
 
@@ -18,6 +19,8 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   accounts,
   cashLocations: initialCashLocations,
   counterparties,
+  templates,
+  loadingTemplates,
   companyId,
   userId,
   stores,
@@ -25,6 +28,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   onGetCounterpartyStores,
   onGetCounterpartyCashLocations,
   onLoadCashLocations,
+  onApplyTemplate,
   onSubmitSuccess,
   onSubmitError,
 }) => {
@@ -76,6 +80,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     showWarning,
     hideWarning,
     submitExcelEntry,
+    applyTemplateToRows,
     reset,
   } = useExcelTab();
 
@@ -380,8 +385,25 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     }
   };
 
+  // Handle template selection
+  const handleSelectTemplate = (templateId: string) => {
+    // Find the template from the templates list
+    const template = templates.find((t) => t.templateId === templateId);
+    if (template && template.data) {
+      // Apply template data to Excel rows
+      applyTemplateToRows(template.data);
+    }
+  };
+
   return (
     <div className={styles.container}>
+      {/* Template Selector - above the Excel table */}
+      <TemplateSelector
+        templates={templates}
+        loading={loadingTemplates}
+        onSelectTemplate={handleSelectTemplate}
+      />
+
       <table className={styles.table}>
         <thead>
           <tr>

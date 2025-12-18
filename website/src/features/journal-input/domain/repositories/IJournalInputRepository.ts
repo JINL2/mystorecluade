@@ -48,6 +48,23 @@ export interface CounterpartyStore {
   storeName: string;
 }
 
+/**
+ * Transaction Template interface
+ * Represents a reusable journal entry template
+ */
+export interface TransactionTemplate {
+  templateId: string;
+  name: string;
+  description: string | null;
+  data: any; // Template data with transaction lines
+  tags: string[] | null;
+  visibilityLevel: 'public' | 'private';
+  requiredAttachment: boolean;
+  counterpartyId: string | null;
+  counterpartyCashLocationId: string | null;
+  createdAtUtc: string;
+}
+
 export interface IJournalInputRepository {
   /**
    * Get chart of accounts for company
@@ -77,6 +94,15 @@ export interface IJournalInputRepository {
    * Get stores for counterparty's linked company
    */
   getCounterpartyStores(linkedCompanyId: string): Promise<CounterpartyStore[]>;
+
+  /**
+   * Get transaction templates for company and store
+   */
+  getTransactionTemplates(
+    companyId: string,
+    storeId: string,
+    userId: string
+  ): Promise<TransactionTemplate[]>;
 
   /**
    * Submit journal entry

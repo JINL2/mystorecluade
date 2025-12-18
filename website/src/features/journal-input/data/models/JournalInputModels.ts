@@ -8,6 +8,7 @@ import type {
   Account,
   CashLocation,
   Counterparty,
+  TransactionTemplate,
 } from '../../domain/repositories/IJournalInputRepository';
 
 /**
@@ -105,6 +106,47 @@ export class CounterpartyModel {
       email: counterparty.email,
       phone: counterparty.phone,
       linkedCompanyId: counterparty.linkedCompanyId,
+    };
+  }
+}
+
+/**
+ * TransactionTemplateModel - Maps between API response and TransactionTemplate entity
+ */
+export class TransactionTemplateModel {
+  /**
+   * Convert API response to TransactionTemplate entity
+   */
+  static fromJson(json: any): TransactionTemplate {
+    return {
+      templateId: json.template_id,
+      name: json.name,
+      description: json.template_description,
+      data: json.data,
+      tags: json.tags,
+      visibilityLevel: json.visibility_level || 'public',
+      requiredAttachment: json.required_attachment ?? false,
+      counterpartyId: json.counterparty_id,
+      counterpartyCashLocationId: json.counterparty_cash_location_id,
+      createdAtUtc: json.created_at_utc,
+    };
+  }
+
+  /**
+   * Convert TransactionTemplate entity to API format
+   */
+  static toJson(template: TransactionTemplate): any {
+    return {
+      template_id: template.templateId,
+      name: template.name,
+      template_description: template.description,
+      data: template.data,
+      tags: template.tags,
+      visibility_level: template.visibilityLevel,
+      required_attachment: template.requiredAttachment,
+      counterparty_id: template.counterpartyId,
+      counterparty_cash_location_id: template.counterpartyCashLocationId,
+      created_at_utc: template.createdAtUtc,
     };
   }
 }

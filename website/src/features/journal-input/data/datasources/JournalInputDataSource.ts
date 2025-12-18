@@ -46,6 +46,27 @@ export class JournalInputDataSource {
   }
 
   /**
+   * Get transaction templates for company and store
+   * Calls get_transaction_template_list RPC function
+   */
+  async getTransactionTemplates(companyId: string, storeId: string, userId: string) {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('get_transaction_template_list', {
+      p_company_id: companyId,
+      p_store_id: storeId,
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error('Error fetching transaction templates:', error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  }
+
+  /**
    * Get counterparties for company
    */
   async getCounterparties(companyId: string) {
