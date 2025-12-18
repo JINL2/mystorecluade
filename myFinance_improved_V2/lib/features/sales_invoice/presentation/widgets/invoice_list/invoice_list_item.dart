@@ -79,30 +79,40 @@ class InvoiceListItem extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  Row(
-                    children: [
-                      Text(
-                        invoice.customer?.name ?? invoice.createdByName ?? 'Walk-in',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        '•',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        '${invoice.itemsSummary.itemCount} products',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
+                  // Product name display
+                  Text(
+                    invoice.itemsSummary.productDisplayName,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  // AI description (optional, amber AI style)
+                  if (invoice.hasAiDescription) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 12,
+                          color: Colors.amber.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            invoice.aiDescription!,
+                            style: TossTextStyles.caption.copyWith(
+                              fontSize: 12,
+                              color: Colors.amber.shade700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

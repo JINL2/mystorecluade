@@ -119,6 +119,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     }
   }
 
+  /// Handle when user applies exchange rate converted amount as total payment
+  /// This auto-calculates the discount based on subtotal - converted amount
+  void _handleApplyExchangeRateAsTotal(
+      double convertedAmount, double discount) {
+    // Update the discount amount in provider
+    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discount);
+
+    // Collapse exchange rate panel after applying
+    setState(() {
+      _isExchangeRatePanelExpanded = false;
+    });
+  }
+
   double get _cartTotal {
     double total = 0;
     for (final product in widget.selectedProducts) {
@@ -180,6 +193,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       child: ExchangeRatePanel(
                         exchangeRateData: _exchangeRateData!,
                         finalTotal: finalTotal,
+                        subtotal: _cartTotal,
+                        onApplyAsTotal: _handleApplyExchangeRateAsTotal,
                       ),
                     ),
 
@@ -468,6 +483,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final totalAmount = result.totalAmount ?? 0;
 
     // Create journal entry for the cash sales transaction
+    String? journalEntryId;
     try {
       print('📒 [JOURNAL] Starting journal entry creation...');
       print('📒 [JOURNAL] selectedCashLocation: ${paymentState.selectedCashLocation}');
@@ -486,7 +502,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         print('📒 [JOURNAL] amount: $totalAmount, totalCost: $totalCost');
         print('📒 [JOURNAL] cashLocationId: ${paymentState.selectedCashLocation!.id}');
 
-        await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
+        journalEntryId = await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
               companyId: companyId,
               storeId: storeId,
               userId: userId,
@@ -497,7 +513,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               totalCost: totalCost,
               invoiceId: invoiceId,
             );
-        print('✅ [JOURNAL] Journal entry created successfully!');
+        print('✅ [JOURNAL] Journal entry created successfully! ID: $journalEntryId');
       } else {
         print('⚠️ [JOURNAL] Skipped - selectedCashLocation: ${paymentState.selectedCashLocation != null}, invoiceId: ${invoiceId != null}');
       }
@@ -550,6 +566,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         products: widget.selectedProducts,
         quantities: widget.productQuantities,
         warningMessage: warningMessage,
+        journalEntryId: journalEntryId,
+        companyId: companyId,
+        userId: userId,
         onDismiss: () {
           // Force refresh of sales product data
           ref.invalidate(salesProductProvider);

@@ -33,10 +33,10 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
   void initState() {
     super.initState();
     final filterState = ref.read(templateFilterProvider);
-    // TemplateFilterState에서 기본값 설정
-    _selectedAccountIds = null; // TemplateFilterState에는 accountIds가 없음
-    _selectedCounterpartyId = null; // TemplateFilterState에는 counterpartyId가 없음
-    _selectedCashLocationId = null; // TemplateFilterState에는 cashLocationId가 없음
+    // TemplateFilterState에서 기존 필터값 복원
+    _selectedAccountIds = filterState.accountIds;
+    _selectedCounterpartyId = filterState.counterpartyId;
+    _selectedCashLocationId = filterState.cashLocationId;
     _searchController.text = filterState.searchText;
   }
 

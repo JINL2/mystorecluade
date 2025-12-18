@@ -165,12 +165,11 @@ class NotificationSettingsDataSource {
         accessibleFeatures =
             featuresRes.map((f) => f['feature_id'] as String).toSet();
       } else {
-        // owner 아니면 role_permissions 체크
+        // owner 아니면 role_permissions 체크 (row가 있으면 권한 있음)
         final rolePermRes = await _supabase
             .from('role_permissions')
             .select('feature_id')
-            .eq('role_id', roleId)
-            .eq('can_access', true);
+            .eq('role_id', roleId);
 
         accessibleFeatures =
             rolePermRes.map((r) => r['feature_id'] as String).toSet();

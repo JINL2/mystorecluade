@@ -93,7 +93,7 @@ class TransactionListItem extends ConsumerWidget {
           }(),
           
           // Description (if exists and different from line descriptions)
-          if (transaction.description.isNotEmpty && 
+          if (transaction.description.isNotEmpty &&
               !transaction.lines.any((l) => l.description == transaction.description))
             Padding(
               padding: const EdgeInsets.only(top: TossSpacing.space3),
@@ -103,6 +103,34 @@ class TransactionListItem extends ConsumerWidget {
                   color: TossColors.gray500,
                   fontStyle: FontStyle.italic,
                 ),
+              ),
+            ),
+
+          // AI Description (if exists)
+          if (transaction.aiDescription != null && transaction.aiDescription!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: TossSpacing.space2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 12,
+                    color: Colors.amber.shade600,
+                  ),
+                  const SizedBox(width: TossSpacing.space1),
+                  Expanded(
+                    child: Text(
+                      transaction.aiDescription!,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                        fontSize: 11,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
           

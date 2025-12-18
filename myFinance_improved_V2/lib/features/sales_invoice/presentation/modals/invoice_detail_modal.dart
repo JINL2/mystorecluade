@@ -4,11 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/storage_url_helper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
+import '../../../transaction_history/domain/entities/transaction.dart'
+    show TransactionAttachment;
+import '../../../transaction_history/presentation/widgets/attachment_fullscreen_viewer.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
 import '../providers/invoice_detail_provider.dart';
@@ -269,6 +273,18 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
                                 widget.invoice.createdByName != null) ...[
                               const SizedBox(height: TossSpacing.space3),
                               _buildCreatedByCard(detailState.detail),
+                            ],
+
+                            // AI Description (if available)
+                            if (detailState.detail?.hasAiDescription == true) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              _buildAiDescriptionCard(detailState.detail!),
+                            ],
+
+                            // Attachments (if available)
+                            if (detailState.detail?.hasAttachments == true) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              _buildAttachmentsSection(context, detailState.detail!),
                             ],
 
                             const SizedBox(height: TossSpacing.space4),
@@ -939,6 +955,336 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
                 const SizedBox(height: TossSpacing.space1),
                 content,
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build AI Description card
+  Widget _buildAiDescriptionCard(InvoiceDetail detail) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.amber.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.auto_awesome,
+              size: 18,
+              color: Colors.amber.shade700,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI Summary',
+                  style: TossTextStyles.caption.copyWith(
+                    color: Colors.amber.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  detail.aiDescription!,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray700,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build attachments section
+  Widget _buildAttachmentsSection(BuildContext context, InvoiceDetail detail) {
+    final imageAttachments = detail.imageAttachments;
+    final otherAttachments =
+        detail.attachments.where((a) => !a.isImage).toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: TossColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.attach_file,
+                    size: 18,
+                    color: TossColors.primary,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Attachments',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text(
+                        '${detail.attachments.length} files',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Image Gallery
+          if (imageAttachments.isNotEmpty) ...[
+            const Divider(height: 1, color: TossColors.gray200),
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              child: _buildImageGallery(context, imageAttachments),
+            ),
+          ],
+
+          // Other files (PDF, etc.)
+          if (otherAttachments.isNotEmpty) ...[
+            if (imageAttachments.isNotEmpty)
+              const Divider(height: 1, color: TossColors.gray200),
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              child: Column(
+                children: otherAttachments
+                    .map((attachment) => _buildFileItem(attachment))
+                    .toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Build image gallery
+  Widget _buildImageGallery(
+    BuildContext context,
+    List<InvoiceAttachment> images,
+  ) {
+    if (images.isEmpty) return const SizedBox.shrink();
+
+    final firstImage = images.first;
+    final remainingImages =
+        images.length > 1 ? images.sublist(1) : <InvoiceAttachment>[];
+
+    return Column(
+      children: [
+        // First image - large (contain to show full image)
+        GestureDetector(
+          onTap: () => _openFullscreenViewer(context, images, 0),
+          child: Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(TossBorderRadius.md - 1),
+              child:
+                  _buildNetworkImage(firstImage.fileUrl ?? '', fit: BoxFit.contain),
+            ),
+          ),
+        ),
+
+        // Remaining images - small thumbnails
+        if (remainingImages.isNotEmpty) ...[
+          const SizedBox(height: TossSpacing.space2),
+          SizedBox(
+            height: 64,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: remainingImages.length > 4 ? 4 : remainingImages.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: TossSpacing.space2),
+              itemBuilder: (context, index) {
+                final image = remainingImages[index];
+                final actualIndex = index + 1;
+                final isLastWithMore = index == 3 && remainingImages.length > 4;
+
+                return GestureDetector(
+                  onTap: () =>
+                      _openFullscreenViewer(context, images, actualIndex),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      border: Border.all(color: TossColors.gray200),
+                    ),
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(TossBorderRadius.sm - 1),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildNetworkImage(
+                          image.fileUrl ?? '',
+                          fit: BoxFit.cover,
+                        ),
+                          if (isLastWithMore)
+                            Container(
+                              color: Colors.black54,
+                              child: Center(
+                                child: Text(
+                                  '+${remainingImages.length - 3}',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Open fullscreen image viewer
+  void _openFullscreenViewer(
+    BuildContext context,
+    List<InvoiceAttachment> images,
+    int initialIndex,
+  ) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => AttachmentFullscreenViewer(
+          attachments:
+              images.map((a) => _toTransactionAttachment(a)).toList(),
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
+  }
+
+  /// Convert InvoiceAttachment to TransactionAttachment for fullscreen viewer
+  TransactionAttachment _toTransactionAttachment(InvoiceAttachment attachment) {
+    return TransactionAttachment(
+      attachmentId: attachment.attachmentId,
+      fileName: attachment.fileName,
+      fileType: attachment.fileType,
+      fileUrl: attachment.fileUrl,
+    );
+  }
+
+  /// Build network image with loading and error states
+  Widget _buildNetworkImage(String url, {BoxFit fit = BoxFit.cover}) {
+    if (url.isEmpty) {
+      return Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: Icon(Icons.image_not_supported, color: TossColors.gray400),
+        ),
+      );
+    }
+
+    final authenticatedUrl = StorageUrlHelper.toAuthenticatedUrl(url);
+    final authHeaders = StorageUrlHelper.getAuthHeaders();
+
+    return CachedNetworkImage(
+      imageUrl: authenticatedUrl,
+      httpHeaders: authHeaders,
+      fit: fit,
+      placeholder: (context, url) => Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: TossColors.gray400,
+            ),
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: TossColors.gray100,
+        child: const Center(
+          child: Icon(Icons.broken_image, color: TossColors.gray400),
+        ),
+      ),
+    );
+  }
+
+  /// Build file item (PDF, etc.)
+  Widget _buildFileItem(InvoiceAttachment attachment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            attachment.isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
+            size: 20,
+            color: attachment.isPdf ? Colors.red : TossColors.gray500,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              attachment.fileName,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray700,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

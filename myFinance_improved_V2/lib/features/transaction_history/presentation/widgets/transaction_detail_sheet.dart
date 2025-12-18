@@ -170,47 +170,88 @@ class TransactionDetailSheet extends StatelessWidget {
   }
 
   Widget _buildTransactionInfoCard() {
+    final hasUserDesc = transaction.description.isNotEmpty;
+    final hasAiDesc = transaction.aiDescription != null && transaction.aiDescription!.isNotEmpty;
+
     return TossCard(
       backgroundColor: TossColors.gray50,
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (transaction.description.isNotEmpty) ...[
-            Row(
-              children: [
-                const Icon(Icons.description_outlined, size: 16, color: TossColors.gray500),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    transaction.description,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-          ],
+          // Total Amount - Primary info at top
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Total Amount',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 '${transaction.currencySymbol}${_formatCurrency(transaction.totalAmount)}',
-                style: TossTextStyles.h3.copyWith(
+                style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.textPrimary,
                 ),
               ),
             ],
           ),
+          // Descriptions section (compact)
+          if (hasUserDesc || hasAiDesc) ...[
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Description
+                  if (hasUserDesc) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.edit_note, size: 14, color: TossColors.gray400),
+                        const SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: Text(
+                            transaction.description,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (hasAiDesc) const SizedBox(height: TossSpacing.space2),
+                  ],
+                  // AI Description (summary)
+                  if (hasAiDesc)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.auto_awesome, size: 14, color: Colors.amber.shade600),
+                        const SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: Text(
+                            transaction.aiDescription!,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -556,7 +597,97 @@ class TransactionDetailSheet extends StatelessWidget {
             const SizedBox(height: TossSpacing.space3),
           ...otherAttachments.map((attachment) => _buildFileItem(attachment)),
         ],
+
+        // Per-image AI Analysis Details
+        if (attachments.any((a) => a.hasOcr)) ...[
+          const SizedBox(height: TossSpacing.space4),
+          _buildPerImageOcrList(attachments),
+        ],
       ],
+    );
+  }
+
+  /// Build per-image OCR analysis list
+  Widget _buildPerImageOcrList(List<TransactionAttachment> attachments) {
+    final attachmentsWithOcr = attachments.where((a) => a.hasOcr).toList();
+    if (attachmentsWithOcr.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, size: 14, color: Colors.amber.shade700),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'AI Analysis Details',
+                style: TossTextStyles.caption.copyWith(
+                  color: Colors.amber.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          // Divider
+          Container(
+            height: 1,
+            color: Colors.amber.shade200,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          // List of OCR results
+          ...attachmentsWithOcr.asMap().entries.map((entry) {
+            final index = entry.key;
+            final attachment = entry.value;
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index < attachmentsWithOcr.length - 1 ? TossSpacing.space2 : 0,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.amber.shade800,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      attachment.ocrText!,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray700,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 

@@ -17,7 +17,9 @@ abstract class SalesJournalRepository {
   /// - [cogsAccountId]: Account ID for COGS (from Domain configuration)
   /// - [inventoryAccountId]: Account ID for inventory (from Domain configuration)
   /// - [totalCost]: Total cost of goods sold (for COGS/Inventory entries)
-  Future<void> createSalesJournalEntry({
+  ///
+  /// Returns: The journal_id of the created sales journal entry (for attachments)
+  Future<String?> createSalesJournalEntry({
     required String companyId,
     required String storeId,
     required String userId,

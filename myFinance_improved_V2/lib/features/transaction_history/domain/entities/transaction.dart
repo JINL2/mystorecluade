@@ -6,6 +6,7 @@ class Transaction {
   final DateTime entryDate;
   final DateTime createdAt;
   final String description;
+  final String? aiDescription;
   final String journalType;
   final bool isDraft;
   final String? storeId;
@@ -27,6 +28,7 @@ class Transaction {
     required this.entryDate,
     required this.createdAt,
     required this.description,
+    this.aiDescription,
     required this.journalType,
     required this.isDraft,
     this.storeId,
@@ -99,12 +101,16 @@ class TransactionAttachment {
   final String fileName;
   final String fileType;
   final String? fileUrl;
+  final String? ocrText;
+  final String? ocrStatus;
 
   const TransactionAttachment({
     required this.attachmentId,
     required this.fileName,
     required this.fileType,
     this.fileUrl,
+    this.ocrText,
+    this.ocrStatus,
   });
 
   /// Check if this is an image file
@@ -115,4 +121,7 @@ class TransactionAttachment {
 
   /// Get file extension
   String get fileExtension => fileName.split('.').last.toLowerCase();
+
+  /// Check if OCR has been processed
+  bool get hasOcr => ocrText != null && ocrText!.isNotEmpty;
 }

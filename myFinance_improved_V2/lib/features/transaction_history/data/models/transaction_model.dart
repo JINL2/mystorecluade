@@ -14,6 +14,7 @@ class TransactionModel with _$TransactionModel {
     @JsonKey(name: 'entry_date') required DateTime entryDate,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'ai_description') String? aiDescription,
     @JsonKey(name: 'journal_type') required String journalType,
     @JsonKey(name: 'is_draft') required bool isDraft,
     @JsonKey(name: 'store_id') String? storeId,
@@ -64,6 +65,7 @@ class TransactionModel with _$TransactionModel {
             ? DateTimeUtils.toLocal(json['created_at'] as String)
             : DateTime.now(),
         description: json['description']?.toString() ?? '',
+        aiDescription: json['ai_description']?.toString(),
         journalType: json['journal_type']?.toString() ?? '',
         isDraft: (json['is_draft'] as bool?) ?? false,
         storeId: json['store_id']?.toString(),
@@ -94,6 +96,7 @@ extension TransactionModelMapper on TransactionModel {
       entryDate: entryDate,
       createdAt: createdAt,
       description: description,
+      aiDescription: aiDescription,
       journalType: journalType,
       isDraft: isDraft,
       storeId: storeId,
@@ -182,6 +185,8 @@ class TransactionAttachmentModel with _$TransactionAttachmentModel {
     @JsonKey(name: 'file_name') required String fileName,
     @JsonKey(name: 'file_type') required String fileType,
     @JsonKey(name: 'file_url') String? fileUrl,
+    @JsonKey(name: 'ocr_text') String? ocrText,
+    @JsonKey(name: 'ocr_status') String? ocrStatus,
   }) = _TransactionAttachmentModel;
 
   factory TransactionAttachmentModel.fromJson(Map<String, dynamic> json) {
@@ -194,6 +199,8 @@ class TransactionAttachmentModel with _$TransactionAttachmentModel {
       fileName: fileName,
       fileType: fileType,
       fileUrl: json['file_url']?.toString(),
+      ocrText: json['ocr_text']?.toString(),
+      ocrStatus: json['ocr_status']?.toString(),
     );
   }
 
@@ -232,6 +239,8 @@ extension TransactionAttachmentModelMapper on TransactionAttachmentModel {
       fileName: fileName,
       fileType: fileType,
       fileUrl: fileUrl,
+      ocrText: ocrText,
+      ocrStatus: ocrStatus,
     );
   }
 }

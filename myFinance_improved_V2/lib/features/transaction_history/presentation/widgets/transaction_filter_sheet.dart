@@ -6,6 +6,9 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
@@ -103,9 +106,50 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
           
           const SizedBox(height: TossSpacing.space4),
           
-          // TODO: Add selector components when available
-          // For now, filters work with basic date/type filtering
-          
+          // Account Selector
+          EnhancedAccountSelector(
+            selectedAccountId: _selectedAccountId,
+            contextType: 'transaction_filter',
+            showQuickAccess: true,
+            maxQuickItems: 5,
+            onAccountSelected: (account) {
+              setState(() {
+                _selectedAccountId = account.id;
+                _selectedAccountIds = [account.id];
+              });
+            },
+            label: 'Account',
+            hint: 'All Accounts',
+            showSearch: true,
+            showTransactionCount: true,
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Cash Location Selector
+          AutonomousCashLocationSelector(
+            selectedLocationId: _selectedCashLocationId,
+            onChanged: (value) {
+              setState(() {
+                _selectedCashLocationId = value;
+              });
+            },
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Counterparty Selector
+          AutonomousCounterpartySelector(
+            selectedCounterpartyId: _selectedCounterpartyId,
+            onChanged: (value) {
+              setState(() {
+                _selectedCounterpartyId = value;
+              });
+            },
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
           // Filter Options that still need async data (Transaction Type, Created By)
           filterOptionsAsync.when(
             data: (options) => Column(

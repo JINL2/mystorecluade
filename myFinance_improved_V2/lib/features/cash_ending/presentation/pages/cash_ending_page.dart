@@ -272,9 +272,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     CashEndingState state,
     String currencyId,
   ) async {
+    // ✅ Immediately set saving state to prevent double-tap
+    ref.read(cashTabProvider.notifier).setSaving(true);
 
     // Validation
     if (state.selectedCashLocationId == null) {
+      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a cash location',
@@ -287,6 +290,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
 
     if (companyId.isEmpty || userId.isEmpty) {
+      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Invalid company or user',
@@ -299,6 +303,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Validate currencies list is not empty
     if (state.currencies.isEmpty) {
+      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'No currencies available. Please reload the page.',
@@ -431,8 +436,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     CashEndingState state,
     String currencyId,
   ) async {
+    // ✅ Immediately set saving state to prevent double-tap
+    ref.read(bankTabProvider.notifier).setSaving(true);
+
     // Validation
     if (state.selectedBankLocationId == null) {
+      ref.read(bankTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a bank location',
@@ -445,6 +454,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final userId = ref.read(appStateProvider).user['user_id'] as String?;
 
     if (companyId.isEmpty || userId == null) {
+      ref.read(bankTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Invalid company or user',
@@ -561,6 +571,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     String currencyId,
     String transactionType,
   ) async {
+    // ✅ Immediately set saving state to prevent double-tap
+    ref.read(vaultTabProvider.notifier).setSaving(true);
+
     debugPrint('\n');
     debugPrint('╔═══════════════════════════════════════════════════════╗');
     debugPrint('║  🎯 [CashEndingPage] _saveVaultTransaction 호출    ║');
@@ -574,6 +587,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Validation
     if (state.selectedVaultLocationId == null) {
+      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a vault location',
@@ -590,6 +604,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final companyId = appState.companyChoosen;
 
     if (userId == null || companyId.isEmpty) {
+      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Missing user or company information',
@@ -599,6 +614,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Validate currencies list is not empty
     if (state.currencies.isEmpty) {
+      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'No currencies available. Please reload the page.',
@@ -702,6 +718,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
       if (currenciesWithQuantities.isEmpty) {
         debugPrint('⚠️ [CashEndingPage] No currencies with quantities!');
+        ref.read(vaultTabProvider.notifier).setSaving(false);
         success = false;
         if (mounted) {
           await TossDialogs.showCashEndingError(

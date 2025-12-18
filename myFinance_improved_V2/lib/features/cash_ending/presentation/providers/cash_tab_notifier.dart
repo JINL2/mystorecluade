@@ -170,4 +170,10 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
       balanceSummary: null,
     );
   }
+
+  /// Set saving state immediately (for double-tap prevention)
+  /// Call this at the START of onSave callback to prevent rapid taps
+  void setSaving(bool value) {
+    state = state.copyWith(isSaving: value);
+  }
 }

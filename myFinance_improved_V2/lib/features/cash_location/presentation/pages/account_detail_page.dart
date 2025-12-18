@@ -461,13 +461,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return 'Transaction';
   }
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh data when the page becomes visible again
-    // This handles navigation back from other pages
-    _refreshDataSilently();
-  }
+  // Note: Removed didChangeDependencies override that was causing AppBar to disappear.
+  // The method was calling _refreshDataSilently() on every dependency change,
+  // which triggered excessive rebuilds and UI flickering.
+  // Data refresh is already handled by:
+  // - initState (initial load)
+  // - didChangeAppLifecycleState (app resume)
+  // - _onRefresh (pull-to-refresh)
+  // - Navigation callbacks (returning from settings page)
   
   @override
   Widget build(BuildContext context) {
