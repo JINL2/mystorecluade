@@ -32,6 +32,11 @@ export interface InventoryHeaderProps {
   isImporting: boolean;
 
   /**
+   * Whether sample export operation is in progress
+   */
+  isExportingSample: boolean;
+
+  /**
    * Total number of inventory items
    */
   totalItems: number;
@@ -82,6 +87,11 @@ export interface InventoryHeaderProps {
   onImport: () => void;
 
   /**
+   * Callback when export sample button is clicked
+   */
+  onExportSample: () => void;
+
+  /**
    * Callback when add product button is clicked
    */
   onAddProduct: () => void;
@@ -100,16 +110,6 @@ export interface InventoryHeaderProps {
    * Callback when category filter toggles (multi-select)
    */
   onCategoryFilterToggle: (category: string) => void;
-
-  /**
-   * Callback to clear all brand filters
-   */
-  onClearBrandFilter: () => void;
-
-  /**
-   * Callback to clear all category filters
-   */
-  onClearCategoryFilter: () => void;
 
   /**
    * Ref for hidden file input

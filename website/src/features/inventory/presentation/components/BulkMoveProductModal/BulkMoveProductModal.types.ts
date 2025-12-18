@@ -15,5 +15,5 @@ export interface BulkMoveProductModalProps {
   products: ProductToMove[];
   sourceStoreId: string;
   companyId: string;
-  onMove?: (targetStoreId: string, items: Array<{ productId: string; productName: string; quantity: number }>, notes: string) => Promise<void>;
+  onMove?: (targetStoreId: string, items: Array<{ productId: string; productName: string; quantity: number }>, notes: string, sourceStoreId?: string) => Promise<void>;
 }
