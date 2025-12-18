@@ -43,18 +43,20 @@ export class AccountModel {
 
 /**
  * CashLocationModel - Maps between API response and CashLocation entity
+ * Updated for get_cash_locations_v2 RPC response
  */
 export class CashLocationModel {
   /**
    * Convert API response to CashLocation entity
+   * Supports both v1 (id, name, type) and v2 (cash_location_id, location_name, location_type) formats
    */
   static fromJson(json: any): CashLocation {
     return {
-      locationId: json.id,
-      locationName: json.name,
-      locationType: json.type,
-      storeId: json.storeId,
-      isCompanyWide: json.isCompanyWide,
+      locationId: json.cash_location_id || json.id,
+      locationName: json.location_name || json.name,
+      locationType: json.location_type || json.type,
+      storeId: json.store_id || json.storeId,
+      isCompanyWide: json.is_company_wide ?? json.isCompanyWide ?? false,
     };
   }
 
@@ -63,11 +65,11 @@ export class CashLocationModel {
    */
   static toJson(location: CashLocation): any {
     return {
-      id: location.locationId,
-      name: location.locationName,
-      type: location.locationType,
-      storeId: location.storeId,
-      isCompanyWide: location.isCompanyWide,
+      cash_location_id: location.locationId,
+      location_name: location.locationName,
+      location_type: location.locationType,
+      store_id: location.storeId,
+      is_company_wide: location.isCompanyWide,
     };
   }
 }

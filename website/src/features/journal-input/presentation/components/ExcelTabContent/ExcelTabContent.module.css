@@ -284,3 +284,21 @@
   color: #9ca3af;
   cursor: not-allowed;
 }
+
+/* Small font size for Store and Location selectors */
+.storeCell [class*="tossSelect"],
+.storeCell [class*="tossSelectValue"],
+.storeCell [class*="tossSelectOptionLabel"],
+.storeCell [class*="tossSelectSearchInput"],
+.selectorCell [class*="tossSelect"],
+.selectorCell [class*="tossSelectValue"],
+.selectorCell [class*="tossSelectOptionLabel"],
+.selectorCell [class*="tossSelectSearchInput"] {
+  font-size: 12px !important;
+}
+
+.storeCell [class*="tossSelectOptionDescription"],
+.selectorCell [class*="tossSelectOptionDescription"] {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+}

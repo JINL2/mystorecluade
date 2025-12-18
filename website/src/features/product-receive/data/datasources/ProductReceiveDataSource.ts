@@ -244,12 +244,15 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   ): Promise<{ products: SearchProductDTO[]; currency: CurrencyDTO }> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('get_inventory_page_v3', {
+    const { data, error } = await client.rpc('get_inventory_page_v4', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
       p_limit: limit,
       p_search: query,
+      p_availability: null,
+      p_brand_id: null,
+      p_category_id: null,
       p_timezone: this.getTimezone(),
     });
 
