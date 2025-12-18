@@ -291,6 +291,38 @@ class ExcelExportManager {
   }
 
   /**
+   * Extract cell value, handling Rich Text objects
+   * @param cell - ExcelJS cell object
+   * @returns Plain text value or null
+   */
+  private getCellValue(cell: any): string | number | null {
+    const value = cell.value;
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    // Handle Rich Text objects (formatted text in Excel)
+    if (typeof value === 'object' && value.richText) {
+      // Concatenate all text parts from Rich Text
+      return value.richText.map((part: any) => part.text || '').join('');
+    }
+
+    // Handle hyperlink objects
+    if (typeof value === 'object' && value.text) {
+      return value.text;
+    }
+
+    // Handle formula results
+    if (typeof value === 'object' && value.result !== undefined) {
+      return value.result;
+    }
+
+    // Return primitive values as-is
+    return value;
+  }
+
+  /**
    * Parse Excel file and extract product data
    * @param file - Excel file to parse
    * @returns Promise with array of product data
@@ -315,18 +347,18 @@ class ExcelExportManager {
     worksheet.eachRow((row: any, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip header row
 
-      // Get cell values by column number
+      // Get cell values by column number (using helper to handle Rich Text)
       const productData = {
-        sku: row.getCell(1).value || null, // Column A - SKU
-        barcode: row.getCell(2).value || null, // Column B - Barcode
-        product_name: row.getCell(3).value || null, // Column C - Product Name (null preserves existing)
-        category: row.getCell(4).value || null, // Column D - Category
-        brand: row.getCell(5).value || null, // Column E - Brand
-        unit: row.getCell(6).value || 'piece', // Column F - Unit
-        cost_price: row.getCell(7).value, // Column G - Cost Price (parsed later)
-        selling_price: row.getCell(8).value, // Column H - Selling Price (parsed later)
-        current_stock: row.getCell(9).value, // Column I - Current Stock (parsed later)
-        status: row.getCell(10).value || 'Active', // Column J - Status
+        sku: this.getCellValue(row.getCell(1)), // Column A - SKU
+        barcode: this.getCellValue(row.getCell(2)), // Column B - Barcode
+        product_name: this.getCellValue(row.getCell(3)), // Column C - Product Name (null preserves existing)
+        category: this.getCellValue(row.getCell(4)), // Column D - Category
+        brand: this.getCellValue(row.getCell(5)), // Column E - Brand
+        unit: this.getCellValue(row.getCell(6)) || 'piece', // Column F - Unit
+        cost_price: this.getCellValue(row.getCell(7)), // Column G - Cost Price (parsed later)
+        selling_price: this.getCellValue(row.getCell(8)), // Column H - Selling Price (parsed later)
+        current_stock: this.getCellValue(row.getCell(9)), // Column I - Current Stock (parsed later)
+        status: this.getCellValue(row.getCell(10)) || 'Active', // Column J - Status
         image_urls: null as any, // Will be populated below from columns K, L, M
       };
 
@@ -350,14 +382,19 @@ class ExcelExportManager {
         if (productData.brand === '') productData.brand = null;
 
         // Parse numeric values - null/empty stays null (RPC will preserve existing values)
-        const parsedCost = parseFloat(productData.cost_price);
-        const parsedSelling = parseFloat(productData.selling_price);
-        const parsedStock = parseFloat(productData.current_stock);
+        const costValue = productData.cost_price;
+        const sellingValue = productData.selling_price;
+        const stockValue = productData.current_stock;
+
+        // Handle both number and string values
+        const parsedCost = typeof costValue === 'number' ? costValue : parseFloat(String(costValue));
+        const parsedSelling = typeof sellingValue === 'number' ? sellingValue : parseFloat(String(sellingValue));
+        const parsedStock = typeof stockValue === 'number' ? stockValue : parseFloat(String(stockValue));
 
         // Only set value if it's a valid number, otherwise null (preserve existing)
-        productData.cost_price = (!isNaN(parsedCost) && productData.cost_price !== null && productData.cost_price !== '') ? parsedCost : null;
-        productData.selling_price = (!isNaN(parsedSelling) && productData.selling_price !== null && productData.selling_price !== '') ? parsedSelling : null;
-        productData.current_stock = (!isNaN(parsedStock) && productData.current_stock !== null && productData.current_stock !== '') ? parsedStock : null;
+        productData.cost_price = (!isNaN(parsedCost) && costValue !== null && costValue !== '') ? parsedCost : null;
+        productData.selling_price = (!isNaN(parsedSelling) && sellingValue !== null && sellingValue !== '') ? parsedSelling : null;
+        productData.current_stock = (!isNaN(parsedStock) && stockValue !== null && stockValue !== '') ? parsedStock : null;
 
         // Process image URLs from columns K, L, M (image1, image2, image3)
         const imageUrls: string[] = [];
@@ -376,8 +413,12 @@ class ExcelExportManager {
           imageUrls.push(String(image3).trim());
         }
 
-        // Set image_urls - null if empty (RPC will preserve existing), array if has values
-        productData.image_urls = imageUrls.length > 0 ? imageUrls : null;
+        // Set image_urls - undefined if empty (won't be sent to RPC, preserves existing), array if has values
+        // Note: null causes "cannot get array length of a scalar" error in RPC
+        if (imageUrls.length > 0) {
+          productData.image_urls = imageUrls;
+        }
+        // If no images, leave as null (initialized value) - will be filtered out below
 
         products.push(productData);
       }

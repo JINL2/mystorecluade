@@ -609,7 +609,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         variant={notification.variant}
         message={notification.message}
         onClose={hideNotification}
-        autoCloseDuration={2000}
+        autoCloseDuration={notification.message.includes('Import completed') ? 0 : 2000}
         zIndex={9999}
       />
 
