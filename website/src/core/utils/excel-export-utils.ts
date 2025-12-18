@@ -319,13 +319,13 @@ class ExcelExportManager {
       const productData = {
         sku: row.getCell(1).value || null, // Column A - SKU
         barcode: row.getCell(2).value || null, // Column B - Barcode
-        product_name: row.getCell(3).value || '', // Column C - Product Name
+        product_name: row.getCell(3).value || null, // Column C - Product Name (null preserves existing)
         category: row.getCell(4).value || null, // Column D - Category
         brand: row.getCell(5).value || null, // Column E - Brand
         unit: row.getCell(6).value || 'piece', // Column F - Unit
-        cost_price: parseFloat(row.getCell(7).value) || 0, // Column G - Cost Price
-        selling_price: parseFloat(row.getCell(8).value) || 0, // Column H - Selling Price
-        current_stock: parseFloat(row.getCell(9).value) || 0, // Column I - Current Stock
+        cost_price: row.getCell(7).value, // Column G - Cost Price (parsed later)
+        selling_price: row.getCell(8).value, // Column H - Selling Price (parsed later)
+        current_stock: row.getCell(9).value, // Column I - Current Stock (parsed later)
         status: row.getCell(10).value || 'Active', // Column J - Status
         image_urls: null as any, // Will be populated below from columns K, L, M
       };
@@ -336,7 +336,7 @@ class ExcelExportManager {
         // Convert all string fields to proper strings
         if (productData.sku !== null) productData.sku = String(productData.sku).trim();
         if (productData.barcode !== null) productData.barcode = String(productData.barcode).trim();
-        if (productData.product_name) productData.product_name = String(productData.product_name).trim();
+        if (productData.product_name !== null) productData.product_name = String(productData.product_name).trim();
         if (productData.category !== null) productData.category = String(productData.category).trim();
         if (productData.brand !== null) productData.brand = String(productData.brand).trim();
         if (productData.unit) productData.unit = String(productData.unit).toLowerCase().trim();
@@ -345,13 +345,19 @@ class ExcelExportManager {
         // Convert empty strings to null
         if (productData.sku === '') productData.sku = null;
         if (productData.barcode === '') productData.barcode = null;
+        if (productData.product_name === '') productData.product_name = null;
         if (productData.category === '') productData.category = null;
         if (productData.brand === '') productData.brand = null;
 
-        // Ensure numeric values are numbers
-        productData.cost_price = isNaN(productData.cost_price) ? 0 : productData.cost_price;
-        productData.selling_price = isNaN(productData.selling_price) ? 0 : productData.selling_price;
-        productData.current_stock = isNaN(productData.current_stock) ? 0 : productData.current_stock;
+        // Parse numeric values - null/empty stays null (RPC will preserve existing values)
+        const parsedCost = parseFloat(productData.cost_price);
+        const parsedSelling = parseFloat(productData.selling_price);
+        const parsedStock = parseFloat(productData.current_stock);
+
+        // Only set value if it's a valid number, otherwise null (preserve existing)
+        productData.cost_price = (!isNaN(parsedCost) && productData.cost_price !== null && productData.cost_price !== '') ? parsedCost : null;
+        productData.selling_price = (!isNaN(parsedSelling) && productData.selling_price !== null && productData.selling_price !== '') ? parsedSelling : null;
+        productData.current_stock = (!isNaN(parsedStock) && productData.current_stock !== null && productData.current_stock !== '') ? parsedStock : null;
 
         // Process image URLs from columns K, L, M (image1, image2, image3)
         const imageUrls: string[] = [];
@@ -370,8 +376,8 @@ class ExcelExportManager {
           imageUrls.push(String(image3).trim());
         }
 
-        // Set image_urls array (RPC expects array, not null)
-        productData.image_urls = imageUrls;
+        // Set image_urls - null if empty (RPC will preserve existing), array if has values
+        productData.image_urls = imageUrls.length > 0 ? imageUrls : null;
 
         products.push(productData);
       }
