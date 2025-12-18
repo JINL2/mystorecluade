@@ -331,7 +331,8 @@ class ExcelExportManager {
       };
 
       // Data validation and cleaning
-      if (productData.product_name) {
+      // Allow rows with either product_name (new product) or sku (existing product update)
+      if (productData.product_name || productData.sku) {
         // Convert all string fields to proper strings
         if (productData.sku !== null) productData.sku = String(productData.sku).trim();
         if (productData.barcode !== null) productData.barcode = String(productData.barcode).trim();
