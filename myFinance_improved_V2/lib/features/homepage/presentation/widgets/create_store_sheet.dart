@@ -54,19 +54,10 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
   bool get _isFormValid => _nameController.text.trim().isNotEmpty;
 
   void _createStore() {
-    debugPrint('🏪 [CreateStoreSheet] _createStore() called');
-    debugPrint('🏪 [CreateStoreSheet] _isFormValid: $_isFormValid');
-    debugPrint('🏪 [CreateStoreSheet] storeName: "${_nameController.text.trim()}"');
-    debugPrint('🏪 [CreateStoreSheet] companyId: ${widget.companyId}');
-    debugPrint('🏪 [CreateStoreSheet] storeAddress: "${_addressController.text.trim()}"');
-    debugPrint('🏪 [CreateStoreSheet] storePhone: "${_phoneController.text.trim()}"');
-
     if (!_isFormValid) {
-      debugPrint('❌ [CreateStoreSheet] Form is not valid, returning');
       return;
     }
 
-    debugPrint('📤 [CreateStoreSheet] Calling storeNotifierProvider.createStore()');
     ref.read(storeNotifierProvider.notifier).createStore(
           storeName: _nameController.text.trim(),
           companyId: widget.companyId,
@@ -359,7 +350,6 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
                           loading: () => true,
                           orElse: () => false,
                         );
-                        debugPrint('🔘 [CreateStoreSheet] Button rebuild - isFormValid: $isValid, isLoading: $isLoading');
 
                         return SizedBox(
                           width: double.infinity,

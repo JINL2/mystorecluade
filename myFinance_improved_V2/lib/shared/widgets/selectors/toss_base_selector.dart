@@ -11,6 +11,10 @@ class SelectorConfig {
   final IconData icon;
   final String emptyMessage;
   final String searchHint;
+  /// Custom label style (if null, uses default TossTextStyles.label)
+  final TextStyle? labelStyle;
+  /// Whether to hide the built-in label (useful when providing custom label externally)
+  final bool hideLabel;
 
   const SelectorConfig({
     required this.label,
@@ -21,6 +25,8 @@ class SelectorConfig {
     this.icon = Icons.arrow_drop_down,
     this.emptyMessage = 'No items available',
     this.searchHint = 'Search',
+    this.labelStyle,
+    this.hideLabel = false,
   });
 }
 
@@ -56,14 +62,17 @@ class TossSingleSelector<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          config.label,
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+        // Label (can be hidden if hideLabel is true)
+        if (!config.hideLabel) ...[
+          Text(
+            config.label,
+            style: config.labelStyle ?? TossTextStyles.label.copyWith(
+              color: TossColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
+        ],
         InkWell(
           onTap: () => _showSelector(context),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -92,9 +101,7 @@ class TossSingleSelector<T> extends StatelessWidget {
                       color: selectedItem != null
                           ? TossColors.textPrimary
                           : TossColors.textTertiary,
-                      fontWeight: selectedItem != null
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      // No bold for selected item - match TossTextField style
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -183,14 +190,17 @@ class TossMultiSelector<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          config.label,
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+        // Label (can be hidden if hideLabel is true)
+        if (!config.hideLabel) ...[
+          Text(
+            config.label,
+            style: config.labelStyle ?? TossTextStyles.label.copyWith(
+              color: TossColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space2),
+        ],
         InkWell(
           onTap: () => _showSelector(context),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),

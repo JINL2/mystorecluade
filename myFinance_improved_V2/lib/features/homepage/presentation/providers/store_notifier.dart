@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_store.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/states/store_state.dart';
+
+import '../../../../core/monitoring/sentry_config.dart';
 
 /// StateNotifier for managing Store creation state
 class StoreNotifier extends StateNotifier<StoreState> {
@@ -19,12 +20,9 @@ class StoreNotifier extends StateNotifier<StoreState> {
     int? paymentTime,
     int? allowedDistance,
   }) async {
-    debugPrint('🏪 [StoreNotifier] createStore() called');
-    debugPrint('🏪 [StoreNotifier] storeName: $storeName, companyId: $companyId');
     state = const StoreState.loading();
 
     try {
-      debugPrint('🏪 [StoreNotifier] Calling _createStore usecase...');
       final result = await _createStore(CreateStoreParams(
         storeName: storeName,
         companyId: companyId,
@@ -35,20 +33,21 @@ class StoreNotifier extends StateNotifier<StoreState> {
         allowedDistance: allowedDistance,
       ),);
 
-      debugPrint('🏪 [StoreNotifier] UseCase result received');
       result.fold(
         (failure) {
-          debugPrint('❌ [StoreNotifier] Failure: ${failure.message}, code: ${failure.code}');
           state = StoreState.error(failure.message, failure.code);
         },
         (store) {
-          debugPrint('✅ [StoreNotifier] Success: store_id=${store.id}');
           state = StoreState.created(store);
         },
       );
-    } catch (e, stack) {
-      debugPrint('❌ [StoreNotifier] Exception: $e');
-      debugPrint('❌ [StoreNotifier] Stack: $stack');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'StoreNotifier.createStore failed',
+        extra: {'storeName': storeName, 'companyId': companyId},
+      );
       state = StoreState.error(e.toString(), 'EXCEPTION');
     }
   }

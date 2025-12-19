@@ -6,6 +6,11 @@
 ///
 /// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
 ///
+/// 🔧 REFACTORED: Now uses RPC-based approach
+/// - get_template_for_usage: Analyzes template and returns UI configuration
+/// - create_transaction_from_template: Validates and creates transaction
+/// Reference: docs/TEMPLATE_RPC_REFACTORING_PLAN.md
+///
 /// Usage: TemplateUsageBottomSheet.show(context, template)
 library;
 import 'dart:async';
@@ -26,12 +31,12 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart'
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
-// ✅ Clean Architecture: Use Case from Domain layer
+// ✅ Clean Architecture: Domain layer entities
 import '../../domain/entities/template_attachment.dart';
-import '../../domain/usecases/create_transaction_from_template_usecase.dart';
 import '../../domain/validators/template_form_validator.dart';
-// 🔧 ENHANCED: Template analysis for intelligent UI
-import '../../domain/value_objects/template_analysis_result.dart';
+// 🔧 RPC-based: DTO from Data layer
+import '../../data/dtos/template_usage_response_dto.dart';
+import '../../data/providers/repository_providers.dart';
 // ✅ Clean Architecture: Provider from Presentation layer
 import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
@@ -257,8 +262,10 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSheet> {
-  // 🔧 ENHANCED: Template analysis for intelligent UI
-  late final TemplateAnalysisResult _analysis;
+  // 🔧 RPC-based: Template usage response from server
+  TemplateUsageResponseDto? _rpcResponse;
+  bool _isLoadingRpc = true;
+  String? _rpcError;
 
   // Controllers and state variables
   final TextEditingController _amountController = TextEditingController();
@@ -267,6 +274,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // Dynamic selection state
   String? _selectedMyCashLocationId;
   String? _selectedCounterpartyId;
+  String? _selectedCounterpartyStoreId; // 🆕 For internal counterparty
   String? _selectedCounterpartyCashLocationId;
   bool _showTemplateDetails = false;
 
@@ -274,7 +282,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   String? _amountError;
   String? _cashLocationError;
   String? _counterpartyError;
-  TemplateValidationResult? _lastValidationResult;
 
   // 📎 Attachment state
   List<TemplateAttachment> _pendingAttachments = [];
@@ -285,61 +292,79 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // 🧮 Multiple currencies check for calculator button
   bool _hasMultipleCurrencies = false;
 
-  // 🏢 Internal counterparty check - if true, counterparty cannot be changed
-  bool _isInternalCounterparty = false;
-  String? _counterpartyName;
-
   @override
   void initState() {
     super.initState();
-
-    // Analyze template to determine required fields
-    _analysis = TemplateAnalysisResult.analyze(widget.template);
-
-    // Initialize counterparty from template if exists
-    _selectedCounterpartyId = widget.template['counterparty_id']?.toString();
-    _selectedCounterpartyCashLocationId = widget.template['counterparty_cash_location_id']?.toString();
-
-    // Check if counterparty is internal (has counterparty_cash_location_id means internal)
-    // Internal = has linked company, requires counterparty_cash_location_id
-    // External = no linked company, counterparty can be changed freely
-    final tags = widget.template['tags'] as Map<String, dynamic>? ?? {};
-    _isInternalCounterparty = _selectedCounterpartyCashLocationId != null &&
-                              _selectedCounterpartyCashLocationId!.isNotEmpty &&
-                              _selectedCounterpartyCashLocationId != 'none';
-
-    // Get counterparty name from tags or data for display
-    _counterpartyName = tags['counterparty_name']?.toString();
-    if (_counterpartyName == null || _counterpartyName!.isEmpty) {
-      // Try to get from data entries
-      final data = widget.template['data'] as List? ?? [];
-      for (var entry in data) {
-        final cpName = entry['counterparty_name']?.toString();
-        if (cpName != null && cpName.isNotEmpty) {
-          _counterpartyName = cpName;
-          break;
-        }
-      }
-    }
-
-    // Initialize cash location from template data if exists
-    final data = widget.template['data'] as List? ?? [];
-    for (var entry in data) {
-      if (entry['category_tag'] == 'cash' && entry['cash_location_id'] != null) {
-        final cashLocId = entry['cash_location_id']?.toString();
-        if (cashLocId != null && cashLocId.isNotEmpty && cashLocId != 'none') {
-          _selectedMyCashLocationId = cashLocId;
-          break;
-        }
-      }
-    }
 
     // Add listeners for real-time validation
     _amountController.addListener(_validateAmountField);
     _amountController.addListener(_notifyValidityChange);
 
+    // 🔧 RPC-based: Load template analysis from server
+    _loadTemplateForUsage();
+
     // Check for multiple currencies (for calculator button)
     _checkForMultipleCurrencies();
+  }
+
+  /// 🔧 RPC-based: Load template analysis from server
+  /// Reference: docs/TEMPLATE_RPC_REFACTORING_PLAN.md Section 4.2
+  Future<void> _loadTemplateForUsage() async {
+    try {
+      final appState = ref.read(Legacy.appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+      final templateId = widget.template['template_id']?.toString() ?? '';
+
+      if (templateId.isEmpty || companyId.isEmpty) {
+        setState(() {
+          _isLoadingRpc = false;
+          _rpcError = 'Invalid template or company ID';
+        });
+        return;
+      }
+
+      final dataSource = ref.read(templateDataSourceProvider);
+      final response = await dataSource.getTemplateForUsage(
+        templateId: templateId,
+        companyId: companyId,
+        storeId: storeId.isNotEmpty ? storeId : null,
+      );
+
+      if (!mounted) return;
+
+      if (!response.success) {
+        setState(() {
+          _isLoadingRpc = false;
+          _rpcError = response.message ?? 'Failed to load template';
+        });
+        return;
+      }
+
+      // Initialize defaults from RPC response
+      final defaults = response.defaults;
+      if (defaults != null) {
+        _selectedMyCashLocationId = defaults.cashLocationId;
+        _selectedCounterpartyId = defaults.counterpartyId;
+        _selectedCounterpartyStoreId = defaults.counterpartyStoreId;
+        _selectedCounterpartyCashLocationId = defaults.counterpartyCashLocationId;
+      }
+
+      setState(() {
+        _rpcResponse = response;
+        _isLoadingRpc = false;
+      });
+
+      // Notify parent of initial form validity
+      _notifyValidityChange();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingRpc = false;
+          _rpcError = 'Error loading template: ${e.toString()}';
+        });
+      }
+    }
   }
 
   /// Check if company has multiple currencies for exchange rate calculator
@@ -414,29 +439,34 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
   /// Real-time cash location validation
   void _validateCashLocationField() {
+    final uiConfig = _rpcResponse?.uiConfig;
     setState(() {
-      _cashLocationError = TemplateFormValidator.validateCashLocation(
-        analysis: _analysis,
-        selectedCashLocationId: _selectedMyCashLocationId,
-      );
+      if (uiConfig?.showCashLocationSelector == true && _selectedMyCashLocationId == null) {
+        _cashLocationError = 'Cash location is required';
+      } else {
+        _cashLocationError = null;
+      }
     });
     _notifyValidityChange();
   }
 
   /// Real-time counterparty validation
   void _validateCounterpartyField() {
+    final uiConfig = _rpcResponse?.uiConfig;
     setState(() {
-      _counterpartyError = TemplateFormValidator.validateCounterparty(
-        analysis: _analysis,
-        selectedCounterpartyId: _selectedCounterpartyId,
-      );
+      if (uiConfig?.showCounterpartySelector == true && _selectedCounterpartyId == null) {
+        _counterpartyError = 'Counterparty is required';
+      } else {
+        _counterpartyError = null;
+      }
     });
     _notifyValidityChange();
   }
 
-  /// Check if template requires attachment
+  /// Check if template requires attachment (from RPC response)
   bool get _requiresAttachment {
-    return widget.template['required_attachment'] == true;
+    return _rpcResponse?.template?.requiredAttachment ??
+           widget.template['required_attachment'] == true;
   }
 
   /// Check if attachment requirement is satisfied
@@ -445,33 +475,52 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     return _pendingAttachments.isNotEmpty;
   }
 
-  /// Comprehensive form validation using domain validator
+  /// 🔧 RPC-based: Comprehensive form validation using RPC uiConfig
   bool get _isFormValid {
-    final canSubmit = TemplateFormValidator.canSubmit(
-      analysis: _analysis,
-      amountText: _amountController.text,
-      selectedMyCashLocationId: _selectedMyCashLocationId,
-      selectedCounterpartyId: _selectedCounterpartyId,
-      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
-    );
+    // Still loading
+    if (_isLoadingRpc || _rpcResponse == null) return false;
 
-    // Also check attachment requirement
-    return canSubmit && _attachmentRequirementSatisfied;
+    // Amount validation (keep client-side for UX)
+    final amountError = TemplateFormValidator.validateAmountField(_amountController.text);
+    if (amountError != null) return false;
+
+    final uiConfig = _rpcResponse!.uiConfig;
+    if (uiConfig == null) return false;
+
+    // Cash location validation
+    if (uiConfig.showCashLocationSelector && _selectedMyCashLocationId == null) {
+      return false;
+    }
+
+    // Counterparty validation (external)
+    if (uiConfig.showCounterpartySelector && _selectedCounterpartyId == null) {
+      return false;
+    }
+
+    // Counterparty store validation (internal)
+    if (uiConfig.showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) {
+      return false;
+    }
+
+    // Counterparty cash location validation (internal)
+    if (uiConfig.showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) {
+      return false;
+    }
+
+    // Attachment requirement
+    return _attachmentRequirementSatisfied;
   }
 
   /// Check if transaction is being created (for loading indicator)
   bool get isSubmitting => _isSubmitting;
 
-  /// Get full validation result for error display
-  TemplateValidationResult _getValidationResult() {
-    return TemplateFormValidator.validate(
-      analysis: _analysis,
-      amountText: _amountController.text,
-      selectedMyCashLocationId: _selectedMyCashLocationId,
-      selectedCounterpartyId: _selectedCounterpartyId,
-      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
-    );
-  }
+  /// Get UI config helpers
+  bool get _showCashLocationSelector => _rpcResponse?.uiConfig?.showCashLocationSelector ?? false;
+  bool get _showCounterpartySelector => _rpcResponse?.uiConfig?.showCounterpartySelector ?? false;
+  bool get _showCounterpartyStoreSelector => _rpcResponse?.uiConfig?.showCounterpartyStoreSelector ?? false;
+  bool get _showCounterpartyCashLocationSelector => _rpcResponse?.uiConfig?.showCounterpartyCashLocationSelector ?? false;
+  bool get _counterpartyIsLocked => _rpcResponse?.uiConfig?.counterpartyIsLocked ?? false;
+  String? get _lockedCounterpartyName => _rpcResponse?.uiConfig?.lockedCounterpartyName;
 
   @override
   void dispose() {
@@ -482,6 +531,41 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
   @override
   Widget build(BuildContext context) {
+    // 🔧 RPC-based: Show loading state
+    if (_isLoadingRpc) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // 🔧 RPC-based: Show error state
+    if (_rpcError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.space5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: TossColors.error,
+                size: 48,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                _rpcError!,
+                style: TossTextStyles.body.copyWith(color: TossColors.gray700),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // ✅ No padding here - parent TossTextFieldKeyboardModal handles it
     return Stack(
       children: [
@@ -609,8 +693,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
   /// Builds input section with blue border (Legacy style)
   Widget _buildInputSection() {
-    // Check if guidance should be shown
-    final showGuidance = _analysis.missingFields > 0 && _analysis.missingFields <= 3;
+    // 🔧 RPC-based: Check if guidance should be shown
+    final analysis = _rpcResponse?.analysis;
+    final missingItems = analysis?.missingItems ?? [];
+    final showGuidance = missingItems.isNotEmpty && missingItems.length <= 3;
 
     return Container(
       decoration: BoxDecoration(
@@ -653,7 +739,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds dynamic form fields based on template analysis
+  /// 🔧 RPC-based: Builds dynamic form fields based on RPC ui_config
   Widget _buildDynamicFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,22 +752,30 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         // Description field (optional)
         _buildDescriptionField(),
 
-        // Cash location selector (if needed)
-        if (_analysis.missingItems.contains('cash_location')) ...[
+        // Cash location selector (if needed - from RPC ui_config)
+        if (_showCashLocationSelector) ...[
           const SizedBox(height: TossSpacing.space3),
           _buildCashLocationSelector(),
         ],
 
-        // Counterparty section:
-        // - Internal counterparty: show locked display (cannot change)
-        // - External counterparty OR no counterparty set: show selector
-        if (_analysis.missingItems.contains('counterparty') ||
-            _analysis.missingItems.contains('counterparty_cash_location')) ...[
+        // Counterparty section (from RPC ui_config):
+        // - Internal counterparty: NO display needed (already saved in template)
+        // - External counterparty (showCounterpartySelector): show selector
+        if (_showCounterpartySelector) ...[
           const SizedBox(height: TossSpacing.space3),
-          if (_isInternalCounterparty)
-            _buildLockedCounterpartyDisplay()
-          else
-            _buildCounterpartySelector(),
+          _buildCounterpartySelector(),
+        ],
+
+        // 🆕 Internal counterparty: Store selector (only if NOT already set in defaults)
+        if (_showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) ...[
+          const SizedBox(height: TossSpacing.space3),
+          _buildCounterpartyStoreSelector(),
+        ],
+
+        // 🆕 Internal counterparty: Cash location selector (only if NOT already set in defaults)
+        if (_showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) ...[
+          const SizedBox(height: TossSpacing.space3),
+          _buildCounterpartyCashLocationSelector(),
         ],
 
         // 📎 Attachments section
@@ -803,15 +897,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           children: [
             Text(
               'Cash Location',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.gray900,
+              // Match TossTextField label style
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray700,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: TossSpacing.space1),
+            const SizedBox(width: 2),
             Text(
               '*',
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
                 fontWeight: FontWeight.w600,
               ),
@@ -851,15 +946,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           children: [
             Text(
               'Counterparty',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.gray900,
+              // Match TossTextField label style
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray700,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: TossSpacing.space1),
+            const SizedBox(width: 2),
             Text(
               '*',
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
                 fontWeight: FontWeight.w600,
               ),
@@ -872,6 +968,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           // External template = show only external counterparties
           // This prevents selecting internal companies for external transactions
           isInternal: false,
+          // Hide built-in label since we render our own styled label above
+          hideLabel: true,
           onChanged: (counterpartyId) {
             setState(() {
               _selectedCounterpartyId = counterpartyId;
@@ -896,6 +994,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   /// Internal counterparties cannot be changed because they require
   /// counterparty_cash_location_id which is already set in the template
   Widget _buildLockedCounterpartyDisplay() {
+    final counterpartyName = _lockedCounterpartyName ??
+                             _rpcResponse?.defaults?.counterpartyName ??
+                             'Internal Counterparty';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -967,7 +1069,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _counterpartyName ?? 'Internal Counterparty',
+                      counterpartyName,
                       style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
@@ -991,6 +1093,136 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  /// 🆕 Builds counterparty store selector for internal counterparties
+  Widget _buildCounterpartyStoreSelector() {
+    final linkedCompanyId = _rpcResponse?.uiConfig?.linkedCompanyId;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Counterparty Store',
+              // Match TossTextField label style
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '*',
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // TODO: Implement AutonomousStoreSelector for linked company
+        // For now, show a placeholder that indicates store selection is needed
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            border: Border.all(color: TossColors.gray300),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.store_outlined, color: TossColors.gray500),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  _selectedCounterpartyStoreId != null
+                      ? 'Store selected'
+                      : 'Select counterparty store',
+                  style: TossTextStyles.body.copyWith(
+                    color: _selectedCounterpartyStoreId != null
+                        ? TossColors.gray900
+                        : TossColors.gray500,
+                  ),
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: TossColors.gray400),
+            ],
+          ),
+        ),
+        if (linkedCompanyId != null)
+          Padding(
+            padding: const EdgeInsets.only(top: TossSpacing.space1),
+            child: Text(
+              'Select a store from the linked company',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// 🆕 Builds counterparty cash location selector for internal counterparties
+  Widget _buildCounterpartyCashLocationSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Counterparty Cash Location',
+              // Match TossTextField label style
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '*',
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // For counterparty cash location, we need the store to be selected first
+        if (_selectedCounterpartyStoreId == null)
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              border: Border.all(color: TossColors.gray300),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_balance_outlined, color: TossColors.gray400),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Select store first',
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray400),
+                ),
+              ],
+            ),
+          )
+        else
+          AutonomousCashLocationSelector(
+            storeId: _selectedCounterpartyStoreId!,
+            selectedLocationId: _selectedCounterpartyCashLocationId,
+            onChanged: (cashLocationId) {
+              setState(() {
+                _selectedCounterpartyCashLocationId = cashLocationId;
+              });
+              _notifyValidityChange();
+            },
+          ),
       ],
     );
   }
@@ -1239,11 +1471,11 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
   
-  /// ✅ Clean Architecture: Creates transaction using Use Case
+  /// 🔧 RPC-based: Creates transaction using create_transaction_from_template RPC
+  /// Reference: docs/TEMPLATE_RPC_REFACTORING_PLAN.md Section 3.2
   /// Returns the created journal ID for attachment uploads
   Future<String> _createTransactionFromTemplate(double amount) async {
     // Get app state for company/user/store IDs
-    // ✅ FIXED: Access state properties from AppState, not AppStateNotifier
     final legacyAppState = ref.read(Legacy.appStateProvider);
     final user = ref.read(currentUserProvider);
 
@@ -1254,23 +1486,48 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final companyId = legacyAppState.companyChoosen;
     final storeId = legacyAppState.storeChoosen;
     final userId = user.id;
+    final templateId = widget.template['template_id']?.toString() ?? '';
 
-    // Build use case parameters
-    final params = CreateTransactionFromTemplateParams(
-      template: widget.template,
+    if (templateId.isEmpty) {
+      throw Exception('Template ID is missing');
+    }
+
+    // 🔧 RPC-based: Call create_transaction_from_template RPC
+    final dataSource = ref.read(templateDataSourceProvider);
+    final response = await dataSource.createTransactionFromTemplate(
+      templateId: templateId,
       amount: amount,
-      description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-      selectedMyCashLocationId: _selectedMyCashLocationId,
-      selectedCounterpartyId: _selectedCounterpartyId,
-      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
       companyId: companyId,
       userId: userId,
-      storeId: storeId,
+      storeId: storeId.isNotEmpty ? storeId : null,
+      description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+      selectedCashLocationId: _selectedMyCashLocationId,
+      selectedCounterpartyId: _selectedCounterpartyId,
+      selectedCounterpartyStoreId: _selectedCounterpartyStoreId,
+      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
+      entryDate: DateTime.now(),
     );
 
-    // Execute use case - returns journal_id
-    final useCase = ref.read(createTransactionFromTemplateUseCaseProvider);
-    final journalId = await useCase.execute(params);
+    // Check RPC response
+    if (!response.success) {
+      // Handle specific error types
+      final errorType = response.error;
+      final message = response.message ?? 'Transaction creation failed';
+      final field = response.field;
+
+      if (errorType == 'account_mapping_required') {
+        throw Exception('$message\n\nPlease set up account mapping first.');
+      } else if (errorType == 'validation_error' && field != null) {
+        throw Exception('$message (Field: $field)');
+      } else {
+        throw Exception(message);
+      }
+    }
+
+    final journalId = response.journalId;
+    if (journalId == null || journalId.isEmpty) {
+      throw Exception('Journal ID not returned from RPC');
+    }
 
     // Upload attachments if any
     if (_pendingAttachments.isNotEmpty) {
@@ -1289,23 +1546,38 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   }
 
   Future<void> _handleSubmit() async {
-    // 🔧 ENHANCED: Comprehensive form submission with validation and feedback
+    // 🔧 RPC-based: Server-side validation with client-side UX feedback
 
     // Prevent double submission
     if (_isSubmitting) return;
 
-    // 1. Validate form
-    final validationResult = _getValidationResult();
+    // 1. Client-side validation for UX (quick feedback)
+    if (!_isFormValid) {
+      // Show appropriate error based on what's missing
+      String errorMessage = 'Please fill in all required fields';
 
-    if (!validationResult.isValid) {
-      // Show first error in dialog
-      if (mounted && validationResult.firstError != null) {
+      final amountError = TemplateFormValidator.validateAmountField(_amountController.text);
+      if (amountError != null) {
+        errorMessage = amountError;
+      } else if (_showCashLocationSelector && _selectedMyCashLocationId == null) {
+        errorMessage = 'Please select a cash location';
+      } else if (_showCounterpartySelector && _selectedCounterpartyId == null) {
+        errorMessage = 'Please select a counterparty';
+      } else if (_showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) {
+        errorMessage = 'Please select a counterparty store';
+      } else if (_showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) {
+        errorMessage = 'Please select a counterparty cash location';
+      } else if (!_attachmentRequirementSatisfied) {
+        errorMessage = 'Attachment is required for this template';
+      }
+
+      if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: true,
           builder: (context) => TossDialog.error(
             title: 'Validation Error',
-            message: validationResult.firstError!,
+            message: errorMessage,
             primaryButtonText: 'OK',
             onPrimaryPressed: () => context.pop(),
           ),
@@ -1322,10 +1594,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
       // 3. Parse amount
       final cleanAmount = _amountController.text.replaceAll(',', '').replaceAll(' ', '');
-
       final amount = double.parse(cleanAmount);
 
-      // 4. Create transaction from template
+      // 4. Create transaction from template via RPC (server validates everything)
       await _createTransactionFromTemplate(amount);
 
       // 5. Success feedback
@@ -1361,7 +1632,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           barrierDismissible: true,
           builder: (context) => TossDialog.error(
             title: 'Transaction Failed',
-            message: 'Failed to create transaction: ${e.toString()}',
+            message: e.toString().replaceFirst('Exception: ', ''),
             primaryButtonText: 'OK',
             onPrimaryPressed: () => context.pop(),
           ),

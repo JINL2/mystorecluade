@@ -30,6 +30,8 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
   final bool showTransactionCount;
   final String? counterpartyType; // Filter by specific type (customer, vendor, supplier)
   final bool? isInternal; // Filter by internal/external
+  /// Hide built-in label (useful when providing custom label externally)
+  final bool hideLabel;
 
   const AutonomousCounterpartySelector({
     super.key,
@@ -43,6 +45,7 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
     this.showTransactionCount = true,
     this.counterpartyType,
     this.isInternal,
+    this.hideLabel = false,
   });
 
   @override
@@ -123,6 +126,7 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
         icon: _getCounterpartyIcon(),
         emptyMessage: 'No ${_getCounterpartyTypeLabel().toLowerCase()} available',
         searchHint: 'Search ${_getCounterpartyTypeLabel().toLowerCase()}',
+        hideLabel: hideLabel,
       ),
       itemTitleBuilder: (counterparty) => _buildCounterpartyTitle(counterparty),
       itemSubtitleBuilder: showTransactionCount

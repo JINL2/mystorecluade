@@ -68,7 +68,6 @@ class _BankTabState extends ConsumerState<BankTab> {
 
   /// Clear bank amount input field
   void _clearAllInputs() {
-    debugPrint('🧹 [BankTab] Clearing all input fields');
     _bankAmountController.clear();
     setState(() {
       // Force rebuild to update UI

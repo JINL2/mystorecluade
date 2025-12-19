@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
@@ -103,7 +104,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     if (widget.feature == null) {
       _featureName = 'Cash Ending';
-      debugPrint('[CashEnding] ⚠️  No feature provided - AI Chat will not have feature_id');
       return;
     }
 
@@ -112,30 +112,20 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         final topFeature = widget.feature as TopFeature;
         _featureName = topFeature.featureName;
         _featureId = topFeature.featureId;
-        debugPrint('[CashEnding] ✅ TopFeature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Feature) {
         final feature = widget.feature as Feature;
         _featureName = feature.featureName;
         _featureId = feature.featureId;
-        debugPrint('[CashEnding] ✅ Feature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Map<String, dynamic>) {
         final featureMap = widget.feature as Map<String, dynamic>;
         _featureName = featureMap['feature_name'] as String? ?? featureMap['featureName'] as String?;
         _featureId = featureMap['feature_id'] as String? ?? featureMap['featureId'] as String?;
-        debugPrint('[CashEnding] ✅ Map extracted: $_featureName (ID: $_featureId)');
-      } else {
-        debugPrint('[CashEnding] ⚠️  Unknown feature type: ${widget.feature.runtimeType}');
       }
     } catch (e) {
-      debugPrint('[CashEnding] ❌ Error extracting feature: $e');
       _featureName = 'Cash Ending';
     }
 
     _featureName ??= 'Cash Ending';
-
-    if (_featureId == null) {
-      debugPrint('[CashEnding] ⚠️  Feature ID is null - AI Chat will not work properly');
-    }
   }
 
   @override
@@ -262,7 +252,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       context['cash_location_id'] = cashLocationId;
     }
 
-    debugPrint('[CashEnding] Context for AI: $context');
     return context;
   }
 
@@ -580,17 +569,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // ✅ Immediately set saving state to prevent double-tap
     ref.read(vaultTabProvider.notifier).setSaving(true);
 
-    debugPrint('\n');
-    debugPrint('╔═══════════════════════════════════════════════════════╗');
-    debugPrint('║  🎯 [CashEndingPage] _saveVaultTransaction 호출    ║');
-    debugPrint('╠═══════════════════════════════════════════════════════╣');
-    debugPrint('║  📋 transactionType: $transactionType');
-    debugPrint('║  💰 currencyId: $currencyId');
-    debugPrint('║  🏢 companyId: ${ref.read(appStateProvider).companyChoosen}');
-    debugPrint('║  👤 userId: ${ref.read(appStateProvider).user['user_id']}');
-    debugPrint('╚═══════════════════════════════════════════════════════╝');
-    debugPrint('\n');
-
     // Validation
     if (state.selectedVaultLocationId == null) {
       ref.read(vaultTabProvider.notifier).setSaving(false);
@@ -665,10 +643,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     Map<String, dynamic>? recountResult;
 
     if (transactionType == 'recount') {
-      debugPrint('🟢 [CashEndingPage] ✨ RECOUNT 분기 진입! (Stock → Flow 변환)');
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // RECOUNT: Stock → Flow 변환
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // Use first currency for recount (recount is per currency)
       final currency = currenciesWithData.first;
       final vaultRecount = VaultRecount(
@@ -682,24 +657,20 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         denominations: currency.denominations, // Stock 수량
       );
 
-      debugPrint('📦 [CashEndingPage] VaultRecount entity 생성:');
-      debugPrint('   - locationId: ${vaultRecount.locationId}');
-      debugPrint('   - currencyId: ${vaultRecount.currencyId}');
-      debugPrint('   - denominations: ${vaultRecount.denominations.length}개');
-      debugPrint('   - totalAmount: ${vaultRecount.totalAmount}');
-
       try {
-        debugPrint('🚀 [CashEndingPage] VaultTabNotifier.recountVault() 호출...');
         // Call recount RPC via VaultTabNotifier
         recountResult = await ref.read(vaultTabProvider.notifier).recountVault(vaultRecount);
         success = recountResult['success'] == true;
-
-        debugPrint('✅ [CashEndingPage] Recount 성공!');
-        debugPrint('   - adjustment_count: ${recountResult['adjustment_count']}');
-        debugPrint('   - total_variance: ${recountResult['total_variance']}');
-        debugPrint('   - adjustments: ${recountResult['adjustments']}');
-      } catch (e) {
-        debugPrint('❌ [CashEndingPage] Recount 실패: $e');
+      } catch (e, stackTrace) {
+        SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'CashEndingPage vault recount failed',
+          extra: {
+            'locationId': state.selectedVaultLocationId,
+            'currencyId': currency.currencyId,
+          },
+        );
         success = false;
         if (mounted) {
           await TossDialogs.showCashEndingError(
@@ -710,12 +681,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         return;
       }
     } else {
-      debugPrint('🔵🟠 [CashEndingPage] ✨ NORMAL 분기 진입! (In/Out Transaction)');
-      debugPrint('   - isCredit: ${transactionType == 'credit'}');
-      debugPrint('   - currencies: ${currenciesWithData.length}개');
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // NORMAL: In/Out Transaction (다중 통화 지원)
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // ✅ Filter out currencies with no quantities
       final currenciesWithQuantities = currenciesWithData
@@ -723,7 +689,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           .toList();
 
       if (currenciesWithQuantities.isEmpty) {
-        debugPrint('⚠️ [CashEndingPage] No currencies with quantities!');
         ref.read(vaultTabProvider.notifier).setSaving(false);
         success = false;
         if (mounted) {
@@ -747,17 +712,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currencies: currenciesWithQuantities, // ✅ ALL currencies at once
       );
 
-      debugPrint('📦 [CashEndingPage] VaultTransaction entity 생성 (Multi-Currency):');
-      debugPrint('   - currencies: ${vaultTransaction.currencies.length}개');
-      for (final currency in currenciesWithQuantities) {
-        debugPrint('   - ${currency.currencyCode}: ${currency.denominations.where((d) => d.quantity > 0).length}개 denominations');
-        debugPrint('     totalAmount: ${currency.totalAmount}');
-      }
-
       // ✅ Save ALL currencies in one RPC call
       success = await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
-
-      debugPrint('✅ [CashEndingPage] 모든 통화 저장 ${success ? '성공' : '실패'}!');
     }
 
     if (!mounted) return;

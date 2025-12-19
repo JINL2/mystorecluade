@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
@@ -246,9 +246,14 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     // This links the user's subscription data across devices
     try {
       await RevenueCatService().loginUser(user.id);
-    } catch (e) {
+    } catch (e, stackTrace) {
       // RevenueCat login failure shouldn't block user data loading
-      debugPrint('⚠️ [UserCompanies] RevenueCat login failed: $e');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'RevenueCat login failed',
+        extra: {'userId': user.id},
+      );
     }
 
     // Auto-select company and store using UseCase
@@ -313,9 +318,13 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
 
     // Return Map (already converted once, reuse userData)
     return userData;
-  } on TimeoutException {
+  } on TimeoutException catch (e, stackTrace) {
     // ⚠️ Timeout - auto logout and throw error
-    debugPrint('🔴 [UserCompanies] Timeout loading user data - forcing logout');
+    SentryConfig.captureException(
+      e,
+      stackTrace,
+      hint: 'UserCompanies timeout - forcing logout',
+    );
 
     // Sign out from RevenueCat
     await RevenueCatService().logoutUser();
@@ -327,13 +336,15 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     appStateNotifier.signOut();
 
     throw Exception('Session expired. Please sign in again.');
-  } catch (e) {
+  } catch (e, stackTrace) {
     // ⚠️ Other errors (e.g., user profile not found in public.users)
-    debugPrint('🔴 [UserCompanies] Error loading user data: $e');
-
     // If error contains "No user companies data" - orphan auth session
     if (e.toString().contains('No user companies data')) {
-      debugPrint('🔴 [UserCompanies] Orphan auth session detected - forcing logout');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'UserCompanies orphan auth session - forcing logout',
+      );
 
       // Sign out from RevenueCat
       await RevenueCatService().logoutUser();
@@ -347,6 +358,11 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
       throw Exception('Account data not found. Please sign in again.');
     }
 
+    SentryConfig.captureException(
+      e,
+      stackTrace,
+      hint: 'UserCompanies error loading user data',
+    );
     rethrow;
   }
 });

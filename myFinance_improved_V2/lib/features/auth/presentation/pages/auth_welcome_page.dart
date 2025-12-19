@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,7 @@ import 'package:go_router/go_router.dart';
 // Core - Constants
 import '../../../../core/constants/auth_constants.dart';
 // Core - Services
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 // Shared - Theme System
 import '../../../../shared/themes/toss_colors.dart';
@@ -339,24 +339,18 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       final authService = ref.read(authServiceProvider);
       await authService.signInWithGoogle();
 
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Google Sign-In successful, loading user data...');
-      }
-
       // Load user data
       await ref.read(userCompaniesProvider.future);
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] User data loaded, waiting for GoRouter auto-redirect...');
-      }
 
       // Register FCM token (optional, non-blocking)
       final productionTokenService = ProductionTokenService();
       unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e) {
-          if (kDebugMode) {
-            debugPrint('⚠️ FCM token registration failed: $e');
-          }
+        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
+          SentryConfig.captureException(
+            e,
+            stackTrace,
+            hint: 'FCM token registration failed after Google Sign-In',
+          );
           return false;
         }),
       );
@@ -428,24 +422,18 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       final authService = ref.read(authServiceProvider);
       await authService.signInWithApple();
 
-      if (kDebugMode) {
-        debugPrint('🍎 [Auth] Apple Sign-In successful, loading user data...');
-      }
-
       // Load user data
       await ref.read(userCompaniesProvider.future);
-
-      if (kDebugMode) {
-        debugPrint('🍎 [Auth] User data loaded, waiting for GoRouter auto-redirect...');
-      }
 
       // Register FCM token (optional, non-blocking)
       final productionTokenService = ProductionTokenService();
       unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e) {
-          if (kDebugMode) {
-            debugPrint('⚠️ FCM token registration failed: $e');
-          }
+        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
+          SentryConfig.captureException(
+            e,
+            stackTrace,
+            hint: 'FCM token registration failed after Apple Sign-In',
+          );
           return false;
         }),
       );

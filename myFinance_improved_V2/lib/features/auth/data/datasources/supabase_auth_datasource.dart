@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -186,9 +185,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
       // But we can detect it by checking if identities is empty
       final identities = response.user!.identities;
       if (identities == null || identities.isEmpty) {
-        if (kDebugMode) {
-          debugPrint('🔴 [Auth] Email already exists: $email');
-        }
         throw Exception('This email is already registered. Please sign in instead.');
       }
 
@@ -249,11 +245,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
           },
         );
 
-        if (kDebugMode) {
-          print('🚨 CRITICAL: User profile creation failed for ${response.user!.id}');
-          print('Error: $e');
-        }
-
         // Still return UserDto to allow login
         // The profile will be retried on next login
         return userModel;
@@ -303,10 +294,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
       await _client.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Password updated successfully');
-      }
     } catch (e) {
       throw Exception('Failed to update password: $e');
     }
@@ -323,10 +310,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
         email: email,
         shouldCreateUser: false,
       );
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] OTP code sent to: $email');
-      }
     } catch (e) {
       throw Exception('Failed to send OTP code: $e');
     }
@@ -348,10 +331,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
       if (response.session == null) {
         throw Exception('OTP verification failed - no session returned');
       }
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] OTP verified successfully for: $email');
-      }
     } catch (e) {
       throw Exception('Failed to verify OTP code: $e');
     }
@@ -366,10 +345,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
         type: OtpType.signup,
         email: email,
       );
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Signup OTP resent to: $email');
-      }
     } catch (e) {
       throw Exception('Failed to resend signup OTP: $e');
     }
@@ -390,10 +365,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (response.user == null) {
         throw Exception('Email verification failed - no user returned');
-      }
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Email verified successfully for: $email');
       }
 
       // Fetch user profile from database
@@ -432,10 +403,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
         throw Exception('Google Sign-In failed - no ID token');
       }
 
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Google Sign-In successful for: ${googleAccount.email}');
-      }
-
       // 4. Sign in to Supabase with ID token
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
@@ -444,10 +411,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (response.user == null) {
         throw Exception('Supabase authentication failed - no user returned');
-      }
-
-      if (kDebugMode) {
-        debugPrint('🔵 [Auth] Supabase auth successful for: ${response.user!.id}');
       }
 
       // 5. Wait briefly for trigger to complete (if new user)
@@ -495,10 +458,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
                 .update(updates)
                 .eq('user_id', response.user!.id);
 
-            if (kDebugMode) {
-              debugPrint('🔵 [Auth] Updated Google user profile with: $updates');
-            }
-
             // Fetch updated data
             final updatedData = await _client
                 .from('users')
@@ -534,10 +493,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
           onConflict: 'user_id',
         );
 
-        if (kDebugMode) {
-          debugPrint('🔵 [Auth] Created new user profile for Google user: ${googleAccount.email}');
-        }
-
         return userModel;
       } catch (e, stackTrace) {
         // Log to Sentry but still return the user
@@ -552,16 +507,9 @@ class SupabaseAuthDataSource implements AuthDataSource {
           },
         );
 
-        if (kDebugMode) {
-          print('⚠️ User profile creation failed for Google user: $e');
-        }
-
         return userModel;
       }
     } on Exception catch (e) {
-      if (kDebugMode) {
-        debugPrint('🔴 [Auth] Google Sign-In error: $e');
-      }
       throw Exception('Failed to sign in with Google: $e');
     }
   }
@@ -587,10 +535,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
         throw Exception('Apple Sign-In failed - no ID token');
       }
 
-      if (kDebugMode) {
-        debugPrint('🍎 [Auth] Apple Sign-In successful');
-      }
-
       // 3. Sign in to Supabase with Apple ID token
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
@@ -600,10 +544,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (response.user == null) {
         throw Exception('Supabase authentication failed - no user returned');
-      }
-
-      if (kDebugMode) {
-        debugPrint('🍎 [Auth] Supabase auth successful for: ${response.user!.id}');
       }
 
       // 4. Wait briefly for trigger to complete (if new user)
@@ -650,10 +590,6 @@ class SupabaseAuthDataSource implements AuthDataSource {
           onConflict: 'user_id',
         );
 
-        if (kDebugMode) {
-          debugPrint('🍎 [Auth] Created new user profile for Apple user (name will be set on Complete Profile): $email');
-        }
-
         return userModel;
       } catch (e, stackTrace) {
         // Log to Sentry but still return the user
@@ -668,24 +604,14 @@ class SupabaseAuthDataSource implements AuthDataSource {
           },
         );
 
-        if (kDebugMode) {
-          print('⚠️ User profile creation failed for Apple user: $e');
-        }
-
         return userModel;
       }
     } on SignInWithAppleAuthorizationException catch (e) {
-      if (kDebugMode) {
-        debugPrint('🍎 [Auth] Apple Sign-In cancelled or failed: ${e.code}');
-      }
       if (e.code == AuthorizationErrorCode.canceled) {
         throw Exception('Apple Sign-In was cancelled');
       }
       throw Exception('Failed to sign in with Apple: ${e.message}');
     } on Exception catch (e) {
-      if (kDebugMode) {
-        debugPrint('🔴 [Auth] Apple Sign-In error: $e');
-      }
       throw Exception('Failed to sign in with Apple: $e');
     }
   }

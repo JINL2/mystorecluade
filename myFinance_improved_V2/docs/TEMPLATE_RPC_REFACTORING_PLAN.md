@@ -3,6 +3,484 @@
 > **목적**: Template Usage 페이지의 모든 클라이언트 사이드 로직을 효율적인 RPC로 이동
 > **작성일**: 2025-12-19
 > **상태**: Planning
+> **DB 스키마 검증**: 2025-12-19 ✅ 완료
+
+---
+
+## 0. DB 스키마 검증 결과 (CRITICAL)
+
+> **검증 방법**: Supabase MCP를 통한 실제 데이터 구조 분석
+> **검증일**: 2025-12-19
+
+### 0.1 `transaction_templates` 테이블 컬럼
+
+| 컬럼명 | 타입 | 설명 |
+|--------|------|------|
+| `template_id` | UUID | PK |
+| `name` | TEXT | 템플릿 이름 |
+| `data` | JSONB | **핵심!** 거래 라인 배열 |
+| `tags` | JSONB | 메타데이터 (accounts, categories, cash_locations) |
+| `company_id` | UUID | 회사 ID |
+| `store_id` | UUID | 스토어 ID (nullable) |
+| `counterparty_id` | UUID | 거래처 ID (nullable) |
+| `counterparty_cash_location_id` | UUID | 상대방 현금위치 (nullable) |
+| `is_active` | BOOLEAN | 활성 여부 |
+| `required_attachment` | BOOLEAN | 첨부파일 필수 여부 |
+
+### 0.2 `data` JSONB 구조 (각 entry별 필드)
+
+```jsonc
+{
+  "type": "debit" | "credit",           // 차변/대변
+  "account_id": "uuid",                  // 계정 ID (FK → accounts)
+  "account_name": "Cash",                // 계정 이름 (display)
+  "account_code": "1000",                // ⭐ 계정 코드 (5000-9999 = expense)
+  "category_tag": "cash" | "receivable" | "payable" | "other",
+
+  // cash 관련
+  "cash_location_id": "uuid" | null,     // 현금 위치 ID
+  "cash_location_name": "sb",            // 현금 위치 이름
+
+  // counterparty 관련 (receivable/payable일 때)
+  "counterparty_id": "uuid" | null,      // 거래처 ID
+  "counterparty_name": "diff",           // 거래처 이름
+  "counterparty_cash_location_id": "uuid" | null,  // 상대방 현금위치
+
+  // ⚠️ internal 거래처 확인용 (일부 템플릿에만 있음!)
+  "linked_company_id": "uuid" | null     // internal 거래처면 존재
+}
+```
+
+### 0.3 ⚠️ RPC 계획서 수정 필요 사항
+
+#### 문제 1: `linked_company_id` 위치 불일치
+
+**현재 계획서**:
+```sql
+-- entry에서만 확인
+IF v_entry->>'linked_company_id' IS NOT NULL...
+```
+
+**실제 데이터**:
+- 일부 템플릿: `linked_company_id`가 **entry 안에** 있음
+- 일부 템플릿: **counterparties 테이블**에서 JOIN 필요
+
+**수정된 로직**:
+```sql
+-- 1. entry에서 먼저 확인
+v_is_internal := (v_entry->>'linked_company_id') IS NOT NULL
+                 AND (v_entry->>'linked_company_id') != '';
+
+-- 2. 없으면 counterparties 테이블에서 확인
+IF NOT v_is_internal AND v_default_counterparty_id IS NOT NULL THEN
+  SELECT c.linked_company_id IS NOT NULL INTO v_is_internal
+  FROM counterparties c
+  WHERE c.counterparty_id = v_default_counterparty_id;
+END IF;
+```
+
+#### 문제 2: template-level vs entry-level counterparty
+
+**실제 데이터 구조**:
+- `transaction_templates.counterparty_id`: 템플릿 레벨 (외부)
+- `data[].counterparty_id`: 엔트리 레벨 (JSONB 내부)
+
+**두 곳 모두 확인 필요!**:
+```sql
+-- Priority: entry > template
+v_default_counterparty_id := COALESCE(
+  (v_entry->>'counterparty_id')::UUID,
+  v_template.counterparty_id
+);
+```
+
+#### 문제 3: `counterparty_cash_location_id` 위치
+
+**실제 데이터**:
+- `transaction_templates.counterparty_cash_location_id`: 템플릿 레벨
+- `data[].counterparty_cash_location_id`: 엔트리 레벨
+
+**수정된 로직**:
+```sql
+-- Priority: entry > template
+v_default_counterparty_cash_location_id := COALESCE(
+  (v_entry->>'counterparty_cash_location_id')::UUID,
+  v_template.counterparty_cash_location_id
+);
+```
+
+### 0.4 검증된 테이블들
+
+| 테이블 | 컬럼 확인 | 상태 |
+|--------|----------|------|
+| `transaction_templates` | template_id, data, counterparty_id, counterparty_cash_location_id | ✅ 일치 |
+| `accounts` | account_id, account_code, category_tag | ✅ 일치 |
+| `counterparties` | counterparty_id, linked_company_id, is_internal | ✅ 일치 |
+| `cash_locations` | cash_location_id, location_name | ✅ 일치 |
+| `debts_receivable` | direction, category, issue_date, counterparty_id | ✅ 일치 |
+
+### 0.5 ⭐ 핵심: 데이터 흐름 & JSONB 구조 매핑
+
+#### 📊 전체 데이터 흐름
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. TEMPLATE 생성 (TemplateLineFactory.createLine)                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│ Flutter: add_template_bottom_sheet.dart                                  │
+│     ↓                                                                    │
+│ TemplateLineFactory.createLines() → FLAT structure                       │
+│     ↓                                                                    │
+│ DB: transaction_templates.data (JSONB Array)                             │
+│                                                                          │
+│ ⚠️ 주의: linked_company_id는 생성 시 포함 안됨!                         │
+│          edit_template에서만 추가됨 (기존 counterparty lookup)            │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. TEMPLATE 사용 (TransactionLine.toRpc)                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│ Flutter: template_usage_bottom_sheet.dart                                │
+│     ↓                                                                    │
+│ TransactionLine.fromTemplate(templateData) → Entity                      │
+│     ↓                                                                    │
+│ TransactionLine.toRpc() → RPC Format (NESTED structure)                  │
+│     ↓                                                                    │
+│ RPC: insert_journal_with_everything_utc(p_lines: JSONB)                  │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 📦 Template Data JSONB (FLAT - DB 저장용)
+```jsonc
+// transaction_templates.data 배열의 각 entry
+{
+  // 기본 필드
+  "type": "debit" | "credit",
+  "account_id": "uuid",
+  "account_name": "Cash",
+  "account_code": "1000",              // expense 판단용 (5000-9999)
+  "category_tag": "cash" | "receivable" | "payable" | "other",
+  "amount": "0",                        // template은 항상 "0"
+  "debit": "0",
+  "credit": "0",
+  "description": "Debit entry - ...",
+
+  // cash 관련 (FLAT)
+  "cash_location_id": "uuid" | null,
+  "cash_location_name": "sb" | null,
+
+  // counterparty 관련 (FLAT)
+  "counterparty_id": "uuid" | null,
+  "counterparty_name": "diff" | null,
+  "counterparty_cash_location_id": "uuid" | null,
+  "counterparty_cash_location_name": "..." | null,
+
+  // ⚠️ internal 거래처 (edit_template에서만 추가됨)
+  "linked_company_id": "uuid" | null,
+  "counterparty_store_id": "uuid" | null,
+  "counterparty_store_name": "..." | null
+}
+```
+
+#### 📦 RPC Lines JSONB (NESTED - RPC 호출용)
+```jsonc
+// insert_journal_with_everything_utc의 p_lines 배열의 각 entry
+{
+  // 기본 필드
+  "account_id": "uuid",
+  "description": "...",
+  "debit": "50000",                     // 실제 금액 (STRING!)
+  "credit": "0",                        // 실제 금액 (STRING!)
+
+  // cash 관련 (NESTED object)
+  "cash": {
+    "cash_location_id": "uuid"
+  },
+
+  // debt 관련 (NESTED object) - receivable/payable일 때
+  "debt": {
+    "counterparty_id": "uuid",          // 필수!
+    "direction": "receivable" | "payable",  // 필수!
+    "category": "account" | "note" | "loan" | "other",  // 필수!
+    "issue_date": "2025-01-01",         // 필수! (entry_date 사용)
+    "due_date": "2025-02-01" | null,    // 선택
+    "interest_rate": 0.0 | null,        // 선택
+    "linkedCounterparty_store_id": "uuid" | null,  // internal일 때
+    "linkedCounterparty_companyId": "uuid" | null  // RPC가 자동 추가
+  },
+
+  // fix_asset 관련 (NESTED object) - 고정자산일 때
+  "fix_asset": {
+    "asset_name": "...",
+    "acquisition_date": "2025-01-01",
+    "useful_life_years": 5,
+    "salvage_value": 0
+  }
+}
+```
+
+#### 🔄 FLAT → NESTED 변환 (TransactionLine.toRpc)
+```dart
+// transaction_line_entity.dart 에서 수행
+Map<String, dynamic> toRpc({
+  required double amount,
+  String? selectedMyCashLocationId,
+  String? selectedCounterpartyId,
+  required String entryDate,
+}) {
+  final rpcLine = {
+    'account_id': accountId,
+    'description': memo,
+    'debit': type == 'debit' ? amount.toStringAsFixed(0) : '0',
+    'credit': type == 'credit' ? amount.toStringAsFixed(0) : '0',
+  };
+
+  // FLAT → NESTED: cash
+  if (categoryTag == 'cash') {
+    final cashLocationId = selectedMyCashLocationId ?? cash?.cashLocationId;
+    if (cashLocationId != null) {
+      rpcLine['cash'] = {'cash_location_id': cashLocationId};
+    }
+  }
+
+  // FLAT → NESTED: debt
+  if (categoryTag == 'receivable' || categoryTag == 'payable') {
+    rpcLine['debt'] = {
+      'counterparty_id': selectedCounterpartyId ?? counterpartyId,
+      'direction': categoryTag,
+      'category': debt?.category ?? 'account',
+      'issue_date': entryDate,
+      // ...
+    };
+  }
+
+  return rpcLine;
+}
+```
+
+### 0.6 ⚠️ RPC 계획서 추가 수정 필요
+
+#### 문제 4: `linked_company_id` 소스 차이
+
+**Template 생성 시 (add_template_bottom_sheet)**:
+- `account_selector_card.dart`에서 counterparty 선택 시 `linked_company_id` **전달됨**:
+  ```dart
+  // account_selector_card.dart:176-180
+  widget.onCounterpartyDataChanged({
+    'name': counterparty.name,
+    'is_internal': counterparty.isInternal,
+    'linked_company_id': counterparty.linkedCompanyId,  // ✅ 있음!
+  });
+  ```
+- 하지만 `TemplateLineFactory.createLines()`에 **전달하지 않음**:
+  ```dart
+  // add_template_bottom_sheet.dart:232-256
+  final data = TemplateLineFactory.createLines(
+    // ... counterpartyId, counterpartyName만 전달
+    // ❌ linked_company_id 파라미터 없음!
+  );
+  ```
+- 결과: DB에 `linked_company_id` **저장 안 됨**
+
+**Template 수정 시 (edit_template_bottom_sheet)**:
+- counterparties 테이블에서 조회하여 추가
+- `_loadMissingCounterpartyData()`로 `linked_company_id` 추가
+
+**🔧 수정 방안 2가지**:
+
+**방안 A: Flutter 수정 (권장)**
+```dart
+// TemplateLineFactory.createLine()에 파라미터 추가
+static Map<String, dynamic> createLine({
+  // ... existing params
+  String? linkedCompanyId,  // NEW
+}) {
+  // payable/receivable 케이스에서:
+  line['linked_company_id'] = linkedCompanyId;
+}
+```
+
+**방안 B: RPC에서 해결 (현재 계획)**
+```sql
+-- counterparties 테이블에서 linked_company_id 조회
+SELECT c.linked_company_id INTO v_linked_company_id
+FROM counterparties c
+WHERE c.counterparty_id = v_default_counterparty_id;
+
+-- entry에 없어도 counterparties 테이블에서 확인!
+v_is_internal_counterparty := v_linked_company_id IS NOT NULL;
+```
+
+**결론**: RPC에서는 **방안 B**로 처리하되, Flutter 코드 개선 시 **방안 A**도 적용 권장
+
+### 0.8 ⭐ CRITICAL: Internal Counterparty 완전한 데이터 요구사항
+
+#### 왜 중요한가?
+
+Internal counterparty는 **같은 DB를 공유하는 두 회사** 간의 거래입니다.
+데이터 무결성을 위해 **양쪽 회사에 동시에 거래를 생성**해야 합니다.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 INTERNAL COUNTERPARTY 거래 데이터 흐름                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [내 회사 - Company A]                    [상대방 회사 - Company B]          │
+│  ─────────────────────                    ─────────────────────────          │
+│                                                                              │
+│  📝 내가 입력하는 거래:                   📝 자동 생성되는 Mirror 거래:       │
+│  ├─ "돈을 보냈다" (Payable)              ├─ "돈을 받았다" (Receivable)        │
+│  ├─ 금액: 50,000                         ├─ 금액: 50,000                      │
+│  ├─ 내 계정: Notes Payable               ├─ 상대방 계정: Notes Receivable     │
+│  ├─ 내 현금위치: 본사금고                ├─ 상대방 현금위치: ??? ← 필요!     │
+│  │                                        │                                   │
+│  └─ 상대방 정보:                          └─ 상대방 정보:                     │
+│      ├─ counterparty_id                       ├─ counterparty_id (역방향)    │
+│      ├─ linked_company_id (B)                 ├─ linked_company_id (A)       │
+│      ├─ linked_company_store_id               ├─ linked_company_store_id     │
+│      └─ counterparty_cash_location_id ───────▶└─ cash_location_id로 저장!   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Internal Counterparty 거래 시 필수 데이터
+
+| 데이터 | 설명 | 출처 |
+|--------|------|------|
+| `counterparty_id` | 내 회사에서 본 상대방 | Template entry 또는 user 선택 |
+| `linked_company_id` | 상대방 회사 UUID | `counterparties.linked_company_id` |
+| `linked_company_store_id` | 상대방 가게 UUID | User 선택 (StoreSelector) |
+| `counterparty_cash_location_id` | **상대방 가게의 현금위치** | User 선택 (CashLocationSelector) |
+
+#### `create_mirror_journal_for_counterparty_utc` RPC 핵심 로직
+
+```sql
+-- 1. 내가 payable → 상대방은 receivable (반대로!)
+IF _original_direction = 'payable' THEN
+  _reverse_direction := 'receivable';
+END IF;
+
+-- 2. 상대방 입장에서 나를 가리키는 counterparty 찾기
+SELECT c.counterparty_id INTO _mirror_counterparty_id
+FROM counterparties c
+WHERE c.company_id = _linked_company_id      -- 상대방 회사에서
+  AND c.linked_company_id = p_company_id;    -- 나를 등록한 counterparty
+
+-- 3. ⭐ Account Mapping에서 상대방이 사용할 계정 찾기
+SELECT a.linked_account_id INTO _mirror_account_id
+FROM account_mappings a
+WHERE a.my_company_id = p_company_id
+  AND a.counterparty_id = debt_counterparty_id
+  AND a.my_account_id = _original_account_id;
+
+-- 4. 상대방 회사에 Mirror 전표 생성
+INSERT INTO journal_entries (company_id, store_id, ...)
+VALUES (_linked_company_id, _linked_company_store_id, ...);
+
+-- 5. Mirror Debt 생성 (반대 방향, 상대방 계정)
+INSERT INTO debts_receivable (
+  company_id, store_id, direction, account_id, ...
+) VALUES (
+  _linked_company_id,           -- 상대방 회사
+  _linked_company_store_id,     -- 상대방 가게
+  _reverse_direction,           -- 반대 방향!
+  _mirror_account_id,           -- 상대방 계정 (account_mapping에서)
+  ...
+);
+
+-- 6. Mirror Cash Line 생성 (상대방 현금위치!)
+INSERT INTO journal_lines (
+  cash_location_id, ...
+) VALUES (
+  p_if_cash_location_id,  -- ⭐ 이게 counterparty_cash_location_id!
+  ...
+);
+```
+
+#### Template Usage RPC에서 필요한 검증
+
+```sql
+-- Internal counterparty인 경우 필수 검증
+IF v_is_internal_counterparty THEN
+  -- 1. Account Mapping 존재 확인 (필수!)
+  IF NOT EXISTS (
+    SELECT 1 FROM account_mappings
+    WHERE my_company_id = p_company_id
+      AND counterparty_id = v_counterparty_id
+      AND my_account_id = v_debt_account_id
+  ) THEN
+    RETURN json_build_object(
+      'success', FALSE,
+      'error', 'account_mapping_required',
+      'message', 'Account mapping is required for internal counterparty'
+    );
+  END IF;
+
+  -- 2. Counterparty Store 선택 확인
+  IF p_selected_counterparty_store_id IS NULL THEN
+    RETURN json_build_object(
+      'success', FALSE,
+      'error', 'validation_error',
+      'message', 'Counterparty store is required for internal transfers'
+    );
+  END IF;
+
+  -- 3. Counterparty Cash Location 선택 확인
+  IF p_selected_counterparty_cash_location_id IS NULL THEN
+    RETURN json_build_object(
+      'success', FALSE,
+      'error', 'validation_error',
+      'message', 'Counterparty cash location is required for internal transfers'
+    );
+  END IF;
+END IF;
+```
+
+### 0.9 `account_mappings` 테이블 구조
+
+```sql
+CREATE TABLE account_mappings (
+  mapping_id UUID PRIMARY KEY,
+  my_company_id UUID NOT NULL,        -- 내 회사
+  my_account_id UUID NOT NULL,        -- 내가 사용하는 계정 (예: Notes Payable)
+  counterparty_id UUID NOT NULL,      -- 상대방 거래처
+  linked_account_id UUID NOT NULL,    -- 상대방이 사용할 계정 (예: Notes Receivable)
+  direction TEXT NOT NULL,            -- 'payable' | 'receivable'
+  created_by UUID,
+  created_at TIMESTAMPTZ,
+  is_deleted BOOLEAN DEFAULT FALSE
+);
+```
+
+**예시 데이터**:
+- 내가 Company A, 상대방이 Company B
+- 내가 "Notes Payable"로 기록하면 → 상대방은 "Notes Receivable"로 기록
+
+| my_company | my_account | counterparty | linked_account | direction |
+|------------|------------|--------------|----------------|-----------|
+| A | Notes Payable | B의 counterparty | Notes Receivable | payable |
+| A | Notes Receivable | B의 counterparty | Notes Payable | receivable |
+
+### 0.7 기존 RPC 파라미터 구조 (insert_journal_with_everything_utc)
+
+```sql
+-- 입력 파라미터
+p_base_amount NUMERIC,           -- 거래 금액
+p_company_id UUID,               -- 회사 ID
+p_created_by UUID,               -- 생성자 ID
+p_description TEXT,              -- 설명
+p_entry_date_utc TIMESTAMPTZ,    -- 거래 날짜 (UTC)
+p_lines JSONB,                   -- ⭐ 거래 라인 배열 (NESTED 구조)
+p_counterparty_id TEXT,          -- 거래처 ID (nullable)
+p_if_cash_location_id TEXT,      -- 상대방 현금 위치 ID (nullable)
+p_store_id TEXT                  -- 스토어 ID (nullable)
+
+-- 반환값
+RETURNS UUID  -- 생성된 journal_id
+```
 
 ---
 
@@ -100,6 +578,7 @@ p_store_id UUID DEFAULT NULL  -- 현재 스토어 ID (optional)
   "ui_config": {
     "show_cash_location_selector": false,
     "show_counterparty_selector": true,
+    "show_counterparty_store_selector": false,      // ⭐ NEW: internal일 때 true
     "show_counterparty_cash_location_selector": false,
     "counterparty_is_locked": false,  // internal이면 true
     "locked_counterparty_name": null  // internal일 때 표시할 이름
@@ -110,6 +589,8 @@ p_store_id UUID DEFAULT NULL  -- 현재 스토어 ID (optional)
     "cash_location_name": "sb",
     "counterparty_id": "uuid-or-null",
     "counterparty_name": "diff",
+    "counterparty_store_id": null,                  // ⭐ NEW
+    "counterparty_store_name": null,                // ⭐ NEW
     "counterparty_cash_location_id": null,
     "is_internal_counterparty": false
   },
@@ -145,11 +626,13 @@ DECLARE
   v_has_receivable_payable BOOLEAN := FALSE;
   v_is_internal_counterparty BOOLEAN := FALSE;
   v_has_counterparty BOOLEAN := FALSE;
+  v_has_counterparty_store BOOLEAN := FALSE;              -- ⭐ NEW
   v_has_counterparty_cash_location BOOLEAN := FALSE;
 
   -- UI config
   v_show_cash_location BOOLEAN := FALSE;
   v_show_counterparty BOOLEAN := FALSE;
+  v_show_counterparty_store BOOLEAN := FALSE;             -- ⭐ NEW
   v_show_counterparty_cash_location BOOLEAN := FALSE;
   v_counterparty_locked BOOLEAN := FALSE;
 
@@ -158,6 +641,8 @@ DECLARE
   v_default_cash_location_name TEXT;
   v_default_counterparty_id UUID;
   v_default_counterparty_name TEXT;
+  v_default_counterparty_store_id UUID;                   -- ⭐ NEW
+  v_default_counterparty_store_name TEXT;                 -- ⭐ NEW
   v_default_counterparty_cash_location_id UUID;
 
   -- Display
@@ -198,22 +683,49 @@ BEGIN
       WHEN 'receivable', 'payable' THEN
         v_has_receivable_payable := TRUE;
 
-        -- Check counterparty
-        IF v_entry->>'counterparty_id' IS NOT NULL AND v_entry->>'counterparty_id' != '' THEN
-          v_has_counterparty := TRUE;
-          v_default_counterparty_id := (v_entry->>'counterparty_id')::UUID;
+        -- ✅ FIXED: Check counterparty (entry > template level priority)
+        IF v_default_counterparty_id IS NULL THEN
+          v_default_counterparty_id := COALESCE(
+            NULLIF(v_entry->>'counterparty_id', '')::UUID,
+            v_template.counterparty_id  -- fallback to template level
+          );
           v_default_counterparty_name := v_entry->>'counterparty_name';
+          IF v_default_counterparty_id IS NOT NULL THEN
+            v_has_counterparty := TRUE;
+          END IF;
         END IF;
 
-        -- Check if internal (has linked_company_id)
+        -- ✅ FIXED: Check if internal (entry level OR counterparties table)
+        -- Step 1: Check entry-level linked_company_id
         IF v_entry->>'linked_company_id' IS NOT NULL AND v_entry->>'linked_company_id' != '' THEN
           v_is_internal_counterparty := TRUE;
         END IF;
 
-        -- Check counterparty_cash_location
-        IF v_entry->>'counterparty_cash_location_id' IS NOT NULL AND v_entry->>'counterparty_cash_location_id' != '' THEN
-          v_has_counterparty_cash_location := TRUE;
-          v_default_counterparty_cash_location_id := (v_entry->>'counterparty_cash_location_id')::UUID;
+        -- Step 2: If not found in entry, check counterparties table
+        IF NOT v_is_internal_counterparty AND v_default_counterparty_id IS NOT NULL THEN
+          SELECT (c.linked_company_id IS NOT NULL) INTO v_is_internal_counterparty
+          FROM counterparties c
+          WHERE c.counterparty_id = v_default_counterparty_id;
+        END IF;
+
+        -- ⭐ NEW: Check counterparty_store (entry level)
+        IF v_default_counterparty_store_id IS NULL THEN
+          v_default_counterparty_store_id := NULLIF(v_entry->>'counterparty_store_id', '')::UUID;
+          v_default_counterparty_store_name := v_entry->>'counterparty_store_name';
+          IF v_default_counterparty_store_id IS NOT NULL THEN
+            v_has_counterparty_store := TRUE;
+          END IF;
+        END IF;
+
+        -- ✅ FIXED: Check counterparty_cash_location (entry > template level priority)
+        IF v_default_counterparty_cash_location_id IS NULL THEN
+          v_default_counterparty_cash_location_id := COALESCE(
+            NULLIF(v_entry->>'counterparty_cash_location_id', '')::UUID,
+            v_template.counterparty_cash_location_id  -- fallback to template level
+          );
+          IF v_default_counterparty_cash_location_id IS NOT NULL THEN
+            v_has_counterparty_cash_location := TRUE;
+          END IF;
         END IF;
 
         -- Set display category
@@ -261,8 +773,16 @@ BEGIN
   -- Counterparty selector
   IF v_has_receivable_payable THEN
     IF v_is_internal_counterparty THEN
-      -- Internal: locked, may need cash location
+      -- Internal: locked, may need store and cash location
       v_counterparty_locked := TRUE;
+
+      -- ⭐ Check counterparty store
+      IF NOT v_has_counterparty_store THEN
+        v_show_counterparty_store := TRUE;
+        v_missing_items := array_append(v_missing_items, 'counterparty_store');
+      END IF;
+
+      -- ⭐ Check counterparty cash location
       IF NOT v_has_counterparty_cash_location THEN
         v_show_counterparty_cash_location := TRUE;
         v_missing_items := array_append(v_missing_items, 'counterparty_cash_location');
@@ -307,6 +827,7 @@ BEGIN
     'ui_config', json_build_object(
       'show_cash_location_selector', v_show_cash_location,
       'show_counterparty_selector', v_show_counterparty,
+      'show_counterparty_store_selector', v_show_counterparty_store,  -- ⭐ NEW
       'show_counterparty_cash_location_selector', v_show_counterparty_cash_location,
       'counterparty_is_locked', v_counterparty_locked,
       'locked_counterparty_name', CASE WHEN v_counterparty_locked THEN v_default_counterparty_name ELSE NULL END
@@ -316,6 +837,8 @@ BEGIN
       'cash_location_name', v_default_cash_location_name,
       'counterparty_id', v_default_counterparty_id,
       'counterparty_name', v_default_counterparty_name,
+      'counterparty_store_id', v_default_counterparty_store_id,        -- ⭐ NEW
+      'counterparty_store_name', v_default_counterparty_store_name,    -- ⭐ NEW
       'counterparty_cash_location_id', v_default_counterparty_cash_location_id,
       'is_internal_counterparty', v_is_internal_counterparty
     ),
@@ -343,6 +866,7 @@ p_store_id UUID DEFAULT NULL,              -- 스토어 ID
 p_description TEXT DEFAULT NULL,           -- 메모
 p_selected_cash_location_id UUID DEFAULT NULL,      -- 사용자 선택 cash location
 p_selected_counterparty_id UUID DEFAULT NULL,       -- 사용자 선택 counterparty
+p_selected_counterparty_store_id UUID DEFAULT NULL, -- ⭐ NEW: 상대방 가게 ID (internal용)
 p_selected_counterparty_cash_location_id UUID DEFAULT NULL,  -- 사용자 선택 counterparty cash location
 p_entry_date DATE DEFAULT CURRENT_DATE     -- 거래일
 ```
@@ -377,6 +901,7 @@ CREATE OR REPLACE FUNCTION create_transaction_from_template(
   p_description TEXT DEFAULT NULL,
   p_selected_cash_location_id UUID DEFAULT NULL,
   p_selected_counterparty_id UUID DEFAULT NULL,
+  p_selected_counterparty_store_id UUID DEFAULT NULL,  -- ⭐ NEW: internal용
   p_selected_counterparty_cash_location_id UUID DEFAULT NULL,
   p_entry_date DATE DEFAULT CURRENT_DATE
 )
@@ -394,8 +919,11 @@ DECLARE
   -- Resolved values (user selection > template default)
   v_cash_location_id UUID;
   v_counterparty_id UUID;
+  v_counterparty_store_id UUID;           -- ⭐ NEW
   v_counterparty_cash_location_id UUID;
   v_is_internal BOOLEAN := FALSE;
+  v_linked_company_id UUID;               -- ⭐ NEW: for internal check
+  v_debt_account_id UUID;                 -- ⭐ NEW: for account_mapping check
 
   -- Result
   v_journal_id UUID;
@@ -445,20 +973,41 @@ BEGIN
       v_cash_location_id := NULLIF(v_entry->>'cash_location_id', '')::UUID;
     END IF;
 
-    -- Counterparty
+    -- Counterparty (receivable/payable)
     IF v_entry->>'category_tag' IN ('receivable', 'payable') THEN
+      -- Save debt account_id for account_mapping check
+      IF v_debt_account_id IS NULL THEN
+        v_debt_account_id := NULLIF(v_entry->>'account_id', '')::UUID;
+      END IF;
+
       IF v_counterparty_id IS NULL THEN
         v_counterparty_id := NULLIF(v_entry->>'counterparty_id', '')::UUID;
+      END IF;
+      IF v_counterparty_store_id IS NULL THEN
+        v_counterparty_store_id := NULLIF(v_entry->>'counterparty_store_id', '')::UUID;
       END IF;
       IF v_counterparty_cash_location_id IS NULL THEN
         v_counterparty_cash_location_id := NULLIF(v_entry->>'counterparty_cash_location_id', '')::UUID;
       END IF;
-      -- Check if internal
+      -- Check if internal from entry
       IF v_entry->>'linked_company_id' IS NOT NULL AND v_entry->>'linked_company_id' != '' THEN
         v_is_internal := TRUE;
+        v_linked_company_id := (v_entry->>'linked_company_id')::UUID;
       END IF;
     END IF;
   END LOOP;
+
+  -- ⭐ Check internal from counterparties table (if not found in entry)
+  IF NOT v_is_internal AND v_counterparty_id IS NOT NULL THEN
+    SELECT c.linked_company_id INTO v_linked_company_id
+    FROM counterparties c
+    WHERE c.counterparty_id = v_counterparty_id
+      AND c.is_deleted = FALSE;
+
+    IF v_linked_company_id IS NOT NULL THEN
+      v_is_internal := TRUE;
+    END IF;
+  END IF;
 
   -- Apply user selections (priority: user > template)
   IF p_selected_cash_location_id IS NOT NULL THEN
@@ -467,6 +1016,16 @@ BEGIN
 
   IF p_selected_counterparty_id IS NOT NULL THEN
     v_counterparty_id := p_selected_counterparty_id;
+    -- ⭐ Re-check internal for user-selected counterparty
+    SELECT c.linked_company_id INTO v_linked_company_id
+    FROM counterparties c
+    WHERE c.counterparty_id = p_selected_counterparty_id
+      AND c.is_deleted = FALSE;
+    v_is_internal := (v_linked_company_id IS NOT NULL);
+  END IF;
+
+  IF p_selected_counterparty_store_id IS NOT NULL THEN
+    v_counterparty_store_id := p_selected_counterparty_store_id;
   END IF;
 
   IF p_selected_counterparty_cash_location_id IS NOT NULL THEN
@@ -524,14 +1083,44 @@ BEGIN
         );
       END IF;
 
-      -- Internal needs counterparty_cash_location
-      IF v_is_internal AND v_counterparty_cash_location_id IS NULL THEN
-        RETURN json_build_object(
-          'success', FALSE,
-          'error', 'validation_error',
-          'message', 'Counterparty cash location is required for internal transfers',
-          'field', 'counterparty_cash_location'
-        );
+      -- ⭐ Internal counterparty: Additional validations
+      IF v_is_internal THEN
+        -- 1. Check counterparty_store_id
+        IF v_counterparty_store_id IS NULL THEN
+          RETURN json_build_object(
+            'success', FALSE,
+            'error', 'validation_error',
+            'message', 'Counterparty store is required for internal transfers',
+            'field', 'counterparty_store'
+          );
+        END IF;
+
+        -- 2. Check counterparty_cash_location_id
+        IF v_counterparty_cash_location_id IS NULL THEN
+          RETURN json_build_object(
+            'success', FALSE,
+            'error', 'validation_error',
+            'message', 'Counterparty cash location is required for internal transfers',
+            'field', 'counterparty_cash_location'
+          );
+        END IF;
+
+        -- 3. ⭐ Check account_mapping exists (CRITICAL for mirror journal!)
+        IF NOT EXISTS (
+          SELECT 1 FROM account_mappings
+          WHERE my_company_id = p_company_id
+            AND counterparty_id = v_counterparty_id
+            AND my_account_id = v_debt_account_id
+            AND is_deleted = FALSE
+        ) THEN
+          RETURN json_build_object(
+            'success', FALSE,
+            'error', 'account_mapping_required',
+            'message', 'Account mapping is required for internal counterparty. ' ||
+                       'Please set up account mapping in Counter Party > Account Settings.',
+            'field', 'account_mapping'
+          );
+        END IF;
       END IF;
     END IF;
   END LOOP;
@@ -570,14 +1159,28 @@ BEGIN
 
     -- Add debt object for receivable/payable
     IF v_entry->>'category_tag' IN ('receivable', 'payable') AND v_counterparty_id IS NOT NULL THEN
-      v_line := v_line || jsonb_build_object(
-        'debt', jsonb_build_object(
-          'counterparty_id', v_counterparty_id,
-          'direction', v_entry->>'category_tag',
-          'category', COALESCE(v_entry->'debt'->>'category', 'account'),
-          'issue_date', v_entry_date_str
-        )
-      );
+      -- ⭐ Build debt object with internal counterparty fields if applicable
+      IF v_is_internal THEN
+        v_line := v_line || jsonb_build_object(
+          'debt', jsonb_build_object(
+            'counterparty_id', v_counterparty_id,
+            'direction', v_entry->>'category_tag',
+            'category', COALESCE(v_entry->'debt'->>'category', 'account'),
+            'issue_date', v_entry_date_str,
+            'linkedCounterparty_store_id', v_counterparty_store_id,  -- ⭐ Internal
+            'linkedCounterparty_companyId', v_linked_company_id      -- ⭐ Internal
+          )
+        );
+      ELSE
+        v_line := v_line || jsonb_build_object(
+          'debt', jsonb_build_object(
+            'counterparty_id', v_counterparty_id,
+            'direction', v_entry->>'category_tag',
+            'category', COALESCE(v_entry->'debt'->>'category', 'account'),
+            'issue_date', v_entry_date_str
+          )
+        );
+      END IF;
     END IF;
 
     v_lines := v_lines || v_line;
@@ -691,6 +1294,7 @@ Future<Map<String, dynamic>> _createTransactionFromTemplate(double amount) async
       'p_description': _descriptionController.text,
       'p_selected_cash_location_id': _selectedMyCashLocationId,
       'p_selected_counterparty_id': _selectedCounterpartyId,
+      'p_selected_counterparty_store_id': _selectedCounterpartyStoreId,  // ⭐ NEW
       'p_selected_counterparty_cash_location_id': _selectedCounterpartyCashLocationId,
       'p_entry_date': DateTime.now().toIso8601String().split('T')[0],
     },

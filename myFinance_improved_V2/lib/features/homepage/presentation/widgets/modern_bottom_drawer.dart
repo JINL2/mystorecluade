@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -107,9 +108,13 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           selectedCompany = Company.fromMap(companyMap);
         }
       } catch (e, stackTrace) {
-        // Log error for debugging but don't crash
-        debugPrint('❌ Error finding company $selectedCompanyId: $e');
-        debugPrint('Stack trace: $stackTrace');
+        // Log error but don't crash
+        SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'ModernBottomDrawer error finding company',
+          extra: {'companyId': selectedCompanyId},
+        );
         selectedCompany = null;
       }
     }

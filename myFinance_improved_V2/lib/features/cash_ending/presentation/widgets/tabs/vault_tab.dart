@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_icons.dart';
@@ -128,7 +129,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   /// Clear all denomination input fields
   void _clearAllInputs() {
-    debugPrint('🧹 [VaultTab] Clearing all input fields');
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.clear();
@@ -569,21 +569,12 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                 fullWidth: true,
                 onPressed: !tabState.isSaving
                     ? () async {
-                        debugPrint('═══════════════════════════════════════════════════════');
-                        debugPrint('🚀 [VaultTab] Submit Ending 버튼 클릭!');
-                        debugPrint('📋 [VaultTab] transactionType: $_transactionType');
-                        debugPrint('💰 [VaultTab] currencyId: $firstCurrencyId');
-                        debugPrint('📊 [VaultTab] Quantities: ${denominationQuantities}');
-                        debugPrint('═══════════════════════════════════════════════════════');
-
                         await widget.onSave(
                           context,
                           state,
                           firstCurrencyId,
                           _transactionType,
                         );
-
-                        debugPrint('✅ [VaultTab] onSave 콜백 완료');
                       }
                     : null,
                 textStyle: TossTextStyles.titleLarge.copyWith(
@@ -631,11 +622,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'In',
                   leadingIcon: const Icon(LucideIcons.arrowDownCircle, size: 20),
                   onPressed: () {
-                    debugPrint('🔵 [VaultTab] In 버튼 클릭 - transactionType: debit');
                     setState(() {
                       _transactionType = 'debit';
                     });
-                    debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -644,11 +633,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'In',
                   leadingIcon: const Icon(LucideIcons.arrowDownCircle, size: 20),
                   onPressed: () {
-                    debugPrint('🔵 [VaultTab] In 버튼 클릭 - transactionType: debit');
                     setState(() {
                       _transactionType = 'debit';
                     });
-                    debugPrint('🔵 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -661,11 +648,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'Out',
                   leadingIcon: const Icon(LucideIcons.arrowUpCircle, size: 20),
                   onPressed: () {
-                    debugPrint('🟠 [VaultTab] Out 버튼 클릭 - transactionType: credit');
                     setState(() {
                       _transactionType = 'credit';
                     });
-                    debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -674,11 +659,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'Out',
                   leadingIcon: const Icon(LucideIcons.arrowUpCircle, size: 20),
                   onPressed: () {
-                    debugPrint('🟠 [VaultTab] Out 버튼 클릭 - transactionType: credit');
                     setState(() {
                       _transactionType = 'credit';
                     });
-                    debugPrint('🟠 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -691,11 +674,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'Recount',
                   leadingIcon: const Icon(LucideIcons.refreshCw, size: 20),
                   onPressed: () {
-                    debugPrint('🟢 [VaultTab] Recount 버튼 클릭 - transactionType: recount');
                     setState(() {
                       _transactionType = 'recount';
                     });
-                    debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -704,11 +685,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   text: 'Recount',
                   leadingIcon: const Icon(LucideIcons.refreshCw, size: 20),
                   onPressed: () {
-                    debugPrint('🟢 [VaultTab] Recount 버튼 클릭 - transactionType: recount');
                     setState(() {
                       _transactionType = 'recount';
                     });
-                    debugPrint('🟢 [VaultTab] State 업데이트 완료 - _transactionType: $_transactionType');
                   },
                   fullWidth: true,
                   borderRadius: TossBorderRadius.lg,
@@ -796,33 +775,16 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     final vaultTabNotifier = ref.read(vaultTabProvider.notifier);
 
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('🔄 [VaultTab] Executing Multi-Currency RECOUNT');
-      debugPrint('   - Location: ${state.selectedVaultLocationId}');
-      debugPrint('   - Total Currencies: ${currenciesWithData.length}');
-
-      for (final curr in currenciesWithData) {
-        final total = curr.denominations.fold(
-          0.0,
-          (sum, d) => sum + (d.value * d.quantity),
-        );
-        debugPrint('   - ${curr.currencyCode}: ${curr.symbol}$total (${curr.denominations.where((d) => d.quantity > 0).length} denoms)');
-      }
-      debugPrint('═══════════════════════════════════════════════════════');
-
       // Build multi-currency recount entity
       final multiCurrencyRecount = _buildMultiCurrencyRecountEntity(
         state: state,
         currenciesWithData: currenciesWithData,
       );
 
-      debugPrint('🚀 [VaultTab] Calling insert_amount_multi_currency RPC...');
       // Execute RECOUNT RPC (single call for all currencies)
       await vaultTabNotifier.executeMultiCurrencyRecount(multiCurrencyRecount);
-      debugPrint('✅ [VaultTab] RECOUNT RPC complete!');
 
       // After recount, fetch balance summary
-      debugPrint('📊 [VaultTab] Fetching balance summary...');
       await vaultTabNotifier.submitVaultEnding(
         locationId: state.selectedVaultLocationId!,
       );
@@ -860,8 +822,16 @@ class _VaultTabState extends ConsumerState<VaultTab> {
           ),
         ),
       );
-    } catch (e) {
-      debugPrint('❌ [VaultTab] RECOUNT 에러: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'VaultTab RECOUNT failed',
+        extra: {
+          'locationId': state.selectedVaultLocationId,
+          'currencyCount': currenciesWithData.length,
+        },
+      );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -24,8 +24,11 @@ final _supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService();
 });
 
-/// Template data source provider (Internal)
-final _templateDataSourceProvider = Provider<TemplateDataSource>((ref) {
+/// Template data source provider
+///
+/// Exposed for RPC calls (get_template_for_usage, create_transaction_from_template)
+/// Reference: docs/TEMPLATE_RPC_REFACTORING_PLAN.md
+final templateDataSourceProvider = Provider<TemplateDataSource>((ref) {
   return TemplateDataSource(ref.read(_supabaseServiceProvider));
 });
 
@@ -40,7 +43,7 @@ final _templateCacheRepositoryProvider = Provider<TemplateCacheRepository>((ref)
 /// Presentation layer should use this provider.
 final templateRepositoryProvider = Provider<TemplateRepository>((ref) {
   return SupabaseTemplateRepository(
-    dataSource: ref.read(_templateDataSourceProvider),
+    dataSource: ref.read(templateDataSourceProvider),
     cacheRepository: ref.read(_templateCacheRepositoryProvider),
   );
 });

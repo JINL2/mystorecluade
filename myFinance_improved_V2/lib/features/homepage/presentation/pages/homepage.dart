@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/token_manager.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -154,7 +155,6 @@ class _HomepageState extends ConsumerState<Homepage> {
 
       return permissions.contains(revenuePermissionId);
     } catch (e) {
-      print('⚠️ Error checking revenue permission: $e');
       return false;
     }
   }
@@ -640,22 +640,17 @@ class _HomepageState extends ConsumerState<Homepage> {
             TossDialogs.showForceUpdateRequired(
               context: context,
               onOkPressed: () async {
-                debugPrint('🔄 Update button pressed - opening App Store...');
-
                 // Try App Store app first, fallback to web App Store
                 const appStoreUrl = 'itms-apps://';
                 const webAppStoreUrl = 'https://apps.apple.com';
 
                 final Uri url = Uri.parse(appStoreUrl);
                 final canLaunch = await canLaunchUrl(url);
-                debugPrint('🔄 canLaunchUrl (itms-apps): $canLaunch');
 
                 if (canLaunch) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
-                  debugPrint('🔄 App Store opened');
                 } else {
                   // Fallback for simulator - open web App Store
-                  debugPrint('🔄 Fallback to web App Store...');
                   final Uri webUrl = Uri.parse(webAppStoreUrl);
                   await launchUrl(webUrl, mode: LaunchMode.externalApplication);
                 }
@@ -757,10 +752,13 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 🔥 Ensure FCM token is registered/refreshed
       try {
         await TokenManager().ensureTokenRegistered();
-        debugPrint('🔔 FCM token checked on refresh');
-      } catch (e) {
-        debugPrint('⚠️ FCM token check failed: $e');
+      } catch (e, stackTrace) {
         // Don't fail the refresh if FCM fails
+        SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'Homepage FCM token check failed',
+        );
       }
 
       // Wait for essential provider to reload (others will load in background)
@@ -772,9 +770,13 @@ class _HomepageState extends ConsumerState<Homepage> {
           _isRefreshing = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Hide loading view on error
-      debugPrint('🔴 [Refresh] Error: $e');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Homepage refresh failed',
+      );
       if (mounted) {
         setState(() {
           _isRefreshing = false;
