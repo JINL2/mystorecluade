@@ -1,7 +1,7 @@
 // lib/features/cash_ending/data/datasources/vault_remote_datasource.dart
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../core/constants.dart';
 
 /// Remote Data Source for Vault operations
@@ -57,34 +57,33 @@ class VaultRemoteDataSource {
   /// Throws exception on error
   @Deprecated('Use saveVaultTransaction with transactionType="recount" instead')
   Future<Map<String, dynamic>> recountVault(Map<String, dynamic> params) async {
-    debugPrint('\n🟢 [VaultRemoteDataSource] recountVault() 호출');
-    debugPrint('   - RPC Name: ${CashEndingConstants.rpcVaultAmountRecount}');
-    debugPrint('   - Parameters: $params');
-
     try {
-      debugPrint('📡 [VaultRemoteDataSource] Supabase RPC 호출 중...');
       final response = await _client.rpc(
         CashEndingConstants.rpcVaultAmountRecount,
         params: params,
       );
 
-      debugPrint('📥 [VaultRemoteDataSource] Supabase 응답 받음: $response');
-
       // RPC returns JSON object, convert to Map
       if (response is Map<String, dynamic>) {
-        debugPrint('✅ [VaultRemoteDataSource] 응답 타입 검증 성공 (Map<String, dynamic>)');
         return response;
       } else {
-        debugPrint('❌ [VaultRemoteDataSource] 응답 타입 오류: ${response.runtimeType}');
         throw Exception('Unexpected response type from vault_amount_recount');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Re-throw with additional context
       final locationId = params['p_location_id'] ?? 'unknown';
       final denominationCount = params['p_recount_data'] is List
           ? (params['p_recount_data'] as List).length
           : 0;
-      debugPrint('❌ [VaultRemoteDataSource] RPC 호출 실패: $e');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'VaultRemoteDataSource.recountVault RPC failed',
+        extra: {
+          'locationId': locationId,
+          'denominationCount': denominationCount,
+        },
+      );
       throw Exception(
         'Failed to recount vault via RPC '
         '(Location: $locationId, Denominations: $denominationCount): $e',

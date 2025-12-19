@@ -1,7 +1,6 @@
 // lib/features/cash_ending/presentation/providers/cash_tab_notifier.dart
 
-import 'package:flutter/foundation.dart';
-
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
 import '../../domain/usecases/save_cash_ending_usecase.dart';
@@ -125,28 +124,22 @@ class CashTabNotifier extends BaseTabNotifier<CashTabState> {
   Future<void> submitCashEnding({
     required String locationId,
   }) async {
-    debugPrint('\n📊 [CashTabNotifier] submitCashEnding() 호출');
-    debugPrint('   - locationId: $locationId');
-
     try {
       // ✅ UseCase handles validation and fetches balance summary
-      debugPrint('🚀 [CashTabNotifier] getBalanceSummary() 호출...');
       final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
-
-      debugPrint('✅ [CashTabNotifier] Balance Summary 받음:');
-      debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');
-      debugPrint('   - Total Real: ${balanceSummary.formattedTotalReal}');
-      debugPrint('   - Difference: ${balanceSummary.formattedDifference}');
 
       // Update state with balance summary and show dialog
       state = state.copyWith(
         balanceSummary: balanceSummary,
         showBalanceDialog: true,
       );
-
-      debugPrint('✅ [CashTabNotifier] Dialog 표시 준비 완료');
-    } catch (e) {
-      debugPrint('❌ [CashTabNotifier] submitCashEnding() 에러: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashTabNotifier.submitCashEnding failed',
+        extra: {'locationId': locationId},
+      );
       state = state.copyWith(
         errorMessage: 'Failed to get balance summary: $e',
       );

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/features/homepage/data/models/store_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -45,12 +44,6 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     }
 
     // Call create_store RPC
-    debugPrint('🏪 [CreateStore] Calling RPC with:');
-    debugPrint('🏪 [CreateStore] p_company_id: $companyId');
-    debugPrint('🏪 [CreateStore] p_store_name: $storeName');
-    debugPrint('🏪 [CreateStore] p_store_address: $storeAddress');
-    debugPrint('🏪 [CreateStore] p_store_phone: $storePhone');
-
     final result = await supabaseClient.rpc<Map<String, dynamic>>(
       'create_store',
       params: {
@@ -61,16 +54,12 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       },
     );
 
-    debugPrint('🏪 [CreateStore] RPC Result: $result');
-
     if (result['success'] != true) {
       final errorMessage = result['message'] ?? result['error'] ?? 'Failed to create store';
-      debugPrint('❌ [CreateStore] Error: $errorMessage');
       throw Exception(errorMessage);
     }
 
     final data = result['data'] as Map<String, dynamic>;
-    debugPrint('✅ [CreateStore] Success: store_id=${data['store_id']}, store_code=${data['store_code']}');
 
     return StoreModel(
       id: data['store_id'] as String,

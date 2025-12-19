@@ -124,7 +124,6 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   /// Clear all denomination input fields
   void _clearAllInputs() {
-    debugPrint('🧹 [CashTab] Clearing all input fields');
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.clear();

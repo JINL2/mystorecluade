@@ -104,28 +104,22 @@ class SnackbarHelpers {
 
   /// Navigate to dashboard with proper state refresh
   static Future<void> navigateToDashboard(BuildContext context, WidgetRef ref) async {
-    debugPrint('🔄 [NavigateToDashboard] Starting dashboard navigation with data refresh...');
-
     // First expire the cache to ensure fresh data
     await ref.read(sessionManagerProvider.notifier).expireCache();
 
     // Invalidate providers to force refresh
-    debugPrint('🔄 [NavigateToDashboard] Invalidating all data providers...');
     ref.invalidate(userCompaniesProvider);
     ref.invalidate(categoriesWithFeaturesProvider);
 
     // Force immediate fetch of fresh data
-    debugPrint('🔄 [NavigateToDashboard] Forcing immediate data fetch...');
     try {
       await ref.read(userCompaniesProvider.future);
       await ref.read(categoriesWithFeaturesProvider.future);
-      debugPrint('✅ [NavigateToDashboard] Fresh data fetched successfully');
     } catch (e) {
-      debugPrint('❌ [NavigateToDashboard] Error fetching fresh data: $e');
+      // Continue to navigate even if fetch fails
     }
 
     // Navigate
-    debugPrint('🔄 [NavigateToDashboard] Navigating to homepage...');
     context.go('/');
   }
 }

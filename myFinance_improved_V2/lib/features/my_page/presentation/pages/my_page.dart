@@ -230,9 +230,9 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: source,
-        maxWidth: 600,
-        maxHeight: 600,
-        imageQuality: 70,
+        maxWidth: 400,
+        maxHeight: 400,
+        imageQuality: 50,
       );
 
       if (image != null) {

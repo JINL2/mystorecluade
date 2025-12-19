@@ -129,6 +129,13 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
   bool _isLoadingCounterpartyData = false;
   String? _nameError;
 
+  // Original values for change detection
+  late final String _originalName;
+  late final String _originalDescription;
+  late final bool _originalRequiredAttachment;
+  late final String _originalPermission;
+  late final Map<int, _EntryOriginalState> _originalEntryStates;
+
   @override
   void initState() {
     super.initState();
@@ -146,15 +153,29 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
     _requiredAttachment = widget.template['required_attachment'] == true;
     _permission = widget.template['permission']?.toString() ?? TemplateConstants.commonPermissionUUID;
 
+    // Store original values for change detection
+    _originalName = widget.template['name']?.toString() ?? '';
+    _originalDescription = widget.template['template_description']?.toString() ?? '';
+    _originalRequiredAttachment = widget.template['required_attachment'] == true;
+    _originalPermission = widget.template['permission']?.toString() ?? TemplateConstants.commonPermissionUUID;
+    _originalEntryStates = {};
+
     // Entry level fields
     final data = widget.template['data'] as List? ?? [];
     for (int i = 0; i < data.length; i++) {
       final entry = data[i] as Map<String, dynamic>;
       _entryStates[i] = _EntryEditState.fromEntry(entry);
+      // Store original entry state for change detection
+      _originalEntryStates[i] = _EntryOriginalState.fromEntry(entry);
+      // Add listener for entry description changes
+      _entryStates[i]!.descriptionController.addListener(_updateFormValidity);
     }
 
     // Add name validation listener
     _nameController.addListener(_validateName);
+
+    // Add description listener for form validity
+    _descriptionController.addListener(_updateFormValidity);
 
     // Load counterparty details for entries that have counterparty but missing linked_company_id
     // Also load missing account_codes for legacy templates
@@ -166,8 +187,32 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
   }
 
   /// Update form validity notifier when state changes
+  /// Button is enabled only when: form is valid AND there are changes
   void _updateFormValidity() {
-    widget.formValidityNotifier?.value = _isFormValid;
+    widget.formValidityNotifier?.value = _isFormValid && _hasChanges;
+  }
+
+  /// Check if any value has changed from original
+  bool get _hasChanges {
+    // Check template level changes
+    if (_nameController.text.trim() != _originalName) return true;
+    if (_descriptionController.text.trim() != _originalDescription) return true;
+    if (_requiredAttachment != _originalRequiredAttachment) return true;
+    if (_permission != _originalPermission) return true;
+
+    // Check entry level changes
+    for (final entry in _entryStates.entries) {
+      final current = entry.value;
+      final original = _originalEntryStates[entry.key];
+      if (original == null) continue;
+
+      if (current.descriptionController.text.trim() != original.description) return true;
+      if (current.cashLocationId != original.cashLocationId) return true;
+      if (current.counterpartyStoreId != original.counterpartyStoreId) return true;
+      if (current.counterpartyCashLocationId != original.counterpartyCashLocationId) return true;
+    }
+
+    return false;
   }
 
   /// Load counterparty data from database for entries missing linked_company_id
@@ -567,6 +612,7 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
               setState(() {
                 _requiredAttachment = value;
               });
+              _updateFormValidity();
             },
           ),
 
@@ -686,6 +732,7 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
         setState(() {
           _permission = value;
         });
+        _updateFormValidity();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -1541,5 +1588,29 @@ class _EntryEditState {
 
   void dispose() {
     descriptionController.dispose();
+  }
+}
+
+/// Original entry state for change detection (immutable snapshot)
+class _EntryOriginalState {
+  final String description;
+  final String? cashLocationId;
+  final String? counterpartyStoreId;
+  final String? counterpartyCashLocationId;
+
+  const _EntryOriginalState({
+    required this.description,
+    this.cashLocationId,
+    this.counterpartyStoreId,
+    this.counterpartyCashLocationId,
+  });
+
+  factory _EntryOriginalState.fromEntry(Map<String, dynamic> entry) {
+    return _EntryOriginalState(
+      description: entry['description']?.toString() ?? '',
+      cashLocationId: entry['cash_location_id']?.toString(),
+      counterpartyStoreId: entry['counterparty_store_id']?.toString(),
+      counterpartyCashLocationId: entry['counterparty_cash_location_id']?.toString(),
+    );
   }
 }

@@ -1,6 +1,5 @@
 // lib/features/cash_ending/data/datasources/currency_remote_datasource.dart
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote Data Source for Currencies and Denominations
@@ -31,34 +30,16 @@ class CurrencyRemoteDataSource {
     required String companyId,
     DateTime? rateDate,
   }) async {
-    if (kDebugMode) {
-      debugPrint('[CurrencyDataSource] Loading currencies for company');
-    }
+    final response = await _client.rpc<List<dynamic>>(
+      'get_company_currencies_with_exchange_rates',
+      params: {
+        'p_company_id': companyId,
+        'p_rate_date': rateDate?.toIso8601String().split('T')[0] ??
+            DateTime.now().toIso8601String().split('T')[0],
+      },
+    );
 
-    try {
-      final response = await _client.rpc<List<dynamic>>(
-        'get_company_currencies_with_exchange_rates',
-        params: {
-          'p_company_id': companyId,
-          'p_rate_date': rateDate?.toIso8601String().split('T')[0] ??
-              DateTime.now().toIso8601String().split('T')[0],
-        },
-      );
-
-      final result = List<Map<String, dynamic>>.from(response);
-
-      if (kDebugMode) {
-        debugPrint('[CurrencyDataSource] Loaded ${result.length} currencies');
-      }
-
-      return result;
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('[CurrencyDataSource] Error loading currencies: $e');
-        debugPrint('Stack trace: $stackTrace');
-      }
-      rethrow;
-    }
+    return List<Map<String, dynamic>>.from(response);
   }
 
   /// Get company currencies (LEGACY)

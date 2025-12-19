@@ -1,7 +1,6 @@
 // lib/features/cash_ending/presentation/providers/bank_tab_notifier.dart
 
-import 'package:flutter/foundation.dart';
-
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../domain/entities/bank_balance.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
 import '../../domain/usecases/save_bank_balance_usecase.dart';
@@ -125,28 +124,22 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   Future<void> submitBankEnding({
     required String locationId,
   }) async {
-    debugPrint('\n📊 [BankTabNotifier] submitBankEnding() 호출');
-    debugPrint('   - locationId: $locationId');
-
     try {
       // ✅ UseCase handles validation and fetches balance summary
-      debugPrint('🚀 [BankTabNotifier] getBalanceSummary() 호출...');
       final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
-
-      debugPrint('✅ [BankTabNotifier] Balance Summary 받음:');
-      debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');
-      debugPrint('   - Total Real: ${balanceSummary.formattedTotalReal}');
-      debugPrint('   - Difference: ${balanceSummary.formattedDifference}');
 
       // Update state with balance summary and show dialog
       state = state.copyWith(
         balanceSummary: balanceSummary,
         showBalanceDialog: true,
       );
-
-      debugPrint('✅ [BankTabNotifier] Dialog 표시 준비 완료');
-    } catch (e) {
-      debugPrint('❌ [BankTabNotifier] submitBankEnding() 에러: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'BankTabNotifier.submitBankEnding failed',
+        extra: {'locationId': locationId},
+      );
       state = state.copyWith(
         errorMessage: 'Failed to get balance summary: $e',
       );

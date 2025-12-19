@@ -21,14 +21,12 @@ class FeatureGrid extends ConsumerWidget {
     try {
       final companies = appState.user['companies'] as List<dynamic>?;
       if (companies == null || companies.isEmpty) {
-        print('🔒 No companies found in appState');
         return [];
       }
 
       // Find current selected company
       final currentCompanyId = appState.companyChoosen;
       if (currentCompanyId.isEmpty) {
-        print('🔒 No company selected');
         return [];
       }
 
@@ -38,36 +36,28 @@ class FeatureGrid extends ConsumerWidget {
           (c) => c['company_id'] == currentCompanyId,
         ) as Map<String, dynamic>?;
       } catch (e) {
-        print('🔒 Current company not found: $currentCompanyId');
         return [];
       }
 
       if (currentCompany == null) {
-        print('🔒 Current company is null');
         return [];
       }
 
       // Get role permissions
       final role = currentCompany['role'] as Map<String, dynamic>?;
       if (role == null) {
-        print('🔒 No role found for company');
         return [];
       }
 
       final permissions = role['permissions'] as List<dynamic>?;
       if (permissions == null || permissions.isEmpty) {
-        print('🔒 No permissions found in role');
-        print('🔒 Role data: $role');
         return [];
       }
 
       // Convert to List<String>
       final permittedIds = permissions.map((p) => p.toString()).toList();
-      print('🔓 Permitted feature IDs (${permittedIds.length}): ${permittedIds.take(5)}...');
       return permittedIds;
-    } catch (e, stackTrace) {
-      print('🔒 Error getting permitted feature IDs: $e');
-      print('🔒 Stack trace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
