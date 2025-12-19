@@ -19,16 +19,24 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
   const { currentCompany, currentUser } = useAppState();
   const stores = currentCompany?.stores || [];
 
-  // Session modal state
+  // Session modal state (for shipment-based flow)
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionShipmentId, setSessionShipmentId] = useState<string | null>(null);
 
-  // Create session modal state
+  // Create session modal state (for shipment-based flow)
   const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [sessionName, setSessionName] = useState<string>('Session1');
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [createSessionError, setCreateSessionError] = useState<string | null>(null);
+
+  // Standalone create session modal state (for receiving tab Create Session button)
+  const [showStandaloneCreateModal, setShowStandaloneCreateModal] = useState(false);
+  const [standaloneSelectedStoreId, setStandaloneSelectedStoreId] = useState<string | null>(null);
+  const [standaloneSelectedShipmentId, setStandaloneSelectedShipmentId] = useState<string | null>(null);
+  const [standaloneSessionName, setStandaloneSessionName] = useState<string>('');
+  const [isCreatingStandaloneSession, setIsCreatingStandaloneSession] = useState(false);
+  const [standaloneCreateError, setStandaloneCreateError] = useState<string | null>(null);
 
   // Join session modal state
   const [showJoinSessionModal, setShowJoinSessionModal] = useState(false);
@@ -141,6 +149,25 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
       const shipmentData = shipmentDetail || shipments.find(s => s.shipment_id === sessionShipmentId);
       const shipmentIdForNav = sessionShipmentId;
 
+      // Store other active sessions for Combine Session feature
+      const otherActiveSessions = existingSessions
+        .filter(s => s.session_id !== selectedSessionId && s.is_active)
+        .map(s => ({
+          sessionId: s.session_id,
+          sessionName: s.session_name || '',
+          sessionType: s.session_type,
+          storeId: s.store_id,
+          storeName: s.store_name,
+          isActive: s.is_active,
+          isFinal: s.is_final,
+          memberCount: s.member_count,
+          createdBy: s.created_by,
+          createdByName: s.created_by_name,
+          completedAt: s.completed_at,
+          createdAt: s.created_at,
+        }));
+      localStorage.setItem('receiving_active_sessions', JSON.stringify(otherActiveSessions));
+
       setShowJoinSessionModal(false);
       setSessionShipmentId(null);
       setSelectedSessionId(null);
@@ -252,16 +279,107 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setSessionsError(null);
   }, []);
 
+  // ============ Standalone Session Creation (Receiving Tab) ============
+
+  // Open standalone create modal
+  const handleOpenStandaloneCreateModal = useCallback(() => {
+    setShowStandaloneCreateModal(true);
+    setStandaloneSelectedStoreId(null);
+    setStandaloneSelectedShipmentId(null);
+    setStandaloneSessionName('');
+    setStandaloneCreateError(null);
+  }, []);
+
+  // Close standalone create modal
+  const handleCloseStandaloneCreateModal = useCallback(() => {
+    setShowStandaloneCreateModal(false);
+    setStandaloneSelectedStoreId(null);
+    setStandaloneSelectedShipmentId(null);
+    setStandaloneSessionName('');
+    setStandaloneCreateError(null);
+  }, []);
+
+  // Create standalone receiving session (with optional shipment)
+  const handleCreateStandaloneSession = useCallback(async () => {
+    if (!standaloneSelectedStoreId || !currentCompany || !currentUser) {
+      setStandaloneCreateError('Please select a store');
+      return;
+    }
+
+    setIsCreatingStandaloneSession(true);
+    setStandaloneCreateError(null);
+
+    try {
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const now = new Date();
+      const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+      console.log('📦 Creating standalone receiving session:', {
+        localTime,
+        userTimezone,
+        sessionName: standaloneSessionName,
+        shipmentId: standaloneSelectedShipmentId,
+      });
+
+      const result = await productReceiveRepository.createSession({
+        companyId: currentCompany.company_id,
+        storeId: standaloneSelectedStoreId,
+        userId: currentUser.user_id,
+        sessionType: 'receiving',
+        shipmentId: standaloneSelectedShipmentId || undefined,
+        sessionName: standaloneSessionName.trim() || undefined,
+        time: localTime,
+        timezone: userTimezone,
+      });
+
+      console.log('📦 createSession result:', result);
+
+      const sessionId = result.sessionId;
+      console.log('Session created:', sessionId);
+
+      const selectedStore = stores.find(s => s.store_id === standaloneSelectedStoreId);
+      const shipmentData = standaloneSelectedShipmentId
+        ? shipments.find(s => s.shipment_id === standaloneSelectedShipmentId)
+        : null;
+
+      setShowStandaloneCreateModal(false);
+      const shipmentIdForNav = standaloneSelectedShipmentId;
+      const storeIdForNav = standaloneSelectedStoreId;
+      setStandaloneSelectedStoreId(null);
+      setStandaloneSelectedShipmentId(null);
+      setStandaloneSessionName('');
+
+      navigate(`/product/receive/session/${sessionId}`, {
+        state: {
+          sessionData: {
+            session_id: sessionId,
+            store_name: selectedStore?.store_name || '',
+            store_id: storeIdForNav,
+            ...result,
+          },
+          shipmentId: shipmentIdForNav,
+          shipmentData: shipmentData,
+          isNewSession: true,
+        }
+      });
+    } catch (err) {
+      console.error('📦 Create standalone session error:', err);
+      setStandaloneCreateError(err instanceof Error ? err.message : 'Failed to create session');
+    } finally {
+      setIsCreatingStandaloneSession(false);
+    }
+  }, [standaloneSelectedStoreId, standaloneSelectedShipmentId, standaloneSessionName, currentCompany, currentUser, stores, shipments, navigate]);
+
   return {
     // Stores
     stores,
     currentUser,
 
-    // Session modal state
+    // Session modal state (shipment-based flow)
     showSessionModal,
     sessionShipmentId,
 
-    // Create session modal state
+    // Create session modal state (shipment-based flow)
     showCreateSessionModal,
     selectedStoreId,
     setSelectedStoreId,
@@ -279,7 +397,18 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     setSelectedSessionId,
     isJoiningSession,
 
-    // Actions
+    // Standalone create session modal state (receiving tab)
+    showStandaloneCreateModal,
+    standaloneSelectedStoreId,
+    setStandaloneSelectedStoreId,
+    standaloneSelectedShipmentId,
+    setStandaloneSelectedShipmentId,
+    standaloneSessionName,
+    setStandaloneSessionName,
+    isCreatingStandaloneSession,
+    standaloneCreateError,
+
+    // Actions (shipment-based flow)
     handleStartReceive,
     handleSessionSelect,
     handleJoinSession,
@@ -287,5 +416,10 @@ export const useReceiveSessionModal = ({ shipmentDetail, shipments }: UseReceive
     handleCloseSessionModal,
     handleCloseCreateSessionModal,
     handleCloseJoinSessionModal,
+
+    // Actions (standalone session creation)
+    handleOpenStandaloneCreateModal,
+    handleCloseStandaloneCreateModal,
+    handleCreateStandaloneSession,
   };
 };

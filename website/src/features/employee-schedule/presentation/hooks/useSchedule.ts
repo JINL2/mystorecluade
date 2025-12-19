@@ -22,7 +22,11 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
   const selectedStoreId = useScheduleStore((state) => state.selectedStoreId);
   const isAddEmployeeModalOpen = useScheduleStore((state) => state.isAddEmployeeModalOpen);
   const selectedDate = useScheduleStore((state) => state.selectedDate);
+  const selectedShiftId = useScheduleStore((state) => state.selectedShiftId);
   const addingEmployee = useScheduleStore((state) => state.addingEmployee);
+  const isApprovalModalOpen = useScheduleStore((state) => state.isApprovalModalOpen);
+  const selectedAssignment = useScheduleStore((state) => state.selectedAssignment);
+  const updatingApproval = useScheduleStore((state) => state.updatingApproval);
   const notification = useScheduleStore((state) => state.notification);
 
   // Select actions
@@ -39,10 +43,14 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
   const openAddEmployeeModal = useScheduleStore((state) => state.openAddEmployeeModal);
   const closeAddEmployeeModal = useScheduleStore((state) => state.closeAddEmployeeModal);
   const setAddingEmployee = useScheduleStore((state) => state.setAddingEmployee);
+  const openApprovalModal = useScheduleStore((state) => state.openApprovalModal);
+  const closeApprovalModal = useScheduleStore((state) => state.closeApprovalModal);
+  const setUpdatingApproval = useScheduleStore((state) => state.setUpdatingApproval);
+  const toggleApproval = useScheduleStore((state) => state.toggleApproval);
   const showNotification = useScheduleStore((state) => state.showNotification);
   const clearNotification = useScheduleStore((state) => state.clearNotification);
 
-  // Wrapper to add shift start time lookup
+  // Wrapper to add shift start/end time lookup (v4 RPC)
   const createAssignment = async (
     shiftId: string,
     employeeId: string,
@@ -50,14 +58,14 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
     approvedBy: string
   ) => {
     // Debug: Log available shifts and search parameters
-    console.group('🔍 createAssignment - Shift Lookup');
+    console.group('🔍 createAssignment - Shift Lookup (v4)');
     console.log('Looking for shiftId:', shiftId);
     console.log('Available shifts:', shifts);
     console.log('Shifts count:', shifts.length);
-    console.log('Shift IDs:', shifts.map(s => ({ id: s.shiftId, name: s.shiftName, startTime: s.startTime })));
+    console.log('Shift IDs:', shifts.map(s => ({ id: s.shiftId, name: s.shiftName, startTime: s.startTime, endTime: s.endTime })));
     console.groupEnd();
 
-    // Find the shift to get its start time
+    // Find the shift to get its start and end time
     const shift = shifts.find(s => s.shiftId === shiftId);
     if (!shift) {
       console.error('❌ Shift not found! shiftId:', shiftId);
@@ -67,10 +75,10 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
       };
     }
 
-    console.log('✅ Shift found:', { id: shift.shiftId, name: shift.shiftName, startTime: shift.startTime });
+    console.log('✅ Shift found:', { id: shift.shiftId, name: shift.shiftName, startTime: shift.startTime, endTime: shift.endTime });
 
-    // Call the store action with shift start time
-    return _createAssignment(shiftId, employeeId, date, shift.startTime, approvedBy);
+    // Call the store action with shift start and end time (v4)
+    return _createAssignment(shiftId, employeeId, date, shift.startTime, shift.endTime, approvedBy);
   };
 
   // Load data when companyId, selectedStoreId, or currentWeek changes
@@ -100,7 +108,11 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
     selectedStoreId,
     isAddEmployeeModalOpen,
     selectedDate,
+    selectedShiftId,
     addingEmployee,
+    isApprovalModalOpen,
+    selectedAssignment,
+    updatingApproval,
     notification,
 
     // Actions
@@ -116,6 +128,10 @@ export const useSchedule = (companyId: string, initialStoreId?: string) => {
     openAddEmployeeModal,
     closeAddEmployeeModal,
     setAddingEmployee,
+    openApprovalModal,
+    closeApprovalModal,
+    setUpdatingApproval,
+    toggleApproval,
     showNotification,
     clearNotification,
   };

@@ -153,14 +153,43 @@
   width: 100%;
 }
 
+/* Employee Card - Card style with left status indicator */
 .employeeChip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-1, 4px) var(--space-2, 8px);
-  background: var(--color-gray-100, #F1F3F5);
-  border-radius: 4px;
-  font-size: 11px;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: #FFFFFF;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-gray-200, #E9ECEF);
+  transition: all 0.2s ease;
+}
+
+.employeeChip:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-gray-300, #DEE2E6);
+}
+
+/* Clickable Employee Card */
+.employeeChip.clickable {
+  cursor: pointer;
+}
+
+.employeeChip.clickable:hover {
+  border-color: #0064FF;
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.15);
+}
+
+.employeeChip.clickable:focus {
+  outline: none;
+  border-color: #0064FF;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
+}
+
+.employeeChip.clickable:active {
+  transform: scale(0.98);
 }
 
 .employeeChip .employeeName {
@@ -169,10 +198,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 80px;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Status Dot - Following DESIGN_SYSTEM semantic colors */
+/* Approval Status Dot - LEFT side indicator */
+/* Blue = Approved, Yellow = Pending */
+.approvalDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.approvalDot.approved {
+  background: #0064FF; /* Blue - Approved */
+}
+
+.approvalDot.pending {
+  background: #FFB800; /* Yellow - Pending */
+}
+
+/* Legacy Status Dot (right side) - kept for backward compatibility */
 .statusDot {
   width: 8px;
   height: 8px;

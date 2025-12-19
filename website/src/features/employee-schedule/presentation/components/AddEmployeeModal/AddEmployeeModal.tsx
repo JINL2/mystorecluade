@@ -13,6 +13,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
   isOpen,
   onClose,
   selectedDate,
+  defaultShiftId,
   shifts,
   employees,
   assignments,
@@ -22,13 +23,13 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
-  // Reset form when modal opens
+  // Reset form when modal opens, set default shift if provided
   useEffect(() => {
     if (isOpen) {
-      setSelectedShiftId('');
+      setSelectedShiftId(defaultShiftId || '');
       setSelectedEmployeeId('');
     }
-  }, [isOpen]);
+  }, [isOpen, defaultShiftId]);
 
   // Convert shifts to TossSelector options
   const shiftOptions: TossSelectorOption[] = shifts.map((shift) => ({

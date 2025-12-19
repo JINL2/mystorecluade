@@ -14,10 +14,23 @@
   margin: 0 auto;
 }
 
+/* Page Layout - Without sidebar */
+.pageLayoutNoSidebar {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 48px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 /* Wider screens - add more padding */
 @media (min-width: 1600px) {
   .pageLayout {
     padding: 0 48px;
+  }
+  .pageLayoutNoSidebar {
+    padding: 0 96px;
   }
 }
 
@@ -25,6 +38,10 @@
 @media (min-width: 2000px) {
   .pageLayout {
     padding: 0 96px;
+    max-width: 1920px;
+  }
+  .pageLayoutNoSidebar {
+    padding: 0 120px;
     max-width: 1920px;
   }
 }
@@ -593,6 +610,12 @@
 
 .receiveNumber:hover {
   text-decoration: underline;
+}
+
+/* No shipment indicator */
+.noShipment {
+  color: var(--text-secondary, #6C757D);
+  font-style: italic;
 }
 
 /* Currency Amount */

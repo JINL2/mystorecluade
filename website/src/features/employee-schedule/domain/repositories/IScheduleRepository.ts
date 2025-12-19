@@ -14,6 +14,25 @@ export interface ScheduleDataResult {
   error?: string;
 }
 
+export interface ShiftCardData {
+  shiftRequestId: string;
+  userId: string;
+  userName: string;
+  shiftDate: string;
+  shiftName: string;
+  shiftStartTime: string;
+  shiftEndTime: string;
+  isApproved: boolean;
+  isProblem: boolean;
+  isProblemSolved: boolean;
+}
+
+export interface ShiftCardsResult {
+  success: boolean;
+  cards?: ShiftCardData[];
+  error?: string;
+}
+
 export interface EmployeesResult {
   success: boolean;
   employees?: ScheduleEmployee[];
@@ -45,14 +64,15 @@ export interface IScheduleRepository {
   getEmployees(companyId: string, storeId: string): Promise<EmployeesResult>;
 
   /**
-   * Create new schedule assignment
+   * Create new schedule assignment (v4 RPC)
    * @param userId - Employee user ID
    * @param shiftId - Shift identifier
    * @param storeId - Store identifier
    * @param date - Assignment date
    * @param shiftStartTime - Shift start time (HH:mm:ss format)
+   * @param shiftEndTime - Shift end time (HH:mm:ss format)
    * @param approvedBy - User ID of approver
-   * @returns Success status
+   * @returns Success status with optional error code
    */
   createAssignment(
     userId: string,
@@ -60,8 +80,9 @@ export interface IScheduleRepository {
     storeId: string,
     date: string,
     shiftStartTime: string,
+    shiftEndTime: string,
     approvedBy: string
-  ): Promise<{ success: boolean; error?: string }>;
+  ): Promise<{ success: boolean; error?: string; errorCode?: string }>;
 
   /**
    * Update schedule assignment
@@ -80,4 +101,19 @@ export interface IScheduleRepository {
    * @returns Success status
    */
   deleteAssignment(assignmentId: string): Promise<{ success: boolean; error?: string }>;
+
+  /**
+   * Get shift cards data with is_approved status
+   * @param companyId - Company identifier
+   * @param storeId - Store identifier (optional)
+   * @param startDate - Start date (ISO string)
+   * @param endDate - End date (ISO string)
+   * @returns ShiftCardsResult with cards data
+   */
+  getShiftCards(
+    companyId: string,
+    storeId: string | null,
+    startDate: string,
+    endDate: string
+  ): Promise<ShiftCardsResult>;
 }

@@ -196,6 +196,65 @@
   font-weight: 400;
 }
 
+/* Shipment Select Styles */
+.shipmentSelectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.shipmentSelect {
+  width: 100%;
+  padding: 14px 40px 14px 16px;
+  border: 2px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  background: white;
+  cursor: pointer;
+  appearance: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.shipmentSelect:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+.shipmentSelect:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+}
+
+.selectIcon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--toss-gray-400, #ADB5BD);
+  pointer-events: none;
+}
+
+.formHint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary, #6C757D);
+  line-height: 1.5;
+}
+
+.required {
+  color: #DC2626;
+  font-weight: 500;
+}
+
+.optional {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--toss-gray-400, #ADB5BD);
+  text-transform: none;
+}
+
 .errorMessage {
   display: flex;
   align-items: center;

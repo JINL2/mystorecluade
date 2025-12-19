@@ -53,6 +53,9 @@ export interface SelectorModalProps {
   /** Show cancel button @default true */
   showCancelButton?: boolean;
 
+  /** Button layout - 'stacked' for vertical, 'row' for horizontal side-by-side @default 'stacked' */
+  buttonLayout?: 'stacked' | 'row';
+
   /** Close on backdrop click @default true */
   closeOnBackdropClick?: boolean;
 

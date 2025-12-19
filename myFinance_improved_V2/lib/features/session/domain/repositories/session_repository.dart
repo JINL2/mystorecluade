@@ -1,6 +1,7 @@
 import '../entities/close_session_response.dart';
 import '../entities/inventory_session.dart';
 import '../entities/join_session_response.dart';
+import '../entities/session_compare_result.dart';
 import '../entities/session_history_item.dart';
 import '../entities/session_item.dart';
 import '../entities/update_session_items_response.dart';
@@ -211,5 +212,13 @@ abstract class SessionRepository {
     required String sessionId,
     required String userId,
     required List<SessionItemInput> items,
+  });
+
+  /// Compare two sessions via RPC (inventory_compare_sessions)
+  /// Returns items that exist in target session but not in source session
+  Future<SessionCompareResult> compareSessions({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required String userId,
   });
 }

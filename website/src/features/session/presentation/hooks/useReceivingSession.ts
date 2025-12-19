@@ -9,6 +9,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
+import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
 import type {
   SessionInfo,
   ReceivingItem,
@@ -75,6 +76,69 @@ export interface EditableItem {
   quantity_rejected: number;
 }
 
+// Active session for combine feature (from list page via localStorage)
+export interface ActiveSession {
+  sessionId: string;
+  sessionName: string;
+  sessionType: string;
+  storeId: string;
+  storeName: string;
+  isActive: boolean;
+  isFinal: boolean;
+  memberCount: number;
+  createdBy: string;
+  createdByName: string;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+// Comparison types from inventory_compare_sessions RPC
+export interface MatchedItem {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantityA: number;
+  quantityB: number;
+  quantityDiff: number;
+  isMatch: boolean;
+}
+
+export interface OnlyInSessionItem {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantity: number;
+}
+
+export interface ComparisonSummary {
+  totalMatched: number;
+  quantitySameCount: number;
+  quantityDiffCount: number;
+  onlyInACount: number;
+  onlyInBCount: number;
+}
+
+export interface SessionComparisonResult {
+  sessionA: {
+    sessionId: string;
+    sessionName: string;
+    storeName: string;
+    totalProducts: number;
+    totalQuantity: number;
+  };
+  sessionB: {
+    sessionId: string;
+    sessionName: string;
+    storeName: string;
+    totalProducts: number;
+    totalQuantity: number;
+  };
+  matched: MatchedItem[];
+  onlyInA: OnlyInSessionItem[];
+  onlyInB: OnlyInSessionItem[];
+  summary: ComparisonSummary;
+}
+
 export const useReceivingSession = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -108,6 +172,7 @@ export const useReceivingSession = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Submit state
+  const [showSubmitModeModal, setShowSubmitModeModal] = useState(false); // New: mode selection modal
   const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState(false);
   const [showSubmitReviewModal, setShowSubmitReviewModal] = useState(false);
   const [showFinalChoiceModal, setShowFinalChoiceModal] = useState(false);
@@ -120,6 +185,34 @@ export const useReceivingSession = () => {
   const [sessionItems, setSessionItems] = useState<SessionItem[]>([]);
   const [sessionItemsSummary, setSessionItemsSummary] = useState<SessionItemsSummary | null>(null);
   const [editableItems, setEditableItems] = useState<EditableItem[]>([]);
+
+  // Combine session state
+  const [availableSessions, setAvailableSessions] = useState<ActiveSession[]>([]);
+  const [showSessionSelectModal, setShowSessionSelectModal] = useState(false);
+  const [selectedCombineSession, setSelectedCombineSession] = useState<ActiveSession | null>(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [comparisonResult, setComparisonResult] = useState<SessionComparisonResult | null>(null);
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
+
+  // Merge state
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeError, setMergeError] = useState<string | null>(null);
+  const [mergeSuccess, setMergeSuccess] = useState(false);
+
+  // Needs display modal state (for products that need to be displayed after receiving)
+  const [showNeedsDisplayModal, setShowNeedsDisplayModal] = useState(false);
+  const [needsDisplayItems, setNeedsDisplayItems] = useState<{
+    productId: string;
+    sku: string;
+    productName: string;
+    quantityReceived: number;
+  }[]>([]);
+  const [submitResultData, setSubmitResultData] = useState<{
+    receivingNumber?: string;
+    itemsCount?: number;
+    totalQuantity?: number;
+  } | null>(null);
 
   // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -193,6 +286,58 @@ export const useReceivingSession = () => {
               created_by_name: '',
               created_at: new Date().toISOString(),
             });
+          }
+        }
+
+        // Load available sessions for combine feature (receiving type)
+        // First try localStorage, then fallback to API if shipment_id is available
+        const storedSessions = localStorage.getItem('receiving_active_sessions');
+        if (storedSessions) {
+          try {
+            const sessions: ActiveSession[] = JSON.parse(storedSessions);
+            // Filter out current session
+            setAvailableSessions(sessions.filter(s => s.sessionId !== sessionId));
+          } catch {
+            console.error('Failed to parse active sessions from localStorage');
+          }
+        }
+
+        // If no localStorage data and we have shipment_id, fetch from API
+        const shipmentId = locationState?.shipmentId || locationState?.sessionData?.shipment_id;
+        if ((!storedSessions || storedSessions === '[]') && shipmentId && currentCompany) {
+          try {
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const sessionsResult = await productReceiveRepository.getSessionList({
+              companyId: currentCompany.company_id,
+              shipmentId: shipmentId,
+              sessionType: 'receiving',
+              isActive: true,
+              timezone: userTimezone,
+            });
+
+            // Filter out current session and map to ActiveSession format
+            const otherSessions: ActiveSession[] = sessionsResult
+              .filter(s => s.sessionId !== sessionId && s.isActive)
+              .map(s => ({
+                sessionId: s.sessionId,
+                sessionName: s.sessionName || '',
+                sessionType: s.sessionType,
+                storeId: s.storeId,
+                storeName: s.storeName,
+                isActive: s.isActive,
+                isFinal: s.isFinal,
+                memberCount: s.memberCount || 0,
+                createdBy: s.createdBy,
+                createdByName: s.createdByName,
+                completedAt: null,
+                createdAt: s.createdAt,
+              }));
+
+            setAvailableSessions(otherSessions);
+            // Also save to localStorage for future use
+            localStorage.setItem('receiving_active_sessions', JSON.stringify(otherSessions));
+          } catch (err) {
+            console.error('Failed to load active sessions from API:', err);
           }
         }
 
@@ -425,14 +570,39 @@ export const useReceivingSession = () => {
     }
   }, [receivedEntries, sessionId, currentUser?.user_id]);
 
-  // Handle submit button click
+  // Handle submit button click - show mode selection modal first
   const handleSubmitClick = useCallback(() => {
     if (!sessionId || !currentUser?.user_id) {
       setSaveError('Session or user information missing');
       return;
     }
-    setShowSubmitConfirmModal(true);
+    setShowSubmitModeModal(true);
   }, [sessionId, currentUser?.user_id]);
+
+  // Handle submit mode selection
+  const handleSubmitModeSelect = useCallback((mode: string) => {
+    setShowSubmitModeModal(false);
+
+    if (mode === 'combine_session') {
+      // Show session selection modal
+      if (availableSessions.length === 0) {
+        setComparisonError('No other active sessions available to combine');
+        return;
+      }
+      setShowSessionSelectModal(true);
+      return;
+    }
+
+    if (mode === 'only_this_session') {
+      // Proceed with current session submit flow
+      setShowSubmitConfirmModal(true);
+    }
+  }, [availableSessions.length]);
+
+  // Close submit mode modal
+  const handleSubmitModeClose = useCallback(() => {
+    setShowSubmitModeModal(false);
+  }, []);
 
   // Handle initial confirmation - load session items using Repository
   const handleSubmitConfirm = useCallback(async () => {
@@ -511,6 +681,161 @@ export const useReceivingSession = () => {
     setShowFinalChoiceModal(false);
   }, []);
 
+  // ============ COMBINE SESSION FUNCTIONALITY ============
+
+  // Close session select modal
+  const handleSessionSelectClose = useCallback(() => {
+    setShowSessionSelectModal(false);
+    setSelectedCombineSession(null);
+  }, []);
+
+  // Handle session selection for combine
+  const handleCombineSessionSelect = useCallback(async (selectedSession: ActiveSession) => {
+    if (!sessionId || !currentUser?.user_id) {
+      setComparisonError('Session or user information missing');
+      return;
+    }
+
+    setSelectedCombineSession(selectedSession);
+    setShowSessionSelectModal(false);
+    setIsLoadingComparison(true);
+    setComparisonError(null);
+
+    try {
+      console.log('🔄 Comparing sessions:', {
+        sessionA: sessionId,
+        sessionB: selectedSession.sessionId,
+      });
+
+      // Use inventory_compare_sessions RPC
+      const result = await productReceiveDataSource.compareSessions({
+        sessionIdA: sessionId,
+        sessionIdB: selectedSession.sessionId,
+        userId: currentUser.user_id,
+      });
+
+      console.log('🔄 Comparison result:', result);
+
+      // Map RPC result to presentation format
+      const comparisonData: SessionComparisonResult = {
+        sessionA: {
+          sessionId: result.session_a.session_id,
+          sessionName: result.session_a.session_name,
+          storeName: result.session_a.store_name,
+          totalProducts: result.session_a.total_products,
+          totalQuantity: result.session_a.total_quantity,
+        },
+        sessionB: {
+          sessionId: result.session_b.session_id,
+          sessionName: result.session_b.session_name,
+          storeName: result.session_b.store_name,
+          totalProducts: result.session_b.total_products,
+          totalQuantity: result.session_b.total_quantity,
+        },
+        matched: result.comparison.matched.map((item) => ({
+          productId: item.product_id,
+          sku: item.sku,
+          productName: item.product_name,
+          quantityA: item.quantity_a,
+          quantityB: item.quantity_b,
+          quantityDiff: item.quantity_diff,
+          isMatch: item.is_match,
+        })),
+        onlyInA: result.comparison.only_in_a.map((item) => ({
+          productId: item.product_id,
+          sku: item.sku,
+          productName: item.product_name,
+          quantity: item.quantity,
+        })),
+        onlyInB: result.comparison.only_in_b.map((item) => ({
+          productId: item.product_id,
+          sku: item.sku,
+          productName: item.product_name,
+          quantity: item.quantity,
+        })),
+        summary: {
+          totalMatched: result.summary.total_matched,
+          quantitySameCount: result.summary.quantity_same_count,
+          quantityDiffCount: result.summary.quantity_diff_count,
+          onlyInACount: result.summary.only_in_a_count,
+          onlyInBCount: result.summary.only_in_b_count,
+        },
+      };
+
+      setComparisonResult(comparisonData);
+      setShowComparisonModal(true);
+    } catch (err) {
+      console.error('🔄 Comparison error:', err);
+      setComparisonError(err instanceof Error ? err.message : 'Failed to compare sessions');
+    } finally {
+      setIsLoadingComparison(false);
+    }
+  }, [sessionId, currentUser?.user_id]);
+
+  // Close comparison modal
+  const handleComparisonClose = useCallback(() => {
+    setShowComparisonModal(false);
+    setComparisonResult(null);
+    setSelectedCombineSession(null);
+    setMergeError(null);
+  }, []);
+
+  // Handle merge sessions
+  const handleMergeSessions = useCallback(async () => {
+    if (!sessionId || !currentUser?.user_id || !selectedCombineSession) {
+      setMergeError('Session or user information missing');
+      return;
+    }
+
+    setIsMerging(true);
+    setMergeError(null);
+
+    try {
+      console.log('🔀 Merging sessions:', {
+        targetSessionId: sessionId,
+        sourceSessionId: selectedCombineSession.sessionId,
+      });
+
+      const result = await productReceiveDataSource.mergeSessions({
+        targetSessionId: sessionId,
+        sourceSessionId: selectedCombineSession.sessionId,
+        userId: currentUser.user_id,
+      });
+
+      console.log('🔀 Merge result:', result);
+
+      // Remove merged session from localStorage
+      const storedSessions = localStorage.getItem('receiving_active_sessions');
+      if (storedSessions) {
+        try {
+          const sessions: ActiveSession[] = JSON.parse(storedSessions);
+          const updatedSessions = sessions.filter(s => s.sessionId !== selectedCombineSession.sessionId);
+          localStorage.setItem('receiving_active_sessions', JSON.stringify(updatedSessions));
+          // Also update local state
+          setAvailableSessions(updatedSessions.filter(s => s.sessionId !== sessionId));
+        } catch {
+          console.error('Failed to update active sessions in localStorage');
+        }
+      }
+
+      setMergeSuccess(true);
+      setShowComparisonModal(false);
+      setComparisonResult(null);
+      setSelectedCombineSession(null);
+
+      // Refresh to show merged data (navigate to refresh)
+      navigate(0); // Page refresh
+
+      // Reset success message after 3 seconds
+      setTimeout(() => setMergeSuccess(false), 3000);
+    } catch (err) {
+      console.error('🔀 Merge error:', err);
+      setMergeError(err instanceof Error ? err.message : 'Failed to merge sessions');
+    } finally {
+      setIsMerging(false);
+    }
+  }, [sessionId, currentUser?.user_id, selectedCombineSession, navigate]);
+
   // Handle quantity change in review modal
   const handleReviewQuantityChange = useCallback((productId: string, field: 'quantity' | 'quantity_rejected', value: number) => {
     setEditableItems(prev => prev.map(item =>
@@ -565,28 +890,71 @@ export const useReceivingSession = () => {
       );
 
       console.log('📤 Submit session result:', result);
+      console.log('📤 Stock changes:', result.stockChanges);
+      console.log('📤 New display count:', result.newDisplayCount);
 
       setSubmitSuccess(true);
 
-      // Navigate immediately to session page with refresh state
-      navigate('/product/session', {
-        state: {
-          submitSuccess: true,
+      // Check if there are products that need display (quantity_before = 0)
+      const displayItems = (result.stockChanges || [])
+        .filter(item => item.needsDisplay)
+        .map(item => ({
+          productId: item.productId,
+          sku: item.sku,
+          productName: item.productName,
+          quantityReceived: item.quantityReceived,
+        }));
+
+      console.log('📤 Display items (needs_display=true):', displayItems);
+
+      if (displayItems.length > 0) {
+        // Show needs display modal before navigation
+        setNeedsDisplayItems(displayItems);
+        setSubmitResultData({
           receivingNumber: result.receivingNumber,
           itemsCount: result.itemsCount,
           totalQuantity: result.totalQuantity,
-          refreshData: true,
-        }
-      });
+        });
+        setShowNeedsDisplayModal(true);
+        setIsSubmitting(false);
+      } else {
+        // Navigate immediately to session page with refresh state
+        navigate('/product/session', {
+          state: {
+            submitSuccess: true,
+            receivingNumber: result.receivingNumber,
+            itemsCount: result.itemsCount,
+            totalQuantity: result.totalQuantity,
+            refreshData: true,
+          }
+        });
+      }
     } catch (err) {
       console.error('📤 Submit session error:', err);
       setSubmitError(err instanceof Error ? err.message : 'Failed to submit session');
       // Reopen modal to show error
       setShowFinalChoiceModal(true);
-    } finally {
       setIsSubmitting(false);
     }
   }, [sessionId, currentUser?.user_id, editableItems, navigate]);
+
+  // Close needs display modal and navigate
+  const handleNeedsDisplayClose = useCallback(() => {
+    setShowNeedsDisplayModal(false);
+    setNeedsDisplayItems([]);
+
+    // Navigate to session page with refresh state
+    navigate('/product/session', {
+      state: {
+        submitSuccess: true,
+        receivingNumber: submitResultData?.receivingNumber,
+        itemsCount: submitResultData?.itemsCount,
+        totalQuantity: submitResultData?.totalQuantity,
+        refreshData: true,
+      }
+    });
+    setSubmitResultData(null);
+  }, [navigate, submitResultData]);
 
   // Dismiss errors
   const dismissSaveError = useCallback(() => {
@@ -633,6 +1001,7 @@ export const useReceivingSession = () => {
     saveSuccess,
 
     // Submit state
+    showSubmitModeModal,
     showSubmitConfirmModal,
     showSubmitReviewModal,
     showFinalChoiceModal,
@@ -645,6 +1014,25 @@ export const useReceivingSession = () => {
     sessionItems,
     sessionItemsSummary,
     editableItems,
+
+    // Combine session state
+    showSessionSelectModal,
+    availableSessions,
+    selectedCombineSession,
+    showComparisonModal,
+    comparisonResult,
+    isLoadingComparison,
+    comparisonError,
+
+    // Merge state
+    isMerging,
+    mergeError,
+    mergeSuccess,
+
+    // Needs display modal state
+    showNeedsDisplayModal,
+    needsDisplayItems,
+    submitResultData,
 
     // Calculated totals
     editableTotalQuantity,
@@ -666,6 +1054,8 @@ export const useReceivingSession = () => {
     clearSearch,
     handleSave,
     handleSubmitClick,
+    handleSubmitModeSelect,
+    handleSubmitModeClose,
     handleSubmitConfirm,
     handleSubmitConfirmClose,
     handleSubmitReviewClose,
@@ -674,5 +1064,16 @@ export const useReceivingSession = () => {
     handleFinalSubmit,
     handleSubmitSession,
     dismissSaveError,
+
+    // Combine session actions
+    handleSessionSelectClose,
+    handleCombineSessionSelect,
+    handleComparisonClose,
+
+    // Merge action
+    handleMergeSessions,
+
+    // Needs display action
+    handleNeedsDisplayClose,
   };
 };

@@ -6,6 +6,8 @@
 import { ScheduleShift } from './ScheduleShift';
 import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
+export type AssignmentStatus = 'scheduled' | 'confirmed' | 'absent';
+
 export class ScheduleAssignment {
   constructor(
     public readonly assignmentId: string,
@@ -13,7 +15,8 @@ export class ScheduleAssignment {
     public readonly fullName: string,
     public readonly date: string,
     public readonly shift: ScheduleShift,
-    public readonly status: 'scheduled' | 'confirmed' | 'absent' = 'scheduled'
+    public readonly status: AssignmentStatus = 'scheduled',
+    public readonly isApproved: boolean = false
   ) {}
 
   /**
@@ -36,6 +39,37 @@ export class ScheduleAssignment {
   }
 
   /**
+   * Get approval status for display
+   * approved = blue dot, pending = yellow dot
+   */
+  get approvalStatus(): 'approved' | 'pending' {
+    return this.isApproved ? 'approved' : 'pending';
+  }
+
+  /**
+   * Create a copy with updated properties
+   */
+  copyWith(updates: Partial<{
+    assignmentId: string;
+    userId: string;
+    fullName: string;
+    date: string;
+    shift: ScheduleShift;
+    status: AssignmentStatus;
+    isApproved: boolean;
+  }>): ScheduleAssignment {
+    return new ScheduleAssignment(
+      updates.assignmentId ?? this.assignmentId,
+      updates.userId ?? this.userId,
+      updates.fullName ?? this.fullName,
+      updates.date ?? this.date,
+      updates.shift ?? this.shift,
+      updates.status ?? this.status,
+      updates.isApproved ?? this.isApproved
+    );
+  }
+
+  /**
    * Factory method to create ScheduleAssignment
    */
   static create(data: {
@@ -44,7 +78,8 @@ export class ScheduleAssignment {
     full_name: string;
     date: string;
     shift: ScheduleShift;
-    status?: 'scheduled' | 'confirmed' | 'absent';
+    status?: AssignmentStatus;
+    is_approved?: boolean;
   }): ScheduleAssignment {
     return new ScheduleAssignment(
       data.assignment_id,
@@ -52,7 +87,8 @@ export class ScheduleAssignment {
       data.full_name,
       data.date,
       data.shift,
-      data.status || 'scheduled'
+      data.status || 'scheduled',
+      data.is_approved ?? false
     );
   }
 }

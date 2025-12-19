@@ -23,6 +23,11 @@ export interface AddEmployeeModalProps {
   selectedDate: string;
 
   /**
+   * Default shift ID to pre-select
+   */
+  defaultShiftId?: string | null;
+
+  /**
    * Available shifts to choose from
    */
   shifts: ScheduleShift[];

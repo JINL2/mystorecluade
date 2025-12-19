@@ -481,21 +481,37 @@ class _SessionReceivingReviewPageState
   }
 
   Future<void> _executeSubmit(bool isFinal) async {
+    print('🔄 [ReceivingReviewPage] _executeSubmit called with isFinal: $isFinal');
+    print('🔄 [ReceivingReviewPage] _params: $_params');
+
     final result = await ref
         .read(sessionReviewProvider(_params).notifier)
         .submitSession(isFinal: isFinal);
 
-    if (!mounted) return;
+    print('🔄 [ReceivingReviewPage] Result: success=${result.success}, error=${result.error}');
+    print('🔄 [ReceivingReviewPage] Result data: ${result.data}');
 
-    if (result.success) {
+    if (!mounted) {
+      print('⚠️ [ReceivingReviewPage] Widget not mounted, returning');
+      return;
+    }
+
+    if (result.success && result.data != null) {
+      print('✅ [ReceivingReviewPage] Navigating to ReceivingResultPage');
+      print('✅ [ReceivingReviewPage] stockChanges count: ${result.data!.stockChanges.length}');
+
+      // Use go_router with extra parameter for complex object
+      context.go('/session/receiving-result', extra: result.data!);
+    } else if (result.success) {
+      print('⚠️ [ReceivingReviewPage] Success but no data');
+      // Fallback if no data returned (should not happen)
       showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => TossDialog.success(
           title: 'Session Finalized',
           message:
-              'Receiving #${result.data?.receivingNumber ?? ''} created successfully.\n'
-              '${result.data?.itemsCount ?? 0} items, ${result.data?.totalQuantity ?? 0} total quantity.',
+              'Receiving created successfully.',
           primaryButtonText: 'OK',
           onPrimaryPressed: () {
             Navigator.of(ctx).pop();
@@ -504,6 +520,7 @@ class _SessionReceivingReviewPageState
         ),
       );
     } else {
+      print('❌ [ReceivingReviewPage] Submit failed: ${result.error}');
       showDialog<void>(
         context: context,
         builder: (ctx) => TossDialog.error(

@@ -188,9 +188,47 @@ class SessionReviewResponseModel extends SessionReviewResponse {
   }
 }
 
+/// Model for StockChangeItem with JSON serialization
+class StockChangeItemModel extends StockChangeItem {
+  const StockChangeItemModel({
+    required super.productId,
+    super.sku,
+    required super.productName,
+    required super.quantityBefore,
+    required super.quantityReceived,
+    required super.quantityAfter,
+    required super.needsDisplay,
+  });
+
+  factory StockChangeItemModel.fromJson(Map<String, dynamic> json) {
+    return StockChangeItemModel(
+      productId: json['product_id']?.toString() ?? '',
+      sku: json['sku']?.toString(),
+      productName: json['product_name']?.toString() ?? '',
+      quantityBefore: (json['quantity_before'] as num?)?.toInt() ?? 0,
+      quantityReceived: (json['quantity_received'] as num?)?.toInt() ?? 0,
+      quantityAfter: (json['quantity_after'] as num?)?.toInt() ?? 0,
+      needsDisplay: json['needs_display'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'product_id': productId,
+      'sku': sku,
+      'product_name': productName,
+      'quantity_before': quantityBefore,
+      'quantity_received': quantityReceived,
+      'quantity_after': quantityAfter,
+      'needs_display': needsDisplay,
+    };
+  }
+}
+
 /// Model for SessionSubmitResponse with JSON serialization
 class SessionSubmitResponseModel extends SessionSubmitResponse {
   const SessionSubmitResponseModel({
+    super.sessionType,
     required super.receivingId,
     required super.receivingNumber,
     required super.sessionId,
@@ -199,10 +237,19 @@ class SessionSubmitResponseModel extends SessionSubmitResponse {
     required super.totalQuantity,
     required super.totalRejected,
     required super.stockUpdated,
+    super.stockChanges,
+    super.newDisplayCount,
   });
 
   factory SessionSubmitResponseModel.fromJson(Map<String, dynamic> json) {
+    // Parse stock_changes array (receiving only)
+    final stockChangesJson = json['stock_changes'] as List<dynamic>? ?? [];
+    final stockChanges = stockChangesJson
+        .map((e) => StockChangeItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return SessionSubmitResponseModel(
+      sessionType: json['session_type']?.toString() ?? 'receiving',
       receivingId: json['receiving_id']?.toString() ?? '',
       receivingNumber: json['receiving_number']?.toString() ?? '',
       sessionId: json['session_id']?.toString() ?? '',
@@ -211,6 +258,8 @@ class SessionSubmitResponseModel extends SessionSubmitResponse {
       totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
       totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
       stockUpdated: json['stock_updated'] as bool? ?? false,
+      stockChanges: stockChanges,
+      newDisplayCount: (json['new_display_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

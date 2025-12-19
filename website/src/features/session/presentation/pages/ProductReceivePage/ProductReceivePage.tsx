@@ -1,43 +1,35 @@
 /**
  * ProductReceivePage Component
- * Shows shipment list and receiving progress using inventory_get_shipment_list
- * Click on shipment to view detail with inventory_get_shipment_detail
+ * Shows counting and receiving session lists with left sidebar filter
+ * Uses inventory_get_session_list RPC for both tabs
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
-import { SelectorModal } from '@/shared/components/common/SelectorModal';
-import type { SelectorOption } from '@/shared/components/common/SelectorModal/SelectorModal.types';
-import { useProductReceiveList } from '../../hooks/useProductReceiveList';
-import { useReceiveSessionModal } from '../../hooks/useReceiveSessionModal';
 import { useCountingSessionList } from '../../hooks/useCountingSessionList';
+import { useReceivingSessionList } from '../../hooks/useReceivingSessionList';
+import { useProductReceiveList, formatDateDisplay } from '../../hooks/useProductReceiveList';
 import { SHIPMENT_STATUS_OPTIONS } from './ProductReceivePage.types';
 import {
   CreateSessionModal,
-  JoinSessionModal,
-  DateFilterContent,
-  CustomDatePickerModal,
-  ShipmentsTable,
+  CreateReceivingSessionModal,
   CountingSessionsTable,
+  ReceivingSessionsTable,
+  CustomDatePickerModal,
 } from './components';
 import styles from './ProductReceivePage.module.css';
 
 type TabType = 'counting' | 'receiving';
 
 export const ProductReceivePage: React.FC = () => {
-  const datePickerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<TabType>('counting');
+  const datePickerRef = useRef<HTMLDivElement>(null);
 
+  // Filter state from useProductReceiveList hook
   const {
-    currency,
-    shipments,
-    shipmentsLoading,
-    selectedShipmentId,
-    shipmentDetail,
-    detailLoading,
-    searchQuery,
+    suppliers,
     datePreset,
     fromDate,
     toDate,
@@ -47,7 +39,6 @@ export const ProductReceivePage: React.FC = () => {
     shipmentStatusFilter,
     supplierFilter,
     supplierOptions,
-    handleSearchChange,
     selectShipmentStatus,
     clearShipmentStatusFilter,
     selectSupplierFilter,
@@ -58,35 +49,7 @@ export const ProductReceivePage: React.FC = () => {
     handleSetTodayDate,
     setTempFromDate,
     setTempToDate,
-    loadShipmentDetail,
-    clearSelectedShipment,
   } = useProductReceiveList();
-
-  const {
-    stores,
-    showSessionModal,
-    showCreateSessionModal,
-    selectedStoreId,
-    setSelectedStoreId,
-    sessionName,
-    setSessionName,
-    isCreatingSession,
-    createSessionError,
-    showJoinSessionModal,
-    existingSessions,
-    sessionsLoading,
-    sessionsError,
-    selectedSessionId,
-    setSelectedSessionId,
-    isJoiningSession,
-    handleStartReceive,
-    handleSessionSelect,
-    handleJoinSession,
-    handleCreateSession,
-    handleCloseSessionModal,
-    handleCloseCreateSessionModal,
-    handleCloseJoinSessionModal,
-  } = useReceiveSessionModal({ shipmentDetail, shipments });
 
   // Counting sessions hook
   const {
@@ -110,6 +73,31 @@ export const ProductReceivePage: React.FC = () => {
     handleCreateSession: handleCreateCountingSession,
   } = useCountingSessionList();
 
+  // Receiving sessions hook
+  const {
+    sessions: receivingSessions,
+    sessionsLoading: receivingSessionsLoading,
+    searchQuery: receivingSearchQuery,
+    handleSearchChange: handleReceivingSearchChange,
+    handleSessionClick: handleReceivingSessionClick,
+    // Create session modal state
+    showCreateModal: showReceivingCreateModal,
+    stores: receivingStores,
+    shipments: receivingShipments,
+    selectedStoreId: receivingSelectedStoreId,
+    selectedShipmentId: receivingSelectedShipmentId,
+    sessionName: receivingSessionName,
+    isCreating: isCreatingReceivingSession,
+    createError: receivingCreateError,
+    // Create session modal actions
+    handleOpenCreateModal: handleOpenReceivingCreateModal,
+    handleCloseCreateModal: handleCloseReceivingCreateModal,
+    setSelectedStoreId: setReceivingSelectedStoreId,
+    setSelectedShipmentId: setReceivingSelectedShipmentId,
+    setSessionName: setReceivingSessionName,
+    handleCreateSession: handleCreateReceivingSession,
+  } = useReceivingSessionList();
+
   // Click outside to close date picker
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -126,54 +114,83 @@ export const ProductReceivePage: React.FC = () => {
     };
   }, [showDatePicker, handleCancelCustomDate]);
 
-  // Session modal options
-  const sessionOptions: SelectorOption[] = [
-    {
-      id: 'create_session',
-      label: 'Create New Session',
-      variant: 'primary',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="16" />
-          <line x1="8" y1="12" x2="16" y2="12" />
-        </svg>
-      ),
-    },
-    {
-      id: 'join_session',
-      label: 'Join Existing Session',
-      variant: 'outline',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
-  ];
-
   // LeftFilter sections configuration
   const filterSections: FilterSection[] = [
     {
-      id: 'shipmentDate',
-      title: 'Shipped Date',
+      id: 'sessionDate',
+      title: 'Session Date',
       type: 'custom',
       defaultExpanded: true,
       customContent: (
-        <DateFilterContent
-          datePreset={datePreset}
-          fromDate={fromDate}
-          toDate={toDate}
-          onPresetChange={handlePresetChange}
-        />
+        <div className={styles.dateFilterContent}>
+          <label className={styles.datePresetOption}>
+            <input
+              type="radio"
+              name="datePreset"
+              checked={datePreset === 'this_month'}
+              onChange={() => handlePresetChange('this_month')}
+              className={styles.radioInput}
+            />
+            <span className={styles.radioLabel}>This Month</span>
+          </label>
+
+          <label className={styles.datePresetOption}>
+            <input
+              type="radio"
+              name="datePreset"
+              checked={datePreset === 'last_month'}
+              onChange={() => handlePresetChange('last_month')}
+              className={styles.radioInput}
+            />
+            <span className={styles.radioLabel}>Last Month</span>
+          </label>
+
+          <label className={styles.datePresetOption}>
+            <input
+              type="radio"
+              name="datePreset"
+              checked={datePreset === 'this_year'}
+              onChange={() => handlePresetChange('this_year')}
+              className={styles.radioInput}
+            />
+            <span className={styles.radioLabel}>This Year</span>
+          </label>
+
+          <label className={styles.datePresetOption}>
+            <input
+              type="radio"
+              name="datePreset"
+              checked={datePreset === 'custom'}
+              onChange={() => handlePresetChange('custom')}
+              className={styles.radioInput}
+            />
+            <div
+              className={`${styles.customDateButton} ${datePreset === 'custom' ? styles.active : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePresetChange('custom');
+              }}
+            >
+              <span>Custom</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z" />
+              </svg>
+            </div>
+          </label>
+
+          {(fromDate || toDate) && (
+            <div className={styles.selectedDateRange}>
+              <span className={styles.dateRangeText}>
+                {formatDateDisplay(fromDate)} ~ {formatDateDisplay(toDate)}
+              </span>
+            </div>
+          )}
+        </div>
       ),
     },
     {
-      id: 'shipmentStatus',
-      title: 'Shipment Status',
+      id: 'sessionStatus',
+      title: 'Status',
       type: 'radio',
       defaultExpanded: true,
       options: SHIPMENT_STATUS_OPTIONS,
@@ -184,28 +201,22 @@ export const ProductReceivePage: React.FC = () => {
     {
       id: 'supplier',
       title: 'Supplier',
-      type: 'radio',
-      defaultExpanded: true,
+      type: 'multiselect',
+      defaultExpanded: false,
+      showCount: true,
       options: supplierOptions,
-      selectedValues: supplierFilter || '',
-      onSelect: selectSupplierFilter,
+      selectedValues: supplierFilter ? new Set([supplierFilter]) : new Set<string>(),
+      onToggle: selectSupplierFilter,
       onClear: clearSupplierFilter,
+      emptyMessage: 'No suppliers found',
     },
   ];
-
-  // Handle shipment row click
-  const handleShipmentClick = (shipmentId: string) => {
-    if (selectedShipmentId === shipmentId) {
-      clearSelectedShipment();
-    } else {
-      loadShipmentDetail(shipmentId);
-    }
-  };
 
   return (
     <>
       <Navbar activeItem="product" />
       <div className={styles.pageLayout}>
+        {/* Left Sidebar Filter */}
         <div className={styles.sidebarWrapper}>
           <LeftFilter sections={filterSections} width={240} topOffset={64} />
         </div>
@@ -214,7 +225,7 @@ export const ProductReceivePage: React.FC = () => {
           <div className={styles.container}>
             <div className={styles.header}>
               <h1 className={styles.title}>Sessions</h1>
-              <p className={styles.subtitle}>Manage receiving sessions for shipments</p>
+              <p className={styles.subtitle}>Manage inventory counting and receiving sessions</p>
             </div>
 
             {/* Tab Navigation */}
@@ -280,7 +291,7 @@ export const ProductReceivePage: React.FC = () => {
                 <div className={styles.contentCard}>
                   <div className={styles.receiveHeader}>
                     <div className={styles.receiveTitleSection}>
-                      <h2 className={styles.receiveListTitle}>Shipments</h2>
+                      <h2 className={styles.receiveListTitle}>Receiving Sessions</h2>
                       <div className={styles.receiveSearchWrapper}>
                         <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <circle cx="11" cy="11" r="8" />
@@ -289,24 +300,30 @@ export const ProductReceivePage: React.FC = () => {
                         <input
                           type="text"
                           className={styles.receiveSearch}
-                          placeholder="Search shipments..."
-                          value={searchQuery}
-                          onChange={(e) => handleSearchChange(e.target.value)}
+                          placeholder="Search receiving sessions..."
+                          value={receivingSearchQuery}
+                          onChange={(e) => handleReceivingSearchChange(e.target.value)}
                         />
                       </div>
                     </div>
+                    <button
+                      className={styles.createSessionButton}
+                      onClick={handleOpenReceivingCreateModal}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                      </svg>
+                      Create Session
+                    </button>
                   </div>
 
-                  <ShipmentsTable
-                    shipments={shipments}
-                    shipmentsLoading={shipmentsLoading}
-                    selectedShipmentId={selectedShipmentId}
-                    shipmentDetail={shipmentDetail}
-                    detailLoading={detailLoading}
-                    currency={currency}
-                    searchQuery={searchQuery}
-                    onShipmentClick={handleShipmentClick}
-                    onStartReceive={handleStartReceive}
+                  <ReceivingSessionsTable
+                    sessions={receivingSessions}
+                    sessionsLoading={receivingSessionsLoading}
+                    searchQuery={receivingSearchQuery}
+                    onSessionClick={handleReceivingSessionClick}
                   />
                 </div>
               )}
@@ -316,63 +333,18 @@ export const ProductReceivePage: React.FC = () => {
       </div>
 
       {/* Custom Date Picker Modal */}
-      <CustomDatePickerModal
-        isOpen={showDatePicker}
-        tempFromDate={tempFromDate}
-        tempToDate={tempToDate}
-        datePickerRef={datePickerRef as React.RefObject<HTMLDivElement>}
-        onFromDateChange={setTempFromDate}
-        onToDateChange={setTempToDate}
-        onSetToday={handleSetTodayDate}
-        onCancel={handleCancelCustomDate}
-        onApply={handleApplyCustomDate}
-      />
-
-      {/* Session Selection Modal */}
-      <SelectorModal
-        isOpen={showSessionModal}
-        onClose={handleCloseSessionModal}
-        onSelect={handleSessionSelect}
-        variant="info"
-        title="Start Receiving"
-        message="Choose how you want to receive items for this shipment."
-        options={sessionOptions}
-        cancelText="Cancel"
-        headerIcon={
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="#0064FF">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96" fill="none" stroke="white" strokeWidth="1.5" />
-            <line x1="12" y1="22.08" x2="12" y2="12" stroke="white" strokeWidth="1.5" />
-          </svg>
-        }
-      />
-
-      {/* Create Session Modal */}
-      <CreateSessionModal
-        isOpen={showCreateSessionModal}
-        stores={stores}
-        selectedStoreId={selectedStoreId}
-        sessionName={sessionName}
-        isCreating={isCreatingSession}
-        error={createSessionError}
-        onSelectStore={setSelectedStoreId}
-        onSessionNameChange={setSessionName}
-        onClose={handleCloseCreateSessionModal}
-        onCreate={handleCreateSession}
-      />
-
-      {/* Join Session Modal */}
-      <JoinSessionModal
-        isOpen={showJoinSessionModal}
-        sessions={existingSessions}
-        selectedSessionId={selectedSessionId}
-        isLoading={sessionsLoading}
-        isJoining={isJoiningSession}
-        error={sessionsError}
-        onSelectSession={setSelectedSessionId}
-        onClose={handleCloseJoinSessionModal}
-        onJoin={handleJoinSession}
-      />
+      {showDatePicker && (
+        <CustomDatePickerModal
+          ref={datePickerRef}
+          fromDate={tempFromDate}
+          toDate={tempToDate}
+          onFromDateChange={setTempFromDate}
+          onToDateChange={setTempToDate}
+          onToday={handleSetTodayDate}
+          onCancel={handleCancelCustomDate}
+          onApply={handleApplyCustomDate}
+        />
+      )}
 
       {/* Create Counting Session Modal */}
       <CreateSessionModal
@@ -386,6 +358,23 @@ export const ProductReceivePage: React.FC = () => {
         onSessionNameChange={setCountingSessionName}
         onClose={handleCloseCountingCreateModal}
         onCreate={handleCreateCountingSession}
+      />
+
+      {/* Create Receiving Session Modal */}
+      <CreateReceivingSessionModal
+        isOpen={showReceivingCreateModal}
+        stores={receivingStores}
+        shipments={receivingShipments}
+        selectedStoreId={receivingSelectedStoreId}
+        selectedShipmentId={receivingSelectedShipmentId}
+        sessionName={receivingSessionName}
+        isCreating={isCreatingReceivingSession}
+        error={receivingCreateError}
+        onSelectStore={setReceivingSelectedStoreId}
+        onSelectShipment={setReceivingSelectedShipmentId}
+        onSessionNameChange={setReceivingSessionName}
+        onClose={handleCloseReceivingCreateModal}
+        onCreate={handleCreateReceivingSession}
       />
     </>
   );

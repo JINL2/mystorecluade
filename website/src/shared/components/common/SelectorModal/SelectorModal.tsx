@@ -44,6 +44,7 @@ export const SelectorModal: React.FC<SelectorModalProps> = ({
   options,
   cancelText = 'Cancel',
   showCancelButton = true,
+  buttonLayout = 'stacked',
   closeOnBackdropClick = true,
   closeOnEscape = true,
   isLoading = false,
@@ -143,27 +144,55 @@ export const SelectorModal: React.FC<SelectorModalProps> = ({
           <p className={styles.message}>{message}</p>
         )}
 
-        {/* Options */}
-        <div className={styles.optionsSection}>
-          {options.map((option) => (
-            <button
-              key={option.id}
-              className={`${styles.optionButton} ${getOptionClass(option.variant)}`}
-              onClick={() => handleOptionClick(option)}
-              disabled={isLoading || option.disabled}
-              type="button"
-            >
-              {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
-              <span className={styles.optionLabel}>{option.label}</span>
-            </button>
-          ))}
-        </div>
+        {/* Options - Only show in stacked layout (row layout renders options inline with cancel) */}
+        {buttonLayout === 'stacked' && (
+          <div className={styles.optionsSection}>
+            {options.map((option) => (
+              <button
+                key={option.id}
+                className={`${styles.optionButton} ${getOptionClass(option.variant)}`}
+                onClick={() => handleOptionClick(option)}
+                disabled={isLoading || option.disabled}
+                type="button"
+              >
+                {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
+                <span className={styles.optionLabel}>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Custom Content */}
         {children && <div className={styles.customContent}>{children}</div>}
 
-        {/* Cancel Button */}
-        {showCancelButton && (
+        {/* Row Layout: Options + Cancel in same row */}
+        {buttonLayout === 'row' && showCancelButton && (
+          <div className={styles.buttonRow}>
+            {options.map((option) => (
+              <button
+                key={option.id}
+                className={`${styles.optionButton} ${getOptionClass(option.variant)}`}
+                onClick={() => handleOptionClick(option)}
+                disabled={isLoading || option.disabled}
+                type="button"
+              >
+                {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
+                <span className={styles.optionLabel}>{option.label}</span>
+              </button>
+            ))}
+            <button
+              className={styles.cancelButtonInRow}
+              onClick={handleClose}
+              disabled={isLoading}
+              type="button"
+            >
+              {cancelText}
+            </button>
+          </div>
+        )}
+
+        {/* Stacked Layout: Cancel Button below options (default) */}
+        {buttonLayout === 'stacked' && showCancelButton && (
           <button
             className={styles.cancelButton}
             onClick={handleClose}
@@ -173,6 +202,9 @@ export const SelectorModal: React.FC<SelectorModalProps> = ({
             {cancelText}
           </button>
         )}
+
+        {/* No cancel button but row layout - show options only */}
+        {buttonLayout === 'row' && !showCancelButton && null}
       </div>
     </div>
   );

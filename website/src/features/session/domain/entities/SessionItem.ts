@@ -41,10 +41,25 @@ export interface SubmitItem {
   quantityRejected: number;
 }
 
+// Stock change item for v2 submit result
+export interface StockChange {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantityBefore: number;
+  quantityReceived: number;
+  quantityAfter: number;
+  needsDisplay: boolean;
+}
+
 export interface SubmitResult {
   receivingNumber?: string;
   itemsCount?: number;
   totalQuantity?: number;
+  // v2 fields
+  stockChanges?: StockChange[];
+  newDisplayCount?: number;
+  totalCost?: number;
 }
 
 // Currency entity

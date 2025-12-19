@@ -49,12 +49,14 @@ export interface IProductReceiveRepository {
 
   /**
    * Submit a receiving session
+   * @param notes - Optional notes for the submission
    */
   submitSession(
     sessionId: string,
     userId: string,
     items: SubmitItem[],
-    isFinal: boolean
+    isFinal: boolean,
+    notes?: string
   ): Promise<SubmitResult>;
 
   /**

@@ -14,6 +14,7 @@ import type {
   SaveItem,
   SubmitItem,
   SubmitResult,
+  StockChange,
   Currency,
   Counterparty,
   Shipment,
@@ -36,6 +37,7 @@ import {
   type ShipmentItemDTO,
   type ReceivingSummaryDTO,
   type SessionDTO,
+  type StockChangeDTO,
 } from '../datasources/ProductReceiveDataSource';
 
 // Mapper functions: DTO -> Domain Entity
@@ -87,6 +89,17 @@ const mapSubmitItemToDTO = (item: SubmitItem) => ({
   product_id: item.productId,
   quantity: item.quantity,
   quantity_rejected: item.quantityRejected,
+});
+
+// Map StockChangeDTO to StockChange domain entity
+const mapStockChangeDTO = (dto: StockChangeDTO): StockChange => ({
+  productId: dto.product_id,
+  sku: dto.sku,
+  productName: dto.product_name,
+  quantityBefore: dto.quantity_before,
+  quantityReceived: dto.quantity_received,
+  quantityAfter: dto.quantity_after,
+  needsDisplay: dto.needs_display,
 });
 
 // New mapper functions for additional entities
@@ -213,19 +226,25 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
     sessionId: string,
     userId: string,
     items: SubmitItem[],
-    isFinal: boolean
+    isFinal: boolean,
+    notes?: string
   ): Promise<SubmitResult> {
     const result = await this.dataSource.submitSession(
       sessionId,
       userId,
       items.map(mapSubmitItemToDTO),
-      isFinal
+      isFinal,
+      notes
     );
 
     return {
       receivingNumber: result.receiving_number,
       itemsCount: result.items_count,
       totalQuantity: result.total_quantity,
+      // v2 fields
+      stockChanges: result.stock_changes?.map(mapStockChangeDTO) || [],
+      newDisplayCount: result.new_display_count || 0,
+      totalCost: result.total_cost || 0,
     };
   }
 

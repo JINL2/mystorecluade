@@ -430,7 +430,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Expandable handle
+            // Expandable section - tap anywhere to toggle
             GestureDetector(
               onTap: hasCountedItems
                   ? () {
@@ -439,53 +439,69 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
                       });
                     }
                   : null,
-              child: Container(
-                padding: const EdgeInsets.only(top: TossSpacing.space2),
-                child: Icon(
-                  _isBottomExpanded
-                      ? Icons.keyboard_arrow_down
-                      : Icons.keyboard_arrow_up,
-                  color: hasCountedItems
-                      ? TossColors.gray600
-                      : TossColors.gray300,
-                  size: 24,
-                ),
-              ),
-            ),
-            // Expanded items list
-            if (_isBottomExpanded && hasCountedItems) ...[
-              const SizedBox(height: TossSpacing.space2),
-              Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.35,
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space4,
-                  ),
-                  itemCount: countedProducts.length,
-                  itemBuilder: (context, index) {
-                    final item = countedProducts[index];
-                    return _buildCountedItemRow(item);
-                  },
-                ),
-              ),
-              const Divider(height: 1, color: TossColors.gray200),
-            ],
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space4),
+              behavior: HitTestBehavior.opaque,
               child: Column(
                 children: [
-                  // Summary
-                  Text(
-                    'Item Counted: ${countedProducts.length} | Total Quantity: ${state.totalQuantity} | Rejected: ${_getTotalRejected(state)}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
+                  // Arrow icon
+                  Container(
+                    padding: const EdgeInsets.only(top: TossSpacing.space2),
+                    child: Icon(
+                      _isBottomExpanded
+                          ? Icons.keyboard_arrow_down
+                          : Icons.keyboard_arrow_up,
+                      color: hasCountedItems
+                          ? TossColors.gray600
+                          : TossColors.gray300,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(height: TossSpacing.space3),
+                  // Expanded items list
+                  if (_isBottomExpanded && hasCountedItems) ...[
+                    const SizedBox(height: TossSpacing.space2),
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.35,
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                        ),
+                        itemCount: countedProducts.length,
+                        itemBuilder: (context, index) {
+                          final item = countedProducts[index];
+                          return _buildCountedItemRow(item);
+                        },
+                      ),
+                    ),
+                    const Divider(height: 1, color: TossColors.gray200),
+                  ],
+                  // Summary text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space4,
+                      vertical: TossSpacing.space3,
+                    ),
+                    child: Text(
+                      'Item Counted: ${countedProducts.length} | Total Quantity: ${state.totalQuantity} | Rejected: ${_getTotalRejected(state)}',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Save button
+            Padding(
+              padding: const EdgeInsets.only(
+                left: TossSpacing.space4,
+                right: TossSpacing.space4,
+                bottom: TossSpacing.space4,
+              ),
+              child: Column(
+                children: [
                   // Save button
                   SizedBox(
                     width: double.infinity,

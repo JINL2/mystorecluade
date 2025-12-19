@@ -17,10 +17,12 @@ import { EmployeeSection } from '../../components/EmployeeSection';
 import { ScheduleEmptyState } from '../../components/ScheduleEmptyState';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
+import { SelectorModal } from '@/shared/components/common/SelectorModal';
 import { useSchedule } from '../../hooks/useSchedule';
 import { useScheduleDragDrop } from '../../hooks/useScheduleDragDrop';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SchedulePageProps } from './SchedulePage.types';
+import type { ScheduleAssignment } from '../../../domain/entities/ScheduleAssignment';
 import styles from './SchedulePage.module.css';
 
 export const SchedulePage: React.FC<SchedulePageProps> = () => {
@@ -47,11 +49,19 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
     setSelectedStore: setScheduleStoreId,
     isAddEmployeeModalOpen,
     selectedDate,
+    selectedShiftId,
     addingEmployee,
+    isApprovalModalOpen,
+    selectedAssignment,
+    updatingApproval,
     notification,
     openAddEmployeeModal,
     closeAddEmployeeModal,
     setAddingEmployee,
+    openApprovalModal,
+    closeApprovalModal,
+    setUpdatingApproval,
+    toggleApproval,
     showNotification,
     clearNotification,
     createAssignment,
@@ -154,6 +164,58 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
 
     setIsConfirmModalOpen(false);
     setPendingAssignment(null);
+  };
+
+  // Handle assignment card click (for approval status toggle)
+  const handleAssignmentClick = (assignment: ScheduleAssignment) => {
+    openApprovalModal(assignment);
+  };
+
+  // Handle approval modal option selection
+  const handleApprovalSelect = async (optionId: string) => {
+    if (!selectedAssignment || !currentUserId) return;
+
+    setUpdatingApproval(true);
+    try {
+      // Call toggle_shift_approval_v3 RPC
+      const result = await toggleApproval([selectedAssignment.assignmentId], currentUserId);
+
+      if (!result.success) {
+        showNotification({
+          variant: 'error',
+          title: 'Failed to Update',
+          message: result.error || 'Failed to update approval status',
+        });
+        return;
+      }
+
+      // Show success notification
+      if (optionId === 'approve') {
+        showNotification({
+          variant: 'success',
+          title: 'Approved',
+          message: `${selectedAssignment.fullName}'s shift has been approved`,
+        });
+      } else if (optionId === 'unapprove') {
+        showNotification({
+          variant: 'success',
+          title: 'Unapproved',
+          message: `${selectedAssignment.fullName}'s shift has been unapproved`,
+        });
+      }
+
+      closeApprovalModal();
+      // Refresh to get updated data
+      refresh();
+    } catch (err) {
+      showNotification({
+        variant: 'error',
+        title: 'Unexpected Error',
+        message: err instanceof Error ? err.message : 'An unexpected error occurred',
+      });
+    } finally {
+      setUpdatingApproval(false);
+    }
   };
 
   // Format week display
@@ -279,6 +341,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
                           getAssignmentsForDate={getAssignmentsForDate}
                           dropTarget={dropTarget}
                           onOpenAddEmployeeModal={openAddEmployeeModal}
+                          onAssignmentClick={handleAssignmentClick}
                           onCellDragOver={handleCellDragOver}
                           onCellDragEnter={handleCellDragEnter}
                           onCellDragLeave={handleCellDragLeave}
@@ -310,6 +373,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           isOpen={isAddEmployeeModalOpen}
           onClose={closeAddEmployeeModal}
           selectedDate={selectedDate}
+          defaultShiftId={selectedShiftId}
           shifts={shifts}
           employees={employees}
           assignments={assignments}
@@ -367,6 +431,73 @@ export const SchedulePage: React.FC<SchedulePageProps> = () => {
           </div>
         )}
       </ConfirmModal>
+
+      {/* Approval Status Change Modal */}
+      <SelectorModal
+        isOpen={isApprovalModalOpen}
+        onClose={closeApprovalModal}
+        onSelect={handleApprovalSelect}
+        variant={selectedAssignment?.isApproved ? 'warning' : 'info'}
+        title={selectedAssignment?.isApproved ? 'Unapprove Shift?' : 'Approve Shift?'}
+        message={
+          selectedAssignment?.isApproved
+            ? `Do you want to unapprove ${selectedAssignment?.fullName}'s shift assignment?`
+            : `Do you want to approve ${selectedAssignment?.fullName}'s shift assignment?`
+        }
+        options={
+          selectedAssignment?.isApproved
+            ? [
+                {
+                  id: 'unapprove',
+                  label: 'Yes, Unapprove',
+                  variant: 'primary',
+                },
+              ]
+            : [
+                {
+                  id: 'approve',
+                  label: 'Yes, Approve',
+                  variant: 'primary',
+                },
+              ]
+        }
+        cancelText="Cancel"
+        showCancelButton={true}
+        buttonLayout="row"
+        isLoading={updatingApproval}
+      >
+        {selectedAssignment && (
+          <div className={styles.approvalContent}>
+            <div className={styles.approvalRow}>
+              <span className={styles.approvalLabel}>Employee:</span>
+              <span className={styles.approvalValue}>{selectedAssignment.fullName}</span>
+            </div>
+            <div className={styles.approvalRow}>
+              <span className={styles.approvalLabel}>Shift:</span>
+              <span className={styles.approvalValue}>{selectedAssignment.shift.shiftName}</span>
+            </div>
+            <div className={styles.approvalRow}>
+              <span className={styles.approvalLabel}>Date:</span>
+              <span className={styles.approvalValue}>
+                {new Date(selectedAssignment.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+            <div className={styles.approvalRow}>
+              <span className={styles.approvalLabel}>Current Status:</span>
+              <span
+                className={`${styles.approvalValue} ${selectedAssignment.isApproved ? styles.statusApproved : styles.statusPending}`}
+              >
+                {selectedAssignment.isApproved ? '● Approved' : '● Pending'}
+              </span>
+            </div>
+          </div>
+        )}
+      </SelectorModal>
     </>
   );
 };
