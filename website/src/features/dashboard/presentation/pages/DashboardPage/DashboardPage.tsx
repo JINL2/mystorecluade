@@ -23,11 +23,12 @@ const TRANSACTION_HISTORY_FEATURE_ID = '7e1fd11a-f632-427d-aefc-8b3dd6734faa';
 
 export const DashboardPage: React.FC<DashboardPageProps> = () => {
   const navigate = useNavigate();
-  const { currentCompany, permissions, loadUserData } = useAppState();
+  const { currentCompany, permissions, loadUserData, loadCategoryFeatures } = useAppState();
 
-  // Dashboard 페이지 진입 시 권한 데이터 새로고침
+  // Dashboard 페이지 진입 시 권한 데이터 및 카테고리 피처 새로고침
   useEffect(() => {
     loadUserData();
+    loadCategoryFeatures();
   }, []);
   const companyId = currentCompany?.company_id || '';
   const { data, loading, errorDialog, refresh, clearError } = useDashboard(companyId);
