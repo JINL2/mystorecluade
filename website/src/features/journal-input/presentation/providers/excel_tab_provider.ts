@@ -276,7 +276,7 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
   },
 
   // Actions - Template
-  applyTemplateToRows: (templateData: any) => {
+  applyTemplateToRows: (templateData: any, amount?: number) => {
     if (!templateData) return;
 
     // Handle both array format (data is array) and object format (data.lines is array)
@@ -301,21 +301,24 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
       let debitValue = '';
       let creditValue = '';
 
+      // Use custom amount if provided, otherwise use template values
+      const customAmount = amount ? String(amount) : null;
+
       // Format 1: type: 'debit' or 'credit'
       if (line.type === 'debit') {
-        debitValue = String(line.amount || line.debit || 0);
+        debitValue = customAmount || String(line.amount || line.debit || 0);
         creditValue = '';
       } else if (line.type === 'credit') {
         debitValue = '';
-        creditValue = String(line.amount || line.credit || 0);
+        creditValue = customAmount || String(line.amount || line.credit || 0);
       }
       // Format 2: debit/credit as numbers
       else if (line.debit && Number(line.debit) > 0) {
-        debitValue = String(line.debit);
+        debitValue = customAmount || String(line.debit);
         creditValue = '';
       } else if (line.credit && Number(line.credit) > 0) {
         debitValue = '';
-        creditValue = String(line.credit);
+        creditValue = customAmount || String(line.credit);
       }
 
       // Get cash location ID from different possible formats

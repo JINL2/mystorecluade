@@ -385,14 +385,10 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     }
   };
 
-  // Handle template selection
-  const handleSelectTemplate = (templateId: string) => {
-    // Find the template from the templates list
-    const template = templates.find((t) => t.templateId === templateId);
-    if (template && template.data) {
-      // Apply template data to Excel rows
-      applyTemplateToRows(template.data);
-    }
+  // Handle template apply (with custom amount from detail panel)
+  const handleApplyTemplate = (templateData: any, amount: number) => {
+    // Apply template data to Excel rows with custom amount
+    applyTemplateToRows(templateData, amount);
   };
 
   return (
@@ -401,7 +397,8 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
       <TemplateSelector
         templates={templates}
         loading={loadingTemplates}
-        onSelectTemplate={handleSelectTemplate}
+        accounts={accounts.map((acc) => ({ accountId: acc.accountId, accountName: acc.accountName || acc.account_name || '' }))}
+        onApplyTemplate={handleApplyTemplate}
       />
 
       <table className={styles.table}>

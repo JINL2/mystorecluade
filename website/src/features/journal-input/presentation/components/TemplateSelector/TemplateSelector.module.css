@@ -1,17 +1,16 @@
 /**
  * TemplateSelector Styles
- * Chip-based template selection UI
+ * Chip-based template selection UI with detail panel
  */
 
 .container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 12px;
   padding: 12px 16px;
   background-color: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
 }
 
 .label {
@@ -25,6 +24,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
 .templateChip {
@@ -51,6 +51,16 @@
   transform: scale(0.98);
 }
 
+.templateChip.selected {
+  background-color: #228be6;
+  border-color: #1c7ed6;
+  color: #ffffff;
+}
+
+.templateChip.selected .templateName {
+  color: #ffffff;
+}
+
 .templateName {
   font-weight: 500;
   color: #212529;
@@ -75,4 +85,123 @@
   color: #868e96;
   font-size: 13px;
   font-style: italic;
+}
+
+/* Detail Panel - appears below template chips */
+.detailPanel {
+  width: 280px;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accountLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  min-width: 50px;
+}
+
+.accountValue {
+  font-size: 12px;
+  color: #212529;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amountRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.amountLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  min-width: 50px;
+}
+
+.amountInput {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.amountInput:focus {
+  border-color: #228be6;
+  box-shadow: 0 0 0 2px rgba(34, 139, 230, 0.15);
+}
+
+.amountInput::placeholder {
+  color: #adb5bd;
+  text-align: left;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cancelButton {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  background-color: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelButton:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.okButton {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #228be6;
+  border: 1px solid #1c7ed6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.okButton:hover:not(:disabled) {
+  background-color: #1c7ed6;
+}
+
+.okButton:disabled {
+  background-color: #adb5bd;
+  border-color: #868e96;
+  cursor: not-allowed;
 }

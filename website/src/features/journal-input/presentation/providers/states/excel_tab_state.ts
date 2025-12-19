@@ -82,7 +82,7 @@ export interface ExcelTabState {
   ) => Promise<{ success: boolean; error?: string }>;
 
   // Actions - Template
-  applyTemplateToRows: (templateData: any) => void;
+  applyTemplateToRows: (templateData: any, amount?: number) => void;
 
   // Reset
   reset: () => void;
