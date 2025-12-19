@@ -8,7 +8,7 @@ import { supabaseService } from '@/core/services/supabase_service';
 export class SaleProductDataSource {
   /**
    * Get inventory products for sale
-   * Calls get_inventory_page_v3 RPC function with timezone support
+   * Calls get_inventory_page_v4 RPC function with timezone support
    * Supports store-specific pricing with fallback to default prices
    */
   async getProducts(
@@ -23,12 +23,15 @@ export class SaleProductDataSource {
     // Get user's local timezone from device
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('get_inventory_page_v3', {
+    const { data, error } = await supabase.rpc('get_inventory_page_v4', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
       p_limit: limit,
       p_search: search || null,
+      p_availability: null,
+      p_brand_id: null,
+      p_category_id: null,
       p_timezone: userTimezone,
     });
 
@@ -106,38 +109,30 @@ export class SaleProductDataSource {
 
   /**
    * Get cash locations for a company and store
-   * Calls get_cash_locations RPC function
+   * Calls get_cash_locations_v2 RPC function
    */
   async getCashLocations(companyId: string, storeId: string | null): Promise<Array<{
-    id: string;
-    name: string;
-    type: 'cash' | 'bank' | 'vault';
-    storeId: string | null;
-    isCompanyWide: boolean;
-    isDeleted: boolean;
-    currencyCode: string | null;
-    bankAccount: string | null;
-    bankName: string | null;
-    locationInfo: string;
-    transactionCount: number;
-    additionalData: {
-      cash_location_id: string;
-      company_id: string;
-      store_id: string | null;
-      location_name: string;
-      location_type: string;
-      location_info: string;
-      currency_code: string | null;
-      bank_account: string | null;
-      bank_name: string | null;
-      is_deleted: boolean;
-      deleted_at: string | null;
-      created_at: string;
-    };
+    cash_location_id: string;
+    location_name: string;
+    location_type: 'cash' | 'bank' | 'vault';
+    store_id: string | null;
+    store_name: string | null;
+    company_id: string;
+    is_company_wide: boolean;
+    currency_code: string | null;
+    currency_id: string | null;
+    bank_account: string | null;
+    bank_name: string | null;
+    location_info: string | null;
+    icon: string | null;
+    note: string | null;
+    main_cash_location: boolean;
+    created_at: string;
+    created_at_utc: string | null;
   }>> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_cash_locations', {
+    const { data, error } = await supabase.rpc('get_cash_locations_v2', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_location_type: null,

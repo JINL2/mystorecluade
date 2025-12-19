@@ -11,6 +11,7 @@ import type { ExcelTabContentProps } from './ExcelTabContent.types';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { CounterpartyCashLocationModal } from './CounterpartyCashLocationModal';
 import { RecentTransactionHistory } from '../RecentTransactionHistory';
+import { TemplateSelector } from '../TemplateSelector';
 import { useExcelTab } from '../../hooks/useExcelTab';
 import styles from './ExcelTabContent.module.css';
 
@@ -18,6 +19,8 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   accounts,
   cashLocations: initialCashLocations,
   counterparties,
+  templates,
+  loadingTemplates,
   companyId,
   userId,
   stores,
@@ -25,6 +28,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   onGetCounterpartyStores,
   onGetCounterpartyCashLocations,
   onLoadCashLocations,
+  onApplyTemplate,
   onSubmitSuccess,
   onSubmitError,
 }) => {
@@ -76,6 +80,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     showWarning,
     hideWarning,
     submitExcelEntry,
+    applyTemplateToRows,
     reset,
   } = useExcelTab();
 
@@ -172,9 +177,39 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     const selectedLocations = getSelectedLocations();
     const currentRow = rows.find((r) => r.id === currentRowId);
 
+    // Helper function for location type badge colors
+    const getLocationTypeBgColor = (type: string): string => {
+      switch (type) {
+        case 'cash':
+          return '#E8F5E9'; // Green-50
+        case 'bank':
+          return '#E3F2FD'; // Blue-50
+        case 'vault':
+          return '#E0E0E0'; // Gray-300
+        default:
+          return '#F5F5F5';
+      }
+    };
+
+    const getLocationTypeTextColor = (type: string): string => {
+      switch (type) {
+        case 'cash':
+          return '#2E7D32'; // Green-700
+        case 'bank':
+          return '#1565C0'; // Blue-700
+        case 'vault':
+          return '#616161'; // Gray-700
+        default:
+          return '#616161';
+      }
+    };
+
     return localCashLocations.map((location) => ({
       value: location.locationId,
       label: location.locationName,
+      description: location.locationType?.toUpperCase() || '',
+      descriptionBgColor: getLocationTypeBgColor(location.locationType || ''),
+      descriptionColor: getLocationTypeTextColor(location.locationType || ''),
       disabled:
         selectedLocations.includes(location.locationId) &&
         currentRow?.locationId !== location.locationId,
@@ -350,8 +385,22 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     }
   };
 
+  // Handle template apply (with custom amount from detail panel)
+  const handleApplyTemplate = (templateData: any, amount: number) => {
+    // Apply template data to Excel rows with custom amount
+    applyTemplateToRows(templateData, amount);
+  };
+
   return (
     <div className={styles.container}>
+      {/* Template Selector - above the Excel table */}
+      <TemplateSelector
+        templates={templates}
+        loading={loadingTemplates}
+        accounts={accounts.map((acc) => ({ accountId: acc.accountId, accountName: acc.accountName || acc.account_name || '' }))}
+        onApplyTemplate={handleApplyTemplate}
+      />
+
       <table className={styles.table}>
         <thead>
           <tr>
@@ -426,6 +475,7 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
                   fullWidth={true}
                   disabled={!isCashAccount(row.accountId)}
                   emptyMessage="No locations available"
+                  showDescriptions={true}
                 />
               </td>
               <td

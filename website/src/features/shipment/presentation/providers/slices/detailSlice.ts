@@ -66,15 +66,6 @@ export const createDetailSlice = (
       }
     },
 
-    cancelShipment: async (params) => {
-      try {
-        const result = await repository.cancelShipment(params);
-        return result.success;
-      } catch {
-        return false;
-      }
-    },
-
     resetDetailState: () => {
       set(() => ({
         detail: { ...initialDetailState },

@@ -142,25 +142,24 @@ export class InventoryDataSource {
       p_store_id: storeId,
       p_page: page,
       p_limit: limit,
+      p_search: search?.trim() || null,
+      p_availability: null,
+      p_brand_id: null,
+      p_category_id: null,
       p_timezone: userTimezone,
     };
 
-    // Add search parameter if search term exists
-    if (search && search.trim() !== '') {
-      rpcParams.p_search = search.trim();
-    }
-
-    // RPC 'get_inventory_page_v3' returns products with nested stock/price/status objects
-    const { data, error } = await supabase.rpc('get_inventory_page_v3', rpcParams);
+    // RPC 'get_inventory_page_v4' returns products with nested stock/price/status objects
+    const { data, error } = await supabase.rpc('get_inventory_page_v4', rpcParams);
 
     if (error) {
       throw new Error(error.message);
     }
 
-    // Handle success wrapper format: { success: true, data: { products: [], pagination: {}, currency: {} } }
+    // Handle success wrapper format: { success: true, data: { products: [], pagination: {}, summary: {}, currency: {} } }
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
       const rawProducts = data.data?.products || [];
-      // Transform v3 nested structure to flat structure
+      // Transform v4 nested structure to flat structure
       const products = rawProducts.map((p: any) => this.transformV3Product(p));
 
       return {
@@ -171,7 +170,7 @@ export class InventoryDataSource {
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page_v3');
+    throw new Error('Invalid response format from get_inventory_page_v4');
   }
 
   async updateProduct(
@@ -518,15 +517,14 @@ export class InventoryDataSource {
       p_store_id: storeId,
       p_page: 1,
       p_limit: 10000, // High limit to get all products
+      p_search: search?.trim() || null,
+      p_availability: null,
+      p_brand_id: null,
+      p_category_id: null,
       p_timezone: userTimezone,
     };
 
-    // Add search parameter if search term exists
-    if (search && search.trim() !== '') {
-      rpcParams.p_search = search.trim();
-    }
-
-    const { data, error } = await supabase.rpc('get_inventory_page_v3', rpcParams);
+    const { data, error } = await supabase.rpc('get_inventory_page_v4', rpcParams);
 
     if (error) {
       throw new Error(error.message);
@@ -535,7 +533,7 @@ export class InventoryDataSource {
     // Handle success wrapper format
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
       const rawProducts = data.data?.products || [];
-      // Transform v3 nested structure to flat structure
+      // Transform v4 nested structure to flat structure
       const products = rawProducts.map((p: any) => this.transformV3Product(p));
 
       return {
@@ -546,7 +544,7 @@ export class InventoryDataSource {
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page_v3');
+    throw new Error('Invalid response format from get_inventory_page_v4');
   }
 
   /**

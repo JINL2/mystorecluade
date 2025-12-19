@@ -43,12 +43,15 @@ export const useOrderExcel = ({
         const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        const { data, error } = await supabase.rpc('get_inventory_page_v3', {
+        const { data, error } = await supabase.rpc('get_inventory_page_v4', {
           p_company_id: companyId,
           p_store_id: storeId,
           p_page: 1,
           p_limit: 1,
           p_search: sku.trim(),
+          p_availability: null,
+          p_brand_id: null,
+          p_category_id: null,
           p_timezone: userTimezone,
         });
 

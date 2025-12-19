@@ -63,10 +63,40 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
     if (otherCurrencies.isNotEmpty) {
       _selectedSecondaryCurrency = otherCurrencies.first.currencyCode;
     }
+
+    // Add focus listeners to clear text on focus
+    _baseAmountFocusNode.addListener(_onBaseAmountFocusChange);
+    _secondaryAmountFocusNode.addListener(_onSecondaryAmountFocusChange);
+  }
+
+  void _onBaseAmountFocusChange() {
+    if (_baseAmountFocusNode.hasFocus) {
+      // Clear custom amount and controller when focused - user starts fresh
+      setState(() {
+        _customBaseAmount = null;
+        _customSecondaryAmount = null;
+      });
+      _baseAmountController.clear();
+      _secondaryAmountController.clear();
+    }
+  }
+
+  void _onSecondaryAmountFocusChange() {
+    if (_secondaryAmountFocusNode.hasFocus) {
+      // Clear custom amount and controller when focused - user starts fresh
+      setState(() {
+        _customBaseAmount = null;
+        _customSecondaryAmount = null;
+      });
+      _baseAmountController.clear();
+      _secondaryAmountController.clear();
+    }
   }
 
   @override
   void dispose() {
+    _baseAmountFocusNode.removeListener(_onBaseAmountFocusChange);
+    _secondaryAmountFocusNode.removeListener(_onSecondaryAmountFocusChange);
     _baseAmountController.dispose();
     _secondaryAmountController.dispose();
     _baseAmountFocusNode.dispose();
@@ -229,6 +259,8 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
     required VoidCallback onCurrencyTap,
   }) {
     final displayHint = PaymentHelpers.formatNumber(amount.round());
+    // Hide hint when focused so user can type fresh
+    final showHint = !focusNode.hasFocus;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -279,7 +311,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                 ),
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  hintText: displayHint,
+                  hintText: showHint ? displayHint : null,
                   hintStyle: TossTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w500,
                     color: TossColors.gray600,

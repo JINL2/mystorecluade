@@ -31,6 +31,7 @@ export const useExcelTab = () => {
   const showWarning = useExcelTabStore((state) => state.showWarning);
   const hideWarning = useExcelTabStore((state) => state.hideWarning);
   const submitExcelEntry = useExcelTabStore((state) => state.submitExcelEntry);
+  const applyTemplateToRows = useExcelTabStore((state) => state.applyTemplateToRows);
   const reset = useExcelTabStore((state) => state.reset);
 
   return {
@@ -55,6 +56,7 @@ export const useExcelTab = () => {
     showWarning,
     hideWarning,
     submitExcelEntry,
+    applyTemplateToRows,
     reset,
   };
 };

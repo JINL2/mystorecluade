@@ -20,8 +20,10 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
   accounts: [],
   cashLocations: [],
   counterparties: [],
+  templates: [],
   loading: false,
   submitting: false,
+  loadingTemplates: false,
   error: null,
 
   // State Management Actions
@@ -32,6 +34,8 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
   setCashLocations: (locations) => set({ cashLocations: locations }),
 
   setCounterparties: (counterparties) => set({ counterparties }),
+
+  setTemplates: (templates) => set({ templates }),
 
   // Transaction Operations
   addTransactionLine: (line) => {
@@ -179,6 +183,68 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
       return await repository.getCashLocations(state.companyId, storeId);
     } catch (error) {
       return [];
+    }
+  },
+
+  // Template Operations
+  loadTransactionTemplates: async () => {
+    const state = get();
+    if (!state.companyId || !state.storeId || !state.userId) {
+      return;
+    }
+
+    set({ loadingTemplates: true });
+
+    try {
+      const templates = await repository.getTransactionTemplates(
+        state.companyId,
+        state.storeId,
+        state.userId
+      );
+      set({ templates, loadingTemplates: false });
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      set({ loadingTemplates: false });
+    }
+  },
+
+  applyTemplate: (templateId) => {
+    const state = get();
+    const template = state.templates.find((t) => t.templateId === templateId);
+    if (!template || !template.data) return;
+
+    // Template data contains transaction lines to apply
+    // Parse and apply template data to current journal entry
+    try {
+      const templateData = typeof template.data === 'string'
+        ? JSON.parse(template.data)
+        : template.data;
+
+      if (templateData.lines && Array.isArray(templateData.lines)) {
+        // Create new journal entry with template lines
+        const { TransactionLine } = require('../../domain/entities/TransactionLine');
+
+        const newLines = templateData.lines.map((line: any) => new TransactionLine(
+          line.isDebit ?? true,
+          line.accountId ?? '',
+          line.amount ?? 0,
+          line.description ?? '',
+          line.cashLocationId ?? null,
+          line.counterpartyId ?? null,
+          line.counterpartyStoreId ?? null,
+          line.debtCategory ?? null
+        ));
+
+        const newEntry = new JournalEntry(
+          state.companyId,
+          state.storeId,
+          state.journalEntry.date,
+          newLines
+        );
+        set({ journalEntry: newEntry });
+      }
+    } catch (error) {
+      console.error('Error applying template:', error);
     }
   },
 

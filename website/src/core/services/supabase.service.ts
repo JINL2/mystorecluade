@@ -260,6 +260,58 @@ export class AuthService {
       };
     }
   }
+
+  /**
+   * Sign in with Google OAuth
+   */
+  async signInWithGoogle() {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to sign in with Google',
+      };
+    }
+  }
+
+  /**
+   * Sign in with Apple OAuth
+   */
+  async signInWithApple() {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('Apple sign-in error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to sign in with Apple',
+      };
+    }
+  }
 }
 
 /**

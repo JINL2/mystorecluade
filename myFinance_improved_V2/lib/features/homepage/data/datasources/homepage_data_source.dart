@@ -343,6 +343,41 @@ class HomepageDataSource {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
+  // === User Salary Operations ===
+
+  /// Fetch user salary data via homepage_user_salary RPC
+  ///
+  /// Calls: rpc('homepage_user_salary', {...})
+  /// Returns: Salary data with company_total and by_store breakdown
+  ///
+  /// Response structure:
+  /// {
+  ///   "salary_info": { salary_type, salary_amount, currency_code, currency_symbol },
+  ///   "by_store": [ { store_id, store_name, today, this_week, this_month, ... } ],
+  ///   "company_total": { today, this_week, this_month, last_month, this_year }
+  /// }
+  Future<Map<String, dynamic>> getUserSalary({
+    required String userId,
+    required String companyId,
+    required String timezone,
+  }) async {
+    try {
+      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+        'homepage_user_salary',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_request_time': DateTime.now().toIso8601String(),
+          'p_timezone': timezone,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // === App Version Check ===
 
   /// Check app version via check_app_version RPC

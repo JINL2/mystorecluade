@@ -3,14 +3,15 @@
  * State interface definitions for journal input feature
  */
 
-import type { JournalEntry } from '../../domain/entities/JournalEntry';
-import type { TransactionLine } from '../../domain/entities/TransactionLine';
+import type { JournalEntry } from '../../../domain/entities/JournalEntry';
+import type { TransactionLine } from '../../../domain/entities/TransactionLine';
 import type {
   Account,
   CashLocation,
   Counterparty,
   CounterpartyStore,
-} from '../../domain/repositories/IJournalInputRepository';
+  TransactionTemplate,
+} from '../../../domain/repositories/IJournalInputRepository';
 
 /**
  * Journal Input State Interface
@@ -27,10 +28,12 @@ export interface JournalInputState {
   accounts: Account[];
   cashLocations: CashLocation[];
   counterparties: Counterparty[];
+  templates: TransactionTemplate[];
 
   // Loading States
   loading: boolean;
   submitting: boolean;
+  loadingTemplates: boolean;
   error: string | null;
 
   // Actions - State Management
@@ -38,6 +41,7 @@ export interface JournalInputState {
   setAccounts: (accounts: Account[]) => void;
   setCashLocations: (locations: CashLocation[]) => void;
   setCounterparties: (counterparties: Counterparty[]) => void;
+  setTemplates: (templates: TransactionTemplate[]) => void;
 
   // Actions - Transaction Operations
   addTransactionLine: (line: TransactionLine) => void;
@@ -66,6 +70,10 @@ export interface JournalInputState {
 
   // Async Actions - Cash Location Loading (for Excel tab)
   loadCashLocations: (storeId: string | null) => Promise<CashLocation[]>;
+
+  // Async Actions - Template Operations
+  loadTransactionTemplates: () => Promise<void>;
+  applyTemplate: (templateId: string) => void;
 
   // Reset
   reset: () => void;

@@ -29,7 +29,12 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(invoiceListProvider.notifier).loadInvoices();
+      // ✅ Force refresh on page entry to ensure fresh data
+      // This is critical when user switches store/company:
+      // - Invalidate provider to clear cached state from previous store/company
+      // - Call refresh() to load fresh data for current store/company
+      ref.invalidate(invoiceListProvider);
+      ref.read(invoiceListProvider.notifier).refresh();
     });
     // Add scroll listener for infinite scroll
     _scrollController.addListener(_onScroll);

@@ -18,8 +18,10 @@ export const useJournalInput = (
   const accounts = useJournalInputStore((state) => state.accounts);
   const cashLocations = useJournalInputStore((state) => state.cashLocations);
   const counterparties = useJournalInputStore((state) => state.counterparties);
+  const templates = useJournalInputStore((state) => state.templates);
   const loading = useJournalInputStore((state) => state.loading);
   const submitting = useJournalInputStore((state) => state.submitting);
+  const loadingTemplates = useJournalInputStore((state) => state.loadingTemplates);
   const error = useJournalInputStore((state) => state.error);
 
   // Actions
@@ -37,6 +39,8 @@ export const useJournalInput = (
   );
   const loadCashLocations = useJournalInputStore((state) => state.loadCashLocations);
   const loadInitialData = useJournalInputStore((state) => state.loadInitialData);
+  const loadTransactionTemplates = useJournalInputStore((state) => state.loadTransactionTemplates);
+  const applyTemplate = useJournalInputStore((state) => state.applyTemplate);
 
   // Initialize store with context values and load data on mount
   useEffect(() => {
@@ -51,8 +55,12 @@ export const useJournalInput = (
     // Load initial data
     if (companyId) {
       loadInitialData();
+      // Load templates after store state is set
+      if (storeId) {
+        loadTransactionTemplates();
+      }
     }
-  }, [companyId, storeId, userId, loadInitialData]);
+  }, [companyId, storeId, userId, loadInitialData, loadTransactionTemplates]);
 
   return {
     // State
@@ -60,8 +68,10 @@ export const useJournalInput = (
     accounts,
     cashLocations,
     counterparties,
+    templates,
     loading,
     submitting,
+    loadingTemplates,
     error,
 
     // Actions
@@ -76,5 +86,7 @@ export const useJournalInput = (
     getCounterpartyStores,
     getCounterpartyCashLocations,
     loadCashLocations,
+    loadTransactionTemplates,
+    applyTemplate,
   };
 };

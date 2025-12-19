@@ -18,13 +18,6 @@ import type {
 
 // ===== RPC Response Types =====
 
-interface RpcResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
 interface ShipmentListRpcResponse {
   success: boolean;
   data?: ShipmentListItem[];
@@ -286,42 +279,6 @@ export class ShipmentDataSource {
     }
   }
 
-  /**
-   * Cancel a shipment
-   */
-  async cancelShipment(params: {
-    shipmentId: string;
-    companyId: string;
-  }): Promise<RpcResponse<void>> {
-    try {
-      const supabase = this.getClient();
-
-      const { data, error } = await supabase.rpc(
-        'inventory_cancel_shipment' as never,
-        {
-          p_shipment_id: params.shipmentId,
-          p_company_id: params.companyId,
-        } as never
-      );
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      const rpcData = data as GenericRpcData;
-      return {
-        success: rpcData?.success ?? false,
-        error: rpcData?.error,
-      };
-    } catch (err) {
-      console.error('📦 cancelShipment error:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to cancel shipment',
-      };
-    }
-  }
-
   // ===== Supporting Data Operations =====
 
   /**
@@ -483,13 +440,16 @@ export class ShipmentDataSource {
       const supabase = this.getClient();
 
       const { data, error } = await supabase.rpc(
-        'get_inventory_page_v3' as never,
+        'get_inventory_page_v4' as never,
         {
           p_company_id: params.companyId,
           p_store_id: params.storeId,
           p_page: 1,
           p_limit: params.limit ?? 10,
           p_search: params.query.trim(),
+          p_availability: null,
+          p_brand_id: null,
+          p_category_id: null,
           p_timezone: params.timezone,
         } as never
       );

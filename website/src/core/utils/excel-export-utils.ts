@@ -291,6 +291,87 @@ class ExcelExportManager {
   }
 
   /**
+   * Export sample Excel template (headers only, no data)
+   * @param currencyCode - Currency code for column headers
+   * @returns Promise that resolves when export is complete
+   */
+  async exportSampleExcel(currencyCode: string = 'VND'): Promise<void> {
+    // Load ExcelJS library
+    await this.loadExcelJS();
+
+    const ExcelJS = window.ExcelJS;
+    if (!ExcelJS) {
+      throw new Error('ExcelJS library not loaded');
+    }
+
+    // Create a new workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Inventory');
+
+    // Define columns with headers and widths (same as exportInventoryToExcel)
+    worksheet.columns = [
+      { header: 'Product Code (SKU)', key: 'sku', width: 18 },
+      { header: 'Barcode', key: 'barcode', width: 15 },
+      { header: 'Product Name', key: 'product_name', width: 30 },
+      { header: 'Category', key: 'category', width: 20 },
+      { header: 'Brand', key: 'brand', width: 20 },
+      { header: 'Unit', key: 'unit', width: 10 },
+      { header: `Cost Price (${currencyCode})`, key: 'cost_price', width: 15 },
+      { header: `Selling Price (${currencyCode})`, key: 'selling_price', width: 15 },
+      { header: 'Current Stock', key: 'current_stock', width: 15 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'image1', key: 'image1', width: 50 },
+      { header: 'image2', key: 'image2', width: 50 },
+      { header: 'image3', key: 'image3', width: 50 },
+    ];
+
+    // Style the header row (same as exportInventoryToExcel)
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = {
+      name: 'Arial',
+      size: 11,
+      bold: true,
+      color: { argb: 'FFFFFFFF' }, // White text
+    };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }, // Blue background
+    };
+    headerRow.alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: false,
+    };
+    headerRow.height = 25;
+
+    // Add borders to header cells (include empty cells for image columns)
+    headerRow.eachCell({ includeEmpty: true }, (cell: any) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } },
+      };
+    });
+
+    // Freeze the header row
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+    // Generate filename
+    const filename = 'Inventory_Sample_Template.xlsx';
+
+    // Generate Excel file buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    // Download the file (reuse existing download method)
+    await this.downloadExcelFile(blob, filename, 0);
+  }
+
+  /**
    * Extract cell value, handling Rich Text objects
    * @param cell - ExcelJS cell object
    * @returns Plain text value or null

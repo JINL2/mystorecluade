@@ -81,6 +81,9 @@ export interface ExcelTabState {
     counterparties: Counterparty[]
   ) => Promise<{ success: boolean; error?: string }>;
 
+  // Actions - Template
+  applyTemplateToRows: (templateData: any, amount?: number) => void;
+
   // Reset
   reset: () => void;
 }

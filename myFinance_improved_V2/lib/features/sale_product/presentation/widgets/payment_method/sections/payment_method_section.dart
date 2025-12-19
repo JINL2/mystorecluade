@@ -303,6 +303,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
           final isSelected = selectedLocation?.id == location.id;
 
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               ref
                   .read(paymentMethodProvider.notifier)
@@ -313,11 +314,13 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    location.name,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: TossColors.gray900,
+                  Expanded(
+                    child: Text(
+                      location.name,
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.gray900,
+                      ),
                     ),
                   ),
                   SizedBox(

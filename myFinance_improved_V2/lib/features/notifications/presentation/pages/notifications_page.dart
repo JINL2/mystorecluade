@@ -643,48 +643,6 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
   }
 
   Future<void> _markAllAsRead() async {
-    // Show confirmation dialog
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        ),
-        title: Text(
-          'Mark all as read',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to mark all notifications as read?',
-          style: TossTextStyles.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.button.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              'Mark all read',
-              style: TossTextStyles.button.copyWith(
-                color: TossColors.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
     final repository = ref.read(notificationRepositoryProvider);
     final supabase = Supabase.instance.client;
     final userId = supabase.auth.currentUser?.id;

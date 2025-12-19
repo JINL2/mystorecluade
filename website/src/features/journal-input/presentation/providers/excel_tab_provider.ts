@@ -275,6 +275,85 @@ export const useExcelTabStore = create<ExcelTabState>((set, get) => ({
     }
   },
 
+  // Actions - Template
+  applyTemplateToRows: (templateData: any, amount?: number) => {
+    if (!templateData) return;
+
+    // Handle both array format (data is array) and object format (data.lines is array)
+    let lines: any[] = [];
+
+    if (Array.isArray(templateData)) {
+      // Format 1: data is directly an array of lines
+      lines = templateData;
+    } else if (templateData.lines && Array.isArray(templateData.lines)) {
+      // Format 2: data has a lines property
+      lines = templateData.lines;
+    } else {
+      console.warn('Unknown template data format:', templateData);
+      return;
+    }
+
+    if (lines.length === 0) return;
+
+    // Convert template lines to Excel rows
+    const newRows: ExcelRowData[] = lines.map((line: any, index: number) => {
+      // Determine if debit or credit based on different possible formats
+      let debitValue = '';
+      let creditValue = '';
+
+      // Use custom amount if provided, otherwise use template values
+      const customAmount = amount ? String(amount) : null;
+
+      // Format 1: type: 'debit' or 'credit'
+      if (line.type === 'debit') {
+        debitValue = customAmount || String(line.amount || line.debit || 0);
+        creditValue = '';
+      } else if (line.type === 'credit') {
+        debitValue = '';
+        creditValue = customAmount || String(line.amount || line.credit || 0);
+      }
+      // Format 2: debit/credit as numbers
+      else if (line.debit && Number(line.debit) > 0) {
+        debitValue = customAmount || String(line.debit);
+        creditValue = '';
+      } else if (line.credit && Number(line.credit) > 0) {
+        debitValue = '';
+        creditValue = customAmount || String(line.credit);
+      }
+
+      // Get cash location ID from different possible formats
+      const cashLocationId = line.cash_location_id || line.cash?.cash_location_id || '';
+
+      // Get counterparty ID
+      const counterpartyId = line.counterparty_id || '';
+
+      return {
+        id: index + 1,
+        date: '',
+        accountId: line.account_id || '',
+        locationId: cashLocationId,
+        internalId: '', // Internal counterparty - needs to be determined from counterparty type
+        externalId: '', // External counterparty - needs to be determined from counterparty type
+        detail: line.description || '',
+        debit: debitValue,
+        credit: creditValue,
+        counterpartyStoreId: '',
+        counterpartyCashLocationId: line.counterparty_cash_location_id || '',
+        debtCategory: '',
+      };
+    });
+
+    // Ensure minimum 2 rows
+    while (newRows.length < 2) {
+      newRows.push(createEmptyRow(newRows.length + 1));
+    }
+
+    set({
+      rows: newRows,
+      nextId: newRows.length + 1,
+    });
+  },
+
   // Reset
   reset: () => {
     set({

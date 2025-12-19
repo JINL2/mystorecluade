@@ -11,6 +11,7 @@ import {
   JournalSubmitResult,
   AccountMapping,
   CounterpartyStore,
+  TransactionTemplate,
 } from '../../domain/repositories/IJournalInputRepository';
 import { JournalEntry } from '../../domain/entities/JournalEntry';
 import { JournalInputDataSource } from '../datasources/JournalInputDataSource';
@@ -18,6 +19,7 @@ import {
   AccountModel,
   CashLocationModel,
   CounterpartyModel,
+  TransactionTemplateModel,
 } from '../models/JournalInputModels';
 
 export class JournalInputRepositoryImpl implements IJournalInputRepository {
@@ -97,6 +99,20 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
       }));
     } catch (error) {
       console.error('Repository error fetching counterparty stores:', error);
+      return [];
+    }
+  }
+
+  async getTransactionTemplates(
+    companyId: string,
+    storeId: string,
+    userId: string
+  ): Promise<TransactionTemplate[]> {
+    try {
+      const data = await this.dataSource.getTransactionTemplates(companyId, storeId, userId);
+      return data.map(TransactionTemplateModel.fromJson);
+    } catch (error) {
+      console.error('Repository error fetching transaction templates:', error);
       return [];
     }
   }

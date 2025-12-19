@@ -99,11 +99,6 @@ export interface IShipmentRepository {
    */
   createShipment(request: CreateShipmentRequest): Promise<CreateShipmentResponse>;
 
-  /**
-   * Cancel a shipment
-   */
-  cancelShipment(shipmentId: string, companyId: string): Promise<RepositoryResult<void>>;
-
   // ===== Supporting Data Operations =====
 
   /**

@@ -11,6 +11,7 @@ import { PublicRoute } from './PublicRoute';
 // Feature Pages
 import { LoginPage } from '@/features/auth/presentation/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/presentation/pages/RegisterPage';
+import { AuthCallbackPage } from '@/features/auth/presentation/pages/AuthCallbackPage';
 import { DashboardPage } from '@/features/dashboard/presentation/pages/DashboardPage';
 import { AccountMappingPage } from '@/features/account-mapping/presentation/pages/AccountMappingPage';
 import { BalanceSheetPage } from '@/features/balance-sheet/presentation/pages/BalanceSheetPage';
@@ -58,6 +59,9 @@ export const AppRoutes: React.FC = () => {
           </PublicRoute>
         }
       />
+
+      {/* OAuth Callback Route */}
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       {/* Protected Routes - Dashboard (no specific permission check) */}
       <Route

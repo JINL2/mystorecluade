@@ -33,8 +33,10 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     accounts,
     cashLocations,
     counterparties,
+    templates,
     loading,
     submitting,
+    loadingTemplates,
     addTransactionLine,
     updateTransactionLine,
     removeTransactionLine,
@@ -44,6 +46,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     getCounterpartyStores,
     getCounterpartyCashLocations,
     loadCashLocations,
+    applyTemplate,
   } = useJournalInput(companyId, selectedStoreId, user?.id || '');
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -282,6 +285,8 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             accounts={accounts}
             cashLocations={cashLocations}
             counterparties={counterparties}
+            templates={templates}
+            loadingTemplates={loadingTemplates}
             companyId={companyId}
             userId={user?.id || ''}
             stores={stores}
@@ -289,6 +294,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             onGetCounterpartyStores={getCounterpartyStores}
             onGetCounterpartyCashLocations={getCounterpartyCashLocations}
             onLoadCashLocations={loadCashLocations}
+            onApplyTemplate={applyTemplate}
             onSubmitSuccess={() => setShowSuccessMessage(true)}
             onSubmitError={(error) => {
               setErrorMessageText(error);

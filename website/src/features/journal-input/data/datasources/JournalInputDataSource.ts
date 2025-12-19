@@ -26,19 +26,40 @@ export class JournalInputDataSource {
 
   /**
    * Get cash locations for company and store
+   * Calls get_cash_locations_v2 RPC function
    */
   async getCashLocations(companyId: string, storeId?: string | null) {
     const supabase = supabaseService.getClient();
 
-    const rpcParams: any = { p_company_id: companyId };
-    if (storeId) {
-      rpcParams.p_store_id = storeId;
-    }
-
-    const { data, error } = await supabase.rpc('get_cash_locations', rpcParams);
+    const { data, error } = await supabase.rpc('get_cash_locations_v2', {
+      p_company_id: companyId,
+      p_store_id: storeId || null,
+      p_location_type: null,
+    });
 
     if (error) {
       console.error('Error fetching cash locations:', error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Get transaction templates for company and store
+   * Calls get_transaction_template_list RPC function
+   */
+  async getTransactionTemplates(companyId: string, storeId: string, userId: string) {
+    const supabase = supabaseService.getClient();
+
+    const { data, error } = await supabase.rpc('get_transaction_template_list', {
+      p_company_id: companyId,
+      p_store_id: storeId,
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error('Error fetching transaction templates:', error);
       throw new Error(error.message);
     }
 
