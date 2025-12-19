@@ -269,13 +269,13 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
 
   async getSessionList(params: {
     companyId: string;
-    shipmentId: string;
-    sessionType: string;
-    isActive: boolean;
+    shipmentId?: string;
+    sessionType?: string;
+    isActive?: boolean;
     timezone: string;
   }): Promise<Session[]> {
     const result = await this.dataSource.getSessionList(params);
-    return result.map(mapSessionDTO);
+    return result.sessions.map(mapSessionDTO);
   }
 
   async createSession(params: {

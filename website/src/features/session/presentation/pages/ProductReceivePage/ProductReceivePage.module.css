@@ -234,6 +234,30 @@
   background: var(--toss-primary-dark, #0050CC);
 }
 
+/* Create Session Button */
+.createSessionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.createSessionButton:hover {
+  background: var(--toss-primary-dark, #0050CC);
+}
+
+.createSessionButton svg {
+  stroke-width: 2.5;
+}
+
 /* View Button */
 .viewButton {
   padding: 6px 12px;
@@ -690,6 +714,15 @@
 
 .shipmentRow.selected:hover {
   background: var(--toss-blue-surface, #F0F6FF);
+}
+
+.shipmentRow.disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.shipmentRow.disabled:hover {
+  background: transparent;
 }
 
 /* ===== Expanded Detail Row ===== */

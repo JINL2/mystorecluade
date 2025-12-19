@@ -35,6 +35,11 @@ const getStatusClassName = (session: CountingSession): string => {
   return 'cancelled';
 };
 
+// Check if session is closed (not clickable)
+const isSessionClosed = (session: CountingSession): boolean => {
+  return !session.isActive && !session.isFinal;
+};
+
 // Get status text
 const getStatusText = (session: CountingSession): string => {
   if (session.isFinal) {
@@ -79,8 +84,9 @@ export const CountingSessionsTable: React.FC<CountingSessionsTableProps> = ({
             sessions.map((session) => (
               <tr
                 key={session.sessionId}
-                className={styles.shipmentRow}
+                className={`${styles.shipmentRow} ${isSessionClosed(session) ? styles.disabled : ''}`}
                 onClick={() => onSessionClick(session.sessionId)}
+                style={{ cursor: isSessionClosed(session) ? 'default' : 'pointer' }}
               >
                 <td>
                   <span className={styles.receiveNumber}>{session.sessionName}</span>

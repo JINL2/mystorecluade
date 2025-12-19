@@ -28,7 +28,7 @@ type TabType = 'counting' | 'receiving';
 
 export const ProductReceivePage: React.FC = () => {
   const datePickerRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('receiving');
+  const [activeTab, setActiveTab] = useState<TabType>('counting');
 
   const {
     currency,
@@ -95,6 +95,19 @@ export const ProductReceivePage: React.FC = () => {
     searchQuery: countingSearchQuery,
     handleSearchChange: handleCountingSearchChange,
     handleSessionClick: handleCountingSessionClick,
+    // Create session modal state
+    showCreateModal: showCountingCreateModal,
+    stores: countingStores,
+    selectedStoreId: countingSelectedStoreId,
+    sessionName: countingSessionName,
+    isCreating: isCreatingCountingSession,
+    createError: countingCreateError,
+    // Create session modal actions
+    handleOpenCreateModal: handleOpenCountingCreateModal,
+    handleCloseCreateModal: handleCloseCountingCreateModal,
+    setSelectedStoreId: setCountingSelectedStoreId,
+    setSessionName: setCountingSessionName,
+    handleCreateSession: handleCreateCountingSession,
   } = useCountingSessionList();
 
   // Click outside to close date picker
@@ -241,6 +254,17 @@ export const ProductReceivePage: React.FC = () => {
                         />
                       </div>
                     </div>
+                    <button
+                      className={styles.createSessionButton}
+                      onClick={handleOpenCountingCreateModal}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                      </svg>
+                      Create Session
+                    </button>
                   </div>
 
                   <CountingSessionsTable
@@ -348,6 +372,20 @@ export const ProductReceivePage: React.FC = () => {
         onSelectSession={setSelectedSessionId}
         onClose={handleCloseJoinSessionModal}
         onJoin={handleJoinSession}
+      />
+
+      {/* Create Counting Session Modal */}
+      <CreateSessionModal
+        isOpen={showCountingCreateModal}
+        stores={countingStores}
+        selectedStoreId={countingSelectedStoreId}
+        sessionName={countingSessionName}
+        isCreating={isCreatingCountingSession}
+        error={countingCreateError}
+        onSelectStore={setCountingSelectedStoreId}
+        onSessionNameChange={setCountingSessionName}
+        onClose={handleCloseCountingCreateModal}
+        onCreate={handleCreateCountingSession}
       />
     </>
   );

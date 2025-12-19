@@ -216,7 +216,7 @@ export interface IProductReceiveDataSource {
     storeId: string;
     userId: string;
     sessionType: string;
-    shipmentId: string;
+    shipmentId?: string;
     sessionName?: string;
     time: string;
     timezone: string;
@@ -514,7 +514,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     storeId: string;
     userId: string;
     sessionType: string;
-    shipmentId: string;
+    shipmentId?: string;
     sessionName?: string;
     time: string;
     timezone: string;
@@ -526,10 +526,14 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       p_store_id: params.storeId,
       p_user_id: params.userId,
       p_session_type: params.sessionType,
-      p_shipment_id: params.shipmentId,
       p_time: params.time,
       p_timezone: params.timezone,
     };
+
+    // shipmentId is optional (only for receiving sessions linked to shipments)
+    if (params.shipmentId) {
+      rpcParams.p_shipment_id = params.shipmentId;
+    }
 
     if (params.sessionName) {
       rpcParams.p_session_name = params.sessionName;
