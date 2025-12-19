@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
@@ -82,8 +82,6 @@ class ShiftRequestsController {
       // Get user's local timezone from device
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus: selectedDate=$selectedDate, requestTime=$requestTime');
-
       final response = await getMonthlyShiftStatus(
         storeId: storeId,
         companyId: companyId,
@@ -92,16 +90,22 @@ class ShiftRequestsController {
       );
 
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
       final errorMessage = e.toString();
-      debugPrint('[ShiftRequestsController] fetchMonthlyShiftStatus ERROR: $errorMessage');
 
       // If it's a NOT_FOUND error, return empty list instead of null
       // This is expected when there are no shift requests yet
       if (errorMessage.contains('NOT_FOUND') || errorMessage.contains('No matching shift request')) {
-        debugPrint('[ShiftRequestsController] NOT_FOUND error - returning empty list (no shift requests available)');
         return [];
       }
+
+      // Log unexpected errors to Sentry
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'ShiftRequestsController.fetchMonthlyShiftStatus failed',
+        extra: {'storeId': storeId, 'companyId': companyId},
+      );
 
       return null;
     }

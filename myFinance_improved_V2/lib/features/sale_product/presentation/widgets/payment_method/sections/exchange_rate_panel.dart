@@ -17,11 +17,18 @@ import '../../../../../register_denomination/presentation/providers/exchange_rat
 class ExchangeRatePanel extends ConsumerStatefulWidget {
   final ExchangeRateData exchangeRateData;
   final double finalTotal;
+  final double subtotal;
+
+  /// Callback when user applies the exchange rate converted amount as total payment
+  /// Parameters: (convertedVndAmount, calculatedDiscount)
+  final void Function(double convertedAmount, double discount)? onApplyAsTotal;
 
   const ExchangeRatePanel({
     super.key,
     required this.exchangeRateData,
     required this.finalTotal,
+    this.subtotal = 0,
+    this.onApplyAsTotal,
   });
 
   @override
@@ -161,6 +168,13 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                     isForBase: false,
                   ),
                 ),
+              // Apply as Total button - only show when custom amount is entered
+              if (_customBaseAmount != null &&
+                  widget.onApplyAsTotal != null &&
+                  widget.subtotal > 0) ...[
+                const SizedBox(height: TossSpacing.space3),
+                _buildApplyButton(baseAmount),
+              ],
             ],
           ),
         );
@@ -288,6 +302,75 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildApplyButton(double baseAmount) {
+    // Calculate discount = subtotal - new total (baseAmount)
+    final discount = widget.subtotal - baseAmount;
+    final isValidDiscount = discount >= 0 && baseAmount > 0;
+
+    return GestureDetector(
+      onTap: isValidDiscount
+          ? () {
+              widget.onApplyAsTotal?.call(baseAmount, discount);
+              // Clear custom amounts after applying
+              setState(() {
+                _customBaseAmount = null;
+                _customSecondaryAmount = null;
+                _baseAmountController.clear();
+                _secondaryAmountController.clear();
+              });
+            }
+          : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          vertical: TossSpacing.space2,
+        ),
+        decoration: BoxDecoration(
+          color: isValidDiscount ? TossColors.primary : TossColors.gray200,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 18,
+              color: isValidDiscount ? TossColors.white : TossColors.gray400,
+            ),
+            const SizedBox(width: TossSpacing.space1),
+            Text(
+              'Apply as Total',
+              style: TossTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isValidDiscount ? TossColors.white : TossColors.gray400,
+              ),
+            ),
+            if (discount > 0) ...[
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space1 + 2,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '-${PaymentHelpers.formatNumber(discount.round())}',
+                  style: TossTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.white,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

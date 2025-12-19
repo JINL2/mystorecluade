@@ -284,12 +284,29 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
         orElse: () => userEntity.companies.first,
       );
 
+      // ✅ Find the actual store name from the selected store ID
+      // This fixes cached storeName being incorrect (e.g., store_code instead of store_name)
+      String? actualStoreName = appState.storeName;
+      if (appState.storeChoosen.isNotEmpty && selectedCompany.stores.isNotEmpty) {
+        try {
+          final selectedStore = selectedCompany.stores.firstWhere(
+            (s) => s.id == appState.storeChoosen,
+          );
+          actualStoreName = selectedStore.storeName;
+        } catch (_) {
+          // Store not found - use first store as fallback
+          if (selectedCompany.stores.isNotEmpty) {
+            actualStoreName = selectedCompany.stores.first.storeName;
+          }
+        }
+      }
+
       // Update subscription data without changing company/store selection
       appStateNotifier.updateBusinessContext(
         companyId: selectedCompany.id,
         storeId: appState.storeChoosen,
         companyName: selectedCompany.companyName,
-        storeName: appState.storeName,
+        storeName: actualStoreName,
         subscription: selectedCompany.subscription?.toMap(),
       );
     }

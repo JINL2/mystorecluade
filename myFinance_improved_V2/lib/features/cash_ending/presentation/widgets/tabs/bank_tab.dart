@@ -314,11 +314,11 @@ class _BankTabState extends ConsumerState<BankTab> {
               fontSize: 20,
             ),
             decoration: InputDecoration(
-              hintText: '0',
+              hintText: 'Enter amount',
               hintStyle: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray400,
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
@@ -406,7 +406,7 @@ class _BankTabState extends ConsumerState<BankTab> {
           accountName: selectedLocation.locationName,
           locationType: 'bank',
           balance: journalAmount.toInt(),
-          errors: difference.toInt().abs(),
+          errors: difference.toInt(),
           totalJournal: journalAmount.toInt(),
           totalReal: bankAmount.toInt(),
           cashDifference: difference.toInt(),

@@ -32,6 +32,7 @@ _$AccountDataImpl _$$AccountDataImplFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String,
       categoryTag: json['categoryTag'] as String?,
       expenseNature: json['expenseNature'] as String?,
+      accountCode: json['accountCode'] as String?,
       transactionCount: (json['transactionCount'] as num?)?.toInt() ?? 0,
       additionalData: json['additionalData'] as Map<String, dynamic>?,
     );
@@ -43,6 +44,7 @@ Map<String, dynamic> _$$AccountDataImplToJson(_$AccountDataImpl instance) =>
       'type': instance.type,
       'categoryTag': instance.categoryTag,
       'expenseNature': instance.expenseNature,
+      'accountCode': instance.accountCode,
       'transactionCount': instance.transactionCount,
       'additionalData': instance.additionalData,
     };

@@ -21,6 +21,9 @@ class BankBalance with _$BankBalance {
     required DateTime recordDate,
     required DateTime createdAt,
     required List<Currency> currencies, // Each currency with totalAmount (no denominations used)
+    /// Flag to indicate if user explicitly entered a value (including 0)
+    /// Used to distinguish between "not entered" vs "explicitly set to 0"
+    @Default(false) bool isExplicitlySet,
   }) = _BankBalance;
 
   const BankBalance._();
@@ -36,8 +39,12 @@ class BankBalance with _$BankBalance {
     );
   }
 
-  /// Check if balance has data
+  /// Check if balance has data (amount > 0)
   bool get hasData {
     return currencies.any((currency) => currency.totalAmount > 0);
   }
+
+  /// Check if user has explicitly entered a value (including 0)
+  /// Returns true if user interacted with the input field
+  bool get hasInput => isExplicitlySet;
 }

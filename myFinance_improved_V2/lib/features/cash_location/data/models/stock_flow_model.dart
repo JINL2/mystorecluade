@@ -12,12 +12,24 @@ class JournalFlowModel {
     final createdAtUtc = (json['created_at'] ?? '').toString();
     final systemTimeUtc = (json['system_time'] ?? '').toString();
 
-    // V2 RPC returns created_by as UUID string + created_by_name
+    // V2 RPC returns created_by as UUID string + created_by_name + created_by_profile_image
     // Build CreatedBy from flat fields
     final createdBy = CreatedBy(
       userId: (json['created_by'] ?? '').toString(),
       fullName: (json['created_by_name'] ?? '').toString(),
+      profileImage: json['created_by_profile_image']?.toString(),
     );
+
+    // Parse attachments
+    final attachmentsData = json['attachments'] as List<dynamic>? ?? [];
+    final attachments = <JournalAttachment>[];
+    for (final attachmentJson in attachmentsData) {
+      try {
+        attachments.add(JournalAttachmentModel.fromJson(attachmentJson as Map<String, dynamic>));
+      } catch (e) {
+        // Skip invalid attachments
+      }
+    }
 
     return JournalFlow(
       flowId: (json['flow_id'] ?? '').toString(),
@@ -28,6 +40,7 @@ class JournalFlowModel {
       balanceAfter: (json['balance_after'] as num?)?.toDouble() ?? 0.0,
       journalId: (json['journal_id'] ?? '').toString(),
       journalDescription: (json['journal_description'] ?? '').toString(),
+      journalAiDescription: json['journal_ai_description']?.toString(),
       journalType: (json['journal_type'] ?? '').toString(),
       accountId: (json['account_id'] ?? '').toString(),
       accountName: (json['account_name'] ?? '').toString(),
@@ -35,7 +48,45 @@ class JournalFlowModel {
       counterAccount: json['counter_account'] != null && json['counter_account'] is Map<String, dynamic>
           ? CounterAccountModel.fromJson(json['counter_account'] as Map<String, dynamic>)
           : null,
+      attachments: attachments,
     );
+  }
+}
+
+class JournalAttachmentModel {
+  static JournalAttachment fromJson(Map<String, dynamic> json) {
+    final fileName = json['file_name']?.toString() ?? '';
+    // Infer file_type from file_name if not provided
+    final fileType = json['file_type']?.toString() ?? _inferMimeType(fileName);
+
+    return JournalAttachment(
+      attachmentId: json['attachment_id']?.toString() ?? '',
+      fileName: fileName,
+      fileType: fileType,
+      fileUrl: json['file_url']?.toString(),
+      ocrText: json['ocr_text']?.toString(),
+      ocrStatus: json['ocr_status']?.toString(),
+    );
+  }
+
+  /// Infer MIME type from file extension
+  static String _inferMimeType(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
   }
 }
 

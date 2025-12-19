@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -133,9 +134,13 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
           _isLoadingMetadata = false;
         });
       }
-    } catch (e) {
-      debugPrint('[MyScheduleTab] _fetchShiftMetadataIfNeeded ERROR: $e');
+    } catch (e, stackTrace) {
       _isLoadingMetadata = false;
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'MyScheduleTab._fetchShiftMetadataIfNeeded failed',
+      );
     }
   }
 
@@ -143,17 +148,14 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
   /// Only calls RPC if data for the month is not already cached
   Future<void> _fetchMonthlyShiftStatusIfNeeded(DateTime date) async {
     final monthKey = _getMonthKey(date);
-    debugPrint('[MyScheduleTab] _fetchMonthlyShiftStatusIfNeeded called for monthKey: $monthKey');
 
     // Check if already cached
     if (_monthlyShiftStatusCache.containsKey(monthKey)) {
-      debugPrint('[MyScheduleTab] Cache HIT for month: $monthKey');
       return;
     }
 
     // Check if already loading
     if (_loadingMonths.contains(monthKey)) {
-      debugPrint('[MyScheduleTab] Already loading month: $monthKey, skipping');
       return;
     }
 
@@ -163,7 +165,6 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
     if (storeId.isEmpty || companyId.isEmpty) return;
 
-    debugPrint('[MyScheduleTab] Cache MISS for month: $monthKey, calling RPC...');
     _loadingMonths.add(monthKey);
 
     try {
@@ -179,8 +180,6 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
         timezone: timezone,
       );
 
-      debugPrint('[MyScheduleTab] RPC completed for month: $monthKey, got ${result.length} records');
-
       if (mounted) {
         // Cache the result by month
         final monthData = result.where((r) {
@@ -191,7 +190,6 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
         }).toList();
 
         _monthlyShiftStatusCache[monthKey] = monthData;
-        debugPrint('[MyScheduleTab] Cached ${monthData.length} records for month: $monthKey');
 
         // Also cache data for other months that came in the response
         final otherMonths = <String, List<MonthlyShiftStatus>>{};
@@ -205,13 +203,17 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
         }
         for (final entry in otherMonths.entries) {
           _monthlyShiftStatusCache[entry.key] = entry.value;
-          debugPrint('[MyScheduleTab] Also cached ${entry.value.length} records for month: ${entry.key}');
         }
 
         setState(() {});
       }
-    } catch (e) {
-      debugPrint('[MyScheduleTab] _fetchMonthlyShiftStatusIfNeeded ERROR: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'MyScheduleTab._fetchMonthlyShiftStatusIfNeeded failed',
+        extra: {'monthKey': monthKey},
+      );
     } finally {
       _loadingMonths.remove(monthKey);
     }
@@ -219,9 +221,6 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
 
   /// Fetch shift metadata and monthly shift status for Month view calendar indicators
   Future<void> _fetchMonthViewData() async {
-    final yearMonth = _getMonthKey(_currentMonth);
-    debugPrint('[MyScheduleTab] _fetchMonthViewData called for month: $yearMonth');
-
     // Fetch metadata if not already loaded
     await _fetchShiftMetadataIfNeeded();
 

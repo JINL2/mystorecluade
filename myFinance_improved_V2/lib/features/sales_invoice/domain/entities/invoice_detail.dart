@@ -1,5 +1,32 @@
 import 'package:equatable/equatable.dart';
 
+/// Invoice Attachment entity for images/files attached to invoice journal
+class InvoiceAttachment extends Equatable {
+  final String attachmentId;
+  final String fileName;
+  final String fileType;
+  final String? fileUrl;
+
+  const InvoiceAttachment({
+    required this.attachmentId,
+    required this.fileName,
+    required this.fileType,
+    this.fileUrl,
+  });
+
+  /// Check if this is an image file
+  bool get isImage => fileType.startsWith('image/');
+
+  /// Check if this is a PDF file
+  bool get isPdf => fileType == 'application/pdf';
+
+  /// Get file extension
+  String get fileExtension => fileName.split('.').last.toLowerCase();
+
+  @override
+  List<Object?> get props => [attachmentId, fileName, fileType, fileUrl];
+}
+
 /// Invoice Detail Item entity
 class InvoiceDetailItem extends Equatable {
   final String invoiceItemId;
@@ -86,6 +113,10 @@ class InvoiceDetail extends Equatable {
   final double totalCost;
   final double profit;
   final List<InvoiceDetailItem> items;
+  // Journal info (AI description and attachments)
+  final String? journalId;
+  final String? aiDescription;
+  final List<InvoiceAttachment> attachments;
 
   const InvoiceDetail({
     required this.invoiceId,
@@ -116,6 +147,9 @@ class InvoiceDetail extends Equatable {
     required this.totalCost,
     required this.profit,
     required this.items,
+    this.journalId,
+    this.aiDescription,
+    this.attachments = const [],
   });
 
   /// Helper getters for status checking
@@ -132,6 +166,16 @@ class InvoiceDetail extends Equatable {
 
   /// Get total quantity
   int get totalQuantity => items.fold(0, (sum, item) => sum + item.quantity);
+
+  /// Check if has AI description
+  bool get hasAiDescription => aiDescription != null && aiDescription!.isNotEmpty;
+
+  /// Check if has attachments
+  bool get hasAttachments => attachments.isNotEmpty;
+
+  /// Get image attachments only
+  List<InvoiceAttachment> get imageAttachments =>
+      attachments.where((a) => a.isImage).toList();
 
   /// Get formatted time string (HH:mm)
   String get timeString {
@@ -168,5 +212,8 @@ class InvoiceDetail extends Equatable {
         totalCost,
         profit,
         items,
+        journalId,
+        aiDescription,
+        attachments,
       ];
 }

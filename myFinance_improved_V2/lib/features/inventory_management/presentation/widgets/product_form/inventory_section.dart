@@ -9,6 +9,7 @@ class InventorySection extends StatelessWidget {
   final TextEditingController weightController;
   final String? selectedUnit;
   final VoidCallback onUnitTap;
+  final ValueChanged<String>? onChanged;
 
   const InventorySection({
     super.key,
@@ -16,6 +17,7 @@ class InventorySection extends StatelessWidget {
     required this.weightController,
     this.selectedUnit,
     required this.onUnitTap,
+    this.onChanged,
   });
 
   @override
@@ -31,7 +33,7 @@ class InventorySection extends StatelessWidget {
         children: [
           _buildSectionHeader(),
           const SizedBox(height: 16),
-          _buildOnHandField(context),
+          _buildOnHandField(),
           const SizedBox(height: 16),
           _buildWeightField(),
           const SizedBox(height: 16),
@@ -57,7 +59,7 @@ class InventorySection extends StatelessWidget {
     );
   }
 
-  Widget _buildOnHandField(BuildContext context) {
+  Widget _buildOnHandField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,6 +74,7 @@ class InventorySection extends StatelessWidget {
         TextFormField(
           controller: onHandController,
           keyboardType: TextInputType.number,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: '0',
             hintStyle: TossTextStyles.body.copyWith(
@@ -80,17 +83,6 @@ class InventorySection extends StatelessWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: TossColors.gray300),
-            ),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.info_outline, size: 20, color: TossColors.gray400),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Current stock quantity available'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
             ),
           ),
         ),

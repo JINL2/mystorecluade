@@ -21,15 +21,44 @@ class JournalFlow with _$JournalFlow {
     required double balanceAfter,
     required String journalId,
     required String journalDescription,
+    String? journalAiDescription,
     required String journalType,
     required String accountId,
     required String accountName,
     required CreatedBy createdBy,
     CounterAccount? counterAccount,
+    @Default([]) List<JournalAttachment> attachments,
   }) = _JournalFlow;
 
   factory JournalFlow.fromJson(Map<String, dynamic> json) =>
       _$JournalFlowFromJson(json);
+}
+
+/// Attachment entity for journal flows
+@freezed
+class JournalAttachment with _$JournalAttachment {
+  const JournalAttachment._();
+
+  const factory JournalAttachment({
+    required String attachmentId,
+    required String fileName,
+    required String fileType,
+    String? fileUrl,
+    String? ocrText,
+    String? ocrStatus,
+  }) = _JournalAttachment;
+
+  factory JournalAttachment.fromJson(Map<String, dynamic> json) =>
+      _$JournalAttachmentFromJson(json);
+
+  /// Check if this is an image file
+  bool get isImage => fileType.startsWith('image/');
+
+  /// Check if this is a PDF file
+  bool get isPdf => fileType == 'application/pdf';
+
+  /// Check if this attachment has OCR text
+  bool get hasOcr => ocrText != null && ocrText!.isNotEmpty;
 }
 
 @freezed
@@ -100,6 +129,7 @@ class CreatedBy with _$CreatedBy {
   const factory CreatedBy({
     required String userId,
     required String fullName,
+    String? profileImage,
   }) = _CreatedBy;
 
   factory CreatedBy.fromJson(Map<String, dynamic> json) =>

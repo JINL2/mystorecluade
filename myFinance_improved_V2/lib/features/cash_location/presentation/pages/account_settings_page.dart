@@ -62,14 +62,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     }
   }
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Schedule refresh after build to avoid showSnackBar during build error
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
-  }
+  // Note: Removed didChangeDependencies override that was causing excessive rebuilds.
+  // The method was calling _refreshData() on every dependency change,
+  // which could cause UI flickering and AppBar disappearing issues.
+  // Data refresh is already handled by:
+  // - initState (initial load)
+  // - didChangeAppLifecycleState (app resume)
   
   Future<void> _refreshData() async {
     if (widget.locationId.isNotEmpty) {

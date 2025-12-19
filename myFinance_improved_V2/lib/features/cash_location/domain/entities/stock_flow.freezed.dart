@@ -28,11 +28,13 @@ mixin _$JournalFlow {
   double get balanceAfter => throw _privateConstructorUsedError;
   String get journalId => throw _privateConstructorUsedError;
   String get journalDescription => throw _privateConstructorUsedError;
+  String? get journalAiDescription => throw _privateConstructorUsedError;
   String get journalType => throw _privateConstructorUsedError;
   String get accountId => throw _privateConstructorUsedError;
   String get accountName => throw _privateConstructorUsedError;
   CreatedBy get createdBy => throw _privateConstructorUsedError;
   CounterAccount? get counterAccount => throw _privateConstructorUsedError;
+  List<JournalAttachment> get attachments => throw _privateConstructorUsedError;
 
   /// Serializes this JournalFlow to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -59,11 +61,13 @@ abstract class $JournalFlowCopyWith<$Res> {
       double balanceAfter,
       String journalId,
       String journalDescription,
+      String? journalAiDescription,
       String journalType,
       String accountId,
       String accountName,
       CreatedBy createdBy,
-      CounterAccount? counterAccount});
+      CounterAccount? counterAccount,
+      List<JournalAttachment> attachments});
 
   $CreatedByCopyWith<$Res> get createdBy;
   $CounterAccountCopyWith<$Res>? get counterAccount;
@@ -92,11 +96,13 @@ class _$JournalFlowCopyWithImpl<$Res, $Val extends JournalFlow>
     Object? balanceAfter = null,
     Object? journalId = null,
     Object? journalDescription = null,
+    Object? journalAiDescription = freezed,
     Object? journalType = null,
     Object? accountId = null,
     Object? accountName = null,
     Object? createdBy = null,
     Object? counterAccount = freezed,
+    Object? attachments = null,
   }) {
     return _then(_value.copyWith(
       flowId: null == flowId
@@ -131,6 +137,10 @@ class _$JournalFlowCopyWithImpl<$Res, $Val extends JournalFlow>
           ? _value.journalDescription
           : journalDescription // ignore: cast_nullable_to_non_nullable
               as String,
+      journalAiDescription: freezed == journalAiDescription
+          ? _value.journalAiDescription
+          : journalAiDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       journalType: null == journalType
           ? _value.journalType
           : journalType // ignore: cast_nullable_to_non_nullable
@@ -151,6 +161,10 @@ class _$JournalFlowCopyWithImpl<$Res, $Val extends JournalFlow>
           ? _value.counterAccount
           : counterAccount // ignore: cast_nullable_to_non_nullable
               as CounterAccount?,
+      attachments: null == attachments
+          ? _value.attachments
+          : attachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
     ) as $Val);
   }
 
@@ -196,11 +210,13 @@ abstract class _$$JournalFlowImplCopyWith<$Res>
       double balanceAfter,
       String journalId,
       String journalDescription,
+      String? journalAiDescription,
       String journalType,
       String accountId,
       String accountName,
       CreatedBy createdBy,
-      CounterAccount? counterAccount});
+      CounterAccount? counterAccount,
+      List<JournalAttachment> attachments});
 
   @override
   $CreatedByCopyWith<$Res> get createdBy;
@@ -229,11 +245,13 @@ class __$$JournalFlowImplCopyWithImpl<$Res>
     Object? balanceAfter = null,
     Object? journalId = null,
     Object? journalDescription = null,
+    Object? journalAiDescription = freezed,
     Object? journalType = null,
     Object? accountId = null,
     Object? accountName = null,
     Object? createdBy = null,
     Object? counterAccount = freezed,
+    Object? attachments = null,
   }) {
     return _then(_$JournalFlowImpl(
       flowId: null == flowId
@@ -268,6 +286,10 @@ class __$$JournalFlowImplCopyWithImpl<$Res>
           ? _value.journalDescription
           : journalDescription // ignore: cast_nullable_to_non_nullable
               as String,
+      journalAiDescription: freezed == journalAiDescription
+          ? _value.journalAiDescription
+          : journalAiDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       journalType: null == journalType
           ? _value.journalType
           : journalType // ignore: cast_nullable_to_non_nullable
@@ -288,6 +310,10 @@ class __$$JournalFlowImplCopyWithImpl<$Res>
           ? _value.counterAccount
           : counterAccount // ignore: cast_nullable_to_non_nullable
               as CounterAccount?,
+      attachments: null == attachments
+          ? _value._attachments
+          : attachments // ignore: cast_nullable_to_non_nullable
+              as List<JournalAttachment>,
     ));
   }
 }
@@ -304,11 +330,14 @@ class _$JournalFlowImpl implements _JournalFlow {
       required this.balanceAfter,
       required this.journalId,
       required this.journalDescription,
+      this.journalAiDescription,
       required this.journalType,
       required this.accountId,
       required this.accountName,
       required this.createdBy,
-      this.counterAccount});
+      this.counterAccount,
+      final List<JournalAttachment> attachments = const []})
+      : _attachments = attachments;
 
   factory _$JournalFlowImpl.fromJson(Map<String, dynamic> json) =>
       _$$JournalFlowImplFromJson(json);
@@ -330,6 +359,8 @@ class _$JournalFlowImpl implements _JournalFlow {
   @override
   final String journalDescription;
   @override
+  final String? journalAiDescription;
+  @override
   final String journalType;
   @override
   final String accountId;
@@ -339,10 +370,18 @@ class _$JournalFlowImpl implements _JournalFlow {
   final CreatedBy createdBy;
   @override
   final CounterAccount? counterAccount;
+  final List<JournalAttachment> _attachments;
+  @override
+  @JsonKey()
+  List<JournalAttachment> get attachments {
+    if (_attachments is EqualUnmodifiableListView) return _attachments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_attachments);
+  }
 
   @override
   String toString() {
-    return 'JournalFlow(flowId: $flowId, createdAt: $createdAt, systemTime: $systemTime, balanceBefore: $balanceBefore, flowAmount: $flowAmount, balanceAfter: $balanceAfter, journalId: $journalId, journalDescription: $journalDescription, journalType: $journalType, accountId: $accountId, accountName: $accountName, createdBy: $createdBy, counterAccount: $counterAccount)';
+    return 'JournalFlow(flowId: $flowId, createdAt: $createdAt, systemTime: $systemTime, balanceBefore: $balanceBefore, flowAmount: $flowAmount, balanceAfter: $balanceAfter, journalId: $journalId, journalDescription: $journalDescription, journalAiDescription: $journalAiDescription, journalType: $journalType, accountId: $accountId, accountName: $accountName, createdBy: $createdBy, counterAccount: $counterAccount, attachments: $attachments)';
   }
 
   @override
@@ -365,6 +404,8 @@ class _$JournalFlowImpl implements _JournalFlow {
                 other.journalId == journalId) &&
             (identical(other.journalDescription, journalDescription) ||
                 other.journalDescription == journalDescription) &&
+            (identical(other.journalAiDescription, journalAiDescription) ||
+                other.journalAiDescription == journalAiDescription) &&
             (identical(other.journalType, journalType) ||
                 other.journalType == journalType) &&
             (identical(other.accountId, accountId) ||
@@ -374,7 +415,9 @@ class _$JournalFlowImpl implements _JournalFlow {
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
             (identical(other.counterAccount, counterAccount) ||
-                other.counterAccount == counterAccount));
+                other.counterAccount == counterAccount) &&
+            const DeepCollectionEquality()
+                .equals(other._attachments, _attachments));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -389,11 +432,13 @@ class _$JournalFlowImpl implements _JournalFlow {
       balanceAfter,
       journalId,
       journalDescription,
+      journalAiDescription,
       journalType,
       accountId,
       accountName,
       createdBy,
-      counterAccount);
+      counterAccount,
+      const DeepCollectionEquality().hash(_attachments));
 
   /// Create a copy of JournalFlow
   /// with the given fields replaced by the non-null parameter values.
@@ -421,11 +466,13 @@ abstract class _JournalFlow implements JournalFlow {
       required final double balanceAfter,
       required final String journalId,
       required final String journalDescription,
+      final String? journalAiDescription,
       required final String journalType,
       required final String accountId,
       required final String accountName,
       required final CreatedBy createdBy,
-      final CounterAccount? counterAccount}) = _$JournalFlowImpl;
+      final CounterAccount? counterAccount,
+      final List<JournalAttachment> attachments}) = _$JournalFlowImpl;
 
   factory _JournalFlow.fromJson(Map<String, dynamic> json) =
       _$JournalFlowImpl.fromJson;
@@ -447,6 +494,8 @@ abstract class _JournalFlow implements JournalFlow {
   @override
   String get journalDescription;
   @override
+  String? get journalAiDescription;
+  @override
   String get journalType;
   @override
   String get accountId;
@@ -456,12 +505,275 @@ abstract class _JournalFlow implements JournalFlow {
   CreatedBy get createdBy;
   @override
   CounterAccount? get counterAccount;
+  @override
+  List<JournalAttachment> get attachments;
 
   /// Create a copy of JournalFlow
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$JournalFlowImplCopyWith<_$JournalFlowImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+JournalAttachment _$JournalAttachmentFromJson(Map<String, dynamic> json) {
+  return _JournalAttachment.fromJson(json);
+}
+
+/// @nodoc
+mixin _$JournalAttachment {
+  String get attachmentId => throw _privateConstructorUsedError;
+  String get fileName => throw _privateConstructorUsedError;
+  String get fileType => throw _privateConstructorUsedError;
+  String? get fileUrl => throw _privateConstructorUsedError;
+  String? get ocrText => throw _privateConstructorUsedError;
+  String? get ocrStatus => throw _privateConstructorUsedError;
+
+  /// Serializes this JournalAttachment to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of JournalAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $JournalAttachmentCopyWith<JournalAttachment> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $JournalAttachmentCopyWith<$Res> {
+  factory $JournalAttachmentCopyWith(
+          JournalAttachment value, $Res Function(JournalAttachment) then) =
+      _$JournalAttachmentCopyWithImpl<$Res, JournalAttachment>;
+  @useResult
+  $Res call(
+      {String attachmentId,
+      String fileName,
+      String fileType,
+      String? fileUrl,
+      String? ocrText,
+      String? ocrStatus});
+}
+
+/// @nodoc
+class _$JournalAttachmentCopyWithImpl<$Res, $Val extends JournalAttachment>
+    implements $JournalAttachmentCopyWith<$Res> {
+  _$JournalAttachmentCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of JournalAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? attachmentId = null,
+    Object? fileName = null,
+    Object? fileType = null,
+    Object? fileUrl = freezed,
+    Object? ocrText = freezed,
+    Object? ocrStatus = freezed,
+  }) {
+    return _then(_value.copyWith(
+      attachmentId: null == attachmentId
+          ? _value.attachmentId
+          : attachmentId // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileName: null == fileName
+          ? _value.fileName
+          : fileName // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileType: null == fileType
+          ? _value.fileType
+          : fileType // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileUrl: freezed == fileUrl
+          ? _value.fileUrl
+          : fileUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrText: freezed == ocrText
+          ? _value.ocrText
+          : ocrText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrStatus: freezed == ocrStatus
+          ? _value.ocrStatus
+          : ocrStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$JournalAttachmentImplCopyWith<$Res>
+    implements $JournalAttachmentCopyWith<$Res> {
+  factory _$$JournalAttachmentImplCopyWith(_$JournalAttachmentImpl value,
+          $Res Function(_$JournalAttachmentImpl) then) =
+      __$$JournalAttachmentImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String attachmentId,
+      String fileName,
+      String fileType,
+      String? fileUrl,
+      String? ocrText,
+      String? ocrStatus});
+}
+
+/// @nodoc
+class __$$JournalAttachmentImplCopyWithImpl<$Res>
+    extends _$JournalAttachmentCopyWithImpl<$Res, _$JournalAttachmentImpl>
+    implements _$$JournalAttachmentImplCopyWith<$Res> {
+  __$$JournalAttachmentImplCopyWithImpl(_$JournalAttachmentImpl _value,
+      $Res Function(_$JournalAttachmentImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of JournalAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? attachmentId = null,
+    Object? fileName = null,
+    Object? fileType = null,
+    Object? fileUrl = freezed,
+    Object? ocrText = freezed,
+    Object? ocrStatus = freezed,
+  }) {
+    return _then(_$JournalAttachmentImpl(
+      attachmentId: null == attachmentId
+          ? _value.attachmentId
+          : attachmentId // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileName: null == fileName
+          ? _value.fileName
+          : fileName // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileType: null == fileType
+          ? _value.fileType
+          : fileType // ignore: cast_nullable_to_non_nullable
+              as String,
+      fileUrl: freezed == fileUrl
+          ? _value.fileUrl
+          : fileUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrText: freezed == ocrText
+          ? _value.ocrText
+          : ocrText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrStatus: freezed == ocrStatus
+          ? _value.ocrStatus
+          : ocrStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$JournalAttachmentImpl extends _JournalAttachment {
+  const _$JournalAttachmentImpl(
+      {required this.attachmentId,
+      required this.fileName,
+      required this.fileType,
+      this.fileUrl,
+      this.ocrText,
+      this.ocrStatus})
+      : super._();
+
+  factory _$JournalAttachmentImpl.fromJson(Map<String, dynamic> json) =>
+      _$$JournalAttachmentImplFromJson(json);
+
+  @override
+  final String attachmentId;
+  @override
+  final String fileName;
+  @override
+  final String fileType;
+  @override
+  final String? fileUrl;
+  @override
+  final String? ocrText;
+  @override
+  final String? ocrStatus;
+
+  @override
+  String toString() {
+    return 'JournalAttachment(attachmentId: $attachmentId, fileName: $fileName, fileType: $fileType, fileUrl: $fileUrl, ocrText: $ocrText, ocrStatus: $ocrStatus)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$JournalAttachmentImpl &&
+            (identical(other.attachmentId, attachmentId) ||
+                other.attachmentId == attachmentId) &&
+            (identical(other.fileName, fileName) ||
+                other.fileName == fileName) &&
+            (identical(other.fileType, fileType) ||
+                other.fileType == fileType) &&
+            (identical(other.fileUrl, fileUrl) || other.fileUrl == fileUrl) &&
+            (identical(other.ocrText, ocrText) || other.ocrText == ocrText) &&
+            (identical(other.ocrStatus, ocrStatus) ||
+                other.ocrStatus == ocrStatus));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, attachmentId, fileName, fileType,
+      fileUrl, ocrText, ocrStatus);
+
+  /// Create a copy of JournalAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$JournalAttachmentImplCopyWith<_$JournalAttachmentImpl> get copyWith =>
+      __$$JournalAttachmentImplCopyWithImpl<_$JournalAttachmentImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$JournalAttachmentImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _JournalAttachment extends JournalAttachment {
+  const factory _JournalAttachment(
+      {required final String attachmentId,
+      required final String fileName,
+      required final String fileType,
+      final String? fileUrl,
+      final String? ocrText,
+      final String? ocrStatus}) = _$JournalAttachmentImpl;
+  const _JournalAttachment._() : super._();
+
+  factory _JournalAttachment.fromJson(Map<String, dynamic> json) =
+      _$JournalAttachmentImpl.fromJson;
+
+  @override
+  String get attachmentId;
+  @override
+  String get fileName;
+  @override
+  String get fileType;
+  @override
+  String? get fileUrl;
+  @override
+  String? get ocrText;
+  @override
+  String? get ocrStatus;
+
+  /// Create a copy of JournalAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$JournalAttachmentImplCopyWith<_$JournalAttachmentImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -1628,6 +1940,7 @@ CreatedBy _$CreatedByFromJson(Map<String, dynamic> json) {
 mixin _$CreatedBy {
   String get userId => throw _privateConstructorUsedError;
   String get fullName => throw _privateConstructorUsedError;
+  String? get profileImage => throw _privateConstructorUsedError;
 
   /// Serializes this CreatedBy to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1644,7 +1957,7 @@ abstract class $CreatedByCopyWith<$Res> {
   factory $CreatedByCopyWith(CreatedBy value, $Res Function(CreatedBy) then) =
       _$CreatedByCopyWithImpl<$Res, CreatedBy>;
   @useResult
-  $Res call({String userId, String fullName});
+  $Res call({String userId, String fullName, String? profileImage});
 }
 
 /// @nodoc
@@ -1664,6 +1977,7 @@ class _$CreatedByCopyWithImpl<$Res, $Val extends CreatedBy>
   $Res call({
     Object? userId = null,
     Object? fullName = null,
+    Object? profileImage = freezed,
   }) {
     return _then(_value.copyWith(
       userId: null == userId
@@ -1674,6 +1988,10 @@ class _$CreatedByCopyWithImpl<$Res, $Val extends CreatedBy>
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
               as String,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1686,7 +2004,7 @@ abstract class _$$CreatedByImplCopyWith<$Res>
       __$$CreatedByImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String userId, String fullName});
+  $Res call({String userId, String fullName, String? profileImage});
 }
 
 /// @nodoc
@@ -1704,6 +2022,7 @@ class __$$CreatedByImplCopyWithImpl<$Res>
   $Res call({
     Object? userId = null,
     Object? fullName = null,
+    Object? profileImage = freezed,
   }) {
     return _then(_$CreatedByImpl(
       userId: null == userId
@@ -1714,6 +2033,10 @@ class __$$CreatedByImplCopyWithImpl<$Res>
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
               as String,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1721,7 +2044,8 @@ class __$$CreatedByImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$CreatedByImpl implements _CreatedBy {
-  const _$CreatedByImpl({required this.userId, required this.fullName});
+  const _$CreatedByImpl(
+      {required this.userId, required this.fullName, this.profileImage});
 
   factory _$CreatedByImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreatedByImplFromJson(json);
@@ -1730,10 +2054,12 @@ class _$CreatedByImpl implements _CreatedBy {
   final String userId;
   @override
   final String fullName;
+  @override
+  final String? profileImage;
 
   @override
   String toString() {
-    return 'CreatedBy(userId: $userId, fullName: $fullName)';
+    return 'CreatedBy(userId: $userId, fullName: $fullName, profileImage: $profileImage)';
   }
 
   @override
@@ -1743,12 +2069,14 @@ class _$CreatedByImpl implements _CreatedBy {
             other is _$CreatedByImpl &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.fullName, fullName) ||
-                other.fullName == fullName));
+                other.fullName == fullName) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, userId, fullName);
+  int get hashCode => Object.hash(runtimeType, userId, fullName, profileImage);
 
   /// Create a copy of CreatedBy
   /// with the given fields replaced by the non-null parameter values.
@@ -1769,7 +2097,8 @@ class _$CreatedByImpl implements _CreatedBy {
 abstract class _CreatedBy implements CreatedBy {
   const factory _CreatedBy(
       {required final String userId,
-      required final String fullName}) = _$CreatedByImpl;
+      required final String fullName,
+      final String? profileImage}) = _$CreatedByImpl;
 
   factory _CreatedBy.fromJson(Map<String, dynamic> json) =
       _$CreatedByImpl.fromJson;
@@ -1778,6 +2107,8 @@ abstract class _CreatedBy implements CreatedBy {
   String get userId;
   @override
   String get fullName;
+  @override
+  String? get profileImage;
 
   /// Create a copy of CreatedBy
   /// with the given fields replaced by the non-null parameter values.

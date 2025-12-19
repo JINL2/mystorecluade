@@ -16,6 +16,7 @@ _$JournalFlowImpl _$$JournalFlowImplFromJson(Map<String, dynamic> json) =>
       balanceAfter: (json['balanceAfter'] as num).toDouble(),
       journalId: json['journalId'] as String,
       journalDescription: json['journalDescription'] as String,
+      journalAiDescription: json['journalAiDescription'] as String?,
       journalType: json['journalType'] as String,
       accountId: json['accountId'] as String,
       accountName: json['accountName'] as String,
@@ -24,6 +25,11 @@ _$JournalFlowImpl _$$JournalFlowImplFromJson(Map<String, dynamic> json) =>
           ? null
           : CounterAccount.fromJson(
               json['counterAccount'] as Map<String, dynamic>),
+      attachments: (json['attachments'] as List<dynamic>?)
+              ?.map(
+                  (e) => JournalAttachment.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$JournalFlowImplToJson(_$JournalFlowImpl instance) =>
@@ -36,11 +42,35 @@ Map<String, dynamic> _$$JournalFlowImplToJson(_$JournalFlowImpl instance) =>
       'balanceAfter': instance.balanceAfter,
       'journalId': instance.journalId,
       'journalDescription': instance.journalDescription,
+      'journalAiDescription': instance.journalAiDescription,
       'journalType': instance.journalType,
       'accountId': instance.accountId,
       'accountName': instance.accountName,
       'createdBy': instance.createdBy,
       'counterAccount': instance.counterAccount,
+      'attachments': instance.attachments,
+    };
+
+_$JournalAttachmentImpl _$$JournalAttachmentImplFromJson(
+        Map<String, dynamic> json) =>
+    _$JournalAttachmentImpl(
+      attachmentId: json['attachmentId'] as String,
+      fileName: json['fileName'] as String,
+      fileType: json['fileType'] as String,
+      fileUrl: json['fileUrl'] as String?,
+      ocrText: json['ocrText'] as String?,
+      ocrStatus: json['ocrStatus'] as String?,
+    );
+
+Map<String, dynamic> _$$JournalAttachmentImplToJson(
+        _$JournalAttachmentImpl instance) =>
+    <String, dynamic>{
+      'attachmentId': instance.attachmentId,
+      'fileName': instance.fileName,
+      'fileType': instance.fileType,
+      'fileUrl': instance.fileUrl,
+      'ocrText': instance.ocrText,
+      'ocrStatus': instance.ocrStatus,
     };
 
 _$ActualFlowImpl _$$ActualFlowImplFromJson(Map<String, dynamic> json) =>
@@ -138,12 +168,14 @@ _$CreatedByImpl _$$CreatedByImplFromJson(Map<String, dynamic> json) =>
     _$CreatedByImpl(
       userId: json['userId'] as String,
       fullName: json['fullName'] as String,
+      profileImage: json['profileImage'] as String?,
     );
 
 Map<String, dynamic> _$$CreatedByImplToJson(_$CreatedByImpl instance) =>
     <String, dynamic>{
       'userId': instance.userId,
       'fullName': instance.fullName,
+      'profileImage': instance.profileImage,
     };
 
 _$DenominationDetailImpl _$$DenominationDetailImplFromJson(

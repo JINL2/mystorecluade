@@ -4,14 +4,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/storage_url_helper.dart';
+import '../../../../app/providers/auth_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/ai/index.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
+import '../providers/invoice_attachment_provider.dart';
 import '../providers/invoice_detail_provider.dart';
+import '../widgets/invoice_attachment_section.dart';
 
 /// Invoice Detail Modal
 ///
@@ -66,6 +72,8 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
     // Load invoice detail when modal opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(invoiceDetailProvider.notifier).loadDetail(widget.invoice.invoiceId);
+      // Reset attachment provider state
+      ref.read(invoiceAttachmentProvider.notifier).reset();
     });
   }
 
@@ -271,15 +279,29 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
                               _buildCreatedByCard(detailState.detail),
                             ],
 
+                            // AI Description (if available)
+                            if (detailState.detail?.hasAiDescription == true) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              _buildAiDescriptionCard(detailState.detail!),
+                            ],
+
+                            // Attachments Section (always show if journalId exists)
+                            if (detailState.detail?.journalId != null) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              InvoiceAttachmentSection(
+                                existingAttachments: detailState.detail?.attachments ?? [],
+                              ),
+                            ],
+
                             const SizedBox(height: TossSpacing.space4),
                           ],
                         ),
                       ),
           ),
 
-          // Refund Button (only for completed invoices)
+          // Action Button (Upload or Refund)
           if (widget.invoice.isCompleted && widget.onRefundPressed != null)
-            _buildRefundButton(context, currencyFormat, symbol),
+            _buildActionButton(context, detailState, currencyFormat, symbol),
         ],
       ),
     );
@@ -577,11 +599,20 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
     );
   }
 
-  Widget _buildRefundButton(
+  /// Build action button based on state:
+  /// - If uploading: show loading state
+  /// - If has pending attachments: show Upload button
+  /// - Otherwise: show Refund button
+  Widget _buildActionButton(
     BuildContext context,
+    InvoiceDetailState detailState,
     NumberFormat formatter,
     String symbol,
   ) {
+    final attachmentState = ref.watch(invoiceAttachmentProvider);
+    final hasPendingAttachments = attachmentState.hasPendingAttachments;
+    final isUploading = attachmentState.isUploading;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         TossSpacing.space4,
@@ -597,35 +628,159 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
       ),
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            _showRefundConfirmation(context, formatter, symbol);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.error,
-            foregroundColor: TossColors.white,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            elevation: 0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.replay, size: 20),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                'Refund',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.white,
-                ),
-              ),
-            ],
-          ),
+        child: hasPendingAttachments || isUploading
+            ? _buildUploadButton(context, detailState, isUploading)
+            : _buildRefundButton(context, formatter, symbol),
+      ),
+    );
+  }
+
+  /// Upload button for pending attachments
+  Widget _buildUploadButton(
+    BuildContext context,
+    InvoiceDetailState detailState,
+    bool isUploading,
+  ) {
+    return ElevatedButton(
+      onPressed: isUploading ? null : () => _uploadAttachments(detailState),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: TossColors.primary,
+        foregroundColor: TossColors.white,
+        disabledBackgroundColor: TossColors.primary.withValues(alpha: 0.5),
+        disabledForegroundColor: TossColors.white,
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (isUploading) ...[
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Uploading...',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.white,
+              ),
+            ),
+          ] else ...[
+            const Icon(Icons.cloud_upload_outlined, size: 20),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Upload Image',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.white,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Refund button
+  Widget _buildRefundButton(
+    BuildContext context,
+    NumberFormat formatter,
+    String symbol,
+  ) {
+    return ElevatedButton(
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        _showRefundConfirmation(context, formatter, symbol);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: TossColors.error,
+        foregroundColor: TossColors.white,
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.replay, size: 20),
+          const SizedBox(width: TossSpacing.space2),
+          Text(
+            'Refund',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TossColors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Upload pending attachments
+  Future<void> _uploadAttachments(InvoiceDetailState detailState) async {
+    final journalId = detailState.detail?.journalId;
+    if (journalId == null) {
+      _showErrorSnackBar('Cannot upload: No journal ID found');
+      return;
+    }
+
+    final appState = ref.read(appStateProvider);
+    final authState = ref.read(authStateProvider);
+    final companyId = appState.companyChoosen;
+    final userId = authState.value?.id;
+
+    if (companyId.isEmpty || userId == null) {
+      _showErrorSnackBar('Missing company or user information');
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+
+    final success = await ref.read(invoiceAttachmentProvider.notifier).uploadAttachments(
+      companyId: companyId,
+      journalId: journalId,
+      userId: userId,
+    );
+
+    if (success && mounted) {
+      // Refresh invoice detail to show new attachments
+      await ref.read(invoiceDetailProvider.notifier).loadDetail(widget.invoice.invoiceId);
+      _showSuccessSnackBar('Images uploaded successfully!');
+    } else if (!success && mounted) {
+      final error = ref.read(invoiceAttachmentProvider).errorMessage;
+      _showErrorSnackBar(error ?? 'Failed to upload images');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: TossColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: TossColors.error,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -943,6 +1098,14 @@ class _InvoiceDetailModalState extends ConsumerState<InvoiceDetailModal> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build AI Description card
+  Widget _buildAiDescriptionCard(InvoiceDetail detail) {
+    return AiDescriptionBox(
+      text: detail.aiDescription!,
+      showDivider: false,
     );
   }
 }

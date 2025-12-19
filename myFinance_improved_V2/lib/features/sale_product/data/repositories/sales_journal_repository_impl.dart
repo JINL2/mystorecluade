@@ -13,7 +13,7 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
   SalesJournalRepositoryImpl(this._client);
 
   @override
-  Future<void> createSalesJournalEntry({
+  Future<String?> createSalesJournalEntry({
     required String companyId,
     required String storeId,
     required String userId,
@@ -67,10 +67,16 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
-    await _client.rpc<dynamic>(
+    final salesJournalResult = await _client.rpc<dynamic>(
       'insert_journal_with_everything_v2',
       params: salesJournalParams,
     );
+
+    // Extract journal_id from result (RPC returns the journal_id as string)
+    String? journalId;
+    if (salesJournalResult != null) {
+      journalId = salesJournalResult.toString();
+    }
 
     // ============================================================
     // RPC Call 2: COGS Journal Entry (only if totalCost > 0)
@@ -112,5 +118,7 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         params: cogsJournalParams,
       );
     }
+
+    return journalId;
   }
 }

@@ -26,6 +26,8 @@ mixin _$TransactionModel {
   DateTime get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'description')
   String get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'ai_description')
+  String? get aiDescription => throw _privateConstructorUsedError;
   @JsonKey(name: 'journal_type')
   String get journalType => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_draft')
@@ -75,6 +77,7 @@ abstract class $TransactionModelCopyWith<$Res> {
       @JsonKey(name: 'entry_date') DateTime entryDate,
       @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(name: 'description') String description,
+      @JsonKey(name: 'ai_description') String? aiDescription,
       @JsonKey(name: 'journal_type') String journalType,
       @JsonKey(name: 'is_draft') bool isDraft,
       @JsonKey(name: 'store_id') String? storeId,
@@ -112,6 +115,7 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
     Object? entryDate = null,
     Object? createdAt = null,
     Object? description = null,
+    Object? aiDescription = freezed,
     Object? journalType = null,
     Object? isDraft = null,
     Object? storeId = freezed,
@@ -148,6 +152,10 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      aiDescription: freezed == aiDescription
+          ? _value.aiDescription
+          : aiDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       journalType: null == journalType
           ? _value.journalType
           : journalType // ignore: cast_nullable_to_non_nullable
@@ -222,6 +230,7 @@ abstract class _$$TransactionModelImplCopyWith<$Res>
       @JsonKey(name: 'entry_date') DateTime entryDate,
       @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(name: 'description') String description,
+      @JsonKey(name: 'ai_description') String? aiDescription,
       @JsonKey(name: 'journal_type') String journalType,
       @JsonKey(name: 'is_draft') bool isDraft,
       @JsonKey(name: 'store_id') String? storeId,
@@ -257,6 +266,7 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
     Object? entryDate = null,
     Object? createdAt = null,
     Object? description = null,
+    Object? aiDescription = freezed,
     Object? journalType = null,
     Object? isDraft = null,
     Object? storeId = freezed,
@@ -293,6 +303,10 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      aiDescription: freezed == aiDescription
+          ? _value.aiDescription
+          : aiDescription // ignore: cast_nullable_to_non_nullable
+              as String?,
       journalType: null == journalType
           ? _value.journalType
           : journalType // ignore: cast_nullable_to_non_nullable
@@ -362,6 +376,7 @@ class _$TransactionModelImpl implements _TransactionModel {
       @JsonKey(name: 'entry_date') required this.entryDate,
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'description') required this.description,
+      @JsonKey(name: 'ai_description') this.aiDescription,
       @JsonKey(name: 'journal_type') required this.journalType,
       @JsonKey(name: 'is_draft') required this.isDraft,
       @JsonKey(name: 'store_id') this.storeId,
@@ -395,6 +410,9 @@ class _$TransactionModelImpl implements _TransactionModel {
   @override
   @JsonKey(name: 'description')
   final String description;
+  @override
+  @JsonKey(name: 'ai_description')
+  final String? aiDescription;
   @override
   @JsonKey(name: 'journal_type')
   final String journalType;
@@ -451,7 +469,7 @@ class _$TransactionModelImpl implements _TransactionModel {
 
   @override
   String toString() {
-    return 'TransactionModel(journalId: $journalId, journalNumber: $journalNumber, entryDate: $entryDate, createdAt: $createdAt, description: $description, journalType: $journalType, isDraft: $isDraft, storeId: $storeId, storeName: $storeName, storeCode: $storeCode, createdBy: $createdBy, createdByName: $createdByName, currencyCode: $currencyCode, currencySymbol: $currencySymbol, totalDebit: $totalDebit, totalCredit: $totalCredit, totalAmount: $totalAmount, lines: $lines, attachments: $attachments)';
+    return 'TransactionModel(journalId: $journalId, journalNumber: $journalNumber, entryDate: $entryDate, createdAt: $createdAt, description: $description, aiDescription: $aiDescription, journalType: $journalType, isDraft: $isDraft, storeId: $storeId, storeName: $storeName, storeCode: $storeCode, createdBy: $createdBy, createdByName: $createdByName, currencyCode: $currencyCode, currencySymbol: $currencySymbol, totalDebit: $totalDebit, totalCredit: $totalCredit, totalAmount: $totalAmount, lines: $lines, attachments: $attachments)';
   }
 
   @override
@@ -469,6 +487,8 @@ class _$TransactionModelImpl implements _TransactionModel {
                 other.createdAt == createdAt) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.aiDescription, aiDescription) ||
+                other.aiDescription == aiDescription) &&
             (identical(other.journalType, journalType) ||
                 other.journalType == journalType) &&
             (identical(other.isDraft, isDraft) || other.isDraft == isDraft) &&
@@ -504,6 +524,7 @@ class _$TransactionModelImpl implements _TransactionModel {
         entryDate,
         createdAt,
         description,
+        aiDescription,
         journalType,
         isDraft,
         storeId,
@@ -537,6 +558,7 @@ abstract class _TransactionModel implements TransactionModel {
       @JsonKey(name: 'entry_date') required final DateTime entryDate,
       @JsonKey(name: 'created_at') required final DateTime createdAt,
       @JsonKey(name: 'description') required final String description,
+      @JsonKey(name: 'ai_description') final String? aiDescription,
       @JsonKey(name: 'journal_type') required final String journalType,
       @JsonKey(name: 'is_draft') required final bool isDraft,
       @JsonKey(name: 'store_id') final String? storeId,
@@ -569,6 +591,9 @@ abstract class _TransactionModel implements TransactionModel {
   @override
   @JsonKey(name: 'description')
   String get description;
+  @override
+  @JsonKey(name: 'ai_description')
+  String? get aiDescription;
   @override
   @JsonKey(name: 'journal_type')
   String get journalType;
@@ -1061,6 +1086,10 @@ mixin _$TransactionAttachmentModel {
   String get fileType => throw _privateConstructorUsedError;
   @JsonKey(name: 'file_url')
   String? get fileUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'ocr_text')
+  String? get ocrText => throw _privateConstructorUsedError;
+  @JsonKey(name: 'ocr_status')
+  String? get ocrStatus => throw _privateConstructorUsedError;
 
   /// Create a copy of TransactionAttachmentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1080,7 +1109,9 @@ abstract class $TransactionAttachmentModelCopyWith<$Res> {
       {@JsonKey(name: 'attachment_id') String attachmentId,
       @JsonKey(name: 'file_name') String fileName,
       @JsonKey(name: 'file_type') String fileType,
-      @JsonKey(name: 'file_url') String? fileUrl});
+      @JsonKey(name: 'file_url') String? fileUrl,
+      @JsonKey(name: 'ocr_text') String? ocrText,
+      @JsonKey(name: 'ocr_status') String? ocrStatus});
 }
 
 /// @nodoc
@@ -1103,6 +1134,8 @@ class _$TransactionAttachmentModelCopyWithImpl<$Res,
     Object? fileName = null,
     Object? fileType = null,
     Object? fileUrl = freezed,
+    Object? ocrText = freezed,
+    Object? ocrStatus = freezed,
   }) {
     return _then(_value.copyWith(
       attachmentId: null == attachmentId
@@ -1121,6 +1154,14 @@ class _$TransactionAttachmentModelCopyWithImpl<$Res,
           ? _value.fileUrl
           : fileUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      ocrText: freezed == ocrText
+          ? _value.ocrText
+          : ocrText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrStatus: freezed == ocrStatus
+          ? _value.ocrStatus
+          : ocrStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1138,7 +1179,9 @@ abstract class _$$TransactionAttachmentModelImplCopyWith<$Res>
       {@JsonKey(name: 'attachment_id') String attachmentId,
       @JsonKey(name: 'file_name') String fileName,
       @JsonKey(name: 'file_type') String fileType,
-      @JsonKey(name: 'file_url') String? fileUrl});
+      @JsonKey(name: 'file_url') String? fileUrl,
+      @JsonKey(name: 'ocr_text') String? ocrText,
+      @JsonKey(name: 'ocr_status') String? ocrStatus});
 }
 
 /// @nodoc
@@ -1160,6 +1203,8 @@ class __$$TransactionAttachmentModelImplCopyWithImpl<$Res>
     Object? fileName = null,
     Object? fileType = null,
     Object? fileUrl = freezed,
+    Object? ocrText = freezed,
+    Object? ocrStatus = freezed,
   }) {
     return _then(_$TransactionAttachmentModelImpl(
       attachmentId: null == attachmentId
@@ -1178,6 +1223,14 @@ class __$$TransactionAttachmentModelImplCopyWithImpl<$Res>
           ? _value.fileUrl
           : fileUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      ocrText: freezed == ocrText
+          ? _value.ocrText
+          : ocrText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ocrStatus: freezed == ocrStatus
+          ? _value.ocrStatus
+          : ocrStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1189,7 +1242,9 @@ class _$TransactionAttachmentModelImpl extends _TransactionAttachmentModel {
       {@JsonKey(name: 'attachment_id') required this.attachmentId,
       @JsonKey(name: 'file_name') required this.fileName,
       @JsonKey(name: 'file_type') required this.fileType,
-      @JsonKey(name: 'file_url') this.fileUrl})
+      @JsonKey(name: 'file_url') this.fileUrl,
+      @JsonKey(name: 'ocr_text') this.ocrText,
+      @JsonKey(name: 'ocr_status') this.ocrStatus})
       : super._();
 
   @override
@@ -1204,10 +1259,16 @@ class _$TransactionAttachmentModelImpl extends _TransactionAttachmentModel {
   @override
   @JsonKey(name: 'file_url')
   final String? fileUrl;
+  @override
+  @JsonKey(name: 'ocr_text')
+  final String? ocrText;
+  @override
+  @JsonKey(name: 'ocr_status')
+  final String? ocrStatus;
 
   @override
   String toString() {
-    return 'TransactionAttachmentModel(attachmentId: $attachmentId, fileName: $fileName, fileType: $fileType, fileUrl: $fileUrl)';
+    return 'TransactionAttachmentModel(attachmentId: $attachmentId, fileName: $fileName, fileType: $fileType, fileUrl: $fileUrl, ocrText: $ocrText, ocrStatus: $ocrStatus)';
   }
 
   @override
@@ -1221,12 +1282,15 @@ class _$TransactionAttachmentModelImpl extends _TransactionAttachmentModel {
                 other.fileName == fileName) &&
             (identical(other.fileType, fileType) ||
                 other.fileType == fileType) &&
-            (identical(other.fileUrl, fileUrl) || other.fileUrl == fileUrl));
+            (identical(other.fileUrl, fileUrl) || other.fileUrl == fileUrl) &&
+            (identical(other.ocrText, ocrText) || other.ocrText == ocrText) &&
+            (identical(other.ocrStatus, ocrStatus) ||
+                other.ocrStatus == ocrStatus));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, attachmentId, fileName, fileType, fileUrl);
+  int get hashCode => Object.hash(runtimeType, attachmentId, fileName, fileType,
+      fileUrl, ocrText, ocrStatus);
 
   /// Create a copy of TransactionAttachmentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1243,7 +1307,9 @@ abstract class _TransactionAttachmentModel extends TransactionAttachmentModel {
           {@JsonKey(name: 'attachment_id') required final String attachmentId,
           @JsonKey(name: 'file_name') required final String fileName,
           @JsonKey(name: 'file_type') required final String fileType,
-          @JsonKey(name: 'file_url') final String? fileUrl}) =
+          @JsonKey(name: 'file_url') final String? fileUrl,
+          @JsonKey(name: 'ocr_text') final String? ocrText,
+          @JsonKey(name: 'ocr_status') final String? ocrStatus}) =
       _$TransactionAttachmentModelImpl;
   const _TransactionAttachmentModel._() : super._();
 
@@ -1259,6 +1325,12 @@ abstract class _TransactionAttachmentModel extends TransactionAttachmentModel {
   @override
   @JsonKey(name: 'file_url')
   String? get fileUrl;
+  @override
+  @JsonKey(name: 'ocr_text')
+  String? get ocrText;
+  @override
+  @JsonKey(name: 'ocr_status')
+  String? get ocrStatus;
 
   /// Create a copy of TransactionAttachmentModel
   /// with the given fields replaced by the non-null parameter values.

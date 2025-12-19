@@ -63,19 +63,13 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   }
 
   Future<void> _loadInitialData() async {
-    debugPrint('[ShiftRequestsTab] _loadInitialData started');
     selectedStoreId = _controller.getSelectedStoreId();
-    debugPrint('[ShiftRequestsTab] _loadInitialData: selectedStoreId=$selectedStoreId');
 
     if (selectedStoreId != null) {
-      debugPrint('[ShiftRequestsTab] _loadInitialData: fetching shift metadata and monthly shift status');
       await Future.wait([
         _fetchShiftMetadata(selectedStoreId!),
         _fetchMonthlyShiftStatus(),
       ]);
-      debugPrint('[ShiftRequestsTab] _loadInitialData completed');
-    } else {
-      debugPrint('[ShiftRequestsTab] _loadInitialData: no store selected, skipping data fetch');
     }
   }
 
@@ -88,42 +82,22 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   /// Only calls RPC if data for the month is not already cached
   Future<void> _fetchMonthlyShiftStatusIfNeeded(DateTime date) async {
     final monthKey = _getMonthKey(date);
-    debugPrint('[ShiftRequestsTab] _fetchMonthlyShiftStatusIfNeeded called for date: $date, monthKey: $monthKey');
 
     // Check if already cached
     if (_monthlyShiftStatusCache.containsKey(monthKey)) {
-      debugPrint('[ShiftRequestsTab] Cache HIT for month: $monthKey');
       _updateMonthlyShiftStatusFromCache();
       return;
     }
 
     // Check if already loading
     if (_loadingMonths.contains(monthKey)) {
-      debugPrint('[ShiftRequestsTab] Already loading month: $monthKey, skipping duplicate request');
       return;
     }
 
-    debugPrint('[ShiftRequestsTab] Cache MISS for month: $monthKey, calling RPC...');
     _loadingMonths.add(monthKey);
 
     try {
       final result = await _controller.fetchMonthlyShiftStatus(date);
-      debugPrint('[ShiftRequestsTab] RPC completed for month: $monthKey, got ${result?.length ?? 0} records');
-
-      // Log each record's date for debugging
-      if (result != null && result.isNotEmpty) {
-        final dates = result.map((r) => r.requestDate).toList();
-        debugPrint('[ShiftRequestsTab] RPC returned dates: $dates');
-
-        // Check which months are actually in the response
-        final months = <String>{};
-        for (final r in result) {
-          if (r.requestDate.length >= 7) {
-            months.add(r.requestDate.substring(0, 7));
-          }
-        }
-        debugPrint('[ShiftRequestsTab] RPC returned months in data: $months');
-      }
 
       if (mounted && result != null) {
         // Cache the result by extracting data for the requested month only
@@ -135,7 +109,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
         }).toList();
 
         _monthlyShiftStatusCache[monthKey] = monthData;
-        debugPrint('[ShiftRequestsTab] Cached ${monthData.length} records for month: $monthKey');
 
         // Also cache data for other months that came in the response
         final otherMonths = <String, List<MonthlyShiftStatus>>{};
@@ -149,7 +122,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
         }
         for (final entry in otherMonths.entries) {
           _monthlyShiftStatusCache[entry.key] = entry.value;
-          debugPrint('[ShiftRequestsTab] Also cached ${entry.value.length} records for month: ${entry.key}');
         }
 
         // Update the current monthlyShiftStatus from cache
@@ -166,7 +138,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
     for (final entry in _monthlyShiftStatusCache.entries) {
       allData.addAll(entry.value);
     }
-    debugPrint('[ShiftRequestsTab] _updateMonthlyShiftStatusFromCache: Combined ${allData.length} records from ${_monthlyShiftStatusCache.length} cached months');
 
     setState(() {
       monthlyShiftStatus = allData;
@@ -179,21 +150,16 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
     final startMonthKey = _getMonthKey(weekStart);
     final endMonthKey = _getMonthKey(weekEnd);
 
-    debugPrint('[ShiftRequestsTab] _checkAndFetchForWeek: weekStart=$weekStart, weekEnd=$weekEnd');
-    debugPrint('[ShiftRequestsTab] _checkAndFetchForWeek: startMonth=$startMonthKey, endMonth=$endMonthKey');
-
     // Fetch start month if not cached
     await _fetchMonthlyShiftStatusIfNeeded(weekStart);
 
     // If week crosses month boundary, also fetch end month
     if (startMonthKey != endMonthKey) {
-      debugPrint('[ShiftRequestsTab] Week crosses month boundary, fetching end month: $endMonthKey');
       await _fetchMonthlyShiftStatusIfNeeded(weekEnd);
     }
   }
 
   Future<void> _fetchMonthlyShiftStatus() async {
-    debugPrint('[ShiftRequestsTab] _fetchMonthlyShiftStatus called (legacy method, forwarding to cache-aware method)');
     await _checkAndFetchForWeek(weekStartDate);
   }
 
@@ -212,36 +178,26 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
   }
 
   void _goToPreviousWeek() {
-    debugPrint('[ShiftRequestsTab] _goToPreviousWeek: current offset=$_currentWeekOffset');
-    final previousMonth = _getMonthKey(weekStartDate);
     setState(() {
       _currentWeekOffset--;
       selectedDate = weekStartDate;
     });
-    final newMonth = _getMonthKey(weekStartDate);
-    debugPrint('[ShiftRequestsTab] _goToPreviousWeek: new offset=$_currentWeekOffset, previousMonth=$previousMonth, newMonth=$newMonth');
     _fetchMonthlyShiftStatus();
   }
 
   void _goToCurrentWeek() {
-    debugPrint('[ShiftRequestsTab] _goToCurrentWeek called');
     setState(() {
       _currentWeekOffset = 0;
       selectedDate = DateTime.now();
     });
-    debugPrint('[ShiftRequestsTab] _goToCurrentWeek: reset to offset=0, selectedDate=$selectedDate');
     _fetchMonthlyShiftStatus();
   }
 
   void _goToNextWeek() {
-    debugPrint('[ShiftRequestsTab] _goToNextWeek: current offset=$_currentWeekOffset');
-    final previousMonth = _getMonthKey(weekStartDate);
     setState(() {
       _currentWeekOffset++;
       selectedDate = weekStartDate;
     });
-    final newMonth = _getMonthKey(weekStartDate);
-    debugPrint('[ShiftRequestsTab] _goToNextWeek: new offset=$_currentWeekOffset, previousMonth=$previousMonth, newMonth=$newMonth');
     _fetchMonthlyShiftStatus();
   }
 

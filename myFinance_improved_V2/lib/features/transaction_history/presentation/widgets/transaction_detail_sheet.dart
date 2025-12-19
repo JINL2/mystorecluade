@@ -9,6 +9,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/ai/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
@@ -170,47 +171,74 @@ class TransactionDetailSheet extends StatelessWidget {
   }
 
   Widget _buildTransactionInfoCard() {
+    final hasUserDesc = transaction.description.isNotEmpty;
+    final hasAiDesc = transaction.aiDescription != null && transaction.aiDescription!.isNotEmpty;
+
     return TossCard(
       backgroundColor: TossColors.gray50,
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (transaction.description.isNotEmpty) ...[
-            Row(
-              children: [
-                const Icon(Icons.description_outlined, size: 16, color: TossColors.gray500),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    transaction.description,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-          ],
+          // Total Amount - Primary info at top
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Total Amount',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 '${transaction.currencySymbol}${_formatCurrency(transaction.totalAmount)}',
-                style: TossTextStyles.h3.copyWith(
+                style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.textPrimary,
                 ),
               ),
             ],
           ),
+          // Descriptions section (compact)
+          if (hasUserDesc || hasAiDesc) ...[
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Description
+                  if (hasUserDesc) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.edit_note, size: 14, color: TossColors.gray400),
+                        const SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: Text(
+                            transaction.description,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (hasAiDesc) const SizedBox(height: TossSpacing.space2),
+                  ],
+                  // AI Description (summary)
+                  if (hasAiDesc)
+                    AiDescriptionInline(text: transaction.aiDescription!),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -555,6 +583,17 @@ class TransactionDetailSheet extends StatelessWidget {
           if (imageAttachments.isNotEmpty)
             const SizedBox(height: TossSpacing.space3),
           ...otherAttachments.map((attachment) => _buildFileItem(attachment)),
+        ],
+
+        // Per-image AI Analysis Details
+        if (attachments.any((a) => a.hasOcr)) ...[
+          const SizedBox(height: TossSpacing.space4),
+          AiAnalysisDetailsBox(
+            items: attachments
+                .where((a) => a.hasOcr)
+                .map((a) => a.ocrText!)
+                .toList(),
+          ),
         ],
       ],
     );

@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/ai/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/transaction.dart';
@@ -93,7 +94,7 @@ class TransactionListItem extends ConsumerWidget {
           }(),
           
           // Description (if exists and different from line descriptions)
-          if (transaction.description.isNotEmpty && 
+          if (transaction.description.isNotEmpty &&
               !transaction.lines.any((l) => l.description == transaction.description))
             Padding(
               padding: const EdgeInsets.only(top: TossSpacing.space3),
@@ -103,6 +104,17 @@ class TransactionListItem extends ConsumerWidget {
                   color: TossColors.gray500,
                   fontStyle: FontStyle.italic,
                 ),
+              ),
+            ),
+
+          // AI Description (if exists)
+          if (transaction.aiDescription != null && transaction.aiDescription!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: TossSpacing.space2),
+              child: AiDescriptionRow(
+                text: transaction.aiDescription!,
+                maxLines: 2,
+                alignment: CrossAxisAlignment.start,
               ),
             ),
           

@@ -416,7 +416,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   String _formatCurrency(double amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
-    return '$symbol${formatter.format(amount.abs().round())}';
+    final isNegative = amount < 0;
+    final formattedAmount = formatter.format(amount.abs().round());
+    return '${isNegative ? "-" : ""}$symbol$formattedAmount';
   }
   
   String _formatCurrencyWithSign(double amount, [String? currencySymbol]) {
@@ -461,13 +463,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return 'Transaction';
   }
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh data when the page becomes visible again
-    // This handles navigation back from other pages
-    _refreshDataSilently();
-  }
+  // Note: Removed didChangeDependencies override that was causing AppBar to disappear.
+  // The method was calling _refreshDataSilently() on every dependency change,
+  // which triggered excessive rebuilds and UI flickering.
+  // Data refresh is already handled by:
+  // - initState (initial load)
+  // - didChangeAppLifecycleState (app resume)
+  // - _onRefresh (pull-to-refresh)
+  // - Navigation callbacks (returning from settings page)
   
   @override
   Widget build(BuildContext context) {

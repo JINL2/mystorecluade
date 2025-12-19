@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/ai/index.dart';
 import '../../../domain/entities/invoice.dart';
 import '../../modals/invoice_detail_modal.dart';
 import '../../providers/invoice_list_provider.dart';
@@ -79,30 +80,20 @@ class InvoiceListItem extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  Row(
-                    children: [
-                      Text(
-                        invoice.customer?.name ?? invoice.createdByName ?? 'Walk-in',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        '•',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        '${invoice.itemsSummary.itemCount} products',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
+                  // Product name display
+                  Text(
+                    invoice.itemsSummary.productDisplayName,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  // AI description (optional, amber AI style)
+                  if (invoice.hasAiDescription) ...[
+                    const SizedBox(height: 4),
+                    AiDescriptionRow(text: invoice.aiDescription!),
+                  ],
                 ],
               ),
             ),

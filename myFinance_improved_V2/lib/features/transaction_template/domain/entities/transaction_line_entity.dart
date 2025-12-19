@@ -150,8 +150,12 @@ class TransactionLine extends Equatable {
     }
 
     // ✅ cash 객체 추가 (category_tag가 'cash'면)
+    // IMPORTANT: User selection takes priority over template default!
+    // selectedMyCashLocationId = user's selection in the usage modal
+    // cash?.cashLocationId = template's default value
     if (categoryTag == 'cash') {
-      final cashLocationId = cash?.cashLocationId ?? selectedMyCashLocationId;
+      // Priority: User selection > Template default
+      final cashLocationId = selectedMyCashLocationId ?? cash?.cashLocationId;
       if (cashLocationId != null) {
         rpcLine['cash'] = {
           'cash_location_id': cashLocationId,
@@ -160,12 +164,14 @@ class TransactionLine extends Equatable {
     }
 
     // ✅ debt 객체 추가 (category_tag가 'receivable'/'payable'면)
+    // IMPORTANT: User selection takes priority over template default!
     if (categoryTag == 'receivable' || categoryTag == 'payable') {
       DebtConfig? finalDebt = debt;
 
       // debt 객체가 없으면 auto-generate
       if (finalDebt == null) {
-        final counterpartyId = this.counterpartyId ?? selectedCounterpartyId;
+        // Priority: User selection > Template default
+        final counterpartyId = selectedCounterpartyId ?? this.counterpartyId;
         if (counterpartyId != null) {
           finalDebt = DebtConfig(
             counterpartyId: counterpartyId,

@@ -118,14 +118,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     }
   }
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Schedule refresh after build to avoid showSnackBar during build error
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
-  }
+  // Note: Removed didChangeDependencies override that was causing excessive rebuilds.
+  // The method was calling _refreshData() on every dependency change,
+  // which could cause UI flickering and AppBar disappearing issues.
+  // Data refresh is already handled by:
+  // - initState (initial load)
+  // - didChangeAppLifecycleState (app resume)
+  // - RefreshIndicator (pull-to-refresh)
+  // - Navigation callbacks (returning from detail/add pages)
   
   @override
   void dispose() {

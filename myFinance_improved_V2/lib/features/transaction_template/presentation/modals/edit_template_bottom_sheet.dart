@@ -24,6 +24,8 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 // Import journal_input providers for counterparty store and account mapping
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
+// Import account provider for account_code lookup
+import 'package:myfinance_improved/app/providers/account_provider.dart';
 
 import '../../domain/enums/template_constants.dart';
 import '../../domain/usecases/update_template_usecase.dart';
@@ -155,8 +157,10 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
     _nameController.addListener(_validateName);
 
     // Load counterparty details for entries that have counterparty but missing linked_company_id
+    // Also load missing account_codes for legacy templates
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMissingCounterpartyData();
+      _loadMissingAccountCodes();
       _updateFormValidity();
     });
   }
@@ -224,6 +228,51 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
           _isLoadingCounterpartyData = false;
         });
       }
+    }
+  }
+
+  /// Load account_code for entries missing it (legacy templates)
+  /// This ensures expense account detection works for older templates
+  Future<void> _loadMissingAccountCodes() async {
+    // Find entries with accountId but missing accountCode
+    final entriesNeedingAccountCode = _entryStates.entries.where((e) {
+      final state = e.value;
+      return state.accountId != null &&
+             state.accountId!.isNotEmpty &&
+             (state.accountCode == null || state.accountCode!.isEmpty);
+    }).toList();
+
+    if (entriesNeedingAccountCode.isEmpty) return;
+
+    try {
+      // Get all accounts for lookup
+      final accountsAsync = ref.read(currentAccountsProvider);
+      final accounts = accountsAsync.maybeWhen(
+        data: (data) => data,
+        orElse: () => <dynamic>[],
+      );
+
+      if (accounts.isEmpty) return;
+
+      // Update entry states with account codes
+      for (final entry in entriesNeedingAccountCode) {
+        final state = entry.value;
+        final account = accounts.firstWhere(
+          (a) => a.id == state.accountId,
+          orElse: () => null,
+        );
+
+        if (account != null && account.accountCode != null) {
+          state.accountCode = account.accountCode;
+          debugPrint('📝 Loaded account_code ${account.accountCode} for account ${state.accountId}');
+        }
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('Error loading account codes: $e');
     }
   }
 
@@ -1388,6 +1437,12 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
         // Update cash location
         original['cash_location_id'] = entryState.cashLocationId;
 
+        // Update account_code (preserve existing or use from entryState)
+        // This ensures account_code is maintained for expense account detection
+        if (entryState.accountCode != null && entryState.accountCode!.isNotEmpty) {
+          original['account_code'] = entryState.accountCode;
+        }
+
         // Update counterparty fields
         original['counterparty_id'] = entryState.counterpartyId;
         original['counterparty_name'] = entryState.counterpartyName;
@@ -1428,6 +1483,7 @@ class _EntryEditState {
   String? counterpartyCashLocationName;
   String? categoryTag; // To check if payable/receivable
   String? accountId; // For account mapping check
+  String? accountCode; // Account code for expense detection (5000-9999)
   Map<String, dynamic>? accountMapping; // Account mapping result
   String? mappingError; // Account mapping error
 
@@ -1444,6 +1500,7 @@ class _EntryEditState {
     this.counterpartyCashLocationName,
     this.categoryTag,
     this.accountId,
+    this.accountCode,
     this.accountMapping,
     this.mappingError,
   });
@@ -1478,6 +1535,7 @@ class _EntryEditState {
       counterpartyCashLocationName: entry['counterparty_cash_location_name']?.toString(),
       categoryTag: entry['category_tag']?.toString(),
       accountId: entry['account_id']?.toString(),
+      accountCode: entry['account_code']?.toString(), // For expense detection
     );
   }
 

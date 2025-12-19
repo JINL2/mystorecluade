@@ -30,8 +30,8 @@ class CreateSalesJournalUseCase {
   /// - [totalCost]: Total cost of goods sold
   /// - [invoiceId]: Invoice ID to link journal entry
   ///
-  /// Returns: Future that completes when journal is created
-  Future<void> execute({
+  /// Returns: The journal_id of the created sales journal entry (for attachments)
+  Future<String?> execute({
     required String companyId,
     required String storeId,
     required String userId,
@@ -68,7 +68,7 @@ class CreateSalesJournalUseCase {
     }
 
     // Create journal entry with configured account IDs
-    await _repository.createSalesJournalEntry(
+    return _repository.createSalesJournalEntry(
       companyId: companyId,
       storeId: storeId,
       userId: userId,

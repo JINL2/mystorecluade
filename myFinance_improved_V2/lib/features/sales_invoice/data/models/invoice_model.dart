@@ -17,6 +17,7 @@ class InvoiceModel {
   final Map<String, dynamic> itemsSummary;
   final Map<String, dynamic>? createdBy;
   final DateTime createdAt;
+  final String? aiDescription;
 
   InvoiceModel({
     required this.invoiceId,
@@ -31,6 +32,7 @@ class InvoiceModel {
     required this.itemsSummary,
     this.createdBy,
     required this.createdAt,
+    this.aiDescription,
   });
 
   /// Create from JSON
@@ -50,6 +52,7 @@ class InvoiceModel {
       itemsSummary: json['items_summary'] as Map<String, dynamic>,
       createdBy: json['created_by'] as Map<String, dynamic>?,
       createdAt: _parseLocalDateTime(json['created_at']?.toString()),
+      aiDescription: json['ai_description']?.toString(),
     );
   }
 
@@ -84,6 +87,7 @@ class InvoiceModel {
       createdByName: createdBy?['name']?.toString(),
       createdByEmail: createdBy?['email']?.toString(),
       createdAt: createdAt,
+      aiDescription: aiDescription,
     );
   }
 
@@ -123,6 +127,7 @@ class InvoiceModel {
     return ItemsSummary(
       itemCount: (json['item_count'] as num?)?.toInt() ?? 0,
       totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      firstProductName: json['first_product_name']?.toString(),
     );
   }
 }
