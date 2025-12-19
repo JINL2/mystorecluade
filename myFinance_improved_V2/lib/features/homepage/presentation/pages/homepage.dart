@@ -751,7 +751,7 @@ class _HomepageState extends ConsumerState<Homepage> {
       ref.invalidate(homepageAlertProvider);
 
       // Invalidate salary-related providers
-      ref.invalidate(userSalaryProvider);
+      ref.invalidate(homepageUserSalaryProvider);
       ref.invalidate(userShiftStatsProvider);
 
       // 🔥 Ensure FCM token is registered/refreshed

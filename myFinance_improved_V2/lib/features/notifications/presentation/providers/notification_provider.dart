@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/notifications/models/notification_db_model.dart';
 import '../../../../core/notifications/repositories/notification_repository.dart';
+import '../../../../core/notifications/services/badge_service.dart';
 
 /// Provider for notification repository
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
@@ -12,8 +13,10 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 final unreadNotificationCountProvider = StreamProvider<int>((ref) async* {
   final supabase = Supabase.instance.client;
   final userId = supabase.auth.currentUser?.id;
+  final badgeService = BadgeService();
 
   if (userId == null) {
+    await badgeService.removeBadge();
     yield 0;
     return;
   }
@@ -21,7 +24,9 @@ final unreadNotificationCountProvider = StreamProvider<int>((ref) async* {
   final repository = ref.watch(notificationRepositoryProvider);
 
   // Initial count
-  yield await repository.getUnreadCount(userId);
+  final initialCount = await repository.getUnreadCount(userId);
+  await badgeService.updateBadgeCount(initialCount);
+  yield initialCount;
 
   // Subscribe to changes in notifications table
   final stream = supabase
@@ -33,6 +38,8 @@ final unreadNotificationCountProvider = StreamProvider<int>((ref) async* {
       });
 
   await for (final count in stream) {
+    // Update app icon badge when count changes
+    await badgeService.updateBadgeCount(count);
     yield count;
   }
 });

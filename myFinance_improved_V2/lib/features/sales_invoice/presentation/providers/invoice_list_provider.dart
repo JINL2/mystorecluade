@@ -275,7 +275,10 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
 }
 
 /// Invoice list provider
-final invoiceListProvider = StateNotifierProvider<InvoiceListNotifier, InvoiceListState>((ref) {
+///
+/// Uses autoDispose to automatically clear cached data when no longer in use.
+/// This prevents stale data from showing when user switches store/company.
+final invoiceListProvider = StateNotifierProvider.autoDispose<InvoiceListNotifier, InvoiceListState>((ref) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return InvoiceListNotifier(repository, ref);
 });
