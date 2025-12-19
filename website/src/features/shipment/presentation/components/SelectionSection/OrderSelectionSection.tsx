@@ -20,7 +20,7 @@ export const OrderSelectionSection: React.FC<OrderSelectionSectionProps> = ({
       <div className={styles.sectionHeader}>
         <div className={styles.sectionTitleWithBadge}>
           <h2 className={styles.sectionTitle}>
-            <span className={styles.sectionNumber}>1</span>
+            <span className={styles.sectionNumber}>2</span>
             Select Order
           </h2>
           <span className={styles.orBadge}>Option A</span>

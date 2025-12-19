@@ -221,6 +221,7 @@ export class ShipmentDataSource {
     supplierInfo?: Partial<OneTimeSupplier>;
     trackingNumber?: string;
     notes?: string;
+    shipmentNumber?: string;
   }): Promise<CreateShipmentRpcResponse> {
     try {
       const supabase = this.getClient();
@@ -249,15 +250,18 @@ export class ShipmentDataSource {
       if (params.notes) {
         rpcParams.p_notes = params.notes;
       }
+      if (params.shipmentNumber) {
+        rpcParams.p_shipment_number = params.shipmentNumber;
+      }
 
       console.log('📦 Creating shipment with params:', rpcParams);
 
       const { data, error } = await supabase.rpc(
-        'inventory_create_shipment' as never,
+        'inventory_create_shipment_v2' as never,
         rpcParams as never
       );
 
-      console.log('📦 inventory_create_shipment response:', { data, error });
+      console.log('📦 inventory_create_shipment_v2 response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };

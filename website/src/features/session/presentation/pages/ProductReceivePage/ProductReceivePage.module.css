@@ -68,6 +68,80 @@
   margin: 0;
 }
 
+/* Tab Navigation */
+.tabContainer {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.tab {
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text-primary, #212529);
+}
+
+.tab.active {
+  color: var(--toss-primary, #0064FF);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--toss-primary, #0064FF);
+  border-radius: 1px 1px 0 0;
+}
+
+/* Tab Content */
+.tabContent {
+  min-height: 400px;
+}
+
+/* Empty Tab State */
+.emptyTabState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  text-align: center;
+}
+
+.emptyTabIcon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  color: var(--toss-gray-300, #DEE2E6);
+}
+
+.emptyTabTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0 0 8px 0;
+}
+
+.emptyTabDescription {
+  font-size: 14px;
+  color: var(--text-secondary, #6C757D);
+  margin: 0;
+}
+
 /* Content Card */
 .contentCard {
   background: white;

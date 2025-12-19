@@ -209,7 +209,7 @@ export const useReceivingSession = () => {
 
   // Handle back navigation
   const handleBack = useCallback(() => {
-    navigate('/product/product-receive');
+    navigate('/product/session');
   }, [navigate]);
 
   // Instant search from cache when typing
@@ -568,8 +568,8 @@ export const useReceivingSession = () => {
 
       setSubmitSuccess(true);
 
-      // Navigate immediately to receive page with refresh state
-      navigate('/product/product-receive', {
+      // Navigate immediately to session page with refresh state
+      navigate('/product/session', {
         state: {
           submitSuccess: true,
           receivingNumber: result.receivingNumber,

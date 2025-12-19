@@ -4,7 +4,7 @@
  * Click on shipment to view detail with inventory_get_shipment_detail
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
@@ -12,6 +12,7 @@ import { SelectorModal } from '@/shared/components/common/SelectorModal';
 import type { SelectorOption } from '@/shared/components/common/SelectorModal/SelectorModal.types';
 import { useProductReceiveList } from '../../hooks/useProductReceiveList';
 import { useReceiveSessionModal } from '../../hooks/useReceiveSessionModal';
+import { useCountingSessionList } from '../../hooks/useCountingSessionList';
 import { SHIPMENT_STATUS_OPTIONS } from './ProductReceivePage.types';
 import {
   CreateSessionModal,
@@ -19,11 +20,15 @@ import {
   DateFilterContent,
   CustomDatePickerModal,
   ShipmentsTable,
+  CountingSessionsTable,
 } from './components';
 import styles from './ProductReceivePage.module.css';
 
+type TabType = 'counting' | 'receiving';
+
 export const ProductReceivePage: React.FC = () => {
   const datePickerRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('receiving');
 
   const {
     currency,
@@ -82,6 +87,15 @@ export const ProductReceivePage: React.FC = () => {
     handleCloseCreateSessionModal,
     handleCloseJoinSessionModal,
   } = useReceiveSessionModal({ shipmentDetail, shipments });
+
+  // Counting sessions hook
+  const {
+    sessions: countingSessions,
+    sessionsLoading: countingSessionsLoading,
+    searchQuery: countingSearchQuery,
+    handleSearchChange: handleCountingSearchChange,
+    handleSessionClick: handleCountingSessionClick,
+  } = useCountingSessionList();
 
   // Click outside to close date picker
   useEffect(() => {
@@ -186,41 +200,92 @@ export const ProductReceivePage: React.FC = () => {
         <div className={styles.mainContent}>
           <div className={styles.container}>
             <div className={styles.header}>
-              <h1 className={styles.title}>Product Receives</h1>
-              <p className={styles.subtitle}>Track receiving progress for shipments</p>
+              <h1 className={styles.title}>Sessions</h1>
+              <p className={styles.subtitle}>Manage receiving sessions for shipments</p>
             </div>
 
-            <div className={styles.contentCard}>
-              <div className={styles.receiveHeader}>
-                <div className={styles.receiveTitleSection}>
-                  <h2 className={styles.receiveListTitle}>Shipments</h2>
-                  <div className={styles.receiveSearchWrapper}>
-                    <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="m21 21-4.35-4.35" />
-                    </svg>
-                    <input
-                      type="text"
-                      className={styles.receiveSearch}
-                      placeholder="Search shipments..."
-                      value={searchQuery}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Tab Navigation */}
+            <div className={styles.tabContainer}>
+              <button
+                className={`${styles.tab} ${activeTab === 'counting' ? styles.active : ''}`}
+                onClick={() => setActiveTab('counting')}
+              >
+                Counting
+              </button>
+              <button
+                className={`${styles.tab} ${activeTab === 'receiving' ? styles.active : ''}`}
+                onClick={() => setActiveTab('receiving')}
+              >
+                Receiving
+              </button>
+            </div>
 
-              <ShipmentsTable
-                shipments={shipments}
-                shipmentsLoading={shipmentsLoading}
-                selectedShipmentId={selectedShipmentId}
-                shipmentDetail={shipmentDetail}
-                detailLoading={detailLoading}
-                currency={currency}
-                searchQuery={searchQuery}
-                onShipmentClick={handleShipmentClick}
-                onStartReceive={handleStartReceive}
-              />
+            {/* Tab Content */}
+            <div className={styles.tabContent}>
+              {activeTab === 'counting' && (
+                <div className={styles.contentCard}>
+                  <div className={styles.receiveHeader}>
+                    <div className={styles.receiveTitleSection}>
+                      <h2 className={styles.receiveListTitle}>Counting Sessions</h2>
+                      <div className={styles.receiveSearchWrapper}>
+                        <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8" />
+                          <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input
+                          type="text"
+                          className={styles.receiveSearch}
+                          placeholder="Search counting sessions..."
+                          value={countingSearchQuery}
+                          onChange={(e) => handleCountingSearchChange(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <CountingSessionsTable
+                    sessions={countingSessions}
+                    sessionsLoading={countingSessionsLoading}
+                    searchQuery={countingSearchQuery}
+                    onSessionClick={handleCountingSessionClick}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'receiving' && (
+                <div className={styles.contentCard}>
+                  <div className={styles.receiveHeader}>
+                    <div className={styles.receiveTitleSection}>
+                      <h2 className={styles.receiveListTitle}>Shipments</h2>
+                      <div className={styles.receiveSearchWrapper}>
+                        <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8" />
+                          <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input
+                          type="text"
+                          className={styles.receiveSearch}
+                          placeholder="Search shipments..."
+                          value={searchQuery}
+                          onChange={(e) => handleSearchChange(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <ShipmentsTable
+                    shipments={shipments}
+                    shipmentsLoading={shipmentsLoading}
+                    selectedShipmentId={selectedShipmentId}
+                    shipmentDetail={shipmentDetail}
+                    detailLoading={detailLoading}
+                    currency={currency}
+                    searchQuery={searchQuery}
+                    onShipmentClick={handleShipmentClick}
+                    onStartReceive={handleStartReceive}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

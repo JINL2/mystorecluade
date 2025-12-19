@@ -71,6 +71,7 @@ export interface CreateShipmentRequest {
   supplierInfo?: Partial<OneTimeSupplier>;
   trackingNumber?: string;
   notes?: string;
+  shipmentNumber?: string;
 }
 
 export interface CreateShipmentResponse {

@@ -137,6 +137,7 @@ export interface SessionDTO {
   created_by: string;
   created_by_name: string;
   created_at: string;
+  completed_at?: string;
   member_count?: number;
 }
 
@@ -204,11 +205,11 @@ export interface IProductReceiveDataSource {
 
   getSessionList(params: {
     companyId: string;
-    shipmentId: string;
-    sessionType: string;
-    isActive: boolean;
+    shipmentId?: string;
+    sessionType?: string;
+    isActive?: boolean;
     timezone: string;
-  }): Promise<SessionDTO[]>;
+  }): Promise<{ sessions: SessionDTO[]; totalCount: number }>;
 
   createSession(params: {
     companyId: string;
@@ -470,30 +471,42 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
 
   async getSessionList(params: {
     companyId: string;
-    shipmentId: string;
-    sessionType: string;
-    isActive: boolean;
+    shipmentId?: string;
+    sessionType?: string;
+    isActive?: boolean;
     timezone: string;
-  }): Promise<SessionDTO[]> {
+  }): Promise<{ sessions: SessionDTO[]; totalCount: number }> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_get_session_list', {
+    const rpcParams: Record<string, unknown> = {
       p_company_id: params.companyId,
-      p_shipment_id: params.shipmentId,
-      p_session_type: params.sessionType,
-      p_is_active: params.isActive,
       p_timezone: params.timezone,
-    });
+    };
+
+    if (params.shipmentId) {
+      rpcParams.p_shipment_id = params.shipmentId;
+    }
+    if (params.sessionType) {
+      rpcParams.p_session_type = params.sessionType;
+    }
+    if (params.isActive !== undefined) {
+      rpcParams.p_is_active = params.isActive;
+    }
+
+    const { data, error } = await client.rpc('inventory_get_session_list', rpcParams);
 
     if (error) {
       throw new Error(`Failed to get sessions: ${error.message}`);
     }
 
     if (!data?.success || !data?.data) {
-      return [];
+      return { sessions: [], totalCount: 0 };
     }
 
-    return data.data;
+    return {
+      sessions: data.data,
+      totalCount: data.total_count || 0,
+    };
   }
 
   async createSession(params: {

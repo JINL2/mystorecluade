@@ -42,6 +42,8 @@ export const ShipmentCreatePage: React.FC = () => {
     handleQuantityChange,
     handleCostChange,
     // Shipment details
+    shipmentTitle,
+    setShipmentTitle,
     trackingNumber,
     setTrackingNumber,
     note,
@@ -95,6 +97,26 @@ export const ShipmentCreatePage: React.FC = () => {
 
           {/* Main Content */}
           <div className={styles.content}>
+            {/* Shipment Title Section */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionNumber}>1</span>
+                Shipment Title
+              </h2>
+              <div className={styles.sectionContent}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Title</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter shipment title (optional)"
+                    value={shipmentTitle}
+                    onChange={(e) => setShipmentTitle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Order Selection Section */}
             <OrderSelectionSection
               selectionMode={selectionMode}
@@ -121,7 +143,7 @@ export const ShipmentCreatePage: React.FC = () => {
             {/* Shipment Items Section */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                <span className={styles.sectionNumber}>2</span>
+                <span className={styles.sectionNumber}>3</span>
                 Shipment Items
               </h2>
               <div className={styles.sectionContent}>
@@ -154,7 +176,7 @@ export const ShipmentCreatePage: React.FC = () => {
             {/* Shipment Details Section */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                <span className={styles.sectionNumber}>3</span>
+                <span className={styles.sectionNumber}>4</span>
                 Shipment Details
               </h2>
               <div className={styles.sectionContent}>

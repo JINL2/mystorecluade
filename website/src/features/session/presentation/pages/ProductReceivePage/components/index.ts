@@ -9,3 +9,4 @@ export { ShipmentDetailRow } from './ShipmentDetailRow';
 export { DateFilterContent } from './DateFilterContent';
 export { CustomDatePickerModal } from './CustomDatePickerModal';
 export { ShipmentsTable } from './ShipmentsTable';
+export { CountingSessionsTable } from './CountingSessionsTable';

@@ -130,6 +130,7 @@ export class ShipmentRepositoryImpl implements IShipmentRepository {
         supplierInfo: request.supplierInfo,
         trackingNumber: request.trackingNumber,
         notes: request.notes,
+        shipmentNumber: request.shipmentNumber,
       });
 
       return {
