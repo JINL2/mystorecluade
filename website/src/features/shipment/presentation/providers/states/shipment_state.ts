@@ -194,12 +194,6 @@ export interface ShipmentDetailActions {
   }) => Promise<void>;
   loadCurrency: (companyId: string) => Promise<void>;
 
-  // Shipment operations
-  cancelShipment: (params: {
-    shipmentId: string;
-    companyId: string;
-  }) => Promise<boolean>;
-
   // Reset
   resetDetailState: () => void;
 }

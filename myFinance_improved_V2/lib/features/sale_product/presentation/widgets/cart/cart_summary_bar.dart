@@ -59,71 +59,74 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Chevron toggle
+            // Chevron toggle + Summary row (combined tap area)
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _isExpanded = !_isExpanded),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 12, bottom: 4),
-                child: Icon(
-                  _isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                  size: 20,
-                  color: TossColors.textSecondary,
-                ),
-              ),
-            ),
-            // Summary row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
-              child: GestureDetector(
-                onTap: () => setState(() => _isExpanded = !_isExpanded),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+              child: Column(
+                children: [
+                  // Chevron
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    child: Icon(
+                      _isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                      size: 20,
+                      color: TossColors.textSecondary,
+                    ),
+                  ),
+                  // Summary row
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Sub-total',
+                              style: TossTextStyles.titleMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Circular item count badge
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: TossColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${widget.itemCount}',
+                                  style: TossTextStyles.titleMedium.copyWith(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: TossColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         Text(
-                          'Sub-total',
-                          style: TossTextStyles.titleMedium.copyWith(
+                          formatter.format(widget.subtotal.round()),
+                          style: TossTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: TossColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        // Circular item count badge
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: TossColors.primary,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${widget.itemCount}',
-                              style: TossTextStyles.titleMedium.copyWith(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: TossColors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
-                    Text(
-                      formatter.format(widget.subtotal.round()),
-                      style: TossTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Expanded cart items

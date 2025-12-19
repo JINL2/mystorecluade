@@ -89,12 +89,20 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     final stockQuantity = widget.product.totalStockSummary.totalQuantityOnHand;
 
     return GestureDetector(
-      onTap: isSelected
-          ? null
-          : () {
-              HapticFeedback.lightImpact();
-              ref.read(cartProvider.notifier).addItem(widget.product);
-            },
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        if (isSelected) {
+          // Already in cart - increase quantity
+          ref.read(cartProvider.notifier).updateQuantity(
+                widget.cartItem.id,
+                widget.cartItem.quantity + 1,
+              );
+        } else {
+          // Not in cart - add item
+          ref.read(cartProvider.notifier).addItem(widget.product);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
         child: Row(

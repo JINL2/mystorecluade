@@ -247,9 +247,10 @@ class _HomepageState extends ConsumerState<Homepage> {
         ),
         child: Row(
           children: [
-            // Left: Avatar + Company/Store selector
+            // Left: Avatar + Company/Store selector (tappable area)
             Expanded(
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque, // Makes entire area tappable including transparent parts
                 onTap: () => _showCompanyStoreDrawer(),
                 child: Row(
                   children: [

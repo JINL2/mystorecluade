@@ -132,6 +132,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     });
   }
 
+  /// Check if exchange rate data has other currencies besides base currency
+  bool get _hasExchangeRates {
+    return _exchangeRateData != null && _exchangeRateData!.rates.isNotEmpty;
+  }
+
   double get _cartTotal {
     double total = 0;
     for (final product in widget.selectedProducts) {
@@ -173,7 +178,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           ),
         ),
         actions: [
-          _buildExchangeRateButton(),
+          // Only show exchange rate button if there are other currencies besides base
+          if (_hasExchangeRates) _buildExchangeRateButton(),
         ],
       ),
       body: Column(
@@ -186,8 +192,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Exchange Rate Panel (collapsible)
-                  if (_exchangeRateData != null && _isExchangeRatePanelExpanded)
+                  // Exchange Rate Panel (collapsible) - only show if there are other currencies
+                  if (_hasExchangeRates && _isExchangeRatePanelExpanded)
                     Padding(
                       padding: const EdgeInsets.all(TossSpacing.space3),
                       child: ExchangeRatePanel(

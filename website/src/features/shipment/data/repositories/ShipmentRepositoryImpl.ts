@@ -146,29 +146,6 @@ export class ShipmentRepositoryImpl implements IShipmentRepository {
     }
   }
 
-  /**
-   * Cancel a shipment
-   */
-  async cancelShipment(shipmentId: string, companyId: string): Promise<RepositoryResult<void>> {
-    try {
-      const response = await this.dataSource.cancelShipment({
-        shipmentId,
-        companyId,
-      });
-
-      return {
-        success: response.success,
-        error: response.error,
-      };
-    } catch (err) {
-      console.error('📦 ShipmentRepositoryImpl.cancelShipment error:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to cancel shipment',
-      };
-    }
-  }
-
   // ===== Supporting Data Operations =====
 
   /**
