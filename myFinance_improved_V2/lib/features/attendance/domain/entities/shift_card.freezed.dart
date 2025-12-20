@@ -34,27 +34,17 @@ mixin _$ShiftCard {
   String? get confirmStartTime => throw _privateConstructorUsedError;
   String? get confirmEndTime =>
       throw _privateConstructorUsedError; // Work hours
-  double get paidHours => throw _privateConstructorUsedError; // Late status
-  bool get isLate => throw _privateConstructorUsedError;
-  num get lateMinutes => throw _privateConstructorUsedError;
-  double get lateDeducutAmount =>
-      throw _privateConstructorUsedError; // Overtime
-  bool get isExtratime => throw _privateConstructorUsedError;
-  num get overtimeMinutes =>
+  double get paidHours =>
       throw _privateConstructorUsedError; // Pay (some are formatted strings with commas)
   String get basePay => throw _privateConstructorUsedError;
   double get bonusAmount => throw _privateConstructorUsedError;
   String get totalPayWithBonus => throw _privateConstructorUsedError;
   String get salaryType => throw _privateConstructorUsedError;
   String get salaryAmount =>
-      throw _privateConstructorUsedError; // Location validation
-  bool? get isValidCheckinLocation => throw _privateConstructorUsedError;
-  double? get checkinDistanceFromStore => throw _privateConstructorUsedError;
-  double? get checkoutDistanceFromStore =>
-      throw _privateConstructorUsedError; // Problem reporting
-  bool get isReported => throw _privateConstructorUsedError;
-  bool get isProblem => throw _privateConstructorUsedError;
-  bool get isProblemSolved => throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // 문제 상세 (JSONB) - 모든 문제 정보 통합
+  ProblemDetails? get problemDetails =>
+      throw _privateConstructorUsedError; // v7: 매니저 메모 (JSONB array)
+  List<ManagerMemo> get managerMemos => throw _privateConstructorUsedError;
 
   /// Create a copy of ShiftCard
   /// with the given fields replaced by the non-null parameter values.
@@ -82,22 +72,15 @@ abstract class $ShiftCardCopyWith<$Res> {
       String? confirmStartTime,
       String? confirmEndTime,
       double paidHours,
-      bool isLate,
-      num lateMinutes,
-      double lateDeducutAmount,
-      bool isExtratime,
-      num overtimeMinutes,
       String basePay,
       double bonusAmount,
       String totalPayWithBonus,
       String salaryType,
       String salaryAmount,
-      bool? isValidCheckinLocation,
-      double? checkinDistanceFromStore,
-      double? checkoutDistanceFromStore,
-      bool isReported,
-      bool isProblem,
-      bool isProblemSolved});
+      ProblemDetails? problemDetails,
+      List<ManagerMemo> managerMemos});
+
+  $ProblemDetailsCopyWith<$Res>? get problemDetails;
 }
 
 /// @nodoc
@@ -128,22 +111,13 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
     Object? confirmStartTime = freezed,
     Object? confirmEndTime = freezed,
     Object? paidHours = null,
-    Object? isLate = null,
-    Object? lateMinutes = null,
-    Object? lateDeducutAmount = null,
-    Object? isExtratime = null,
-    Object? overtimeMinutes = null,
     Object? basePay = null,
     Object? bonusAmount = null,
     Object? totalPayWithBonus = null,
     Object? salaryType = null,
     Object? salaryAmount = null,
-    Object? isValidCheckinLocation = freezed,
-    Object? checkinDistanceFromStore = freezed,
-    Object? checkoutDistanceFromStore = freezed,
-    Object? isReported = null,
-    Object? isProblem = null,
-    Object? isProblemSolved = null,
+    Object? problemDetails = freezed,
+    Object? managerMemos = null,
   }) {
     return _then(_value.copyWith(
       requestDate: null == requestDate
@@ -198,26 +172,6 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
           ? _value.paidHours
           : paidHours // ignore: cast_nullable_to_non_nullable
               as double,
-      isLate: null == isLate
-          ? _value.isLate
-          : isLate // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lateMinutes: null == lateMinutes
-          ? _value.lateMinutes
-          : lateMinutes // ignore: cast_nullable_to_non_nullable
-              as num,
-      lateDeducutAmount: null == lateDeducutAmount
-          ? _value.lateDeducutAmount
-          : lateDeducutAmount // ignore: cast_nullable_to_non_nullable
-              as double,
-      isExtratime: null == isExtratime
-          ? _value.isExtratime
-          : isExtratime // ignore: cast_nullable_to_non_nullable
-              as bool,
-      overtimeMinutes: null == overtimeMinutes
-          ? _value.overtimeMinutes
-          : overtimeMinutes // ignore: cast_nullable_to_non_nullable
-              as num,
       basePay: null == basePay
           ? _value.basePay
           : basePay // ignore: cast_nullable_to_non_nullable
@@ -238,31 +192,29 @@ class _$ShiftCardCopyWithImpl<$Res, $Val extends ShiftCard>
           ? _value.salaryAmount
           : salaryAmount // ignore: cast_nullable_to_non_nullable
               as String,
-      isValidCheckinLocation: freezed == isValidCheckinLocation
-          ? _value.isValidCheckinLocation
-          : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      checkinDistanceFromStore: freezed == checkinDistanceFromStore
-          ? _value.checkinDistanceFromStore
-          : checkinDistanceFromStore // ignore: cast_nullable_to_non_nullable
-              as double?,
-      checkoutDistanceFromStore: freezed == checkoutDistanceFromStore
-          ? _value.checkoutDistanceFromStore
-          : checkoutDistanceFromStore // ignore: cast_nullable_to_non_nullable
-              as double?,
-      isReported: null == isReported
-          ? _value.isReported
-          : isReported // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblem: null == isProblem
-          ? _value.isProblem
-          : isProblem // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblemSolved: null == isProblemSolved
-          ? _value.isProblemSolved
-          : isProblemSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
+      problemDetails: freezed == problemDetails
+          ? _value.problemDetails
+          : problemDetails // ignore: cast_nullable_to_non_nullable
+              as ProblemDetails?,
+      managerMemos: null == managerMemos
+          ? _value.managerMemos
+          : managerMemos // ignore: cast_nullable_to_non_nullable
+              as List<ManagerMemo>,
     ) as $Val);
+  }
+
+  /// Create a copy of ShiftCard
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProblemDetailsCopyWith<$Res>? get problemDetails {
+    if (_value.problemDetails == null) {
+      return null;
+    }
+
+    return $ProblemDetailsCopyWith<$Res>(_value.problemDetails!, (value) {
+      return _then(_value.copyWith(problemDetails: value) as $Val);
+    });
   }
 }
 
@@ -288,22 +240,16 @@ abstract class _$$ShiftCardImplCopyWith<$Res>
       String? confirmStartTime,
       String? confirmEndTime,
       double paidHours,
-      bool isLate,
-      num lateMinutes,
-      double lateDeducutAmount,
-      bool isExtratime,
-      num overtimeMinutes,
       String basePay,
       double bonusAmount,
       String totalPayWithBonus,
       String salaryType,
       String salaryAmount,
-      bool? isValidCheckinLocation,
-      double? checkinDistanceFromStore,
-      double? checkoutDistanceFromStore,
-      bool isReported,
-      bool isProblem,
-      bool isProblemSolved});
+      ProblemDetails? problemDetails,
+      List<ManagerMemo> managerMemos});
+
+  @override
+  $ProblemDetailsCopyWith<$Res>? get problemDetails;
 }
 
 /// @nodoc
@@ -332,22 +278,13 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
     Object? confirmStartTime = freezed,
     Object? confirmEndTime = freezed,
     Object? paidHours = null,
-    Object? isLate = null,
-    Object? lateMinutes = null,
-    Object? lateDeducutAmount = null,
-    Object? isExtratime = null,
-    Object? overtimeMinutes = null,
     Object? basePay = null,
     Object? bonusAmount = null,
     Object? totalPayWithBonus = null,
     Object? salaryType = null,
     Object? salaryAmount = null,
-    Object? isValidCheckinLocation = freezed,
-    Object? checkinDistanceFromStore = freezed,
-    Object? checkoutDistanceFromStore = freezed,
-    Object? isReported = null,
-    Object? isProblem = null,
-    Object? isProblemSolved = null,
+    Object? problemDetails = freezed,
+    Object? managerMemos = null,
   }) {
     return _then(_$ShiftCardImpl(
       requestDate: null == requestDate
@@ -402,26 +339,6 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
           ? _value.paidHours
           : paidHours // ignore: cast_nullable_to_non_nullable
               as double,
-      isLate: null == isLate
-          ? _value.isLate
-          : isLate // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lateMinutes: null == lateMinutes
-          ? _value.lateMinutes
-          : lateMinutes // ignore: cast_nullable_to_non_nullable
-              as num,
-      lateDeducutAmount: null == lateDeducutAmount
-          ? _value.lateDeducutAmount
-          : lateDeducutAmount // ignore: cast_nullable_to_non_nullable
-              as double,
-      isExtratime: null == isExtratime
-          ? _value.isExtratime
-          : isExtratime // ignore: cast_nullable_to_non_nullable
-              as bool,
-      overtimeMinutes: null == overtimeMinutes
-          ? _value.overtimeMinutes
-          : overtimeMinutes // ignore: cast_nullable_to_non_nullable
-              as num,
       basePay: null == basePay
           ? _value.basePay
           : basePay // ignore: cast_nullable_to_non_nullable
@@ -442,30 +359,14 @@ class __$$ShiftCardImplCopyWithImpl<$Res>
           ? _value.salaryAmount
           : salaryAmount // ignore: cast_nullable_to_non_nullable
               as String,
-      isValidCheckinLocation: freezed == isValidCheckinLocation
-          ? _value.isValidCheckinLocation
-          : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      checkinDistanceFromStore: freezed == checkinDistanceFromStore
-          ? _value.checkinDistanceFromStore
-          : checkinDistanceFromStore // ignore: cast_nullable_to_non_nullable
-              as double?,
-      checkoutDistanceFromStore: freezed == checkoutDistanceFromStore
-          ? _value.checkoutDistanceFromStore
-          : checkoutDistanceFromStore // ignore: cast_nullable_to_non_nullable
-              as double?,
-      isReported: null == isReported
-          ? _value.isReported
-          : isReported // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblem: null == isProblem
-          ? _value.isProblem
-          : isProblem // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblemSolved: null == isProblemSolved
-          ? _value.isProblemSolved
-          : isProblemSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
+      problemDetails: freezed == problemDetails
+          ? _value.problemDetails
+          : problemDetails // ignore: cast_nullable_to_non_nullable
+              as ProblemDetails?,
+      managerMemos: null == managerMemos
+          ? _value._managerMemos
+          : managerMemos // ignore: cast_nullable_to_non_nullable
+              as List<ManagerMemo>,
     ));
   }
 }
@@ -487,23 +388,15 @@ class _$ShiftCardImpl extends _ShiftCard {
       this.confirmStartTime,
       this.confirmEndTime,
       required this.paidHours,
-      required this.isLate,
-      required this.lateMinutes,
-      required this.lateDeducutAmount,
-      required this.isExtratime,
-      required this.overtimeMinutes,
       required this.basePay,
       required this.bonusAmount,
       required this.totalPayWithBonus,
       required this.salaryType,
       required this.salaryAmount,
-      this.isValidCheckinLocation,
-      this.checkinDistanceFromStore,
-      this.checkoutDistanceFromStore,
-      required this.isReported,
-      required this.isProblem,
-      required this.isProblemSolved})
-      : super._();
+      this.problemDetails,
+      final List<ManagerMemo> managerMemos = const []})
+      : _managerMemos = managerMemos,
+        super._();
 
 // Basic info
   @override
@@ -538,18 +431,6 @@ class _$ShiftCardImpl extends _ShiftCard {
 // Work hours
   @override
   final double paidHours;
-// Late status
-  @override
-  final bool isLate;
-  @override
-  final num lateMinutes;
-  @override
-  final double lateDeducutAmount;
-// Overtime
-  @override
-  final bool isExtratime;
-  @override
-  final num overtimeMinutes;
 // Pay (some are formatted strings with commas)
   @override
   final String basePay;
@@ -561,24 +442,23 @@ class _$ShiftCardImpl extends _ShiftCard {
   final String salaryType;
   @override
   final String salaryAmount;
-// Location validation
+// 문제 상세 (JSONB) - 모든 문제 정보 통합
   @override
-  final bool? isValidCheckinLocation;
+  final ProblemDetails? problemDetails;
+// v7: 매니저 메모 (JSONB array)
+  final List<ManagerMemo> _managerMemos;
+// v7: 매니저 메모 (JSONB array)
   @override
-  final double? checkinDistanceFromStore;
-  @override
-  final double? checkoutDistanceFromStore;
-// Problem reporting
-  @override
-  final bool isReported;
-  @override
-  final bool isProblem;
-  @override
-  final bool isProblemSolved;
+  @JsonKey()
+  List<ManagerMemo> get managerMemos {
+    if (_managerMemos is EqualUnmodifiableListView) return _managerMemos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_managerMemos);
+  }
 
   @override
   String toString() {
-    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftName: $shiftName, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, isLate: $isLate, lateMinutes: $lateMinutes, lateDeducutAmount: $lateDeducutAmount, isExtratime: $isExtratime, overtimeMinutes: $overtimeMinutes, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, isReported: $isReported, isProblem: $isProblem, isProblemSolved: $isProblemSolved)';
+    return 'ShiftCard(requestDate: $requestDate, shiftRequestId: $shiftRequestId, shiftName: $shiftName, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, storeName: $storeName, scheduledHours: $scheduledHours, isApproved: $isApproved, actualStartTime: $actualStartTime, actualEndTime: $actualEndTime, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, paidHours: $paidHours, basePay: $basePay, bonusAmount: $bonusAmount, totalPayWithBonus: $totalPayWithBonus, salaryType: $salaryType, salaryAmount: $salaryAmount, problemDetails: $problemDetails, managerMemos: $managerMemos)';
   }
 
   @override
@@ -612,15 +492,6 @@ class _$ShiftCardImpl extends _ShiftCard {
                 other.confirmEndTime == confirmEndTime) &&
             (identical(other.paidHours, paidHours) ||
                 other.paidHours == paidHours) &&
-            (identical(other.isLate, isLate) || other.isLate == isLate) &&
-            (identical(other.lateMinutes, lateMinutes) ||
-                other.lateMinutes == lateMinutes) &&
-            (identical(other.lateDeducutAmount, lateDeducutAmount) ||
-                other.lateDeducutAmount == lateDeducutAmount) &&
-            (identical(other.isExtratime, isExtratime) ||
-                other.isExtratime == isExtratime) &&
-            (identical(other.overtimeMinutes, overtimeMinutes) ||
-                other.overtimeMinutes == overtimeMinutes) &&
             (identical(other.basePay, basePay) || other.basePay == basePay) &&
             (identical(other.bonusAmount, bonusAmount) ||
                 other.bonusAmount == bonusAmount) &&
@@ -630,20 +501,10 @@ class _$ShiftCardImpl extends _ShiftCard {
                 other.salaryType == salaryType) &&
             (identical(other.salaryAmount, salaryAmount) ||
                 other.salaryAmount == salaryAmount) &&
-            (identical(other.isValidCheckinLocation, isValidCheckinLocation) ||
-                other.isValidCheckinLocation == isValidCheckinLocation) &&
-            (identical(
-                    other.checkinDistanceFromStore, checkinDistanceFromStore) ||
-                other.checkinDistanceFromStore == checkinDistanceFromStore) &&
-            (identical(other.checkoutDistanceFromStore,
-                    checkoutDistanceFromStore) ||
-                other.checkoutDistanceFromStore == checkoutDistanceFromStore) &&
-            (identical(other.isReported, isReported) ||
-                other.isReported == isReported) &&
-            (identical(other.isProblem, isProblem) ||
-                other.isProblem == isProblem) &&
-            (identical(other.isProblemSolved, isProblemSolved) ||
-                other.isProblemSolved == isProblemSolved));
+            (identical(other.problemDetails, problemDetails) ||
+                other.problemDetails == problemDetails) &&
+            const DeepCollectionEquality()
+                .equals(other._managerMemos, _managerMemos));
   }
 
   @override
@@ -662,22 +523,13 @@ class _$ShiftCardImpl extends _ShiftCard {
         confirmStartTime,
         confirmEndTime,
         paidHours,
-        isLate,
-        lateMinutes,
-        lateDeducutAmount,
-        isExtratime,
-        overtimeMinutes,
         basePay,
         bonusAmount,
         totalPayWithBonus,
         salaryType,
         salaryAmount,
-        isValidCheckinLocation,
-        checkinDistanceFromStore,
-        checkoutDistanceFromStore,
-        isReported,
-        isProblem,
-        isProblemSolved
+        problemDetails,
+        const DeepCollectionEquality().hash(_managerMemos)
       ]);
 
   /// Create a copy of ShiftCard
@@ -704,22 +556,13 @@ abstract class _ShiftCard extends ShiftCard {
       final String? confirmStartTime,
       final String? confirmEndTime,
       required final double paidHours,
-      required final bool isLate,
-      required final num lateMinutes,
-      required final double lateDeducutAmount,
-      required final bool isExtratime,
-      required final num overtimeMinutes,
       required final String basePay,
       required final double bonusAmount,
       required final String totalPayWithBonus,
       required final String salaryType,
       required final String salaryAmount,
-      final bool? isValidCheckinLocation,
-      final double? checkinDistanceFromStore,
-      final double? checkoutDistanceFromStore,
-      required final bool isReported,
-      required final bool isProblem,
-      required final bool isProblemSolved}) = _$ShiftCardImpl;
+      final ProblemDetails? problemDetails,
+      final List<ManagerMemo> managerMemos}) = _$ShiftCardImpl;
   const _ShiftCard._() : super._();
 
 // Basic info
@@ -749,17 +592,7 @@ abstract class _ShiftCard extends ShiftCard {
   @override
   String? get confirmEndTime; // Work hours
   @override
-  double get paidHours; // Late status
-  @override
-  bool get isLate;
-  @override
-  num get lateMinutes;
-  @override
-  double get lateDeducutAmount; // Overtime
-  @override
-  bool get isExtratime;
-  @override
-  num get overtimeMinutes; // Pay (some are formatted strings with commas)
+  double get paidHours; // Pay (some are formatted strings with commas)
   @override
   String get basePay;
   @override
@@ -769,19 +602,11 @@ abstract class _ShiftCard extends ShiftCard {
   @override
   String get salaryType;
   @override
-  String get salaryAmount; // Location validation
+  String get salaryAmount; // 문제 상세 (JSONB) - 모든 문제 정보 통합
   @override
-  bool? get isValidCheckinLocation;
+  ProblemDetails? get problemDetails; // v7: 매니저 메모 (JSONB array)
   @override
-  double? get checkinDistanceFromStore;
-  @override
-  double? get checkoutDistanceFromStore; // Problem reporting
-  @override
-  bool get isReported;
-  @override
-  bool get isProblem;
-  @override
-  bool get isProblemSolved;
+  List<ManagerMemo> get managerMemos;
 
   /// Create a copy of ShiftCard
   /// with the given fields replaced by the non-null parameter values.

@@ -10,6 +10,7 @@ class TossEmptyView extends StatelessWidget {
     required this.title,
     this.description,
     this.action,
+    this.compact = false,
   });
 
   final Widget? icon;
@@ -17,37 +18,54 @@ class TossEmptyView extends StatelessWidget {
   final String? description;
   final Widget? action;
 
+  /// When true, uses smaller padding and font sizes
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
+    final padding = compact ? TossSpacing.space3 : TossSpacing.space6;
+    final titleStyle = compact
+        ? TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          )
+        : TossTextStyles.h3.copyWith(
+            color: TossColors.gray900,
+          );
+    final descriptionStyle = compact
+        ? TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+          )
+        : TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+          );
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
+        padding: EdgeInsets.all(padding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
           children: [
             if (icon != null) ...[
               icon!,
-              const SizedBox(height: TossSpacing.space4),
+              SizedBox(height: compact ? TossSpacing.space2 : TossSpacing.space4),
             ],
             Text(
               title,
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray900,
-              ),
+              style: titleStyle,
               textAlign: TextAlign.center,
             ),
             if (description != null) ...[
-              const SizedBox(height: TossSpacing.space2),
+              SizedBox(height: compact ? TossSpacing.space1 : TossSpacing.space2),
               Text(
                 description!,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                ),
+                style: descriptionStyle,
                 textAlign: TextAlign.center,
               ),
             ],
             if (action != null) ...[
-              const SizedBox(height: TossSpacing.space6),
+              SizedBox(height: compact ? TossSpacing.space3 : TossSpacing.space6),
               action!,
             ],
           ],

@@ -8,8 +8,22 @@ import 'tag.dart';
 ///
 /// Represents a comprehensive view of a shift assignment with all relevant
 /// information including employee, shift details, approval status, and tags.
-/// v3: Uses shiftDate (actual work date from start_time_utc) instead of requestDate
-/// v4: Adds isReportedSolved (bool?), managerMemos (List<ManagerMemo>)
+///
+/// v6: BREAKING CHANGE - Removed legacy problem fields.
+/// All problem-related data MUST come from [problemDetails] (problem_details_v2).
+/// This ensures single source of truth across all pages (Overview, Schedule, Problems, Stats).
+///
+/// Removed fields (use problemDetails instead):
+/// - hasProblem → problemDetails?.problemCount > 0
+/// - isProblemSolved → problemDetails?.isSolved
+/// - isLate → problemDetails?.problems.any((p) => p.type == 'late')
+/// - lateMinute → problemDetails?.problems.firstWhere((p) => p.type == 'late')?.actualMinutes
+/// - isOverTime → problemDetails?.problems.any((p) => p.type == 'overtime')
+/// - overTimeMinute → problemDetails?.problems.firstWhere((p) => p.type == 'overtime')?.actualMinutes
+/// - isReported → problemDetails?.problems.any((p) => p.type == 'reported')
+/// - problemType → problemDetails?.problems.map((p) => p.type)
+/// - reportReason → problemDetails?.problems.firstWhere((p) => p.type == 'reported')?.reason
+/// - isReportedSolved → problemDetails?.problems.firstWhere((p) => p.type == 'reported')?.isSolved
 class ShiftCard {
   /// The shift request ID
   final String shiftRequestId;
@@ -21,35 +35,13 @@ class ShiftCard {
   final Shift shift;
 
   /// The actual work date (yyyy-MM-dd format, from start_time_utc)
-  /// v3: Renamed from requestDate to shiftDate
   final String shiftDate;
 
   /// Whether the shift is approved
   final bool isApproved;
 
-  /// Whether there's a problem with this shift
-  final bool hasProblem;
-
-  /// Whether the problem has been solved
-  final bool isProblemSolved;
-
-  /// Whether the employee was late
-  final bool isLate;
-
-  /// Late duration in minutes
-  final int lateMinute;
-
-  /// Whether the employee worked overtime
-  final bool isOverTime;
-
-  /// Overtime duration in minutes
-  final int overTimeMinute;
-
   /// Paid hours for this shift
   final double paidHour;
-
-  /// Whether this shift has been reported
-  final bool isReported;
 
   /// Bonus amount (if any)
   final double? bonusAmount;
@@ -102,19 +94,11 @@ class ShiftCard {
   /// List of tags associated with this shift card
   final List<Tag> tags;
 
-  /// Problem type (e.g., "late", "early_checkout", etc.)
-  final String? problemType;
-
-  /// Report reason if this shift was reported
-  final String? reportReason;
-
-  /// v4: Whether the report has been resolved
-  final bool? isReportedSolved;
-
-  /// v4: Manager memos for this shift
+  /// Manager memos for this shift
   final List<ManagerMemo> managerMemos;
 
-  /// v5: Detailed problem information
+  /// v5: Detailed problem information - SINGLE SOURCE OF TRUTH for all problem data
+  /// All pages (Overview, Schedule, Problems, Stats) MUST use this field only.
   final ProblemDetails? problemDetails;
 
   /// Shift start time from RPC ("2025-12-05 14:00" format)
@@ -137,14 +121,7 @@ class ShiftCard {
     required this.shift,
     required this.shiftDate,
     required this.isApproved,
-    required this.hasProblem,
-    this.isProblemSolved = false,
-    this.isLate = false,
-    this.lateMinute = 0,
-    this.isOverTime = false,
-    this.overTimeMinute = 0,
     this.paidHour = 0.0,
-    this.isReported = false,
     this.bonusAmount,
     this.bonusReason,
     this.confirmedStartTime,
@@ -164,9 +141,6 @@ class ShiftCard {
     this.confirmedStartRaw,
     this.confirmedEndRaw,
     this.tags = const [],
-    this.problemType,
-    this.reportReason,
-    this.isReportedSolved,
     this.managerMemos = const [],
     this.problemDetails,
     this.shiftStartTime,
@@ -174,6 +148,66 @@ class ShiftCard {
     required this.createdAt,
     this.approvedAt,
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPUTED PROPERTIES FROM problemDetails (convenience getters)
+  // These replace the removed legacy fields
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Check if shift has any problems (from problemDetails)
+  bool get hasProblem => problemDetails != null && problemDetails!.problemCount > 0;
+
+  /// Check if all problems are solved (from problemDetails)
+  bool get isProblemSolved => problemDetails?.isSolved ?? true;
+
+  /// Check if employee was late (from problemDetails)
+  bool get isLate => problemDetails?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
+
+  /// Late duration in minutes (from problemDetails)
+  int get lateMinute {
+    if (problemDetails == null) return 0;
+    final minutes = problemDetails!.problems
+        .where((p) => p.type == 'late')
+        .map((p) => p.actualMinutes ?? 0);
+    return minutes.isEmpty ? 0 : minutes.reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Check if employee worked overtime (from problemDetails)
+  bool get isOverTime => problemDetails?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
+
+  /// Overtime duration in minutes (from problemDetails)
+  int get overTimeMinute {
+    if (problemDetails == null) return 0;
+    final minutes = problemDetails!.problems
+        .where((p) => p.type == 'overtime')
+        .map((p) => p.actualMinutes ?? 0);
+    return minutes.isEmpty ? 0 : minutes.reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Check if this shift has been reported (from problemDetails)
+  bool get isReported => problemDetails?.problems.any((p) => p.type == 'reported' && !p.isSolved) ?? false;
+
+  /// Report reason if this shift was reported (from problemDetails)
+  String? get reportReason => problemDetails?.problems
+      .where((p) => p.type == 'reported')
+      .map((p) => p.reason)
+      .firstOrNull;
+
+  /// Whether the report has been resolved (from problemDetails)
+  bool? get isReportedSolved => problemDetails?.problems
+      .where((p) => p.type == 'reported')
+      .map((p) => p.isSolved)
+      .firstOrNull;
+
+  /// Problem types as list (from problemDetails)
+  List<String> get problemTypes => problemDetails?.problems
+      .where((p) => !p.isSolved)
+      .map((p) => p.type)
+      .toList() ?? [];
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OTHER COMPUTED PROPERTIES
+  // ═══════════════════════════════════════════════════════════════════════════
 
   /// Check if shift is pending approval
   bool get isPending => !isApproved;
@@ -208,14 +242,7 @@ class ShiftCard {
     Shift? shift,
     String? shiftDate,
     bool? isApproved,
-    bool? hasProblem,
-    bool? isProblemSolved,
-    bool? isLate,
-    int? lateMinute,
-    bool? isOverTime,
-    int? overTimeMinute,
     double? paidHour,
-    bool? isReported,
     double? bonusAmount,
     String? bonusReason,
     DateTime? confirmedStartTime,
@@ -235,9 +262,6 @@ class ShiftCard {
     String? confirmedStartRaw,
     String? confirmedEndRaw,
     List<Tag>? tags,
-    String? problemType,
-    String? reportReason,
-    bool? isReportedSolved,
     List<ManagerMemo>? managerMemos,
     ProblemDetails? problemDetails,
     String? shiftStartTime,
@@ -251,14 +275,7 @@ class ShiftCard {
       shift: shift ?? this.shift,
       shiftDate: shiftDate ?? this.shiftDate,
       isApproved: isApproved ?? this.isApproved,
-      hasProblem: hasProblem ?? this.hasProblem,
-      isProblemSolved: isProblemSolved ?? this.isProblemSolved,
-      isLate: isLate ?? this.isLate,
-      lateMinute: lateMinute ?? this.lateMinute,
-      isOverTime: isOverTime ?? this.isOverTime,
-      overTimeMinute: overTimeMinute ?? this.overTimeMinute,
       paidHour: paidHour ?? this.paidHour,
-      isReported: isReported ?? this.isReported,
       bonusAmount: bonusAmount ?? this.bonusAmount,
       bonusReason: bonusReason ?? this.bonusReason,
       confirmedStartTime: confirmedStartTime ?? this.confirmedStartTime,
@@ -278,9 +295,6 @@ class ShiftCard {
       confirmedStartRaw: confirmedStartRaw ?? this.confirmedStartRaw,
       confirmedEndRaw: confirmedEndRaw ?? this.confirmedEndRaw,
       tags: tags ?? this.tags,
-      problemType: problemType ?? this.problemType,
-      reportReason: reportReason ?? this.reportReason,
-      isReportedSolved: isReportedSolved ?? this.isReportedSolved,
       managerMemos: managerMemos ?? this.managerMemos,
       problemDetails: problemDetails ?? this.problemDetails,
       shiftStartTime: shiftStartTime ?? this.shiftStartTime,

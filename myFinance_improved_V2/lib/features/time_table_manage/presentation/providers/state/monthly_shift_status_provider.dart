@@ -4,10 +4,12 @@
 /// Loads data from RPC and caches results to avoid redundant API calls.
 library;
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
 import '../states/time_table_state.dart';
@@ -32,6 +34,26 @@ class MonthlyShiftStatusNotifier
     this._storeId,
   ) : super(const MonthlyShiftStatusState());
 
+  /// Safely update state - avoids "setState during build" errors
+  /// by deferring state updates if called during widget build phase
+  void _safeSetState(MonthlyShiftStatusState newState) {
+    if (!mounted) return;
+
+    // Check if we're in the middle of a build phase
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks) {
+      // Defer state update to after the current frame
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          state = newState;
+        }
+      });
+    } else {
+      state = newState;
+    }
+  }
+
   /// Load monthly shift status for a specific month
   ///
   /// Parameters:
@@ -48,7 +70,7 @@ class MonthlyShiftStatusNotifier
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    _safeSetState(state.copyWith(isLoading: true, error: null));
 
     try {
       // Create DateTime for first day of month
@@ -82,16 +104,16 @@ class MonthlyShiftStatusNotifier
           '${nextMonth.year}-${nextMonth.month.toString().padLeft(2, '0')}';
       newLoadedMonths.add(nextMonthKey);
 
-      state = state.copyWith(
+      _safeSetState(state.copyWith(
         dataByMonth: newDataByMonth,
         loadedMonths: newLoadedMonths,
         isLoading: false,
-      );
+      ));
     } catch (e) {
-      state = state.copyWith(
+      _safeSetState(state.copyWith(
         isLoading: false,
         error: e.toString(),
-      );
+      ));
     }
   }
 
@@ -103,7 +125,97 @@ class MonthlyShiftStatusNotifier
 
   /// Clear all loaded data
   void clearAll() {
-    state = const MonthlyShiftStatusState();
+    if (!mounted) return;
+    _safeSetState(const MonthlyShiftStatusState());
+  }
+
+  /// Partial Update: Update a single shift request's approval status
+  ///
+  /// Instead of reloading all data, this method updates only the affected
+  /// shift request in the cached state. This is much more efficient than
+  /// calling loadMonth(forceRefresh: true) after every approve/remove action.
+  ///
+  /// Parameters:
+  /// - [shiftRequestId]: The ID of the shift request to update
+  /// - [isApproved]: The new approval status
+  /// - [shiftDate]: The date of the shift (yyyy-MM-dd format) for finding the correct month
+  void updateShiftRequestApproval({
+    required String shiftRequestId,
+    required bool isApproved,
+    required String shiftDate,
+  }) {
+    if (!mounted) return;
+
+    // Parse month from shiftDate (yyyy-MM-dd)
+    final parts = shiftDate.split('-');
+    if (parts.length < 2) return;
+    final monthKey = '${parts[0]}-${parts[1]}';
+
+    // Get current month data
+    final monthData = state.dataByMonth[monthKey];
+    if (monthData == null || monthData.isEmpty) return;
+
+    // Update the data
+    final updatedMonthData = monthData.map((monthlyStatus) {
+      final updatedDailyShifts = monthlyStatus.dailyShifts.map((dailyData) {
+        if (dailyData.date != shiftDate) return dailyData;
+
+        // Update shifts for this date
+        final updatedShifts = dailyData.shifts.map((shiftWithReqs) {
+          // Find the request in pending or approved lists
+          final pendingIndex = shiftWithReqs.pendingRequests.indexWhere(
+            (req) => req.shiftRequestId == shiftRequestId,
+          );
+          final approvedIndex = shiftWithReqs.approvedRequests.indexWhere(
+            (req) => req.shiftRequestId == shiftRequestId,
+          );
+
+          if (pendingIndex == -1 && approvedIndex == -1) {
+            return shiftWithReqs; // Request not found in this shift
+          }
+
+          // Move request between lists based on new approval status
+          final newPendingRequests = List.of(shiftWithReqs.pendingRequests);
+          final newApprovedRequests = List.of(shiftWithReqs.approvedRequests);
+
+          if (isApproved && pendingIndex != -1) {
+            // Move from pending to approved
+            final request = newPendingRequests.removeAt(pendingIndex);
+            newApprovedRequests.add(request.copyWith(
+              isApproved: true,
+              approvedAt: DateTime.now(),
+            ));
+          } else if (!isApproved && approvedIndex != -1) {
+            // Move from approved to pending
+            final request = newApprovedRequests.removeAt(approvedIndex);
+            newPendingRequests.add(request.copyWith(
+              isApproved: false,
+              approvedAt: null,
+            ));
+          }
+
+          return ShiftWithRequests(
+            shift: shiftWithReqs.shift,
+            pendingRequests: newPendingRequests,
+            approvedRequests: newApprovedRequests,
+          );
+        }).toList();
+
+        return DailyShiftData(date: dailyData.date, shifts: updatedShifts);
+      }).toList();
+
+      return MonthlyShiftStatus(
+        month: monthlyStatus.month,
+        dailyShifts: updatedDailyShifts,
+        statistics: monthlyStatus.statistics,
+      );
+    }).toList();
+
+    // Update state
+    final newDataByMonth = Map<String, List<MonthlyShiftStatus>>.from(state.dataByMonth);
+    newDataByMonth[monthKey] = updatedMonthData;
+
+    _safeSetState(state.copyWith(dataByMonth: newDataByMonth));
   }
 }
 

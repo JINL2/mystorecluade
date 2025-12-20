@@ -13,35 +13,50 @@ import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../providers/attendance_providers.dart';
+import '../widgets/check_in_out/dialogs/report_issue_dialog.dart';
 import 'utils/schedule_date_utils.dart';
-import 'utils/schedule_month_builder.dart';
 import 'utils/schedule_shift_finder.dart';
-import 'utils/schedule_week_builder.dart';
+import '../../../../shared/widgets/toss/month_dates_picker.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../shared/widgets/toss/toss_month_navigation.dart';
+import '../../../../shared/widgets/toss/toss_week_navigation.dart';
+import '../../../../shared/widgets/toss/toss_week_shift_card.dart';
+import '../../../../shared/widgets/toss/week_dates_picker.dart';
+import '../../domain/entities/problem_details.dart';
+import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
-import 'widgets/schedule_month_view.dart';
-import 'widgets/schedule_week_view.dart';
 
-export 'widgets/schedule_header.dart' show ViewMode;
-
-/// MyScheduleTab - Main tab with Week/Month view switching
+/// MyScheduleTab - Main tab with Week view and expandable Month calendar
 ///
 /// Features:
-/// - Segmented control to switch between Week and Month views
 /// - Featured "Today's Shift" card
-/// - Week view: Week navigation + shift list
-/// - Month view: Month navigation + calendar + filtered shift list
+/// - Week view: Week navigation + shift list (default)
+/// - Month calendar: Tap calendar icon to expand/collapse
 class MyScheduleTab extends ConsumerStatefulWidget {
   final TabController? tabController;
+  final List<Map<String, dynamic>> stores;
+  final String? selectedStoreId;
+  final void Function(String)? onStoreChanged;
 
-  const MyScheduleTab({super.key, this.tabController});
+  const MyScheduleTab({
+    super.key,
+    this.tabController,
+    this.stores = const [],
+    this.selectedStoreId,
+    this.onStoreChanged,
+  });
 
   @override
   ConsumerState<MyScheduleTab> createState() => _MyScheduleTabState();
 }
 
-class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
-  // View mode state
-  ViewMode _viewMode = ViewMode.week;
+class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  // Calendar expanded state (false = week view, true = month calendar visible)
+  bool _isExpanded = false;
 
   /// Navigate to Shift Sign Up tab (index 1)
   void _goToShiftSignUpTab() {
@@ -245,16 +260,14 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
       ref.invalidate(monthlyShiftCardsProvider(currentYearMonth));
 
-      // Also refresh the week view if applicable
-      if (_viewMode == ViewMode.week) {
-        final weekYearMonth = '${_currentWeek.year}-${_currentWeek.month.toString().padLeft(2, '0')}';
-        if (weekYearMonth != currentYearMonth) {
-          ref.invalidate(monthlyShiftCardsProvider(weekYearMonth));
-        }
+      // Also refresh the week view data
+      final weekYearMonth = '${_currentWeek.year}-${_currentWeek.month.toString().padLeft(2, '0')}';
+      if (weekYearMonth != currentYearMonth) {
+        ref.invalidate(monthlyShiftCardsProvider(weekYearMonth));
       }
 
-      // Refresh month view if applicable
-      if (_viewMode == ViewMode.month) {
+      // Refresh month view data if expanded
+      if (_isExpanded) {
         final monthYearMonth = '${_currentMonth.year}-${_currentMonth.month.toString().padLeft(2, '0')}';
         if (monthYearMonth != currentYearMonth) {
           ref.invalidate(monthlyShiftCardsProvider(monthYearMonth));
@@ -265,15 +278,70 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
       final prevMonth = DateTime(now.year, now.month - 1, 1);
       final prevYearMonth = '${prevMonth.year}-${prevMonth.month.toString().padLeft(2, '0')}';
       ref.invalidate(monthlyShiftCardsProvider(prevYearMonth));
+
+      // Force rebuild to show loading state while new data is fetched
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  // Show Report Issue dialog for current shift
+  void _showReportIssueDialog(ShiftCard? currentShift) {
+    if (currentShift == null) return;
+
+    final shiftRequestId = currentShift.shiftRequestId;
+    if (shiftRequestId.isEmpty) return;
+
+    // Convert ShiftCard to Map for ReportIssueDialog
+    final cardData = <String, dynamic>{
+      'shift_request_id': currentShift.shiftRequestId,
+      'request_date': currentShift.requestDate,
+      'shift_name': currentShift.shiftName,
+      'shift_start_time': currentShift.shiftStartTime,
+      'shift_end_time': currentShift.shiftEndTime,
+      'is_approved': currentShift.isApproved,
+      'is_reported': currentShift.isReported,
+      'is_problem_solved': currentShift.isProblemSolved,
+    };
+
+    ReportIssueDialog.show(
+      context: context,
+      ref: ref,
+      shiftRequestId: shiftRequestId,
+      cardData: cardData,
+      onSuccess: () {
+        // Refresh shift cards data after report
+        final now = DateTime.now();
+        final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+        ref.invalidate(monthlyShiftCardsProvider(currentYearMonth));
+
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  /// Toggle between week view and month calendar
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+    // Fetch month data when expanding
+    if (_isExpanded) {
+      _fetchMonthViewData();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _viewMode == ViewMode.week ? _buildWeekView() : _buildMonthView();
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    return _buildMainView();
   }
 
-  Widget _buildWeekView() {
+  /// Build main view with header, week navigation (+ optional month calendar), and shift list
+  Widget _buildMainView() {
     final weekRange = _weekRange;
     final now = DateTime.now();
 
@@ -300,13 +368,18 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     final todayYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
     final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
 
+    // Month view data (for expanded calendar)
+    final monthlyShiftStatus = _getMonthlyShiftStatusFromCache();
+
     // Also check the primary week data to see if there are any shifts at all
     return primaryShiftCardsAsync.when(
       data: (primaryShiftCards) {
         return todayShiftCardsAsync.when(
           data: (todayShiftCards) {
-            final todayShift = ScheduleShiftFinder.findTodayShift(todayShiftCards);
-            final upcomingShift = todayShift == null
+            // Use findCurrentShift for unified UI/QR logic
+            final currentShift = ScheduleShiftFinder.findCurrentShift(todayShiftCards);
+            // Only show upcoming if no current shift (findCurrentShift handles completed->upcoming transition)
+            final upcomingShift = currentShift == null
                 ? ScheduleShiftFinder.findClosestUpcomingShift(todayShiftCards)
                 : null;
 
@@ -322,33 +395,15 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
               return _buildEmptyStateOnly();
             }
 
-            // Otherwise show normal UI
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ScheduleHeader(
-                    cardKey: _todayShiftCardKey,
-                    viewMode: _viewMode,
-                    todayShift: todayShift,
-                    upcomingShift: upcomingShift,
-                    onCheckIn: () => _navigateToQRScanner(),
-                    onCheckOut: () => _navigateToQRScanner(),
-                    onGoToShiftSignUp: _goToShiftSignUpTab,
-                    onViewModeChanged: (mode) {
-                      setState(() => _viewMode = mode);
-                    },
-                  ),
-                  Expanded(
-                    child: _buildWeekShiftsList(
-                      weekRange: weekRange,
-                      primaryAsync: primaryShiftCardsAsync,
-                      secondaryAsync: secondaryShiftCardsAsync,
-                    ),
-                  ),
-                ],
-              ),
+            // Build scrollable view with header and content
+            return _buildScrollableView(
+              currentShift: currentShift,
+              upcomingShift: upcomingShift,
+              weekRange: weekRange,
+              primaryAsync: primaryShiftCardsAsync,
+              secondaryAsync: secondaryShiftCardsAsync,
+              monthlyShiftStatus: monthlyShiftStatus,
+              shiftCards: primaryShiftCards,
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -360,201 +415,532 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab> {
     );
   }
 
-  Widget _buildMonthView() {
-    // Use year-month string key to prevent infinite rebuilds
-    final yearMonth = _getMonthKey(_currentMonth);
-    final shiftCardsAsync = ref.watch(monthlyShiftCardsProvider(yearMonth));
-
-    // Also get today's month data for the header (in case current month is different)
-    final now = DateTime.now();
-    final todayYearMonth = _getMonthKey(now);
-    final todayShiftCardsAsync = ref.watch(monthlyShiftCardsProvider(todayYearMonth));
-
-    // Get monthly shift status from cache for calendar indicators
-    final monthlyShiftStatus = _getMonthlyShiftStatusFromCache();
-
-    // Trigger fetch of month view data if not already cached
-    if (!_monthlyShiftStatusCache.containsKey(yearMonth) && !_loadingMonths.contains(yearMonth)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fetchMonthViewData();
-      });
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Common Header (Today's Shift Card + Toggle) - Fixed
-          todayShiftCardsAsync.when(
-            data: (todayShiftCards) {
-              final todayShift = ScheduleShiftFinder.findTodayShift(todayShiftCards);
-              final upcomingShift = todayShift == null
-                  ? ScheduleShiftFinder.findClosestUpcomingShift(todayShiftCards)
-                  : null;
-              return ScheduleHeader(
-                cardKey: _todayShiftCardKey,
-                viewMode: _viewMode,
-                todayShift: todayShift,
-                upcomingShift: upcomingShift,
-                onCheckIn: () => _navigateToQRScanner(),
-                onCheckOut: () => _navigateToQRScanner(),
-                onGoToShiftSignUp: _goToShiftSignUpTab,
-                onViewModeChanged: (mode) {
-                  setState(() => _viewMode = mode);
-                },
-              );
-            },
-            loading: () => ScheduleHeader(
-              cardKey: _todayShiftCardKey,
-              viewMode: _viewMode,
-              todayShift: null,
-              onCheckIn: () => _navigateToQRScanner(),
-              onCheckOut: () => _navigateToQRScanner(),
-              onGoToShiftSignUp: _goToShiftSignUpTab,
-              onViewModeChanged: (mode) {
-                setState(() => _viewMode = mode);
-              },
-            ),
-            error: (_, __) => ScheduleHeader(
-              cardKey: _todayShiftCardKey,
-              viewMode: _viewMode,
-              todayShift: null,
-              onCheckIn: () => _navigateToQRScanner(),
-              onCheckOut: () => _navigateToQRScanner(),
-              onGoToShiftSignUp: _goToShiftSignUpTab,
-              onViewModeChanged: (mode) {
-                setState(() => _viewMode = mode);
-              },
-            ),
-          ),
-
-          // Month View (contains scrollable shift list)
-          Expanded(
-            child: shiftCardsAsync.when(
-              data: (shiftCards) => ScheduleMonthView(
-                currentMonth: _currentMonth,
-                selectedDate: _selectedDate,
-                monthOffset: _currentMonthOffset,
-                shiftsInMonth: ScheduleMonthBuilder.buildShiftsInMonth(
-                  currentMonth: _currentMonth,
-                  shiftMetadata: _shiftMetadata,
-                  monthlyShiftStatus: monthlyShiftStatus,
-                ),
-                userApprovedDates: ScheduleMonthBuilder.buildUserApprovedDates(
-                  currentMonth: _currentMonth,
-                  monthlyShiftStatus: monthlyShiftStatus,
-                  currentUserId: ref.read(appStateProvider).userId,
-                ),
-                dayShifts: ScheduleMonthBuilder.buildDayShifts(
-                  context,
-                  _selectedDate,
-                  shiftCards,
-                ),
-                onNavigate: _navigateMonth,
-                onDateSelected: _handleDateSelected,
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Error: $error')),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build empty state only (no header, no navigation)
-  Widget _buildEmptyStateOnly() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            color: TossColors.gray400,
-            size: 48,
-          ),
-          SizedBox(height: TossSpacing.space3),
-          Text(
-            'You have no shift',
-            style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: TossSpacing.space1),
-          TextButton(
-            onPressed: _goToShiftSignUpTab,
-            child: Text(
-              'Go to shift sign up',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build week shifts list widget
-  /// Handles merging data from two months when week spans across month boundary
-  Widget _buildWeekShiftsList({
+  /// Build scrollable view - entire page scrolls including header
+  Widget _buildScrollableView({
+    required ShiftCard? currentShift,
+    required ShiftCard? upcomingShift,
     required DateTimeRange weekRange,
     required AsyncValue<List<ShiftCard>> primaryAsync,
     AsyncValue<List<ShiftCard>>? secondaryAsync,
+    required List<MonthlyShiftStatus> monthlyShiftStatus,
+    required List<ShiftCard> shiftCards,
   }) {
-    // If no secondary month needed, just use primary
-    if (secondaryAsync == null) {
-      return primaryAsync.when(
-        data: (shiftCards) {
-          final result = ScheduleWeekBuilder.buildWeekShiftsWithIndex(
-            context,
-            weekRange,
-            shiftCards,
-          );
-          return ScheduleWeekView(
-            currentWeek: _currentWeek,
-            weekOffset: _currentWeekOffset,
-            shifts: result.shifts,
-            closestUpcomingIndex: result.closestUpcomingIndex,
-            onNavigate: _navigateWeek,
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+    // Build problem status map for week dates picker
+    final problemStatusMap = _buildProblemStatusMap(shiftCards);
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ============================================
+          // Store Selector (only if more than 1 store)
+          // ============================================
+          if (widget.stores.length > 1)
+            Container(
+              color: TossColors.white,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: TossDropdown<String>(
+                label: 'Store',
+                value: widget.selectedStoreId,
+                items: widget.stores.map((store) {
+                  return TossDropdownItem<String>(
+                    value: store['store_id']?.toString() ?? '',
+                    label: store['store_name']?.toString() ?? 'Unknown',
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  if (newValue != null) {
+                    widget.onStoreChanged?.call(newValue);
+                  }
+                },
+              ),
+            ),
+          // ============================================
+          // Section 1: Current/Upcoming Shift (white background)
+          // ============================================
+          Container(
+            color: TossColors.white,
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+            child: ScheduleHeader(
+              cardKey: _todayShiftCardKey,
+              todayShift: currentShift,
+              upcomingShift: upcomingShift,
+              onCheckIn: () => _navigateToQRScanner(),
+              onCheckOut: () => _navigateToQRScanner(),
+              onGoToShiftSignUp: _goToShiftSignUpTab,
+              onReportIssue: () => _showReportIssueDialog(currentShift ?? upcomingShift),
+            ),
+          ),
+
+          // ============================================
+          // Toss-style section divider (gray background)
+          // ============================================
+          Container(
+            height: 8,
+            color: TossColors.gray100,
+          ),
+
+          // ============================================
+          // Section 2: Week/Month Calendar Management (white background)
+          // ============================================
+          Container(
+            color: TossColors.white,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Week/Month Navigation with calendar toggle button
+                _isExpanded
+                    ? _buildMonthNavigationWithToggle()
+                    : _buildWeekNavigationWithToggle(),
+                const SizedBox(height: 12),
+
+                // Week Dates Picker or Month Calendar
+                if (_isExpanded) ...[
+                  // Month Calendar (when expanded) - uses same problem status logic
+                  MonthDatesPicker(
+                    selectedDate: _selectedDate,
+                    currentMonth: _currentMonth,
+                    problemStatusByDate: problemStatusMap,
+                    onDateSelected: (date) {
+                      _handleDateSelected(date);
+                      // Collapse calendar after selecting date
+                      setState(() => _isExpanded = false);
+                    },
+                  ),
+                ] else ...[
+                  // Week Dates Picker (default)
+                  WeekDatesPicker(
+                    selectedDate: _selectedDate,
+                    weekStartDate: weekRange.start,
+                    problemStatusMap: problemStatusMap,
+                    onDateSelected: _handleDateSelected,
+                  ),
+                ],
+                const SizedBox(height: 16),
+
+                // Selected date shifts label
+                Text(
+                  'Shifts for ${DateFormat('EEE, d MMM').format(_selectedDate)}',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Shift list for selected date
+                _buildSelectedDateShiftCards(shiftCards),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build problem status map from shift cards
+  /// Maps date string "yyyy-MM-dd" to ProblemStatus
+  Map<String, ProblemStatus> _buildProblemStatusMap(List<ShiftCard> shiftCards) {
+    final Map<String, ProblemStatus> statusMap = {};
+
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+
+      // Parse shift date from shiftStartTime
+      final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
+      if (startDateTime == null) continue;
+
+      final dateKey = DateFormat('yyyy-MM-dd').format(startDateTime);
+      final pd = card.problemDetails;
+
+      // Determine status for this shift
+      // Priority: solved (green) > reported (orange) > unsolved problem (red) > has shift (blue)
+      // Logic flow:
+      // 1. is_solved = true → 🟢 Green (all problems resolved)
+      // 2. has_reported = true && is_solved = false → 🟠 Orange (reported, waiting)
+      // 3. problem_count > 0 && is_solved = false → 🔴 Red (unsolved problem)
+      // 4. No problems → 🔵 Blue (just has shift)
+      ProblemStatus shiftStatus;
+      if (pd != null && pd.isSolved && pd.problemCount > 0) {
+        // All problems solved → Green
+        shiftStatus = ProblemStatus.solved;
+      } else if (pd != null && pd.hasReported && !pd.isSolved) {
+        // Reported but not solved yet → Orange (waiting for manager review)
+        shiftStatus = ProblemStatus.unsolvedReport;
+      } else if (pd != null && pd.problemCount > 0 && !pd.isSolved) {
+        // Has unsolved problems (not reported) → Red
+        shiftStatus = ProblemStatus.unsolvedProblem;
+      } else {
+        // Has shift, no problems → Blue
+        shiftStatus = ProblemStatus.hasShift;
+      }
+
+      // Keep highest priority status for the date
+      // Priority: unsolvedProblem > unsolvedReport > solved > hasShift
+      final existing = statusMap[dateKey];
+      if (existing == null) {
+        statusMap[dateKey] = shiftStatus;
+      } else {
+        // Compare priority
+        final priorityOrder = [
+          ProblemStatus.unsolvedProblem, // highest
+          ProblemStatus.unsolvedReport,
+          ProblemStatus.solved,
+          ProblemStatus.hasShift, // lowest
+        ];
+        final existingPriority = priorityOrder.indexOf(existing);
+        final newPriority = priorityOrder.indexOf(shiftStatus);
+        if (newPriority < existingPriority) {
+          statusMap[dateKey] = shiftStatus;
+        }
+      }
+    }
+
+    return statusMap;
+  }
+
+  /// Build shift cards for selected date
+  Widget _buildSelectedDateShiftCards(List<ShiftCard> shiftCards) {
+    // Filter shifts for selected date
+    final selectedDateShifts = shiftCards.where((card) {
+      if (!card.isApproved) return false;
+      final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
+      if (startDateTime == null) return false;
+      final shiftDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+      final selectedDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      return shiftDate.isAtSameMomentAs(selectedDay);
+    }).toList();
+
+    // Sort by start time
+    selectedDateShifts.sort((a, b) {
+      final timeA = ScheduleDateUtils.parseShiftDateTime(a.shiftStartTime);
+      final timeB = ScheduleDateUtils.parseShiftDateTime(b.shiftStartTime);
+      if (timeA == null || timeB == null) return 0;
+      return timeA.compareTo(timeB);
+    });
+
+    if (selectedDateShifts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Text(
+            'No shifts on this day',
+            style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+          ),
+        ),
       );
     }
 
-    // Need to merge data from two months
-    return primaryAsync.when(
-      data: (primaryCards) {
-        return secondaryAsync.when(
-          data: (secondaryCards) {
-            // Merge and deduplicate by shiftRequestId
-            final mergedCards = ScheduleShiftFinder.mergeShiftCards(primaryCards, secondaryCards);
-            final result = ScheduleWeekBuilder.buildWeekShiftsWithIndex(
-              context,
-              weekRange,
-              mergedCards,
-            );
-            return ScheduleWeekView(
-              currentWeek: _currentWeek,
-              weekOffset: _currentWeekOffset,
-              shifts: result.shifts,
-              closestUpcomingIndex: result.closestUpcomingIndex,
-              onNavigate: _navigateWeek,
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
+    return Column(
+      children: selectedDateShifts.map((card) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _buildShiftCard(card),
         );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      }).toList(),
     );
+  }
+
+  /// Build individual shift card for selected date
+  Widget _buildShiftCard(ShiftCard card) {
+    final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
+    final endDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
+
+    final timeRange = startDateTime != null && endDateTime != null
+        ? '${DateFormat('HH:mm').format(startDateTime)} - ${DateFormat('HH:mm').format(endDateTime)}'
+        : '--:-- - --:--';
+
+    final status = ScheduleShiftFinder.determineStatus(
+      card,
+      startDateTime != null ? DateTime(startDateTime.year, startDateTime.month, startDateTime.day) : DateTime.now(),
+      hasManagerMemo: card.managerMemos.isNotEmpty,
+    );
+
+    // Problem badges
+    final pd = card.problemDetails;
+
+    return GestureDetector(
+      onTap: () => ShiftDetailDialog.show(context, shiftCard: card),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: TossColors.gray200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // First row: Shift name, time, and status
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.shiftName ?? 'Unknown Shift',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        timeRange,
+                        style: TossTextStyles.labelSmall.copyWith(
+                          color: TossColors.gray500,
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Status badge
+                _buildStatusBadge(status),
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right, color: TossColors.gray400, size: 20),
+              ],
+            ),
+
+            // Problem badges row (if any)
+            if (pd != null && pd.problemCount > 0) ...[
+              const SizedBox(height: 8),
+              _buildProblemBadges(pd, hasManagerMemo: card.managerMemos.isNotEmpty),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build status badge for shift card
+  Widget _buildStatusBadge(ShiftCardStatus status) {
+    final (String label, Color color) = switch (status) {
+      ShiftCardStatus.upcoming => ('Upcoming', TossColors.primary),
+      ShiftCardStatus.inProgress => ('In Progress', TossColors.success),
+      ShiftCardStatus.completed => ('Completed', TossColors.gray500),
+      ShiftCardStatus.late => ('Late', TossColors.error),
+      ShiftCardStatus.onTime => ('On-time', TossColors.success),
+      ShiftCardStatus.undone => ('Undone', TossColors.gray500),
+      ShiftCardStatus.absent => ('Absent', TossColors.error),
+      ShiftCardStatus.noCheckout => ('No Checkout', TossColors.warning),
+      ShiftCardStatus.earlyLeave => ('Early Leave', TossColors.warning),
+      ShiftCardStatus.reported => ('Reported', TossColors.warning),
+      ShiftCardStatus.resolved => ('Resolved', TossColors.success),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TossTextStyles.labelSmall.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Build problem badges for shift card
+  /// Note: Status badge already shows main problem (Reported/Resolved/Late/etc)
+  /// These badges show additional details (late minutes, overtime, location)
+  Widget _buildProblemBadges(ProblemDetails pd, {bool hasManagerMemo = false}) {
+    final badges = <Widget>[];
+
+    // Late with minutes detail (status badge just shows "Late")
+    if (pd.hasLate && pd.lateMinutes > 0) {
+      badges.add(_buildBadge('${pd.lateMinutes}m late', TossColors.error));
+    }
+    // Location issue
+    if (pd.hasLocationIssue) {
+      badges.add(_buildBadge('Location', TossColors.warning));
+    }
+    // Overtime with minutes detail
+    if (pd.hasOvertime && pd.overtimeMinutes > 0) {
+      badges.add(_buildBadge('OT ${pd.overtimeMinutes}m', TossColors.primary));
+    }
+    // Early leave with minutes detail
+    if (pd.hasEarlyLeave && pd.earlyLeaveMinutes > 0) {
+      badges.add(_buildBadge('${pd.earlyLeaveMinutes}m early', TossColors.warning));
+    }
+
+    if (badges.isEmpty) return const SizedBox.shrink();
+
+    // Show max 2, rest as +N
+    final visibleBadges = badges.take(2).toList();
+    final hiddenCount = badges.length - 2;
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        ...visibleBadges,
+        if (hiddenCount > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              '+$hiddenCount',
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TossTextStyles.labelSmall.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Build week navigation with calendar toggle button
+  Widget _buildWeekNavigationWithToggle() {
+    final weekRange = _weekRange;
+    return Row(
+      children: [
+        Expanded(
+          child: TossWeekNavigation(
+            weekLabel: _currentWeekOffset == 0 ? 'This week' : 'Week ${_getWeekNumber()}',
+            dateRange: '${DateFormat('d').format(weekRange.start)} - ${DateFormat('d MMM').format(weekRange.end)}',
+            onPrevWeek: () => _navigateWeek(-1),
+            onCurrentWeek: () => _navigateWeek(0),
+            onNextWeek: () => _navigateWeek(1),
+          ),
+        ),
+        // Calendar toggle button
+        IconButton(
+          onPressed: _toggleExpanded,
+          icon: const Icon(
+            Icons.calendar_month,
+            color: TossColors.gray600,
+            size: 24,
+          ),
+          tooltip: 'Show month calendar',
+        ),
+      ],
+    );
+  }
+
+  /// Build month navigation with calendar toggle button
+  Widget _buildMonthNavigationWithToggle() {
+    final monthName = DateFormat.MMMM().format(_currentMonth);
+    return Row(
+      children: [
+        Expanded(
+          child: TossMonthNavigation(
+            currentMonth: monthName,
+            year: _currentMonth.year,
+            onPrevMonth: () => _navigateMonth(-1),
+            onCurrentMonth: () => _navigateMonth(0),
+            onNextMonth: () => _navigateMonth(1),
+          ),
+        ),
+        // Calendar toggle button (active state)
+        IconButton(
+          onPressed: _toggleExpanded,
+          icon: const Icon(
+            Icons.calendar_view_week,
+            color: TossColors.primary,
+            size: 24,
+          ),
+          tooltip: 'Show week view',
+        ),
+      ],
+    );
+  }
+
+  /// Build empty state only (with store selector if multiple stores)
+  Widget _buildEmptyStateOnly() {
+    return Column(
+      children: [
+        // Store Selector (only if more than 1 store)
+        if (widget.stores.length > 1)
+          Container(
+            color: TossColors.white,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: TossDropdown<String>(
+              label: 'Store',
+              value: widget.selectedStoreId,
+              items: widget.stores.map((store) {
+                return TossDropdownItem<String>(
+                  value: store['store_id']?.toString() ?? '',
+                  label: store['store_name']?.toString() ?? 'Unknown',
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  widget.onStoreChanged?.call(newValue);
+                }
+              },
+            ),
+          ),
+        // Empty state content
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  color: TossColors.gray400,
+                  size: 48,
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                Text(
+                  'You have no shift',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                TextButton(
+                  onPressed: _goToShiftSignUpTab,
+                  child: Text(
+                    'Go to shift sign up',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  int _getWeekNumber() {
+    final firstDayOfYear = DateTime(_currentWeek.year, 1, 1);
+    final daysSinceFirstDay = _currentWeek.difference(firstDayOfYear).inDays;
+    return (daysSinceFirstDay / 7).ceil() + 1;
   }
 }

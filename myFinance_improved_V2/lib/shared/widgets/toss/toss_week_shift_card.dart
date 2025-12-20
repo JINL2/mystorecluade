@@ -5,12 +5,17 @@ import '../../themes/toss_border_radius.dart';
 import '../../themes/toss_spacing.dart';
 
 enum ShiftCardStatus {
-  upcoming,    // No left border
-  inProgress,  // Green left border
-  completed,   // No left border  
-  late,        // Red left border
-  onTime,      // Green badge text
-  undone,      // Gray badge text
+  upcoming,      // No left border - future shift
+  inProgress,    // Green left border - currently working
+  completed,     // No left border - completed
+  late,          // Red left border - late check-in
+  onTime,        // Green badge text - on-time
+  undone,        // Gray badge text - past but no check-in
+  absent,        // Red badge - marked as absent
+  noCheckout,    // Orange badge - no checkout recorded
+  earlyLeave,    // Orange badge - left early
+  reported,      // Orange badge - issue reported
+  resolved,      // Green badge - issue resolved
 }
 
 class TossWeekShiftCard extends StatelessWidget {
@@ -44,6 +49,16 @@ class TossWeekShiftCard extends StatelessWidget {
         return 'Late';
       case ShiftCardStatus.undone:
         return 'Undone';
+      case ShiftCardStatus.absent:
+        return 'Absent';
+      case ShiftCardStatus.noCheckout:
+        return 'No Checkout';
+      case ShiftCardStatus.earlyLeave:
+        return 'Early Leave';
+      case ShiftCardStatus.reported:
+        return 'Reported';
+      case ShiftCardStatus.resolved:
+        return 'Resolved';
       default:
         return null;
     }

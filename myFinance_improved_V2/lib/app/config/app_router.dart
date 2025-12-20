@@ -127,7 +127,7 @@ class RouterNotifier extends ChangeNotifier {
       },
     );
 
-    // ✅ NEW: Listen to userCompaniesProvider for seamless workflow transitions
+    // Listen to userCompaniesProvider for seamless workflow transitions
     // When user companies data loads, trigger router refresh to navigate appropriately
     _userCompaniesListener = _ref.listen<AsyncValue<Map<String, dynamic>?>>(
       userCompaniesProvider,
@@ -250,20 +250,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return targetPath;
         }
 
-        // Check authentication
-        final authState = ref.read(authStateProvider);
-
-        authState.when(
-          data: (user) {
-          },
-          loading: () {
-          },
-          error: (error, stack) {
-          },
-        );
-
         final isAuth = ref.read(isAuthenticatedProvider);
-
         final appState = ref.read(appStateProvider);
 
         final isOnboardingRoute = currentPath.startsWith('/onboarding');
@@ -284,7 +271,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         final userFirstName = userData['user_first_name']?.toString() ?? '';
         final hasCompletedProfile = userFirstName.isNotEmpty;
 
-
         // Redirect to auth welcome if not authenticated AND trying to access protected pages
         if (!isAuth && !isAuthRoute && !isOnboardingRoute) {
           return safeRedirect('/auth', 'Not authenticated');
@@ -295,24 +281,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return null;
         }
 
-        // ✅ NEW: Redirect to complete profile if authenticated but profile incomplete
+        // Redirect to complete profile if authenticated but profile incomplete
         // Skip if already on complete-profile page
         if (isAuth && hasUserData && !hasCompletedProfile && !isCompleteProfileRoute) {
           return safeRedirect('/auth/complete-profile', 'Profile incomplete');
         }
 
-        // ✅ Redirect authenticated users away from auth pages
+        // Redirect authenticated users away from auth pages
         if (isAuth && isAuthRoute && !isCompleteProfileRoute) {
-
           // If user has companies, go straight to home
           if (hasUserData && companyCount > 0) {
             return safeRedirect('/', 'Authenticated, has companies');
           }
 
-          // ⚠️ CRITICAL FIX: Check if AppState data is still loading
           // If AppState is empty, stay on auth page and wait for data to load
           if (!hasUserData) {
-            return null;  // Stay on current page, wait for data to load
+            return null;
           }
 
           // If user has NO companies (data loaded but empty), go to onboarding

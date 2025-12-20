@@ -1,32 +1,36 @@
 -- ============================================================================
--- 함수: manager_shift_get_cards_v5
+-- 함수: manager_shift_get_cards_v6
 -- 설명: 매니저용 시프트 카드 데이터를 조회합니다. (근무 날짜 기준)
--- 버전: 5.0 - problem_details_v2 필드 추가 (월간 문제 캘린더용)
+-- 버전: 6.0 - 중복 컬럼 제거, problem_details만 사용 (Single Source of Truth)
 -- ============================================================================
 --
--- [v5 변경사항]
--- - problem_details 필드 추가 (problem_details_v2 JSONB 전체 반환)
---   구조: {
---     "is_solved": bool,
---     "problem_count": int,
---     "has_late": bool,
---     "has_overtime": bool,
---     "has_absence": bool,
---     "has_early_leave": bool,
---     "has_no_checkout": bool,
---     "has_reported": bool,
---     "has_location_issue": bool,
---     "has_payroll_late": bool,
---     "has_payroll_overtime": bool,
---     "has_payroll_early_leave": bool,
---     "detected_at": timestamp,
---     "problems": [
---       {"type": "late", "actual_minutes": 28, "payroll_minutes": 40, "is_payroll_adjusted": false},
---       {"type": "overtime", "actual_minutes": 17, ...},
---       {"type": "no_checkout"},
---       {"type": "reported", "reason": "...", "reported_at": "...", "is_report_solved": false}
---     ]
---   }
+-- [v6 변경사항]
+-- problem_details_v2가 Single Source of Truth이므로 중복 컬럼 제거:
+--
+-- 제거된 컬럼 (problem_details에서 가져올 수 있음):
+-- - is_problem → problem_details.problem_count > 0
+-- - is_problem_solved → problem_details.is_solved
+-- - is_late → problem_details.has_late
+-- - late_minute → problem_details.problems[type='late'].actual_minutes
+-- - is_over_time → problem_details.has_overtime
+-- - over_time_minute → problem_details.problems[type='overtime'].actual_minutes
+-- - problem_type → problem_details.problems[].type
+-- - is_reported → problem_details.has_reported
+-- - report_reason → problem_details.problems[type='reported'].reason
+-- - is_reported_solved → problem_details.problems[type='reported'].is_report_solved
+-- - is_valid_checkin_location → problem_details.has_location_issue
+-- - is_valid_checkout_location → problem_details.has_location_issue
+--
+-- [유지되는 컬럼]
+-- - shift_date, shift_request_id, user_id, user_name, profile_image
+-- - shift_name, shift_time, shift_start_time, shift_end_time
+-- - is_approved
+-- - paid_hour, salary_type, salary_amount, base_pay, bonus_amount, total_pay_with_bonus
+-- - actual_start, actual_end, confirm_start_time, confirm_end_time
+-- - notice_tag, manager_memo
+-- - checkin_distance_from_store, checkout_distance_from_store (거리 값은 유지)
+-- - store_name
+-- - problem_details (Single Source of Truth)
 --
 -- [사용처]
 -- - Flutter: managerCardsProvider (time_table_manage feature)
@@ -34,7 +38,7 @@
 -- - 문제 상세 페이지에서 problem_details 표시
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION manager_shift_get_cards_v5(
+CREATE OR REPLACE FUNCTION manager_shift_get_cards_v6(
     p_company_id uuid,
     p_start_date date,
     p_end_date date,
@@ -53,11 +57,16 @@ BEGIN
                 vsr.store_name,
                 json_agg(
                     json_build_object(
+                        -- Core identification
                         'shift_date', DATE(vsr.start_time_utc AT TIME ZONE p_timezone),
                         'shift_request_id', vsr.shift_request_id,
+
+                        -- User information
                         'user_id', vsr.user_id,
                         'user_name', vsr.user_name,
                         'profile_image', vsr.profile_image,
+
+                        -- Shift information
                         'shift_name', vsr.shift_name,
                         'shift_time', CONCAT(
                             TO_CHAR(vsr.start_time_utc AT TIME ZONE p_timezone, 'HH24:MI'),
@@ -66,13 +75,11 @@ BEGIN
                         ),
                         'shift_start_time', TO_CHAR(vsr.start_time_utc AT TIME ZONE p_timezone, 'YYYY-MM-DD HH24:MI'),
                         'shift_end_time', TO_CHAR(vsr.end_time_utc AT TIME ZONE p_timezone, 'YYYY-MM-DD HH24:MI'),
+
+                        -- Approval status
                         'is_approved', vsr.is_approved,
-                        'is_problem', vsr.is_problem_v2,
-                        'is_problem_solved', vsr.is_problem_solved_v2,
-                        'is_late', vsr.is_late_v2,
-                        'late_minute', ROUND(COALESCE(vsr.late_minutes_v2, 0))::integer,
-                        'is_over_time', vsr.is_extratime_v2,
-                        'over_time_minute', COALESCE(vsr.overtime_minutes_v2, 0),
+
+                        -- Salary information
                         'paid_hour', vsr.paid_hours_v2,
                         'salary_type', COALESCE(vsr.salary_type, 'hourly'),
                         'salary_amount',
@@ -94,10 +101,14 @@ BEGIN
                                     to_char(COALESCE(vsr.total_pay_with_bonus_v2, 0), 'FM999,999,999')
                                 ELSE '0'
                             END,
+
+                        -- Time records
                         'actual_start', TO_CHAR(vsr.actual_start_time_utc AT TIME ZONE p_timezone, 'HH24:MI:SS'),
                         'actual_end', TO_CHAR(vsr.actual_end_time_utc AT TIME ZONE p_timezone, 'HH24:MI:SS'),
                         'confirm_start_time', TO_CHAR(vsr.confirm_start_time_v2 AT TIME ZONE p_timezone, 'HH24:MI'),
                         'confirm_end_time', TO_CHAR(vsr.confirm_end_time_v2 AT TIME ZONE p_timezone, 'HH24:MI'),
+
+                        -- Tags
                         'notice_tag', COALESCE(
                             (SELECT jsonb_agg(
                                 json_build_object(
@@ -119,24 +130,29 @@ BEGIN
                             ) FROM jsonb_array_elements(vsr.notice_tag_v2) AS tag),
                             '[]'::jsonb
                         ),
-                        'problem_type', vsr.problem_type_v2,
-                        'is_valid_checkin_location', vsr.is_valid_checkin_location_v2,
-                        'is_valid_checkout_location', vsr.is_valid_checkout_location_v2,
+
+                        -- Manager memo
+                        'manager_memo', COALESCE(vsr.manager_memo_v2, '[]'::jsonb),
+
+                        -- Location distances (keep values, remove validation booleans)
                         'checkin_distance_from_store', COALESCE(vsr.checkin_distance_from_store_v2, 0),
                         'checkout_distance_from_store', COALESCE(vsr.checkout_distance_from_store_v2, 0),
+
+                        -- Store name
                         'store_name', vsr.store_name,
-                        'is_reported', vsr.is_reported_v2,
-                        'is_reported_solved', vsr.is_reported_solved_v2,
-                        'report_reason', vsr.report_reason_v2,
-                        'manager_memo', COALESCE(vsr.manager_memo_v2, '[]'::jsonb),
-                        -- v5: problem_details 추가
+
+                        -- problem_details: Single Source of Truth for all problem info
                         'problem_details', COALESCE(vsr.problem_details_v2, '{}'::jsonb)
                     )
                     ORDER BY DATE(vsr.start_time_utc AT TIME ZONE p_timezone) DESC
                 ) as cards,
                 COUNT(*) as request_count,
                 COUNT(*) FILTER (WHERE vsr.is_approved = true) as approved_count,
-                COUNT(*) FILTER (WHERE vsr.is_problem_v2 = true) as problem_count
+                -- Use problem_details_v2 for problem count
+                COUNT(*) FILTER (WHERE
+                    vsr.problem_details_v2 IS NOT NULL
+                    AND (vsr.problem_details_v2->>'problem_count')::int > 0
+                ) as problem_count
             FROM v_shift_request vsr
             JOIN stores s ON vsr.store_id = s.store_id
             WHERE s.company_id = p_company_id
@@ -199,12 +215,13 @@ END;
 $$;
 
 -- 권한 부여
-GRANT EXECUTE ON FUNCTION manager_shift_get_cards_v5(uuid, date, date, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION manager_shift_get_cards_v6(uuid, date, date, uuid, text) TO authenticated;
 
 -- 코멘트 추가
-COMMENT ON FUNCTION manager_shift_get_cards_v5 IS
-'매니저용 시프트 카드 데이터 조회 (v5)
-v5 변경사항: problem_details 필드 추가 (problem_details_v2 JSONB)
-- 월간 문제 캘린더용 상세 정보 포함
-- has_late, has_overtime, has_absence 등 플래그
-- problems 배열: 각 문제의 상세 정보 (type, actual_minutes, payroll_minutes)';
+COMMENT ON FUNCTION manager_shift_get_cards_v6 IS
+'매니저용 시프트 카드 데이터 조회 (v6)
+v6 변경사항: 중복 컬럼 제거, problem_details만 사용 (Single Source of Truth)
+- 제거: is_problem, is_problem_solved, is_late, late_minute, is_over_time, over_time_minute
+- 제거: problem_type, is_reported, report_reason, is_reported_solved
+- 제거: is_valid_checkin_location, is_valid_checkout_location
+- 유지: problem_details (JSONB) - 모든 문제 정보의 Single Source of Truth';

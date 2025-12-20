@@ -75,7 +75,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
 
     if (widget.feature == null) {
       _featureName = 'Cash Control';
-      debugPrint('[CashLocation] ⚠️  No feature provided - AI Chat will not have feature_id');
       return;
     }
 
@@ -84,30 +83,20 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         final topFeature = widget.feature as TopFeature;
         _featureName = topFeature.featureName;
         _featureId = topFeature.featureId;
-        debugPrint('[CashLocation] ✅ TopFeature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Feature) {
         final feature = widget.feature as Feature;
         _featureName = feature.featureName;
         _featureId = feature.featureId;
-        debugPrint('[CashLocation] ✅ Feature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Map<String, dynamic>) {
         final featureMap = widget.feature as Map<String, dynamic>;
         _featureName = featureMap['feature_name'] as String? ?? featureMap['featureName'] as String?;
         _featureId = featureMap['feature_id'] as String? ?? featureMap['featureId'] as String?;
-        debugPrint('[CashLocation] ✅ Map extracted: $_featureName (ID: $_featureId)');
-      } else {
-        debugPrint('[CashLocation] ⚠️  Unknown feature type: ${widget.feature.runtimeType}');
       }
-    } catch (e) {
-      debugPrint('[CashLocation] ❌ Error extracting feature: $e');
+    } catch (_) {
       _featureName = 'Cash Control';
     }
 
     _featureName ??= 'Cash Control';
-
-    if (_featureId == null) {
-      debugPrint('[CashLocation] ⚠️  Feature ID is null - AI Chat will not work properly');
-    }
   }
   
   @override
@@ -392,7 +381,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       context['store_id'] = storeId;
     }
 
-    debugPrint('[CashLocation] Context for AI: $context');
     return context;
   }
 

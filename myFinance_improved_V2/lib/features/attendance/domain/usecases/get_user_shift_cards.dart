@@ -3,7 +3,8 @@ import '../repositories/attendance_repository.dart';
 
 /// Get user shift cards for the month
 ///
-/// Matches RPC: user_shift_cards_v3
+/// Matches RPC: user_shift_cards_v6
+/// v6: storeId optional - null이면 회사 전체 조회
 class GetUserShiftCards {
   final AttendanceRepository _repository;
 
@@ -13,7 +14,7 @@ class GetUserShiftCards {
     required String requestTime,
     required String userId,
     required String companyId,
-    required String storeId,
+    String? storeId,  // Optional: null이면 회사 전체
     required String timezone,
   }) {
     return _repository.getUserShiftCards(

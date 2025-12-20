@@ -5,13 +5,13 @@ import '../../themes/toss_text_styles.dart';
 import 'week_dates_picker.dart'; // For ShiftAvailabilityStatus
 
 /// Problem status for a calendar day (for colored dots)
-/// Priority: unsolvedProblem (red) > unsolvedReport (orange) > solved (green) > none
-/// Problem is more urgent than report
+/// Priority: unsolvedProblem (red) > unsolvedReport (orange) > solved (green) > hasShift (blue) > none
 enum ProblemStatus {
-  none, // No problems - no dot
+  none, // No shift - no dot
+  hasShift, // Has shift, no problems - blue dot 🔵
   solved, // All problems solved - green dot 🟢
-  unsolvedReport, // Has unsolved report - orange dot 🟠
-  unsolvedProblem, // Has unsolved problems (not report) - red dot 🔴 (highest priority)
+  unsolvedReport, // Has report (waiting) - orange dot 🟠
+  unsolvedProblem, // Has unsolved problems - red dot 🔴 (highest priority)
 }
 
 /// MonthDatesPicker - Monthly calendar for problem tracking or schedule viewing
@@ -29,8 +29,9 @@ enum ProblemStatus {
 ///   - Green dot: All solved
 ///   - No dot: No problems
 /// - Schedule tab (shiftAvailabilityMap):
-///   - Blue dot: Understaffed
-///   - Gray dot: Fully staffed
+///   - Red dot: At least one shift has 0 employees (empty)
+///   - Orange dot: All shifts have ≥1 employee but understaffed
+///   - No dot: All shifts fully staffed (no problem)
 class MonthDatesPicker extends StatelessWidget {
   final DateTime currentMonth;
   final DateTime? selectedDate;
@@ -65,52 +66,55 @@ class MonthDatesPicker extends StatelessWidget {
     final today = DateTime.now();
     final daysInMonth = _getDaysInMonth();
 
-    return Column(
-      children: [
-        // Weekday labels
-        _buildWeekdayLabels(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12), // Same as WeekDatesPicker
+      child: Column(
+        children: [
+          // Weekday labels - Same style as WeekDatesPicker
+          _buildWeekdayLabels(),
 
-        const SizedBox(height: 8),
+          const SizedBox(height: 4), // Same as WeekDatesPicker
 
-        // Calendar grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1.0,
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 0,
+          // Calendar grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              childAspectRatio: 0.85, // Adjusted for circle + dot spacing
+              mainAxisSpacing: 2,
+              crossAxisSpacing: 0,
+            ),
+            itemCount: daysInMonth.length,
+            itemBuilder: (context, index) {
+              final date = daysInMonth[index];
+              final isCurrentMonth = date.month == currentMonth.month;
+              final isSelected =
+                  selectedDate != null && _isSameDay(date, selectedDate!);
+              final isToday = _isSameDay(date, today);
+
+              // Get problem status for this date
+              final dateKey = DateFormat('yyyy-MM-dd').format(date);
+              final status = problemStatusByDate[dateKey] ?? ProblemStatus.none;
+
+              // Get shift availability for understaffed indicator
+              final normalizedDate = DateTime(date.year, date.month, date.day);
+              final availability = shiftAvailabilityMap?[normalizedDate];
+
+              return _DateCell(
+                dayNumber: date.day,
+                isCurrentMonth: isCurrentMonth,
+                isSelected: isSelected,
+                isToday: isToday,
+                useProblemStatus: _useProblemStatus,
+                status: status,
+                availabilityStatus: availability ?? ShiftAvailabilityStatus.none,
+                onTap: isCurrentMonth ? () => onDateSelected(date) : null,
+              );
+            },
           ),
-          itemCount: daysInMonth.length,
-          itemBuilder: (context, index) {
-            final date = daysInMonth[index];
-            final isCurrentMonth = date.month == currentMonth.month;
-            final isSelected =
-                selectedDate != null && _isSameDay(date, selectedDate!);
-            final isToday = _isSameDay(date, today);
-
-            // Get problem status for this date
-            final dateKey = DateFormat('yyyy-MM-dd').format(date);
-            final status = problemStatusByDate[dateKey] ?? ProblemStatus.none;
-
-            // Get shift availability for understaffed indicator
-            final normalizedDate = DateTime(date.year, date.month, date.day);
-            final availability = shiftAvailabilityMap?[normalizedDate];
-
-            return _DateCell(
-              dayNumber: date.day,
-              isCurrentMonth: isCurrentMonth,
-              isSelected: isSelected,
-              isToday: isToday,
-              useProblemStatus: _useProblemStatus,
-              status: status,
-              availabilityStatus: availability ?? ShiftAvailabilityStatus.none,
-              onTap: isCurrentMonth ? () => onDateSelected(date) : null,
-            );
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -118,24 +122,21 @@ class MonthDatesPicker extends StatelessWidget {
   Widget _buildWeekdayLabels() {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: weekdays.map((day) {
-          return SizedBox(
-            width: 40,
-            child: Center(
-              child: Text(
-                day,
-                style: TossTextStyles.labelSmall.copyWith(
-                  color: TossColors.gray500,
-                ),
+    // Use Row with spaceBetween + Expanded to match GridView column alignment
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: weekdays.map((day) {
+        return Expanded(
+          child: Center(
+            child: Text(
+              day,
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.gray500,
               ),
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -246,14 +247,14 @@ class _DateCell extends StatelessWidget {
   }
 
   /// Build dot indicator based on mode (same logic as WeekDatesPicker)
-  /// - Problems tab (useProblemStatus=true): red/orange/green for problem status
+  /// - Problems tab (useProblemStatus=true): red/orange/green/blue for problem status
   /// - Schedule tab (useProblemStatus=false): blue/gray for shift availability
   Widget _buildStatusDot() {
     final Color? dotColor;
 
     if (useProblemStatus) {
-      // Problems tab: Use problem status colors
-      // Priority: red (problem) > orange (report) > green (solved)
+      // Use problem status colors
+      // Priority: red (problem) > orange (report) > green (solved) > blue (shift)
       switch (status) {
         case ProblemStatus.unsolvedProblem:
           dotColor = TossColors.error; // 🔴 Red (highest priority)
@@ -261,18 +262,23 @@ class _DateCell extends StatelessWidget {
           dotColor = TossColors.warning; // 🟠 Orange
         case ProblemStatus.solved:
           dotColor = TossColors.success; // 🟢 Green
+        case ProblemStatus.hasShift:
+          dotColor = TossColors.primary; // 🔵 Blue - has shift, no problems
         case ProblemStatus.none:
           dotColor = null; // No dot
       }
     } else {
       // Schedule tab: Use shift availability colors
+      // Red = empty shift (0 employees), Orange = understaffed, No dot = full
       switch (availabilityStatus) {
-        case ShiftAvailabilityStatus.available:
-          dotColor = TossColors.primary; // 🔵 Blue - understaffed
+        case ShiftAvailabilityStatus.empty:
+          dotColor = TossColors.error; // 🔴 Red - at least one shift has 0 employees
+        case ShiftAvailabilityStatus.understaffed:
+          dotColor = TossColors.warning; // 🟠 Orange - all shifts have ≥1 but below target
         case ShiftAvailabilityStatus.full:
-          dotColor = TossColors.gray400; // ⚪ Gray - fully staffed
+          dotColor = null; // No dot - all shifts fully staffed (no problem)
         case ShiftAvailabilityStatus.none:
-          dotColor = null; // No dot
+          dotColor = null; // No dot - no shifts configured
       }
     }
 

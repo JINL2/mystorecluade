@@ -16,6 +16,7 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/store_shift.dart';
 import '../providers/store_shift_providers.dart';
+import '../widgets/business_hours_section.dart';
 import '../widgets/qr_code_section.dart';
 import '../widgets/shift_list_item.dart';
 import '../widgets/store_config_section.dart';
@@ -243,6 +244,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                     children: [
                       // Store Info Card
                       StoreInfoCard(store: store),
+                      const SizedBox(height: TossSpacing.space4),
+
+                      // Business Hours Section
+                      BusinessHoursSection(
+                        storeId: appState.storeChoosen,
+                      ),
                       const SizedBox(height: TossSpacing.space4),
 
                       // Store Configuration

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -31,9 +32,12 @@ class ReportIssueDialog {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
-              child: Container(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space5,
+                vertical: TossSpacing.space6,
+              ),
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(TossSpacing.space5),
-                width: MediaQuery.of(context).size.width * 0.9,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,6 +224,8 @@ class ReportIssueDialog {
       final success = await reportShiftIssue(
         shiftRequestId: shiftRequestId,
         reportReason: reason,
+        time: DateTimeUtils.toLocalWithOffset(DateTime.now()),
+        timezone: DateTimeUtils.getLocalTimezone(),
       );
 
       if (!success) {

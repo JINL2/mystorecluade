@@ -35,12 +35,12 @@ abstract class AttendanceRepository {
 
   /// Get user shift cards for a month
   ///
-  /// Matches RPC: user_shift_cards_v4
+  /// Matches RPC: user_shift_cards_v6
   ///
   /// [requestTime] - Local timestamp (e.g., "2025-12-15 10:00:00") - no timezone offset
   /// [userId] - User ID
   /// [companyId] - Company ID
-  /// [storeId] - Store ID
+  /// [storeId] - Store ID (Optional - null이면 회사 전체 조회)
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
   /// Returns list of ShiftCard filtered by start_time_utc (actual shift date)
@@ -48,7 +48,7 @@ abstract class AttendanceRepository {
     required String requestTime,
     required String userId,
     required String companyId,
-    required String storeId,
+    String? storeId,  // Optional: null이면 회사 전체
     required String timezone,
   });
 

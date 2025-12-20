@@ -52,7 +52,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String requestTime,
     required String userId,
     required String companyId,
-    required String storeId,
+    String? storeId,  // Optional: null이면 회사 전체
     required String timezone,
   }) async {
     final jsonList = await _datasource.getUserShiftCards(

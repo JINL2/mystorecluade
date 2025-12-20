@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 // Use feature-level providers (Clean Architecture compliant)
 import '../providers/journal_input_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -213,11 +214,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         });
       }
     } catch (e, stackTrace) {
-      // Log error for debugging
-      debugPrint('Error loading counterparty details: $e');
-      debugPrint('StackTrace: $stackTrace');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AddTransaction: Failed to load counterparty details',
+        extra: {'counterpartyId': _selectedCounterpartyId},
+      );
 
-      // Optional: Show user-friendly error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -231,13 +234,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   }
   
   Future<void> _checkAccountMapping() async {
-    debugPrint('🔍 _checkAccountMapping START: accountId=$_selectedAccountId, counterpartyId=$_selectedCounterpartyId, isInternal=$_isInternal, categoryTag=$_selectedCategoryTag');
-
     if (_selectedAccountId == null ||
         _selectedCounterpartyId == null ||
         !_isInternal ||
         (_selectedCategoryTag != 'payable' && _selectedCategoryTag != 'receivable')) {
-      debugPrint('⚠️ _checkAccountMapping SKIPPED - conditions not met');
       setState(() {
         _accountMapping = null;
         _mappingError = null;
@@ -245,7 +245,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       return;
     }
 
-    debugPrint('✅ _checkAccountMapping - conditions met, proceeding...');
     setState(() {
       _mappingError = null;
     });
@@ -253,14 +252,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     try {
       final appState = ref.read(appStateProvider);
       final checkMapping = ref.read(checkAccountMappingProvider);
-      debugPrint('🔍 Checking mapping: company=${appState.companyChoosen}, counterparty=$_selectedCounterpartyId, account=$_selectedAccountId');
       final mapping = await checkMapping(
         appState.companyChoosen,
         _selectedCounterpartyId!,
         _selectedAccountId!,
       );
 
-      debugPrint('🔍 Mapping result: $mapping');
       setState(() {
         _accountMapping = mapping;
         if (mapping == null) {
@@ -269,8 +266,15 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         }
       });
     } catch (e, stackTrace) {
-      debugPrint('❌ _checkAccountMapping ERROR: $e');
-      debugPrint('Stack trace: $stackTrace');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AddTransaction: Failed to check account mapping',
+        extra: {
+          'accountId': _selectedAccountId,
+          'counterpartyId': _selectedCounterpartyId,
+        },
+      );
       setState(() {
         _mappingError = 'Error checking account mapping';
       });
@@ -760,10 +764,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       const SizedBox(height: 20),
                       AutonomousCashLocationSelector(
                         selectedLocationId: _selectedCashLocationId,
-                        // ✅ NEW: Type-safe callback - No Provider re-fetch needed!
                         onCashLocationSelected: (cashLocation) {
-                          debugPrint('🎯 Cash location selected: ${cashLocation.name} (${cashLocation.id})');
-
                           setState(() {
                             _selectedCashLocationId = cashLocation.id;
                             _selectedCashLocationName = cashLocation.name;
@@ -807,15 +808,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         builder: (context, ref, child) {
                           return AutonomousCounterpartySelector(
                             selectedCounterpartyId: _selectedCounterpartyId,
-                            // ✅ NEW: Type-safe callback - No async/await needed!
                             onCounterpartySelected: (counterparty) {
-                              debugPrint('🎯 Counterparty selected: ${counterparty.name} (${counterparty.id})');
-
                               setState(() {
                                 _selectedCounterpartyId = counterparty.id;
                                 _selectedCounterpartyName = counterparty.name;
                                 _isInternal = counterparty.isInternal;
-                                // ✅ Type-safe accessor
                                 _linkedCompanyId = counterparty.linkedCompanyId;
 
                                 // Reset dependent fields
@@ -824,7 +821,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                 _selectedCounterpartyCashLocationId = null;
                               });
 
-                              debugPrint('🔍 Calling _checkAccountMapping...');
                               _checkAccountMapping();
                             },
                             // ✅ Legacy callback for null case
@@ -1013,13 +1009,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       if (_linkedCompanyId != null) ...[
                         const SizedBox(height: 20),
                         AutonomousCashLocationSelector(
-                          companyId: _linkedCompanyId, // Use the counterparty's company ID
-                          storeId: _selectedCounterpartyStoreId, // Use the counterparty's store ID if available
+                          companyId: _linkedCompanyId,
+                          storeId: _selectedCounterpartyStoreId,
                           selectedLocationId: _selectedCounterpartyCashLocationId,
-                          // ✅ NEW: Type-safe callback
                           onCashLocationSelected: (cashLocation) {
-                            debugPrint('🎯 Counterparty cash location selected: ${cashLocation.name} (${cashLocation.id})');
-
                             setState(() {
                               _selectedCounterpartyCashLocationId = cashLocation.id;
                               _selectedCounterpartyCashLocationName = cashLocation.name;

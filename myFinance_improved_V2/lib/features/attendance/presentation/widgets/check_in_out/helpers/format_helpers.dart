@@ -201,4 +201,12 @@ class FormatHelpers {
     if (month < 1 || month > 12) return '';
     return months[month - 1];
   }
+
+  /// Format date with weekday name
+  /// e.g., "Mon, Dec 15 2025"
+  static String formatDateWithDay(DateTime date) {
+    final weekday = getWeekdayShort(date.weekday);
+    final month = getMonthName(date.month);
+    return '$weekday, ${month.substring(0, 3)} ${date.day} ${date.year}';
+  }
 }

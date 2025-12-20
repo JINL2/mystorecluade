@@ -2,6 +2,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../core/constants.dart';
 import '../../domain/entities/stock_flow.dart';
 import '../../domain/usecases/get_stock_flows_usecase.dart';
@@ -92,7 +93,17 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
       } else {
         safeSetState(updateErrorState('Failed to load stock flows'));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEnding: Failed to load stock flows',
+        extra: {
+          'locationId': locationId,
+          'loadMore': loadMore,
+          'offset': state.flowsOffset,
+        },
+      );
       safeSetState(updateErrorState(e.toString()));
     }
   }

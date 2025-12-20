@@ -94,6 +94,7 @@ class _ScheduleWeekViewState extends State<ScheduleWeekView> {
   Widget build(BuildContext context) {
     return Column(
       key: const ValueKey('week'),
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Week Navigation (fixed at top)
@@ -105,10 +106,10 @@ class _ScheduleWeekViewState extends State<ScheduleWeekView> {
           onCurrentWeek: () => widget.onNavigate(0),
           onNextWeek: () => widget.onNavigate(1),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
-        // Shift List (scrollable)
-        Expanded(
+        // Shift List (scrollable) - use Flexible to prevent overflow
+        Flexible(
           child: widget.shifts.isEmpty
               ? const Center(
                   child: Text('No shifts this week'),
@@ -116,6 +117,7 @@ class _ScheduleWeekViewState extends State<ScheduleWeekView> {
               : ListView.builder(
                   controller: _scrollController,
                   padding: EdgeInsets.zero,
+                  physics: const ClampingScrollPhysics(),
                   itemCount: widget.shifts.length,
                   itemBuilder: (context, index) => widget.shifts[index],
                 ),

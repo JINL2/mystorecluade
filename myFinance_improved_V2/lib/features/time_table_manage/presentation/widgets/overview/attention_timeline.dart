@@ -8,19 +8,19 @@ import 'attention_card.dart';
 /// Summary of attention items for a single date
 class DateAttentionSummary {
   final DateTime date;
-  final int understaffedCount; // Blue dots (shift-level)
-  final int problemCount; // Red dots (staff-level)
+  final int scheduleCount; // Schedule issues (shift-level: empty or understaffed)
+  final int problemCount; // Red dots (staff-level problems)
   final List<AttentionItemData> items;
 
   const DateAttentionSummary({
     required this.date,
-    required this.understaffedCount,
+    required this.scheduleCount,
     required this.problemCount,
     required this.items,
   });
 
   /// Total count of all attention items
-  int get totalCount => understaffedCount + problemCount;
+  int get totalCount => scheduleCount + problemCount;
 
   /// Check if this date has any attention items
   bool get hasItems => totalCount > 0;
@@ -29,7 +29,9 @@ class DateAttentionSummary {
 /// Attention Timeline Widget
 ///
 /// Displays a 5-day timeline showing attention items grouped by date.
-/// - Blue dots: Understaffed shifts (tap → Schedule tab)
+/// - Schedule dots: Empty/Understaffed shifts (tap → Schedule tab)
+///   - Red: At least one shift has 0 employees
+///   - Orange: All shifts have ≥1 but understaffed
 /// - Red dots: Staff problems (tap → Problems tab)
 class AttentionTimeline extends StatelessWidget {
   /// All attention items (will be grouped by date internally)
@@ -41,8 +43,12 @@ class AttentionTimeline extends StatelessWidget {
   /// Number of days to show (default: 5)
   final int visibleDays;
 
-  /// Callback when a blue dot (understaffed) is tapped
-  final void Function(DateTime date)? onUnderstaffedTap;
+  /// Pre-computed problem shift count (from problemStatusProvider)
+  /// If provided, uses this instead of recalculating from items
+  final int? precomputedProblemCount;
+
+  /// Callback when a schedule dot (empty/understaffed) is tapped
+  final void Function(DateTime date)? onScheduleTap;
 
   /// Callback when a red dot (problem) is tapped
   final void Function(DateTime date)? onProblemTap;
@@ -61,7 +67,8 @@ class AttentionTimeline extends StatelessWidget {
     required this.items,
     required this.centerDate,
     this.visibleDays = 5,
-    this.onUnderstaffedTap,
+    this.precomputedProblemCount,
+    this.onScheduleTap,
     this.onProblemTap,
     this.onDateTap,
     this.onPrevious,
@@ -69,6 +76,10 @@ class AttentionTimeline extends StatelessWidget {
   });
 
   /// Group items by date and calculate summaries
+  ///
+  /// IMPORTANT: problemCount is calculated per SHIFT (using shiftRequestId),
+  /// not per individual problem item. This ensures consistency with Problems tab.
+  /// e.g., 1 shift with Late + Reported = 1 problem (not 2)
   Map<DateTime, DateAttentionSummary> _groupItemsByDate() {
     final Map<DateTime, List<AttentionItemData>> grouped = {};
 
@@ -84,14 +95,21 @@ class AttentionTimeline extends StatelessWidget {
 
     final Map<DateTime, DateAttentionSummary> summaries = {};
     for (final entry in grouped.entries) {
-      final understaffedCount =
+      // Schedule issues (shift-level): empty or understaffed shifts
+      final scheduleCount =
           entry.value.where((item) => item.isShiftProblem).length;
-      final problemCount =
-          entry.value.where((item) => !item.isShiftProblem).length;
+
+      // Count problems per SHIFT (not per problem item)
+      // Use shiftRequestId to deduplicate - 1 shift = 1 problem unit
+      final uniqueProblemShifts = entry.value
+          .where((item) => !item.isShiftProblem && item.shiftRequestId != null)
+          .map((item) => item.shiftRequestId!)
+          .toSet();
+      final problemCount = uniqueProblemShifts.length;
 
       summaries[entry.key] = DateAttentionSummary(
         date: entry.key,
-        understaffedCount: understaffedCount,
+        scheduleCount: scheduleCount,
         problemCount: problemCount,
         items: entry.value,
       );
@@ -116,25 +134,27 @@ class AttentionTimeline extends StatelessWidget {
     return dates;
   }
 
-  /// Count items before visible range
+  /// Count items before visible range (shift-based for problems)
   int _countItemsBefore(
       Map<DateTime, DateAttentionSummary> summaries, DateTime firstVisible) {
     int count = 0;
     for (final entry in summaries.entries) {
       if (entry.key.isBefore(firstVisible)) {
-        count += entry.value.totalCount;
+        // scheduleCount + problemCount (already shift-based from _groupItemsByDate)
+        count += entry.value.scheduleCount + entry.value.problemCount;
       }
     }
     return count;
   }
 
-  /// Count items after visible range
+  /// Count items after visible range (shift-based for problems)
   int _countItemsAfter(
       Map<DateTime, DateAttentionSummary> summaries, DateTime lastVisible) {
     int count = 0;
     for (final entry in summaries.entries) {
       if (entry.key.isAfter(lastVisible)) {
-        count += entry.value.totalCount;
+        // scheduleCount + problemCount (already shift-based from _groupItemsByDate)
+        count += entry.value.scheduleCount + entry.value.problemCount;
       }
     }
     return count;
@@ -145,9 +165,21 @@ class AttentionTimeline extends StatelessWidget {
     final summaries = _groupItemsByDate();
     final visibleDates = _getVisibleDates();
 
-    // Calculate total understaffed and problem counts
-    final totalUnderstaffed = items.where((item) => item.isShiftProblem).length;
-    final totalProblem = items.where((item) => !item.isShiftProblem).length;
+    // Calculate total schedule issues count (empty/understaffed shifts)
+    final totalSchedule = items.where((item) => item.isShiftProblem).length;
+
+    // Total problems: use precomputed count if available (from problemStatusProvider)
+    // Otherwise calculate per SHIFT (using shiftRequestId) - 1 shift = 1 unit
+    final int totalProblem;
+    if (precomputedProblemCount != null) {
+      totalProblem = precomputedProblemCount!;
+    } else {
+      final uniqueProblemShifts = items
+          .where((item) => !item.isShiftProblem && item.shiftRequestId != null)
+          .map((item) => item.shiftRequestId!)
+          .toSet();
+      totalProblem = uniqueProblemShifts.length;
+    }
 
     final beforeCount = _countItemsBefore(summaries, visibleDates.first);
     final afterCount = _countItemsAfter(summaries, visibleDates.last);
@@ -155,7 +187,7 @@ class AttentionTimeline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with split badges (blue for understaffed, red for problems)
+        // Header with split badges (schedule issues + problems)
         Row(
           children: [
             Text(
@@ -165,19 +197,19 @@ class AttentionTimeline extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            // Blue badge for understaffed
-            if (totalUnderstaffed > 0) ...[
+            // Orange badge for schedule issues (empty/understaffed)
+            if (totalSchedule > 0) ...[
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '$totalUnderstaffed',
+                  '$totalSchedule',
                   style: TossTextStyles.labelSmall.copyWith(
-                    color: TossColors.primary,
+                    color: TossColors.warning,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -196,6 +228,24 @@ class AttentionTimeline extends StatelessWidget {
                   '$totalProblem',
                   style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            // Show "All clear" badge when no issues
+            if (totalSchedule == 0 && totalProblem == 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: TossColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'All clear',
+                  style: TossTextStyles.labelSmall.copyWith(
+                    color: TossColors.success,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -228,9 +278,9 @@ class AttentionTimeline extends StatelessWidget {
                     summary: summary,
                     isToday: _isSameDay(date, DateTime.now()),
                     onDateTap: () => onDateTap?.call(date, hasProblem),
-                    onUnderstaffedTap:
-                        summary != null && summary.understaffedCount > 0
-                            ? () => onUnderstaffedTap?.call(date)
+                    onScheduleTap:
+                        summary != null && summary.scheduleCount > 0
+                            ? () => onScheduleTap?.call(date)
                             : null,
                     onProblemTap: hasProblem
                         ? () => onProblemTap?.call(date)
@@ -262,8 +312,8 @@ class AttentionTimeline extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _LegendItem(
-          color: TossColors.primary,
-          label: 'Understaffed',
+          color: TossColors.warning,
+          label: 'Schedule',
         ),
         const SizedBox(width: TossSpacing.space4),
         _LegendItem(
@@ -285,7 +335,7 @@ class _TimelineDate extends StatelessWidget {
   final DateAttentionSummary? summary;
   final bool isToday;
   final VoidCallback? onDateTap;
-  final VoidCallback? onUnderstaffedTap;
+  final VoidCallback? onScheduleTap;
   final VoidCallback? onProblemTap;
 
   const _TimelineDate({
@@ -293,7 +343,7 @@ class _TimelineDate extends StatelessWidget {
     this.summary,
     required this.isToday,
     this.onDateTap,
-    this.onUnderstaffedTap,
+    this.onScheduleTap,
     this.onProblemTap,
   });
 
@@ -351,50 +401,56 @@ class _TimelineDate extends StatelessWidget {
 
         const SizedBox(height: 4),
 
-        // Dots row
-        if (hasItems) ...[
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Blue dots (understaffed)
-              if (summary!.understaffedCount > 0)
-                GestureDetector(
-                  onTap: onUnderstaffedTap,
-                  child: _DotIndicator(
-                    color: TossColors.primary,
-                    count: summary!.understaffedCount,
-                  ),
-                ),
+        // Dots row - Fixed height container for consistent alignment
+        SizedBox(
+          height: 32, // Fixed height: dots(8) + spacing(4) + text(~18) + padding
+          child: hasItems
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Orange dots (schedule issues: empty/understaffed)
+                        if (summary!.scheduleCount > 0)
+                          GestureDetector(
+                            onTap: onScheduleTap,
+                            child: _DotIndicator(
+                              color: TossColors.warning,
+                              count: summary!.scheduleCount,
+                            ),
+                          ),
 
-              if (summary!.understaffedCount > 0 && summary!.problemCount > 0)
-                const SizedBox(width: 4),
+                        if (summary!.scheduleCount > 0 &&
+                            summary!.problemCount > 0)
+                          const SizedBox(width: 4),
 
-              // Red dots (problems)
-              if (summary!.problemCount > 0)
-                GestureDetector(
-                  onTap: onProblemTap,
-                  child: _DotIndicator(
-                    color: TossColors.error,
-                    count: summary!.problemCount,
-                  ),
-                ),
-            ],
-          ),
+                        // Red dots (problems)
+                        if (summary!.problemCount > 0)
+                          GestureDetector(
+                            onTap: onProblemTap,
+                            child: _DotIndicator(
+                              color: TossColors.error,
+                              count: summary!.problemCount,
+                            ),
+                          ),
+                      ],
+                    ),
 
-          const SizedBox(height: 4),
+                    const SizedBox(height: 4),
 
-          // Total count
-          Text(
-            '(${summary!.totalCount})',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-              fontSize: 10,
-            ),
-          ),
-        ] else ...[
-          // Empty placeholder for alignment
-          const SizedBox(height: 24),
-        ],
+                    // Total count
+                    Text(
+                      '(${summary!.totalCount})',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                )
+              : null, // Empty - just takes up fixed height
+        ),
       ],
     );
   }

@@ -1,3 +1,4 @@
+import '../../domain/entities/business_hours.dart';
 import '../../domain/entities/store_shift.dart';
 import '../../domain/repositories/store_shift_repository.dart';
 import '../datasources/store_shift_data_source.dart';
@@ -136,5 +137,32 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
       paymentTime: paymentTime,
       allowedDistance: allowedDistance,
     );
+  }
+
+  /// ========================================
+  /// Business Hours Operations
+  /// ========================================
+
+  @override
+  Future<List<BusinessHours>> getBusinessHours(String storeId) async {
+    final hoursData = await _dataSource.getBusinessHours(storeId);
+
+    return hoursData.map((json) => BusinessHours.fromJson(json)).toList();
+  }
+
+  @override
+  Future<bool> updateBusinessHours({
+    required String storeId,
+    required List<BusinessHours> hours,
+  }) async {
+    // Convert BusinessHours entities to JSON
+    final hoursJson = hours.map((h) => h.toJson()).toList();
+
+    final success = await _dataSource.upsertBusinessHours(
+      storeId: storeId,
+      hours: hoursJson,
+    );
+
+    return success;
   }
 }

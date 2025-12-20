@@ -1,5 +1,7 @@
 // lib/core/monitoring/sentry_config.dart
 
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -7,9 +9,16 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 ///
 /// Centralized configuration for error tracking and monitoring.
 /// Uses Sentry for production error logging.
+///
+/// Production: Errors sent to Sentry with user context
+/// Development: Errors logged locally via dart:developer
 class SentryConfig {
-  // ✅ Sentry DSN - Production & Development
-  static const String _dsn = 'https://07462c1d1ae9f1a85a4480d7905b4bc4@o4510344916107264.ingest.us.sentry.io/4510344917024768';
+  // Sentry DSN
+  static const String _dsn =
+      'https://07462c1d1ae9f1a85a4480d7905b4bc4@o4510344916107264.ingest.us.sentry.io/4510344917024768';
+
+  // Logging tag for development
+  static const String _logName = 'Sentry';
 
   /// Initialize Sentry
   ///
@@ -23,67 +32,78 @@ class SentryConfig {
         options.environment = kReleaseMode ? 'production' : 'development';
 
         // Performance Monitoring
-        options.tracesSampleRate = 1.0;  // 100% of transactions
+        // Production: 20% sampling to reduce costs
+        // Development: 100% for full visibility
+        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
 
         // Release & Distribution
-        options.release = 'myfinance@1.0.0+1';  // Match pubspec.yaml version
+        options.release = 'myfinance@1.0.0+1'; // Match pubspec.yaml version
         options.dist = '1';
 
-        // Debug
+        // Debug mode only in development
         options.debug = kDebugMode;
 
-        // ✅ Filter sensitive data
+        // Filter sensitive data
         options.beforeSend = _beforeSend;
         options.beforeBreadcrumb = _beforeBreadcrumb;
 
-        // ✅ Attach screenshots on errors (mobile only)
+        // Attach screenshots on errors (mobile only)
         options.attachScreenshot = true;
         options.screenshotQuality = SentryScreenshotQuality.low;
 
-        // ✅ Max breadcrumbs
+        // Max breadcrumbs
         options.maxBreadcrumbs = 100;
+
+        // Reduce noise from known issues
+        options.enableAutoSessionTracking = true;
+        options.attachThreads = true;
       },
       appRunner: appRunner,
     );
+
+    _log('Sentry initialized (${kReleaseMode ? "production" : "development"})');
   }
 
   /// Filter sensitive data before sending to Sentry
   static SentryEvent? _beforeSend(SentryEvent event, Hint hint) {
-    // ✅ Ignore widget inspector errors (nested error reporting)
+    // Ignore widget inspector errors (nested error reporting)
     final exception = event.throwable;
     if (exception is AssertionError) {
       final message = exception.message?.toString() ?? '';
-      if (message.contains('Looking up a deactivated widget\'s ancestor is unsafe') ||
+      if (message.contains('Looking up a deactivated widget') ||
           message.contains('_debugCheckStateIsActiveForAncestorLookup')) {
-        // This is a widget lifecycle error during error reporting - ignore it
         return null;
       }
     }
 
-    // ✅ Mask email addresses
+    // Mask email addresses
     if (event.user?.email != null) {
       final email = event.user!.email!;
-      final parts = email.split('@');
-      if (parts.length == 2) {
+      final atIndex = email.indexOf('@');
+      if (atIndex > 0) {
         event = event.copyWith(
           user: event.user?.copyWith(
-            email: '***@${parts[1]}',  // user@example.com → ***@example.com
+            email: '***${email.substring(atIndex)}',
           ),
         );
       }
     }
 
-    // ✅ Remove sensitive tags
-    final filteredTags = event.tags?.map((key, value) {
-      if (key.toLowerCase().contains('password') ||
-          key.toLowerCase().contains('token') ||
-          key.toLowerCase().contains('secret')) {
-        return MapEntry(key, '***REDACTED***');
+    // Remove sensitive tags
+    final tags = event.tags;
+    if (tags != null && tags.isNotEmpty) {
+      final filteredTags = <String, String>{};
+      for (final entry in tags.entries) {
+        final keyLower = entry.key.toLowerCase();
+        if (keyLower.contains('password') ||
+            keyLower.contains('token') ||
+            keyLower.contains('secret') ||
+            keyLower.contains('api_key')) {
+          filteredTags[entry.key] = '***REDACTED***';
+        } else {
+          filteredTags[entry.key] = entry.value;
+        }
       }
-      return MapEntry(key, value);
-    });
-
-    if (filteredTags != null) {
       event = event.copyWith(tags: filteredTags);
     }
 
@@ -93,17 +113,27 @@ class SentryConfig {
   /// Filter breadcrumbs before sending
   static Breadcrumb? _beforeBreadcrumb(Breadcrumb? breadcrumb, Hint? hint) {
     if (breadcrumb == null) return null;
-    // ✅ Don't log navigation breadcrumbs with sensitive data
-    if (breadcrumb.category == 'navigation' &&
-        breadcrumb.data?.containsKey('from') == true) {
-      final from = breadcrumb.data!['from'] as String?;
-      if (from?.contains('password') == true ||
-          from?.contains('token') == true) {
-        return null;  // Skip this breadcrumb
+
+    // Skip navigation breadcrumbs with sensitive routes
+    if (breadcrumb.category == 'navigation') {
+      final from = breadcrumb.data?['from'] as String?;
+      final to = breadcrumb.data?['to'] as String?;
+      if (_containsSensitiveRoute(from) || _containsSensitiveRoute(to)) {
+        return null;
       }
     }
 
     return breadcrumb;
+  }
+
+  /// Check if route contains sensitive keywords
+  static bool _containsSensitiveRoute(String? route) {
+    if (route == null) return false;
+    final lower = route.toLowerCase();
+    return lower.contains('password') ||
+        lower.contains('token') ||
+        lower.contains('secret') ||
+        lower.contains('otp');
   }
 
   /// Capture exception manually
@@ -116,13 +146,14 @@ class SentryConfig {
     Map<String, dynamic>? extra,
     SentryLevel level = SentryLevel.error,
   }) async {
-    if (!kReleaseMode) {
-      // In debug mode, just print
-      debugPrint('🚨 [Sentry Debug] $exception');
-      debugPrint('Hint: $hint');
-      if (extra != null) debugPrint('Extra: $extra');
-      return;
-    }
+    // Always log locally for debugging
+    _log(
+      'Exception: $exception',
+      error: exception,
+      stackTrace: stackTrace is StackTrace ? stackTrace : null,
+    );
+
+    if (!kReleaseMode) return;
 
     await Sentry.captureException(
       exception,
@@ -142,16 +173,14 @@ class SentryConfig {
     SentryLevel level = SentryLevel.info,
     Map<String, dynamic>? extra,
   }) async {
-    if (!kReleaseMode) {
-      debugPrint('📝 [Sentry Debug] $message');
-      if (extra != null) debugPrint('Extra: $extra');
-      return;
-    }
+    _log('Message [$level]: $message');
+
+    if (!kReleaseMode) return;
 
     await Sentry.captureMessage(
       message,
       level: level,
-      hint: Hint.withMap(extra ?? {}),
+      hint: extra != null ? Hint.withMap(extra) : null,
     );
   }
 
@@ -164,20 +193,22 @@ class SentryConfig {
     Map<String, dynamic>? data,
     SentryLevel level = SentryLevel.info,
   }) {
-    if (!kReleaseMode) {
-      debugPrint('🍞 [Breadcrumb] $category: $message');
-      return;
+    // In development, only log important breadcrumbs
+    if (!kReleaseMode && level.ordinal >= SentryLevel.warning.ordinal) {
+      _log('Breadcrumb: $message', category: category);
     }
 
-    Sentry.addBreadcrumb(
-      Breadcrumb(
-        message: message,
-        category: category,
-        data: data,
-        level: level,
-        timestamp: DateTime.now(),
-      ),
-    );
+    if (kReleaseMode) {
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: message,
+          category: category,
+          data: data,
+          level: level,
+          timestamp: DateTime.now(),
+        ),
+      );
+    }
   }
 
   /// Set user context
@@ -189,10 +220,9 @@ class SentryConfig {
     String? username,
     Map<String, dynamic>? extras,
   }) {
-    if (!kReleaseMode) {
-      debugPrint('👤 [Sentry User] $id - $email');
-      return;
-    }
+    _log('User set: $id');
+
+    if (!kReleaseMode) return;
 
     Sentry.configureScope((scope) {
       scope.setUser(
@@ -210,10 +240,9 @@ class SentryConfig {
   ///
   /// Call this after logout.
   static void clearUser() {
-    if (!kReleaseMode) {
-      debugPrint('👤 [Sentry User] Cleared');
-      return;
-    }
+    _log('User cleared');
+
+    if (!kReleaseMode) return;
 
     Sentry.configureScope((scope) {
       scope.setUser(null);
@@ -224,13 +253,30 @@ class SentryConfig {
   ///
   /// Add additional debug context.
   static void setContext(String key, Map<String, dynamic> context) {
-    if (!kReleaseMode) {
-      debugPrint('🔧 [Sentry Context] $key: $context');
-      return;
-    }
+    if (!kReleaseMode) return;
 
     Sentry.configureScope((scope) {
       scope.setContexts(key, context);
     });
+  }
+
+  /// Internal logging using dart:developer
+  ///
+  /// Uses structured logging instead of debugPrint for better performance.
+  /// Only logs in debug mode, completely compiled out in release.
+  static void _log(
+    String message, {
+    String? category,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: category != null ? '$_logName:$category' : _logName,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 }

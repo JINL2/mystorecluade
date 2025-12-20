@@ -57,7 +57,7 @@ class TimesheetsTab extends ConsumerStatefulWidget {
 }
 
 class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
-  String? selectedFilter = 'today'; // 'today', 'this_week', 'this_month'
+  String? selectedFilter = 'this_month'; // 'today', 'this_week', 'this_month' - default to this_month for consistency with Overview
   bool _isExpanded = false; // Toggle between week and month view
 
   @override
@@ -236,15 +236,15 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         date.isBefore(weekEnd.add(const Duration(days: 1)));
   }
 
-  /// Get problems from real data using problem_details_v2 (or fallback to legacy fields)
-  /// Uses manager_shift_get_cards_v5 + get_monthly_shift_status_manager_v4
+  /// Get problems from real data using problem_details (Single Source of Truth)
+  /// Uses manager_shift_get_cards_v6 + get_monthly_shift_status_manager_v4
   /// Optimized: Uses cached consecutiveEndTimeMap from problemStatusProvider
   List<AttendanceProblem> _getProblemsFromRealData() {
     if (widget.selectedStoreId == null) return [];
 
     final List<AttendanceProblem> problems = [];
 
-    // 1. Get problems from manager_shift_get_cards_v5 (approved cards only)
+    // 1. Get problems from manager_shift_get_cards_v6 (approved cards only)
     final managerCardsState = ref.watch(managerCardsProvider(widget.selectedStoreId!));
     final allCards = managerCardsState.dataByMonth.values
         .expand((managerCards) => managerCards.cards)
@@ -316,6 +316,11 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
       // Only add if there are unsolved problems
       if (problemTypes.isNotEmpty) {
+        // Extract values from problem_details_v2 (no legacy fields)
+        final hasLate = problemTypes.contains(ProblemType.late);
+        final hasOvertime = problemTypes.contains(ProblemType.overtime);
+        final hasReported = problemTypes.contains(ProblemType.reported);
+
         problems.add(AttendanceProblem(
           id: card.shiftRequestId,
           type: problemTypes.first,
@@ -329,15 +334,16 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           shiftRequestId: card.shiftRequestId,
           clockIn: clockInStr,
           clockOut: clockOutStr,
-          isLate: card.isLate,
-          isOvertime: card.isOverTime,
+          // Use problem_details_v2 instead of legacy fields
+          isLate: hasLate,
+          isOvertime: hasOvertime,
           isConfirmed: isConfirmed,
           actualStart: card.actualStartRaw,
           actualEnd: card.actualEndRaw,
           confirmStartTime: card.confirmedStartRaw,
           confirmEndTime: card.confirmedEndRaw,
-          isReported: card.isReported,
-          reportReason: reportReason ?? card.reportReason,
+          isReported: hasReported,
+          reportReason: reportReason,
           isProblemSolved: pd.isSolved,
           bonusAmount: card.bonusAmount ?? 0.0,
           salaryType: card.salaryType,
@@ -345,8 +351,8 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           basePay: card.basePay,
           totalPayWithBonus: card.totalPayWithBonus,
           paidHour: card.paidHour,
-          lateMinute: lateMinutes ?? card.lateMinute,
-          overtimeMinute: overtimeMinutes ?? card.overTimeMinute,
+          lateMinute: lateMinutes ?? 0,
+          overtimeMinute: overtimeMinutes ?? 0,
           shiftEndTime: shiftEndTime,
           // v5: Pass problemDetails for StaffTimeRecord
           problemDetails: pd,
@@ -362,6 +368,15 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
   }
 
   /// Filter problems by selected time range
+  ///
+  /// IMPORTANT: All filters are based on ACTUAL today, not selected calendar date.
+  /// - "Today" → Always DateTime.now() (actual today)
+  /// - "This Week" → Always current week (Mon-Sun containing today)
+  /// - "This Month" → Always current month (containing today)
+  /// - "All" → Shows all problems in focusedMonth (for calendar navigation)
+  ///
+  /// Calendar selection does NOT affect filter results.
+  /// This ensures badge counts match list contents.
   List<AttendanceProblem> _getFilteredProblems(String filter) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -372,14 +387,18 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
       switch (filter) {
         case 'today':
+          // Always use actual today, NOT selected calendar date
           return problemDate.isAtSameMomentAs(today);
         case 'this_week':
+          // Always use current week (containing today), NOT selected date's week
           final weekStart = _getWeekStart(now);
           final weekEnd = weekStart.add(const Duration(days: 6));
           return problemDate.isAfter(weekStart.subtract(const Duration(days: 1))) &&
               problemDate.isBefore(weekEnd.add(const Duration(days: 1)));
         case 'this_month':
-          return problemDate.year == now.year && problemDate.month == now.month;
+          // Always use current month (containing today), NOT focusedMonth
+          return problemDate.year == now.year &&
+              problemDate.month == now.month;
         default:
           return true;
       }
@@ -461,10 +480,10 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
       // Determine availability status
       if (totalRequired > totalApproved) {
-        // Understaffed - blue dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+        // Understaffed - has open slots
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.understaffed;
       } else {
-        // Fully staffed - gray dot
+        // Fully staffed - no dot
         availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
       }
     }
@@ -546,16 +565,21 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         final clockOutRaw = detailedCard?.actualEndRaw ?? detailedCard?.confirmedEndRaw;
         final clockOutStr = _formatTimeFromString(clockOutRaw);
 
-        // Get isLate and isOverTime from detailed card
-        final isLate = detailedCard?.isLate ?? false;
-        final isOverTime = detailedCard?.isOverTime ?? false;
+        // Extract values from problem_details_v2 (no legacy fields)
+        final pd = detailedCard?.problemDetails;
+        final hasLate = pd?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
+        final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
+        final hasReported = pd?.problems.any((p) => p.type == 'reported' && !p.isSolved) ?? false;
+        final reportedProblem = pd?.problems.where((p) => p.type == 'reported').firstOrNull;
+        final lateProblem = pd?.problems.where((p) => p.type == 'late').firstOrNull;
+        final overtimeProblem = pd?.problems.where((p) => p.type == 'overtime').firstOrNull;
 
         // Determine if confirmed (has confirmed times)
         final isConfirmed = detailedCard?.confirmedStartRaw != null ||
                             detailedCard?.confirmedEndRaw != null;
 
         // Needs confirm if late/overtime but not yet confirmed
-        final needsConfirm = (isLate || isOverTime) && !isConfirmed;
+        final needsConfirm = (hasLate || hasOvertime) && !isConfirmed;
 
         // Use pre-computed consecutiveEndTimeMap (O(1) instead of O(n))
         // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
@@ -569,8 +593,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           avatarUrl: req.employee.profileImage,
           clockIn: clockInStr,
           clockOut: clockOutStr,
-          isLate: isLate,
-          isOvertime: isOverTime,
+          // Use problem_details_v2 instead of legacy fields
+          isLate: hasLate,
+          isOvertime: hasOvertime,
           needsConfirm: needsConfirm,
           isConfirmed: isConfirmed,
           // shiftRequestId for RPC calls
@@ -580,23 +605,23 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           actualEnd: detailedCard?.actualEndRaw,
           confirmStartTime: detailedCard?.confirmedStartRaw,
           confirmEndTime: detailedCard?.confirmedEndRaw,
-          isReported: detailedCard?.isReported ?? false,
-          reportReason: detailedCard?.reportReason,
-          isProblemSolved: detailedCard?.isProblemSolved ?? false,
+          isReported: hasReported,
+          reportReason: reportedProblem?.reason,
+          isProblemSolved: pd?.isSolved ?? false,
           bonusAmount: detailedCard?.bonusAmount ?? 0.0,
           salaryType: detailedCard?.salaryType,
           salaryAmount: detailedCard?.salaryAmount,
           basePay: detailedCard?.basePay,
           totalPayWithBonus: detailedCard?.totalPayWithBonus,
           paidHour: detailedCard?.paidHour ?? 0.0,
-          lateMinute: detailedCard?.lateMinute ?? 0,
-          overtimeMinute: detailedCard?.overTimeMinute ?? 0,
-          // v4: New fields
-          isReportedSolved: detailedCard?.isReportedSolved,
+          lateMinute: lateProblem?.actualMinutes ?? 0,
+          overtimeMinute: overtimeProblem?.actualMinutes ?? 0,
+          // v4: New fields (isReportedSolved from problem_details_v2)
+          isReportedSolved: reportedProblem?.isSolved,
           managerMemos: detailedCard?.managerMemos ?? const [],
           shiftEndTime: shiftEndTime,
           // v5: Problem details from problem_details_v2
-          problemDetails: detailedCard?.problemDetails,
+          problemDetails: pd,
         );
       }).toList();
 
@@ -607,28 +632,8 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       int unsolvedCount = 0;
       int solvedCount = 0;
 
-      // DEBUG: Log shift and problem details
-      debugPrint('=== SHIFT: ${shiftMeta.shiftName} ===');
-      debugPrint('staffRecords count: ${staffRecords.length}');
-
       for (final r in staffRecords) {
         final pd = r.problemDetails;
-
-        // DEBUG: Log each staff record
-        debugPrint('  Staff: ${r.staffName}');
-        debugPrint('    shiftRequestId: ${r.shiftRequestId}');
-        debugPrint('    actualStart: ${r.actualStart}, confirmStart: ${r.confirmStartTime}');
-        debugPrint('    actualEnd: ${r.actualEnd}, confirmEnd: ${r.confirmEndTime}');
-        debugPrint('    problemDetails: ${pd != null ? "EXISTS" : "NULL"}');
-        if (pd != null) {
-          debugPrint('    problemCount: ${pd.problemCount}');
-          debugPrint('    isSolved: ${pd.isSolved}');
-          debugPrint('    isFullySolved: ${pd.isFullySolved}');
-          debugPrint('    problems.length: ${pd.problems.length}');
-          for (final p in pd.problems) {
-            debugPrint('      - type: ${p.type}, isSolved: ${p.isSolved}, actualMinutes: ${p.actualMinutes}');
-          }
-        }
 
         if (pd != null && pd.problemCount > 0) {
           // Use isFullySolved which checks both isSolved AND reported status
@@ -639,8 +644,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           }
         }
       }
-
-      debugPrint('  RESULT: unsolvedCount=$unsolvedCount, solvedCount=$solvedCount');
 
       // Format time range from shift metadata
       final startTimeStr = _formatTimeFromString(shiftMeta.startTime);
@@ -818,13 +821,42 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                 // Problems List
                 Builder(
                   builder: (context) {
+                    final allProblems = _getProblemsFromRealData();
                     final filteredProblems = _getFilteredProblems(selectedFilter ?? 'today');
-                    if (filteredProblems.isEmpty) {
+
+                    // Show "No problems found" only when there are NO problems at all in the month
+                    if (allProblems.isEmpty) {
                       return const Padding(
-                        padding: EdgeInsets.all(TossSpacing.space8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
                         child: TossEmptyView(
                           title: 'No problems found',
                           description: 'All attendance records look good!',
+                          compact: true,
+                        ),
+                      );
+                    }
+
+                    // Show filter-specific empty message when filtered results are empty
+                    // but there ARE problems in other time ranges
+                    if (filteredProblems.isEmpty) {
+                      final filterLabel = switch (selectedFilter) {
+                        'today' => 'today',
+                        'this_week' => 'this week',
+                        'this_month' => 'this month',
+                        _ => 'the selected period',
+                      };
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                        child: TossEmptyView(
+                          title: 'No problems $filterLabel',
+                          description: 'There are ${allProblems.length} problem(s) in other dates. Check the calendar below.',
+                          compact: true,
                         ),
                       );
                     }
@@ -873,8 +905,8 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                                 problemDetails: problem.problemDetails,
                               );
 
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute<bool>(
+                              final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                                MaterialPageRoute<Map<String, dynamic>>(
                                   builder: (context) => StaffTimelogDetailPage(
                                     staffRecord: staffRecord,
                                     shiftName: problem.shiftName,
@@ -883,9 +915,18 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                                   ),
                                 ),
                               );
-                              // Refresh data if save was successful (force refresh to bypass cache)
-                              if (result == true) {
-                                _loadMonthData(forceRefresh: true);
+                              // Partial Update: Update cached data without full refresh
+                              if (result != null && result['success'] == true && widget.selectedStoreId != null) {
+                                final shiftDate = DateFormat('yyyy-MM-dd').format(problem.date);
+                                ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).updateCardProblemData(
+                                  shiftRequestId: result['shiftRequestId'] as String,
+                                  shiftDate: shiftDate,
+                                  isProblemSolved: result['isProblemSolved'] as bool?,
+                                  isReportedSolved: result['isReportedSolved'] as bool?,
+                                  confirmedStartTime: result['confirmedStartTime'] as String?,
+                                  confirmedEndTime: result['confirmedEndTime'] as String?,
+                                  bonusAmount: result['bonusAmount'] as double?,
+                                );
                               }
                             } else {
                               // Shift problems (understaffed) navigate to Schedule tab
@@ -927,15 +968,15 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                               onNextWeek: () => _changeWeek(7),
                             ),
                     ),
-                    // Expand/Collapse button
+                    // Expand/Collapse button - Calendar icon
                     IconButton(
                       onPressed: _toggleExpanded,
                       icon: Icon(
-                        _isExpanded ? Icons.unfold_less : Icons.unfold_more,
-                        color: TossColors.gray600,
+                        _isExpanded ? Icons.calendar_view_week : Icons.calendar_month,
+                        color: _isExpanded ? TossColors.primary : TossColors.gray600,
                         size: 24,
                       ),
-                      tooltip: _isExpanded ? 'Show week' : 'Show month',
+                      tooltip: _isExpanded ? 'Show week view' : 'Show month view',
                     ),
                   ],
                 ),
@@ -958,8 +999,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                   WeekDatesPicker(
                     selectedDate: widget.selectedDate,
                     weekStartDate: _currentWeekStart,
-                    datesWithUserApproved: const {},
-                    shiftAvailabilityMap: const {}, // Not used in Problems tab
                     problemStatusMap: _getProblemStatusByDate(), // Problems tab uses problem status
                     onDateSelected: (date) {
                       // Notify parent of date change
@@ -1003,7 +1042,20 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                         return ShiftSection(
                           shift: shift,
                           initiallyExpanded: false, // All sections collapsed by default
-                          onDataChanged: () => _loadMonthData(forceRefresh: true),
+                          onSaveResult: (result) {
+                            // Partial Update: Update cached data without full refresh
+                            if (widget.selectedStoreId != null) {
+                              ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).updateCardProblemData(
+                                shiftRequestId: result['shiftRequestId'] as String,
+                                shiftDate: result['shiftDate'] as String,
+                                isProblemSolved: result['isProblemSolved'] as bool?,
+                                isReportedSolved: result['isReportedSolved'] as bool?,
+                                confirmedStartTime: result['confirmedStartTime'] as String?,
+                                confirmedEndTime: result['confirmedEndTime'] as String?,
+                                bonusAmount: result['bonusAmount'] as double?,
+                              );
+                            }
+                          },
                         );
                       },
                     );

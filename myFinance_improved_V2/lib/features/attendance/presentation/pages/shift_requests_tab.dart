@@ -6,6 +6,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../attendance/domain/entities/monthly_shift_status.dart';
@@ -24,7 +25,16 @@ import '../widgets/shift_signup/shift_signup_card.dart';
 /// - "Available Shifts on {date}" header
 /// - Shift cards with 4 states: Available, Waitlist, Applied, Assigned
 class ShiftRequestsTab extends ConsumerStatefulWidget {
-  const ShiftRequestsTab({super.key});
+  final List<Map<String, dynamic>> stores;
+  final String? selectedStoreId;
+  final void Function(String)? onStoreChanged;
+
+  const ShiftRequestsTab({
+    super.key,
+    this.stores = const [],
+    this.selectedStoreId,
+    this.onStoreChanged,
+  });
 
   @override
   ConsumerState<ShiftRequestsTab> createState() => _ShiftRequestsTabState();
@@ -276,13 +286,34 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
       onStatusUpdate: _updateMonthlyShiftStatus,
     );
 
-    final datesWithUserApproved = availabilityHelper.getDatesWithUserApproved(weekStartDate);
     final shiftAvailabilityMap = availabilityHelper.getShiftAvailabilityMap(weekStartDate);
 
     return Container(
       color: TossColors.background,
       child: CustomScrollView(
         slivers: [
+          // Store Selector (only if more than 1 store)
+          if (widget.stores.length > 1)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: TossDropdown<String>(
+                  label: 'Store',
+                  value: widget.selectedStoreId,
+                  items: widget.stores.map((store) {
+                    return TossDropdownItem<String>(
+                      value: store['store_id']?.toString() ?? '',
+                      label: store['store_name']?.toString() ?? 'Unknown',
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      widget.onStoreChanged?.call(newValue);
+                    }
+                  },
+                ),
+              ),
+            ),
           // Week Navigation
           SliverToBoxAdapter(
             child: Padding(
@@ -304,7 +335,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
               child: WeekDatesPicker(
                 selectedDate: selectedDate,
                 weekStartDate: weekStartDate,
-                datesWithUserApproved: datesWithUserApproved,
                 shiftAvailabilityMap: shiftAvailabilityMap,
                 onDateSelected: _onDateSelected,
               ),

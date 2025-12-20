@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../domain/entities/business_hours.dart';
+
 part 'store_settings_state.freezed.dart';
 
 /// Store Settings State - UI state for store settings tab
@@ -61,10 +63,41 @@ class OperatingHoursState with _$OperatingHoursState {
         },
       );
 
-  /// From store data
+  /// From store data (deprecated, use fromBusinessHours instead)
   factory OperatingHoursState.fromStoreData(Map<String, dynamic> storeData) {
-    // TODO: Parse operating hours from store data
     return OperatingHoursState.initial();
+  }
+
+  /// From BusinessHours list (from database)
+  factory OperatingHoursState.fromBusinessHours(List<BusinessHours> businessHours) {
+    if (businessHours.isEmpty) {
+      return OperatingHoursState.initial();
+    }
+
+    final Map<String, DayHours> hoursMap = {};
+    for (final bh in businessHours) {
+      hoursMap[bh.dayName] = DayHours(
+        open: bh.openTime ?? '09:00',
+        close: bh.closeTime ?? '22:00',
+        isOpen: bh.isOpen,
+      );
+    }
+
+    return OperatingHoursState(hours: hoursMap);
+  }
+
+  /// Convert to BusinessHours list (for database save)
+  static List<BusinessHours> toBusinessHours(Map<String, DayHours> hours) {
+    return hours.entries.map((entry) {
+      final dayOfWeek = BusinessHours.dayNameToNumber[entry.key] ?? 0;
+      return BusinessHours(
+        dayOfWeek: dayOfWeek,
+        dayName: entry.key,
+        isOpen: entry.value.isOpen,
+        openTime: entry.value.open,
+        closeTime: entry.value.close,
+      );
+    }).toList();
   }
 }
 

@@ -8,7 +8,7 @@ import '../../../../../../shared/widgets/toss/toss_badge.dart';
 import '../../../../domain/entities/problem_details.dart';
 
 /// Shift info card showing date, name, time range and status
-class ShiftInfoCard extends StatelessWidget {
+class ShiftInfoCard extends StatefulWidget {
   final String shiftDate;
   final String shiftName;
   final String shiftTimeRange;
@@ -28,6 +28,16 @@ class ShiftInfoCard extends StatelessWidget {
   });
 
   @override
+  State<ShiftInfoCard> createState() => _ShiftInfoCardState();
+}
+
+class _ShiftInfoCardState extends State<ShiftInfoCard> {
+  bool _showAllTags = false;
+
+  /// Maximum number of tags to show before "more" button
+  static const int _maxVisibleTags = 2;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -38,8 +48,8 @@ class ShiftInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Shift info row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
@@ -47,7 +57,7 @@ class ShiftInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      shiftDate,
+                      widget.shiftDate,
                       style: TossTextStyles.label.copyWith(
                         color: TossColors.gray600,
                         fontWeight: FontWeight.w600,
@@ -56,7 +66,7 @@ class ShiftInfoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      shiftName,
+                      widget.shiftName,
                       style: TossTextStyles.titleMedium.copyWith(
                         color: TossColors.gray900,
                         fontWeight: FontWeight.w700,
@@ -64,7 +74,7 @@ class ShiftInfoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      shiftTimeRange,
+                      widget.shiftTimeRange,
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.gray600,
                         fontSize: 14,
@@ -73,38 +83,78 @@ class ShiftInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Status Badges - show all problems from problemDetails
-              if (problemDetails != null && problemDetails!.problems.isNotEmpty)
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: problemDetails!.problems.map((problem) => TossBadge(
-                    label: _getProblemLabel(problem),
-                    backgroundColor: _getBadgeColor(problem),
-                    textColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                      vertical: TossSpacing.space1,
-                    ),
-                    borderRadius: 12,
-                  )).toList(),
-                )
-              // Fallback to legacy isLate/isOvertime if problemDetails is empty
-              else if (isLate || isOvertime)
-                TossBadge(
-                  label: isLate ? 'Late' : 'OT',
-                  backgroundColor: TossColors.error,
-                  textColor: TossColors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space2,
-                    vertical: TossSpacing.space1,
-                  ),
-                  borderRadius: 12,
-                ),
             ],
           ),
+          // Status Badges - displayed below shift info when present
+          if (widget.problemDetails != null && widget.problemDetails!.problems.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildProblemBadges(),
+          ] else if (widget.isLate || widget.isOvertime) ...[
+            const SizedBox(height: 12),
+            TossBadge(
+              label: widget.isLate ? 'Late' : 'OT',
+              backgroundColor: TossColors.error,
+              textColor: TossColors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: TossSpacing.space1,
+              ),
+              borderRadius: 12,
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  /// Build problem badges with "show more" functionality
+  Widget _buildProblemBadges() {
+    final problems = widget.problemDetails!.problems;
+    final totalCount = problems.length;
+    final hasMoreTags = totalCount > _maxVisibleTags;
+
+    // Determine which tags to show
+    final visibleProblems = _showAllTags ? problems : problems.take(_maxVisibleTags).toList();
+    final hiddenCount = totalCount - _maxVisibleTags;
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        // Visible problem badges
+        ...visibleProblems.map((problem) => TossBadge(
+          label: _getProblemLabel(problem),
+          backgroundColor: _getBadgeColor(problem),
+          textColor: TossColors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space2,
+            vertical: TossSpacing.space1,
+          ),
+          borderRadius: 12,
+        ),),
+        // "More" or "Less" button when tags overflow
+        if (hasMoreTags)
+          GestureDetector(
+            onTap: () => setState(() => _showAllTags = !_showAllTags),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: TossSpacing.space1,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _showAllTags ? 'Less' : '+$hiddenCount',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

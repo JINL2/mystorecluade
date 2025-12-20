@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../domain/entities/shift_card.dart';
 import '../helpers/format_helpers.dart';
 
 /// Recent activity widget displaying shift cards for selected date
@@ -15,10 +15,13 @@ import '../helpers/format_helpers.dart';
 /// - Check-in/check-out times and duration
 /// - Shift information and status indicators
 /// - View all history button
+///
+/// ✅ Clean Architecture: Uses ShiftCard Entity instead of Map<String, dynamic>
 class AttendanceRecentActivity extends StatelessWidget {
   final DateTime selectedDate;
-  final List<Map<String, dynamic>> allShiftCardsData;
-  final Function(Map<String, dynamic>) onActivityTap;
+  /// ✅ Clean Architecture: Use ShiftCard Entity list
+  final List<ShiftCard> shiftCards;
+  final Function(ShiftCard) onActivityTap;
   final VoidCallback onViewAllTap;
   final Color Function(String) getActivityStatusColor;
   final String Function(String) getActivityStatusText;
@@ -26,7 +29,7 @@ class AttendanceRecentActivity extends StatelessWidget {
   const AttendanceRecentActivity({
     super.key,
     required this.selectedDate,
-    required this.allShiftCardsData,
+    required this.shiftCards,
     required this.onActivityTap,
     required this.onViewAllTap,
     required this.getActivityStatusColor,
@@ -42,8 +45,10 @@ class AttendanceRecentActivity extends StatelessWidget {
       }
       final startDateTime = DateTime.parse(shiftStartTime);
       final endDateTime = DateTime.parse(shiftEndTime);
-      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
-      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
+      final startStr =
+          '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
+      final endStr =
+          '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
       return '$startStr ~ $endStr';
     } catch (e) {
       return '--:-- ~ --:--';
@@ -53,131 +58,71 @@ class AttendanceRecentActivity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Filter activities for the selected date
-    final selectedDateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+    final selectedDateStr =
+        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
 
-    // Filter cards for the selected date only
-    final selectedDateCards = allShiftCardsData.where((card) {
-      final cardDate = card['request_date'] ?? '';
-      return cardDate == selectedDateStr;
+    // Filter cards for the selected date only using Entity property
+    final selectedDateCards = shiftCards.where((card) {
+      return card.requestDate == selectedDateStr;
     }).toList();
 
     // Sort by shift_request_id
     selectedDateCards.sort((a, b) {
-      final idA = (a['shift_request_id'] ?? '') as String;
-      final idB = (b['shift_request_id'] ?? '') as String;
-      return idA.compareTo(idB);
+      return a.shiftRequestId.compareTo(b.shiftRequestId);
     });
 
+    // Build activity data from ShiftCard entities
     final recentActivities = selectedDateCards.map((card) {
-      // Parse date
-      final dateStr = (card['request_date'] ?? '').toString();
-      final dateParts = dateStr.split('-');
-      final date = dateParts.length == 3
-          ? DateTime(
-              int.parse(dateParts[0].toString()),
-              int.parse(dateParts[1].toString()),
-              int.parse(dateParts[2].toString()),
-            )
-          : DateTime.now();
+      // Use Entity properties for check-in/check-out times
+      final actualStart = card.confirmStartTime ?? card.actualStartTime;
+      final actualEnd = card.confirmEndTime ?? card.actualEndTime;
 
-      // Parse times - check both confirm_* and actual_* fields
-      final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
-      final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-      final requestDate = card['request_date']?.toString();
-
-      // Use FormatHelpers to properly convert UTC to local time
-      String checkInTime = FormatHelpers.formatTime(actualStart, requestDate: requestDate);
-      String checkOutTime = FormatHelpers.formatTime(actualEnd, requestDate: requestDate);
+      // Format times using helpers
+      String checkInTime =
+          FormatHelpers.formatTime(actualStart, requestDate: card.requestDate);
+      String checkOutTime =
+          FormatHelpers.formatTime(actualEnd, requestDate: card.requestDate);
       String hoursWorked = '0h 0m';
 
-      // Calculate hours worked if we have both times
-      if (actualStart != null && actualStart.toString().isNotEmpty &&
-          actualEnd != null && actualEnd.toString().isNotEmpty) {
-        try {
-          // Parse the request_date and combine with times to get full DateTime
-          final baseDate = date;
-
-          // Parse start time (UTC from DB - convert to local time)
-          DateTime startDateTime;
-          if (actualStart.toString().contains('T')) {
-            startDateTime = DateTimeUtils.toLocal(actualStart.toString());
-          } else {
-            // Time-only format from RPC - combine with date and convert
-            final startParts = actualStart.toString().split(':');
-            if (startParts.length >= 2 && requestDate != null) {
-              final utcTimestamp = '${requestDate}T${actualStart.toString().padRight(8, ':00')}Z';
-              startDateTime = DateTimeUtils.toLocal(utcTimestamp);
-            } else {
-              final hour = int.tryParse(startParts[0]) ?? 0;
-              final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
-              startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-            }
-          }
-
-          // Parse end time (UTC from DB - convert to local time)
-          DateTime endDateTime;
-          if (actualEnd.toString().contains('T')) {
-            endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
-          } else {
-            // Time-only format from RPC - combine with date and convert
-            final endParts = actualEnd.toString().split(':');
-            if (endParts.length >= 2 && requestDate != null) {
-              final utcTimestamp = '${requestDate}T${actualEnd.toString().padRight(8, ':00')}Z';
-              endDateTime = DateTimeUtils.toLocal(utcTimestamp);
-            } else {
-              final hour = int.tryParse(endParts[0]) ?? 0;
-              final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
-              endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
-            }
-          }
-
-          // Calculate hours worked based on converted local times
-          final duration = endDateTime.difference(startDateTime);
-          final hours = duration.inHours;
-          final minutes = duration.inMinutes % 60;
-          hoursWorked = '${hours}h ${minutes}m';
-        } catch (e) {
-          // Error calculating duration
-        }
+      // Calculate hours worked using Entity's paidHours if available
+      if (card.isCheckedIn && card.isCheckedOut) {
+        final hours = card.paidHours.floor();
+        final minutes = ((card.paidHours - hours) * 60).round();
+        hoursWorked = '${hours}h ${minutes}m';
       }
 
-      // Check if shift is approved and reported
-      final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-      final isReported = card['is_reported'] ?? false;
-
-      // Determine the actual working status
+      // Determine work status using Entity properties
       String workStatus = 'pending';
-      if (isApproved == true) {
-        if (actualStart != null && actualEnd == null) {
+      if (card.isApproved) {
+        if (card.isCheckedIn && !card.isCheckedOut) {
           workStatus = 'working'; // Currently working
-        } else if (actualStart != null && actualEnd != null) {
+        } else if (card.isCheckedIn && card.isCheckedOut) {
           workStatus = 'completed'; // Finished working
         } else {
           workStatus = 'approved'; // Approved but not started yet
         }
       }
 
-      // Format shift time from shift_start_time and shift_end_time
+      // Format shift time from Entity properties
       final localShiftTime = _formatShiftTimeRange(
-        card['shift_start_time']?.toString() ?? '',
-        card['shift_end_time']?.toString() ?? '',
+        card.shiftStartTime,
+        card.shiftEndTime,
       );
 
-      return {
-        'date': date,
-        'checkIn': checkInTime,
-        'checkOut': checkOutTime,
-        'hours': hoursWorked,
-        'store': card['store_name'] ?? 'Store',
-        'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $localShiftTime',
-        'status': actualEnd != null ? 'completed' : 'in_progress',
-        'lateMinutes': card['late_minutes'] ?? 0,
-        'overtimeMinutes': card['overtime_minutes'] ?? 0,
-        'isApproved': isApproved,
-        'isReported': isReported,
-        'workStatus': workStatus,
-        'rawCard': card,
-      };
+      return _ActivityData(
+        card: card,
+        checkIn: checkInTime,
+        checkOut: checkOutTime,
+        hours: hoursWorked,
+        store: card.storeName,
+        shiftInfo: '${card.shiftName ?? 'Shift'} • $localShiftTime',
+        status: card.isCheckedOut ? 'completed' : 'in_progress',
+        lateMinutes: card.lateMinutes.toInt(),
+        overtimeMinutes: card.overtimeMinutes.toInt(),
+        isApproved: card.isApproved,
+        isReported: card.isReported,
+        workStatus: workStatus,
+      );
     }).toList();
 
     // Empty state
@@ -315,7 +260,7 @@ class AttendanceRecentActivity extends StatelessWidget {
                       color: TossColors.transparent,
                       child: InkWell(
                         onTap: () {
-                          onActivityTap(activity);
+                          onActivityTap(activity.card);
                           HapticFeedback.selectionClick();
                         },
                         child: Padding(
@@ -324,10 +269,12 @@ class AttendanceRecentActivity extends StatelessWidget {
                             children: [
                               // Left: Time badge
                               Container(
-                                padding: const EdgeInsets.all(TossSpacing.space3),
+                                padding:
+                                    const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
                                   color: TossColors.primarySurface,
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                  borderRadius:
+                                      BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                                 child: const Icon(
                                   Icons.access_time,
@@ -345,16 +292,19 @@ class AttendanceRecentActivity extends StatelessWidget {
                                     Row(
                                       children: [
                                         Text(
-                                          activity['checkIn'] as String,
-                                          style: TossTextStyles.bodyMedium.copyWith(
-                                            color: activity['checkIn'] == '--:--'
+                                          activity.checkIn,
+                                          style:
+                                              TossTextStyles.bodyMedium.copyWith(
+                                            color: activity.checkIn == '--:--'
                                                 ? TossColors.gray400
                                                 : TossColors.gray900,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: TossSpacing.space2,
+                                          ),
                                           child: Icon(
                                             Icons.arrow_forward,
                                             size: 14,
@@ -362,9 +312,10 @@ class AttendanceRecentActivity extends StatelessWidget {
                                           ),
                                         ),
                                         Text(
-                                          activity['checkOut'] as String,
-                                          style: TossTextStyles.bodyMedium.copyWith(
-                                            color: activity['checkOut'] == '--:--'
+                                          activity.checkOut,
+                                          style:
+                                              TossTextStyles.bodyMedium.copyWith(
+                                            color: activity.checkOut == '--:--'
                                                 ? TossColors.gray400
                                                 : TossColors.gray900,
                                             fontWeight: FontWeight.w700,
@@ -375,7 +326,7 @@ class AttendanceRecentActivity extends StatelessWidget {
                                     const SizedBox(height: TossSpacing.space1),
                                     // Shift Name and Time
                                     Text(
-                                      activity['shiftInfo'] as String,
+                                      activity.shiftInfo,
                                       style: TossTextStyles.caption.copyWith(
                                         color: TossColors.gray600,
                                       ),
@@ -389,7 +340,7 @@ class AttendanceRecentActivity extends StatelessWidget {
                                 children: [
                                   // Duration
                                   Text(
-                                    activity['hours'] as String,
+                                    activity.hours,
                                     style: TossTextStyles.bodyMedium.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w700,
@@ -407,21 +358,28 @@ class AttendanceRecentActivity extends StatelessWidget {
                                             width: 6,
                                             height: 6,
                                             decoration: BoxDecoration(
-                                              color: getActivityStatusColor((activity['workStatus'] ?? 'pending').toString()),
+                                              color: getActivityStatusColor(
+                                                activity.workStatus,
+                                              ),
                                               shape: BoxShape.circle,
                                             ),
                                           ),
-                                          const SizedBox(width: TossSpacing.space1),
+                                          const SizedBox(
+                                            width: TossSpacing.space1,
+                                          ),
                                           Text(
-                                            getActivityStatusText((activity['workStatus'] ?? 'pending').toString()),
-                                            style: TossTextStyles.caption.copyWith(
+                                            getActivityStatusText(
+                                              activity.workStatus,
+                                            ),
+                                            style:
+                                                TossTextStyles.caption.copyWith(
                                               color: TossColors.gray600,
                                             ),
                                           ),
                                         ],
                                       ),
                                       // Reported status if applicable
-                                      if (activity['isReported'] as bool) ...[
+                                      if (activity.isReported) ...[
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
@@ -430,10 +388,13 @@ class AttendanceRecentActivity extends StatelessWidget {
                                               size: 10,
                                               color: TossColors.error,
                                             ),
-                                            const SizedBox(width: TossSpacing.space1),
+                                            const SizedBox(
+                                              width: TossSpacing.space1,
+                                            ),
                                             Text(
                                               'Reported',
-                                              style: TossTextStyles.caption.copyWith(
+                                              style:
+                                                  TossTextStyles.caption.copyWith(
                                                 color: TossColors.error,
                                                 fontSize: 10,
                                               ),
@@ -462,7 +423,9 @@ class AttendanceRecentActivity extends StatelessWidget {
                       Container(
                         height: 1,
                         color: TossColors.gray100,
-                        margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                        ),
                       ),
                   ],
                 );
@@ -473,4 +436,35 @@ class AttendanceRecentActivity extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Internal data class for activity display
+class _ActivityData {
+  final ShiftCard card;
+  final String checkIn;
+  final String checkOut;
+  final String hours;
+  final String store;
+  final String shiftInfo;
+  final String status;
+  final int lateMinutes;
+  final int overtimeMinutes;
+  final bool isApproved;
+  final bool isReported;
+  final String workStatus;
+
+  const _ActivityData({
+    required this.card,
+    required this.checkIn,
+    required this.checkOut,
+    required this.hours,
+    required this.store,
+    required this.shiftInfo,
+    required this.status,
+    required this.lateMinutes,
+    required this.overtimeMinutes,
+    required this.isApproved,
+    required this.isReported,
+    required this.workStatus,
+  });
 }

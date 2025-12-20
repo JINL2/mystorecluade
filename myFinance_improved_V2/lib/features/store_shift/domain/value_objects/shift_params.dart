@@ -83,3 +83,44 @@ class UpdateOperationalSettingsParams {
     this.allowedDistance,
   });
 }
+
+/// ========================================
+/// Business Hours Parameters
+/// ========================================
+
+/// Get Business Hours Parameters
+class GetBusinessHoursParams {
+  final String storeId;
+
+  const GetBusinessHoursParams(this.storeId);
+}
+
+/// Update Business Hours Parameters
+class UpdateBusinessHoursParams {
+  final String storeId;
+  final List<BusinessHoursParam> hours;
+
+  const UpdateBusinessHoursParams({
+    required this.storeId,
+    required this.hours,
+  });
+}
+
+/// Individual Business Hours Parameter (for use in params)
+class BusinessHoursParam {
+  final int dayOfWeek; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  final String dayName;
+  final bool isOpen;
+  final String? openTime; // HH:mm format
+  final String? closeTime; // HH:mm format
+  final bool closesNextDay; // True if close_time is on the next day (overnight)
+
+  const BusinessHoursParam({
+    required this.dayOfWeek,
+    required this.dayName,
+    required this.isOpen,
+    this.openTime,
+    this.closeTime,
+    this.closesNextDay = false,
+  });
+}

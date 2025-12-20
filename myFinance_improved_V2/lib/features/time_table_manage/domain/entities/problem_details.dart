@@ -79,6 +79,36 @@ class ProblemDetails {
     // Check if ALL problems are solved
     return problems.every((p) => p.isSolved);
   }
+
+  /// Check if there's any problem (not solved)
+  bool get hasProblem => problemCount > 0 && !isSolved;
+
+  /// Get late minutes from problems array
+  int get lateMinutes {
+    final lateProblem = problems.firstWhere(
+      (p) => p.type == 'late',
+      orElse: () => const ProblemItem(type: ''),
+    );
+    return lateProblem.actualMinutes ?? 0;
+  }
+
+  /// Get overtime minutes from problems array
+  int get overtimeMinutes {
+    final overtimeProblem = problems.firstWhere(
+      (p) => p.type == 'overtime',
+      orElse: () => const ProblemItem(type: ''),
+    );
+    return overtimeProblem.actualMinutes ?? 0;
+  }
+
+  /// Get checkin distance from problems array (location issue)
+  int? get checkinDistance {
+    final locationProblem = problems.firstWhere(
+      (p) => p.type == 'location_issue',
+      orElse: () => const ProblemItem(type: ''),
+    );
+    return locationProblem.actualMinutes; // actualMinutes stores distance for location issues
+  }
 }
 
 /// Individual Problem Item

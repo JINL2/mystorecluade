@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/journal_attachment.dart';
 import '../models/journal_entry_model.dart';
@@ -51,22 +52,23 @@ class JournalEntryDataSource {
   Future<List<Map<String, dynamic>>> getCounterpartyStores(String linkedCompanyId) async {
     try {
       if (linkedCompanyId.isEmpty) {
-        debugPrint('🔴 getCounterpartyStores: linkedCompanyId is empty');
         return [];
       }
 
-      debugPrint('🔍 getCounterpartyStores: Fetching stores for company: $linkedCompanyId');
       final response = await _supabase
           .from('stores')
           .select('store_id, store_name')
           .eq('company_id', linkedCompanyId)
           .order('store_name');
 
-      debugPrint('✅ getCounterpartyStores: Success - ${response.length} stores found');
       return List<Map<String, dynamic>>.from(response);
     } catch (e, stackTrace) {
-      debugPrint('❌ getCounterpartyStores: Error - $e');
-      debugPrint('Stack trace: $stackTrace');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JournalEntry: Failed to fetch counterparty stores',
+        extra: {'linkedCompanyId': linkedCompanyId},
+      );
       throw Exception('Failed to fetch counterparty stores: $e');
     }
   }
@@ -122,8 +124,6 @@ class JournalEntryDataSource {
     required String accountId,
   }) async {
     try {
-      debugPrint('🔍 checkAccountMapping: companyId=$companyId, counterpartyId=$counterpartyId, accountId=$accountId');
-
       final response = await _supabase
           .from('account_mappings')
           .select('my_account_id, linked_account_id, direction')
@@ -133,7 +133,6 @@ class JournalEntryDataSource {
           .maybeSingle();
 
       if (response != null) {
-        debugPrint('✅ checkAccountMapping: Mapping found - $response');
         return {
           'my_account_id': response['my_account_id'],
           'linked_account_id': response['linked_account_id'],
@@ -141,11 +140,18 @@ class JournalEntryDataSource {
         };
       }
 
-      debugPrint('⚠️ checkAccountMapping: No mapping found');
       return null;
     } catch (e, stackTrace) {
-      debugPrint('❌ checkAccountMapping: Error - $e');
-      debugPrint('Stack trace: $stackTrace');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JournalEntry: Failed to check account mapping',
+        extra: {
+          'companyId': companyId,
+          'counterpartyId': counterpartyId,
+          'accountId': accountId,
+        },
+      );
       return null;
     }
   }
@@ -252,8 +258,13 @@ class JournalEntryDataSource {
           file: file,
         );
         uploadedAttachments.add(attachment);
-      } catch (e) {
-        debugPrint('❌ Failed to upload attachment ${file.name}: $e');
+      } catch (e, stackTrace) {
+        SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'JournalEntry: Failed to upload attachment',
+          extra: {'fileName': file.name},
+        );
         // Continue with other files even if one fails
       }
     }
@@ -280,7 +291,6 @@ class JournalEntryDataSource {
     Uint8List fileBytes;
     if (_isImageFile(originalName)) {
       fileBytes = await _compressImage(file);
-      debugPrint('📷 Compressed image: ${file.name}');
     } else {
       fileBytes = await file.readAsBytes();
     }
@@ -309,8 +319,6 @@ class JournalEntryDataSource {
       'uploaded_by': uploadedBy,
       'uploaded_at_utc': now.toIso8601String(),
     }).select('attachment_id').single();
-
-    debugPrint('✅ Uploaded attachment: $originalName -> $storagePath');
 
     return JournalAttachment(
       attachmentId: response['attachment_id'] as String,
@@ -345,7 +353,7 @@ class JournalEntryDataSource {
       // Fallback to original if compression fails
       return await file.readAsBytes();
     } catch (e) {
-      debugPrint('⚠️ Image compression failed, using original: $e');
+      // Fallback to original if compression fails
       return await file.readAsBytes();
     }
   }
@@ -384,8 +392,13 @@ class JournalEntryDataSource {
               : null,
         );
       }).toList();
-    } catch (e) {
-      debugPrint('❌ Failed to fetch attachments: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JournalEntry: Failed to fetch attachments',
+        extra: {'journalId': journalId},
+      );
       throw Exception('Failed to fetch attachments: $e');
     }
   }
@@ -402,7 +415,6 @@ class JournalEntryDataSource {
       // Delete from storage
       if (storagePath.isNotEmpty) {
         await _supabase.storage.from(_bucketName).remove([storagePath]);
-        debugPrint('🗑️ Deleted from storage: $storagePath');
       }
 
       // Delete from database
@@ -410,10 +422,13 @@ class JournalEntryDataSource {
           .from('journal_attachments')
           .delete()
           .eq('attachment_id', attachmentId);
-
-      debugPrint('✅ Deleted attachment: $attachmentId');
-    } catch (e) {
-      debugPrint('❌ Failed to delete attachment: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JournalEntry: Failed to delete attachment',
+        extra: {'attachmentId': attachmentId},
+      );
       throw Exception('Failed to delete attachment: $e');
     }
   }
@@ -432,7 +447,6 @@ class JournalEntryDataSource {
 
       return '';
     } catch (e) {
-      debugPrint('⚠️ Failed to extract storage path from URL: $e');
       return '';
     }
   }
@@ -470,8 +484,13 @@ class JournalEntryDataSource {
           .from(_bucketName)
           .createSignedUrl(storagePath, expiresIn);
       return signedUrl;
-    } catch (e) {
-      debugPrint('❌ Failed to create signed URL: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JournalEntry: Failed to create signed URL',
+        extra: {'storagePath': storagePath},
+      );
       throw Exception('Failed to create signed URL: $e');
     }
   }

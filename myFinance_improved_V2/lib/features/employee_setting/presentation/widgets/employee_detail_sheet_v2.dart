@@ -144,7 +144,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
         children: [
           // Large Avatar
           Hero(
-            tag: 'avatar_${employee.userId}',
+            tag: 'employee_${employee.userId}',
             child: _buildAvatar(employee, size: 80),
           ),
           

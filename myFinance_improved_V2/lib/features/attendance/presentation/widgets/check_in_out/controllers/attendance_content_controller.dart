@@ -2,71 +2,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../../../app/providers/auth_providers.dart';
+import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../domain/entities/shift_card.dart';
-import '../../../../domain/entities/shift_overview.dart';
+import '../../../../domain/entities/user_shift_stats.dart';
 import '../../../providers/attendance_providers.dart';
 
 /// Controller for AttendanceContent state and business logic
+/// ✅ Clean Architecture: Uses Domain Entities instead of Map<String, dynamic>
 class AttendanceContentController {
   final WidgetRef ref;
 
-  // Cache for monthly overview data - key is "yyyy-MM" format
-  final Map<String, Map<String, dynamic>> _monthlyOverviewCache = {};
+  // Cache for monthly stats data - key is "yyyy-MM" format
+  final Map<String, UserShiftStats> _monthlyStatsCache = {};
 
   // Cache for monthly cards data - key is "yyyy-MM" format
-  final Map<String, List<Map<String, dynamic>>> _monthlyCardsCache = {};
+  final Map<String, List<ShiftCard>> _monthlyCardsCache = {};
 
   // Track which months have been loaded
   final Set<String> _loadedMonths = {};
 
-  // ALL shift cards data accumulated across all loaded months
-  List<Map<String, dynamic>> allShiftCardsData = [];
+  // ALL shift cards accumulated across all loaded months
+  List<ShiftCard> allShiftCards = [];
 
-  // Current displayed month overview
-  Map<String, dynamic>? shiftOverviewData;
+  // Current displayed month stats
+  UserShiftStats? userShiftStats;
 
   String? currentDisplayedMonth;
 
   AttendanceContentController(this.ref);
 
-  /// Format shift time range from shiftStartTime and shiftEndTime
-  /// e.g., "2025-06-01T14:00:00", "2025-06-01T18:00:00" -> "14:00 ~ 18:00"
-  String _formatShiftTimeRange(String shiftStartTime, String shiftEndTime) {
-    try {
-      if (shiftStartTime.isEmpty || shiftEndTime.isEmpty) {
-        return '--:-- ~ --:--';
-      }
-      final startDateTime = DateTime.parse(shiftStartTime);
-      final endDateTime = DateTime.parse(shiftEndTime);
-      final startStr = '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
-      final endStr = '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
-      return '$startStr ~ $endStr';
-    } catch (e) {
-      return '--:-- ~ --:--';
-    }
-  }
-
   /// Get filtered cards for current view
-  List<Map<String, dynamic>> get shiftCardsData => allShiftCardsData;
+  List<ShiftCard> get shiftCards => allShiftCards;
 
   /// Fetch month data with caching
   Future<Map<String, dynamic>> fetchMonthData(
     DateTime targetDate, {
     bool forceRefresh = false,
   }) async {
-    final monthKey = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
+    final monthKey =
+        '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
 
     // Check cache
-    bool hasOverview = _monthlyOverviewCache.containsKey(monthKey);
+    bool hasStats = _monthlyStatsCache.containsKey(monthKey);
     bool hasCards = _monthlyCardsCache.containsKey(monthKey);
 
-    if (hasOverview && hasCards && !forceRefresh) {
+    if (hasStats && hasCards && !forceRefresh) {
       // Return cached data
-      shiftOverviewData = _monthlyOverviewCache[monthKey];
+      userShiftStats = _monthlyStatsCache[monthKey];
       currentDisplayedMonth = monthKey;
 
-      // Rebuild allShiftCardsData from cached data
-      _rebuildAllShiftCardsData();
+      // Rebuild allShiftCards from cached data
+      _rebuildAllShiftCards();
 
       return {
         'success': true,
@@ -81,8 +67,8 @@ class AttendanceContentController {
       final user = authStateAsync.value;
       final appState = ref.read(appStateProvider);
 
-      final getShiftOverview = ref.read(getShiftOverviewProvider);
       final getUserShiftCards = ref.read(getUserShiftCardsProvider);
+      final getUserShiftStats = ref.read(getUserShiftStatsUseCaseProvider);
 
       final userId = user?.id;
       final companyId = appState.companyChoosen;
@@ -96,12 +82,13 @@ class AttendanceContentController {
       }
 
       // Calculate last day of month for RPC
-      final lastDayOfMonth = DateTime(targetDate.year, targetDate.month + 1, 0);
-      final requestTime = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')} 23:59:59';
-      final timezone = 'Asia/Seoul'; // TODO: Get from user settings
+      final lastDayOfMonth =
+          DateTime(targetDate.year, targetDate.month + 1, 0, 23, 59, 59);
+      final requestTime = DateTimeUtils.toLocalWithOffset(lastDayOfMonth);
+      final timezone = DateTimeUtils.getLocalTimezone();
 
       // Parallel API calls
-      final overviewFuture = getShiftOverview(
+      final statsFuture = getUserShiftStats(
         requestTime: requestTime,
         userId: userId,
         companyId: companyId,
@@ -118,42 +105,24 @@ class AttendanceContentController {
       );
 
       final results = await Future.wait<dynamic>([
-        overviewFuture,
+        statsFuture,
         cardsFuture,
       ]);
 
-      // Convert entities to maps
-      final overviewEntity = results[0] as ShiftOverview;
-      final overviewResponse = {
-        'request_month': overviewEntity.requestMonth,
-        'actual_work_days': overviewEntity.actualWorkDays,
-        'actual_work_hours': overviewEntity.actualWorkHours,
-        'estimated_salary': overviewEntity.estimatedSalary,
-        'currency_symbol': overviewEntity.currencySymbol,
-        'salary_amount': overviewEntity.salaryAmount,
-        'salary_type': overviewEntity.salaryType,
-        'late_deduction_total': overviewEntity.lateDeductionTotal,
-        'overtime_total': overviewEntity.overtimeTotal,
-        'salary_stores': overviewEntity.salaryStores.map((s) => {
-          'store_id': s.storeId,
-          'store_name': s.storeName,
-          'estimated_salary': s.estimatedSalary,
-        }).toList(),
-      };
-      final cardsEntityList = results[1] as List<ShiftCard>;
-      final cardsResponse = cardsEntityList.map((card) => card.toJson()).toList();
+      final statsResult = results[0] as UserShiftStats;
+      final cardsResult = results[1] as List<ShiftCard>;
 
       // Cache the data
-      _monthlyOverviewCache[monthKey] = overviewResponse;
-      _monthlyCardsCache[monthKey] = List<Map<String, dynamic>>.from(cardsResponse);
+      _monthlyStatsCache[monthKey] = statsResult;
+      _monthlyCardsCache[monthKey] = cardsResult;
       _loadedMonths.add(monthKey);
 
       // Update current state
-      shiftOverviewData = overviewResponse;
+      userShiftStats = statsResult;
       currentDisplayedMonth = monthKey;
 
       // Rebuild all cards data
-      _rebuildAllShiftCardsData();
+      _rebuildAllShiftCards();
 
       return {
         'success': true,
@@ -168,60 +137,60 @@ class AttendanceContentController {
     }
   }
 
-  /// Rebuild allShiftCardsData from all cached months
-  void _rebuildAllShiftCardsData() {
-    allShiftCardsData.clear();
+  /// Rebuild allShiftCards from all cached months
+  void _rebuildAllShiftCards() {
+    allShiftCards.clear();
 
     for (final cachedMonth in _monthlyCardsCache.keys) {
       final monthCards = _monthlyCardsCache[cachedMonth]!;
-      allShiftCardsData.addAll(monthCards);
+      allShiftCards.addAll(monthCards);
     }
 
     // Sort by date (descending)
-    allShiftCardsData.sort((a, b) {
-      final dateA = (a['request_date'] ?? '') as String;
-      final dateB = (b['request_date'] ?? '') as String;
-      return dateB.compareTo(dateA);
+    allShiftCards.sort((a, b) {
+      return b.requestDate.compareTo(a.requestDate);
     });
   }
 
   /// Calculate shift status for current month
   String _calculateShiftStatus(String monthKey) {
     final now = DateTime.now();
-    final currentMonthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final currentMonthKey =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}';
 
     if (monthKey != currentMonthKey) {
       return 'off_duty';
     }
 
     // Check today's shifts
-    final todayStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    final todayShifts = allShiftCardsData.where((card) => card['request_date'] == todayStr).toList();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final todayShifts =
+        allShiftCards.where((card) => card.requestDate == todayStr).toList();
 
     if (todayShifts.isEmpty) {
       return 'off_duty';
     }
 
     // Filter approved shifts
-    final approvedShifts = todayShifts.where((shift) =>
-      shift['is_approved'] == true || shift['approval_status'] == 'approved',
-    ).toList();
+    final approvedShifts =
+        todayShifts.where((shift) => shift.isApproved).toList();
 
     if (approvedShifts.isEmpty) {
       return 'scheduled';
     }
 
-    // Check working status
-    bool isCurrentlyWorking = approvedShifts.any((shift) =>
-      shift['confirm_start_time'] != null && shift['confirm_end_time'] == null,
+    // Check working status using Entity properties
+    bool isCurrentlyWorking = approvedShifts.any(
+      (shift) => shift.isCheckedIn && !shift.isCheckedOut,
     );
 
-    bool allApprovedShiftsFinished = approvedShifts.every((shift) =>
-      shift['confirm_start_time'] != null && shift['confirm_end_time'] != null,
+    bool allApprovedShiftsFinished = approvedShifts.every(
+      (shift) => shift.isCheckedIn && shift.isCheckedOut,
     );
 
-    bool anyApprovedShiftStarted = approvedShifts.any((shift) =>
-      shift['confirm_start_time'] != null,
+    bool anyApprovedShiftStarted = approvedShifts.any(
+      (shift) => shift.isCheckedIn,
     );
 
     if (isCurrentlyWorking) {
@@ -234,116 +203,113 @@ class AttendanceContentController {
   }
 
   /// Update local state after QR scan
+  /// Note: This creates a temporary update until the next refresh
   void updateLocalStateAfterQRScan(Map<String, dynamic> scanResult) {
-    final requestDate = scanResult['request_date'] ?? '';
-    final action = scanResult['action'] ?? '';
-    final timestamp = scanResult['timestamp'] ?? DateTime.now().toUtc().toIso8601String();
+    final requestDate = scanResult['request_date'] as String? ?? '';
+    final action = scanResult['action'] as String? ?? '';
+    final timestamp =
+        scanResult['timestamp'] as String? ?? DateTime.now().toIso8601String();
+    final shiftRequestId = scanResult['shift_request_id'] as String? ?? '';
 
-    final existingCardIndex = allShiftCardsData.indexWhere((card) {
-      return card['request_date'] == requestDate;
-    });
+    // Find existing card
+    final existingIndex = allShiftCards.indexWhere(
+      (card) =>
+          card.requestDate == requestDate &&
+          card.shiftRequestId == shiftRequestId,
+    );
 
-    if (existingCardIndex != -1) {
-      final existingCard = allShiftCardsData[existingCardIndex];
+    if (existingIndex != -1) {
+      final existingCard = allShiftCards[existingIndex];
 
+      // Create updated card with new times
+      ShiftCard updatedCard;
       if (action == 'check_in') {
-        existingCard['actual_start_time'] = timestamp;
-        existingCard['confirm_start_time'] = timestamp;
-        existingCard['actual_end_time'] = null;
-        existingCard['confirm_end_time'] = null;
+        updatedCard = existingCard.copyWith(
+          actualStartTime: timestamp,
+          confirmStartTime: timestamp,
+        );
       } else if (action == 'check_out') {
-        existingCard['actual_end_time'] = timestamp;
-        existingCard['confirm_end_time'] = timestamp;
+        updatedCard = existingCard.copyWith(
+          actualEndTime: timestamp,
+          confirmEndTime: timestamp,
+        );
+      } else {
+        return;
       }
 
-      allShiftCardsData[existingCardIndex] = existingCard;
-    } else {
-      // Create new card
-      final newCard = {
-        'request_date': requestDate,
-        'shift_request_id': scanResult['shift_request_id'] ?? '',
-        'shift_name': scanResult['shift_name'] ?? 'Shift',
-        'shift_start_time': scanResult['shift_start_time'] ?? '09:00:00',
-        'shift_end_time': scanResult['shift_end_time'] ?? '18:00:00',
-        'is_approved': true,
-        'actual_start_time': action == 'check_in' ? timestamp : null,
-        'confirm_start_time': action == 'check_in' ? timestamp : null,
-        'actual_end_time': action == 'check_out' ? timestamp : null,
-        'confirm_end_time': action == 'check_out' ? timestamp : null,
-      };
-
-      allShiftCardsData.add(newCard);
+      allShiftCards[existingIndex] = updatedCard;
     }
+    // Note: If card doesn't exist, we don't create a new one
+    // The next refresh will fetch the updated data from server
   }
 
   /// Clear all caches
   void clearCaches() {
-    allShiftCardsData.clear();
-    _monthlyOverviewCache.clear();
+    allShiftCards.clear();
+    _monthlyStatsCache.clear();
     _monthlyCardsCache.clear();
     _loadedMonths.clear();
+    userShiftStats = null;
+    currentDisplayedMonth = null;
   }
 
   /// Get week schedule for center date
-  List<Map<String, dynamic>> getWeekSchedule(DateTime centerDate) {
-    List<Map<String, dynamic>> schedule = [];
+  List<WeekDaySchedule> getWeekSchedule(DateTime centerDate) {
+    List<WeekDaySchedule> schedule = [];
 
     for (int i = -3; i <= 3; i++) {
       final date = centerDate.add(Duration(days: i));
-      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-      final shiftsForDate = allShiftCardsData.where(
-        (card) => card['request_date'] == dateStr,
+      final shiftsForDate = allShiftCards.where(
+        (card) => card.requestDate == dateStr,
       ).toList();
 
       if (shiftsForDate.isNotEmpty) {
-        final shiftCard = shiftsForDate.first;
-        // Format shift time from shift_start_time and shift_end_time
-        final shiftTime = _formatShiftTimeRange(
-          shiftCard['shift_start_time']?.toString() ?? '',
-          shiftCard['shift_end_time']?.toString() ?? '',
-        );
-        final actualStart = shiftCard['confirm_start_time'];
-        final actualEnd = shiftCard['confirm_end_time'];
+        final hasApprovedShift = shiftsForDate.any((card) => card.isApproved);
+        final hasNonApprovedShift =
+            shiftsForDate.any((card) => !card.isApproved);
 
-        final hasApprovedShift = shiftsForDate.any((card) {
-          final isApproved = card['is_approved'];
-          final approvalStatus = card['approval_status'];
-          return (isApproved == true) || (approvalStatus == 'approved');
-        });
-
-        final hasNonApprovedShift = shiftsForDate.any((card) {
-          final isApproved = card['is_approved'];
-          final approvalStatus = card['approval_status'];
-          return (isApproved != true) && (approvalStatus != 'approved');
-        });
-
-        schedule.add({
-          'date': date,
-          'hasShift': true,
-          'shiftCount': shiftsForDate.length,
-          'worked': actualStart != null,
-          'hasApprovedShift': hasApprovedShift,
-          'hasNonApprovedShift': hasNonApprovedShift,
-          'shift': shiftTime,
-          'actualStart': actualStart,
-          'actualEnd': actualEnd,
-          'lateMinutes': shiftCard['late_minutes'] ?? 0,
-          'overtimeMinutes': shiftCard['overtime_minutes'] ?? 0,
-          'allShifts': shiftsForDate,
-        });
+        schedule.add(WeekDaySchedule(
+          date: date,
+          hasShift: true,
+          shiftCount: shiftsForDate.length,
+          hasApprovedShift: hasApprovedShift,
+          hasNonApprovedShift: hasNonApprovedShift,
+          shifts: shiftsForDate,
+        ));
       } else {
-        schedule.add({
-          'date': date,
-          'hasShift': false,
-          'worked': false,
-          'hasApprovedShift': false,
-          'hasNonApprovedShift': false,
-          'shift': '',
-        });
+        schedule.add(WeekDaySchedule(
+          date: date,
+          hasShift: false,
+          shiftCount: 0,
+          hasApprovedShift: false,
+          hasNonApprovedShift: false,
+          shifts: const [],
+        ));
       }
     }
 
     return schedule;
   }
+}
+
+/// Week day schedule data class
+class WeekDaySchedule {
+  final DateTime date;
+  final bool hasShift;
+  final int shiftCount;
+  final bool hasApprovedShift;
+  final bool hasNonApprovedShift;
+  final List<ShiftCard> shifts;
+
+  const WeekDaySchedule({
+    required this.date,
+    required this.hasShift,
+    required this.shiftCount,
+    required this.hasApprovedShift,
+    required this.hasNonApprovedShift,
+    required this.shifts,
+  });
 }

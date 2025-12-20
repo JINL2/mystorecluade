@@ -76,7 +76,7 @@ class _SessionReceivingReviewPageState
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => context.pop(),
       ),
       title: Text(
         'Review Stock In vs Order',

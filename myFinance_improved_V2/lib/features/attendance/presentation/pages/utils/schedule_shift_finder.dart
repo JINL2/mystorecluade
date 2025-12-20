@@ -6,7 +6,115 @@ import 'schedule_date_utils.dart';
 class ScheduleShiftFinder {
   ScheduleShiftFinder._();
 
+  /// Find the most relevant current shift (unified logic for UI and QR scan)
+  ///
+  /// Priority (NO DATE FILTERING for in-progress!):
+  /// 1. In-progress shift (checked in but not out) - ANY DATE (for night shifts!)
+  /// 2. Today's shifts: not-started → completed
+  /// 3. Next upcoming shift (future date)
+  ///
+  /// [excludeCompleted]: true for QR scan (skip already completed shifts)
+  static ShiftCard? findCurrentShift(
+    List<ShiftCard> shiftCards, {
+    bool excludeCompleted = false,
+  }) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // PRIORITY 1: Find ANY in-progress shift (NO DATE FILTER!)
+    // This handles night shifts: started yesterday 23:00, checkout today 03:00
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+      if (card.isCheckedIn && !card.isCheckedOut) {
+        return card;
+      }
+    }
+
+    // PRIORITY 2: Today's shifts (not-started or completed)
+    final todayShifts = <ShiftCard>[];
+    ShiftCard? nextUpcoming;
+    DateTime? nextUpcomingStart;
+
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+
+      final startTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
+      final endTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
+      if (startTime == null || endTime == null) continue;
+
+      final startDate = DateTime(startTime.year, startTime.month, startTime.day);
+      final endDate = DateTime(endTime.year, endTime.month, endTime.day);
+
+      // Check if shift is TODAY (start or end date matches today - for night shifts)
+      final isToday = startDate == today || endDate == today;
+
+      if (isToday) {
+        // Skip completed shifts for QR scan
+        if (excludeCompleted && card.isCheckedIn && card.isCheckedOut) continue;
+        // Skip in-progress (already handled above)
+        if (card.isCheckedIn && !card.isCheckedOut) continue;
+        todayShifts.add(card);
+      } else if (!card.isCheckedIn && startDate.isAfter(today)) {
+        // Future shift - track closest upcoming
+        if (nextUpcoming == null || startTime.isBefore(nextUpcomingStart!)) {
+          nextUpcoming = card;
+          nextUpcomingStart = startTime;
+        }
+      }
+    }
+
+    // Find best today shift
+    // Priority: completed (most recent) → not-started (earliest)
+    // Reason: After checkout, user wants to see completed shift, not next shift
+    if (todayShifts.isNotEmpty) {
+      ShiftCard? notStarted;
+      ShiftCard? completed;
+      DateTime? completedStartTime;
+
+      for (final card in todayShifts) {
+        final startTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime)!;
+        final endTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime)!;
+
+        if (!card.isCheckedIn) {
+          // Not checked in yet - pick the earliest one (not ended)
+          if (!now.isAfter(endTime)) {
+            if (notStarted == null) {
+              notStarted = card;
+            } else {
+              final existingStart = ScheduleDateUtils.parseShiftDateTime(notStarted.shiftStartTime)!;
+              if (startTime.isBefore(existingStart)) {
+                notStarted = card;
+              }
+            }
+          }
+        } else if (card.isCheckedIn && card.isCheckedOut) {
+          // Completed - pick the most recent one
+          if (completed == null || startTime.isAfter(completedStartTime!)) {
+            completed = card;
+            completedStartTime = startTime;
+          }
+        }
+      }
+
+      // Priority: completed first (user just checked out), then not-started
+      if (completed != null) {
+        return completed;
+      }
+      if (notStarted != null) {
+        return notStarted;
+      }
+    }
+
+    // PRIORITY 3: Next upcoming shift (future date)
+    if (nextUpcoming != null) {
+      return nextUpcoming;
+    }
+
+    return null;
+  }
+
   /// Find today's shift from the shift cards list
+  /// @deprecated Use findCurrentShift() instead for unified logic
   /// - Only returns approved shifts
   /// - Handles night shifts: checks if today matches start_date OR end_date
   /// - When multiple shifts match today, returns the one closest to current time
@@ -129,24 +237,54 @@ class ScheduleShiftFinder {
   }
 
   /// Determine ShiftCardStatus from ShiftCard data
-  static ShiftCardStatus determineStatus(ShiftCard card, DateTime cardDate) {
+  /// Uses problem_details to determine the primary status
+  static ShiftCardStatus determineStatus(ShiftCard card, DateTime cardDate, {bool hasManagerMemo = false}) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final pd = card.problemDetails;
 
     // Future shift (hasn't come yet)
     if (cardDate.isAfter(today)) {
       return ShiftCardStatus.upcoming;
     }
 
-    // Past or today's shift
-    if (card.actualStartTime != null && card.actualEndTime != null) {
-      // Check-in and check-out completed
-      return card.isLate ? ShiftCardStatus.late : ShiftCardStatus.onTime;
+    // Currently working (checked in but not out)
+    if (card.actualStartTime != null && card.actualEndTime == null) {
+      return ShiftCardStatus.inProgress;
     }
 
-    if (card.actualStartTime != null && card.actualEndTime == null) {
-      // Currently working (checked in but not out)
-      return ShiftCardStatus.inProgress;
+    // Check problem_details for status (priority order)
+    if (pd != null && pd.problemCount > 0) {
+      // Reported issue - check if resolved
+      if (pd.hasReported) {
+        final isResolved = pd.isSolved || hasManagerMemo;
+        return isResolved ? ShiftCardStatus.resolved : ShiftCardStatus.reported;
+      }
+
+      // Absence
+      if (pd.hasAbsence) {
+        return ShiftCardStatus.absent;
+      }
+
+      // No checkout
+      if (pd.hasNoCheckout) {
+        return ShiftCardStatus.noCheckout;
+      }
+
+      // Early leave
+      if (pd.hasEarlyLeave) {
+        return ShiftCardStatus.earlyLeave;
+      }
+
+      // Late
+      if (pd.hasLate) {
+        return ShiftCardStatus.late;
+      }
+    }
+
+    // Past or today's shift with check-in and check-out completed
+    if (card.actualStartTime != null && card.actualEndTime != null) {
+      return ShiftCardStatus.onTime;
     }
 
     // Past date but no check-in

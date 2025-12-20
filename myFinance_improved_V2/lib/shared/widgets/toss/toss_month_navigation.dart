@@ -50,6 +50,7 @@ class TossMonthNavigation extends StatelessWidget {
                 '$currentMonth $year',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

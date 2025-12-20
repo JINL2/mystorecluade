@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
+import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -234,13 +235,19 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _isLoadingMore = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Failed to load more data',
+        extra: {'locationId': widget.locationId, 'offset': _currentOffset},
+      );
       setState(() {
         _isLoadingMore = false;
       });
     }
   }
-  
+
   Future<void> _onRefresh() async {
     // Reset state and refresh data
     setState(() {
@@ -301,14 +308,19 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _hasMoreData = response.pagination?.hasMore ?? false;
         });
       }
-    } catch (e) {
-      // If fetching fails, the provider will handle the error state
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Failed to refresh data',
+        extra: {'locationId': widget.locationId},
+      );
     }
-    
+
     // Fetch updated balance data
     await _fetchUpdatedBalance();
   }
-  
+
   Future<void> _refreshDataSilently() async {
     // Silently refresh data without showing loading indicators
     final appState = ref.read(appStateProvider);
@@ -365,11 +377,17 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       
       // Also fetch updated balance
       await _fetchUpdatedBalance();
-    } catch (e) {
-      // Silently handle errors - don't show error messages for background refresh
+    } catch (e, stackTrace) {
+      // Log silently - don't show error messages for background refresh
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Silent refresh failed',
+        extra: {'locationId': widget.locationId},
+      );
     }
   }
-  
+
   Future<void> _fetchUpdatedBalance() async {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
@@ -408,39 +426,41 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         _updatedTotalReal = currentLocation.totalRealCashAmount.round();
         _updatedCashDifference = currentLocation.cashDifference.round();
       });
-    } catch (e) {
-      // If fetching fails, keep using the original values
+    } catch (e, stackTrace) {
+      // Log error but keep using original values
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Failed to fetch updated balance',
+        extra: {'locationId': widget.locationId},
+      );
     }
   }
-  
+
+  /// Format currency amount with optional sign for negative values
+  /// Uses NumberFormatter utility for cached formatting
   String _formatCurrency(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
     final isNegative = amount < 0;
-    final formattedAmount = formatter.format(amount.abs().round());
-    return '${isNegative ? "-" : ""}$symbol$formattedAmount';
+    final formatted = NumberFormatter.formatWithCommas(amount.abs().round());
+    return '${isNegative ? "-" : ""}$symbol$formatted';
   }
-  
-  String _formatCurrencyWithSign(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
-    final symbol = currencySymbol ?? '';
-    final isNegative = amount < 0;
-    final formattedAmount = formatter.format(amount.abs().round());
-    return '${isNegative ? "-" : ""}$symbol$formattedAmount';
-  }
-  
+
+  /// Same as _formatCurrency - kept for API compatibility
+  String _formatCurrencyWithSign(double amount, [String? currencySymbol]) =>
+      _formatCurrency(amount, currencySymbol);
+
+  /// Format transaction amount with +/- prefix
   String _formatTransactionAmount(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
-    final isIncome = amount > 0;
-    final prefix = isIncome ? '+$symbol' : '-$symbol';
-    return '$prefix${formatter.format(amount.abs().round())}';
+    final prefix = amount > 0 ? '+$symbol' : '-$symbol';
+    return '$prefix${NumberFormatter.formatWithCommas(amount.abs().round())}';
   }
-  
+
+  /// Format balance without sign
   String _formatBalance(double amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
     final symbol = currencySymbol ?? '';
-    return '$symbol${formatter.format(amount.round())}';
+    return '$symbol${NumberFormatter.formatWithCommas(amount.round())}';
   }
   
   String _getJournalDisplayText(JournalFlow flow) {
@@ -715,12 +735,18 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _showErrorDialog(error);
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Error mapping failed',
+        extra: {'locationId': widget.locationId, 'errorAmount': errorAmount},
+      );
       Navigator.pop(context); // Close loading dialog
       _showErrorDialog('An error occurred: ${e.toString()}');
     }
   }
-  
+
   Future<void> _handleForeignCurrencyTranslation(double errorAmount) async {
     // Show loading indicator
     _showProcessingDialog();
@@ -779,12 +805,18 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _showErrorDialog(error);
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountDetailPage: Foreign currency translation failed',
+        extra: {'locationId': widget.locationId, 'errorAmount': errorAmount},
+      );
       Navigator.pop(context); // Close loading dialog
       _showErrorDialog('An error occurred: ${e.toString()}');
     }
   }
-  
+
   void _showSuccessDialog({bool isError = false}) {
     showDialog(
       context: context,

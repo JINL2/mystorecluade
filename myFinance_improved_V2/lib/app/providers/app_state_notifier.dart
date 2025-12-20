@@ -262,7 +262,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   /// should be handled by the logout service.
   void signOut() {
     state = AppState.initial();
-    clearLastSelection(); // Clear cached selection on logout
+    clearLastSelection();
   }
 
   /// Sync with legacy app state provider

@@ -4,6 +4,7 @@
 /// Provides cached access to overview data by month.
 library;
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
@@ -33,6 +34,26 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
     this._timezone,
   ) : super(const ManagerOverviewState());
 
+  /// Safely update state - avoids "setState during build" errors
+  /// by deferring state updates if called during widget build phase
+  void _safeSetState(ManagerOverviewState newState) {
+    if (!mounted) return;
+
+    // Check if we're in the middle of a build phase
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks) {
+      // Defer state update to after the current frame
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          state = newState;
+        }
+      });
+    } else {
+      state = newState;
+    }
+  }
+
   /// Load manager overview for a specific month
   ///
   /// Parameters:
@@ -49,7 +70,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    _safeSetState(state.copyWith(isLoading: true, error: null));
 
     try {
       final firstDay = DateTime(month.year, month.month, 1);
@@ -71,15 +92,15 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       final newDataByMonth = Map<String, ManagerOverview>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
-      state = state.copyWith(
+      _safeSetState(state.copyWith(
         dataByMonth: newDataByMonth,
         isLoading: false,
-      );
+      ));
     } catch (e) {
-      state = state.copyWith(
+      _safeSetState(state.copyWith(
         isLoading: false,
         error: e.toString(),
-      );
+      ));
     }
   }
 
@@ -91,7 +112,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
 
   /// Clear all loaded data
   void clearAll() {
-    state = const ManagerOverviewState();
+    _safeSetState(const ManagerOverviewState());
   }
 }
 

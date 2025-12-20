@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
 import 'package:myfinance_improved/features/cash_location/presentation/providers/cash_location_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -104,12 +105,18 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           }
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to load cash location by ID',
+        extra: {'locationId': widget.locationId},
+      );
       // If fails, try loading by name
       _loadCashLocationDataByName();
     }
   }
-  
+
   Future<void> _loadCashLocationDataByName() async {
     try {
       final appState = ref.read(appStateProvider);
@@ -139,11 +146,17 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           }
         });
       }
-    } catch (e) {
-      // Silent fail - location not found
+    } catch (e, stackTrace) {
+      // Log but don't show error to user
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to load cash location by name',
+        extra: {'accountName': widget.accountName, 'locationType': widget.locationType},
+      );
     }
   }
-  
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -678,7 +691,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         title: 'Name Updated',
         message: 'Account name updated successfully',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to update name',
+        extra: {'locationId': widget.locationId, 'newName': newName},
+      );
       await _showUpdateDialog(
         success: false,
         title: 'Update Failed',
@@ -686,7 +705,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       );
     }
   }
-  
+
   Future<void> _updateCashLocationNote(String newNote) async {
     try {
       final useCase = ref.read(updateCashLocationUseCaseProvider);
@@ -702,7 +721,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         title: 'Note Updated',
         message: 'Note updated successfully',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to update note',
+        extra: {'locationId': widget.locationId},
+      );
       await _showUpdateDialog(
         success: false,
         title: 'Update Failed',
@@ -710,7 +735,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       );
     }
   }
-  
+
   Future<void> _updateCashLocationDescription(String newDescription) async {
     try {
       final useCase = ref.read(updateCashLocationUseCaseProvider);
@@ -726,7 +751,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         title: 'Description Updated',
         message: 'Description updated successfully',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to update description',
+        extra: {'locationId': widget.locationId},
+      );
       await _showUpdateDialog(
         success: false,
         title: 'Update Failed',
@@ -734,7 +765,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       );
     }
   }
-  
+
   Future<void> _updateMainAccountStatus(bool isMain) async {
     try {
       final appState = ref.read(appStateProvider);
@@ -762,7 +793,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to update main account status',
+        extra: {'locationId': widget.locationId, 'isMain': isMain},
+      );
       // Revert the state if update failed
       if (mounted) {
         setState(() {
@@ -780,7 +817,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       }
     }
   }
-  
+
   Future<bool> _deleteCashLocation() async {
     try {
       final useCase = ref.read(deleteCashLocationUseCaseProvider);
@@ -789,7 +826,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
 
       // Don't show success message here, it will be shown after dialog closes
       return true; // Return success
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsPage: Failed to delete cash location',
+        extra: {'locationId': widget.locationId},
+      );
       // Show error message only on failure
       if (mounted) {
         await showDialog(

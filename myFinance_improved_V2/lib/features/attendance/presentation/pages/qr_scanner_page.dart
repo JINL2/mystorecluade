@@ -252,15 +252,24 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Get app state for company/store info
                 final appState = ref.read(appStateProvider);
                 final companyId = appState.companyChoosen;
+                final currentStoreId = appState.storeChoosen;
 
-                // Fetch shift cards to find the closest shift's request ID
-                // RPC: user_shift_cards_v4
+                // 현재 앱에서 선택된 store와 QR store가 다르면 에러
+                if (storeId != currentStoreId) {
+                  throw Exception(
+                    'Wrong store QR code.\n'
+                    'Please scan the QR code for your current store.',
+                  );
+                }
+
+                // Fetch shift cards for the scanned store (QR store_id)
+                // QR 스캔한 store_id로 필터링 - update_shift_requests_v7과 일관성 유지
                 final getUserShiftCards = ref.read(getUserShiftCardsProvider);
                 final shiftCards = await getUserShiftCards(
                   requestTime: currentTime,
                   userId: userId,
                   companyId: companyId,
-                  storeId: storeId,
+                  storeId: storeId,  // QR에서 읽은 store_id 사용
                   timezone: timezone,
                 );
 
@@ -271,17 +280,14 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 );
 
                 if (shiftRequestId == null) {
-                  throw Exception('No approved shift found for check-in/check-out');
+                  throw Exception(
+                    'No approved shift found for today.\n'
+                    'Please check your schedule.',
+                  );
                 }
 
                 // Submit attendance using check in use case
-                // RPC update_shift_requests_v7 requires:
-                // - p_shift_request_id: from closest shift
-                // - p_time: local timestamp with timezone offset
-                // - p_timezone: user's local timezone
-                // - p_store_id: from QR code scan
                 final checkInShift = ref.read(checkInShiftProvider);
-
                 final result = await checkInShift(
                   shiftRequestId: shiftRequestId,
                   userId: userId,
@@ -296,8 +302,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                 // Check if the RPC call was successful
                 if (!result.success) {
-                  final errorMsg = result.message ?? 'Failed to update shift request';
-                  throw Exception(errorMsg);
+                  throw Exception(result.message ?? 'Failed to update shift request');
                 }
 
                 // Add a small delay for UX

@@ -35,6 +35,8 @@ class ShiftDetailPage extends ConsumerStatefulWidget {
 class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = false;
+  bool _reportAndResponseExpanded = true; // 기본 열림
+  bool _activityLogExpanded = false; // Activity Log 기본 접힘
 
   // 🔒 Prevent double submission
   bool _isSubmittingReport = false;
@@ -81,15 +83,54 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   }
 
   /// Get status text from shift
-  /// - Late: isLate == true
-  /// - On-time: isLate == false AND actualStartTime exists (checked in)
-  /// - Undone: everything else (not checked in yet)
+  /// Uses same logic as ScheduleShiftFinder.determineStatus()
   String _getStatusText() {
-    if (widget.shift.isLate) return 'Late';
-    if (!widget.shift.isLate && widget.shift.actualStartTime != null) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Parse shift date
+    DateTime? shiftDate;
+    try {
+      shiftDate = DateTime.parse(widget.shift.shiftStartTime);
+      shiftDate = DateTime(shiftDate.year, shiftDate.month, shiftDate.day);
+    } catch (e) {
+      shiftDate = null;
+    }
+
+    // Future shift
+    if (shiftDate != null && shiftDate.isAfter(today)) {
+      return 'Upcoming';
+    }
+
+    // Currently working (checked in but not out)
+    if (widget.shift.actualStartTime != null && widget.shift.actualEndTime == null) {
+      return 'In Progress';
+    }
+
+    // Check problem_details for status
+    final pd = widget.shift.problemDetails;
+    if (pd != null && pd.problemCount > 0) {
+      if (pd.hasReported) {
+        final isResolved = pd.isSolved || widget.shift.managerMemos.isNotEmpty;
+        return isResolved ? 'Resolved' : 'Reported';
+      }
+      if (pd.hasAbsence) return 'Absent';
+      if (pd.hasNoCheckout) return 'No Checkout';
+      if (pd.hasEarlyLeave) return 'Early Leave';
+      if (pd.hasLate) return 'Late';
+    }
+
+    // Completed (checked in and out)
+    if (widget.shift.actualStartTime != null && widget.shift.actualEndTime != null) {
       return 'On-time';
     }
-    return 'Undone';
+
+    // Past date but no check-in
+    if (shiftDate != null && shiftDate.isBefore(today)) {
+      return 'Undone';
+    }
+
+    return 'Upcoming';
   }
 
   /// Get confirmed start time (use scheduled time from shift, not actual check-in)
@@ -437,6 +478,12 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                             ],
                           ),
                         ),
+
+                        // Report & Response Card (expandable, unified style)
+                        if (widget.shift.isReported || widget.shift.managerMemos.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildReportAndResponseCard(),
+                        ],
                       ],
                     ),
                   ),
@@ -452,6 +499,10 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                       children: [
                         // Payment Summary Card
                         _buildPaymentSummaryCard(),
+                        const SizedBox(height: 20),
+
+                        // Activity Log Section (접고 열 수 있음)
+                        _buildActivityLogSection(),
                         const SizedBox(height: 20),
 
                         // Helper Text
@@ -572,12 +623,27 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
         textColor = TossColors.white;
         break;
       case 'late':
+      case 'absent':
+      case 'no checkout':
+      case 'early leave':
         backgroundColor = TossColors.error;
         textColor = TossColors.white;
         break;
-      case 'absent':
-        backgroundColor = TossColors.error;
+      case 'reported':
+        backgroundColor = TossColors.warning;
         textColor = TossColors.white;
+        break;
+      case 'resolved':
+        backgroundColor = TossColors.success;
+        textColor = TossColors.white;
+        break;
+      case 'in progress':
+        backgroundColor = TossColors.primary;
+        textColor = TossColors.white;
+        break;
+      case 'upcoming':
+        backgroundColor = TossColors.primarySurface;
+        textColor = TossColors.primary;
         break;
       case 'undone':
         backgroundColor = TossColors.gray200;
@@ -631,22 +697,20 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             label: 'Base pay',
             value: _formatMoney(widget.shift.basePayAmount, currencySymbol),
           ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: 'Bonus pay',
-            value: _formatMoney(widget.shift.bonusAmount, currencySymbol),
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: 'Penalty deduction',
-            value: '-${_formatMoney(widget.shift.lateDeducutAmount, currencySymbol)}',
-            valueStyle: widget.shift.lateDeducutAmount > 0
-                ? TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.error,
-                    fontWeight: FontWeight.w600,
-                  )
-                : null,
-          ),
+          // Bonus pay - 0이 아닐 때만 표시, 음수면 빨간색
+          if (widget.shift.bonusAmount != 0) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Bonus pay',
+              value: _formatMoney(widget.shift.bonusAmount, currencySymbol),
+              valueStyle: widget.shift.bonusAmount < 0
+                  ? TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.error,
+                      fontWeight: FontWeight.w600,
+                    )
+                  : null,
+            ),
+          ],
           const SizedBox(height: 12),
           _buildInfoRow(
             label: 'Total payment',
@@ -692,4 +756,264 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       ],
     );
   }
+
+  /// Builds a vertical info row for long text content
+  /// Label on top, value below (with optional color)
+  Widget _buildVerticalInfoRow({
+    required String label,
+    required String value,
+    TextStyle? valueStyle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: valueStyle ?? TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 5,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  /// Builds Report & Response Card - expandable unified style
+  /// Matches the design of Recorded/Confirmed attendance cards
+  Widget _buildReportAndResponseCard() {
+    final reportedProblem = widget.shift.problemDetails?.reportedProblem;
+    final reportReason = reportedProblem?.reason ?? '';
+    final hasReport = reportReason.isNotEmpty;
+    final hasManagerMemo = widget.shift.managerMemos.isNotEmpty;
+    final managerMemoContent = hasManagerMemo ? widget.shift.managerMemos.first.content : '';
+
+    // 매니저 메모가 있으면 해결된 것으로 간주
+    final isSolved = (reportedProblem?.isReportSolved ?? false) || hasManagerMemo;
+
+    return TossExpandableCard(
+      title: 'Report & Response',
+      isExpanded: _reportAndResponseExpanded,
+      onToggle: () {
+        setState(() {
+          _reportAndResponseExpanded = !_reportAndResponseExpanded;
+        });
+      },
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Your Report (vertical layout for long text)
+          if (hasReport) ...[
+            _buildVerticalInfoRow(
+              label: 'Your report',
+              value: reportReason,
+            ),
+          ],
+          // 2. Manager Response (vertical, 파란색)
+          if (hasManagerMemo) ...[
+            if (hasReport) const SizedBox(height: 16),
+            _buildVerticalInfoRow(
+              label: 'Manager response',
+              value: managerMemoContent,
+              valueStyle: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          // 3. Status row (horizontal, 맨 아래)
+          if (hasReport) ...[
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              label: 'Status',
+              value: isSolved ? 'Resolved' : 'Pending',
+              valueStyle: TossTextStyles.bodyLarge.copyWith(
+                color: isSolved ? TossColors.success : TossColors.warning,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Build Activity Log Section - 접고 열 수 있는 형태
+  Widget _buildActivityLogSection() {
+    // 현재 데이터로 Activity 항목 생성
+    final activities = <_ActivityItem>[];
+
+    // 1. Check-in
+    if (widget.shift.actualStartTime != null) {
+      activities.add(_ActivityItem(
+        icon: Icons.login,
+        color: TossColors.success,
+        label: 'Check-in',
+        time: widget.shift.actualStartTime!,
+      ));
+    }
+
+    // 2. Check-out
+    if (widget.shift.actualEndTime != null) {
+      activities.add(_ActivityItem(
+        icon: Icons.logout,
+        color: TossColors.primary,
+        label: 'Check-out',
+        time: widget.shift.actualEndTime!,
+      ));
+    }
+
+    // 3. Report submitted
+    final reportedAt = widget.shift.problemDetails?.reportedProblem?.reportedAt;
+    if (reportedAt != null) {
+      activities.add(_ActivityItem(
+        icon: Icons.report_outlined,
+        color: TossColors.warning,
+        label: 'Report submitted',
+        time: reportedAt,
+      ));
+    }
+
+    // 4. Manager memo
+    for (final memo in widget.shift.managerMemos) {
+      if (memo.createdAt != null) {
+        activities.add(_ActivityItem(
+          icon: Icons.comment_outlined,
+          color: TossColors.primary,
+          label: 'Manager response',
+          time: memo.createdAt!,
+        ));
+      }
+    }
+
+    // 활동이 없으면 표시 안함
+    if (activities.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with toggle
+        InkWell(
+          onTap: () {
+            setState(() {
+              _activityLogExpanded = !_activityLogExpanded;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Activity',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${activities.length}',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                  ],
+                ),
+                Icon(
+                  _activityLogExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: TossColors.gray500,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Activity list (expanded)
+        if (_activityLogExpanded) ...[
+          const SizedBox(height: 8),
+          ...activities.map((activity) => _buildActivityItem(activity)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildActivityItem(_ActivityItem activity) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: activity.color.withValues(alpha: 0.1),
+            ),
+            child: Icon(
+              activity.icon,
+              size: 14,
+              color: activity.color,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Label and time
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.label,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  activity.time,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Activity item data class
+class _ActivityItem {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String time;
+
+  const _ActivityItem({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.time,
+  });
 }

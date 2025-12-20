@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../modals/calendar_bottom_sheet.dart';
 import 'controllers/attendance_content_controller.dart';
 import 'dialogs/activity_details_sheet.dart';
@@ -50,13 +51,17 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     super.dispose();
   }
 
-  Future<void> _fetchMonthData(DateTime targetDate, {bool forceRefresh = false}) async {
+  Future<void> _fetchMonthData(
+    DateTime targetDate, {
+    bool forceRefresh = false,
+  }) async {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    final result = await controller.fetchMonthData(targetDate, forceRefresh: forceRefresh);
+    final result =
+        await controller.fetchMonthData(targetDate, forceRefresh: forceRefresh);
 
     setState(() {
       isLoading = false;
@@ -69,7 +74,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   }
 
   void _updateCenterDate(DateTime newCenterDate) {
-    final newMonthKey = '${newCenterDate.year}-${newCenterDate.month.toString().padLeft(2, '0')}';
+    final newMonthKey =
+        '${newCenterDate.year}-${newCenterDate.month.toString().padLeft(2, '0')}';
     final currentMonthKey = controller.currentDisplayedMonth;
 
     setState(() {
@@ -100,12 +106,12 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Hero Section
+            // Hero Section - uses UserShiftStats and List<ShiftCard>
             AttendanceHeroSection(
               isLoading: isLoading,
               errorMessage: errorMessage,
-              shiftOverviewData: controller.shiftOverviewData,
-              allShiftCardsData: controller.allShiftCardsData,
+              userShiftStats: controller.userShiftStats,
+              shiftCards: controller.allShiftCards,
               currentDisplayedMonth: controller.currentDisplayedMonth,
               shiftStatus: shiftStatus,
               getStatusColor: AttendanceStatusHelper.getStatusColor,
@@ -126,10 +132,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
 
             const SizedBox(height: TossSpacing.space4),
 
-            // Week Schedule
+            // Week Schedule - uses List<ShiftCard>
             AttendanceWeekSchedule(
               selectedDate: selectedDate,
-              allShiftCardsData: controller.allShiftCardsData,
+              shiftCards: controller.allShiftCards,
               onDateSelected: (date) async {
                 final currentMonth = selectedDate.month;
                 final currentYear = selectedDate.year;
@@ -150,14 +156,16 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
 
             const SizedBox(height: TossSpacing.space4),
 
-            // Recent Activity
+            // Recent Activity - uses List<ShiftCard>
             AttendanceRecentActivity(
               selectedDate: selectedDate,
-              allShiftCardsData: controller.allShiftCardsData,
+              shiftCards: controller.allShiftCards,
               onActivityTap: _showActivityDetails,
               onViewAllTap: _showAllAttendanceHistory,
-              getActivityStatusColor: AttendanceStatusHelper.getActivityStatusColor,
-              getActivityStatusText: AttendanceStatusHelper.getActivityStatusText,
+              getActivityStatusColor:
+                  AttendanceStatusHelper.getActivityStatusColor,
+              getActivityStatusText:
+                  AttendanceStatusHelper.getActivityStatusText,
             ),
 
             const SizedBox(height: TossSpacing.space8),
@@ -173,20 +181,20 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => AllAttendanceHistorySheet(
-        allShiftCardsData: controller.allShiftCardsData,
+        shiftCards: controller.allShiftCards,
         onActivityTap: _showActivityDetails,
       ),
     );
   }
 
-  void _showActivityDetails(Map<String, dynamic> activity) {
+  void _showActivityDetails(ShiftCard shiftCard) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => ActivityDetailsSheet(
-        activity: activity,
-        shiftOverviewData: controller.shiftOverviewData,
+        shiftCard: shiftCard,
+        salaryInfo: controller.userShiftStats?.salaryInfo,
         onReportSubmitted: () {
           _fetchMonthData(selectedDate);
         },
@@ -197,7 +205,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   void _showCalendarBottomSheet() {
     DateTime modalSelectedDate = selectedDate;
     DateTime modalFocusedDate = selectedDate;
-    List<Map<String, dynamic>> modalShiftData = List.from(controller.allShiftCardsData);
+    List<ShiftCard> modalShiftData = List.from(controller.allShiftCards);
 
     showModalBottomSheet<void>(
       context: context,
@@ -209,11 +217,11 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             return CalendarBottomSheet(
               initialSelectedDate: modalSelectedDate,
               initialFocusedDate: modalFocusedDate,
-              allShiftCardsData: modalShiftData,
+              shiftCards: modalShiftData,
               onFetchMonthData: (DateTime date) async {
                 await _fetchMonthData(date);
                 setModalState(() {
-                  modalShiftData = List.from(controller.allShiftCardsData);
+                  modalShiftData = List.from(controller.allShiftCards);
                 });
               },
               onNavigateToDate: (DateTime date) {
@@ -221,14 +229,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 setModalState(() {
                   modalSelectedDate = date;
                   modalFocusedDate = date;
-                  modalShiftData = List.from(controller.allShiftCardsData);
+                  modalShiftData = List.from(controller.allShiftCards);
                 });
               },
               parentSetState: () {
                 if (mounted) {
                   setState(() {});
                   setModalState(() {
-                    modalShiftData = List.from(controller.allShiftCardsData);
+                    modalShiftData = List.from(controller.allShiftCards);
                   });
                 }
               },
@@ -245,11 +253,12 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     DateTime focusedDate,
     DateTime selectedDate,
     void Function(DateTime) onDateSelected, [
-    List<Map<String, dynamic>>? shiftCardsData,
+    List<ShiftCard>? shiftCardsData,
   ]) {
     final shiftsData = shiftCardsData ?? [];
     final firstDayOfMonth = DateTime(focusedDate.year, focusedDate.month, 1);
-    final lastDayOfMonth = DateTime(focusedDate.year, focusedDate.month + 1, 0);
+    final lastDayOfMonth =
+        DateTime(focusedDate.year, focusedDate.month + 1, 0);
     final daysInMonth = lastDayOfMonth.day;
     final firstWeekday = firstDayOfMonth.weekday;
 
@@ -286,21 +295,17 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           DateTime.now().month == date.month &&
           DateTime.now().day == date.day;
 
-      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      final shiftsForDate = shiftsData.where((card) => card['request_date'] == dateStr).toList();
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final shiftsForDate =
+          shiftsData.where((card) => card.requestDate == dateStr).toList();
       final hasShift = shiftsForDate.isNotEmpty;
 
-      final hasApprovedShift = hasShift &&
-          shiftsForDate.any((card) {
-            final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-            return isApproved == true;
-          });
+      final hasApprovedShift =
+          hasShift && shiftsForDate.any((card) => card.isApproved);
 
-      final hasNonApprovedShift = hasShift &&
-          shiftsForDate.any((card) {
-            final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
-            return isApproved != true;
-          });
+      final hasNonApprovedShift =
+          hasShift && shiftsForDate.any((card) => !card.isApproved);
 
       calendarDays.add(
         InkWell(
@@ -312,11 +317,13 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               color: isSelected
                   ? TossColors.primary
                   : isToday
-                      ? TossColors.primary.withOpacity(0.1)
+                      ? TossColors.primary.withValues(alpha: 0.1)
                       : TossColors.transparent,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
-                color: isToday && !isSelected ? TossColors.primary : TossColors.transparent,
+                color: isToday && !isSelected
+                    ? TossColors.primary
+                    : TossColors.transparent,
                 width: 1,
               ),
             ),
@@ -327,8 +334,11 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   child: Text(
                     day.toString(),
                     style: TossTextStyles.body.copyWith(
-                      color: isSelected ? TossColors.white : TossColors.gray900,
-                      fontWeight: isSelected || isToday ? FontWeight.w600 : FontWeight.w400,
+                      color:
+                          isSelected ? TossColors.white : TossColors.gray900,
+                      fontWeight: isSelected || isToday
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                 ),
@@ -343,17 +353,22 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: isSelected ? TossColors.white : TossColors.success,
+                              color: isSelected
+                                  ? TossColors.white
+                                  : TossColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),
-                        if (hasApprovedShift && hasNonApprovedShift) const SizedBox(width: 2),
+                        if (hasApprovedShift && hasNonApprovedShift)
+                          const SizedBox(width: 2),
                         if (hasNonApprovedShift)
                           Container(
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: isSelected ? TossColors.white : TossColors.warning,
+                              color: isSelected
+                                  ? TossColors.white
+                                  : TossColors.warning,
                               shape: BoxShape.circle,
                             ),
                           ),

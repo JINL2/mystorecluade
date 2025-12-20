@@ -75,7 +75,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         stores: stores,
         isLoadingStores: false,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingNotifier.loadStores failed',
+        extra: {'companyId': companyId},
+      );
+
       state = state.copyWith(
         isLoadingStores: false,
         errorMessage: e is CashEndingException ? e.message : 'Failed to load stores',
@@ -106,7 +113,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       // Update state based on type
       _updateLocationState(result.locationType, result.locations);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingNotifier.loadLocations failed',
+        extra: {'companyId': companyId, 'locationType': locationType, 'storeId': storeId},
+      );
+
       final errorMsg = e is CashEndingException
           ? e.message
           : 'Failed to load $locationType locations';
@@ -172,7 +186,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         recentCashEndings: recentEndings,
         isLoadingRecentEndings: false,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingNotifier.loadRecentCashEndings failed',
+        extra: {'locationId': locationId},
+      );
+
       state = state.copyWith(
         isLoadingRecentEndings: false,
         errorMessage: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
@@ -200,7 +221,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       }
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingNotifier.saveCashEnding failed',
+        extra: {'locationId': cashEnding.locationId},
+      );
+
       final errorMsg = e is CashEndingException ? e.message : 'Failed to save cash ending';
 
       state = state.copyWith(
@@ -244,7 +272,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         bankLocations: result.bankLocations,
         vaultLocations: result.vaultLocations,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingNotifier.selectStore failed',
+        extra: {'storeId': storeId, 'companyId': companyId},
+      );
+
       state = state.copyWith(
         errorMessage: e is CashEndingException
             ? e.message

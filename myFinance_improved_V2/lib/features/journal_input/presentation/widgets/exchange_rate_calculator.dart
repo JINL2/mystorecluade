@@ -50,16 +50,16 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
     for (var controller in _currencyControllers.values) {
       try {
         controller.dispose();
-      } catch (e) {
-        debugPrint('Error disposing controller: $e');
+      } catch (_) {
+        // Ignore disposal errors
       }
     }
 
     for (var node in _currencyFocusNodes.values) {
       try {
         node.dispose();
-      } catch (e) {
-        debugPrint('Error disposing focus node: $e');
+      } catch (_) {
+        // Ignore disposal errors
       }
     }
 

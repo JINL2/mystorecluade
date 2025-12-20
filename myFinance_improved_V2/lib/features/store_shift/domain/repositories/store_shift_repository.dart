@@ -1,3 +1,4 @@
+import '../entities/business_hours.dart';
 import '../entities/store_shift.dart';
 
 /// Store Shift Repository Interface
@@ -108,5 +109,32 @@ abstract class StoreShiftRepository {
     int? huddleTime,
     int? paymentTime,
     int? allowedDistance,
+  });
+
+  /// ========================================
+  /// Business Hours Operations
+  /// ========================================
+
+  /// Get business hours for a store
+  ///
+  /// Parameters:
+  /// - [storeId]: The ID of the store
+  ///
+  /// Returns a list of [BusinessHours] for each day of the week
+  /// Returns empty list if no hours configured
+  /// Throws an exception if the operation fails
+  Future<List<BusinessHours>> getBusinessHours(String storeId);
+
+  /// Update business hours for a store
+  ///
+  /// Parameters:
+  /// - [storeId]: The ID of the store
+  /// - [hours]: List of [BusinessHours] to upsert
+  ///
+  /// Returns true if successful
+  /// Throws an exception if the operation fails
+  Future<bool> updateBusinessHours({
+    required String storeId,
+    required List<BusinessHours> hours,
   });
 }

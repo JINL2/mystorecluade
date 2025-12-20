@@ -5,15 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
-import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/daily_shift_data.dart';
-import '../../domain/entities/manager_overview.dart';
 import '../providers/state/reliability_score_provider.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
@@ -59,25 +55,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     }
   }
 
-  // ✅ Removed: shiftMetadata, isLoadingMetadata
-  // Now managed by shiftMetadataProvider
-
-  // Feature info extracted once
-  String? _featureName;
-  String? _featureId;
-  bool _featureInfoExtracted = false;
-
-  // ✅ Removed: monthlyShiftStatusList, loadedMonths, isLoadingShiftStatus
-  // Now managed by monthlyShiftStatusProvider
-
-  // ✅ Removed: selectedShiftRequests, selectedShiftApprovalStates, selectedShiftRequestIds
-  // Now managed by selectedShiftRequestsProvider
-
-  // ✅ Removed: managerOverviewDataByMonth, isLoadingOverview
-  // Now managed by managerOverviewProvider
-
-  // ✅ Removed: managerCardsDataByMonth, isLoadingCards
-  // Now managed by managerCardsProvider
+  // ✅ Data managed by providers:
+  // - shiftMetadataProvider
+  // - monthlyShiftStatusProvider
+  // - selectedShiftRequestsProvider
+  // - managerOverviewProvider
+  // - managerCardsProvider
 
   // Preload profile images for faster loading
   void _preloadProfileImages(List<DailyShiftData> dailyShifts) {
@@ -118,9 +101,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     super.initState();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0); // Changed to 4 tabs, default to Overview
     _tabController.addListener(_onTabChanged);
-
-    // Extract feature info once
-    _extractFeatureInfo();
 
     // Initialize selectedStoreId from app state
     final appState = ref.read(appStateProvider);
@@ -172,23 +152,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     ]);
   }
 
-  void _extractFeatureInfo() {
-    if (_featureInfoExtracted) return;
-
-    final feature = widget.feature;
-    if (feature != null) {
-      if (feature is Feature) {
-        _featureName = feature.featureName;
-        _featureId = feature.featureId;
-      } else if (feature is TopFeature) {
-        _featureName = feature.featureName;
-        _featureId = feature.featureId;
-      }
-    }
-
-    _featureInfoExtracted = true;
-  }
-  
   @override
   void dispose() {
     _tabController.dispose();
@@ -196,16 +159,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     super.dispose();
   }
   
-  // Helper widget for common spacing
-  
   @override
   Widget build(BuildContext context) {
-    // ✅ Watch manager overview provider
-    final managerOverviewState = selectedStoreId != null && selectedStoreId!.isNotEmpty
-        ? ref.watch(managerOverviewProvider(selectedStoreId!))
-        : null;
-    final managerOverviewDataByMonth = managerOverviewState?.dataByMonth ?? {};
-
     return TossScaffold(
         appBar: const TossAppBar1(
           title: 'Time Table Manage',
@@ -337,37 +292,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             ],
           ),
         ),
-        floatingActionButton: AnimatedBuilder(
-          animation: _tabController,
-          builder: (context, child) {
-            if (_tabController.index != 0) {
-              return const SizedBox.shrink();
-            }
-
-            return AiChatFab(
-              featureName: _featureName ?? 'Time Table Manage',
-              pageContext: _buildPageContext(managerOverviewDataByMonth),
-              featureId: _featureId,
-            );
-          },
-        ),
     );
-  }
-
-  Map<String, dynamic> _buildPageContext(Map<String, ManagerOverview> overviewData) {
-    final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
-    final managerOverview = overviewData[monthKey];
-
-    return {
-      'current_tab': _tabController.index == 0 ? 'Manage' : 'Schedule',
-      'selected_date': manageSelectedDate.toIso8601String().split('T')[0],
-      if (managerOverview != null) ...{
-        'total_requests': managerOverview.totalShifts,
-        'approved_count': managerOverview.totalApprovedRequests,
-        'pending_count': managerOverview.totalPendingRequests,
-        'problem_count': managerOverview.additionalStats['total_problems'] ?? 0,
-      },
-    };
   }
   
   // ✅ Removed: fetchShiftMetadata() - now handled by shiftMetadataProvider

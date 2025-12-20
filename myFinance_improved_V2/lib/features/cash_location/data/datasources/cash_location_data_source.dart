@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../domain/entities/stock_flow.dart';
 import '../models/bank_real_model.dart';
 import '../models/cash_location_detail_model.dart';
@@ -33,7 +34,13 @@ class CashLocationDataSource {
       return (response as List)
           .map((json) => CashLocationModel.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to load cash locations',
+        extra: {'companyId': companyId, 'storeId': storeId},
+      );
       throw Exception('Failed to load cash locations: ${e.toString()}');
     }
   }
@@ -52,7 +59,13 @@ class CashLocationDataSource {
       if (response == null) return null;
 
       return CashLocationDetailModel.fromJson(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to load cash location by ID',
+        extra: {'locationId': locationId},
+      );
       throw Exception('Failed to load cash location: ${e.toString()}');
     }
   }
@@ -77,7 +90,13 @@ class CashLocationDataSource {
       if (response == null) return null;
 
       return CashLocationDetailModel.fromJson(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to load cash location by name',
+        extra: {'locationName': locationName, 'locationType': locationType},
+      );
       throw Exception('Failed to load cash location: ${e.toString()}');
     }
   }
@@ -100,7 +119,13 @@ class CashLocationDataSource {
       return response
           .map((json) => CashLocationRPCResponse.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to load cash locations for selector',
+        extra: {'companyId': companyId},
+      );
       throw Exception('Failed to load cash locations: ${e.toString()}');
     }
   }
@@ -127,7 +152,13 @@ class CashLocationDataSource {
       return response
           .map((json) => CashRealEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to get cash real entries',
+        extra: {'companyId': companyId, 'storeId': storeId, 'offset': offset},
+      );
       return [];
     }
   }
@@ -153,7 +184,13 @@ class CashLocationDataSource {
       return response
           .map((json) => BankRealEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to get bank real entries',
+        extra: {'companyId': companyId, 'storeId': storeId, 'offset': offset},
+      );
       return [];
     }
   }
@@ -181,7 +218,13 @@ class CashLocationDataSource {
       return response
           .map((json) => VaultRealEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to get vault real entries',
+        extra: {'companyId': companyId, 'storeId': storeId, 'offset': offset},
+      );
       return [];
     }
   }
@@ -208,7 +251,13 @@ class CashLocationDataSource {
       return response
           .map((json) => JournalEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to get cash journal entries',
+        extra: {'companyId': companyId, 'storeId': storeId, 'locationType': locationType},
+      );
       return [];
     }
   }
@@ -234,7 +283,13 @@ class CashLocationDataSource {
       );
 
       return StockFlowResponseModel.fromJson(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to fetch stock flow data',
+        extra: {'companyId': companyId, 'cashLocationId': cashLocationId, 'offset': offset},
+      );
       throw Exception('Failed to fetch stock flow data: $e');
     }
   }
@@ -271,7 +326,13 @@ class CashLocationDataSource {
         'success': true,
         'data': response,
       };
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to insert journal',
+        extra: {'companyId': companyId, 'description': description, 'baseAmount': baseAmount},
+      );
       return {
         'success': false,
         'error': e.toString(),
@@ -304,7 +365,13 @@ class CashLocationDataSource {
       if (locationInfo != null) data['location_info'] = locationInfo;
 
       await _supabase.from('cash_locations').insert(data);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to create cash location',
+        extra: {'locationName': locationName, 'locationType': locationType},
+      );
       throw Exception('Failed to create cash location: ${e.toString()}');
     }
   }
@@ -334,7 +401,13 @@ class CashLocationDataSource {
           .from('cash_locations')
           .update(updateData)
           .eq('id', locationId);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to update cash location',
+        extra: {'locationId': locationId, 'name': name},
+      );
       throw Exception('Failed to update cash location: ${e.toString()}');
     }
   }
@@ -349,7 +422,13 @@ class CashLocationDataSource {
           'p_cash_location_id': locationId,
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to delete cash location',
+        extra: {'locationId': locationId},
+      );
       throw Exception('Failed to delete cash location: ${e.toString()}');
     }
   }
@@ -373,7 +452,13 @@ class CashLocationDataSource {
       if (response == null) return null;
 
       return CashLocationDetailModel.fromJson(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to get main account',
+        extra: {'companyId': companyId, 'storeId': storeId, 'locationType': locationType},
+      );
       throw Exception('Failed to get main account: ${e.toString()}');
     }
   }
@@ -391,7 +476,13 @@ class CashLocationDataSource {
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('cash_location_id', locationId);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to update account main status',
+        extra: {'locationId': locationId, 'isMain': isMain},
+      );
       throw Exception('Failed to update account main status: ${e.toString()}');
     }
   }
@@ -408,7 +499,13 @@ class CashLocationDataSource {
           isMain: isMainValues[i],
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashLocation: Failed to batch update main status',
+        extra: {'locationCount': locationIds.length},
+      );
       throw Exception('Failed to batch update main status: ${e.toString()}');
     }
   }

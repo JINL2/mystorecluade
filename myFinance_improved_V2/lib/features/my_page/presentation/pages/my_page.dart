@@ -14,7 +14,6 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
-import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../providers/user_profile_providers.dart';
@@ -465,6 +464,9 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   /// 4. Execute auth signOut (triggers GoRouter redirect)
   /// 5. Let GoRouter handle navigation to login page
   Future<void> _handleSignOut() async {
+    // Prevent double logout
+    if (_isLoggingOut) return;
+
     HapticFeedback.lightImpact();
 
     final confirmed = await TossConfirmCancelDialog.show(
@@ -478,35 +480,23 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     if (confirmed == true) {
       try {
-        // ✅ Read all providers BEFORE logout starts
         final authService = ref.read(authServiceProvider);
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-
         if (!mounted) return;
 
-        // ✅ Show full-screen loading view
         setState(() {
           _isLoggingOut = true;
         });
 
-        // ✅ Clear app state FIRST (before auth logout)
-        // This prevents "Bad state: Tried to use AppStateNotifier after dispose"
-        // because authService.signOut() will invalidate all providers
-        appStateNotifier.signOut();
-
-        // ✅ Execute auth logout AFTER clearing app state
-        // This will:
-        // 1. Clear session
-        // 2. Sign out from Supabase
-        // 3. Invalidate providers (including appStateProvider)
-        // 4. Trigger GoRouter redirect (auth state changes to null)
+        // AuthService.signOut() handles all cleanup internally:
+        // 1. Clears session
+        // 2. Clears AppState
+        // 3. Signs out from Supabase
+        // 4. Invalidates all providers
         await authService.signOut();
 
         // GoRouter will automatically redirect to /auth/login
-        // Loading view will be visible until navigation completes
 
       } catch (e) {
-        // ✅ Reset loading state on error
         if (mounted) {
           setState(() {
             _isLoggingOut = false;

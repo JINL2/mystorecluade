@@ -74,20 +74,38 @@ class GetStockFlowsUseCase {
   /// Sort flows by created date
   ///
   /// Business Rule: Default to descending (newest first) for better UX
+  ///
+  /// Optimization: Cache parsed DateTime objects before sorting to avoid
+  /// repeated parsing during sort comparisons (O(n log n) → O(n) parsing)
   List<ActualFlow> _sortFlows(List<ActualFlow> flows, bool descending) {
-    final sortedFlows = List<ActualFlow>.from(flows);
+    if (flows.isEmpty) return flows;
 
-    sortedFlows.sort((a, b) {
+    // Pre-parse all dates once for O(n) parsing instead of O(n log n)
+    final flowsWithDates = <_FlowWithDate>[];
+    for (final flow in flows) {
+      DateTime? parsedDate;
       try {
-        final dateA = DateTime.parse(a.createdAt);
-        final dateB = DateTime.parse(b.createdAt);
-        return descending ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
-      } catch (e) {
-        // If date parsing fails, maintain original order
-        return 0;
+        parsedDate = DateTime.parse(flow.createdAt);
+      } catch (_) {
+        // Use epoch for unparseable dates to maintain stable sort
+        parsedDate = DateTime.fromMillisecondsSinceEpoch(0);
       }
-    });
+      flowsWithDates.add(_FlowWithDate(flow, parsedDate));
+    }
 
-    return sortedFlows;
+    // Sort using cached dates
+    flowsWithDates.sort((a, b) =>
+        descending ? b.date.compareTo(a.date) : a.date.compareTo(b.date));
+
+    // Extract sorted flows
+    return flowsWithDates.map((e) => e.flow).toList();
   }
+}
+
+/// Helper class for caching parsed dates during sort
+class _FlowWithDate {
+  final ActualFlow flow;
+  final DateTime date;
+
+  const _FlowWithDate(this.flow, this.date);
 }

@@ -55,8 +55,7 @@ class _AttachmentPickerSectionState
       if (images.isNotEmpty) {
         await _processPickedFiles(images);
       }
-    } catch (e) {
-      debugPrint('Error picking images: $e');
+    } catch (_) {
       _showError('Failed to pick images');
     } finally {
       if (mounted) {
@@ -88,8 +87,7 @@ class _AttachmentPickerSectionState
       if (image != null) {
         await _processPickedFiles([image]);
       }
-    } catch (e) {
-      debugPrint('Error taking photo: $e');
+    } catch (_) {
       _showError('Failed to take photo');
     } finally {
       if (mounted) {

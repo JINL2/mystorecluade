@@ -486,20 +486,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       // Net bonus amount = Add bonus - Deduct (can be negative)
       final netBonusAmount = bonusAmount - penaltyAmount;
 
-      debugPrint('[StaffTimelogDetail] ========== RPC PARAMS ==========');
-      debugPrint('[StaffTimelogDetail] bonusAmount: $bonusAmount');
-      debugPrint('[StaffTimelogDetail] penaltyAmount: $penaltyAmount');
-      debugPrint('[StaffTimelogDetail] netBonusAmount: $netBonusAmount');
-      debugPrint('[StaffTimelogDetail] confirmStartTime: $confirmStartTime');
-      debugPrint('[StaffTimelogDetail] confirmEndTime: $confirmEndTime');
-      debugPrint('[StaffTimelogDetail] isProblemSolved: $isProblemSolved');
-      debugPrint('[StaffTimelogDetail]   - isConfirmedTimeChanged: $isConfirmedTimeChanged');
-      debugPrint('[StaffTimelogDetail]   - hasProblem: $hasProblem');
-      debugPrint('[StaffTimelogDetail]   - isAlreadySolved: $isAlreadySolved');
-      debugPrint('[StaffTimelogDetail] isReportedSolved: $isReportedSolved');
-      debugPrint('[StaffTimelogDetail] managerMemo: $managerMemo');
-      debugPrint('[StaffTimelogDetail] ================================');
-
       final params = InputCardV5Params(
         managerId: managerId,
         shiftRequestId: shiftRequestId,
@@ -512,8 +498,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         timezone: timezone,
       );
 
-      final result = await inputCardV5UseCase.call(params);
-      debugPrint('[StaffTimelogDetail] RPC Result: $result');
+      await inputCardV5UseCase.call(params);
 
       if (mounted) {
         setState(() {
@@ -528,7 +513,17 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
             _initialIsReportedSolved = issueReportStatus == 'approved';
           }
         });
-        Navigator.pop(context, true);
+        // Return save result for Partial Update
+        // This allows the caller to update cached data without full refresh
+        Navigator.pop(context, {
+          'success': true,
+          'shiftRequestId': shiftRequestId,
+          'isProblemSolved': isProblemSolved,
+          'isReportedSolved': isReportedSolved,
+          'confirmedStartTime': confirmStartTime,
+          'confirmedEndTime': confirmEndTime,
+          'bonusAmount': netBonusAmount.toDouble(),
+        });
       }
     } on ArgumentError catch (e) {
       if (mounted) _showError('Error: ${e.message}');

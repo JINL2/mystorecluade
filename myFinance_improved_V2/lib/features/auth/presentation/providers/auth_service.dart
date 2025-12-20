@@ -149,7 +149,7 @@ class AuthService {
     // This prevents previous user's data from showing on next login
     _ref.read(appStateProvider.notifier).signOut();
 
-    // 3. Execute logout UseCase
+    // 3. Execute logout UseCase (Supabase signOut)
     await _logoutUseCase.execute();
 
     // 4. Invalidate all providers automatically
@@ -158,9 +158,19 @@ class AuthService {
     final allProviders = container.getAllProviderElements();
 
     for (final element in allProviders) {
+      // Get provider identifier - try both name and runtimeType
+      final providerName = element.origin.name?.toString() ?? '';
+      final providerType = element.origin.runtimeType.toString();
+      final providerString = '$providerName $providerType'.toLowerCase();
+
       // Skip auth-related providers to avoid recursion
-      if (!element.origin.name.toString().contains('auth') &&
-          !element.origin.name.toString().contains('session')) {
+      // Skip router provider to prevent double page creation during logout
+      final shouldSkip = providerString.contains('auth') ||
+          providerString.contains('session') ||
+          providerString.contains('router') ||
+          providerString.contains('approuter');
+
+      if (!shouldSkip) {
         element.invalidateSelf();
       }
     }

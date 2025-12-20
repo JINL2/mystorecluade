@@ -234,3 +234,7 @@ final userShiftStatsProvider = FutureProvider<UserShiftStats?>((ref) async {
     timezone: timezone,
   );
 });
+
+/// Provider for tracking store change loading state
+/// When true, show loading overlay in attendance main page
+final attendanceStoreLoadingProvider = StateProvider<bool>((ref) => false);

@@ -179,7 +179,8 @@ class ManageTabView extends ConsumerWidget {
         'bonus_reason': card.bonusReason,
         // Use 'notice_tag' to match RPC response format (legacy field name)
         'notice_tag': noticeTagList,
-        'problem_type': card.problemType,
+        // v6: problemType is now computed from problemDetails
+        'problem_type': card.problemTypes.isNotEmpty ? card.problemTypes.first : null,
         'report_reason': card.reportReason,
       };
     }).toList();

@@ -36,13 +36,19 @@ class ShiftTimelog {
 class ShiftSection extends StatefulWidget {
   final ShiftTimelog shift;
   final bool initiallyExpanded;
+  /// Legacy callback (deprecated, use onSaveResult instead)
   final VoidCallback? onDataChanged;
+  /// Callback with save result for Partial Update
+  /// Parameters: shiftRequestId, shiftDate, isProblemSolved, isReportedSolved,
+  ///             confirmedStartTime, confirmedEndTime, bonusAmount
+  final void Function(Map<String, dynamic> result)? onSaveResult;
 
   const ShiftSection({
     super.key,
     required this.shift,
     this.initiallyExpanded = true,
     this.onDataChanged,
+    this.onSaveResult,
   });
 
   @override
@@ -192,8 +198,8 @@ class _ShiftSectionState extends State<ShiftSection> {
                 return StaffTimelogCard(
                   record: record,
                   onTap: () async {
-                    final result = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute<bool>(
+                    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                      MaterialPageRoute<Map<String, dynamic>>(
                         builder: (context) => StaffTimelogDetailPage(
                           staffRecord: record,
                           shiftName: widget.shift.shiftName,
@@ -202,9 +208,16 @@ class _ShiftSectionState extends State<ShiftSection> {
                         ),
                       ),
                     );
-                    // Notify parent to refresh data if save was successful
-                    if (result == true) {
-                      widget.onDataChanged?.call();
+                    // Use Partial Update callback if available
+                    if (result != null && result['success'] == true) {
+                      if (widget.onSaveResult != null) {
+                        // Add shiftDate for Partial Update
+                        result['shiftDate'] = DateFormat('yyyy-MM-dd').format(widget.shift.date);
+                        widget.onSaveResult!(result);
+                      } else {
+                        // Fallback to legacy callback
+                        widget.onDataChanged?.call();
+                      }
                     }
                   },
                 );

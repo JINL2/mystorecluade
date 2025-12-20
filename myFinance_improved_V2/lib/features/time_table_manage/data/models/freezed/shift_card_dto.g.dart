@@ -19,12 +19,6 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
       shiftStartTime: json['shift_start_time'] as String?,
       shiftEndTime: json['shift_end_time'] as String?,
       isApproved: json['is_approved'] as bool? ?? false,
-      isProblem: json['is_problem'] as bool? ?? false,
-      isProblemSolved: json['is_problem_solved'] as bool? ?? false,
-      isLate: json['is_late'] as bool? ?? false,
-      lateMinute: (json['late_minute'] as num?)?.toInt() ?? 0,
-      isOverTime: json['is_over_time'] as bool? ?? false,
-      overTimeMinute: (json['over_time_minute'] as num?)?.toInt() ?? 0,
       paidHour: (json['paid_hour'] as num?)?.toDouble() ?? 0.0,
       salaryType: json['salary_type'] as String?,
       salaryAmount: json['salary_amount'] as String?,
@@ -39,10 +33,6 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => TagDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      problemType: json['problem_type'] as String?,
-      isReported: json['is_reported'] as bool? ?? false,
-      reportReason: json['report_reason'] as String?,
-      isReportedSolved: json['is_reported_solved'] as bool?,
       managerMemos: (json['manager_memo'] as List<dynamic>?)
               ?.map((e) => ManagerMemoDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -51,10 +41,8 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
           ? null
           : ProblemDetailsDto.fromJson(
               json['problem_details'] as Map<String, dynamic>),
-      isValidCheckinLocation: json['is_valid_checkin_location'] as bool?,
       checkinDistanceFromStore:
           (json['checkin_distance_from_store'] as num?)?.toDouble() ?? 0.0,
-      isValidCheckoutLocation: json['is_valid_checkout_location'] as bool?,
       checkoutDistanceFromStore:
           (json['checkout_distance_from_store'] as num?)?.toDouble() ?? 0.0,
       storeName: json['store_name'] as String?,
@@ -72,12 +60,6 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
       'shift_start_time': instance.shiftStartTime,
       'shift_end_time': instance.shiftEndTime,
       'is_approved': instance.isApproved,
-      'is_problem': instance.isProblem,
-      'is_problem_solved': instance.isProblemSolved,
-      'is_late': instance.isLate,
-      'late_minute': instance.lateMinute,
-      'is_over_time': instance.isOverTime,
-      'over_time_minute': instance.overTimeMinute,
       'paid_hour': instance.paidHour,
       'salary_type': instance.salaryType,
       'salary_amount': instance.salaryAmount,
@@ -89,15 +71,9 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
       'confirm_start_time': instance.confirmStartTime,
       'confirm_end_time': instance.confirmEndTime,
       'notice_tag': instance.noticeTags,
-      'problem_type': instance.problemType,
-      'is_reported': instance.isReported,
-      'report_reason': instance.reportReason,
-      'is_reported_solved': instance.isReportedSolved,
       'manager_memo': instance.managerMemos,
       'problem_details': instance.problemDetails,
-      'is_valid_checkin_location': instance.isValidCheckinLocation,
       'checkin_distance_from_store': instance.checkinDistanceFromStore,
-      'is_valid_checkout_location': instance.isValidCheckoutLocation,
       'checkout_distance_from_store': instance.checkoutDistanceFromStore,
       'store_name': instance.storeName,
     };

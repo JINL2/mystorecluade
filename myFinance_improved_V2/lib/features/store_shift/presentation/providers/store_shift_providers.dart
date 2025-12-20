@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../domain/entities/business_hours.dart';
 import '../../domain/entities/store_shift.dart';
 import '../../domain/providers/repository_provider.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
+import '../../domain/usecases/get_business_hours.dart';
 import '../../domain/usecases/get_shifts.dart';
+import '../../domain/usecases/update_business_hours.dart';
 import '../../domain/usecases/update_operational_settings.dart';
 import '../../domain/usecases/update_shift.dart';
 import '../../domain/usecases/update_store_location.dart';
@@ -80,6 +83,18 @@ final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSetti
   return UpdateOperationalSettings(repository);
 });
 
+/// Get Business Hours UseCase Provider
+final getBusinessHoursUseCaseProvider = Provider<GetBusinessHours>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return GetBusinessHours(repository);
+});
+
+/// Update Business Hours UseCase Provider
+final updateBusinessHoursUseCaseProvider = Provider<UpdateBusinessHours>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return UpdateBusinessHours(repository);
+});
+
 /// ========================================
 /// Business Logic Providers
 /// ========================================
@@ -119,6 +134,30 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
   // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getStoreById(appState.storeChoosen);
+});
+
+/// Provider to fetch business hours for the selected store
+///
+/// Uses Domain Repository Provider (implementation injected via DI)
+/// Returns default hours if no hours configured or no store selected.
+final businessHoursProvider = FutureProvider.autoDispose<List<BusinessHours>>((ref) async {
+  final appState = ref.watch(appStateProvider);
+
+  // If no store is selected, return default hours
+  if (appState.storeChoosen.isEmpty) {
+    return BusinessHours.defaultHours();
+  }
+
+  // Use Domain Repository Provider (Clean Architecture compliant)
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  final hours = await repository.getBusinessHours(appState.storeChoosen);
+
+  // If no hours configured, return default hours
+  if (hours.isEmpty) {
+    return BusinessHours.defaultHours();
+  }
+
+  return hours;
 });
 
 /// ========================================
@@ -265,5 +304,30 @@ final updateStoreLocationProvider = Provider.autoDispose<
       longitude: longitude,
       address: address,
     ),);
+  };
+});
+
+/// Update business hours for a store
+final updateBusinessHoursProvider = Provider.autoDispose<
+    Future<bool> Function({
+      required String storeId,
+      required List<BusinessHours> hours,
+    })>((ref) {
+  return ({
+    required String storeId,
+    required List<BusinessHours> hours,
+  }) async {
+    final repository = ref.read(storeShiftRepositoryProvider);
+    final success = await repository.updateBusinessHours(
+      storeId: storeId,
+      hours: hours,
+    );
+
+    // Invalidate the provider to refetch fresh data
+    if (success) {
+      ref.invalidate(businessHoursProvider);
+    }
+
+    return success;
   };
 });

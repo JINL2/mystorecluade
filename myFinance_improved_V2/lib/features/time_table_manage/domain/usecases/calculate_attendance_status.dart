@@ -111,13 +111,13 @@ class CalculateAttendanceStatusUseCase {
 
         if (inheritedStatus != null) {
           // Create a synthetic card for display
+          // Note: hasProblem is now a computed getter from problemDetails
           final syntheticCard = ShiftCard(
             shiftRequestId: req.shiftRequestId,
             employee: req.employee,
             shift: currentShiftWithReqs.shift,
             shiftDate: _formatDate(currentShiftWithReqs.shift.planStartTime),
             isApproved: true,
-            hasProblem: false,
             createdAt: DateTime.now(),
           );
 

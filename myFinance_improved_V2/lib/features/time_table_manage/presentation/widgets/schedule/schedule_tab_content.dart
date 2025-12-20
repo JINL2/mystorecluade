@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/toss/month_dates_picker.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
-import '../../../../../shared/widgets/toss/month_dates_picker.dart';
-import 'schedule_shift_card.dart';
-import '../../models/schedule_models.dart';
-import '../../providers/state/shift_metadata_provider.dart';
-import '../../providers/state/monthly_shift_status_provider.dart';
-import '../../providers/time_table_providers.dart';
-import '../../../domain/entities/shift_metadata_item.dart';
+import '../../../../store_shift/domain/entities/business_hours.dart';
+import '../../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
-import 'package:intl/intl.dart';
+import '../../models/schedule_models.dart';
+import '../../providers/time_table_providers.dart';
+import 'schedule_shift_card.dart';
 
 /// Schedule Tab Content - Redesigned
 ///
@@ -171,15 +170,15 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
                         onNextWeek: () => _changeWeek(7),
                       ),
               ),
-              // Expand/Collapse button
+              // Expand/Collapse button - Calendar icon
               IconButton(
                 onPressed: _toggleExpanded,
                 icon: Icon(
-                  _isExpanded ? Icons.unfold_less : Icons.unfold_more,
-                  color: TossColors.gray600,
+                  _isExpanded ? Icons.calendar_view_week : Icons.calendar_month,
+                  color: _isExpanded ? TossColors.primary : TossColors.gray600,
                   size: 24,
                 ),
-                tooltip: _isExpanded ? 'Show week' : 'Show month',
+                tooltip: _isExpanded ? 'Show week view' : 'Show month view',
               ),
             ],
           ),
@@ -205,7 +204,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
             WeekDatesPicker(
               selectedDate: _selectedDate,
               weekStartDate: _currentWeekStart,
-              datesWithUserApproved: {}, // Remove blue circle border
               shiftAvailabilityMap: _getShiftAvailabilityMap(),
               onDateSelected: (date) {
                 setState(() => _selectedDate = date);
@@ -479,64 +477,103 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Get shift availability map for the week
   ///
-  /// Logic:
-  /// - Blue dot: total_required > total_approved (understaffed)
-  /// - Gray dot: total_required <= total_approved (fully staffed)
+  /// Logic (coverage-based):
+  /// - Red dot: Coverage gap exists (business hours not fully covered by approved shifts)
+  /// - No dot: No coverage gap OR store is closed
+  /// - Past dates: No dot (only show today and future)
+  ///
+  /// OPTIMIZATION:
+  /// - For TODAY: only check gaps AFTER current time (현재 시간 이후만)
+  /// - For FUTURE dates: check all gaps
   Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
     final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+    final businessHoursAsync = ref.watch(businessHoursProvider);
     final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
 
-    // Get shift metadata for total_required when no requests exist
-    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
-    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
+    // Get business hours (use default if not loaded yet)
+    final businessHours = businessHoursAsync.valueOrNull ?? BusinessHours.defaultHours();
+
+    // Today for filtering past dates
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get current time in minutes from midnight (for today's time-based filtering)
+    final currentTimeMinutes = now.hour * 60 + now.minute;
+
+    // Build a map of date -> approved shift time ranges
+    final Map<String, List<TimeRange>> approvedCoverageByDate = {};
+
+    for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
+      for (final dailyData in monthlyStatus.dailyShifts) {
+        for (final shiftWithReqs in dailyData.shifts) {
+          // Only count shifts with at least 1 approved employee
+          if (shiftWithReqs.approvedRequests.isEmpty) continue;
+
+          final shift = shiftWithReqs.shift;
+          final startTime = _extractTimeStr(shift.planStartTime);
+          final endTime = _extractTimeStr(shift.planEndTime);
+
+          if (startTime != null && endTime != null) {
+            approvedCoverageByDate
+                .putIfAbsent(dailyData.date, () => [])
+                .add(TimeRange.fromTimeStrings(startTime, endTime));
+          }
+        }
+      }
+    }
 
     // Check each day of the week
     for (int i = 0; i < 7; i++) {
       final date = _currentWeekStart.add(Duration(days: i));
       final normalizedDate = DateTime(date.year, date.month, date.day);
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
 
-      // Find daily shift data for this date
-      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
-          .expand((status) => status.dailyShifts)
-          .where((daily) => daily.date == dateStr)
-          .firstOrNull;
+      // Skip past dates - no dot for past
+      if (normalizedDate.isBefore(today)) continue;
 
-      int totalRequired = 0;
-      int totalApproved = 0;
+      // Get business hours for this day
+      final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
+      if (dayHours == null || !dayHours.isOpen) continue;
 
-      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
-        // Has request data - use it
-        for (final shiftWithReqs in dailyShiftData.shifts) {
-          totalRequired += shiftWithReqs.shift.targetCount;
-          totalApproved += shiftWithReqs.approvedRequests.length;
-        }
-      } else if (activeShifts.isNotEmpty) {
-        // No request data but has active shifts - use metadata
-        // All shifts are understaffed (0 approved, total_required from metadata)
-        for (final shiftMeta in activeShifts) {
-          totalRequired += shiftMeta.targetCount;
-        }
-        // totalApproved stays 0
-      } else {
-        // No shifts configured - no dot
-        continue;
+      final businessRange = dayHours.toTimeRange();
+      if (businessRange == null) continue;
+
+      // Get approved coverage for this date
+      final dateStr = DateFormat('yyyy-MM-dd').format(normalizedDate);
+      final coverage = approvedCoverageByDate[dateStr] ?? [];
+
+      // Calculate gaps
+      var gaps = TimeRange.findGaps(businessRange, coverage);
+
+      // For TODAY: filter out gaps that end before current time
+      // Only show gaps that are still relevant (after current time)
+      final isToday = normalizedDate.year == today.year &&
+          normalizedDate.month == today.month &&
+          normalizedDate.day == today.day;
+
+      if (isToday && gaps.isNotEmpty) {
+        gaps = gaps.where((gap) {
+          // Keep gap if its end time is after current time
+          // gap.endMinutes can exceed 1440 for overnight, so normalize
+          final gapEndMinutes = gap.endMinutes % 1440;
+          return gapEndMinutes > currentTimeMinutes || gap.endMinutes > 1440;
+        }).toList();
       }
 
-      // Determine availability status
-      if (totalRequired > totalApproved) {
-        // Understaffed - blue dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
-      } else {
-        // Fully staffed - gray dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
+      if (gaps.isNotEmpty) {
+        // 🔴 Red - coverage gap exists
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.empty;
       }
+      // No dot for fully covered dates
     }
 
     return availabilityMap;
+  }
+
+  /// Extract HH:mm time string from DateTime
+  String? _extractTimeStr(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   /// Get shifts for selected date from real data
@@ -629,7 +666,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   ///
   /// Calls toggle_shift_approval_v3 RPC to approve a shift request.
   /// Local state is updated by ScheduleShiftCard for instant UI feedback.
-  /// Provider caches are invalidated for cross-tab sync (Timesheets tab).
+  /// Uses Partial Update for cross-tab sync instead of full refresh.
   /// Returns true on success, false on failure.
   Future<bool> _handleApprove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return false;
@@ -648,16 +685,25 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         ),
       );
 
-      // Invalidate provider caches for cross-tab sync
-      // This ensures Timesheets tab sees updated data
+      // Partial Update: Update only the affected card instead of full refresh
+      // This is much more efficient than loading all data again
       if (widget.selectedStoreId != null) {
-        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
-          month: _selectedDate,
-          forceRefresh: true,
+        final shiftDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+        // Update MonthlyShiftStatus (Schedule tab data)
+        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier)
+            .updateShiftRequestApproval(
+          shiftRequestId: shiftRequestId,
+          isApproved: true,
+          shiftDate: shiftDate,
         );
-        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
-          month: _selectedDate,
-          forceRefresh: true,
+
+        // Update ManagerCards (Timesheets/Problems tab data)
+        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier)
+            .updateCardApproval(
+          shiftRequestId: shiftRequestId,
+          isApproved: true,
+          shiftDate: shiftDate,
         );
       }
 
@@ -671,7 +717,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   ///
   /// Calls toggle_shift_approval_v3 RPC to unapprove a shift request.
   /// Local state is updated by ScheduleShiftCard for instant UI feedback.
-  /// Provider caches are invalidated for cross-tab sync (Timesheets tab).
+  /// Uses Partial Update for cross-tab sync instead of full refresh.
   /// Returns true on success, false on failure.
   Future<bool> _handleRemove(String shiftRequestId) async {
     if (shiftRequestId.isEmpty) return false;
@@ -690,16 +736,25 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         ),
       );
 
-      // Invalidate provider caches for cross-tab sync
-      // This ensures Timesheets tab sees updated data
+      // Partial Update: Update only the affected card instead of full refresh
+      // This is much more efficient than loading all data again
       if (widget.selectedStoreId != null) {
-        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
-          month: _selectedDate,
-          forceRefresh: true,
+        final shiftDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+        // Update MonthlyShiftStatus (Schedule tab data)
+        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier)
+            .updateShiftRequestApproval(
+          shiftRequestId: shiftRequestId,
+          isApproved: false,
+          shiftDate: shiftDate,
         );
-        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
-          month: _selectedDate,
-          forceRefresh: true,
+
+        // Update ManagerCards (Timesheets/Problems tab data)
+        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier)
+            .updateCardApproval(
+          shiftRequestId: shiftRequestId,
+          isApproved: false,
+          shiftDate: shiftDate,
         );
       }
 
@@ -754,19 +809,53 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   }
 
   /// Get shift availability map for entire month
-  /// Logic:
-  /// - Blue dot: total_required > total_approved (understaffed)
-  /// - Gray dot: total_required <= total_approved (fully staffed)
+  ///
+  /// Logic (coverage-based):
+  /// - Red dot: Coverage gap exists (business hours not fully covered by approved shifts)
+  /// - No dot: No coverage gap OR store is closed
+  /// - Past dates: No dot (only show today and future)
+  ///
+  /// OPTIMIZATION:
+  /// - For TODAY: only check gaps AFTER current time (현재 시간 이후만)
+  /// - For FUTURE dates: check all gaps
   Map<DateTime, ShiftAvailabilityStatus> _getMonthShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
     final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+    final businessHoursAsync = ref.watch(businessHoursProvider);
     final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
 
-    // Get shift metadata for total_required when no requests exist
-    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
-    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
+    // Get business hours (use default if not loaded yet)
+    final businessHours = businessHoursAsync.valueOrNull ?? BusinessHours.defaultHours();
+
+    // Today for filtering past dates
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get current time in minutes from midnight (for today's time-based filtering)
+    final currentTimeMinutes = now.hour * 60 + now.minute;
+
+    // Build a map of date -> approved shift time ranges
+    final Map<String, List<TimeRange>> approvedCoverageByDate = {};
+
+    for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
+      for (final dailyData in monthlyStatus.dailyShifts) {
+        for (final shiftWithReqs in dailyData.shifts) {
+          // Only count shifts with at least 1 approved employee
+          if (shiftWithReqs.approvedRequests.isEmpty) continue;
+
+          final shift = shiftWithReqs.shift;
+          final startTime = _extractTimeStr(shift.planStartTime);
+          final endTime = _extractTimeStr(shift.planEndTime);
+
+          if (startTime != null && endTime != null) {
+            approvedCoverageByDate
+                .putIfAbsent(dailyData.date, () => [])
+                .add(TimeRange.fromTimeStrings(startTime, endTime));
+          }
+        }
+      }
+    }
 
     // Get all days in the focused month
     final lastDay = DateTime(widget.focusedMonth.year, widget.focusedMonth.month + 1, 0);
@@ -774,43 +863,44 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     for (int day = 1; day <= lastDay.day; day++) {
       final date = DateTime(widget.focusedMonth.year, widget.focusedMonth.month, day);
       final normalizedDate = DateTime(date.year, date.month, date.day);
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
 
-      // Find daily shift data for this date
-      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
-          .expand((status) => status.dailyShifts)
-          .where((daily) => daily.date == dateStr)
-          .firstOrNull;
+      // Skip past dates - no dot for past
+      if (normalizedDate.isBefore(today)) continue;
 
-      int totalRequired = 0;
-      int totalApproved = 0;
+      // Get business hours for this day
+      final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
+      if (dayHours == null || !dayHours.isOpen) continue;
 
-      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
-        // Has request data - use it
-        for (final shiftWithReqs in dailyShiftData.shifts) {
-          totalRequired += shiftWithReqs.shift.targetCount;
-          totalApproved += shiftWithReqs.approvedRequests.length;
-        }
-      } else if (activeShifts.isNotEmpty) {
-        // No request data but has active shifts - use metadata
-        // All shifts are understaffed (0 approved, total_required from metadata)
-        for (final shiftMeta in activeShifts) {
-          totalRequired += shiftMeta.targetCount;
-        }
-        // totalApproved stays 0
-      } else {
-        // No shifts configured - no dot
-        continue;
+      final businessRange = dayHours.toTimeRange();
+      if (businessRange == null) continue;
+
+      // Get approved coverage for this date
+      final dateStr = DateFormat('yyyy-MM-dd').format(normalizedDate);
+      final coverage = approvedCoverageByDate[dateStr] ?? [];
+
+      // Calculate gaps
+      var gaps = TimeRange.findGaps(businessRange, coverage);
+
+      // For TODAY: filter out gaps that end before current time
+      // Only show gaps that are still relevant (after current time)
+      final isToday = normalizedDate.year == today.year &&
+          normalizedDate.month == today.month &&
+          normalizedDate.day == today.day;
+
+      if (isToday && gaps.isNotEmpty) {
+        gaps = gaps.where((gap) {
+          // Keep gap if its end time is after current time
+          // gap.endMinutes can exceed 1440 for overnight, so normalize
+          final gapEndMinutes = gap.endMinutes % 1440;
+          return gapEndMinutes > currentTimeMinutes || gap.endMinutes > 1440;
+        }).toList();
       }
 
-      // Determine availability status
-      if (totalRequired > totalApproved) {
-        // Understaffed - blue dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
-      } else {
-        // Fully staffed - gray dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
+      if (gaps.isNotEmpty) {
+        // 🔴 Red - coverage gap exists
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.empty;
       }
+      // No dot for fully covered dates
     }
 
     return availabilityMap;

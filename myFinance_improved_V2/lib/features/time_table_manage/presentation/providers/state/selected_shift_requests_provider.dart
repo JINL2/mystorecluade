@@ -4,6 +4,7 @@
 /// Used for bulk approval operations in the manage tab.
 library;
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../states/time_table_state.dart';
@@ -19,6 +20,26 @@ class SelectedShiftRequestsNotifier
     extends StateNotifier<SelectedShiftRequestsState> {
   SelectedShiftRequestsNotifier() : super(const SelectedShiftRequestsState());
 
+  /// Safely update state - avoids "setState during build" errors
+  /// by deferring state updates if called during widget build phase
+  void _safeSetState(SelectedShiftRequestsState newState) {
+    if (!mounted) return;
+
+    // Check if we're in the middle of a build phase
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks) {
+      // Defer state update to after the current frame
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          state = newState;
+        }
+      });
+    } else {
+      state = newState;
+    }
+  }
+
   /// Toggle selection for a shift request
   ///
   /// Parameters:
@@ -26,6 +47,8 @@ class SelectedShiftRequestsNotifier
   /// - [isApproved]: Current approval state of the request
   /// - [actualRequestId]: Actual request ID (may differ from shiftRequestId)
   void toggleSelection(String shiftRequestId, bool isApproved, String actualRequestId) {
+    if (!mounted) return;
+
     final newSelectedIds = Set<String>.from(state.selectedIds);
     final newApprovalStates = Map<String, bool>.from(state.approvalStates);
     final newRequestIds = Map<String, String>.from(state.requestIds);
@@ -42,16 +65,17 @@ class SelectedShiftRequestsNotifier
       newRequestIds[shiftRequestId] = actualRequestId;
     }
 
-    state = state.copyWith(
+    _safeSetState(state.copyWith(
       selectedIds: newSelectedIds,
       approvalStates: newApprovalStates,
       requestIds: newRequestIds,
-    );
+    ));
   }
 
   /// Clear all selections
   void clearAll() {
-    state = const SelectedShiftRequestsState();
+    if (!mounted) return;
+    _safeSetState(const SelectedShiftRequestsState());
   }
 
   /// Check if a shift request is selected

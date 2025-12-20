@@ -116,12 +116,12 @@ class ShiftAvailabilityHelper {
             dayStatus.shifts.any((s) => s.hasAvailableSlots);
 
         availabilityMap[normalizedDate] = hasAvailableSlots
-            ? ShiftAvailabilityStatus.available
+            ? ShiftAvailabilityStatus.understaffed
             : ShiftAvailabilityStatus.full;
       } else {
         // No status data - shifts exist (from shiftMetadata) but no one has applied yet
-        // This means all slots are available (blue dot)
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+        // This means all slots are available (understaffed)
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.understaffed;
       }
     }
 

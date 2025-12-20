@@ -50,6 +50,7 @@ class UpdateShiftCardAfterScan {
   /// (shouldn't happen normally but provides fallback)
   ///
   /// ✅ Clean Architecture: Uses ScanResult entity instead of Map
+  /// v5: Uses problemDetails instead of individual problem fields
   ShiftCard createFromScanResult(ScanResult scanResult) {
     return ShiftCard(
       requestDate: scanResult.requestDate,
@@ -64,19 +65,14 @@ class UpdateShiftCardAfterScan {
       actualEndTime: scanResult.isCheckOut ? scanResult.timestamp : null,
       confirmEndTime: scanResult.isCheckOut ? scanResult.timestamp : null,
       paidHours: 0.0,
-      isLate: false,
-      lateMinutes: 0,
-      lateDeducutAmount: 0.0,
-      isExtratime: false,
-      overtimeMinutes: 0,
       basePay: '0',
       bonusAmount: 0.0,
       totalPayWithBonus: '0',
       salaryType: 'hourly',
       salaryAmount: '0',
-      isReported: false,
-      isProblem: false,
-      isProblemSolved: false,
+      // v5: problemDetails is null for newly created cards
+      // Problems will be detected on next data refresh from server
+      problemDetails: null,
     );
   }
 }

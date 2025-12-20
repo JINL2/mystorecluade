@@ -276,4 +276,67 @@ class StoreShiftDataSource {
       );
     }
   }
+
+  /// ========================================
+  /// Business Hours Operations
+  /// ========================================
+
+  /// Get business hours for a store
+  ///
+  /// Uses RPC function 'get_store_business_hours'
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  ///
+  /// Returns list of business hours for each day of the week
+  Future<List<Map<String, dynamic>>> getBusinessHours(String storeId) async {
+    try {
+      final response = await _client.rpc<List<dynamic>>(
+        'get_store_business_hours',
+        params: {
+          'p_store_id': storeId,
+        },
+      );
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e, stackTrace) {
+      throw StoreNotFoundException(
+        'Failed to fetch business hours for store $storeId: $e',
+        stackTrace,
+      );
+    }
+  }
+
+  /// Upsert business hours for a store
+  ///
+  /// Uses RPC function 'upsert_store_business_hours'
+  /// Parameters:
+  /// - p_store_id: uuid (required)
+  /// - p_hours: jsonb array of business hours
+  ///
+  /// Example hours array:
+  /// [
+  ///   {"day_of_week": 1, "is_open": true, "open_time": "09:00", "close_time": "22:00"},
+  ///   {"day_of_week": 0, "is_open": false, "open_time": null, "close_time": null}
+  /// ]
+  Future<bool> upsertBusinessHours({
+    required String storeId,
+    required List<Map<String, dynamic>> hours,
+  }) async {
+    try {
+      final response = await _client.rpc<bool>(
+        'upsert_store_business_hours',
+        params: {
+          'p_store_id': storeId,
+          'p_hours': hours,
+        },
+      );
+
+      return response;
+    } catch (e, stackTrace) {
+      throw StoreLocationUpdateException(
+        'Failed to update business hours: $e',
+        stackTrace,
+      );
+    }
+  }
 }

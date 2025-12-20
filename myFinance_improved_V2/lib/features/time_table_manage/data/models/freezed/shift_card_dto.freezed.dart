@@ -21,8 +21,6 @@ ShiftCardDto _$ShiftCardDtoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ShiftCardDto {
 // Core identification
-// v3: shift_date (actual work date from start_time_utc) instead of request_date
-// Made nullable with defaults to handle empty RPC responses
   @JsonKey(name: 'shift_date')
   String get shiftDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_request_id')
@@ -39,31 +37,17 @@ mixin _$ShiftCardDto {
   String? get shiftName => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
-  ShiftTime? get shiftTime =>
-      throw _privateConstructorUsedError; // Shift start/end time (NEW: "2025-12-05 14:00" format)
+  ShiftTime? get shiftTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_start_time')
   String? get shiftStartTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'shift_end_time')
   String? get shiftEndTime =>
       throw _privateConstructorUsedError; // Approval status
   @JsonKey(name: 'is_approved')
-  bool get isApproved => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_problem')
-  bool get isProblem => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_problem_solved')
-  bool get isProblemSolved =>
-      throw _privateConstructorUsedError; // Time tracking
-  @JsonKey(name: 'is_late')
-  bool get isLate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'late_minute')
-  int get lateMinute => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_over_time')
-  bool get isOverTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'over_time_minute')
-  int get overTimeMinute => throw _privateConstructorUsedError;
+  bool get isApproved =>
+      throw _privateConstructorUsedError; // Salary information
   @JsonKey(name: 'paid_hour')
-  double get paidHour =>
-      throw _privateConstructorUsedError; // Salary information (NEW in RPC)
+  double get paidHour => throw _privateConstructorUsedError;
   @JsonKey(name: 'salary_type')
   String? get salaryType => throw _privateConstructorUsedError;
   @JsonKey(name: 'salary_amount')
@@ -71,8 +55,7 @@ mixin _$ShiftCardDto {
   @JsonKey(name: 'base_pay')
   String? get basePay => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_pay_with_bonus')
-  String? get totalPayWithBonus =>
-      throw _privateConstructorUsedError; // Bonus information
+  String? get totalPayWithBonus => throw _privateConstructorUsedError;
   @JsonKey(name: 'bonus_amount')
   double get bonusAmount =>
       throw _privateConstructorUsedError; // Time records (HH:MM:SS or HH:MM format from RPC)
@@ -87,29 +70,15 @@ mixin _$ShiftCardDto {
       throw _privateConstructorUsedError; // Tags (jsonb array in RPC)
   @JsonKey(name: 'notice_tag')
   List<TagDto> get noticeTags =>
-      throw _privateConstructorUsedError; // Problem details
-  @JsonKey(name: 'problem_type')
-  String? get problemType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_reported')
-  bool get isReported => throw _privateConstructorUsedError;
-  @JsonKey(name: 'report_reason')
-  String? get reportReason =>
-      throw _privateConstructorUsedError; // v4: Report resolution status
-  @JsonKey(name: 'is_reported_solved')
-  bool? get isReportedSolved =>
-      throw _privateConstructorUsedError; // v4: Manager memos (jsonb array)
+      throw _privateConstructorUsedError; // Manager memos (jsonb array)
   @JsonKey(name: 'manager_memo')
   List<ManagerMemoDto> get managerMemos =>
-      throw _privateConstructorUsedError; // v5: Problem details (jsonb)
+      throw _privateConstructorUsedError; // problem_details: Single Source of Truth for all problem info
   @JsonKey(name: 'problem_details')
   ProblemDetailsDto? get problemDetails =>
-      throw _privateConstructorUsedError; // Location validation (NEW in RPC)
-  @JsonKey(name: 'is_valid_checkin_location')
-  bool? get isValidCheckinLocation => throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // Location distances (values only, not validation booleans)
   @JsonKey(name: 'checkin_distance_from_store')
   double get checkinDistanceFromStore => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_valid_checkout_location')
-  bool? get isValidCheckoutLocation => throw _privateConstructorUsedError;
   @JsonKey(name: 'checkout_distance_from_store')
   double get checkoutDistanceFromStore =>
       throw _privateConstructorUsedError; // Store information
@@ -143,12 +112,6 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       @JsonKey(name: 'shift_start_time') String? shiftStartTime,
       @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'is_approved') bool isApproved,
-      @JsonKey(name: 'is_problem') bool isProblem,
-      @JsonKey(name: 'is_problem_solved') bool isProblemSolved,
-      @JsonKey(name: 'is_late') bool isLate,
-      @JsonKey(name: 'late_minute') int lateMinute,
-      @JsonKey(name: 'is_over_time') bool isOverTime,
-      @JsonKey(name: 'over_time_minute') int overTimeMinute,
       @JsonKey(name: 'paid_hour') double paidHour,
       @JsonKey(name: 'salary_type') String? salaryType,
       @JsonKey(name: 'salary_amount') String? salaryAmount,
@@ -160,17 +123,10 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       @JsonKey(name: 'confirm_start_time') String? confirmStartTime,
       @JsonKey(name: 'confirm_end_time') String? confirmEndTime,
       @JsonKey(name: 'notice_tag') List<TagDto> noticeTags,
-      @JsonKey(name: 'problem_type') String? problemType,
-      @JsonKey(name: 'is_reported') bool isReported,
-      @JsonKey(name: 'report_reason') String? reportReason,
-      @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'problem_details') ProblemDetailsDto? problemDetails,
-      @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
-      @JsonKey(name: 'is_valid_checkout_location')
-      bool? isValidCheckoutLocation,
       @JsonKey(name: 'checkout_distance_from_store')
       double checkoutDistanceFromStore,
       @JsonKey(name: 'store_name') String? storeName});
@@ -203,12 +159,6 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
     Object? shiftStartTime = freezed,
     Object? shiftEndTime = freezed,
     Object? isApproved = null,
-    Object? isProblem = null,
-    Object? isProblemSolved = null,
-    Object? isLate = null,
-    Object? lateMinute = null,
-    Object? isOverTime = null,
-    Object? overTimeMinute = null,
     Object? paidHour = null,
     Object? salaryType = freezed,
     Object? salaryAmount = freezed,
@@ -220,15 +170,9 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
     Object? confirmStartTime = freezed,
     Object? confirmEndTime = freezed,
     Object? noticeTags = null,
-    Object? problemType = freezed,
-    Object? isReported = null,
-    Object? reportReason = freezed,
-    Object? isReportedSolved = freezed,
     Object? managerMemos = null,
     Object? problemDetails = freezed,
-    Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
-    Object? isValidCheckoutLocation = freezed,
     Object? checkoutDistanceFromStore = null,
     Object? storeName = freezed,
   }) {
@@ -273,30 +217,6 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.isApproved
           : isApproved // ignore: cast_nullable_to_non_nullable
               as bool,
-      isProblem: null == isProblem
-          ? _value.isProblem
-          : isProblem // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblemSolved: null == isProblemSolved
-          ? _value.isProblemSolved
-          : isProblemSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isLate: null == isLate
-          ? _value.isLate
-          : isLate // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lateMinute: null == lateMinute
-          ? _value.lateMinute
-          : lateMinute // ignore: cast_nullable_to_non_nullable
-              as int,
-      isOverTime: null == isOverTime
-          ? _value.isOverTime
-          : isOverTime // ignore: cast_nullable_to_non_nullable
-              as bool,
-      overTimeMinute: null == overTimeMinute
-          ? _value.overTimeMinute
-          : overTimeMinute // ignore: cast_nullable_to_non_nullable
-              as int,
       paidHour: null == paidHour
           ? _value.paidHour
           : paidHour // ignore: cast_nullable_to_non_nullable
@@ -341,22 +261,6 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.noticeTags
           : noticeTags // ignore: cast_nullable_to_non_nullable
               as List<TagDto>,
-      problemType: freezed == problemType
-          ? _value.problemType
-          : problemType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isReported: null == isReported
-          ? _value.isReported
-          : isReported // ignore: cast_nullable_to_non_nullable
-              as bool,
-      reportReason: freezed == reportReason
-          ? _value.reportReason
-          : reportReason // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isReportedSolved: freezed == isReportedSolved
-          ? _value.isReportedSolved
-          : isReportedSolved // ignore: cast_nullable_to_non_nullable
-              as bool?,
       managerMemos: null == managerMemos
           ? _value.managerMemos
           : managerMemos // ignore: cast_nullable_to_non_nullable
@@ -365,18 +269,10 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.problemDetails
           : problemDetails // ignore: cast_nullable_to_non_nullable
               as ProblemDetailsDto?,
-      isValidCheckinLocation: freezed == isValidCheckinLocation
-          ? _value.isValidCheckinLocation
-          : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
       checkinDistanceFromStore: null == checkinDistanceFromStore
           ? _value.checkinDistanceFromStore
           : checkinDistanceFromStore // ignore: cast_nullable_to_non_nullable
               as double,
-      isValidCheckoutLocation: freezed == isValidCheckoutLocation
-          ? _value.isValidCheckoutLocation
-          : isValidCheckoutLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
       checkoutDistanceFromStore: null == checkoutDistanceFromStore
           ? _value.checkoutDistanceFromStore
           : checkoutDistanceFromStore // ignore: cast_nullable_to_non_nullable
@@ -422,12 +318,6 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
       @JsonKey(name: 'shift_start_time') String? shiftStartTime,
       @JsonKey(name: 'shift_end_time') String? shiftEndTime,
       @JsonKey(name: 'is_approved') bool isApproved,
-      @JsonKey(name: 'is_problem') bool isProblem,
-      @JsonKey(name: 'is_problem_solved') bool isProblemSolved,
-      @JsonKey(name: 'is_late') bool isLate,
-      @JsonKey(name: 'late_minute') int lateMinute,
-      @JsonKey(name: 'is_over_time') bool isOverTime,
-      @JsonKey(name: 'over_time_minute') int overTimeMinute,
       @JsonKey(name: 'paid_hour') double paidHour,
       @JsonKey(name: 'salary_type') String? salaryType,
       @JsonKey(name: 'salary_amount') String? salaryAmount,
@@ -439,17 +329,10 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
       @JsonKey(name: 'confirm_start_time') String? confirmStartTime,
       @JsonKey(name: 'confirm_end_time') String? confirmEndTime,
       @JsonKey(name: 'notice_tag') List<TagDto> noticeTags,
-      @JsonKey(name: 'problem_type') String? problemType,
-      @JsonKey(name: 'is_reported') bool isReported,
-      @JsonKey(name: 'report_reason') String? reportReason,
-      @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'problem_details') ProblemDetailsDto? problemDetails,
-      @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
-      @JsonKey(name: 'is_valid_checkout_location')
-      bool? isValidCheckoutLocation,
       @JsonKey(name: 'checkout_distance_from_store')
       double checkoutDistanceFromStore,
       @JsonKey(name: 'store_name') String? storeName});
@@ -481,12 +364,6 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
     Object? shiftStartTime = freezed,
     Object? shiftEndTime = freezed,
     Object? isApproved = null,
-    Object? isProblem = null,
-    Object? isProblemSolved = null,
-    Object? isLate = null,
-    Object? lateMinute = null,
-    Object? isOverTime = null,
-    Object? overTimeMinute = null,
     Object? paidHour = null,
     Object? salaryType = freezed,
     Object? salaryAmount = freezed,
@@ -498,15 +375,9 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
     Object? confirmStartTime = freezed,
     Object? confirmEndTime = freezed,
     Object? noticeTags = null,
-    Object? problemType = freezed,
-    Object? isReported = null,
-    Object? reportReason = freezed,
-    Object? isReportedSolved = freezed,
     Object? managerMemos = null,
     Object? problemDetails = freezed,
-    Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
-    Object? isValidCheckoutLocation = freezed,
     Object? checkoutDistanceFromStore = null,
     Object? storeName = freezed,
   }) {
@@ -551,30 +422,6 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value.isApproved
           : isApproved // ignore: cast_nullable_to_non_nullable
               as bool,
-      isProblem: null == isProblem
-          ? _value.isProblem
-          : isProblem // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isProblemSolved: null == isProblemSolved
-          ? _value.isProblemSolved
-          : isProblemSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isLate: null == isLate
-          ? _value.isLate
-          : isLate // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lateMinute: null == lateMinute
-          ? _value.lateMinute
-          : lateMinute // ignore: cast_nullable_to_non_nullable
-              as int,
-      isOverTime: null == isOverTime
-          ? _value.isOverTime
-          : isOverTime // ignore: cast_nullable_to_non_nullable
-              as bool,
-      overTimeMinute: null == overTimeMinute
-          ? _value.overTimeMinute
-          : overTimeMinute // ignore: cast_nullable_to_non_nullable
-              as int,
       paidHour: null == paidHour
           ? _value.paidHour
           : paidHour // ignore: cast_nullable_to_non_nullable
@@ -619,22 +466,6 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value._noticeTags
           : noticeTags // ignore: cast_nullable_to_non_nullable
               as List<TagDto>,
-      problemType: freezed == problemType
-          ? _value.problemType
-          : problemType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isReported: null == isReported
-          ? _value.isReported
-          : isReported // ignore: cast_nullable_to_non_nullable
-              as bool,
-      reportReason: freezed == reportReason
-          ? _value.reportReason
-          : reportReason // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isReportedSolved: freezed == isReportedSolved
-          ? _value.isReportedSolved
-          : isReportedSolved // ignore: cast_nullable_to_non_nullable
-              as bool?,
       managerMemos: null == managerMemos
           ? _value._managerMemos
           : managerMemos // ignore: cast_nullable_to_non_nullable
@@ -643,18 +474,10 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value.problemDetails
           : problemDetails // ignore: cast_nullable_to_non_nullable
               as ProblemDetailsDto?,
-      isValidCheckinLocation: freezed == isValidCheckinLocation
-          ? _value.isValidCheckinLocation
-          : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
       checkinDistanceFromStore: null == checkinDistanceFromStore
           ? _value.checkinDistanceFromStore
           : checkinDistanceFromStore // ignore: cast_nullable_to_non_nullable
               as double,
-      isValidCheckoutLocation: freezed == isValidCheckoutLocation
-          ? _value.isValidCheckoutLocation
-          : isValidCheckoutLocation // ignore: cast_nullable_to_non_nullable
-              as bool?,
       checkoutDistanceFromStore: null == checkoutDistanceFromStore
           ? _value.checkoutDistanceFromStore
           : checkoutDistanceFromStore // ignore: cast_nullable_to_non_nullable
@@ -681,12 +504,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       @JsonKey(name: 'shift_start_time') this.shiftStartTime,
       @JsonKey(name: 'shift_end_time') this.shiftEndTime,
       @JsonKey(name: 'is_approved') this.isApproved = false,
-      @JsonKey(name: 'is_problem') this.isProblem = false,
-      @JsonKey(name: 'is_problem_solved') this.isProblemSolved = false,
-      @JsonKey(name: 'is_late') this.isLate = false,
-      @JsonKey(name: 'late_minute') this.lateMinute = 0,
-      @JsonKey(name: 'is_over_time') this.isOverTime = false,
-      @JsonKey(name: 'over_time_minute') this.overTimeMinute = 0,
       @JsonKey(name: 'paid_hour') this.paidHour = 0.0,
       @JsonKey(name: 'salary_type') this.salaryType,
       @JsonKey(name: 'salary_amount') this.salaryAmount,
@@ -698,17 +515,11 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       @JsonKey(name: 'confirm_start_time') this.confirmStartTime,
       @JsonKey(name: 'confirm_end_time') this.confirmEndTime,
       @JsonKey(name: 'notice_tag') final List<TagDto> noticeTags = const [],
-      @JsonKey(name: 'problem_type') this.problemType,
-      @JsonKey(name: 'is_reported') this.isReported = false,
-      @JsonKey(name: 'report_reason') this.reportReason,
-      @JsonKey(name: 'is_reported_solved') this.isReportedSolved,
       @JsonKey(name: 'manager_memo')
       final List<ManagerMemoDto> managerMemos = const [],
       @JsonKey(name: 'problem_details') this.problemDetails,
-      @JsonKey(name: 'is_valid_checkin_location') this.isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       this.checkinDistanceFromStore = 0.0,
-      @JsonKey(name: 'is_valid_checkout_location') this.isValidCheckoutLocation,
       @JsonKey(name: 'checkout_distance_from_store')
       this.checkoutDistanceFromStore = 0.0,
       @JsonKey(name: 'store_name') this.storeName})
@@ -719,8 +530,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       _$$ShiftCardDtoImplFromJson(json);
 
 // Core identification
-// v3: shift_date (actual work date from start_time_utc) instead of request_date
-// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   final String shiftDate;
@@ -745,7 +554,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
   final ShiftTime? shiftTime;
-// Shift start/end time (NEW: "2025-12-05 14:00" format)
   @override
   @JsonKey(name: 'shift_start_time')
   final String? shiftStartTime;
@@ -756,29 +564,10 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @override
   @JsonKey(name: 'is_approved')
   final bool isApproved;
-  @override
-  @JsonKey(name: 'is_problem')
-  final bool isProblem;
-  @override
-  @JsonKey(name: 'is_problem_solved')
-  final bool isProblemSolved;
-// Time tracking
-  @override
-  @JsonKey(name: 'is_late')
-  final bool isLate;
-  @override
-  @JsonKey(name: 'late_minute')
-  final int lateMinute;
-  @override
-  @JsonKey(name: 'is_over_time')
-  final bool isOverTime;
-  @override
-  @JsonKey(name: 'over_time_minute')
-  final int overTimeMinute;
+// Salary information
   @override
   @JsonKey(name: 'paid_hour')
   final double paidHour;
-// Salary information (NEW in RPC)
   @override
   @JsonKey(name: 'salary_type')
   final String? salaryType;
@@ -791,7 +580,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
   @override
   @JsonKey(name: 'total_pay_with_bonus')
   final String? totalPayWithBonus;
-// Bonus information
   @override
   @JsonKey(name: 'bonus_amount')
   final double bonusAmount;
@@ -819,23 +607,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
     return EqualUnmodifiableListView(_noticeTags);
   }
 
-// Problem details
-  @override
-  @JsonKey(name: 'problem_type')
-  final String? problemType;
-  @override
-  @JsonKey(name: 'is_reported')
-  final bool isReported;
-  @override
-  @JsonKey(name: 'report_reason')
-  final String? reportReason;
-// v4: Report resolution status
-  @override
-  @JsonKey(name: 'is_reported_solved')
-  final bool? isReportedSolved;
-// v4: Manager memos (jsonb array)
+// Manager memos (jsonb array)
   final List<ManagerMemoDto> _managerMemos;
-// v4: Manager memos (jsonb array)
+// Manager memos (jsonb array)
   @override
   @JsonKey(name: 'manager_memo')
   List<ManagerMemoDto> get managerMemos {
@@ -844,20 +618,14 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
     return EqualUnmodifiableListView(_managerMemos);
   }
 
-// v5: Problem details (jsonb)
+// problem_details: Single Source of Truth for all problem info
   @override
   @JsonKey(name: 'problem_details')
   final ProblemDetailsDto? problemDetails;
-// Location validation (NEW in RPC)
-  @override
-  @JsonKey(name: 'is_valid_checkin_location')
-  final bool? isValidCheckinLocation;
+// Location distances (values only, not validation booleans)
   @override
   @JsonKey(name: 'checkin_distance_from_store')
   final double checkinDistanceFromStore;
-  @override
-  @JsonKey(name: 'is_valid_checkout_location')
-  final bool? isValidCheckoutLocation;
   @override
   @JsonKey(name: 'checkout_distance_from_store')
   final double checkoutDistanceFromStore;
@@ -868,7 +636,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
   @override
   String toString() {
-    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isReportedSolved: $isReportedSolved, managerMemos: $managerMemos, problemDetails: $problemDetails, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
+    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, managerMemos: $managerMemos, problemDetails: $problemDetails, checkinDistanceFromStore: $checkinDistanceFromStore, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
   }
 
   @override
@@ -895,17 +663,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.shiftEndTime == shiftEndTime) &&
             (identical(other.isApproved, isApproved) ||
                 other.isApproved == isApproved) &&
-            (identical(other.isProblem, isProblem) ||
-                other.isProblem == isProblem) &&
-            (identical(other.isProblemSolved, isProblemSolved) ||
-                other.isProblemSolved == isProblemSolved) &&
-            (identical(other.isLate, isLate) || other.isLate == isLate) &&
-            (identical(other.lateMinute, lateMinute) ||
-                other.lateMinute == lateMinute) &&
-            (identical(other.isOverTime, isOverTime) ||
-                other.isOverTime == isOverTime) &&
-            (identical(other.overTimeMinute, overTimeMinute) ||
-                other.overTimeMinute == overTimeMinute) &&
             (identical(other.paidHour, paidHour) ||
                 other.paidHour == paidHour) &&
             (identical(other.salaryType, salaryType) ||
@@ -927,26 +684,13 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.confirmEndTime == confirmEndTime) &&
             const DeepCollectionEquality()
                 .equals(other._noticeTags, _noticeTags) &&
-            (identical(other.problemType, problemType) ||
-                other.problemType == problemType) &&
-            (identical(other.isReported, isReported) ||
-                other.isReported == isReported) &&
-            (identical(other.reportReason, reportReason) ||
-                other.reportReason == reportReason) &&
-            (identical(other.isReportedSolved, isReportedSolved) ||
-                other.isReportedSolved == isReportedSolved) &&
             const DeepCollectionEquality()
                 .equals(other._managerMemos, _managerMemos) &&
             (identical(other.problemDetails, problemDetails) ||
                 other.problemDetails == problemDetails) &&
-            (identical(other.isValidCheckinLocation, isValidCheckinLocation) ||
-                other.isValidCheckinLocation == isValidCheckinLocation) &&
             (identical(
                     other.checkinDistanceFromStore, checkinDistanceFromStore) ||
                 other.checkinDistanceFromStore == checkinDistanceFromStore) &&
-            (identical(
-                    other.isValidCheckoutLocation, isValidCheckoutLocation) ||
-                other.isValidCheckoutLocation == isValidCheckoutLocation) &&
             (identical(other.checkoutDistanceFromStore,
                     checkoutDistanceFromStore) ||
                 other.checkoutDistanceFromStore == checkoutDistanceFromStore) &&
@@ -968,12 +712,6 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         shiftStartTime,
         shiftEndTime,
         isApproved,
-        isProblem,
-        isProblemSolved,
-        isLate,
-        lateMinute,
-        isOverTime,
-        overTimeMinute,
         paidHour,
         salaryType,
         salaryAmount,
@@ -985,15 +723,9 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         confirmStartTime,
         confirmEndTime,
         const DeepCollectionEquality().hash(_noticeTags),
-        problemType,
-        isReported,
-        reportReason,
-        isReportedSolved,
         const DeepCollectionEquality().hash(_managerMemos),
         problemDetails,
-        isValidCheckinLocation,
         checkinDistanceFromStore,
-        isValidCheckoutLocation,
         checkoutDistanceFromStore,
         storeName
       ]);
@@ -1028,12 +760,6 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       @JsonKey(name: 'shift_start_time') final String? shiftStartTime,
       @JsonKey(name: 'shift_end_time') final String? shiftEndTime,
       @JsonKey(name: 'is_approved') final bool isApproved,
-      @JsonKey(name: 'is_problem') final bool isProblem,
-      @JsonKey(name: 'is_problem_solved') final bool isProblemSolved,
-      @JsonKey(name: 'is_late') final bool isLate,
-      @JsonKey(name: 'late_minute') final int lateMinute,
-      @JsonKey(name: 'is_over_time') final bool isOverTime,
-      @JsonKey(name: 'over_time_minute') final int overTimeMinute,
       @JsonKey(name: 'paid_hour') final double paidHour,
       @JsonKey(name: 'salary_type') final String? salaryType,
       @JsonKey(name: 'salary_amount') final String? salaryAmount,
@@ -1045,18 +771,10 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       @JsonKey(name: 'confirm_start_time') final String? confirmStartTime,
       @JsonKey(name: 'confirm_end_time') final String? confirmEndTime,
       @JsonKey(name: 'notice_tag') final List<TagDto> noticeTags,
-      @JsonKey(name: 'problem_type') final String? problemType,
-      @JsonKey(name: 'is_reported') final bool isReported,
-      @JsonKey(name: 'report_reason') final String? reportReason,
-      @JsonKey(name: 'is_reported_solved') final bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') final List<ManagerMemoDto> managerMemos,
       @JsonKey(name: 'problem_details') final ProblemDetailsDto? problemDetails,
-      @JsonKey(name: 'is_valid_checkin_location')
-      final bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       final double checkinDistanceFromStore,
-      @JsonKey(name: 'is_valid_checkout_location')
-      final bool? isValidCheckoutLocation,
       @JsonKey(name: 'checkout_distance_from_store')
       final double checkoutDistanceFromStore,
       @JsonKey(name: 'store_name')
@@ -1066,8 +784,6 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       _$ShiftCardDtoImpl.fromJson;
 
 // Core identification
-// v3: shift_date (actual work date from start_time_utc) instead of request_date
-// Made nullable with defaults to handle empty RPC responses
   @override
   @JsonKey(name: 'shift_date')
   String get shiftDate;
@@ -1089,8 +805,7 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   @override
   @JsonKey(name: 'shift_time')
   @ShiftTimeConverter()
-  ShiftTime?
-      get shiftTime; // Shift start/end time (NEW: "2025-12-05 14:00" format)
+  ShiftTime? get shiftTime;
   @override
   @JsonKey(name: 'shift_start_time')
   String? get shiftStartTime;
@@ -1099,28 +814,10 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   String? get shiftEndTime; // Approval status
   @override
   @JsonKey(name: 'is_approved')
-  bool get isApproved;
-  @override
-  @JsonKey(name: 'is_problem')
-  bool get isProblem;
-  @override
-  @JsonKey(name: 'is_problem_solved')
-  bool get isProblemSolved; // Time tracking
-  @override
-  @JsonKey(name: 'is_late')
-  bool get isLate;
-  @override
-  @JsonKey(name: 'late_minute')
-  int get lateMinute;
-  @override
-  @JsonKey(name: 'is_over_time')
-  bool get isOverTime;
-  @override
-  @JsonKey(name: 'over_time_minute')
-  int get overTimeMinute;
+  bool get isApproved; // Salary information
   @override
   @JsonKey(name: 'paid_hour')
-  double get paidHour; // Salary information (NEW in RPC)
+  double get paidHour;
   @override
   @JsonKey(name: 'salary_type')
   String? get salaryType;
@@ -1132,7 +829,7 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   String? get basePay;
   @override
   @JsonKey(name: 'total_pay_with_bonus')
-  String? get totalPayWithBonus; // Bonus information
+  String? get totalPayWithBonus;
   @override
   @JsonKey(name: 'bonus_amount')
   double get bonusAmount; // Time records (HH:MM:SS or HH:MM format from RPC)
@@ -1150,34 +847,18 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   String? get confirmEndTime; // Tags (jsonb array in RPC)
   @override
   @JsonKey(name: 'notice_tag')
-  List<TagDto> get noticeTags; // Problem details
-  @override
-  @JsonKey(name: 'problem_type')
-  String? get problemType;
-  @override
-  @JsonKey(name: 'is_reported')
-  bool get isReported;
-  @override
-  @JsonKey(name: 'report_reason')
-  String? get reportReason; // v4: Report resolution status
-  @override
-  @JsonKey(name: 'is_reported_solved')
-  bool? get isReportedSolved; // v4: Manager memos (jsonb array)
+  List<TagDto> get noticeTags; // Manager memos (jsonb array)
   @override
   @JsonKey(name: 'manager_memo')
-  List<ManagerMemoDto> get managerMemos; // v5: Problem details (jsonb)
+  List<ManagerMemoDto>
+      get managerMemos; // problem_details: Single Source of Truth for all problem info
   @override
   @JsonKey(name: 'problem_details')
-  ProblemDetailsDto? get problemDetails; // Location validation (NEW in RPC)
-  @override
-  @JsonKey(name: 'is_valid_checkin_location')
-  bool? get isValidCheckinLocation;
+  ProblemDetailsDto?
+      get problemDetails; // Location distances (values only, not validation booleans)
   @override
   @JsonKey(name: 'checkin_distance_from_store')
   double get checkinDistanceFromStore;
-  @override
-  @JsonKey(name: 'is_valid_checkout_location')
-  bool? get isValidCheckoutLocation;
   @override
   @JsonKey(name: 'checkout_distance_from_store')
   double get checkoutDistanceFromStore; // Store information

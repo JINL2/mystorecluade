@@ -9,9 +9,15 @@ import 'shift_card_dto.dart';
 /// Extension to map ShiftCardDto → Domain Entity
 ///
 /// Separates DTO (data layer) from Entity (domain layer)
-/// v3: Uses shiftDate (from start_time_utc) instead of requestDate
+/// v6: BREAKING CHANGE - Removed legacy problem fields.
+/// All problem data now comes from problemDetails (problem_details_v2).
+/// This ensures single source of truth across all pages.
 extension ShiftCardDtoMapper on ShiftCardDto {
   /// Convert DTO to Domain Entity
+  ///
+  /// NOTE: Legacy fields (isLate, isOverTime, isProblemSolved, etc.) are
+  /// intentionally NOT mapped. Use ShiftCard's computed getters that
+  /// derive values from problemDetails instead.
   ShiftCard toEntity() {
     return ShiftCard(
       shiftRequestId: shiftRequestId,
@@ -19,23 +25,26 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       shift: _mapShift(),
       shiftDate: shiftDate,
       isApproved: isApproved,
-      hasProblem: isProblem,
-      isProblemSolved: isProblemSolved,
-      isLate: isLate,
-      lateMinute: lateMinute,
-      isOverTime: isOverTime,
-      overTimeMinute: overTimeMinute,
+      // v6: Removed legacy problem fields - now computed from problemDetails:
+      // - hasProblem → computed from problemDetails.problemCount
+      // - isProblemSolved → computed from problemDetails.isSolved
+      // - isLate, lateMinute → computed from problemDetails.problems
+      // - isOverTime, overTimeMinute → computed from problemDetails.problems
+      // - isReported, reportReason → computed from problemDetails.problems
+      // - isReportedSolved → computed from problemDetails.problems
+      // - problemType → computed from problemDetails.problems
       paidHour: paidHour,
-      isReported: isReported,
       bonusAmount: bonusAmount,
       bonusReason: null, // Not in RPC
       confirmedStartTime: _parseTime(confirmStartTime),
       confirmedEndTime: _parseTime(confirmEndTime),
       actualStartTime: _parseTime(actualStart),
       actualEndTime: _parseTime(actualEnd),
-      isValidCheckinLocation: isValidCheckinLocation,
+      // v6: Location validation booleans removed from RPC (use problemDetails.hasLocationIssue instead)
+      // Only distance values are kept for display purposes
+      isValidCheckinLocation: null, // Derive from problemDetails.hasLocationIssue if needed
       checkinDistanceFromStore: checkinDistanceFromStore,
-      isValidCheckoutLocation: isValidCheckoutLocation,
+      isValidCheckoutLocation: null, // Derive from problemDetails.hasLocationIssue if needed
       checkoutDistanceFromStore: checkoutDistanceFromStore,
       salaryType: salaryType,
       salaryAmount: salaryAmount,
@@ -47,12 +56,8 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       confirmedStartRaw: confirmStartTime,
       confirmedEndRaw: confirmEndTime,
       tags: noticeTags.map((tag) => tag.toEntity()).toList(),
-      problemType: problemType,
-      reportReason: reportReason,
-      // v4: Report resolution and manager memos
-      isReportedSolved: isReportedSolved,
       managerMemos: managerMemos.map((memo) => memo.toEntity()).toList(),
-      // v5: Problem details
+      // v5: Problem details - SINGLE SOURCE OF TRUTH for all problem data
       problemDetails: problemDetails?.toEntity(),
       // Shift start/end time from RPC ("2025-12-05 14:00" format)
       // Used for consecutive shift detection

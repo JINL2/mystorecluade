@@ -1,4 +1,6 @@
 import 'package:intl/intl.dart';
+
+import '../../../../core/monitoring/sentry_config.dart';
 import '../constants/account_ids.dart';
 import '../entities/journal_result.dart';
 import '../repositories/cash_location_repository.dart';
@@ -76,7 +78,16 @@ class CreateForeignCurrencyTranslationUseCase
       );
 
       return JournalResult.fromResponse(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CreateForeignCurrencyTranslationUseCase: Failed to create translation',
+        extra: {
+          'cashLocationId': params.cashLocationId,
+          'differenceAmount': params.differenceAmount,
+        },
+      );
       return JournalResult.failure(
         error: e.toString(),
         errorCode: 'FOREIGN_CURRENCY_TRANSLATION_FAILED',

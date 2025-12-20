@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/attendance_location.dart';
@@ -119,6 +121,7 @@ class AttendanceDatasource {
 
       // Check for error response from v7 RPC
       final status = rawResult['status'] as String?;
+
       if (status == 'error') {
         final message = rawResult['message'] as String? ?? 'Unknown error';
         throw AttendanceServerException(message);
@@ -129,13 +132,11 @@ class AttendanceDatasource {
       // - 'attend' = check-in (출근)
       // - 'check_out' = check-out (퇴근)
       final mappedResult = <String, dynamic>{
-        // Map 'attend' to 'check_in' for consistency
         'action': status == 'attend' ? 'check_in' : status,
         'timestamp': timestamp,
         'success': true,
         'message': rawResult['message'],
         'shift_request_id': shiftRequestId,
-        // Extract date from timestamp for request_date field
         'request_date': _extractDateFromTimestamp(timestamp),
       };
 
@@ -146,6 +147,7 @@ class AttendanceDatasource {
 
       return mappedResult;
     } catch (e) {
+      print('❌ [CHECK_IN_OUT] EXCEPTION: $e');
       throw AttendanceServerException(e.toString());
     }
   }
@@ -169,32 +171,36 @@ class AttendanceDatasource {
 
   /// Fetch user shift cards for the month
   ///
-  /// Uses user_shift_cards_v4 RPC with local time + timezone
+  /// Uses user_shift_cards_v7 RPC with local time + timezone
   /// - p_request_time: Local timestamp (e.g., "2025-12-15 10:00:00") - no timezone offset
   /// - p_timezone: User's local timezone (e.g., "Asia/Ho_Chi_Minh")
   /// - Returns shift cards filtered by start_time_utc (actual shift date)
+  ///
+  /// v5 변경사항:
+  /// - 개별 문제 컬럼 제거 (is_late, late_minutes, is_extratime 등)
+  /// - problem_details JSONB 추가 (모든 문제 정보 통합)
+  /// v6: storeId optional - null이면 회사 전체 조회
+  /// v7: manager_memo 추가 - 매니저가 남긴 메모 표시
   Future<List<Map<String, dynamic>>> getUserShiftCards({
     required String requestTime,
     required String userId,
     required String companyId,
-    required String storeId,
+    String? storeId,  // Optional: null이면 회사 전체
     required String timezone,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'user_shift_cards_v4',
+        'user_shift_cards_v7',
         params: {
           'p_request_time': requestTime,
           'p_user_id': userId,
           'p_company_id': companyId,
-          'p_store_id': storeId,
+          'p_store_id': storeId,  // null이면 RPC에서 회사 전체 조회
           'p_timezone': timezone,
         },
       );
 
-      if (response == null) {
-        return [];
-      }
+      if (response == null) return [];
 
       // Check for error response
       if (response is Map<String, dynamic> && response['error'] == true) {
@@ -203,7 +209,7 @@ class AttendanceDatasource {
         throw AttendanceServerException('$errorCode: $errorMessage');
       }
 
-      // v4 returns shift_date instead of request_date
+      // v5 returns shift_date instead of request_date
       // Map shift_date to request_date for backward compatibility with existing code
       if (response is List) {
         final results = List<Map<String, dynamic>>.from(response);
@@ -214,8 +220,6 @@ class AttendanceDatasource {
           // Map shift_date to request_date for backward compatibility
           if (converted.containsKey('shift_date')) {
             final shiftDate = converted['shift_date']?.toString() ?? '';
-            // shift_date format: "2025-12-06T09:00:00" (local time)
-            // Extract date part for request_date
             if (shiftDate.contains('T')) {
               converted['request_date'] = shiftDate.split('T').first;
             } else {

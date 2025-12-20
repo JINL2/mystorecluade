@@ -1,32 +1,28 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/widgets/toss/toggle_button.dart';
 import '../../../../../shared/widgets/toss/toss_today_shift_card.dart';
 import '../../../domain/entities/shift_card.dart';
 
-enum ViewMode { week, month }
-
-/// Header component with Today's Shift Card and View Toggle
+/// Header component with Today's Shift Card only
+/// (View toggle removed - now using calendar icon button in navigation)
 class ScheduleHeader extends StatelessWidget {
   final GlobalKey? cardKey;
-  final ViewMode viewMode;
   final ShiftCard? todayShift; // Today's shift data
   final ShiftCard? upcomingShift; // Closest upcoming shift (when no today shift)
   final VoidCallback? onCheckIn;
   final VoidCallback? onCheckOut;
   final VoidCallback? onGoToShiftSignUp;
-  final ValueChanged<ViewMode> onViewModeChanged;
+  final VoidCallback? onReportIssue;
 
   const ScheduleHeader({
     super.key,
     this.cardKey,
-    required this.viewMode,
     this.todayShift,
     this.upcomingShift,
     this.onCheckIn,
     this.onCheckOut,
     this.onGoToShiftSignUp,
-    required this.onViewModeChanged,
+    this.onReportIssue,
   });
 
   /// Parse shift datetime from ISO format string (e.g., "2025-06-01T14:00:00")
@@ -61,30 +57,50 @@ class ScheduleHeader extends StatelessWidget {
     final startDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
     final endDate = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
 
-    // Future shift (hasn't come yet) - both start and end are in the future
-    if (startDate.isAfter(today)) {
-      return ShiftStatus.upcoming;
-    }
+    // Future shift (hasn't come yet)
+    if (startDate.isAfter(today)) return ShiftStatus.upcoming;
 
     // Past or today's shift - use entity's isCheckedIn/isCheckedOut getters
-    // which check both actualStartTime/actualEndTime AND confirmStartTime/confirmEndTime
-    if (card.isCheckedIn && card.isCheckedOut) {
-      // Check-in and check-out completed
-      return card.isLate ? ShiftStatus.late : ShiftStatus.completed;
-    }
+    if (card.isCheckedIn && card.isCheckedOut) return ShiftStatus.completed;
 
     if (card.isCheckedIn && !card.isCheckedOut) {
-      // Currently working (checked in but not out) - On-time
-      return ShiftStatus.onTime;
+      return card.isLate ? ShiftStatus.late : ShiftStatus.onTime;
     }
 
-    // Past date but no check-in (both start and end dates are before today)
-    if (endDate.isBefore(today)) {
-      return ShiftStatus.undone;
-    }
+    // Past date but no check-in
+    if (endDate.isBefore(today)) return ShiftStatus.undone;
 
-    // Today's shift that hasn't checked in yet (start or end date is today)
-    return ShiftStatus.undone;
+    // Today's shift - check if started
+    if (now.isBefore(startDateTime)) {
+      return ShiftStatus.upcoming;
+    } else if (now.isBefore(endDateTime)) {
+      return ShiftStatus.undone; // Shift started but not checked in
+    } else {
+      return ShiftStatus.undone; // Shift ended without check-in
+    }
+  }
+
+  /// Convert ShiftCard problemDetails to ShiftProblemInfo for UI
+  ShiftProblemInfo? _buildProblemInfo(ShiftCard? card) {
+    if (card == null) return null;
+
+    final problemDetails = card.problemDetails;
+    if (problemDetails == null) return null;
+
+    return ShiftProblemInfo(
+      isLate: problemDetails.hasLate,
+      lateMinutes: problemDetails.lateMinutes,
+      isOvertime: problemDetails.hasOvertime,
+      overtimeMinutes: problemDetails.overtimeMinutes,
+      hasLocationIssue: problemDetails.hasLocationIssue,
+      checkinDistance: problemDetails.checkinDistance,
+      hasNoCheckout: problemDetails.hasNoCheckout,
+      isEarlyLeave: problemDetails.hasEarlyLeave,
+      earlyLeaveMinutes: problemDetails.earlyLeaveMinutes,
+      isReported: problemDetails.hasReported,
+      isSolved: problemDetails.isSolved,
+      problemCount: problemDetails.problemCount,
+    );
   }
 
   /// Format date to "Tue, 18 Jun 2025" format
@@ -143,24 +159,17 @@ class ScheduleHeader extends StatelessWidget {
             onCheckIn: onCheckIn ?? () {},
             onCheckOut: onCheckOut ?? () {},
             onGoToShiftSignUp: onGoToShiftSignUp,
+            onReportIssue: onReportIssue,
+            // v5: Problem details from JSONB
+            problemInfo: _buildProblemInfo(displayShift),
+            // v5: Actual times for completed shifts
+            actualStartTime: displayShift?.actualStartTime,
+            actualEndTime: displayShift?.actualEndTime,
+            confirmStartTime: displayShift?.confirmStartTime,
+            confirmEndTime: displayShift?.confirmEndTime,
           ),
         ),
-        const SizedBox(height: 16),
-
-        // Toggle Button (Week/Month toggle)
-        ToggleButtonGroup(
-          items: const [
-            ToggleButtonItem(id: 'week', label: 'Week'),
-            ToggleButtonItem(id: 'month', label: 'Month'),
-          ],
-          selectedId: viewMode == ViewMode.week ? 'week' : 'month',
-          onToggle: (id) {
-            onViewModeChanged(
-              id == 'week' ? ViewMode.week : ViewMode.month,
-            );
-          },
-        ),
-        const SizedBox(height: 16),
+        // Note: No bottom padding here - gray section divider follows directly in parent
       ],
     );
   }
