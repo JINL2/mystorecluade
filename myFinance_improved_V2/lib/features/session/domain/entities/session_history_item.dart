@@ -2,6 +2,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'session_history_item.freezed.dart';
 
+/// User info with profile image (used in created_by, members, scanned_by)
+@freezed
+class SessionHistoryUser with _$SessionHistoryUser {
+  const factory SessionHistoryUser({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    String? profileImage,
+  }) = _SessionHistoryUser;
+}
+
 /// Member info in session history
 @freezed
 class SessionHistoryMember with _$SessionHistoryMember {
@@ -10,6 +21,10 @@ class SessionHistoryMember with _$SessionHistoryMember {
     required String userName,
     required String joinedAt,
     required bool isActive,
+    String? profileImage,
+    // V2: Extended user info
+    String? firstName,
+    String? lastName,
   }) = _SessionHistoryMember;
 }
 
@@ -21,6 +36,10 @@ class ScannedByInfo with _$ScannedByInfo {
     required String userName,
     required int quantity,
     required int quantityRejected,
+    // V2: Extended user info
+    String? firstName,
+    String? lastName,
+    String? profileImage,
   }) = _ScannedByInfo;
 }
 
@@ -62,6 +81,101 @@ class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
   int get finalRejected => confirmedRejected ?? scannedRejected;
 }
 
+/// Stock snapshot item for receiving sessions (V2)
+@freezed
+class StockSnapshotItem with _$StockSnapshotItem {
+  const StockSnapshotItem._();
+
+  const factory StockSnapshotItem({
+    required String productId,
+    required String sku,
+    required String productName,
+    required int quantityBefore,
+    required int quantityReceived,
+    required int quantityAfter,
+    /// true = new product (needs display), false = restock
+    required bool needsDisplay,
+  }) = _StockSnapshotItem;
+
+  /// Check if this is a new product (was 0 stock before)
+  bool get isNewProduct => needsDisplay;
+
+  /// Check if this is a restock (had stock before)
+  bool get isRestock => !needsDisplay;
+}
+
+/// Receiving info for receiving sessions (V2)
+@freezed
+class ReceivingInfo with _$ReceivingInfo {
+  const ReceivingInfo._();
+
+  const factory ReceivingInfo({
+    required String receivingId,
+    required String receivingNumber,
+    required String receivedAt,
+    required List<StockSnapshotItem> stockSnapshot,
+    required int newProductsCount,
+    required int restockProductsCount,
+  }) = _ReceivingInfo;
+
+  /// Get new products only
+  List<StockSnapshotItem> get newProducts =>
+      stockSnapshot.where((item) => item.needsDisplay).toList();
+
+  /// Get restock products only
+  List<StockSnapshotItem> get restockProducts =>
+      stockSnapshot.where((item) => !item.needsDisplay).toList();
+}
+
+/// Merged item info (items from merged sessions)
+@freezed
+class MergedSessionItem with _$MergedSessionItem {
+  const factory MergedSessionItem({
+    required String productId,
+    required String sku,
+    required String productName,
+    required int quantity,
+    required int quantityRejected,
+    required SessionHistoryUser scannedBy,
+  }) = _MergedSessionItem;
+}
+
+/// Merged session info
+@freezed
+class MergedSessionInfo with _$MergedSessionInfo {
+  const factory MergedSessionInfo({
+    required String sourceSessionId,
+    required String sourceSessionName,
+    required String sourceCreatedAt,
+    required SessionHistoryUser sourceCreatedBy,
+    required List<MergedSessionItem> items,
+    required int itemsCount,
+    required int totalQuantity,
+    required int totalRejected,
+  }) = _MergedSessionInfo;
+}
+
+/// Original session info (items originally in this session, not merged)
+@freezed
+class OriginalSessionInfo with _$OriginalSessionInfo {
+  const factory OriginalSessionInfo({
+    required List<MergedSessionItem> items,
+    required int itemsCount,
+    required int totalQuantity,
+    required int totalRejected,
+  }) = _OriginalSessionInfo;
+}
+
+/// Merge info for merged sessions (V2)
+@freezed
+class MergeInfo with _$MergeInfo {
+  const factory MergeInfo({
+    required OriginalSessionInfo originalSession,
+    required List<MergedSessionInfo> mergedSessions,
+    required int totalMergedSessionsCount,
+  }) = _MergeInfo;
+}
+
 /// Session history item entity from RPC response
 @freezed
 class SessionHistoryItem with _$SessionHistoryItem {
@@ -84,8 +198,12 @@ class SessionHistoryItem with _$SessionHistoryItem {
     String? completedAt,
     int? durationMinutes,
 
+    /// V2: createdBy is now an object
     required String createdBy,
     required String createdByName,
+    String? createdByFirstName,
+    String? createdByLastName,
+    String? createdByProfileImage,
 
     required List<SessionHistoryMember> members,
     required int memberCount,
@@ -102,6 +220,13 @@ class SessionHistoryItem with _$SessionHistoryItem {
 
     /// Counting specific - total difference from expected
     int? totalDifference,
+
+    /// V2: Merge info
+    @Default(false) bool isMergedSession,
+    MergeInfo? mergeInfo,
+
+    /// V2: Receiving info (receiving sessions only)
+    ReceivingInfo? receivingInfo,
   }) = _SessionHistoryItem;
 
   bool get isCounting => sessionType == 'counting';
@@ -118,6 +243,18 @@ class SessionHistoryItem with _$SessionHistoryItem {
 
   /// Get final rejected (confirmed if available, otherwise scanned)
   int get totalRejected => totalConfirmedRejected ?? totalScannedRejected;
+
+  /// V2: Check if has merge info
+  bool get hasMergeInfo => isMergedSession && mergeInfo != null;
+
+  /// V2: Check if has receiving info
+  bool get hasReceivingInfo => isReceiving && receivingInfo != null;
+
+  /// V2: Get new products count (receiving only)
+  int get newProductsCount => receivingInfo?.newProductsCount ?? 0;
+
+  /// V2: Get restock products count (receiving only)
+  int get restockProductsCount => receivingInfo?.restockProductsCount ?? 0;
 }
 
 /// Response wrapper for session history

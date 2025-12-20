@@ -4,3 +4,4 @@
 
 export * from './SearchProduct';
 export * from './SessionItem';
+export * from './SessionHistory';

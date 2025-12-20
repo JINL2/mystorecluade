@@ -19,6 +19,8 @@ import type {
   JoinSessionResult,
   MergeSessionsResult,
   CompareSessionsResult,
+  SessionHistoryResponse,
+  SessionHistoryParams,
 } from '../entities';
 
 export interface IProductReceiveRepository {
@@ -154,4 +156,9 @@ export interface IProductReceiveRepository {
     sessionIdB: string;
     userId: string;
   }): Promise<CompareSessionsResult>;
+
+  /**
+   * Get session history with filtering and pagination
+   */
+  getSessionHistory(params: SessionHistoryParams): Promise<SessionHistoryResponse>;
 }

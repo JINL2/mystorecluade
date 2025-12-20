@@ -32,7 +32,10 @@ import type {
   CompareMatchedItem,
   CompareOnlyItem,
   CompareSessionsSummary,
+  SessionHistoryResponse,
+  SessionHistoryParams,
 } from '../../domain/entities';
+import { mapSessionHistoryResponseDTOToEntity } from '../models/SessionHistoryModels';
 import {
   productReceiveDataSource,
   type IProductReceiveDataSource,
@@ -452,6 +455,21 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
       },
       summary: mapCompareSessionsSummaryDTO(result.summary),
     };
+  }
+
+  async getSessionHistory(params: SessionHistoryParams): Promise<SessionHistoryResponse> {
+    const result = await this.dataSource.getSessionHistory({
+      companyId: params.companyId,
+      storeId: params.storeId,
+      sessionType: params.sessionType,
+      isActive: params.isActive,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      timezone: params.timezone,
+      limit: params.limit,
+      offset: params.offset,
+    });
+    return mapSessionHistoryResponseDTOToEntity(result);
   }
 }
 

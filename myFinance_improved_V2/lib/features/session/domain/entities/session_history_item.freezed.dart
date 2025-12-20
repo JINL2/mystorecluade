@@ -15,11 +15,206 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
+mixin _$SessionHistoryUser {
+  String get userId => throw _privateConstructorUsedError;
+  String get firstName => throw _privateConstructorUsedError;
+  String get lastName => throw _privateConstructorUsedError;
+  String? get profileImage => throw _privateConstructorUsedError;
+
+  /// Create a copy of SessionHistoryUser
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SessionHistoryUserCopyWith<SessionHistoryUser> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SessionHistoryUserCopyWith<$Res> {
+  factory $SessionHistoryUserCopyWith(
+          SessionHistoryUser value, $Res Function(SessionHistoryUser) then) =
+      _$SessionHistoryUserCopyWithImpl<$Res, SessionHistoryUser>;
+  @useResult
+  $Res call(
+      {String userId, String firstName, String lastName, String? profileImage});
+}
+
+/// @nodoc
+class _$SessionHistoryUserCopyWithImpl<$Res, $Val extends SessionHistoryUser>
+    implements $SessionHistoryUserCopyWith<$Res> {
+  _$SessionHistoryUserCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SessionHistoryUser
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? userId = null,
+    Object? firstName = null,
+    Object? lastName = null,
+    Object? profileImage = freezed,
+  }) {
+    return _then(_value.copyWith(
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SessionHistoryUserImplCopyWith<$Res>
+    implements $SessionHistoryUserCopyWith<$Res> {
+  factory _$$SessionHistoryUserImplCopyWith(_$SessionHistoryUserImpl value,
+          $Res Function(_$SessionHistoryUserImpl) then) =
+      __$$SessionHistoryUserImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String userId, String firstName, String lastName, String? profileImage});
+}
+
+/// @nodoc
+class __$$SessionHistoryUserImplCopyWithImpl<$Res>
+    extends _$SessionHistoryUserCopyWithImpl<$Res, _$SessionHistoryUserImpl>
+    implements _$$SessionHistoryUserImplCopyWith<$Res> {
+  __$$SessionHistoryUserImplCopyWithImpl(_$SessionHistoryUserImpl _value,
+      $Res Function(_$SessionHistoryUserImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SessionHistoryUser
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? userId = null,
+    Object? firstName = null,
+    Object? lastName = null,
+    Object? profileImage = freezed,
+  }) {
+    return _then(_$SessionHistoryUserImpl(
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SessionHistoryUserImpl implements _SessionHistoryUser {
+  const _$SessionHistoryUserImpl(
+      {required this.userId,
+      required this.firstName,
+      required this.lastName,
+      this.profileImage});
+
+  @override
+  final String userId;
+  @override
+  final String firstName;
+  @override
+  final String lastName;
+  @override
+  final String? profileImage;
+
+  @override
+  String toString() {
+    return 'SessionHistoryUser(userId: $userId, firstName: $firstName, lastName: $lastName, profileImage: $profileImage)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SessionHistoryUserImpl &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, userId, firstName, lastName, profileImage);
+
+  /// Create a copy of SessionHistoryUser
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SessionHistoryUserImplCopyWith<_$SessionHistoryUserImpl> get copyWith =>
+      __$$SessionHistoryUserImplCopyWithImpl<_$SessionHistoryUserImpl>(
+          this, _$identity);
+}
+
+abstract class _SessionHistoryUser implements SessionHistoryUser {
+  const factory _SessionHistoryUser(
+      {required final String userId,
+      required final String firstName,
+      required final String lastName,
+      final String? profileImage}) = _$SessionHistoryUserImpl;
+
+  @override
+  String get userId;
+  @override
+  String get firstName;
+  @override
+  String get lastName;
+  @override
+  String? get profileImage;
+
+  /// Create a copy of SessionHistoryUser
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SessionHistoryUserImplCopyWith<_$SessionHistoryUserImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$SessionHistoryMember {
   String get oderId => throw _privateConstructorUsedError;
   String get userName => throw _privateConstructorUsedError;
   String get joinedAt => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  String? get profileImage =>
+      throw _privateConstructorUsedError; // V2: Extended user info
+  String? get firstName => throw _privateConstructorUsedError;
+  String? get lastName => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionHistoryMember
   /// with the given fields replaced by the non-null parameter values.
@@ -34,7 +229,14 @@ abstract class $SessionHistoryMemberCopyWith<$Res> {
           $Res Function(SessionHistoryMember) then) =
       _$SessionHistoryMemberCopyWithImpl<$Res, SessionHistoryMember>;
   @useResult
-  $Res call({String oderId, String userName, String joinedAt, bool isActive});
+  $Res call(
+      {String oderId,
+      String userName,
+      String joinedAt,
+      bool isActive,
+      String? profileImage,
+      String? firstName,
+      String? lastName});
 }
 
 /// @nodoc
@@ -57,6 +259,9 @@ class _$SessionHistoryMemberCopyWithImpl<$Res,
     Object? userName = null,
     Object? joinedAt = null,
     Object? isActive = null,
+    Object? profileImage = freezed,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
   }) {
     return _then(_value.copyWith(
       oderId: null == oderId
@@ -75,6 +280,18 @@ class _$SessionHistoryMemberCopyWithImpl<$Res,
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -87,7 +304,14 @@ abstract class _$$SessionHistoryMemberImplCopyWith<$Res>
       __$$SessionHistoryMemberImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String oderId, String userName, String joinedAt, bool isActive});
+  $Res call(
+      {String oderId,
+      String userName,
+      String joinedAt,
+      bool isActive,
+      String? profileImage,
+      String? firstName,
+      String? lastName});
 }
 
 /// @nodoc
@@ -107,6 +331,9 @@ class __$$SessionHistoryMemberImplCopyWithImpl<$Res>
     Object? userName = null,
     Object? joinedAt = null,
     Object? isActive = null,
+    Object? profileImage = freezed,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
   }) {
     return _then(_$SessionHistoryMemberImpl(
       oderId: null == oderId
@@ -125,6 +352,18 @@ class __$$SessionHistoryMemberImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -136,7 +375,10 @@ class _$SessionHistoryMemberImpl implements _SessionHistoryMember {
       {required this.oderId,
       required this.userName,
       required this.joinedAt,
-      required this.isActive});
+      required this.isActive,
+      this.profileImage,
+      this.firstName,
+      this.lastName});
 
   @override
   final String oderId;
@@ -146,10 +388,17 @@ class _$SessionHistoryMemberImpl implements _SessionHistoryMember {
   final String joinedAt;
   @override
   final bool isActive;
+  @override
+  final String? profileImage;
+// V2: Extended user info
+  @override
+  final String? firstName;
+  @override
+  final String? lastName;
 
   @override
   String toString() {
-    return 'SessionHistoryMember(oderId: $oderId, userName: $userName, joinedAt: $joinedAt, isActive: $isActive)';
+    return 'SessionHistoryMember(oderId: $oderId, userName: $userName, joinedAt: $joinedAt, isActive: $isActive, profileImage: $profileImage, firstName: $firstName, lastName: $lastName)';
   }
 
   @override
@@ -163,12 +412,18 @@ class _$SessionHistoryMemberImpl implements _SessionHistoryMember {
             (identical(other.joinedAt, joinedAt) ||
                 other.joinedAt == joinedAt) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, oderId, userName, joinedAt, isActive);
+  int get hashCode => Object.hash(runtimeType, oderId, userName, joinedAt,
+      isActive, profileImage, firstName, lastName);
 
   /// Create a copy of SessionHistoryMember
   /// with the given fields replaced by the non-null parameter values.
@@ -186,7 +441,10 @@ abstract class _SessionHistoryMember implements SessionHistoryMember {
       {required final String oderId,
       required final String userName,
       required final String joinedAt,
-      required final bool isActive}) = _$SessionHistoryMemberImpl;
+      required final bool isActive,
+      final String? profileImage,
+      final String? firstName,
+      final String? lastName}) = _$SessionHistoryMemberImpl;
 
   @override
   String get oderId;
@@ -196,6 +454,12 @@ abstract class _SessionHistoryMember implements SessionHistoryMember {
   String get joinedAt;
   @override
   bool get isActive;
+  @override
+  String? get profileImage; // V2: Extended user info
+  @override
+  String? get firstName;
+  @override
+  String? get lastName;
 
   /// Create a copy of SessionHistoryMember
   /// with the given fields replaced by the non-null parameter values.
@@ -210,7 +474,11 @@ mixin _$ScannedByInfo {
   String get userId => throw _privateConstructorUsedError;
   String get userName => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
-  int get quantityRejected => throw _privateConstructorUsedError;
+  int get quantityRejected =>
+      throw _privateConstructorUsedError; // V2: Extended user info
+  String? get firstName => throw _privateConstructorUsedError;
+  String? get lastName => throw _privateConstructorUsedError;
+  String? get profileImage => throw _privateConstructorUsedError;
 
   /// Create a copy of ScannedByInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -226,7 +494,13 @@ abstract class $ScannedByInfoCopyWith<$Res> {
       _$ScannedByInfoCopyWithImpl<$Res, ScannedByInfo>;
   @useResult
   $Res call(
-      {String userId, String userName, int quantity, int quantityRejected});
+      {String userId,
+      String userName,
+      int quantity,
+      int quantityRejected,
+      String? firstName,
+      String? lastName,
+      String? profileImage});
 }
 
 /// @nodoc
@@ -248,6 +522,9 @@ class _$ScannedByInfoCopyWithImpl<$Res, $Val extends ScannedByInfo>
     Object? userName = null,
     Object? quantity = null,
     Object? quantityRejected = null,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
+    Object? profileImage = freezed,
   }) {
     return _then(_value.copyWith(
       userId: null == userId
@@ -266,6 +543,18 @@ class _$ScannedByInfoCopyWithImpl<$Res, $Val extends ScannedByInfo>
           ? _value.quantityRejected
           : quantityRejected // ignore: cast_nullable_to_non_nullable
               as int,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -279,7 +568,13 @@ abstract class _$$ScannedByInfoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String userId, String userName, int quantity, int quantityRejected});
+      {String userId,
+      String userName,
+      int quantity,
+      int quantityRejected,
+      String? firstName,
+      String? lastName,
+      String? profileImage});
 }
 
 /// @nodoc
@@ -299,6 +594,9 @@ class __$$ScannedByInfoImplCopyWithImpl<$Res>
     Object? userName = null,
     Object? quantity = null,
     Object? quantityRejected = null,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
+    Object? profileImage = freezed,
   }) {
     return _then(_$ScannedByInfoImpl(
       userId: null == userId
@@ -317,6 +615,18 @@ class __$$ScannedByInfoImplCopyWithImpl<$Res>
           ? _value.quantityRejected
           : quantityRejected // ignore: cast_nullable_to_non_nullable
               as int,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -328,7 +638,10 @@ class _$ScannedByInfoImpl implements _ScannedByInfo {
       {required this.userId,
       required this.userName,
       required this.quantity,
-      required this.quantityRejected});
+      required this.quantityRejected,
+      this.firstName,
+      this.lastName,
+      this.profileImage});
 
   @override
   final String userId;
@@ -338,10 +651,17 @@ class _$ScannedByInfoImpl implements _ScannedByInfo {
   final int quantity;
   @override
   final int quantityRejected;
+// V2: Extended user info
+  @override
+  final String? firstName;
+  @override
+  final String? lastName;
+  @override
+  final String? profileImage;
 
   @override
   String toString() {
-    return 'ScannedByInfo(userId: $userId, userName: $userName, quantity: $quantity, quantityRejected: $quantityRejected)';
+    return 'ScannedByInfo(userId: $userId, userName: $userName, quantity: $quantity, quantityRejected: $quantityRejected, firstName: $firstName, lastName: $lastName, profileImage: $profileImage)';
   }
 
   @override
@@ -355,12 +675,18 @@ class _$ScannedByInfoImpl implements _ScannedByInfo {
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.quantityRejected, quantityRejected) ||
-                other.quantityRejected == quantityRejected));
+                other.quantityRejected == quantityRejected) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, userId, userName, quantity, quantityRejected);
+  int get hashCode => Object.hash(runtimeType, userId, userName, quantity,
+      quantityRejected, firstName, lastName, profileImage);
 
   /// Create a copy of ScannedByInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -376,7 +702,10 @@ abstract class _ScannedByInfo implements ScannedByInfo {
       {required final String userId,
       required final String userName,
       required final int quantity,
-      required final int quantityRejected}) = _$ScannedByInfoImpl;
+      required final int quantityRejected,
+      final String? firstName,
+      final String? lastName,
+      final String? profileImage}) = _$ScannedByInfoImpl;
 
   @override
   String get userId;
@@ -385,7 +714,13 @@ abstract class _ScannedByInfo implements ScannedByInfo {
   @override
   int get quantity;
   @override
-  int get quantityRejected;
+  int get quantityRejected; // V2: Extended user info
+  @override
+  String? get firstName;
+  @override
+  String? get lastName;
+  @override
+  String? get profileImage;
 
   /// Create a copy of ScannedByInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -762,6 +1097,1504 @@ abstract class _SessionHistoryItemDetail extends SessionHistoryItemDetail {
 }
 
 /// @nodoc
+mixin _$StockSnapshotItem {
+  String get productId => throw _privateConstructorUsedError;
+  String get sku => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  int get quantityBefore => throw _privateConstructorUsedError;
+  int get quantityReceived => throw _privateConstructorUsedError;
+  int get quantityAfter => throw _privateConstructorUsedError;
+
+  /// true = new product (needs display), false = restock
+  bool get needsDisplay => throw _privateConstructorUsedError;
+
+  /// Create a copy of StockSnapshotItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $StockSnapshotItemCopyWith<StockSnapshotItem> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $StockSnapshotItemCopyWith<$Res> {
+  factory $StockSnapshotItemCopyWith(
+          StockSnapshotItem value, $Res Function(StockSnapshotItem) then) =
+      _$StockSnapshotItemCopyWithImpl<$Res, StockSnapshotItem>;
+  @useResult
+  $Res call(
+      {String productId,
+      String sku,
+      String productName,
+      int quantityBefore,
+      int quantityReceived,
+      int quantityAfter,
+      bool needsDisplay});
+}
+
+/// @nodoc
+class _$StockSnapshotItemCopyWithImpl<$Res, $Val extends StockSnapshotItem>
+    implements $StockSnapshotItemCopyWith<$Res> {
+  _$StockSnapshotItemCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of StockSnapshotItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? sku = null,
+    Object? productName = null,
+    Object? quantityBefore = null,
+    Object? quantityReceived = null,
+    Object? quantityAfter = null,
+    Object? needsDisplay = null,
+  }) {
+    return _then(_value.copyWith(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantityBefore: null == quantityBefore
+          ? _value.quantityBefore
+          : quantityBefore // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityReceived: null == quantityReceived
+          ? _value.quantityReceived
+          : quantityReceived // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityAfter: null == quantityAfter
+          ? _value.quantityAfter
+          : quantityAfter // ignore: cast_nullable_to_non_nullable
+              as int,
+      needsDisplay: null == needsDisplay
+          ? _value.needsDisplay
+          : needsDisplay // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$StockSnapshotItemImplCopyWith<$Res>
+    implements $StockSnapshotItemCopyWith<$Res> {
+  factory _$$StockSnapshotItemImplCopyWith(_$StockSnapshotItemImpl value,
+          $Res Function(_$StockSnapshotItemImpl) then) =
+      __$$StockSnapshotItemImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String productId,
+      String sku,
+      String productName,
+      int quantityBefore,
+      int quantityReceived,
+      int quantityAfter,
+      bool needsDisplay});
+}
+
+/// @nodoc
+class __$$StockSnapshotItemImplCopyWithImpl<$Res>
+    extends _$StockSnapshotItemCopyWithImpl<$Res, _$StockSnapshotItemImpl>
+    implements _$$StockSnapshotItemImplCopyWith<$Res> {
+  __$$StockSnapshotItemImplCopyWithImpl(_$StockSnapshotItemImpl _value,
+      $Res Function(_$StockSnapshotItemImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of StockSnapshotItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? sku = null,
+    Object? productName = null,
+    Object? quantityBefore = null,
+    Object? quantityReceived = null,
+    Object? quantityAfter = null,
+    Object? needsDisplay = null,
+  }) {
+    return _then(_$StockSnapshotItemImpl(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantityBefore: null == quantityBefore
+          ? _value.quantityBefore
+          : quantityBefore // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityReceived: null == quantityReceived
+          ? _value.quantityReceived
+          : quantityReceived // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityAfter: null == quantityAfter
+          ? _value.quantityAfter
+          : quantityAfter // ignore: cast_nullable_to_non_nullable
+              as int,
+      needsDisplay: null == needsDisplay
+          ? _value.needsDisplay
+          : needsDisplay // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$StockSnapshotItemImpl extends _StockSnapshotItem {
+  const _$StockSnapshotItemImpl(
+      {required this.productId,
+      required this.sku,
+      required this.productName,
+      required this.quantityBefore,
+      required this.quantityReceived,
+      required this.quantityAfter,
+      required this.needsDisplay})
+      : super._();
+
+  @override
+  final String productId;
+  @override
+  final String sku;
+  @override
+  final String productName;
+  @override
+  final int quantityBefore;
+  @override
+  final int quantityReceived;
+  @override
+  final int quantityAfter;
+
+  /// true = new product (needs display), false = restock
+  @override
+  final bool needsDisplay;
+
+  @override
+  String toString() {
+    return 'StockSnapshotItem(productId: $productId, sku: $sku, productName: $productName, quantityBefore: $quantityBefore, quantityReceived: $quantityReceived, quantityAfter: $quantityAfter, needsDisplay: $needsDisplay)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$StockSnapshotItemImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.quantityBefore, quantityBefore) ||
+                other.quantityBefore == quantityBefore) &&
+            (identical(other.quantityReceived, quantityReceived) ||
+                other.quantityReceived == quantityReceived) &&
+            (identical(other.quantityAfter, quantityAfter) ||
+                other.quantityAfter == quantityAfter) &&
+            (identical(other.needsDisplay, needsDisplay) ||
+                other.needsDisplay == needsDisplay));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, productId, sku, productName,
+      quantityBefore, quantityReceived, quantityAfter, needsDisplay);
+
+  /// Create a copy of StockSnapshotItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$StockSnapshotItemImplCopyWith<_$StockSnapshotItemImpl> get copyWith =>
+      __$$StockSnapshotItemImplCopyWithImpl<_$StockSnapshotItemImpl>(
+          this, _$identity);
+}
+
+abstract class _StockSnapshotItem extends StockSnapshotItem {
+  const factory _StockSnapshotItem(
+      {required final String productId,
+      required final String sku,
+      required final String productName,
+      required final int quantityBefore,
+      required final int quantityReceived,
+      required final int quantityAfter,
+      required final bool needsDisplay}) = _$StockSnapshotItemImpl;
+  const _StockSnapshotItem._() : super._();
+
+  @override
+  String get productId;
+  @override
+  String get sku;
+  @override
+  String get productName;
+  @override
+  int get quantityBefore;
+  @override
+  int get quantityReceived;
+  @override
+  int get quantityAfter;
+
+  /// true = new product (needs display), false = restock
+  @override
+  bool get needsDisplay;
+
+  /// Create a copy of StockSnapshotItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$StockSnapshotItemImplCopyWith<_$StockSnapshotItemImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$ReceivingInfo {
+  String get receivingId => throw _privateConstructorUsedError;
+  String get receivingNumber => throw _privateConstructorUsedError;
+  String get receivedAt => throw _privateConstructorUsedError;
+  List<StockSnapshotItem> get stockSnapshot =>
+      throw _privateConstructorUsedError;
+  int get newProductsCount => throw _privateConstructorUsedError;
+  int get restockProductsCount => throw _privateConstructorUsedError;
+
+  /// Create a copy of ReceivingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ReceivingInfoCopyWith<ReceivingInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ReceivingInfoCopyWith<$Res> {
+  factory $ReceivingInfoCopyWith(
+          ReceivingInfo value, $Res Function(ReceivingInfo) then) =
+      _$ReceivingInfoCopyWithImpl<$Res, ReceivingInfo>;
+  @useResult
+  $Res call(
+      {String receivingId,
+      String receivingNumber,
+      String receivedAt,
+      List<StockSnapshotItem> stockSnapshot,
+      int newProductsCount,
+      int restockProductsCount});
+}
+
+/// @nodoc
+class _$ReceivingInfoCopyWithImpl<$Res, $Val extends ReceivingInfo>
+    implements $ReceivingInfoCopyWith<$Res> {
+  _$ReceivingInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ReceivingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? receivingId = null,
+    Object? receivingNumber = null,
+    Object? receivedAt = null,
+    Object? stockSnapshot = null,
+    Object? newProductsCount = null,
+    Object? restockProductsCount = null,
+  }) {
+    return _then(_value.copyWith(
+      receivingId: null == receivingId
+          ? _value.receivingId
+          : receivingId // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivingNumber: null == receivingNumber
+          ? _value.receivingNumber
+          : receivingNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivedAt: null == receivedAt
+          ? _value.receivedAt
+          : receivedAt // ignore: cast_nullable_to_non_nullable
+              as String,
+      stockSnapshot: null == stockSnapshot
+          ? _value.stockSnapshot
+          : stockSnapshot // ignore: cast_nullable_to_non_nullable
+              as List<StockSnapshotItem>,
+      newProductsCount: null == newProductsCount
+          ? _value.newProductsCount
+          : newProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      restockProductsCount: null == restockProductsCount
+          ? _value.restockProductsCount
+          : restockProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ReceivingInfoImplCopyWith<$Res>
+    implements $ReceivingInfoCopyWith<$Res> {
+  factory _$$ReceivingInfoImplCopyWith(
+          _$ReceivingInfoImpl value, $Res Function(_$ReceivingInfoImpl) then) =
+      __$$ReceivingInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String receivingId,
+      String receivingNumber,
+      String receivedAt,
+      List<StockSnapshotItem> stockSnapshot,
+      int newProductsCount,
+      int restockProductsCount});
+}
+
+/// @nodoc
+class __$$ReceivingInfoImplCopyWithImpl<$Res>
+    extends _$ReceivingInfoCopyWithImpl<$Res, _$ReceivingInfoImpl>
+    implements _$$ReceivingInfoImplCopyWith<$Res> {
+  __$$ReceivingInfoImplCopyWithImpl(
+      _$ReceivingInfoImpl _value, $Res Function(_$ReceivingInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ReceivingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? receivingId = null,
+    Object? receivingNumber = null,
+    Object? receivedAt = null,
+    Object? stockSnapshot = null,
+    Object? newProductsCount = null,
+    Object? restockProductsCount = null,
+  }) {
+    return _then(_$ReceivingInfoImpl(
+      receivingId: null == receivingId
+          ? _value.receivingId
+          : receivingId // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivingNumber: null == receivingNumber
+          ? _value.receivingNumber
+          : receivingNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivedAt: null == receivedAt
+          ? _value.receivedAt
+          : receivedAt // ignore: cast_nullable_to_non_nullable
+              as String,
+      stockSnapshot: null == stockSnapshot
+          ? _value._stockSnapshot
+          : stockSnapshot // ignore: cast_nullable_to_non_nullable
+              as List<StockSnapshotItem>,
+      newProductsCount: null == newProductsCount
+          ? _value.newProductsCount
+          : newProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      restockProductsCount: null == restockProductsCount
+          ? _value.restockProductsCount
+          : restockProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ReceivingInfoImpl extends _ReceivingInfo {
+  const _$ReceivingInfoImpl(
+      {required this.receivingId,
+      required this.receivingNumber,
+      required this.receivedAt,
+      required final List<StockSnapshotItem> stockSnapshot,
+      required this.newProductsCount,
+      required this.restockProductsCount})
+      : _stockSnapshot = stockSnapshot,
+        super._();
+
+  @override
+  final String receivingId;
+  @override
+  final String receivingNumber;
+  @override
+  final String receivedAt;
+  final List<StockSnapshotItem> _stockSnapshot;
+  @override
+  List<StockSnapshotItem> get stockSnapshot {
+    if (_stockSnapshot is EqualUnmodifiableListView) return _stockSnapshot;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_stockSnapshot);
+  }
+
+  @override
+  final int newProductsCount;
+  @override
+  final int restockProductsCount;
+
+  @override
+  String toString() {
+    return 'ReceivingInfo(receivingId: $receivingId, receivingNumber: $receivingNumber, receivedAt: $receivedAt, stockSnapshot: $stockSnapshot, newProductsCount: $newProductsCount, restockProductsCount: $restockProductsCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ReceivingInfoImpl &&
+            (identical(other.receivingId, receivingId) ||
+                other.receivingId == receivingId) &&
+            (identical(other.receivingNumber, receivingNumber) ||
+                other.receivingNumber == receivingNumber) &&
+            (identical(other.receivedAt, receivedAt) ||
+                other.receivedAt == receivedAt) &&
+            const DeepCollectionEquality()
+                .equals(other._stockSnapshot, _stockSnapshot) &&
+            (identical(other.newProductsCount, newProductsCount) ||
+                other.newProductsCount == newProductsCount) &&
+            (identical(other.restockProductsCount, restockProductsCount) ||
+                other.restockProductsCount == restockProductsCount));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      receivingId,
+      receivingNumber,
+      receivedAt,
+      const DeepCollectionEquality().hash(_stockSnapshot),
+      newProductsCount,
+      restockProductsCount);
+
+  /// Create a copy of ReceivingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ReceivingInfoImplCopyWith<_$ReceivingInfoImpl> get copyWith =>
+      __$$ReceivingInfoImplCopyWithImpl<_$ReceivingInfoImpl>(this, _$identity);
+}
+
+abstract class _ReceivingInfo extends ReceivingInfo {
+  const factory _ReceivingInfo(
+      {required final String receivingId,
+      required final String receivingNumber,
+      required final String receivedAt,
+      required final List<StockSnapshotItem> stockSnapshot,
+      required final int newProductsCount,
+      required final int restockProductsCount}) = _$ReceivingInfoImpl;
+  const _ReceivingInfo._() : super._();
+
+  @override
+  String get receivingId;
+  @override
+  String get receivingNumber;
+  @override
+  String get receivedAt;
+  @override
+  List<StockSnapshotItem> get stockSnapshot;
+  @override
+  int get newProductsCount;
+  @override
+  int get restockProductsCount;
+
+  /// Create a copy of ReceivingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ReceivingInfoImplCopyWith<_$ReceivingInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$MergedSessionItem {
+  String get productId => throw _privateConstructorUsedError;
+  String get sku => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  int get quantity => throw _privateConstructorUsedError;
+  int get quantityRejected => throw _privateConstructorUsedError;
+  SessionHistoryUser get scannedBy => throw _privateConstructorUsedError;
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MergedSessionItemCopyWith<MergedSessionItem> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MergedSessionItemCopyWith<$Res> {
+  factory $MergedSessionItemCopyWith(
+          MergedSessionItem value, $Res Function(MergedSessionItem) then) =
+      _$MergedSessionItemCopyWithImpl<$Res, MergedSessionItem>;
+  @useResult
+  $Res call(
+      {String productId,
+      String sku,
+      String productName,
+      int quantity,
+      int quantityRejected,
+      SessionHistoryUser scannedBy});
+
+  $SessionHistoryUserCopyWith<$Res> get scannedBy;
+}
+
+/// @nodoc
+class _$MergedSessionItemCopyWithImpl<$Res, $Val extends MergedSessionItem>
+    implements $MergedSessionItemCopyWith<$Res> {
+  _$MergedSessionItemCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? sku = null,
+    Object? productName = null,
+    Object? quantity = null,
+    Object? quantityRejected = null,
+    Object? scannedBy = null,
+  }) {
+    return _then(_value.copyWith(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: null == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityRejected: null == quantityRejected
+          ? _value.quantityRejected
+          : quantityRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      scannedBy: null == scannedBy
+          ? _value.scannedBy
+          : scannedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+    ) as $Val);
+  }
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SessionHistoryUserCopyWith<$Res> get scannedBy {
+    return $SessionHistoryUserCopyWith<$Res>(_value.scannedBy, (value) {
+      return _then(_value.copyWith(scannedBy: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$MergedSessionItemImplCopyWith<$Res>
+    implements $MergedSessionItemCopyWith<$Res> {
+  factory _$$MergedSessionItemImplCopyWith(_$MergedSessionItemImpl value,
+          $Res Function(_$MergedSessionItemImpl) then) =
+      __$$MergedSessionItemImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String productId,
+      String sku,
+      String productName,
+      int quantity,
+      int quantityRejected,
+      SessionHistoryUser scannedBy});
+
+  @override
+  $SessionHistoryUserCopyWith<$Res> get scannedBy;
+}
+
+/// @nodoc
+class __$$MergedSessionItemImplCopyWithImpl<$Res>
+    extends _$MergedSessionItemCopyWithImpl<$Res, _$MergedSessionItemImpl>
+    implements _$$MergedSessionItemImplCopyWith<$Res> {
+  __$$MergedSessionItemImplCopyWithImpl(_$MergedSessionItemImpl _value,
+      $Res Function(_$MergedSessionItemImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? sku = null,
+    Object? productName = null,
+    Object? quantity = null,
+    Object? quantityRejected = null,
+    Object? scannedBy = null,
+  }) {
+    return _then(_$MergedSessionItemImpl(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: null == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityRejected: null == quantityRejected
+          ? _value.quantityRejected
+          : quantityRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      scannedBy: null == scannedBy
+          ? _value.scannedBy
+          : scannedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$MergedSessionItemImpl implements _MergedSessionItem {
+  const _$MergedSessionItemImpl(
+      {required this.productId,
+      required this.sku,
+      required this.productName,
+      required this.quantity,
+      required this.quantityRejected,
+      required this.scannedBy});
+
+  @override
+  final String productId;
+  @override
+  final String sku;
+  @override
+  final String productName;
+  @override
+  final int quantity;
+  @override
+  final int quantityRejected;
+  @override
+  final SessionHistoryUser scannedBy;
+
+  @override
+  String toString() {
+    return 'MergedSessionItem(productId: $productId, sku: $sku, productName: $productName, quantity: $quantity, quantityRejected: $quantityRejected, scannedBy: $scannedBy)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MergedSessionItemImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
+            (identical(other.quantityRejected, quantityRejected) ||
+                other.quantityRejected == quantityRejected) &&
+            (identical(other.scannedBy, scannedBy) ||
+                other.scannedBy == scannedBy));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, productId, sku, productName,
+      quantity, quantityRejected, scannedBy);
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MergedSessionItemImplCopyWith<_$MergedSessionItemImpl> get copyWith =>
+      __$$MergedSessionItemImplCopyWithImpl<_$MergedSessionItemImpl>(
+          this, _$identity);
+}
+
+abstract class _MergedSessionItem implements MergedSessionItem {
+  const factory _MergedSessionItem(
+      {required final String productId,
+      required final String sku,
+      required final String productName,
+      required final int quantity,
+      required final int quantityRejected,
+      required final SessionHistoryUser scannedBy}) = _$MergedSessionItemImpl;
+
+  @override
+  String get productId;
+  @override
+  String get sku;
+  @override
+  String get productName;
+  @override
+  int get quantity;
+  @override
+  int get quantityRejected;
+  @override
+  SessionHistoryUser get scannedBy;
+
+  /// Create a copy of MergedSessionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MergedSessionItemImplCopyWith<_$MergedSessionItemImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$MergedSessionInfo {
+  String get sourceSessionId => throw _privateConstructorUsedError;
+  String get sourceSessionName => throw _privateConstructorUsedError;
+  String get sourceCreatedAt => throw _privateConstructorUsedError;
+  SessionHistoryUser get sourceCreatedBy => throw _privateConstructorUsedError;
+  List<MergedSessionItem> get items => throw _privateConstructorUsedError;
+  int get itemsCount => throw _privateConstructorUsedError;
+  int get totalQuantity => throw _privateConstructorUsedError;
+  int get totalRejected => throw _privateConstructorUsedError;
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MergedSessionInfoCopyWith<MergedSessionInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MergedSessionInfoCopyWith<$Res> {
+  factory $MergedSessionInfoCopyWith(
+          MergedSessionInfo value, $Res Function(MergedSessionInfo) then) =
+      _$MergedSessionInfoCopyWithImpl<$Res, MergedSessionInfo>;
+  @useResult
+  $Res call(
+      {String sourceSessionId,
+      String sourceSessionName,
+      String sourceCreatedAt,
+      SessionHistoryUser sourceCreatedBy,
+      List<MergedSessionItem> items,
+      int itemsCount,
+      int totalQuantity,
+      int totalRejected});
+
+  $SessionHistoryUserCopyWith<$Res> get sourceCreatedBy;
+}
+
+/// @nodoc
+class _$MergedSessionInfoCopyWithImpl<$Res, $Val extends MergedSessionInfo>
+    implements $MergedSessionInfoCopyWith<$Res> {
+  _$MergedSessionInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sourceSessionId = null,
+    Object? sourceSessionName = null,
+    Object? sourceCreatedAt = null,
+    Object? sourceCreatedBy = null,
+    Object? items = null,
+    Object? itemsCount = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+  }) {
+    return _then(_value.copyWith(
+      sourceSessionId: null == sourceSessionId
+          ? _value.sourceSessionId
+          : sourceSessionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceSessionName: null == sourceSessionName
+          ? _value.sourceSessionName
+          : sourceSessionName // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceCreatedAt: null == sourceCreatedAt
+          ? _value.sourceCreatedAt
+          : sourceCreatedAt // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceCreatedBy: null == sourceCreatedBy
+          ? _value.sourceCreatedBy
+          : sourceCreatedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+      items: null == items
+          ? _value.items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionItem>,
+      itemsCount: null == itemsCount
+          ? _value.itemsCount
+          : itemsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SessionHistoryUserCopyWith<$Res> get sourceCreatedBy {
+    return $SessionHistoryUserCopyWith<$Res>(_value.sourceCreatedBy, (value) {
+      return _then(_value.copyWith(sourceCreatedBy: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$MergedSessionInfoImplCopyWith<$Res>
+    implements $MergedSessionInfoCopyWith<$Res> {
+  factory _$$MergedSessionInfoImplCopyWith(_$MergedSessionInfoImpl value,
+          $Res Function(_$MergedSessionInfoImpl) then) =
+      __$$MergedSessionInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String sourceSessionId,
+      String sourceSessionName,
+      String sourceCreatedAt,
+      SessionHistoryUser sourceCreatedBy,
+      List<MergedSessionItem> items,
+      int itemsCount,
+      int totalQuantity,
+      int totalRejected});
+
+  @override
+  $SessionHistoryUserCopyWith<$Res> get sourceCreatedBy;
+}
+
+/// @nodoc
+class __$$MergedSessionInfoImplCopyWithImpl<$Res>
+    extends _$MergedSessionInfoCopyWithImpl<$Res, _$MergedSessionInfoImpl>
+    implements _$$MergedSessionInfoImplCopyWith<$Res> {
+  __$$MergedSessionInfoImplCopyWithImpl(_$MergedSessionInfoImpl _value,
+      $Res Function(_$MergedSessionInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sourceSessionId = null,
+    Object? sourceSessionName = null,
+    Object? sourceCreatedAt = null,
+    Object? sourceCreatedBy = null,
+    Object? items = null,
+    Object? itemsCount = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+  }) {
+    return _then(_$MergedSessionInfoImpl(
+      sourceSessionId: null == sourceSessionId
+          ? _value.sourceSessionId
+          : sourceSessionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceSessionName: null == sourceSessionName
+          ? _value.sourceSessionName
+          : sourceSessionName // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceCreatedAt: null == sourceCreatedAt
+          ? _value.sourceCreatedAt
+          : sourceCreatedAt // ignore: cast_nullable_to_non_nullable
+              as String,
+      sourceCreatedBy: null == sourceCreatedBy
+          ? _value.sourceCreatedBy
+          : sourceCreatedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+      items: null == items
+          ? _value._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionItem>,
+      itemsCount: null == itemsCount
+          ? _value.itemsCount
+          : itemsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$MergedSessionInfoImpl implements _MergedSessionInfo {
+  const _$MergedSessionInfoImpl(
+      {required this.sourceSessionId,
+      required this.sourceSessionName,
+      required this.sourceCreatedAt,
+      required this.sourceCreatedBy,
+      required final List<MergedSessionItem> items,
+      required this.itemsCount,
+      required this.totalQuantity,
+      required this.totalRejected})
+      : _items = items;
+
+  @override
+  final String sourceSessionId;
+  @override
+  final String sourceSessionName;
+  @override
+  final String sourceCreatedAt;
+  @override
+  final SessionHistoryUser sourceCreatedBy;
+  final List<MergedSessionItem> _items;
+  @override
+  List<MergedSessionItem> get items {
+    if (_items is EqualUnmodifiableListView) return _items;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_items);
+  }
+
+  @override
+  final int itemsCount;
+  @override
+  final int totalQuantity;
+  @override
+  final int totalRejected;
+
+  @override
+  String toString() {
+    return 'MergedSessionInfo(sourceSessionId: $sourceSessionId, sourceSessionName: $sourceSessionName, sourceCreatedAt: $sourceCreatedAt, sourceCreatedBy: $sourceCreatedBy, items: $items, itemsCount: $itemsCount, totalQuantity: $totalQuantity, totalRejected: $totalRejected)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MergedSessionInfoImpl &&
+            (identical(other.sourceSessionId, sourceSessionId) ||
+                other.sourceSessionId == sourceSessionId) &&
+            (identical(other.sourceSessionName, sourceSessionName) ||
+                other.sourceSessionName == sourceSessionName) &&
+            (identical(other.sourceCreatedAt, sourceCreatedAt) ||
+                other.sourceCreatedAt == sourceCreatedAt) &&
+            (identical(other.sourceCreatedBy, sourceCreatedBy) ||
+                other.sourceCreatedBy == sourceCreatedBy) &&
+            const DeepCollectionEquality().equals(other._items, _items) &&
+            (identical(other.itemsCount, itemsCount) ||
+                other.itemsCount == itemsCount) &&
+            (identical(other.totalQuantity, totalQuantity) ||
+                other.totalQuantity == totalQuantity) &&
+            (identical(other.totalRejected, totalRejected) ||
+                other.totalRejected == totalRejected));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      sourceSessionId,
+      sourceSessionName,
+      sourceCreatedAt,
+      sourceCreatedBy,
+      const DeepCollectionEquality().hash(_items),
+      itemsCount,
+      totalQuantity,
+      totalRejected);
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MergedSessionInfoImplCopyWith<_$MergedSessionInfoImpl> get copyWith =>
+      __$$MergedSessionInfoImplCopyWithImpl<_$MergedSessionInfoImpl>(
+          this, _$identity);
+}
+
+abstract class _MergedSessionInfo implements MergedSessionInfo {
+  const factory _MergedSessionInfo(
+      {required final String sourceSessionId,
+      required final String sourceSessionName,
+      required final String sourceCreatedAt,
+      required final SessionHistoryUser sourceCreatedBy,
+      required final List<MergedSessionItem> items,
+      required final int itemsCount,
+      required final int totalQuantity,
+      required final int totalRejected}) = _$MergedSessionInfoImpl;
+
+  @override
+  String get sourceSessionId;
+  @override
+  String get sourceSessionName;
+  @override
+  String get sourceCreatedAt;
+  @override
+  SessionHistoryUser get sourceCreatedBy;
+  @override
+  List<MergedSessionItem> get items;
+  @override
+  int get itemsCount;
+  @override
+  int get totalQuantity;
+  @override
+  int get totalRejected;
+
+  /// Create a copy of MergedSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MergedSessionInfoImplCopyWith<_$MergedSessionInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$OriginalSessionInfo {
+  List<MergedSessionItem> get items => throw _privateConstructorUsedError;
+  int get itemsCount => throw _privateConstructorUsedError;
+  int get totalQuantity => throw _privateConstructorUsedError;
+  int get totalRejected => throw _privateConstructorUsedError;
+
+  /// Create a copy of OriginalSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $OriginalSessionInfoCopyWith<OriginalSessionInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $OriginalSessionInfoCopyWith<$Res> {
+  factory $OriginalSessionInfoCopyWith(
+          OriginalSessionInfo value, $Res Function(OriginalSessionInfo) then) =
+      _$OriginalSessionInfoCopyWithImpl<$Res, OriginalSessionInfo>;
+  @useResult
+  $Res call(
+      {List<MergedSessionItem> items,
+      int itemsCount,
+      int totalQuantity,
+      int totalRejected});
+}
+
+/// @nodoc
+class _$OriginalSessionInfoCopyWithImpl<$Res, $Val extends OriginalSessionInfo>
+    implements $OriginalSessionInfoCopyWith<$Res> {
+  _$OriginalSessionInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of OriginalSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? items = null,
+    Object? itemsCount = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+  }) {
+    return _then(_value.copyWith(
+      items: null == items
+          ? _value.items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionItem>,
+      itemsCount: null == itemsCount
+          ? _value.itemsCount
+          : itemsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$OriginalSessionInfoImplCopyWith<$Res>
+    implements $OriginalSessionInfoCopyWith<$Res> {
+  factory _$$OriginalSessionInfoImplCopyWith(_$OriginalSessionInfoImpl value,
+          $Res Function(_$OriginalSessionInfoImpl) then) =
+      __$$OriginalSessionInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {List<MergedSessionItem> items,
+      int itemsCount,
+      int totalQuantity,
+      int totalRejected});
+}
+
+/// @nodoc
+class __$$OriginalSessionInfoImplCopyWithImpl<$Res>
+    extends _$OriginalSessionInfoCopyWithImpl<$Res, _$OriginalSessionInfoImpl>
+    implements _$$OriginalSessionInfoImplCopyWith<$Res> {
+  __$$OriginalSessionInfoImplCopyWithImpl(_$OriginalSessionInfoImpl _value,
+      $Res Function(_$OriginalSessionInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of OriginalSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? items = null,
+    Object? itemsCount = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+  }) {
+    return _then(_$OriginalSessionInfoImpl(
+      items: null == items
+          ? _value._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionItem>,
+      itemsCount: null == itemsCount
+          ? _value.itemsCount
+          : itemsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$OriginalSessionInfoImpl implements _OriginalSessionInfo {
+  const _$OriginalSessionInfoImpl(
+      {required final List<MergedSessionItem> items,
+      required this.itemsCount,
+      required this.totalQuantity,
+      required this.totalRejected})
+      : _items = items;
+
+  final List<MergedSessionItem> _items;
+  @override
+  List<MergedSessionItem> get items {
+    if (_items is EqualUnmodifiableListView) return _items;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_items);
+  }
+
+  @override
+  final int itemsCount;
+  @override
+  final int totalQuantity;
+  @override
+  final int totalRejected;
+
+  @override
+  String toString() {
+    return 'OriginalSessionInfo(items: $items, itemsCount: $itemsCount, totalQuantity: $totalQuantity, totalRejected: $totalRejected)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$OriginalSessionInfoImpl &&
+            const DeepCollectionEquality().equals(other._items, _items) &&
+            (identical(other.itemsCount, itemsCount) ||
+                other.itemsCount == itemsCount) &&
+            (identical(other.totalQuantity, totalQuantity) ||
+                other.totalQuantity == totalQuantity) &&
+            (identical(other.totalRejected, totalRejected) ||
+                other.totalRejected == totalRejected));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      const DeepCollectionEquality().hash(_items),
+      itemsCount,
+      totalQuantity,
+      totalRejected);
+
+  /// Create a copy of OriginalSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$OriginalSessionInfoImplCopyWith<_$OriginalSessionInfoImpl> get copyWith =>
+      __$$OriginalSessionInfoImplCopyWithImpl<_$OriginalSessionInfoImpl>(
+          this, _$identity);
+}
+
+abstract class _OriginalSessionInfo implements OriginalSessionInfo {
+  const factory _OriginalSessionInfo(
+      {required final List<MergedSessionItem> items,
+      required final int itemsCount,
+      required final int totalQuantity,
+      required final int totalRejected}) = _$OriginalSessionInfoImpl;
+
+  @override
+  List<MergedSessionItem> get items;
+  @override
+  int get itemsCount;
+  @override
+  int get totalQuantity;
+  @override
+  int get totalRejected;
+
+  /// Create a copy of OriginalSessionInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$OriginalSessionInfoImplCopyWith<_$OriginalSessionInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$MergeInfo {
+  OriginalSessionInfo get originalSession => throw _privateConstructorUsedError;
+  List<MergedSessionInfo> get mergedSessions =>
+      throw _privateConstructorUsedError;
+  int get totalMergedSessionsCount => throw _privateConstructorUsedError;
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MergeInfoCopyWith<MergeInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MergeInfoCopyWith<$Res> {
+  factory $MergeInfoCopyWith(MergeInfo value, $Res Function(MergeInfo) then) =
+      _$MergeInfoCopyWithImpl<$Res, MergeInfo>;
+  @useResult
+  $Res call(
+      {OriginalSessionInfo originalSession,
+      List<MergedSessionInfo> mergedSessions,
+      int totalMergedSessionsCount});
+
+  $OriginalSessionInfoCopyWith<$Res> get originalSession;
+}
+
+/// @nodoc
+class _$MergeInfoCopyWithImpl<$Res, $Val extends MergeInfo>
+    implements $MergeInfoCopyWith<$Res> {
+  _$MergeInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? originalSession = null,
+    Object? mergedSessions = null,
+    Object? totalMergedSessionsCount = null,
+  }) {
+    return _then(_value.copyWith(
+      originalSession: null == originalSession
+          ? _value.originalSession
+          : originalSession // ignore: cast_nullable_to_non_nullable
+              as OriginalSessionInfo,
+      mergedSessions: null == mergedSessions
+          ? _value.mergedSessions
+          : mergedSessions // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionInfo>,
+      totalMergedSessionsCount: null == totalMergedSessionsCount
+          ? _value.totalMergedSessionsCount
+          : totalMergedSessionsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OriginalSessionInfoCopyWith<$Res> get originalSession {
+    return $OriginalSessionInfoCopyWith<$Res>(_value.originalSession, (value) {
+      return _then(_value.copyWith(originalSession: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$MergeInfoImplCopyWith<$Res>
+    implements $MergeInfoCopyWith<$Res> {
+  factory _$$MergeInfoImplCopyWith(
+          _$MergeInfoImpl value, $Res Function(_$MergeInfoImpl) then) =
+      __$$MergeInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {OriginalSessionInfo originalSession,
+      List<MergedSessionInfo> mergedSessions,
+      int totalMergedSessionsCount});
+
+  @override
+  $OriginalSessionInfoCopyWith<$Res> get originalSession;
+}
+
+/// @nodoc
+class __$$MergeInfoImplCopyWithImpl<$Res>
+    extends _$MergeInfoCopyWithImpl<$Res, _$MergeInfoImpl>
+    implements _$$MergeInfoImplCopyWith<$Res> {
+  __$$MergeInfoImplCopyWithImpl(
+      _$MergeInfoImpl _value, $Res Function(_$MergeInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? originalSession = null,
+    Object? mergedSessions = null,
+    Object? totalMergedSessionsCount = null,
+  }) {
+    return _then(_$MergeInfoImpl(
+      originalSession: null == originalSession
+          ? _value.originalSession
+          : originalSession // ignore: cast_nullable_to_non_nullable
+              as OriginalSessionInfo,
+      mergedSessions: null == mergedSessions
+          ? _value._mergedSessions
+          : mergedSessions // ignore: cast_nullable_to_non_nullable
+              as List<MergedSessionInfo>,
+      totalMergedSessionsCount: null == totalMergedSessionsCount
+          ? _value.totalMergedSessionsCount
+          : totalMergedSessionsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$MergeInfoImpl implements _MergeInfo {
+  const _$MergeInfoImpl(
+      {required this.originalSession,
+      required final List<MergedSessionInfo> mergedSessions,
+      required this.totalMergedSessionsCount})
+      : _mergedSessions = mergedSessions;
+
+  @override
+  final OriginalSessionInfo originalSession;
+  final List<MergedSessionInfo> _mergedSessions;
+  @override
+  List<MergedSessionInfo> get mergedSessions {
+    if (_mergedSessions is EqualUnmodifiableListView) return _mergedSessions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_mergedSessions);
+  }
+
+  @override
+  final int totalMergedSessionsCount;
+
+  @override
+  String toString() {
+    return 'MergeInfo(originalSession: $originalSession, mergedSessions: $mergedSessions, totalMergedSessionsCount: $totalMergedSessionsCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MergeInfoImpl &&
+            (identical(other.originalSession, originalSession) ||
+                other.originalSession == originalSession) &&
+            const DeepCollectionEquality()
+                .equals(other._mergedSessions, _mergedSessions) &&
+            (identical(
+                    other.totalMergedSessionsCount, totalMergedSessionsCount) ||
+                other.totalMergedSessionsCount == totalMergedSessionsCount));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      originalSession,
+      const DeepCollectionEquality().hash(_mergedSessions),
+      totalMergedSessionsCount);
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MergeInfoImplCopyWith<_$MergeInfoImpl> get copyWith =>
+      __$$MergeInfoImplCopyWithImpl<_$MergeInfoImpl>(this, _$identity);
+}
+
+abstract class _MergeInfo implements MergeInfo {
+  const factory _MergeInfo(
+      {required final OriginalSessionInfo originalSession,
+      required final List<MergedSessionInfo> mergedSessions,
+      required final int totalMergedSessionsCount}) = _$MergeInfoImpl;
+
+  @override
+  OriginalSessionInfo get originalSession;
+  @override
+  List<MergedSessionInfo> get mergedSessions;
+  @override
+  int get totalMergedSessionsCount;
+
+  /// Create a copy of MergeInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MergeInfoImplCopyWith<_$MergeInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$SessionHistoryItem {
   String get sessionId => throw _privateConstructorUsedError;
   String get sessionName => throw _privateConstructorUsedError;
@@ -775,8 +2608,13 @@ mixin _$SessionHistoryItem {
   String get createdAt => throw _privateConstructorUsedError;
   String? get completedAt => throw _privateConstructorUsedError;
   int? get durationMinutes => throw _privateConstructorUsedError;
+
+  /// V2: createdBy is now an object
   String get createdBy => throw _privateConstructorUsedError;
   String get createdByName => throw _privateConstructorUsedError;
+  String? get createdByFirstName => throw _privateConstructorUsedError;
+  String? get createdByLastName => throw _privateConstructorUsedError;
+  String? get createdByProfileImage => throw _privateConstructorUsedError;
   List<SessionHistoryMember> get members => throw _privateConstructorUsedError;
   int get memberCount => throw _privateConstructorUsedError;
   List<SessionHistoryItemDetail> get items =>
@@ -792,6 +2630,13 @@ mixin _$SessionHistoryItem {
 
   /// Counting specific - total difference from expected
   int? get totalDifference => throw _privateConstructorUsedError;
+
+  /// V2: Merge info
+  bool get isMergedSession => throw _privateConstructorUsedError;
+  MergeInfo? get mergeInfo => throw _privateConstructorUsedError;
+
+  /// V2: Receiving info (receiving sessions only)
+  ReceivingInfo? get receivingInfo => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionHistoryItem
   /// with the given fields replaced by the non-null parameter values.
@@ -821,6 +2666,9 @@ abstract class $SessionHistoryItemCopyWith<$Res> {
       int? durationMinutes,
       String createdBy,
       String createdByName,
+      String? createdByFirstName,
+      String? createdByLastName,
+      String? createdByProfileImage,
       List<SessionHistoryMember> members,
       int memberCount,
       List<SessionHistoryItemDetail> items,
@@ -828,7 +2676,13 @@ abstract class $SessionHistoryItemCopyWith<$Res> {
       int totalScannedRejected,
       int? totalConfirmedQuantity,
       int? totalConfirmedRejected,
-      int? totalDifference});
+      int? totalDifference,
+      bool isMergedSession,
+      MergeInfo? mergeInfo,
+      ReceivingInfo? receivingInfo});
+
+  $MergeInfoCopyWith<$Res>? get mergeInfo;
+  $ReceivingInfoCopyWith<$Res>? get receivingInfo;
 }
 
 /// @nodoc
@@ -860,6 +2714,9 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
     Object? durationMinutes = freezed,
     Object? createdBy = null,
     Object? createdByName = null,
+    Object? createdByFirstName = freezed,
+    Object? createdByLastName = freezed,
+    Object? createdByProfileImage = freezed,
     Object? members = null,
     Object? memberCount = null,
     Object? items = null,
@@ -868,6 +2725,9 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
     Object? totalConfirmedQuantity = freezed,
     Object? totalConfirmedRejected = freezed,
     Object? totalDifference = freezed,
+    Object? isMergedSession = null,
+    Object? mergeInfo = freezed,
+    Object? receivingInfo = freezed,
   }) {
     return _then(_value.copyWith(
       sessionId: null == sessionId
@@ -926,6 +2786,18 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
           ? _value.createdByName
           : createdByName // ignore: cast_nullable_to_non_nullable
               as String,
+      createdByFirstName: freezed == createdByFirstName
+          ? _value.createdByFirstName
+          : createdByFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdByLastName: freezed == createdByLastName
+          ? _value.createdByLastName
+          : createdByLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdByProfileImage: freezed == createdByProfileImage
+          ? _value.createdByProfileImage
+          : createdByProfileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
       members: null == members
           ? _value.members
           : members // ignore: cast_nullable_to_non_nullable
@@ -958,7 +2830,47 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
           ? _value.totalDifference
           : totalDifference // ignore: cast_nullable_to_non_nullable
               as int?,
+      isMergedSession: null == isMergedSession
+          ? _value.isMergedSession
+          : isMergedSession // ignore: cast_nullable_to_non_nullable
+              as bool,
+      mergeInfo: freezed == mergeInfo
+          ? _value.mergeInfo
+          : mergeInfo // ignore: cast_nullable_to_non_nullable
+              as MergeInfo?,
+      receivingInfo: freezed == receivingInfo
+          ? _value.receivingInfo
+          : receivingInfo // ignore: cast_nullable_to_non_nullable
+              as ReceivingInfo?,
     ) as $Val);
+  }
+
+  /// Create a copy of SessionHistoryItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MergeInfoCopyWith<$Res>? get mergeInfo {
+    if (_value.mergeInfo == null) {
+      return null;
+    }
+
+    return $MergeInfoCopyWith<$Res>(_value.mergeInfo!, (value) {
+      return _then(_value.copyWith(mergeInfo: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SessionHistoryItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReceivingInfoCopyWith<$Res>? get receivingInfo {
+    if (_value.receivingInfo == null) {
+      return null;
+    }
+
+    return $ReceivingInfoCopyWith<$Res>(_value.receivingInfo!, (value) {
+      return _then(_value.copyWith(receivingInfo: value) as $Val);
+    });
   }
 }
 
@@ -985,6 +2897,9 @@ abstract class _$$SessionHistoryItemImplCopyWith<$Res>
       int? durationMinutes,
       String createdBy,
       String createdByName,
+      String? createdByFirstName,
+      String? createdByLastName,
+      String? createdByProfileImage,
       List<SessionHistoryMember> members,
       int memberCount,
       List<SessionHistoryItemDetail> items,
@@ -992,7 +2907,15 @@ abstract class _$$SessionHistoryItemImplCopyWith<$Res>
       int totalScannedRejected,
       int? totalConfirmedQuantity,
       int? totalConfirmedRejected,
-      int? totalDifference});
+      int? totalDifference,
+      bool isMergedSession,
+      MergeInfo? mergeInfo,
+      ReceivingInfo? receivingInfo});
+
+  @override
+  $MergeInfoCopyWith<$Res>? get mergeInfo;
+  @override
+  $ReceivingInfoCopyWith<$Res>? get receivingInfo;
 }
 
 /// @nodoc
@@ -1022,6 +2945,9 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
     Object? durationMinutes = freezed,
     Object? createdBy = null,
     Object? createdByName = null,
+    Object? createdByFirstName = freezed,
+    Object? createdByLastName = freezed,
+    Object? createdByProfileImage = freezed,
     Object? members = null,
     Object? memberCount = null,
     Object? items = null,
@@ -1030,6 +2956,9 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
     Object? totalConfirmedQuantity = freezed,
     Object? totalConfirmedRejected = freezed,
     Object? totalDifference = freezed,
+    Object? isMergedSession = null,
+    Object? mergeInfo = freezed,
+    Object? receivingInfo = freezed,
   }) {
     return _then(_$SessionHistoryItemImpl(
       sessionId: null == sessionId
@@ -1088,6 +3017,18 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
           ? _value.createdByName
           : createdByName // ignore: cast_nullable_to_non_nullable
               as String,
+      createdByFirstName: freezed == createdByFirstName
+          ? _value.createdByFirstName
+          : createdByFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdByLastName: freezed == createdByLastName
+          ? _value.createdByLastName
+          : createdByLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdByProfileImage: freezed == createdByProfileImage
+          ? _value.createdByProfileImage
+          : createdByProfileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
       members: null == members
           ? _value._members
           : members // ignore: cast_nullable_to_non_nullable
@@ -1120,6 +3061,18 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
           ? _value.totalDifference
           : totalDifference // ignore: cast_nullable_to_non_nullable
               as int?,
+      isMergedSession: null == isMergedSession
+          ? _value.isMergedSession
+          : isMergedSession // ignore: cast_nullable_to_non_nullable
+              as bool,
+      mergeInfo: freezed == mergeInfo
+          ? _value.mergeInfo
+          : mergeInfo // ignore: cast_nullable_to_non_nullable
+              as MergeInfo?,
+      receivingInfo: freezed == receivingInfo
+          ? _value.receivingInfo
+          : receivingInfo // ignore: cast_nullable_to_non_nullable
+              as ReceivingInfo?,
     ));
   }
 }
@@ -1142,6 +3095,9 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
       this.durationMinutes,
       required this.createdBy,
       required this.createdByName,
+      this.createdByFirstName,
+      this.createdByLastName,
+      this.createdByProfileImage,
       required final List<SessionHistoryMember> members,
       required this.memberCount,
       required final List<SessionHistoryItemDetail> items,
@@ -1149,7 +3105,10 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
       required this.totalScannedRejected,
       this.totalConfirmedQuantity,
       this.totalConfirmedRejected,
-      this.totalDifference})
+      this.totalDifference,
+      this.isMergedSession = false,
+      this.mergeInfo,
+      this.receivingInfo})
       : _members = members,
         _items = items,
         super._();
@@ -1178,10 +3137,18 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
   final String? completedAt;
   @override
   final int? durationMinutes;
+
+  /// V2: createdBy is now an object
   @override
   final String createdBy;
   @override
   final String createdByName;
+  @override
+  final String? createdByFirstName;
+  @override
+  final String? createdByLastName;
+  @override
+  final String? createdByProfileImage;
   final List<SessionHistoryMember> _members;
   @override
   List<SessionHistoryMember> get members {
@@ -1216,9 +3183,20 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
   @override
   final int? totalDifference;
 
+  /// V2: Merge info
+  @override
+  @JsonKey()
+  final bool isMergedSession;
+  @override
+  final MergeInfo? mergeInfo;
+
+  /// V2: Receiving info (receiving sessions only)
+  @override
+  final ReceivingInfo? receivingInfo;
+
   @override
   String toString() {
-    return 'SessionHistoryItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, isActive: $isActive, isFinal: $isFinal, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, createdAt: $createdAt, completedAt: $completedAt, durationMinutes: $durationMinutes, createdBy: $createdBy, createdByName: $createdByName, members: $members, memberCount: $memberCount, items: $items, totalScannedQuantity: $totalScannedQuantity, totalScannedRejected: $totalScannedRejected, totalConfirmedQuantity: $totalConfirmedQuantity, totalConfirmedRejected: $totalConfirmedRejected, totalDifference: $totalDifference)';
+    return 'SessionHistoryItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, isActive: $isActive, isFinal: $isFinal, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, createdAt: $createdAt, completedAt: $completedAt, durationMinutes: $durationMinutes, createdBy: $createdBy, createdByName: $createdByName, createdByFirstName: $createdByFirstName, createdByLastName: $createdByLastName, createdByProfileImage: $createdByProfileImage, members: $members, memberCount: $memberCount, items: $items, totalScannedQuantity: $totalScannedQuantity, totalScannedRejected: $totalScannedRejected, totalConfirmedQuantity: $totalConfirmedQuantity, totalConfirmedRejected: $totalConfirmedRejected, totalDifference: $totalDifference, isMergedSession: $isMergedSession, mergeInfo: $mergeInfo, receivingInfo: $receivingInfo)';
   }
 
   @override
@@ -1252,6 +3230,12 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
                 other.createdBy == createdBy) &&
             (identical(other.createdByName, createdByName) ||
                 other.createdByName == createdByName) &&
+            (identical(other.createdByFirstName, createdByFirstName) ||
+                other.createdByFirstName == createdByFirstName) &&
+            (identical(other.createdByLastName, createdByLastName) ||
+                other.createdByLastName == createdByLastName) &&
+            (identical(other.createdByProfileImage, createdByProfileImage) ||
+                other.createdByProfileImage == createdByProfileImage) &&
             const DeepCollectionEquality().equals(other._members, _members) &&
             (identical(other.memberCount, memberCount) ||
                 other.memberCount == memberCount) &&
@@ -1265,7 +3249,13 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
             (identical(other.totalConfirmedRejected, totalConfirmedRejected) ||
                 other.totalConfirmedRejected == totalConfirmedRejected) &&
             (identical(other.totalDifference, totalDifference) ||
-                other.totalDifference == totalDifference));
+                other.totalDifference == totalDifference) &&
+            (identical(other.isMergedSession, isMergedSession) ||
+                other.isMergedSession == isMergedSession) &&
+            (identical(other.mergeInfo, mergeInfo) ||
+                other.mergeInfo == mergeInfo) &&
+            (identical(other.receivingInfo, receivingInfo) ||
+                other.receivingInfo == receivingInfo));
   }
 
   @override
@@ -1285,6 +3275,9 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
         durationMinutes,
         createdBy,
         createdByName,
+        createdByFirstName,
+        createdByLastName,
+        createdByProfileImage,
         const DeepCollectionEquality().hash(_members),
         memberCount,
         const DeepCollectionEquality().hash(_items),
@@ -1292,7 +3285,10 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
         totalScannedRejected,
         totalConfirmedQuantity,
         totalConfirmedRejected,
-        totalDifference
+        totalDifference,
+        isMergedSession,
+        mergeInfo,
+        receivingInfo
       ]);
 
   /// Create a copy of SessionHistoryItem
@@ -1321,6 +3317,9 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
       final int? durationMinutes,
       required final String createdBy,
       required final String createdByName,
+      final String? createdByFirstName,
+      final String? createdByLastName,
+      final String? createdByProfileImage,
       required final List<SessionHistoryMember> members,
       required final int memberCount,
       required final List<SessionHistoryItemDetail> items,
@@ -1328,7 +3327,10 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
       required final int totalScannedRejected,
       final int? totalConfirmedQuantity,
       final int? totalConfirmedRejected,
-      final int? totalDifference}) = _$SessionHistoryItemImpl;
+      final int? totalDifference,
+      final bool isMergedSession,
+      final MergeInfo? mergeInfo,
+      final ReceivingInfo? receivingInfo}) = _$SessionHistoryItemImpl;
   const _SessionHistoryItem._() : super._();
 
   @override
@@ -1355,10 +3357,18 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
   String? get completedAt;
   @override
   int? get durationMinutes;
+
+  /// V2: createdBy is now an object
   @override
   String get createdBy;
   @override
   String get createdByName;
+  @override
+  String? get createdByFirstName;
+  @override
+  String? get createdByLastName;
+  @override
+  String? get createdByProfileImage;
   @override
   List<SessionHistoryMember> get members;
   @override
@@ -1381,6 +3391,16 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
   /// Counting specific - total difference from expected
   @override
   int? get totalDifference;
+
+  /// V2: Merge info
+  @override
+  bool get isMergedSession;
+  @override
+  MergeInfo? get mergeInfo;
+
+  /// V2: Receiving info (receiving sessions only)
+  @override
+  ReceivingInfo? get receivingInfo;
 
   /// Create a copy of SessionHistoryItem
   /// with the given fields replaced by the non-null parameter values.

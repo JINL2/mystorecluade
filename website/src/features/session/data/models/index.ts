@@ -6,3 +6,4 @@
 export * from './SessionModels';
 export * from './ShipmentModels';
 export * from './CompareModels';
+export * from './SessionHistoryModels';

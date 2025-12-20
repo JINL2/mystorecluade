@@ -645,8 +645,13 @@ class SessionDatasource {
     }
   }
 
-  /// Get session history via RPC (inventory_get_session_history)
-  /// Returns detailed session history including members and items
+  /// Get session history via RPC (inventory_get_session_history_v2)
+  /// Returns detailed session history including members, items, merge info, and receiving info
+  /// V2 includes:
+  /// - is_merged_session: boolean flag for merged sessions
+  /// - merge_info: original_session and merged_sessions with items
+  /// - receiving_info: stock_snapshot with quantity_before/received/after and needs_display
+  /// - profile_image: included in all user objects
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String companyId,
     String? storeId,
@@ -675,7 +680,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_get_session_history',
+      'inventory_get_session_history_v2',
       params: params,
     ).single();
 

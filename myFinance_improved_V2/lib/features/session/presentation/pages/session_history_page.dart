@@ -305,19 +305,65 @@ class _SessionHistoryCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Type indicator
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Icon(
-                isCounting ? Icons.inventory_2_outlined : Icons.local_shipping_outlined,
-                color: typeColor,
-                size: 24,
-              ),
+            // Type indicator with merge/new badge
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Icon(
+                    isCounting ? Icons.inventory_2_outlined : Icons.local_shipping_outlined,
+                    color: typeColor,
+                    size: 24,
+                  ),
+                ),
+                // Merge badge (top-right)
+                if (session.isMergedSession)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: TossColors.info,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: TossColors.white, width: 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.merge_type,
+                        size: 10,
+                        color: TossColors.white,
+                      ),
+                    ),
+                  ),
+                // New products badge (bottom-right) - receiving only
+                if (session.isReceiving && session.newProductsCount > 0)
+                  Positioned(
+                    bottom: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: TossColors.warning,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: TossColors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        'NEW ${session.newProductsCount}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: TossSpacing.space3),
             // Content
@@ -329,14 +375,53 @@ class _SessionHistoryCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          session.sessionName,
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                session.sessionName,
+                                style: TossTextStyles.body.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: TossColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Inline merge indicator
+                            if (session.isMergedSession) ...[
+                              const SizedBox(width: TossSpacing.space1),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: TossColors.info.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.merge_type,
+                                      size: 10,
+                                      color: TossColors.info,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      'Merged',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.info,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       const SizedBox(width: TossSpacing.space2),
@@ -396,6 +481,24 @@ class _SessionHistoryCard extends StatelessWidget {
                           color: TossColors.textTertiary,
                         ),
                       ),
+                      // New/Restock info for receiving sessions
+                      if (session.hasReceivingInfo) ...[
+                        const SizedBox(width: TossSpacing.space3),
+                        if (session.newProductsCount > 0)
+                          _buildReceivingBadge(
+                            icon: Icons.fiber_new,
+                            count: session.newProductsCount,
+                            color: TossColors.warning,
+                          ),
+                        if (session.restockProductsCount > 0) ...[
+                          const SizedBox(width: TossSpacing.space2),
+                          _buildReceivingBadge(
+                            icon: Icons.replay,
+                            count: session.restockProductsCount,
+                            color: TossColors.success,
+                          ),
+                        ],
+                      ],
                       const Spacer(),
                       // Date
                       Text(
@@ -419,6 +522,28 @@ class _SessionHistoryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReceivingBadge({
+    required IconData icon,
+    required int count,
+    required Color color,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: color),
+        const SizedBox(width: 2),
+        Text(
+          '$count',
+          style: TossTextStyles.caption.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+        ),
+      ],
     );
   }
 
