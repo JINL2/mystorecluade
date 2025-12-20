@@ -47,6 +47,10 @@ _$ShiftCardDtoImpl _$$ShiftCardDtoImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => ManagerMemoDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      problemDetails: json['problem_details'] == null
+          ? null
+          : ProblemDetailsDto.fromJson(
+              json['problem_details'] as Map<String, dynamic>),
       isValidCheckinLocation: json['is_valid_checkin_location'] as bool?,
       checkinDistanceFromStore:
           (json['checkin_distance_from_store'] as num?)?.toDouble() ?? 0.0,
@@ -90,6 +94,7 @@ Map<String, dynamic> _$$ShiftCardDtoImplToJson(_$ShiftCardDtoImpl instance) =>
       'report_reason': instance.reportReason,
       'is_reported_solved': instance.isReportedSolved,
       'manager_memo': instance.managerMemos,
+      'problem_details': instance.problemDetails,
       'is_valid_checkin_location': instance.isValidCheckinLocation,
       'checkin_distance_from_store': instance.checkinDistanceFromStore,
       'is_valid_checkout_location': instance.isValidCheckoutLocation,
@@ -131,4 +136,68 @@ Map<String, dynamic> _$$ManagerMemoDtoImplToJson(
       'content': instance.content,
       'created_at': instance.createdAt,
       'created_by': instance.createdBy,
+    };
+
+_$ProblemDetailsDtoImpl _$$ProblemDetailsDtoImplFromJson(
+        Map<String, dynamic> json) =>
+    _$ProblemDetailsDtoImpl(
+      hasLate: json['has_late'] as bool? ?? false,
+      hasOvertime: json['has_overtime'] as bool? ?? false,
+      hasReported: json['has_reported'] as bool? ?? false,
+      hasNoCheckout: json['has_no_checkout'] as bool? ?? false,
+      hasAbsence: json['has_absence'] as bool? ?? false,
+      hasEarlyLeave: json['has_early_leave'] as bool? ?? false,
+      hasLocationIssue: json['has_location_issue'] as bool? ?? false,
+      hasPayrollLate: json['has_payroll_late'] as bool? ?? false,
+      hasPayrollOvertime: json['has_payroll_overtime'] as bool? ?? false,
+      hasPayrollEarlyLeave: json['has_payroll_early_leave'] as bool? ?? false,
+      problemCount: (json['problem_count'] as num?)?.toInt() ?? 0,
+      isSolved: json['is_solved'] as bool? ?? false,
+      detectedAt: json['detected_at'] as String?,
+      problems: (json['problems'] as List<dynamic>?)
+              ?.map((e) => ProblemItemDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$ProblemDetailsDtoImplToJson(
+        _$ProblemDetailsDtoImpl instance) =>
+    <String, dynamic>{
+      'has_late': instance.hasLate,
+      'has_overtime': instance.hasOvertime,
+      'has_reported': instance.hasReported,
+      'has_no_checkout': instance.hasNoCheckout,
+      'has_absence': instance.hasAbsence,
+      'has_early_leave': instance.hasEarlyLeave,
+      'has_location_issue': instance.hasLocationIssue,
+      'has_payroll_late': instance.hasPayrollLate,
+      'has_payroll_overtime': instance.hasPayrollOvertime,
+      'has_payroll_early_leave': instance.hasPayrollEarlyLeave,
+      'problem_count': instance.problemCount,
+      'is_solved': instance.isSolved,
+      'detected_at': instance.detectedAt,
+      'problems': instance.problems,
+    };
+
+_$ProblemItemDtoImpl _$$ProblemItemDtoImplFromJson(Map<String, dynamic> json) =>
+    _$ProblemItemDtoImpl(
+      type: json['type'] as String?,
+      actualMinutes: (json['actual_minutes'] as num?)?.toInt(),
+      payrollMinutes: (json['payroll_minutes'] as num?)?.toInt(),
+      isPayrollAdjusted: json['is_payroll_adjusted'] as bool? ?? false,
+      reason: json['reason'] as String?,
+      reportedAt: json['reported_at'] as String?,
+      isReportSolved: json['is_report_solved'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$$ProblemItemDtoImplToJson(
+        _$ProblemItemDtoImpl instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'actual_minutes': instance.actualMinutes,
+      'payroll_minutes': instance.payrollMinutes,
+      'is_payroll_adjusted': instance.isPayrollAdjusted,
+      'reason': instance.reason,
+      'reported_at': instance.reportedAt,
+      'is_report_solved': instance.isReportSolved,
     };

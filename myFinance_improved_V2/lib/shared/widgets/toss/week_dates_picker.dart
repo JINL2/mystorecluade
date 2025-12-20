@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_text_styles.dart';
+import 'month_dates_picker.dart'; // For ProblemStatus
 
 /// Shift availability status for a specific date (for dots)
 enum ShiftAvailabilityStatus {
@@ -17,14 +18,23 @@ enum ShiftAvailabilityStatus {
 /// - 32×32 circles for dates
 /// - Blue number text: Today
 /// - Blue circle border: Days you're assigned (must work)
-/// - Blue dot: Days with available shifts (can apply)
-/// - Gray dot: Days with all shifts full (nothing available)
 /// - Blue filled background: Selected date
+///
+/// Dot indicators (depends on mode):
+/// - Schedule tab (shiftAvailabilityMap):
+///   - Blue dot: Has available shifts (understaffed)
+///   - Gray dot: All shifts full
+/// - Problems tab (problemStatusMap):
+///   - Red dot: Unsolved problem (highest priority)
+///   - Orange dot: Unsolved report
+///   - Green dot: All solved
+///   - No dot: No problems
 class WeekDatesPicker extends StatelessWidget {
   final DateTime selectedDate;
   final DateTime weekStartDate; // Monday of the week
   final Set<DateTime> datesWithUserApproved; // Dates where user has approved shift (blue border)
-  final Map<DateTime, ShiftAvailabilityStatus> shiftAvailabilityMap; // Shift availability per date (dots)
+  final Map<DateTime, ShiftAvailabilityStatus> shiftAvailabilityMap; // Shift availability per date (Schedule tab)
+  final Map<String, ProblemStatus>? problemStatusMap; // Problem status per date "yyyy-MM-dd" (Problems tab)
   final ValueChanged<DateTime> onDateSelected;
 
   const WeekDatesPicker({
@@ -33,6 +43,7 @@ class WeekDatesPicker extends StatelessWidget {
     required this.weekStartDate,
     required this.datesWithUserApproved,
     required this.shiftAvailabilityMap,
+    this.problemStatusMap, // Optional - only used in Problems tab
     required this.onDateSelected,
   });
 
@@ -43,6 +54,7 @@ class WeekDatesPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
+    final useProblemStatus = problemStatusMap != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -54,12 +66,16 @@ class WeekDatesPicker extends StatelessWidget {
           final dayName = DateFormat.E().format(date); // Mon, Tue, Wed, ...
           final isSelected = _isSameDay(date, selectedDate);
           final isAssigned = datesWithUserApproved.any((d) => _isSameDay(d, date));
+          final isToday = _isSameDay(date, today);
 
+          // Get problem status if using problem mode (Problems tab)
+          final dateKey = DateFormat('yyyy-MM-dd').format(date);
+          final problemStatus = problemStatusMap?[dateKey] ?? ProblemStatus.none;
+
+          // Get shift availability if using availability mode (Schedule tab)
           final availabilityStatus = shiftAvailabilityMap[normalizedDate] ?? ShiftAvailabilityStatus.none;
           final hasAvailable = (availabilityStatus == ShiftAvailabilityStatus.available);
           final hasFull = (availabilityStatus == ShiftAvailabilityStatus.full);
-
-          final isToday = _isSameDay(date, today);
 
           return _DateColumnWithDot(
             dayName: dayName,
@@ -69,6 +85,8 @@ class WeekDatesPicker extends StatelessWidget {
             hasAvailableShifts: hasAvailable,
             hasFullShifts: hasFull,
             isToday: isToday,
+            useProblemStatus: useProblemStatus,
+            problemStatus: problemStatus,
             onTap: () => onDateSelected(date),
           );
         }),
@@ -83,9 +101,11 @@ class _DateColumnWithDot extends StatelessWidget {
   final int dayNumber;
   final bool isSelected;
   final bool isAssigned; // User is assigned this day (blue circle border)
-  final bool hasAvailableShifts; // Has available shifts (blue dot)
-  final bool hasFullShifts; // All shifts full (gray dot)
+  final bool hasAvailableShifts; // Has available shifts (blue dot) - Schedule tab
+  final bool hasFullShifts; // All shifts full (gray dot) - Schedule tab
   final bool isToday;
+  final bool useProblemStatus; // If true, use problemStatus for dot color
+  final ProblemStatus problemStatus; // Problem status for dot color - Problems tab
   final VoidCallback onTap;
 
   const _DateColumnWithDot({
@@ -96,6 +116,8 @@ class _DateColumnWithDot extends StatelessWidget {
     required this.hasAvailableShifts,
     required this.hasFullShifts,
     required this.isToday,
+    required this.useProblemStatus,
+    required this.problemStatus,
     required this.onTap,
   });
 
@@ -146,32 +168,55 @@ class _DateColumnWithDot extends StatelessWidget {
               ),
               const SizedBox(height: 4),
 
-              // Shift indicator dot (4×4)
-              // Blue dot: has available shifts
-              // Gray dot: all shifts full
-              if (hasAvailableShifts)
-                Container(
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                )
-              else if (hasFullShifts)
-                Container(
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: TossColors.gray400,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                )
-              else
-                const SizedBox(width: 4, height: 4), // Placeholder for alignment
+              // Indicator dot (4×4)
+              _buildDot(),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Build dot indicator based on mode
+  /// - Problems tab (useProblemStatus=true): orange/red/green for problem status
+  /// - Schedule tab (useProblemStatus=false): blue/gray for shift availability
+  Widget _buildDot() {
+    final Color? dotColor;
+
+    if (useProblemStatus) {
+      // Problems tab: Use problem status colors
+      // Priority: red (problem) > orange (report) > green (solved)
+      switch (problemStatus) {
+        case ProblemStatus.unsolvedProblem:
+          dotColor = TossColors.error; // 🔴 Red (highest priority)
+        case ProblemStatus.unsolvedReport:
+          dotColor = TossColors.warning; // 🟠 Orange
+        case ProblemStatus.solved:
+          dotColor = TossColors.success; // 🟢 Green
+        case ProblemStatus.none:
+          dotColor = null; // No dot
+      }
+    } else {
+      // Schedule tab: Use shift availability colors
+      if (hasAvailableShifts) {
+        dotColor = TossColors.primary; // 🔵 Blue - understaffed
+      } else if (hasFullShifts) {
+        dotColor = TossColors.gray400; // ⚪ Gray - fully staffed
+      } else {
+        dotColor = null; // No dot
+      }
+    }
+
+    if (dotColor == null) {
+      return const SizedBox(width: 4, height: 4);
+    }
+
+    return Container(
+      width: 4,
+      height: 4,
+      decoration: BoxDecoration(
+        color: dotColor,
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }

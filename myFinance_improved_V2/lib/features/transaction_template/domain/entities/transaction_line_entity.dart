@@ -150,12 +150,12 @@ class TransactionLine extends Equatable {
     }
 
     // ✅ cash 객체 추가 (category_tag가 'cash'면)
-    // IMPORTANT: User selection takes priority over template default!
-    // selectedMyCashLocationId = user's selection in the usage modal
-    // cash?.cashLocationId = template's default value
+    // IMPORTANT: Use template's cash_location_id directly!
+    // Each line has its own cash_location_id (e.g., Debit=TPBank, Credit=Cashier)
+    // Do NOT override with selectedMyCashLocationId - that causes both lines to have same location!
     if (categoryTag == 'cash') {
-      // Priority: User selection > Template default
-      final cashLocationId = selectedMyCashLocationId ?? cash?.cashLocationId;
+      // Use template's cash_location_id for this specific line
+      final cashLocationId = cash?.cashLocationId;
       if (cashLocationId != null) {
         rpcLine['cash'] = {
           'cash_location_id': cashLocationId,

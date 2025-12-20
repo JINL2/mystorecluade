@@ -1,5 +1,6 @@
 import '../../../domain/entities/employee_info.dart';
 import '../../../domain/entities/manager_memo.dart';
+import '../../../domain/entities/problem_details.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/tag.dart';
@@ -51,6 +52,8 @@ extension ShiftCardDtoMapper on ShiftCardDto {
       // v4: Report resolution and manager memos
       isReportedSolved: isReportedSolved,
       managerMemos: managerMemos.map((memo) => memo.toEntity()).toList(),
+      // v5: Problem details
+      problemDetails: problemDetails?.toEntity(),
       // Shift start/end time from RPC ("2025-12-05 14:00" format)
       // Used for consecutive shift detection
       shiftStartTime: shiftStartTime,
@@ -161,6 +164,53 @@ extension ManagerMemoDtoMapper on ManagerMemoDto {
       content: content ?? '',
       createdAt: createdAt,
       createdBy: createdBy,
+    );
+  }
+}
+
+/// Extension to map ProblemDetailsDto → ProblemDetails Entity
+///
+/// v5: Maps problem_details jsonb to domain entity
+extension ProblemDetailsDtoMapper on ProblemDetailsDto {
+  ProblemDetails toEntity() {
+    // Pass root-level isSolved to each problem item
+    final rootIsSolved = isSolved;
+    return ProblemDetails(
+      hasLate: hasLate,
+      hasOvertime: hasOvertime,
+      hasReported: hasReported,
+      hasNoCheckout: hasNoCheckout,
+      hasAbsence: hasAbsence,
+      hasEarlyLeave: hasEarlyLeave,
+      hasLocationIssue: hasLocationIssue,
+      hasPayrollLate: hasPayrollLate,
+      hasPayrollOvertime: hasPayrollOvertime,
+      hasPayrollEarlyLeave: hasPayrollEarlyLeave,
+      problemCount: problemCount,
+      isSolved: isSolved,
+      detectedAt: detectedAt != null ? DateTime.tryParse(detectedAt!) : null,
+      problems: problems.map((p) => p.toEntity(rootIsSolved)).toList(),
+    );
+  }
+}
+
+/// Extension to map ProblemItemDto → ProblemItem Entity
+///
+/// v5: Maps individual problem items from jsonb array
+/// - For 'reported' type: uses isReportSolved (individual solve status)
+/// - For other types (late, overtime, no_checkout, etc.): uses root-level isSolved
+extension ProblemItemDtoMapper on ProblemItemDto {
+  ProblemItem toEntity(bool rootIsSolved) {
+    // reported type has its own solve status, others use root-level
+    final itemIsSolved = type == 'reported' ? isReportSolved : rootIsSolved;
+    return ProblemItem(
+      type: type ?? 'unknown',
+      actualMinutes: actualMinutes,
+      payrollMinutes: payrollMinutes,
+      isPayrollAdjusted: isPayrollAdjusted,
+      reason: reason,
+      reportedAt: reportedAt != null ? DateTime.tryParse(reportedAt!) : null,
+      isSolved: itemIsSolved,
     );
   }
 }

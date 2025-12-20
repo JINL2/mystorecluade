@@ -74,6 +74,9 @@ class ShiftCardDto with _$ShiftCardDto {
     // v4: Manager memos (jsonb array)
     @JsonKey(name: 'manager_memo') @Default([]) List<ManagerMemoDto> managerMemos,
 
+    // v5: Problem details (jsonb)
+    @JsonKey(name: 'problem_details') ProblemDetailsDto? problemDetails,
+
     // Location validation (NEW in RPC)
     @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
     @JsonKey(name: 'checkin_distance_from_store') @Default(0.0) double checkinDistanceFromStore,
@@ -121,4 +124,52 @@ class ManagerMemoDto with _$ManagerMemoDto {
 
   factory ManagerMemoDto.fromJson(Map<String, dynamic> json) =>
       _$ManagerMemoDtoFromJson(json);
+}
+
+/// Problem Details DTO
+///
+/// Maps to problem_details jsonb from RPC v5
+/// Contains detailed problem information with types and minutes
+@freezed
+class ProblemDetailsDto with _$ProblemDetailsDto {
+  const factory ProblemDetailsDto({
+    @JsonKey(name: 'has_late') @Default(false) bool hasLate,
+    @JsonKey(name: 'has_overtime') @Default(false) bool hasOvertime,
+    @JsonKey(name: 'has_reported') @Default(false) bool hasReported,
+    @JsonKey(name: 'has_no_checkout') @Default(false) bool hasNoCheckout,
+    @JsonKey(name: 'has_absence') @Default(false) bool hasAbsence,
+    @JsonKey(name: 'has_early_leave') @Default(false) bool hasEarlyLeave,
+    @JsonKey(name: 'has_location_issue') @Default(false) bool hasLocationIssue,
+    @JsonKey(name: 'has_payroll_late') @Default(false) bool hasPayrollLate,
+    @JsonKey(name: 'has_payroll_overtime') @Default(false) bool hasPayrollOvertime,
+    @JsonKey(name: 'has_payroll_early_leave') @Default(false) bool hasPayrollEarlyLeave,
+    @JsonKey(name: 'problem_count') @Default(0) int problemCount,
+    @JsonKey(name: 'is_solved') @Default(false) bool isSolved,
+    @JsonKey(name: 'detected_at') String? detectedAt,
+    @JsonKey(name: 'problems') @Default([]) List<ProblemItemDto> problems,
+  }) = _ProblemDetailsDto;
+
+  factory ProblemDetailsDto.fromJson(Map<String, dynamic> json) =>
+      _$ProblemDetailsDtoFromJson(json);
+}
+
+/// Problem Item DTO
+///
+/// Individual problem entry in problems array
+/// Types: "late", "overtime", "reported", "no_checkout", "early_leave", etc.
+@freezed
+class ProblemItemDto with _$ProblemItemDto {
+  const factory ProblemItemDto({
+    @JsonKey(name: 'type') String? type,
+    @JsonKey(name: 'actual_minutes') int? actualMinutes,
+    @JsonKey(name: 'payroll_minutes') int? payrollMinutes,
+    @JsonKey(name: 'is_payroll_adjusted') @Default(false) bool isPayrollAdjusted,
+    // For reported type
+    @JsonKey(name: 'reason') String? reason,
+    @JsonKey(name: 'reported_at') String? reportedAt,
+    @JsonKey(name: 'is_report_solved') @Default(false) bool isReportSolved,
+  }) = _ProblemItemDto;
+
+  factory ProblemItemDto.fromJson(Map<String, dynamic> json) =>
+      _$ProblemItemDtoFromJson(json);
 }
