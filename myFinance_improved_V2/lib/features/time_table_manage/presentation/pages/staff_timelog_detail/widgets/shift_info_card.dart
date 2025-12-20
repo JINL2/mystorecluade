@@ -5,6 +5,7 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/toss/toss_badge.dart';
+import '../../../../domain/entities/problem_details.dart';
 
 /// Shift info card showing date, name, time range and status
 class ShiftInfoCard extends StatelessWidget {
@@ -13,6 +14,8 @@ class ShiftInfoCard extends StatelessWidget {
   final String shiftTimeRange;
   final bool isLate;
   final bool isOvertime;
+  /// Problem details for displaying badges with minutes (from StaffTimeRecord)
+  final ProblemDetails? problemDetails;
 
   const ShiftInfoCard({
     super.key,
@@ -21,6 +24,7 @@ class ShiftInfoCard extends StatelessWidget {
     required this.shiftTimeRange,
     required this.isLate,
     required this.isOvertime,
+    this.problemDetails,
   });
 
   @override
@@ -69,8 +73,24 @@ class ShiftInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Status Badge
-              if (isLate || isOvertime)
+              // Status Badges - show all problems from problemDetails
+              if (problemDetails != null && problemDetails!.problems.isNotEmpty)
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: problemDetails!.problems.map((problem) => TossBadge(
+                    label: _getProblemLabel(problem),
+                    backgroundColor: _getBadgeColor(problem),
+                    textColor: TossColors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    borderRadius: 12,
+                  )).toList(),
+                )
+              // Fallback to legacy isLate/isOvertime if problemDetails is empty
+              else if (isLate || isOvertime)
                 TossBadge(
                   label: isLate ? 'Late' : 'OT',
                   backgroundColor: TossColors.error,
@@ -86,5 +106,44 @@ class ShiftInfoCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Get display label for problem item (with minutes if available)
+  /// Same format as StaffTimelogCard: "Late +2m", "OT +5m", "Early -116m"
+  String _getProblemLabel(ProblemItem problem) {
+    final minutes = problem.actualMinutes ?? 0;
+    switch (problem.type) {
+      case 'no_checkout':
+        return 'No Checkout';
+      case 'absence':
+        return 'Absent';
+      case 'late':
+        return minutes > 0 ? 'Late +${minutes}m' : 'Late';
+      case 'early_leave':
+        return minutes > 0 ? 'Early -${minutes}m' : 'Early';
+      case 'overtime':
+        return minutes > 0 ? 'OT +${minutes}m' : 'OT';
+      case 'reported':
+        return 'Reported';
+      case 'location_issue':
+        return 'Location';
+      case 'invalid_checkin':
+        return 'Invalid Check-in';
+      default:
+        return problem.type;
+    }
+  }
+
+  /// Get badge background color for problem item
+  Color _getBadgeColor(ProblemItem problem) {
+    if (problem.isSolved) {
+      return TossColors.gray400; // Gray for solved
+    }
+    switch (problem.type) {
+      case 'reported':
+        return TossColors.warning; // Orange for reports
+      default:
+        return TossColors.error; // Red for all attendance problems
+    }
   }
 }

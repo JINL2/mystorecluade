@@ -141,29 +141,93 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   bool get _isFullyConfirmed {
-    final hasCheckIn = confirmedCheckIn != '--:--:--';
-    final hasCheckOut = confirmedCheckOut != '--:--:--';
-
-    // IMPORTANT: Check shift progress FIRST, before checking hasCheckIn/hasCheckOut
+    // IMPORTANT: Check shift progress FIRST
     // If shift is still in progress (hasn't ended yet), don't require confirmation yet
-    // Treat as "confirmed" for now (no need to show "Need confirm")
     if (_isShiftStillInProgress) {
       return true;
     }
 
-    // Shift has ended - now check if we have both check-in and check-out
-    if (!hasCheckIn || !hasCheckOut) return false;
+    // Use problemDetails for comprehensive problem checking
+    final pd = widget.staffRecord.problemDetails;
 
-    // If is_problem_solved = true from RPC, it's already confirmed by manager
-    if (widget.staffRecord.isProblemSolved) {
+    // If no problemDetails or no problems, check basic attendance
+    if (pd == null || pd.problemCount == 0) {
+      // No problems = fully confirmed
       return true;
     }
 
-    // Shift has ended - check if there are any unconfirmed problems
-    // Late or Overtime requires confirmation if not manually confirmed
-    bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
-    bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
-    return checkInConfirmed && checkOutConfirmed;
+    // Check if ALL problems are solved using problemDetails.isFullySolved
+    // This covers: late, overtime, early_leave, no_checkout, reported, etc.
+    if (pd.isFullySolved) {
+      return true;
+    }
+
+    // Has unsolved problems = needs confirmation
+    return false;
+  }
+
+  // ============================================================================
+  // Check-in/Check-out Specific Problem Helpers (for ConfirmedAttendanceCard)
+  // ============================================================================
+
+  /// Check-in related problems: late, invalid_checkin
+  bool get _hasCheckInProblem {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) return widget.staffRecord.isLate;
+    // invalid_checkin is also a check-in problem
+    return pd.hasLate || pd.problems.any((p) => p.type == 'invalid_checkin');
+  }
+
+  /// Check-out related problems: overtime, early_leave, no_checkout, absence, location_issue
+  bool get _hasCheckOutProblem {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) return widget.staffRecord.isOvertime;
+    // location_issue is typically a check-out related problem (GPS mismatch at checkout)
+    return pd.hasOvertime || pd.hasEarlyLeave || pd.hasNoCheckout || pd.hasAbsence || pd.hasLocationIssue;
+  }
+
+  /// Check if check-in problem is unsolved (for "Need confirm" red status)
+  bool get _hasUnsolvedCheckInProblem {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) {
+      return widget.staffRecord.isLate && !widget.staffRecord.isProblemSolved;
+    }
+    // Check-in related problems: late, invalid_checkin
+    final checkInTypes = ['late', 'invalid_checkin'];
+    return pd.problems.any((p) => checkInTypes.contains(p.type) && !p.isSolved);
+  }
+
+  /// Check if check-out problem is unsolved (for "Need confirm" red status)
+  bool get _hasUnsolvedCheckOutProblem {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) {
+      return widget.staffRecord.isOvertime && !widget.staffRecord.isProblemSolved;
+    }
+    // Check any check-out related problems that are unsolved
+    final checkOutTypes = ['overtime', 'early_leave', 'no_checkout', 'absence', 'location_issue'];
+    return pd.problems.any((p) => checkOutTypes.contains(p.type) && !p.isSolved);
+  }
+
+  /// Check if ALL check-in problems were solved by DB (for blue "Confirmed" status)
+  bool get _isCheckInProblemSolved {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) return widget.staffRecord.isProblemSolved;
+    // Check if ALL check-in related problems are solved
+    final checkInTypes = ['late', 'invalid_checkin'];
+    final checkInProblems = pd.problems.where((p) => checkInTypes.contains(p.type));
+    if (checkInProblems.isEmpty) return false;
+    return checkInProblems.every((p) => p.isSolved);
+  }
+
+  /// Check if ALL check-out problems were solved by DB (for blue "Confirmed" status)
+  bool get _isCheckOutProblemSolved {
+    final pd = widget.staffRecord.problemDetails;
+    if (pd == null) return widget.staffRecord.isProblemSolved;
+    // Check if ALL check-out related problems are solved
+    final checkOutTypes = ['overtime', 'early_leave', 'no_checkout', 'absence', 'location_issue'];
+    final checkOutProblems = pd.problems.where((p) => checkOutTypes.contains(p.type));
+    if (checkOutProblems.isEmpty) return false;
+    return checkOutProblems.every((p) => p.isSolved);
   }
 
   // Salary computed properties
@@ -279,14 +343,15 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   // ============================================================================
 
   Future<void> _showTimePickerForCheckIn() async {
-    final parsedTime = TimelogHelpers.parseTime(confirmedCheckIn);
+    // Use recorded time as default (not confirmed time)
+    final parsedRecordedTime = TimelogHelpers.parseTime(recordedCheckIn);
     final result = await TimePickerBottomSheet.show(
       context: context,
       title: 'Confirmed Check In',
       recordedTimeLabel: 'Recorded check in',
       recordedTime: recordedCheckIn,
-      initialTime: parsedTime['time'] as TimeOfDay,
-      initialSeconds: parsedTime['seconds'] as int,
+      initialTime: parsedRecordedTime['time'] as TimeOfDay,
+      initialSeconds: parsedRecordedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -300,14 +365,15 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   Future<void> _showTimePickerForCheckOut() async {
-    final parsedTime = TimelogHelpers.parseTime(confirmedCheckOut);
+    // Use recorded time as default (not confirmed time)
+    final parsedRecordedTime = TimelogHelpers.parseTime(recordedCheckOut);
     final result = await TimePickerBottomSheet.show(
       context: context,
       title: 'Confirmed Check Out',
       recordedTimeLabel: 'Recorded check out',
       recordedTime: recordedCheckOut,
-      initialTime: parsedTime['time'] as TimeOfDay,
-      initialSeconds: parsedTime['seconds'] as int,
+      initialTime: parsedRecordedTime['time'] as TimeOfDay,
+      initialSeconds: parsedRecordedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -356,12 +422,22 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       final inputCardV5UseCase = ref.read(inputCardV5UseCaseProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      // v5: isProblemSolved (for Late/Overtime time confirmation)
-      // - confirm time이 변경되면 → true (Late/Overtime 문제 해결됨으로 처리)
-      // - 시간 변경 안 했으면 → null (기존 값 유지)
+      // v5: isProblemSolved (for Late/Overtime/EarlyLeave time confirmation)
+      // When manager clicks "Save & confirm shift", mark problem as solved if:
+      // 1. Confirm time has been changed (manual edit)
+      // 2. OR there's an existing problem that hasn't been solved yet
+      //    (Late, Overtime, EarlyLeave, NoCheckout, etc.)
+      // This allows manager to "confirm" auto-calculated times without editing them
       bool? isProblemSolved;
+      final hasProblem = (widget.staffRecord.problemDetails?.problemCount ?? 0) > 0;
+      final isAlreadySolved = widget.staffRecord.isProblemSolved;
+
       if (isConfirmedTimeChanged) {
-        // Confirm time이 변경되면 Late/Overtime 문제 해결됨으로 처리
+        // Confirm time이 변경되면 문제 해결됨으로 처리
+        isProblemSolved = true;
+      } else if (hasProblem && !isAlreadySolved) {
+        // 시간 변경 없이도 "Save & confirm" 버튼 누르면 문제 해결 처리
+        // (예: early_leave에서 뷰가 자동 계산한 시간을 매니저가 확인만 하는 경우)
         isProblemSolved = true;
       }
 
@@ -417,6 +493,9 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       debugPrint('[StaffTimelogDetail] confirmStartTime: $confirmStartTime');
       debugPrint('[StaffTimelogDetail] confirmEndTime: $confirmEndTime');
       debugPrint('[StaffTimelogDetail] isProblemSolved: $isProblemSolved');
+      debugPrint('[StaffTimelogDetail]   - isConfirmedTimeChanged: $isConfirmedTimeChanged');
+      debugPrint('[StaffTimelogDetail]   - hasProblem: $hasProblem');
+      debugPrint('[StaffTimelogDetail]   - isAlreadySolved: $isAlreadySolved');
       debugPrint('[StaffTimelogDetail] isReportedSolved: $isReportedSolved');
       debugPrint('[StaffTimelogDetail] managerMemo: $managerMemo');
       debugPrint('[StaffTimelogDetail] ================================');
@@ -494,6 +573,8 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           shiftTimeRange: widget.shiftTimeRange,
                           isLate: widget.staffRecord.isLate,
                           isOvertime: widget.staffRecord.isOvertime,
+                          // v5: Pass problemDetails for displaying badges with minutes
+                          problemDetails: widget.staffRecord.problemDetails,
                         ),
                         // Issue report card (if employee reported an issue) - positioned after shift info
                         if (employeeIssueReport != null && employeeIssueReport!.isNotEmpty) ...[
@@ -526,21 +607,20 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           isFullyConfirmed: _isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          // Don't show "needs confirm" if shift is still in progress or is_problem_solved = true
-                          // Red text: Late/Overtime AND not confirmed (is_problem_solved = false AND not manually confirmed)
+                          // Use problemDetails for comprehensive problem checking
+                          // checkInNeedsConfirm: late problem unsolved
                           checkInNeedsConfirm: !_isShiftStillInProgress &&
-                              widget.staffRecord.isLate &&
-                              !widget.staffRecord.isProblemSolved &&
+                              _hasUnsolvedCheckInProblem &&
                               !isCheckInManuallyConfirmed,
+                          // checkOutNeedsConfirm: overtime/early_leave/no_checkout problem unsolved
                           checkOutNeedsConfirm: !_isShiftStillInProgress &&
-                              widget.staffRecord.isOvertime &&
-                              !widget.staffRecord.isProblemSolved &&
+                              _hasUnsolvedCheckOutProblem &&
                               !isCheckOutManuallyConfirmed,
-                          // Blue text: Late/Overtime AND confirmed (is_problem_solved = true OR manually confirmed)
-                          isCheckInConfirmed: widget.staffRecord.isLate &&
-                              (widget.staffRecord.isProblemSolved || isCheckInManuallyConfirmed),
-                          isCheckOutConfirmed: widget.staffRecord.isOvertime &&
-                              (widget.staffRecord.isProblemSolved || isCheckOutManuallyConfirmed),
+                          // Blue text: problem exists AND confirmed (solved OR manually confirmed)
+                          isCheckInConfirmed: _hasCheckInProblem &&
+                              (_isCheckInProblemSolved || isCheckInManuallyConfirmed),
+                          isCheckOutConfirmed: _hasCheckOutProblem &&
+                              (_isCheckOutProblemSolved || isCheckOutManuallyConfirmed),
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
                           // Hide status badge when shift is still in progress

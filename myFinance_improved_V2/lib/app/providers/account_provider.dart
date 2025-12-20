@@ -33,9 +33,8 @@ class AccountList extends _$AccountList {
 
       final List<dynamic> data = response as List<dynamic>;
       return data.map((json) => AccountData.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
+    } catch (_) {
       // Log error but don't throw to prevent UI crashes
-      print('Error fetching accounts: $e');
       return [];
     }
   }

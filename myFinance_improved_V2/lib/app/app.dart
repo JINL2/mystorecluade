@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,13 +52,7 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
     // Initialize notification service (includes FCM & TokenManager)
     try {
       await NotificationService().initialize();
-      if (kDebugMode) {
-        debugPrint('🔔 NotificationService initialized');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ NotificationService initialization failed: $e');
-      }
+    } catch (_) {
       // Continue running the app even if notifications fail
     }
   }

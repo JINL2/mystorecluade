@@ -5,6 +5,8 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
+import '../../../domain/entities/problem_details.dart';
+
 /// Problem types for attendance tracking
 enum ProblemType {
   noCheckout,
@@ -12,12 +14,17 @@ enum ProblemType {
   overtime,
   late,
   understaffed,
+  reported, // Staff reported an issue
+  earlyLeave, // Left before shift end
 }
 
 /// Model for attendance problem
 class AttendanceProblem {
   final String id;
+  /// @deprecated Use [types] instead. Kept for backward compatibility.
   final ProblemType type;
+  /// List of problem types for this shift (e.g., [late, noCheckout])
+  final List<ProblemType> types;
   final String name; // Staff name or "Evening Shift"
   final DateTime date;
   final String shiftName; // "Morning", "Afternoon", "Night"
@@ -50,9 +57,13 @@ class AttendanceProblem {
   final int overtimeMinute;
   final DateTime? shiftEndTime;
 
+  // v5: Problem details for passing to StaffTimeRecord
+  final ProblemDetails? problemDetails;
+
   const AttendanceProblem({
     required this.id,
     required this.type,
+    this.types = const [],
     required this.name,
     required this.date,
     required this.shiftName,
@@ -83,7 +94,11 @@ class AttendanceProblem {
     this.lateMinute = 0,
     this.overtimeMinute = 0,
     this.shiftEndTime,
+    this.problemDetails,
   });
+
+  /// Get all problem types (uses types if not empty, otherwise falls back to single type)
+  List<ProblemType> get allTypes => types.isNotEmpty ? types : [type];
 }
 
 /// Card displaying an attendance problem
@@ -113,6 +128,10 @@ class ProblemCard extends StatelessWidget {
         return 'Late';
       case ProblemType.understaffed:
         return 'Understaffed';
+      case ProblemType.reported:
+        return 'Reported';
+      case ProblemType.earlyLeave:
+        return 'Early leave';
     }
   }
 
@@ -122,9 +141,12 @@ class ProblemCard extends StatelessWidget {
       case ProblemType.noCheckin:
       case ProblemType.overtime:
       case ProblemType.late:
+      case ProblemType.earlyLeave:
         return BadgeStatus.error;
       case ProblemType.understaffed:
         return BadgeStatus.info;
+      case ProblemType.reported:
+        return BadgeStatus.warning; // Orange for reports
     }
   }
 
@@ -206,10 +228,14 @@ class ProblemCard extends StatelessWidget {
 
             const SizedBox(width: TossSpacing.space2),
 
-            // Problem Badge
-            TossStatusBadge(
-              label: _getProblemLabel(problem.type),
-              status: _getBadgeStatus(problem.type),
+            // Problem Badges (multiple if shift has multiple problems)
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: problem.allTypes.map((type) => TossStatusBadge(
+                label: _getProblemLabel(type),
+                status: _getBadgeStatus(type),
+              )).toList(),
             ),
 
             const SizedBox(width: TossSpacing.space2),

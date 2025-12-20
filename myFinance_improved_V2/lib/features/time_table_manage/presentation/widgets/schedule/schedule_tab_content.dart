@@ -8,6 +8,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
+import '../../../../../shared/widgets/toss/month_dates_picker.dart';
 import 'schedule_shift_card.dart';
 import '../../models/schedule_models.dart';
 import '../../providers/state/shift_metadata_provider.dart';
@@ -60,6 +61,7 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
 class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   late DateTime _currentWeekStart;
   late DateTime _selectedDate;
+  bool _isExpanded = false; // Toggle between week and month view
 
   @override
   void initState() {
@@ -70,6 +72,13 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     // Note: Data loading is handled by parent page (time_table_manage_page.dart)
     // Parent calls fetchMonthlyShiftStatus(forceRefresh: true) on page entry
     // We don't load data here to avoid duplicate RPC calls and race conditions
+  }
+
+  /// Toggle between week and month view
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
   }
 
   /// Load shift data for current month
@@ -148,28 +157,61 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Week navigation
-          TossWeekNavigation(
-            weekLabel: _getWeekLabel(),
-            dateRange: _formatWeekRange(),
-            onPrevWeek: () => _changeWeek(-7),
-            onCurrentWeek: () => _jumpToToday(),
-            onNextWeek: () => _changeWeek(7),
+          // Week/Month navigation with expand button
+          Row(
+            children: [
+              Expanded(
+                child: _isExpanded
+                    ? _buildMonthNavigation()
+                    : TossWeekNavigation(
+                        weekLabel: _getWeekLabel(),
+                        dateRange: _formatWeekRange(),
+                        onPrevWeek: () => _changeWeek(-7),
+                        onCurrentWeek: () => _jumpToToday(),
+                        onNextWeek: () => _changeWeek(7),
+                      ),
+              ),
+              // Expand/Collapse button
+              IconButton(
+                onPressed: _toggleExpanded,
+                icon: Icon(
+                  _isExpanded ? Icons.unfold_less : Icons.unfold_more,
+                  color: TossColors.gray600,
+                  size: 24,
+                ),
+                tooltip: _isExpanded ? 'Show week' : 'Show month',
+              ),
+            ],
           ),
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Week date picker
-          WeekDatesPicker(
-            selectedDate: _selectedDate,
-            weekStartDate: _currentWeekStart,
-            datesWithUserApproved: {}, // Remove blue circle border
-            shiftAvailabilityMap: _getShiftAvailabilityMap(),
-            onDateSelected: (date) {
-              setState(() => _selectedDate = date);
-              widget.onDateSelected(date);
-            },
-          ),
+          // Week or Month date picker
+          if (_isExpanded)
+            MonthDatesPicker(
+              currentMonth: widget.focusedMonth,
+              selectedDate: _selectedDate,
+              problemStatusByDate: const {}, // Schedule tab doesn't use problem status
+              shiftAvailabilityMap: _getMonthShiftAvailabilityMap(),
+              onDateSelected: (date) {
+                setState(() {
+                  _selectedDate = date;
+                  _currentWeekStart = _getWeekStart(date);
+                });
+                widget.onDateSelected(date);
+              },
+            )
+          else
+            WeekDatesPicker(
+              selectedDate: _selectedDate,
+              weekStartDate: _currentWeekStart,
+              datesWithUserApproved: {}, // Remove blue circle border
+              shiftAvailabilityMap: _getShiftAvailabilityMap(),
+              onDateSelected: (date) {
+                setState(() => _selectedDate = date);
+                widget.onDateSelected(date);
+              },
+            ),
 
           const SizedBox(height: TossSpacing.space4),
 
@@ -665,5 +707,112 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     } catch (e) {
       return false;
     }
+  }
+
+  /// Build month navigation widget (same style as timesheets_tab.dart)
+  Widget _buildMonthNavigation() {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    final monthName = months[widget.focusedMonth.month - 1];
+    final year = widget.focusedMonth.year;
+
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => widget.onPreviousMonth(),
+          icon: Icon(Icons.chevron_left, color: TossColors.gray600),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: _jumpToToday,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '$monthName $year',
+                  style: TossTextStyles.h4.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: () => widget.onNextMonth(),
+          icon: Icon(Icons.chevron_right, color: TossColors.gray600),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      ],
+    );
+  }
+
+  /// Get shift availability map for entire month
+  /// Logic:
+  /// - Blue dot: total_required > total_approved (understaffed)
+  /// - Gray dot: total_required <= total_approved (fully staffed)
+  Map<DateTime, ShiftAvailabilityStatus> _getMonthShiftAvailabilityMap() {
+    if (widget.selectedStoreId == null) return {};
+
+    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
+    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
+
+    // Get shift metadata for total_required when no requests exist
+    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
+    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
+
+    // Get all days in the focused month
+    final lastDay = DateTime(widget.focusedMonth.year, widget.focusedMonth.month + 1, 0);
+
+    for (int day = 1; day <= lastDay.day; day++) {
+      final date = DateTime(widget.focusedMonth.year, widget.focusedMonth.month, day);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+
+      // Find daily shift data for this date
+      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
+          .expand((status) => status.dailyShifts)
+          .where((daily) => daily.date == dateStr)
+          .firstOrNull;
+
+      int totalRequired = 0;
+      int totalApproved = 0;
+
+      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
+        // Has request data - use it
+        for (final shiftWithReqs in dailyShiftData.shifts) {
+          totalRequired += shiftWithReqs.shift.targetCount;
+          totalApproved += shiftWithReqs.approvedRequests.length;
+        }
+      } else if (activeShifts.isNotEmpty) {
+        // No request data but has active shifts - use metadata
+        // All shifts are understaffed (0 approved, total_required from metadata)
+        for (final shiftMeta in activeShifts) {
+          totalRequired += shiftMeta.targetCount;
+        }
+        // totalApproved stays 0
+      } else {
+        // No shifts configured - no dot
+        continue;
+      }
+
+      // Determine availability status
+      if (totalRequired > totalApproved) {
+        // Understaffed - blue dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
+      } else {
+        // Fully staffed - gray dot
+        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
+      }
+    }
+
+    return availabilityMap;
   }
 }

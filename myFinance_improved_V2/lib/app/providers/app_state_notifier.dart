@@ -9,7 +9,6 @@
 /// ✅ LOCATION: lib/app/providers/app_state_notifier.dart
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_state.dart';
@@ -36,8 +35,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
         'companyName': prefs.getString(_keyLastCompanyName),
         'storeName': prefs.getString(_keyLastStoreName),
       };
-    } catch (e) {
-      print('⚠️ [AppState] Failed to load last selection: $e');
+    } catch (_) {
       return {};
     }
   }
@@ -50,9 +48,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       await prefs.setString(_keyLastStoreId, state.storeChoosen);
       await prefs.setString(_keyLastCompanyName, state.companyName);
       await prefs.setString(_keyLastStoreName, state.storeName);
-      print('💾 [AppState] Saved selection: ${state.companyName} / ${state.storeName}');
-    } catch (e) {
-      print('⚠️ [AppState] Failed to save last selection: $e');
+    } catch (_) {
+      // Cache save failure is not critical
     }
   }
 
@@ -64,9 +61,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       await prefs.remove(_keyLastStoreId);
       await prefs.remove(_keyLastCompanyName);
       await prefs.remove(_keyLastStoreName);
-      print('🗑️ [AppState] Cleared last selection cache');
-    } catch (e) {
-      print('⚠️ [AppState] Failed to clear last selection: $e');
+    } catch (_) {
+      // Cache clear failure is not critical
     }
   }
 
@@ -205,15 +201,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
     String? companyCode,
     Map<String, dynamic>? role,
   }) {
-    print('🟢 [AppState] addNewCompanyToUser called');
-    print('🟢 [AppState] companyId: $companyId');
-    print('🟢 [AppState] companyName: $companyName');
-    print('🟢 [AppState] companyCode: $companyCode');
-
     final userCopy = Map<String, dynamic>.from(state.user);
     final companiesList = List<dynamic>.from(userCopy['companies'] as List<dynamic>? ?? []);
-
-    print('🟢 [AppState] Current companies count: ${companiesList.length}');
 
     // Add new company to the list
     companiesList.insert(0, {
@@ -224,12 +213,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
       'role': role ?? {'role_name': 'Owner', 'permissions': []},
     });
 
-    print('🟢 [AppState] New companies count: ${companiesList.length}');
-
     userCopy['companies'] = companiesList;
 
     state = state.copyWith(user: userCopy);
-    print('✅ [AppState] AppState updated with new company');
   }
 
   /// Add newly created store to company's stores list
@@ -242,26 +228,17 @@ class AppStateNotifier extends StateNotifier<AppState> {
     required String storeName,
     String? storeCode,
   }) {
-    debugPrint('🏪 [AppState] addNewStoreToCompany called');
-    debugPrint('🏪 [AppState] companyId: $companyId, storeId: $storeId, storeName: $storeName');
-
     final userCopy = Map<String, dynamic>.from(state.user);
     final companiesList = List<dynamic>.from(userCopy['companies'] as List<dynamic>? ?? []);
-
-    debugPrint('🏪 [AppState] Companies count: ${companiesList.length}');
 
     // Find the company and add store to it
     final companyIndex = companiesList.indexWhere(
       (company) => (company as Map<String, dynamic>)['company_id'] == companyId,
     );
 
-    debugPrint('🏪 [AppState] Found company at index: $companyIndex');
-
     if (companyIndex != -1) {
       final companyCopy = Map<String, dynamic>.from(companiesList[companyIndex] as Map<String, dynamic>);
       final storesList = List<dynamic>.from(companyCopy['stores'] as List<dynamic>? ?? []);
-
-      debugPrint('🏪 [AppState] Existing stores count: ${storesList.length}');
 
       // Add new store to the list
       storesList.insert(0, {
@@ -274,11 +251,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       companiesList[companyIndex] = companyCopy;
       userCopy['companies'] = companiesList;
 
-      debugPrint('🏪 [AppState] New stores count: ${storesList.length}');
       state = state.copyWith(user: userCopy);
-      debugPrint('✅ [AppState] Store added successfully');
-    } else {
-      debugPrint('❌ [AppState] Company not found!');
     }
   }
 

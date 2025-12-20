@@ -58,6 +58,8 @@ class _TossSearchFieldState extends State<TossSearchField> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _controller.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -68,6 +70,8 @@ class _TossSearchFieldState extends State<TossSearchField> {
   }
 
   void _onTextChanged() {
+    if (!mounted) return;
+
     final showClear = _controller.text.isNotEmpty;
     if (showClear != _showClearButton) {
       setState(() {
@@ -75,15 +79,19 @@ class _TossSearchFieldState extends State<TossSearchField> {
       });
     }
 
-    if (widget.onChanged != null) {
+    final onChanged = widget.onChanged;
+    if (onChanged != null) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(widget.debounceDelay, () {
-        widget.onChanged!(_controller.text);
+        if (mounted) {
+          onChanged(_controller.text);
+        }
       });
     }
   }
 
   void _onFocusChanged() {
+    if (!mounted) return;
     setState(() {});
   }
 

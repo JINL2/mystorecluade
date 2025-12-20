@@ -8,6 +8,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/reliability_score.dart';
+import '../../domain/entities/shift_card.dart';
 import '../providers/state/manager_shift_cards_provider.dart';
 import '../providers/state/reliability_score_provider.dart';
 import '../providers/states/time_table_state.dart';
@@ -243,14 +244,17 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         : 1.0;
     final onTimeDisplay = '${(onTimeRate * 100).toStringAsFixed(0)}%';
 
-    // Problem solved count and total
-    final problemSolved = currentPeriod.problemSolvedCount;
-    final totalProblems = currentPeriod.problemCount;
+    // Problem counts from problem_details_v2 (not from RPC)
+    // This ensures consistency with Problems tab
+    final (problemUnsolved, problemSolved) = _getProblemCountsFromCards();
 
     // Calculate changes (current period vs previous period)
     final lateChange = currentPeriod.lateCount - previousPeriod.lateCount;
     final understaffedChange = currentUnderstaffed - previousUnderstaffed;
     final otChange = currentPeriod.overtimeAmountSum - previousPeriod.overtimeAmountSum;
+
+    // Total problems = unsolved + solved
+    final totalProblems = problemUnsolved + problemSolved;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -457,6 +461,152 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         completedShifts: employee.completedShifts,
       );
     }).toList();
+  }
+
+  /// Get problem counts from managerCardsProvider using problem_details_v2
+  /// Returns (unsolvedCount, solvedCount) for the selected period
+  /// This ensures consistency with Problems tab counting logic
+  (int, int) _getProblemCountsFromCards() {
+    final storeId = widget.selectedStoreId ?? '';
+    if (storeId.isEmpty) return (0, 0);
+
+    final managerCardsState = ref.watch(managerCardsProvider(storeId));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get date range based on selected period
+    late DateTime periodStart;
+    late DateTime periodEnd;
+
+    switch (selectedPeriod) {
+      case StatsPeriod.today:
+        periodStart = today;
+        periodEnd = today;
+      case StatsPeriod.thisMonth:
+        periodStart = DateTime(now.year, now.month, 1);
+        periodEnd = DateTime(now.year, now.month + 1, 0); // Last day of month
+      case StatsPeriod.lastMonth:
+        final lastMonth = DateTime(now.year, now.month - 1, 1);
+        periodStart = lastMonth;
+        periodEnd = DateTime(lastMonth.year, lastMonth.month + 1, 0);
+    }
+
+    // Track unique shift_request_ids (EXACT same as Problems tab)
+    final Set<String> shiftsWithUnsolved = {};
+    final Set<String> shiftsWithSolved = {};
+
+    // Get all approved cards
+    final List<ShiftCard> allCards = managerCardsState.dataByMonth.values
+        .expand((managerCards) => managerCards.cards)
+        .where((card) => card.isApproved)
+        .toList();
+
+    for (final ShiftCard card in allCards) {
+      final shiftDate = DateTime.tryParse(card.shiftDate);
+      if (shiftDate == null) continue;
+
+      final cardDate = DateTime(shiftDate.year, shiftDate.month, shiftDate.day);
+
+      // Check if card is within period
+      if (cardDate.isBefore(periodStart) || cardDate.isAfter(periodEnd)) {
+        continue;
+      }
+
+      // Skip future dates - can't have problems yet
+      if (cardDate.isAfter(today)) {
+        continue;
+      }
+
+      // Skip if shift is still in progress (EXACT same logic as Problems tab)
+      final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
+      final shiftEndTime = _findConsecutiveEndTime(
+        staffId: card.employee.userId,
+        shiftDate: card.shiftDate,
+        currentShiftEndTime: currentShiftEndTime,
+        allCards: allCards,
+      );
+      final isInProgress = shiftEndTime != null && DateTime.now().isBefore(shiftEndTime);
+      if (isInProgress) {
+        continue;
+      }
+
+      // Check if this shift has problems using problem_details_v2 exclusively
+      // 1 shift = 1 unit (not individual problem items)
+      // Use isFullySolved which checks both isSolved AND reported status
+      final pd = card.problemDetails;
+      if (pd != null && pd.problemCount > 0) {
+        if (pd.isFullySolved) {
+          shiftsWithSolved.add(card.shiftRequestId);
+        } else {
+          shiftsWithUnsolved.add(card.shiftRequestId);
+        }
+      }
+    }
+    return (shiftsWithUnsolved.length, shiftsWithSolved.length);
+  }
+
+  /// Parse shift end time string to DateTime
+  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00:00" or "HH:mm"
+  /// EXACT same logic as Problems tab (_parseShiftEndTime)
+  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
+    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
+    try {
+      // Normalize: replace 'T' with space if present
+      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
+      final parts = normalized.split(' ');
+      if (parts.length < 2) return null;
+
+      final dateParts = parts[0].split('-');
+      final timeParts = parts[1].split(':');
+
+      if (dateParts.length < 3 || timeParts.length < 2) return null;
+
+      return DateTime(
+        int.parse(dateParts[0]), // year
+        int.parse(dateParts[1]), // month
+        int.parse(dateParts[2]), // day
+        int.parse(timeParts[0]), // hour
+        int.parse(timeParts[1]), // minute
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Find the consecutive end time for a staff member on a given date
+  /// This is used to determine if a shift is still in progress
+  /// EXACT same logic as Problems tab (_findConsecutiveEndTime)
+  DateTime? _findConsecutiveEndTime({
+    required String staffId,
+    required String shiftDate,
+    required DateTime? currentShiftEndTime,
+    required List<ShiftCard> allCards,
+  }) {
+    if (currentShiftEndTime == null) return null;
+
+    // Find all shifts for this staff member on the same date
+    final staffShiftsOnDate = allCards
+        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
+        .toList();
+
+    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
+
+    // Parse all shift end times and sort
+    final shiftEndTimes = <DateTime>[];
+    for (final card in staffShiftsOnDate) {
+      final endTime = _parseShiftEndTime(card.shiftEndTime);
+      if (endTime != null) {
+        shiftEndTimes.add(endTime);
+      }
+    }
+
+    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
+
+    // Sort by time
+    shiftEndTimes.sort();
+
+    // Return the latest end time (last shift of the day for this staff)
+    return shiftEndTimes.last;
   }
 
   /// Get current month key in "yyyy-MM" format for data lookup

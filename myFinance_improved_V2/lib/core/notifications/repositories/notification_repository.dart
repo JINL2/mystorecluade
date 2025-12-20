@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-// import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notification_db_model.dart';
 
@@ -179,11 +177,6 @@ class NotificationRepository {
         'last_used_at': now.toIso8601String(),
       };
 
-      // Reduced logging - only log significant events
-      if (kDebugMode) {
-        debugPrint('🔍 Storing FCM token for user: $userId');
-      }
-
       // Use proper upsert approach to handle duplicates gracefully
       tokenData['created_at'] = now.toIso8601String();
       tokenData['updated_at'] = now.toIso8601String();
@@ -224,14 +217,7 @@ class NotificationRepository {
               .single();
         }
         
-        if (kDebugMode) {
-          debugPrint('✅ FCM token upserted successfully');
-        }
       } catch (upsertError) {
-        if (kDebugMode) {
-          debugPrint('❌ Token save failed, trying fallback: $upsertError');
-        }
-        
         // Fallback: Handle any errors by trying to save to users table instead
         if (upsertError.toString().contains('duplicate') || 
             upsertError.toString().contains('unique') ||
@@ -258,14 +244,7 @@ class NotificationRepository {
               'updated_at': now.toIso8601String(),
               'last_used_at': now.toIso8601String(),
             };
-            
-            if (kDebugMode) {
-              debugPrint('✅ FCM token saved to users table as fallback');
-            }
-          } catch (finalError) {
-            if (kDebugMode) {
-              debugPrint('❌ Final fallback failed: $finalError');
-            }
+          } catch (_) {
             // Don't throw - return minimal model instead
             response = null;
           }
@@ -278,20 +257,10 @@ class NotificationRepository {
       if (response != null) {
         return UserFcmTokenModel.fromJson(response);
       } else {
-        debugPrint('⚠️ No response received from database operation');
         throw Exception('Database operation returned null response');
       }
-      
-    } catch (e) {
-      // Only log errors in debug mode to reduce console spam
-      if (kDebugMode) {
-        
-        // Log specific error types only in debug
-        if (e.toString().contains('JWT')) {
-          print('Simulator Mode: Authentication refresh not available in development');
-        }
-      }
-      
+
+    } catch (_) {
       // Return a minimal model to prevent crashes
       return UserFcmTokenModel(
         id: 'fallback_${DateTime.now().millisecondsSinceEpoch}',
@@ -379,8 +348,7 @@ class NotificationRepository {
       }
       
       return [];
-    } catch (e) {
-      debugPrint('Failed to get active FCM tokens: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -553,8 +521,7 @@ class NotificationRepository {
           .select()
           .limit(0);
       return true;
-    } catch (e) {
-      debugPrint('Table check for $tableName: ${e.toString()}');
+    } catch (_) {
       return false;
     }
   }
@@ -663,18 +630,11 @@ class NotificationRepository {
       }
       
       diagnostics['recommendations'] = recommendations;
-      
-      // Log diagnostics
-      debugPrint('🔍 FCM Token Table Diagnostics:');
-      diagnostics.forEach((key, value) {
-        debugPrint('   $key: $value');
-      });
-      
+
     } catch (e) {
       diagnostics['error'] = e.toString();
-      debugPrint('❌ Diagnostics failed: $e');
     }
-    
+
     return diagnostics;
   }
 }

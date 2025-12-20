@@ -1,5 +1,6 @@
 import 'employee_info.dart';
 import 'manager_memo.dart';
+import 'problem_details.dart';
 import 'shift.dart';
 import 'tag.dart';
 
@@ -113,6 +114,9 @@ class ShiftCard {
   /// v4: Manager memos for this shift
   final List<ManagerMemo> managerMemos;
 
+  /// v5: Detailed problem information
+  final ProblemDetails? problemDetails;
+
   /// Shift start time from RPC ("2025-12-05 14:00" format)
   /// Used for consecutive shift detection
   final String? shiftStartTime;
@@ -164,6 +168,7 @@ class ShiftCard {
     this.reportReason,
     this.isReportedSolved,
     this.managerMemos = const [],
+    this.problemDetails,
     this.shiftStartTime,
     this.shiftEndTime,
     required this.createdAt,
@@ -234,6 +239,7 @@ class ShiftCard {
     String? reportReason,
     bool? isReportedSolved,
     List<ManagerMemo>? managerMemos,
+    ProblemDetails? problemDetails,
     String? shiftStartTime,
     String? shiftEndTime,
     DateTime? createdAt,
@@ -276,6 +282,7 @@ class ShiftCard {
       reportReason: reportReason ?? this.reportReason,
       isReportedSolved: isReportedSolved ?? this.isReportedSolved,
       managerMemos: managerMemos ?? this.managerMemos,
+      problemDetails: problemDetails ?? this.problemDetails,
       shiftStartTime: shiftStartTime ?? this.shiftStartTime,
       shiftEndTime: shiftEndTime ?? this.shiftEndTime,
       createdAt: createdAt ?? this.createdAt,
