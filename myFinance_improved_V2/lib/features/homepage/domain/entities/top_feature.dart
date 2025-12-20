@@ -1,8 +1,10 @@
+import 'package:equatable/equatable.dart';
+
 /// Top feature based on user's usage
 ///
 /// Represents a frequently used feature by the user.
 /// Used for Quick Access section on homepage.
-class TopFeature {
+class TopFeature extends Equatable {
   const TopFeature({
     required this.featureId,
     required this.featureName,
@@ -32,17 +34,17 @@ class TopFeature {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TopFeature &&
-          runtimeType == other.runtimeType &&
-          featureId == other.featureId &&
-          clickCount == other.clickCount &&
-          lastClicked == other.lastClicked;
-
-  @override
-  int get hashCode =>
-      featureId.hashCode ^ clickCount.hashCode ^ lastClicked.hashCode;
+  List<Object?> get props => [
+        featureId,
+        featureName,
+        featureDescription,
+        categoryId,
+        clickCount,
+        lastClicked,
+        icon,
+        route,
+        iconKey,
+      ];
 
   @override
   String toString() {

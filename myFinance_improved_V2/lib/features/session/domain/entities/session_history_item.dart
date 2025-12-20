@@ -1,65 +1,53 @@
-/// Member info in session history
-class SessionHistoryMember {
-  final String oderId;
-  final String userName;
-  final String joinedAt;
-  final bool isActive;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const SessionHistoryMember({
-    required this.oderId,
-    required this.userName,
-    required this.joinedAt,
-    required this.isActive,
-  });
+part 'session_history_item.freezed.dart';
+
+/// Member info in session history
+@freezed
+class SessionHistoryMember with _$SessionHistoryMember {
+  const factory SessionHistoryMember({
+    required String oderId,
+    required String userName,
+    required String joinedAt,
+    required bool isActive,
+  }) = _SessionHistoryMember;
 }
 
 /// Scanned by info for item
-class ScannedByInfo {
-  final String userId;
-  final String userName;
-  final int quantity;
-  final int quantityRejected;
-
-  const ScannedByInfo({
-    required this.userId,
-    required this.userName,
-    required this.quantity,
-    required this.quantityRejected,
-  });
+@freezed
+class ScannedByInfo with _$ScannedByInfo {
+  const factory ScannedByInfo({
+    required String userId,
+    required String userName,
+    required int quantity,
+    required int quantityRejected,
+  }) = _ScannedByInfo;
 }
 
 /// Item info in session history
-class SessionHistoryItemDetail {
-  final String productId;
-  final String productName;
-  final String? sku;
+@freezed
+class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
+  const SessionHistoryItemDetail._();
 
-  /// Scanned by employees (from inventory_session_items)
-  final int scannedQuantity;
-  final int scannedRejected;
-  final List<ScannedByInfo> scannedBy;
+  const factory SessionHistoryItemDetail({
+    required String productId,
+    required String productName,
+    String? sku,
 
-  /// Confirmed by manager (from receiving_items or counting_items)
-  /// Null if session is still active (not submitted yet)
-  final int? confirmedQuantity;
-  final int? confirmedRejected;
+    /// Scanned by employees (from inventory_session_items)
+    required int scannedQuantity,
+    required int scannedRejected,
+    required List<ScannedByInfo> scannedBy,
 
-  /// Counting specific fields
-  final int? quantityExpected;
-  final int? quantityDifference;
+    /// Confirmed by manager (from receiving_items or counting_items)
+    /// Null if session is still active (not submitted yet)
+    int? confirmedQuantity,
+    int? confirmedRejected,
 
-  const SessionHistoryItemDetail({
-    required this.productId,
-    required this.productName,
-    this.sku,
-    required this.scannedQuantity,
-    required this.scannedRejected,
-    required this.scannedBy,
-    this.confirmedQuantity,
-    this.confirmedRejected,
-    this.quantityExpected,
-    this.quantityDifference,
-  });
+    /// Counting specific fields
+    int? quantityExpected,
+    int? quantityDifference,
+  }) = _SessionHistoryItemDetail;
 
   /// Check if manager has confirmed this item
   bool get hasConfirmed => confirmedQuantity != null;
@@ -75,66 +63,46 @@ class SessionHistoryItemDetail {
 }
 
 /// Session history item entity from RPC response
-class SessionHistoryItem {
-  final String sessionId;
-  final String sessionName;
-  final String sessionType;
-  final bool isActive;
-  final bool isFinal;
+@freezed
+class SessionHistoryItem with _$SessionHistoryItem {
+  const SessionHistoryItem._();
 
-  final String storeId;
-  final String storeName;
+  const factory SessionHistoryItem({
+    required String sessionId,
+    required String sessionName,
+    required String sessionType,
+    required bool isActive,
+    required bool isFinal,
 
-  final String? shipmentId;
-  final String? shipmentNumber;
+    required String storeId,
+    required String storeName,
 
-  final String createdAt;
-  final String? completedAt;
-  final int? durationMinutes;
+    String? shipmentId,
+    String? shipmentNumber,
 
-  final String createdBy;
-  final String createdByName;
+    required String createdAt,
+    String? completedAt,
+    int? durationMinutes,
 
-  final List<SessionHistoryMember> members;
-  final int memberCount;
+    required String createdBy,
+    required String createdByName,
 
-  final List<SessionHistoryItemDetail> items;
+    required List<SessionHistoryMember> members,
+    required int memberCount,
 
-  /// Totals - Scanned by employees
-  final int totalScannedQuantity;
-  final int totalScannedRejected;
+    required List<SessionHistoryItemDetail> items,
 
-  /// Totals - Confirmed by manager (null if not submitted)
-  final int? totalConfirmedQuantity;
-  final int? totalConfirmedRejected;
+    /// Totals - Scanned by employees
+    required int totalScannedQuantity,
+    required int totalScannedRejected,
 
-  /// Counting specific - total difference from expected
-  final int? totalDifference;
+    /// Totals - Confirmed by manager (null if not submitted)
+    int? totalConfirmedQuantity,
+    int? totalConfirmedRejected,
 
-  const SessionHistoryItem({
-    required this.sessionId,
-    required this.sessionName,
-    required this.sessionType,
-    required this.isActive,
-    required this.isFinal,
-    required this.storeId,
-    required this.storeName,
-    this.shipmentId,
-    this.shipmentNumber,
-    required this.createdAt,
-    this.completedAt,
-    this.durationMinutes,
-    required this.createdBy,
-    required this.createdByName,
-    required this.members,
-    required this.memberCount,
-    required this.items,
-    required this.totalScannedQuantity,
-    required this.totalScannedRejected,
-    this.totalConfirmedQuantity,
-    this.totalConfirmedRejected,
-    this.totalDifference,
-  });
+    /// Counting specific - total difference from expected
+    int? totalDifference,
+  }) = _SessionHistoryItem;
 
   bool get isCounting => sessionType == 'counting';
   bool get isReceiving => sessionType == 'receiving';
@@ -153,18 +121,16 @@ class SessionHistoryItem {
 }
 
 /// Response wrapper for session history
-class SessionHistoryResponse {
-  final List<SessionHistoryItem> sessions;
-  final int totalCount;
-  final int limit;
-  final int offset;
+@freezed
+class SessionHistoryResponse with _$SessionHistoryResponse {
+  const SessionHistoryResponse._();
 
-  const SessionHistoryResponse({
-    required this.sessions,
-    required this.totalCount,
-    required this.limit,
-    required this.offset,
-  });
+  const factory SessionHistoryResponse({
+    required List<SessionHistoryItem> sessions,
+    required int totalCount,
+    required int limit,
+    required int offset,
+  }) = _SessionHistoryResponse;
 
   bool get hasMore => offset + sessions.length < totalCount;
 }

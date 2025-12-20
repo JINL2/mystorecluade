@@ -1,12 +1,17 @@
 import '../../domain/entities/session_history_item.dart';
 
 /// Model for SessionHistoryMember
-class SessionHistoryMemberModel extends SessionHistoryMember {
+class SessionHistoryMemberModel {
+  final String oderId;
+  final String userName;
+  final String joinedAt;
+  final bool isActive;
+
   const SessionHistoryMemberModel({
-    required super.oderId,
-    required super.userName,
-    required super.joinedAt,
-    required super.isActive,
+    required this.oderId,
+    required this.userName,
+    required this.joinedAt,
+    required this.isActive,
   });
 
   factory SessionHistoryMemberModel.fromJson(Map<String, dynamic> json) {
@@ -17,15 +22,29 @@ class SessionHistoryMemberModel extends SessionHistoryMember {
       isActive: json['is_active'] as bool? ?? false,
     );
   }
+
+  SessionHistoryMember toEntity() {
+    return SessionHistoryMember(
+      oderId: oderId,
+      userName: userName,
+      joinedAt: joinedAt,
+      isActive: isActive,
+    );
+  }
 }
 
 /// Model for ScannedByInfo
-class ScannedByInfoModel extends ScannedByInfo {
+class ScannedByInfoModel {
+  final String userId;
+  final String userName;
+  final int quantity;
+  final int quantityRejected;
+
   const ScannedByInfoModel({
-    required super.userId,
-    required super.userName,
-    required super.quantity,
-    required super.quantityRejected,
+    required this.userId,
+    required this.userName,
+    required this.quantity,
+    required this.quantityRejected,
   });
 
   factory ScannedByInfoModel.fromJson(Map<String, dynamic> json) {
@@ -36,21 +55,41 @@ class ScannedByInfoModel extends ScannedByInfo {
       quantityRejected: (json['quantity_rejected'] as num?)?.toInt() ?? 0,
     );
   }
+
+  ScannedByInfo toEntity() {
+    return ScannedByInfo(
+      userId: userId,
+      userName: userName,
+      quantity: quantity,
+      quantityRejected: quantityRejected,
+    );
+  }
 }
 
 /// Model for SessionHistoryItemDetail
-class SessionHistoryItemDetailModel extends SessionHistoryItemDetail {
+class SessionHistoryItemDetailModel {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final int scannedQuantity;
+  final int scannedRejected;
+  final List<ScannedByInfoModel> scannedBy;
+  final int? confirmedQuantity;
+  final int? confirmedRejected;
+  final int? quantityExpected;
+  final int? quantityDifference;
+
   const SessionHistoryItemDetailModel({
-    required super.productId,
-    required super.productName,
-    super.sku,
-    required super.scannedQuantity,
-    required super.scannedRejected,
-    required super.scannedBy,
-    super.confirmedQuantity,
-    super.confirmedRejected,
-    super.quantityExpected,
-    super.quantityDifference,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    required this.scannedQuantity,
+    required this.scannedRejected,
+    required this.scannedBy,
+    this.confirmedQuantity,
+    this.confirmedRejected,
+    this.quantityExpected,
+    this.quantityDifference,
   });
 
   factory SessionHistoryItemDetailModel.fromJson(Map<String, dynamic> json) {
@@ -62,45 +101,80 @@ class SessionHistoryItemDetailModel extends SessionHistoryItemDetail {
       productId: json['product_id']?.toString() ?? '',
       productName: json['product_name']?.toString() ?? '',
       sku: json['sku']?.toString(),
-      // Scanned by employees
       scannedQuantity: (json['scanned_quantity'] as num?)?.toInt() ?? 0,
       scannedRejected: (json['scanned_rejected'] as num?)?.toInt() ?? 0,
       scannedBy: scannedByList,
-      // Confirmed by manager (nullable)
       confirmedQuantity: (json['confirmed_quantity'] as num?)?.toInt(),
       confirmedRejected: (json['confirmed_rejected'] as num?)?.toInt(),
-      // Counting specific
       quantityExpected: (json['quantity_expected'] as num?)?.toInt(),
       quantityDifference: (json['quantity_difference'] as num?)?.toInt(),
+    );
+  }
+
+  SessionHistoryItemDetail toEntity() {
+    return SessionHistoryItemDetail(
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      scannedQuantity: scannedQuantity,
+      scannedRejected: scannedRejected,
+      scannedBy: scannedBy.map((e) => e.toEntity()).toList(),
+      confirmedQuantity: confirmedQuantity,
+      confirmedRejected: confirmedRejected,
+      quantityExpected: quantityExpected,
+      quantityDifference: quantityDifference,
     );
   }
 }
 
 /// Model for SessionHistoryItem
-class SessionHistoryItemModel extends SessionHistoryItem {
+class SessionHistoryItemModel {
+  final String sessionId;
+  final String sessionName;
+  final String sessionType;
+  final bool isActive;
+  final bool isFinal;
+  final String storeId;
+  final String storeName;
+  final String? shipmentId;
+  final String? shipmentNumber;
+  final String createdAt;
+  final String? completedAt;
+  final int? durationMinutes;
+  final String createdBy;
+  final String createdByName;
+  final List<SessionHistoryMemberModel> members;
+  final int memberCount;
+  final List<SessionHistoryItemDetailModel> items;
+  final int totalScannedQuantity;
+  final int totalScannedRejected;
+  final int? totalConfirmedQuantity;
+  final int? totalConfirmedRejected;
+  final int? totalDifference;
+
   const SessionHistoryItemModel({
-    required super.sessionId,
-    required super.sessionName,
-    required super.sessionType,
-    required super.isActive,
-    required super.isFinal,
-    required super.storeId,
-    required super.storeName,
-    super.shipmentId,
-    super.shipmentNumber,
-    required super.createdAt,
-    super.completedAt,
-    super.durationMinutes,
-    required super.createdBy,
-    required super.createdByName,
-    required super.members,
-    required super.memberCount,
-    required super.items,
-    required super.totalScannedQuantity,
-    required super.totalScannedRejected,
-    super.totalConfirmedQuantity,
-    super.totalConfirmedRejected,
-    super.totalDifference,
+    required this.sessionId,
+    required this.sessionName,
+    required this.sessionType,
+    required this.isActive,
+    required this.isFinal,
+    required this.storeId,
+    required this.storeName,
+    this.shipmentId,
+    this.shipmentNumber,
+    required this.createdAt,
+    this.completedAt,
+    this.durationMinutes,
+    required this.createdBy,
+    required this.createdByName,
+    required this.members,
+    required this.memberCount,
+    required this.items,
+    required this.totalScannedQuantity,
+    required this.totalScannedRejected,
+    this.totalConfirmedQuantity,
+    this.totalConfirmedRejected,
+    this.totalDifference,
   });
 
   factory SessionHistoryItemModel.fromJson(Map<String, dynamic> json) {
@@ -130,25 +204,54 @@ class SessionHistoryItemModel extends SessionHistoryItem {
       members: membersList,
       memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
       items: itemsList,
-      // Scanned totals
       totalScannedQuantity: (json['total_scanned_quantity'] as num?)?.toInt() ?? 0,
       totalScannedRejected: (json['total_scanned_rejected'] as num?)?.toInt() ?? 0,
-      // Confirmed totals (nullable)
       totalConfirmedQuantity: (json['total_confirmed_quantity'] as num?)?.toInt(),
       totalConfirmedRejected: (json['total_confirmed_rejected'] as num?)?.toInt(),
-      // Counting specific
       totalDifference: (json['total_difference'] as num?)?.toInt(),
+    );
+  }
+
+  SessionHistoryItem toEntity() {
+    return SessionHistoryItem(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      sessionType: sessionType,
+      isActive: isActive,
+      isFinal: isFinal,
+      storeId: storeId,
+      storeName: storeName,
+      shipmentId: shipmentId,
+      shipmentNumber: shipmentNumber,
+      createdAt: createdAt,
+      completedAt: completedAt,
+      durationMinutes: durationMinutes,
+      createdBy: createdBy,
+      createdByName: createdByName,
+      members: members.map((e) => e.toEntity()).toList(),
+      memberCount: memberCount,
+      items: items.map((e) => e.toEntity()).toList(),
+      totalScannedQuantity: totalScannedQuantity,
+      totalScannedRejected: totalScannedRejected,
+      totalConfirmedQuantity: totalConfirmedQuantity,
+      totalConfirmedRejected: totalConfirmedRejected,
+      totalDifference: totalDifference,
     );
   }
 }
 
 /// Model for SessionHistoryResponse
-class SessionHistoryResponseModel extends SessionHistoryResponse {
+class SessionHistoryResponseModel {
+  final List<SessionHistoryItemModel> sessions;
+  final int totalCount;
+  final int limit;
+  final int offset;
+
   const SessionHistoryResponseModel({
-    required super.sessions,
-    required super.totalCount,
-    required super.limit,
-    required super.offset,
+    required this.sessions,
+    required this.totalCount,
+    required this.limit,
+    required this.offset,
   });
 
   factory SessionHistoryResponseModel.fromJson(Map<String, dynamic> json) {
@@ -161,6 +264,15 @@ class SessionHistoryResponseModel extends SessionHistoryResponse {
       totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
       limit: (json['limit'] as num?)?.toInt() ?? 50,
       offset: (json['offset'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  SessionHistoryResponse toEntity() {
+    return SessionHistoryResponse(
+      sessions: sessions.map((e) => e.toEntity()).toList(),
+      totalCount: totalCount,
+      limit: limit,
+      offset: offset,
     );
   }
 }

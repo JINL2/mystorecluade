@@ -1,22 +1,37 @@
 import '../../domain/entities/shipment.dart';
 
 /// Model for Shipment with JSON serialization
-class ShipmentModel extends Shipment {
+class ShipmentModel {
+  final String shipmentId;
+  final String shipmentNumber;
+  final String? trackingNumber;
+  final String? shippedDate;
+  final String? supplierId;
+  final String supplierName;
+  final String status;
+  final int itemCount;
+  final double totalAmount;
+  final bool hasOrders;
+  final int linkedOrderCount;
+  final String? notes;
+  final String createdAt;
+  final String createdBy;
+
   const ShipmentModel({
-    required super.shipmentId,
-    required super.shipmentNumber,
-    super.trackingNumber,
-    super.shippedDate,
-    super.supplierId,
-    required super.supplierName,
-    required super.status,
-    required super.itemCount,
-    required super.totalAmount,
-    required super.hasOrders,
-    required super.linkedOrderCount,
-    super.notes,
-    required super.createdAt,
-    required super.createdBy,
+    required this.shipmentId,
+    required this.shipmentNumber,
+    this.trackingNumber,
+    this.shippedDate,
+    this.supplierId,
+    required this.supplierName,
+    required this.status,
+    required this.itemCount,
+    required this.totalAmount,
+    required this.hasOrders,
+    required this.linkedOrderCount,
+    this.notes,
+    required this.createdAt,
+    required this.createdBy,
   });
 
   factory ShipmentModel.fromJson(Map<String, dynamic> json) {
@@ -38,16 +53,38 @@ class ShipmentModel extends Shipment {
     );
   }
 
-  Shipment toEntity() => this;
+  Shipment toEntity() {
+    return Shipment(
+      shipmentId: shipmentId,
+      shipmentNumber: shipmentNumber,
+      trackingNumber: trackingNumber,
+      shippedDate: shippedDate,
+      supplierId: supplierId,
+      supplierName: supplierName,
+      status: status,
+      itemCount: itemCount,
+      totalAmount: totalAmount,
+      hasOrders: hasOrders,
+      linkedOrderCount: linkedOrderCount,
+      notes: notes,
+      createdAt: createdAt,
+      createdBy: createdBy,
+    );
+  }
 }
 
 /// Model for ShipmentListResponse with JSON serialization
-class ShipmentListResponseModel extends ShipmentListResponse {
+class ShipmentListResponseModel {
+  final List<ShipmentModel> shipments;
+  final int totalCount;
+  final int limit;
+  final int offset;
+
   const ShipmentListResponseModel({
-    required super.shipments,
-    required super.totalCount,
-    required super.limit,
-    required super.offset,
+    required this.shipments,
+    required this.totalCount,
+    required this.limit,
+    required this.offset,
   });
 
   factory ShipmentListResponseModel.fromJson(Map<String, dynamic> json) {
@@ -61,6 +98,15 @@ class ShipmentListResponseModel extends ShipmentListResponse {
       totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
       limit: (json['limit'] as num?)?.toInt() ?? 50,
       offset: (json['offset'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  ShipmentListResponse toEntity() {
+    return ShipmentListResponse(
+      shipments: shipments.map((e) => e.toEntity()).toList(),
+      totalCount: totalCount,
+      limit: limit,
+      offset: offset,
     );
   }
 }

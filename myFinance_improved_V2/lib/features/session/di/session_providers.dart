@@ -14,6 +14,8 @@ import '../domain/usecases/get_shipment_list.dart';
 import '../domain/usecases/get_user_session_items.dart';
 import '../domain/usecases/join_session.dart';
 import '../domain/usecases/compare_sessions.dart';
+import '../domain/usecases/get_product_stock_by_store.dart';
+import '../domain/usecases/merge_sessions.dart';
 import '../domain/usecases/update_session_items.dart';
 import '../domain/usecases/search_products.dart';
 import '../domain/usecases/submit_session.dart';
@@ -108,4 +110,16 @@ final updateSessionItemsUseCaseProvider = Provider<UpdateSessionItems>((ref) {
 final compareSessionsUseCaseProvider = Provider<CompareSessions>((ref) {
   final repository = ref.watch(sessionRepositoryProvider);
   return CompareSessions(repository);
+});
+
+/// Provider for MergeSessions UseCase
+final mergeSessionsUseCaseProvider = Provider<MergeSessions>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return MergeSessions(repository);
+});
+
+/// Provider for GetProductStockByStore UseCase
+final getProductStockByStoreUseCaseProvider = Provider<GetProductStockByStore>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return GetProductStockByStore(repository);
 });

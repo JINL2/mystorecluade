@@ -12,6 +12,7 @@ final inventoryMetadataProvider =
 });
 
 /// State for inventory metadata
+/// NOTE: Consider using Freezed for consistency with SalesProductState
 class InventoryMetadataState {
   final InventoryMetadata? metadata;
   final bool isLoading;

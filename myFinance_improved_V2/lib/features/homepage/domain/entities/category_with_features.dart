@@ -1,10 +1,12 @@
+import 'package:equatable/equatable.dart';
+
 import '../../../../core/domain/entities/feature.dart';
 
 /// Category with its associated features
 ///
 /// Represents a feature category and the features that belong to it.
 /// Used for displaying feature grid on homepage.
-class CategoryWithFeatures {
+class CategoryWithFeatures extends Equatable {
   const CategoryWithFeatures({
     required this.categoryId,
     required this.categoryName,
@@ -22,15 +24,7 @@ class CategoryWithFeatures {
   bool get hasFeatures => features.isNotEmpty;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CategoryWithFeatures &&
-          runtimeType == other.runtimeType &&
-          categoryId == other.categoryId &&
-          categoryName == other.categoryName;
-
-  @override
-  int get hashCode => categoryId.hashCode ^ categoryName.hashCode;
+  List<Object?> get props => [categoryId, categoryName, features];
 
   @override
   String toString() {

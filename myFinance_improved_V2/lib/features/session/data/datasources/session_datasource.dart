@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
-import '../../domain/entities/session_item.dart';
 import '../models/close_session_response_model.dart';
+import '../models/session_item_input_model.dart';
 import '../models/inventory_session_model.dart';
 import '../models/join_session_response_model.dart';
 import '../models/product_search_model.dart';
@@ -516,7 +516,7 @@ class SessionDatasource {
   Future<AddSessionItemsResponseModel> addSessionItems({
     required String sessionId,
     required String userId,
-    required List<SessionItemInput> items,
+    required List<SessionItemInputModel> items,
   }) async {
     final itemsJson = items.map((item) => item.toJson()).toList();
 
@@ -622,7 +622,7 @@ class SessionDatasource {
   Future<UpdateSessionItemsResponseModel> updateSessionItems({
     required String sessionId,
     required String userId,
-    required List<SessionItemInput> items,
+    required List<SessionItemInputModel> items,
   }) async {
     final itemsJson = items.map((item) => item.toJson()).toList();
 

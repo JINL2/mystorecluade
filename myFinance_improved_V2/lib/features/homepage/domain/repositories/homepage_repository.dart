@@ -61,4 +61,25 @@ abstract class HomepageRepository {
   /// Check if app version matches server version
   /// Returns true if up to date, false if update required
   Future<bool> checkAppVersion();
+
+  // === User Salary Operations ===
+
+  /// Fetch user salary data for homepage
+  /// Returns salary info with company_total and by_store breakdown
+  Future<Map<String, dynamic>> getUserSalary({
+    required String userId,
+    required String companyId,
+    required String timezone,
+  });
+
+  // === Revenue Chart Operations ===
+
+  /// Fetch revenue chart data for dashboard visualization
+  /// Returns chart data with revenue, gross_profit, net_income time series
+  Future<Map<String, dynamic>> getRevenueChartData({
+    required String companyId,
+    required String timeFilter,
+    required String timezone,
+    String? storeId,
+  });
 }

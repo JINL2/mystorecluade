@@ -1,17 +1,27 @@
 import '../../domain/entities/session_item.dart';
 
 /// Model for ProductSearchResult with JSON parsing
-class ProductSearchResultModel extends ProductSearchResult {
+class ProductSearchResultModel {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? barcode;
+  final String? imageUrl;
+  final String? brandName;
+  final String? categoryName;
+  final double sellingPrice;
+  final int currentStock;
+
   const ProductSearchResultModel({
-    required super.productId,
-    required super.productName,
-    super.sku,
-    super.barcode,
-    super.imageUrl,
-    super.brandName,
-    super.categoryName,
-    super.sellingPrice,
-    super.currentStock,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.barcode,
+    this.imageUrl,
+    this.brandName,
+    this.categoryName,
+    this.sellingPrice = 0,
+    this.currentStock = 0,
   });
 
   /// Parse from get_inventory_page_v3 RPC response format
@@ -73,18 +83,37 @@ class ProductSearchResultModel extends ProductSearchResult {
     };
   }
 
-  ProductSearchResult toEntity() => this;
+  ProductSearchResult toEntity() {
+    return ProductSearchResult(
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      barcode: barcode,
+      imageUrl: imageUrl,
+      brandName: brandName,
+      categoryName: categoryName,
+      sellingPrice: sellingPrice,
+      currentStock: currentStock,
+    );
+  }
 }
 
 /// Model for ProductSearchResponse with pagination
-class ProductSearchResponseModel extends ProductSearchResponse {
+class ProductSearchResponseModel {
+  final List<ProductSearchResultModel> products;
+  final int totalCount;
+  final int page;
+  final int limit;
+  final int totalPages;
+  final bool hasNext;
+
   const ProductSearchResponseModel({
-    required super.products,
-    super.totalCount,
-    super.page,
-    super.limit,
-    super.totalPages,
-    super.hasNext,
+    required this.products,
+    this.totalCount = 0,
+    this.page = 1,
+    this.limit = 20,
+    this.totalPages = 1,
+    this.hasNext = false,
   });
 
   /// Parse from get_inventory_page_v3 RPC response format
@@ -109,15 +138,28 @@ class ProductSearchResponseModel extends ProductSearchResponse {
     );
   }
 
-  ProductSearchResponse toEntity() => this;
+  ProductSearchResponse toEntity() {
+    return ProductSearchResponse(
+      products: products.map((e) => e.toEntity()).toList(),
+      totalCount: totalCount,
+      page: page,
+      limit: limit,
+      totalPages: totalPages,
+      hasNext: hasNext,
+    );
+  }
 }
 
 /// Model for AddSessionItemsResponse
-class AddSessionItemsResponseModel extends AddSessionItemsResponse {
+class AddSessionItemsResponseModel {
+  final bool success;
+  final String? message;
+  final int itemsAdded;
+
   const AddSessionItemsResponseModel({
-    required super.success,
-    super.message,
-    super.itemsAdded,
+    required this.success,
+    this.message,
+    this.itemsAdded = 0,
   });
 
   factory AddSessionItemsResponseModel.fromJson(Map<String, dynamic> json) {
@@ -128,5 +170,11 @@ class AddSessionItemsResponseModel extends AddSessionItemsResponse {
     );
   }
 
-  AddSessionItemsResponse toEntity() => this;
+  AddSessionItemsResponse toEntity() {
+    return AddSessionItemsResponse(
+      success: success,
+      message: message,
+      itemsAdded: itemsAdded,
+    );
+  }
 }

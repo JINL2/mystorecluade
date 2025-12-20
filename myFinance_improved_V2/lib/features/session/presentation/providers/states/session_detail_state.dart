@@ -208,45 +208,4 @@ class SearchProductResult {
     this.sellingPrice,
     this.stockQuantity = 0,
   });
-
-  factory SearchProductResult.fromJson(Map<String, dynamic> json) {
-    // Handle image URL from various formats
-    String? imageUrl;
-    if (json['images'] is Map) {
-      final images = json['images'] as Map<String, dynamic>;
-      imageUrl = images['thumbnail']?.toString() ?? images['main_image']?.toString();
-    } else if (json['image_urls'] is List) {
-      final urls = json['image_urls'] as List;
-      if (urls.isNotEmpty) imageUrl = urls.first.toString();
-    } else {
-      imageUrl = json['image_url']?.toString() ?? json['thumbnail']?.toString();
-    }
-
-    // Handle pricing from various formats
-    double? sellingPrice;
-    if (json['pricing'] is Map) {
-      final pricing = json['pricing'] as Map<String, dynamic>;
-      sellingPrice = (pricing['selling'] as num?)?.toDouble() ??
-          (pricing['selling_price'] as num?)?.toDouble();
-    } else if (json['price'] is num) {
-      sellingPrice = (json['price'] as num).toDouble();
-    }
-
-    // Handle stock quantity
-    int stockQuantity = 0;
-    if (json['total_stock_summary'] is Map) {
-      final stock = json['total_stock_summary'] as Map<String, dynamic>;
-      stockQuantity = (stock['total_quantity_available'] as num?)?.toInt() ?? 0;
-    }
-
-    return SearchProductResult(
-      productId: json['product_id']?.toString() ?? json['id']?.toString() ?? '',
-      productName: json['product_name']?.toString() ?? json['name']?.toString() ?? '',
-      sku: json['sku']?.toString(),
-      barcode: json['barcode']?.toString(),
-      imageUrl: imageUrl,
-      sellingPrice: sellingPrice,
-      stockQuantity: stockQuantity,
-    );
-  }
 }

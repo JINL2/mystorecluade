@@ -221,4 +221,14 @@ abstract class SessionRepository {
     required String targetSessionId,
     required String userId,
   });
+
+  /// Merge source session into target session via RPC (inventory_merge_sessions)
+  /// - Copies all items from source to target with source_session_id tracking
+  /// - Adds source's members to target (skips duplicates)
+  /// - Deactivates source session
+  Future<void> mergeSessions({
+    required String targetSessionId,
+    required String sourceSessionId,
+    required String userId,
+  });
 }

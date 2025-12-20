@@ -1,54 +1,44 @@
-/// Session list item entity from RPC response
-class SessionListItem {
-  final String sessionId;
-  final String sessionName;
-  final String sessionType;
-  final String storeId;
-  final String storeName;
-  final String? shipmentId;
-  final String? shipmentNumber;
-  final bool isActive;
-  final bool isFinal;
-  final int memberCount;
-  final String createdBy;
-  final String createdByName;
-  final String? completedAt;
-  final String createdAt;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const SessionListItem({
-    required this.sessionId,
-    required this.sessionName,
-    required this.sessionType,
-    required this.storeId,
-    required this.storeName,
-    this.shipmentId,
-    this.shipmentNumber,
-    required this.isActive,
-    required this.isFinal,
-    required this.memberCount,
-    required this.createdBy,
-    required this.createdByName,
-    this.completedAt,
-    required this.createdAt,
-  });
+part 'session_list_item.freezed.dart';
+
+/// Session list item entity from RPC response
+@freezed
+class SessionListItem with _$SessionListItem {
+  const SessionListItem._();
+
+  const factory SessionListItem({
+    required String sessionId,
+    required String sessionName,
+    required String sessionType,
+    required String storeId,
+    required String storeName,
+    String? shipmentId,
+    String? shipmentNumber,
+    required bool isActive,
+    required bool isFinal,
+    required int memberCount,
+    required String createdBy,
+    required String createdByName,
+    String? completedAt,
+    required String createdAt,
+  }) = _SessionListItem;
 
   bool get isCounting => sessionType == 'counting';
   bool get isReceiving => sessionType == 'receiving';
 }
 
 /// Response wrapper for session list
-class SessionListResponse {
-  final List<SessionListItem> sessions;
-  final int totalCount;
-  final int limit;
-  final int offset;
+@freezed
+class SessionListResponse with _$SessionListResponse {
+  const SessionListResponse._();
 
-  const SessionListResponse({
-    required this.sessions,
-    required this.totalCount,
-    required this.limit,
-    required this.offset,
-  });
+  const factory SessionListResponse({
+    required List<SessionListItem> sessions,
+    required int totalCount,
+    required int limit,
+    required int offset,
+  }) = _SessionListResponse;
 
   bool get hasMore => offset + sessions.length < totalCount;
 }

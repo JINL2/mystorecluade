@@ -7,23 +7,17 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/services/supabase_service.dart';
-import '../../data/datasources/homepage_data_source.dart';
+import '../../domain/providers/repository_providers.dart';
 import '../../domain/revenue_period.dart';
 import '../providers/homepage_providers.dart';
 
-/// Provider for HomepageDataSource (chart)
-final _chartDataSourceProvider = Provider<HomepageDataSource>((ref) {
-  final supabaseService = ref.watch(supabaseServiceProvider);
-  return HomepageDataSource(supabaseService);
-});
-
 /// Provider for fetching revenue chart data using get_dashboard_revenue_v3 RPC
 ///
-/// Uses the same period selection as RevenueCard (selectedRevenuePeriodProvider)
+/// Uses the same period selection as RevenueCard (selectedRevenuePeriodProvider).
+/// Uses HomepageRepository (Clean Architecture) instead of direct DataSource access.
 final revenueChartDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final appState = ref.watch(appStateProvider);
-  final dataSource = ref.read(_chartDataSourceProvider);
+  final repository = ref.read(homepageRepositoryProvider);
   final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
   final selectedTab = ref.watch(selectedRevenueTabProvider);
 
@@ -40,7 +34,7 @@ final revenueChartDataProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
       : null;
 
   try {
-    final response = await dataSource.getRevenueChartData(
+    final response = await repository.getRevenueChartData(
       companyId: companyId,
       timeFilter: selectedPeriod.apiValue,
       timezone: 'Asia/Ho_Chi_Minh', // TODO: Get from device

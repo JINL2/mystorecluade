@@ -1,10 +1,13 @@
-// Currency and Payment Models for Payment Method Page
+// Currency and Payment UI Models for Payment Method Page
+// NOTE: These are UI-specific models with JSON serialization.
+// For Domain entities, see domain/entities/payment_currency.dart
 
+/// Currency denomination for payment UI
 class CurrencyDenomination {
   final String denominationId;
   final int value;
 
-  CurrencyDenomination({
+  const CurrencyDenomination({
     required this.denominationId,
     required this.value,
   });
@@ -24,6 +27,8 @@ class CurrencyDenomination {
   }
 }
 
+/// Payment currency UI model with denominations and JSON serialization
+/// NOTE: Named differently from Domain's PaymentCurrency to avoid confusion
 class PaymentCurrency {
   final String currencyId;
   final String currencyCode;
@@ -34,7 +39,7 @@ class PaymentCurrency {
   final String? rateDate;
   final List<CurrencyDenomination> denominations;
 
-  PaymentCurrency({
+  const PaymentCurrency({
     required this.currencyId,
     required this.currencyCode,
     required this.currencyName,
@@ -78,11 +83,12 @@ class PaymentCurrency {
   String get displayName => '$flagEmoji $currencyCode';
 }
 
+/// Response model for base currency API
 class BaseCurrencyResponse {
   final PaymentCurrency baseCurrency;
   final List<PaymentCurrency> companyCurrencies;
 
-  BaseCurrencyResponse({
+  const BaseCurrencyResponse({
     required this.baseCurrency,
     required this.companyCurrencies,
   });
@@ -105,7 +111,7 @@ class BaseCurrencyResponse {
     };
   }
 
-  // Helper method to find currency by code
+  /// Find currency by code from company currencies or base currency
   PaymentCurrency? findCurrencyByCode(String code) {
     try {
       return companyCurrencies.firstWhere(

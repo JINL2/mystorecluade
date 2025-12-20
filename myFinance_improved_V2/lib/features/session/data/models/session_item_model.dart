@@ -1,19 +1,31 @@
 import '../../domain/entities/session_item.dart';
 
 /// Data model for SessionItem with JSON serialization
-class SessionItemModel extends SessionItem {
+class SessionItemModel {
+  final String itemId;
+  final String sessionId;
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? barcode;
+  final String? imageUrl;
+  final int quantity;
+  final double? unitPrice;
+  final DateTime addedAt;
+  final String? notes;
+
   const SessionItemModel({
-    required super.itemId,
-    required super.sessionId,
-    required super.productId,
-    required super.productName,
-    super.sku,
-    super.barcode,
-    super.imageUrl,
-    required super.quantity,
-    super.unitPrice,
-    required super.addedAt,
-    super.notes,
+    required this.itemId,
+    required this.sessionId,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.barcode,
+    this.imageUrl,
+    required this.quantity,
+    this.unitPrice,
+    required this.addedAt,
+    this.notes,
   });
 
   factory SessionItemModel.fromJson(Map<String, dynamic> json) {
@@ -50,5 +62,19 @@ class SessionItemModel extends SessionItem {
     };
   }
 
-  SessionItem toEntity() => this;
+  SessionItem toEntity() {
+    return SessionItem(
+      itemId: itemId,
+      sessionId: sessionId,
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      barcode: barcode,
+      imageUrl: imageUrl,
+      quantity: quantity,
+      unitPrice: unitPrice,
+      addedAt: addedAt,
+      notes: notes,
+    );
+  }
 }

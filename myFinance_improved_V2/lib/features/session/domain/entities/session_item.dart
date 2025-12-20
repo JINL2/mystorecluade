@@ -1,87 +1,39 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'session_item.freezed.dart';
+
 /// Item added to an inventory session
-class SessionItem {
-  final String itemId;
-  final String sessionId;
-  final String productId;
-  final String productName;
-  final String? sku;
-  final String? barcode;
-  final String? imageUrl;
-  final int quantity;
-  final double? unitPrice;
-  final DateTime addedAt;
-  final String? notes;
+@freezed
+class SessionItem with _$SessionItem {
+  const SessionItem._();
 
-  const SessionItem({
-    required this.itemId,
-    required this.sessionId,
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.barcode,
-    this.imageUrl,
-    required this.quantity,
-    this.unitPrice,
-    required this.addedAt,
-    this.notes,
-  });
-
-  double get totalPrice => (unitPrice ?? 0) * quantity;
-
-  SessionItem copyWith({
-    String? itemId,
-    String? sessionId,
-    String? productId,
-    String? productName,
+  const factory SessionItem({
+    required String itemId,
+    required String sessionId,
+    required String productId,
+    required String productName,
     String? sku,
     String? barcode,
     String? imageUrl,
-    int? quantity,
+    required int quantity,
     double? unitPrice,
-    DateTime? addedAt,
+    required DateTime addedAt,
     String? notes,
-  }) {
-    return SessionItem(
-      itemId: itemId ?? this.itemId,
-      sessionId: sessionId ?? this.sessionId,
-      productId: productId ?? this.productId,
-      productName: productName ?? this.productName,
-      sku: sku ?? this.sku,
-      barcode: barcode ?? this.barcode,
-      imageUrl: imageUrl ?? this.imageUrl,
-      quantity: quantity ?? this.quantity,
-      unitPrice: unitPrice ?? this.unitPrice,
-      addedAt: addedAt ?? this.addedAt,
-      notes: notes ?? this.notes,
-    );
-  }
+  }) = _SessionItem;
 
-  @override
-  String toString() {
-    return 'SessionItem(itemId: $itemId, productName: $productName, quantity: $quantity)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is SessionItem && other.itemId == itemId;
-  }
-
-  @override
-  int get hashCode => itemId.hashCode;
+  double get totalPrice => (unitPrice ?? 0) * quantity;
 }
 
 /// Input for adding items to a session
-class SessionItemInput {
-  final String productId;
-  final int quantity;
-  final int quantityRejected;
+@freezed
+class SessionItemInput with _$SessionItemInput {
+  const SessionItemInput._();
 
-  const SessionItemInput({
-    required this.productId,
-    required this.quantity,
-    this.quantityRejected = 0,
-  });
+  const factory SessionItemInput({
+    required String productId,
+    required int quantity,
+    @Default(0) int quantityRejected,
+  }) = _SessionItemInput;
 
   Map<String, dynamic> toJson() => {
         'product_id': productId,
@@ -91,58 +43,40 @@ class SessionItemInput {
 }
 
 /// Response for adding session items
-class AddSessionItemsResponse {
-  final bool success;
-  final String? message;
-  final int itemsAdded;
-
-  const AddSessionItemsResponse({
-    required this.success,
-    this.message,
-    this.itemsAdded = 0,
-  });
+@freezed
+class AddSessionItemsResponse with _$AddSessionItemsResponse {
+  const factory AddSessionItemsResponse({
+    required bool success,
+    String? message,
+    @Default(0) int itemsAdded,
+  }) = _AddSessionItemsResponse;
 }
 
 /// Product search result for session
-class ProductSearchResult {
-  final String productId;
-  final String productName;
-  final String? sku;
-  final String? barcode;
-  final String? imageUrl;
-  final String? brandName;
-  final String? categoryName;
-  final double sellingPrice;
-  final int currentStock;
-
-  const ProductSearchResult({
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.barcode,
-    this.imageUrl,
-    this.brandName,
-    this.categoryName,
-    this.sellingPrice = 0,
-    this.currentStock = 0,
-  });
+@freezed
+class ProductSearchResult with _$ProductSearchResult {
+  const factory ProductSearchResult({
+    required String productId,
+    required String productName,
+    String? sku,
+    String? barcode,
+    String? imageUrl,
+    String? brandName,
+    String? categoryName,
+    @Default(0) double sellingPrice,
+    @Default(0) int currentStock,
+  }) = _ProductSearchResult;
 }
 
 /// Response for product search with pagination
-class ProductSearchResponse {
-  final List<ProductSearchResult> products;
-  final int totalCount;
-  final int page;
-  final int limit;
-  final int totalPages;
-  final bool hasNext;
-
-  const ProductSearchResponse({
-    required this.products,
-    this.totalCount = 0,
-    this.page = 1,
-    this.limit = 20,
-    this.totalPages = 1,
-    this.hasNext = false,
-  });
+@freezed
+class ProductSearchResponse with _$ProductSearchResponse {
+  const factory ProductSearchResponse({
+    required List<ProductSearchResult> products,
+    @Default(0) int totalCount,
+    @Default(1) int page,
+    @Default(20) int limit,
+    @Default(1) int totalPages,
+    @Default(false) bool hasNext,
+  }) = _ProductSearchResponse;
 }

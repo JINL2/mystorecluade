@@ -9,8 +9,10 @@ import type {
   SearchProductResult,
   SearchProduct,
   SessionItemsResult,
+  SessionItemsFullResult,
   SessionItem,
   SessionItemsSummary,
+  SessionParticipant,
   SaveItem,
   SubmitItem,
   SubmitResult,
@@ -24,6 +26,12 @@ import type {
   Session,
   CreateSessionResult,
   JoinSessionResult,
+  MergeSessionsResult,
+  CompareSessionsResult,
+  CompareSessionInfo,
+  CompareMatchedItem,
+  CompareOnlyItem,
+  CompareSessionsSummary,
 } from '../../domain/entities';
 import {
   productReceiveDataSource,
@@ -31,6 +39,7 @@ import {
   type SearchProductDTO,
   type SessionItemDTO,
   type SessionItemsSummaryDTO,
+  type SessionParticipantDTO,
   type CounterpartyDTO,
   type ShipmentDTO,
   type ShipmentDetailDTO,
@@ -38,6 +47,12 @@ import {
   type ReceivingSummaryDTO,
   type SessionDTO,
   type StockChangeDTO,
+  type MergeSessionsResultDTO,
+  type CompareSessionsResultDTO,
+  type CompareSessionInfoDTO,
+  type CompareMatchedItemDTO,
+  type CompareOnlyItemDTO,
+  type CompareSessionsSummaryDTO,
 } from '../datasources/ProductReceiveDataSource';
 
 // Mapper functions: DTO -> Domain Entity
@@ -169,6 +184,51 @@ const mapSessionDTO = (dto: SessionDTO): Session => ({
   createdByName: dto.created_by_name,
   createdAt: dto.created_at,
   memberCount: dto.member_count,
+});
+
+const mapSessionParticipantDTO = (dto: SessionParticipantDTO): SessionParticipant => ({
+  userId: dto.user_id,
+  userName: dto.user_name,
+  userProfileImage: dto.user_profile_image,
+  productCount: dto.product_count,
+  totalScanned: dto.total_scanned,
+});
+
+const mapCompareSessionInfoDTO = (dto: CompareSessionInfoDTO): CompareSessionInfo => ({
+  sessionId: dto.session_id,
+  sessionName: dto.session_name,
+  sessionType: dto.session_type,
+  storeId: dto.store_id,
+  storeName: dto.store_name,
+  createdBy: dto.created_by,
+  createdByName: dto.created_by_name,
+  totalProducts: dto.total_products,
+  totalQuantity: dto.total_quantity,
+});
+
+const mapCompareMatchedItemDTO = (dto: CompareMatchedItemDTO): CompareMatchedItem => ({
+  productId: dto.product_id,
+  sku: dto.sku,
+  productName: dto.product_name,
+  quantityA: dto.quantity_a,
+  quantityB: dto.quantity_b,
+  quantityDiff: dto.quantity_diff,
+  isMatch: dto.is_match,
+});
+
+const mapCompareOnlyItemDTO = (dto: CompareOnlyItemDTO): CompareOnlyItem => ({
+  productId: dto.product_id,
+  sku: dto.sku,
+  productName: dto.product_name,
+  quantity: dto.quantity,
+});
+
+const mapCompareSessionsSummaryDTO = (dto: CompareSessionsSummaryDTO): CompareSessionsSummary => ({
+  totalMatched: dto.total_matched,
+  quantitySameCount: dto.quantity_same_count,
+  quantityDiffCount: dto.quantity_diff_count,
+  onlyInACount: dto.only_in_a_count,
+  onlyInBCount: dto.only_in_b_count,
 });
 
 export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
@@ -325,6 +385,72 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
       memberId: result.member_id,
       createdBy: result.created_by,
       createdByName: result.created_by_name,
+    };
+  }
+
+  async getSessionItemsFull(
+    sessionId: string,
+    userId: string
+  ): Promise<SessionItemsFullResult> {
+    const result = await this.dataSource.getSessionItemsFull(sessionId, userId);
+    return {
+      sessionId: result.session_id,
+      items: result.items.map(mapSessionItemDTO),
+      participants: result.participants.map(mapSessionParticipantDTO),
+      summary: {
+        totalProducts: result.summary.total_products,
+        totalQuantity: result.summary.total_quantity,
+        totalRejected: result.summary.total_rejected,
+        totalParticipants: result.summary.total_participants,
+      },
+    };
+  }
+
+  async mergeSessions(params: {
+    targetSessionId: string;
+    sourceSessionId: string;
+    userId: string;
+  }): Promise<MergeSessionsResult> {
+    const result = await this.dataSource.mergeSessions(params);
+    return {
+      targetSession: {
+        sessionId: result.target_session.session_id,
+        sessionName: result.target_session.session_name,
+        itemsBefore: result.target_session.items_before,
+        itemsAfter: result.target_session.items_after,
+        quantityBefore: result.target_session.quantity_before,
+        quantityAfter: result.target_session.quantity_after,
+      },
+      sourceSession: {
+        sessionId: result.source_session.session_id,
+        sessionName: result.source_session.session_name,
+        itemsCopied: result.source_session.items_copied,
+        quantityCopied: result.source_session.quantity_copied,
+        deactivated: result.source_session.deactivated,
+      },
+      summary: {
+        totalItemsCopied: result.summary.total_items_copied,
+        totalQuantityCopied: result.summary.total_quantity_copied,
+        uniqueProductsCopied: result.summary.unique_products_copied,
+      },
+    };
+  }
+
+  async compareSessions(params: {
+    sessionIdA: string;
+    sessionIdB: string;
+    userId: string;
+  }): Promise<CompareSessionsResult> {
+    const result = await this.dataSource.compareSessions(params);
+    return {
+      sessionA: mapCompareSessionInfoDTO(result.session_a),
+      sessionB: mapCompareSessionInfoDTO(result.session_b),
+      comparison: {
+        matched: result.comparison.matched.map(mapCompareMatchedItemDTO),
+        onlyInA: result.comparison.only_in_a.map(mapCompareOnlyItemDTO),
+        onlyInB: result.comparison.only_in_b.map(mapCompareOnlyItemDTO),
+      },
+      summary: mapCompareSessionsSummaryDTO(result.summary),
     };
   }
 }
