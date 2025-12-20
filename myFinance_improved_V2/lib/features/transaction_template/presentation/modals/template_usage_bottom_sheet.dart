@@ -917,6 +917,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         AutonomousCashLocationSelector(
           storeId: storeId,
           selectedLocationId: _selectedMyCashLocationId,
+          // Hide built-in label since we render our own styled label above
+          hideLabel: true,
           onChanged: (cashLocationId) {
             setState(() {
               _selectedMyCashLocationId = cashLocationId;
@@ -1216,6 +1218,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           AutonomousCashLocationSelector(
             storeId: _selectedCounterpartyStoreId!,
             selectedLocationId: _selectedCounterpartyCashLocationId,
+            // Hide built-in label since we render our own styled label above
+            hideLabel: true,
             onChanged: (cashLocationId) {
               setState(() {
                 _selectedCounterpartyCashLocationId = cashLocationId;

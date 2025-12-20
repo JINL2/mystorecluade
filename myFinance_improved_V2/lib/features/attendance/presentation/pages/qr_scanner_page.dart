@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_providers.dart';
+import '../providers/qr_scanner_state.dart';
 import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
@@ -31,12 +34,13 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     formats: [BarcodeFormat.qrCode],
     returnImage: false,
   );
-  bool isProcessing = false;
-  bool hasScanned = false; // Add flag to prevent multiple scans
-  bool isShowingDialog = false; // Add flag to prevent multiple dialogs
+
+  /// Auto-close timer reference (취소 가능하게 관리)
+  Timer? _autoCloseTimer;
 
   @override
   void dispose() {
+    _autoCloseTimer?.cancel();
     cameraController.dispose();
     super.dispose();
   }
@@ -46,7 +50,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        await _showErrorDialog('Location services are disabled. Please enable location services.');
+        await _showErrorDialog(
+          'Location services are disabled. Please enable location services.',
+        );
         return null;
       }
 
@@ -55,13 +61,17 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          await _showErrorDialog('Location permissions are denied. Please allow location access.');
+          await _showErrorDialog(
+            'Location permissions are denied. Please allow location access.',
+          );
           return null;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        await _showErrorDialog('Location permissions are permanently denied. Please enable in settings.');
+        await _showErrorDialog(
+          'Location permissions are permanently denied. Please enable in settings.',
+        );
         return null;
       }
 
@@ -73,61 +83,104 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     }
   }
 
+  /// 에러 다이얼로그 표시 (안전한 버전)
   Future<void> _showErrorDialog(String message) async {
-    // Prevent showing multiple dialogs at once
-    if (isShowingDialog) return;
+    final notifier = ref.read(qrScannerProvider.notifier);
+    final state = ref.read(qrScannerProvider);
 
-    setState(() {
-      isShowingDialog = true;
-    });
+    // 이미 다이얼로그가 표시 중이면 무시
+    if (state.isShowingDialog) return;
 
-    await showDialog(
+    notifier.showDialog();
+    notifier.setError(message);
+
+    if (!mounted) return;
+
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => TossDialog.error(
+      builder: (dialogContext) => TossDialog.error(
         title: 'Error',
         message: message,
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          context.pop(); // Close dialog
-          context.pop(); // Return to attendance page
+          // 안전하게 한 번만 닫기
+          _safeDismissAndPop(dialogContext);
         },
         dismissible: false,
       ),
     );
-
-    // After dialog is closed, user should be back at attendance page
-    // No need to reset flags or restart camera
   }
-  
+
+  /// 성공 다이얼로그 표시 (안전한 버전 - 이중 pop 방지)
   void _showSuccessDialog(String message, Map<String, dynamic> resultData) {
-    // Show TossDialog.success with auto-dismiss
-    showDialog(
+    final notifier = ref.read(qrScannerProvider.notifier);
+
+    notifier.showDialog();
+    notifier.setSuccess(resultData);
+
+    if (!mounted) return;
+
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => TossDialog.success(
+      builder: (dialogContext) => TossDialog.success(
         title: message,
         subtitle: DateTimeUtils.format(DateTime.now()),
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          context.pop(); // Close dialog
-          Navigator.of(context).pop(resultData); // Return to previous screen with result data
+          // 타이머 취소 후 안전하게 닫기
+          _autoCloseTimer?.cancel();
+          _safeDismissAndPop(dialogContext, resultData: resultData);
         },
         dismissible: false,
       ),
     );
 
-    // Auto close after 2 seconds and return to previous screen with result data
-    Future.delayed(const Duration(seconds: 2), () {
+    // Auto close after 2 seconds (타이머로 관리하여 취소 가능)
+    _autoCloseTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        context.pop(); // Close dialog
-        Navigator.of(context).pop(resultData); // Return to previous screen with result data
+        // 안전하게 한 번만 닫기 시도
+        _safeDismissAndPop(context, resultData: resultData);
+      }
+    });
+  }
+
+  /// 안전하게 다이얼로그와 페이지를 닫는 메서드 (이중 pop 방지)
+  void _safeDismissAndPop(
+    BuildContext dialogContext, {
+    Map<String, dynamic>? resultData,
+  }) {
+    final notifier = ref.read(qrScannerProvider.notifier);
+
+    // tryDismissDialog가 false를 반환하면 이미 닫힌 것이므로 무시
+    if (!notifier.tryDismissDialog()) {
+      return;
+    }
+
+    // 완료 상태로 마킹
+    notifier.markCompleted();
+
+    // Navigator 유효성 확인 후 pop
+    if (!mounted) return;
+
+    // Dialog 닫기
+    if (Navigator.of(dialogContext, rootNavigator: true).canPop()) {
+      Navigator.of(dialogContext, rootNavigator: true).pop();
+    }
+
+    // QR Scanner Page 닫기 (결과 데이터와 함께)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && context.mounted) {
+        context.pop(resultData);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final scannerState = ref.watch(qrScannerProvider);
+
     return TossScaffold(
       appBar: AppBar(
         title: const Text('QR Scanner'),
@@ -139,26 +192,25 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           MobileScanner(
             controller: cameraController,
             onDetect: (capture) async {
-              // Prevent multiple scans
-              if (isProcessing || hasScanned) return;
-              
+              // Riverpod 상태로 중복 스캔 방지
+              final state = ref.read(qrScannerProvider);
+              if (state.isProcessing || state.hasScanned) return;
+
               final List<Barcode> barcodes = capture.barcodes;
               if (barcodes.isEmpty) return;
-              
+
               final String? code = barcodes.first.rawValue;
               if (code == null || code.isEmpty) return;
-              
-              setState(() {
-                isProcessing = true;
-                hasScanned = true; // Mark as scanned
-              });
-              
+
+              // 스캔 시작 상태로 변경
+              ref.read(qrScannerProvider.notifier).startScanning();
+
               // Stop the camera to prevent further scans
               await cameraController.stop();
-              
+
               // Haptic feedback
               HapticFeedback.mediumImpact();
-              
+
               // Get current location
               final Position? position = await _getCurrentLocation();
               if (position == null) {
@@ -176,7 +228,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 return;
               }
               final userId = user.id;
-              
+
               try {
                 // QR code contains only the store_id (e.g., "d3dfa42c-9c18-46ed-8dbc-a6d67a2ab7ff")
                 final storeId = code.trim();
@@ -248,16 +300,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception(errorMsg);
                 }
 
-                // If RPC returns success or contains actual data, consider it successful
-                // RPC may return:
-                // 1. {'success': true, 'action': 'check_in', ...} - successful operation
-                // 2. {'actual_start_time': ..., 'actual_end_time': ..., ...} - actual data
-                // 3. {'shift_request_id': ..., ...} - shift data
-                // All of these indicate success
-
-                // NO RPC REFRESH - Just pass the result back to update local state
-                // The attendance main page will handle local state updates
-
                 // Add a small delay for UX
                 await Future<void>.delayed(const Duration(milliseconds: 100));
 
@@ -277,7 +319,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     'timestamp': result.timestamp,
                     'shift_request_id': result.shiftRequestId,
                   };
-                  
+
                   // Show the success dialog with result data
                   _showSuccessDialog(message, checkInOutData);
                 }
@@ -288,11 +330,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               }
             },
           ),
-          
+
           // Scanner overlay
           Container(
             decoration: BoxDecoration(
-              color: TossColors.black.withOpacity(0.5),
+              color: TossColors.black.withValues(alpha: 0.5),
             ),
             child: Stack(
               children: [
@@ -309,7 +351,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     ),
                   ),
                 ),
-                
+
                 // Instructions
                 Positioned(
                   bottom: 100,
@@ -317,7 +359,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   right: 0,
                   child: Column(
                     children: [
-                      if (isProcessing)
+                      if (scannerState.isProcessing)
                         const TossLoadingView()
                       else
                         Text(
@@ -329,11 +371,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                         ),
                       const SizedBox(height: TossSpacing.space2),
                       Text(
-                        isProcessing
+                        scannerState.isProcessing
                             ? 'Processing...'
                             : 'Position the QR code within the frame',
                         style: TossTextStyles.body.copyWith(
-                          color: TossColors.white.withOpacity(0.8),
+                          color: TossColors.white.withValues(alpha: 0.8),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -343,12 +385,12 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               ],
             ),
           ),
-          
+
           // Mask with cutout
           ClipPath(
             clipper: _ScannerOverlayClipper(),
             child: Container(
-              color: TossColors.black.withOpacity(0.5),
+              color: TossColors.black.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -362,16 +404,16 @@ class _ScannerOverlayClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path()..fillType = PathFillType.evenOdd;
-    
+
     // Add outer rectangle
     path.addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    
+
     // Calculate center cutout position
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     const cutoutSize = 280.0;
     const borderRadius = 16.0;
-    
+
     // Add rounded rectangle cutout
     path.addRRect(
       RRect.fromRectAndRadius(
@@ -383,10 +425,10 @@ class _ScannerOverlayClipper extends CustomClipper<Path> {
         const Radius.circular(borderRadius),
       ),
     );
-    
+
     return path;
   }
-  
+
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

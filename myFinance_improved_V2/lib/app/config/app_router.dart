@@ -89,7 +89,6 @@ class RouterNotifier extends ChangeNotifier {
     _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
-        debugPrint('🔄 [RouterNotifier] Auth state changed: $previous -> $next');
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < const Duration(seconds: 2)) {
@@ -131,20 +130,15 @@ class RouterNotifier extends ChangeNotifier {
     _userCompaniesListener = _ref.listen<AsyncValue<Map<String, dynamic>?>>(
       userCompaniesProvider,
       (previous, next) {
-        debugPrint('🔄 [RouterNotifier] UserCompanies state changed');
         next.when(
           data: (data) {
-            debugPrint('✅ [RouterNotifier] UserCompanies data loaded: ${data != null}');
             // Data loaded - trigger router refresh for next step navigation
             Future.delayed(const Duration(milliseconds: 200), () {
               notifyListeners();
             });
           },
-          loading: () {
-            debugPrint('⏳ [RouterNotifier] UserCompanies loading...');
-          },
+          loading: () {},
           error: (error, stack) {
-            debugPrint('❌ [RouterNotifier] UserCompanies error: $error');
             // Error (e.g., orphan session) - trigger refresh to handle redirect
             Future.delayed(const Duration(milliseconds: 100), () {
               notifyListeners();
@@ -238,24 +232,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       try {
         final currentPath = state.matchedLocation;
 
-        // 🔍 DEBUG: Current path
-        debugPrint('┌─────────────────────────────────────────────────────');
-
         // Skip redirects during active navigation
         if (routerNotifier.isNavigationLocked) {
-          debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
         // Helper function for safe redirect with loop detection
         String? safeRedirect(String targetPath, String reason) {
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
-            debugPrint('└─────────────────────────────────────────────────────');
             routerNotifier._clearRedirectHistory();
             return '/';
           }
 
-          debugPrint('└─────────────────────────────────────────────────────');
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
         }
@@ -302,7 +290,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Allow unauthenticated users to access auth pages (login, signup)
         if (!isAuth && isAuthRoute) {
-          debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
@@ -323,7 +310,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // ⚠️ CRITICAL FIX: Check if AppState data is still loading
           // If AppState is empty, stay on auth page and wait for data to load
           if (!hasUserData) {
-            debugPrint('└─────────────────────────────────────────────────────');
             return null;  // Stay on current page, wait for data to load
           }
 
@@ -336,10 +322,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return safeRedirect('/onboarding/choose-role', 'No companies');
         }
 
-        debugPrint('└─────────────────────────────────────────────────────');
         return null;
       } catch (error) {
-        debugPrint('└─────────────────────────────────────────────────────');
         return '/';
       }
     },
@@ -840,12 +824,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final isOwnerParam = state.uri.queryParameters['isOwner'];
           final isOwner = isOwnerParam == 'true';
 
-          // Debug logs
-          debugPrint('🔍 [Router] Full URI: ${state.uri}');
-          debugPrint('🔍 [Router] Query params: ${state.uri.queryParameters}');
-          debugPrint('🔍 [Router] isOwner param raw: $isOwnerParam');
-          debugPrint('🔍 [Router] isOwner parsed: $isOwner');
-
           return SessionDetailPage(
             sessionId: sessionId,
             sessionType: sessionType,
@@ -890,14 +868,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
-
-  // 🔍 DEBUG: Log all registered routes
-  debugPrint('🔍 [Router Init] Total routes: ${router.configuration.routes.length}');
-  for (var route in router.configuration.routes) {
-    if (route is GoRoute) {
-      debugPrint('🔍 [Router Init] Path: ${route.path}, Name: ${route.name}');
-    }
-  }
 
   return router;
 });

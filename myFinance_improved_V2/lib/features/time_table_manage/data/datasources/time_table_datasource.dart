@@ -134,13 +134,14 @@ class TimeTableDatasource {
 
   /// Fetch manager shift cards from Supabase RPC
   ///
-  /// Uses manager_shift_get_cards_v4 RPC with timezone parameter
+  /// Uses manager_shift_get_cards_v5 RPC with timezone parameter
+  /// - p_company_id is the company UUID
   /// - p_start_date and p_end_date are user's local dates (yyyy-MM-dd)
   /// - p_store_id is optional (NULL for all stores)
   /// - p_timezone must be user's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   /// - Filters by start_time_utc converted to timezone (actual work date)
   /// - Uses v_shift_request view with is_problem_v2, is_problem_solved_v2 columns
-  /// - v4 adds: is_reported_solved (bool), manager_memo (jsonb array)
+  /// - v5 adds: problem_details (JSONB with detailed problem info for calendar)
   Future<Map<String, dynamic>> getManagerShiftCards({
     required String startDate,
     required String endDate,
@@ -150,12 +151,12 @@ class TimeTableDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_cards_v4',
+        'manager_shift_get_cards_v5',
         params: {
+          'p_company_id': companyId,
           'p_start_date': startDate,
           'p_end_date': endDate,
           'p_store_id': storeId,
-          'p_company_id': companyId,
           'p_timezone': timezone,
         },
       );

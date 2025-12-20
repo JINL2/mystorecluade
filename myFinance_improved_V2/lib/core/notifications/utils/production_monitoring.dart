@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/production_token_service.dart';
 
@@ -227,50 +226,44 @@ class ProductionTokenMonitoring {
           );
         }
       }
-      
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to load stored metrics: $e');
-      }
+
+    } catch (_) {
+      // Failed to load stored metrics - not critical
     }
   }
-  
+
   /// Persist metrics to storage
   Future<void> _persistMetrics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       final data = {
-        'events': _registrationEvents.length > 100 
+        'events': _registrationEvents.length > 100
             ? _registrationEvents.sublist(_registrationEvents.length - 100)
             : _registrationEvents, // Keep last 100 events
         'error_counts': _errorCounts,
         'session_metrics': _sessionMetrics,
         'saved_at': DateTime.now().toIso8601String(),
       };
-      
+
       await prefs.setString(_metricsStorageKey, jsonEncode(data));
-      
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to persist metrics: $e');
-      }
+
+    } catch (_) {
+      // Failed to persist metrics - not critical
     }
   }
-  
+
   /// Clear all metrics data
   Future<void> clearMetrics() async {
     _registrationEvents.clear();
     _errorCounts.clear();
     _sessionMetrics.clear();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_metricsStorageKey);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to clear stored metrics: $e');
-      }
+    } catch (_) {
+      // Failed to clear stored metrics - not critical
     }
   }
 }

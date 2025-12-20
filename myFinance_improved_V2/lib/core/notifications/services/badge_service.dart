@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 /// Service for managing app icon badge count
@@ -15,17 +14,11 @@ class BadgeService {
     try {
       if (Platform.isIOS) {
         _isSupported = await FlutterAppBadger.isAppBadgeSupported();
-        if (kDebugMode) {
-          debugPrint('🔔 Badge Service initialized - Supported: $_isSupported');
-        }
       } else {
         // Android support varies by manufacturer
         _isSupported = await FlutterAppBadger.isAppBadgeSupported();
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Badge Service initialization failed: $e');
-      }
       _isSupported = false;
     }
   }
@@ -37,16 +30,11 @@ class BadgeService {
     try {
       if (count > 0) {
         await FlutterAppBadger.updateBadgeCount(count);
-        if (kDebugMode) {
-          debugPrint('🔔 Badge updated: $count');
-        }
       } else {
         await removeBadge();
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to update badge: $e');
-      }
+    } catch (_) {
+      // Badge update failed silently
     }
   }
 
@@ -56,13 +44,8 @@ class BadgeService {
 
     try {
       await FlutterAppBadger.removeBadge();
-      if (kDebugMode) {
-        debugPrint('🔔 Badge removed');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to remove badge: $e');
-      }
+    } catch (_) {
+      // Badge removal failed silently
     }
   }
 

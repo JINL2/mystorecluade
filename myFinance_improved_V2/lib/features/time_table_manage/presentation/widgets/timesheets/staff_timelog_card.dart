@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 import '../../../domain/entities/manager_memo.dart';
+import '../../../domain/entities/problem_details.dart';
 
 /// Model for staff time record
 class StaffTimeRecord {
@@ -44,6 +44,9 @@ class StaffTimeRecord {
   // If current time is before this, don't show "Need confirm"
   final DateTime? shiftEndTime;
 
+  // v5: Problem details from problem_details_v2
+  final ProblemDetails? problemDetails;
+
   const StaffTimeRecord({
     required this.staffId,
     required this.staffName,
@@ -75,10 +78,17 @@ class StaffTimeRecord {
     this.isReportedSolved,
     this.managerMemos = const [],
     this.shiftEndTime,
+    // v5: Problem details
+    this.problemDetails,
   });
 }
 
-/// Card displaying staff clock in/out record
+/// Card displaying staff clock in/out record with problem tags
+///
+/// Shows problem tags based on problem_details_v2:
+/// - 🔴 Red tag: Unsolved problem (Late, OT, No Checkout, etc.)
+/// - 🟠 Orange tag: Unsolved report
+/// - ⚪ Gray tag with ✓: Solved problem
 class StaffTimelogCard extends StatelessWidget {
   final StaffTimeRecord record;
   final VoidCallback? onTap;
@@ -91,6 +101,8 @@ class StaffTimelogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final problemTags = _buildProblemTags();
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -117,7 +129,7 @@ class StaffTimelogCard extends StatelessWidget {
 
             const SizedBox(width: TossSpacing.space3),
 
-            // Name and Time
+            // Name, Time, and Tags
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,61 +142,20 @@ class StaffTimelogCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      // Start time (red if late)
-                      Text(
-                        record.clockIn,
-                        style: TossTextStyles.caption.copyWith(
-                          color: record.isLate ? TossColors.error : TossColors.gray600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        ' - ',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      // End time (blue if OT)
-                      Text(
-                        record.clockOut,
-                        style: TossTextStyles.caption.copyWith(
-                          color: record.isOvertime ? TossColors.primary : TossColors.gray600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      // Show text only if there's a problem (Late or OT)
-                      if (record.isLate || record.isOvertime) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          record.isConfirmed ? '• Confirmed' : '• Need Confirm',
-                          style: TossTextStyles.caption.copyWith(
-                            color: record.isConfirmed ? TossColors.gray500 : TossColors.error,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                  // Time row - show actual → confirmed if different
+                  _buildTimeRow(),
+                  // Problem tags row (if any)
+                  if (problemTags.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: problemTags,
+                    ),
+                  ],
                 ],
               ),
             ),
-
-            const SizedBox(width: TossSpacing.space2),
-
-            // Status Badge
-            if (record.isLate)
-              const TossStatusBadge(
-                label: 'Late',
-                status: BadgeStatus.error,
-              )
-            else if (record.isOvertime)
-              const TossStatusBadge(
-                label: 'OT',
-                status: BadgeStatus.error,
-              ),
 
             const SizedBox(width: TossSpacing.space2),
 
@@ -196,6 +167,273 @@ class StaffTimelogCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build time row showing actual → confirmed if adjusted
+  /// Example: "10:05 → 10:00 - 14:11 → 14:00" or just "10:00 - 14:00"
+  Widget _buildTimeRow() {
+    final actualIn = record.actualStart;
+    final confirmedIn = record.confirmStartTime;
+    final actualOut = record.actualEnd;
+    final confirmedOut = record.confirmEndTime;
+
+    // Check if times were adjusted
+    final inAdjusted = actualIn != null && confirmedIn != null && actualIn != confirmedIn;
+    final outAdjusted = actualOut != null && confirmedOut != null && actualOut != confirmedOut;
+
+    if (!inAdjusted && !outAdjusted) {
+      // No adjustments - simple display
+      return Text(
+        '${record.clockIn} - ${record.clockOut}',
+        style: TossTextStyles.caption.copyWith(
+          color: TossColors.gray600,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    // Has adjustments - show with arrows
+    return Row(
+      children: [
+        // Check-in time
+        if (inAdjusted) ...[
+          Text(
+            _formatTime(actualIn),
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+          Text(
+            ' → ',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            _formatTime(confirmedIn),
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ] else
+          Text(
+            record.clockIn,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        // Separator
+        Text(
+          ' - ',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        // Check-out time
+        if (outAdjusted) ...[
+          Text(
+            _formatTime(actualOut),
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+          Text(
+            ' → ',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            _formatTime(confirmedOut),
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ] else
+          Text(
+            record.clockOut,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Format time string to HH:mm
+  String _formatTime(String? time) {
+    if (time == null || time.isEmpty) return '--:--';
+    // Handle formats like "10:05:00" or "10:05:00+07"
+    final parts = time.split(':');
+    if (parts.length >= 2) {
+      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+    }
+    return time;
+  }
+
+  /// Build problem tags from problem_details_v2 exclusively
+  /// Priority order: No Checkout > Absence > Late > Early Leave > Overtime > Reported
+  List<Widget> _buildProblemTags() {
+    final List<Widget> tags = [];
+    final pd = record.problemDetails;
+
+    // Only use problem_details_v2 - no legacy fallback
+    if (pd == null || pd.problemCount == 0) {
+      return tags; // Empty - no problems
+    }
+
+    // Build tags from problem_details.problems array
+    for (final problem in pd.problems) {
+      final tag = _buildTagForProblem(problem);
+      if (tag != null) tags.add(tag);
+    }
+
+    return tags;
+  }
+
+  /// Build tag widget for a single problem item
+  Widget? _buildTagForProblem(ProblemItem problem) {
+    final isSolved = problem.isSolved;
+
+    switch (problem.type) {
+      case 'no_checkout':
+        return _ProblemTag(
+          label: 'No Checkout',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'absence':
+        return _ProblemTag(
+          label: 'Absent',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'late':
+        final minutes = problem.actualMinutes ?? 0;
+        return _ProblemTag(
+          label: minutes > 0 ? 'Late +${minutes}m' : 'Late',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'early_leave':
+        final minutes = problem.actualMinutes ?? 0;
+        return _ProblemTag(
+          label: minutes > 0 ? 'Early -${minutes}m' : 'Early',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'overtime':
+        final minutes = problem.actualMinutes ?? 0;
+        return _ProblemTag(
+          label: minutes > 0 ? 'OT +${minutes}m' : 'OT',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'reported':
+        return _ProblemTag(
+          label: 'Reported',
+          isSolved: isSolved,
+          isReport: true,
+        );
+      case 'location_issue':
+        return _ProblemTag(
+          label: 'Location',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      case 'invalid_checkin':
+        return _ProblemTag(
+          label: 'Invalid Check-in',
+          isSolved: isSolved,
+          isReport: false,
+        );
+      default:
+        // Unknown type - show generic tag with type name
+        return _ProblemTag(
+          label: problem.type,
+          isSolved: isSolved,
+          isReport: false,
+        );
+    }
+  }
+
+}
+
+/// Problem tag widget
+///
+/// Colors:
+/// - 🔴 Red background: Unsolved problem
+/// - 🟠 Orange background: Unsolved report
+/// - ⚪ Gray background + ✓: Solved
+class _ProblemTag extends StatelessWidget {
+  final String label;
+  final bool isSolved;
+  final bool isReport; // Orange for reports, red for problems
+
+  const _ProblemTag({
+    required this.label,
+    required this.isSolved,
+    required this.isReport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color backgroundColor;
+    final Color textColor;
+
+    if (isSolved) {
+      // Solved: Gray background
+      backgroundColor = TossColors.gray200;
+      textColor = TossColors.gray600;
+    } else if (isReport) {
+      // Unsolved report: Orange background
+      backgroundColor = TossColors.warning.withValues(alpha: 0.15);
+      textColor = TossColors.warning;
+    } else {
+      // Unsolved problem: Red background
+      backgroundColor = TossColors.error.withValues(alpha: 0.15);
+      textColor = TossColors.error;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
+          ),
+          if (isSolved) ...[
+            const SizedBox(width: 2),
+            Icon(
+              Icons.check,
+              size: 10,
+              color: textColor,
+            ),
+          ],
+        ],
       ),
     );
   }

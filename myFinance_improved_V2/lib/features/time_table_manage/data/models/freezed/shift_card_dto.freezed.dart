@@ -100,6 +100,9 @@ mixin _$ShiftCardDto {
       throw _privateConstructorUsedError; // v4: Manager memos (jsonb array)
   @JsonKey(name: 'manager_memo')
   List<ManagerMemoDto> get managerMemos =>
+      throw _privateConstructorUsedError; // v5: Problem details (jsonb)
+  @JsonKey(name: 'problem_details')
+  ProblemDetailsDto? get problemDetails =>
       throw _privateConstructorUsedError; // Location validation (NEW in RPC)
   @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation => throw _privateConstructorUsedError;
@@ -162,6 +165,7 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       @JsonKey(name: 'report_reason') String? reportReason,
       @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
+      @JsonKey(name: 'problem_details') ProblemDetailsDto? problemDetails,
       @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
@@ -170,6 +174,8 @@ abstract class $ShiftCardDtoCopyWith<$Res> {
       @JsonKey(name: 'checkout_distance_from_store')
       double checkoutDistanceFromStore,
       @JsonKey(name: 'store_name') String? storeName});
+
+  $ProblemDetailsDtoCopyWith<$Res>? get problemDetails;
 }
 
 /// @nodoc
@@ -219,6 +225,7 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
     Object? reportReason = freezed,
     Object? isReportedSolved = freezed,
     Object? managerMemos = null,
+    Object? problemDetails = freezed,
     Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
     Object? isValidCheckoutLocation = freezed,
@@ -354,6 +361,10 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           ? _value.managerMemos
           : managerMemos // ignore: cast_nullable_to_non_nullable
               as List<ManagerMemoDto>,
+      problemDetails: freezed == problemDetails
+          ? _value.problemDetails
+          : problemDetails // ignore: cast_nullable_to_non_nullable
+              as ProblemDetailsDto?,
       isValidCheckinLocation: freezed == isValidCheckinLocation
           ? _value.isValidCheckinLocation
           : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
@@ -375,6 +386,20 @@ class _$ShiftCardDtoCopyWithImpl<$Res, $Val extends ShiftCardDto>
           : storeName // ignore: cast_nullable_to_non_nullable
               as String?,
     ) as $Val);
+  }
+
+  /// Create a copy of ShiftCardDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProblemDetailsDtoCopyWith<$Res>? get problemDetails {
+    if (_value.problemDetails == null) {
+      return null;
+    }
+
+    return $ProblemDetailsDtoCopyWith<$Res>(_value.problemDetails!, (value) {
+      return _then(_value.copyWith(problemDetails: value) as $Val);
+    });
   }
 }
 
@@ -419,6 +444,7 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
       @JsonKey(name: 'report_reason') String? reportReason,
       @JsonKey(name: 'is_reported_solved') bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') List<ManagerMemoDto> managerMemos,
+      @JsonKey(name: 'problem_details') ProblemDetailsDto? problemDetails,
       @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       double checkinDistanceFromStore,
@@ -427,6 +453,9 @@ abstract class _$$ShiftCardDtoImplCopyWith<$Res>
       @JsonKey(name: 'checkout_distance_from_store')
       double checkoutDistanceFromStore,
       @JsonKey(name: 'store_name') String? storeName});
+
+  @override
+  $ProblemDetailsDtoCopyWith<$Res>? get problemDetails;
 }
 
 /// @nodoc
@@ -474,6 +503,7 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
     Object? reportReason = freezed,
     Object? isReportedSolved = freezed,
     Object? managerMemos = null,
+    Object? problemDetails = freezed,
     Object? isValidCheckinLocation = freezed,
     Object? checkinDistanceFromStore = null,
     Object? isValidCheckoutLocation = freezed,
@@ -609,6 +639,10 @@ class __$$ShiftCardDtoImplCopyWithImpl<$Res>
           ? _value._managerMemos
           : managerMemos // ignore: cast_nullable_to_non_nullable
               as List<ManagerMemoDto>,
+      problemDetails: freezed == problemDetails
+          ? _value.problemDetails
+          : problemDetails // ignore: cast_nullable_to_non_nullable
+              as ProblemDetailsDto?,
       isValidCheckinLocation: freezed == isValidCheckinLocation
           ? _value.isValidCheckinLocation
           : isValidCheckinLocation // ignore: cast_nullable_to_non_nullable
@@ -670,6 +704,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
       @JsonKey(name: 'is_reported_solved') this.isReportedSolved,
       @JsonKey(name: 'manager_memo')
       final List<ManagerMemoDto> managerMemos = const [],
+      @JsonKey(name: 'problem_details') this.problemDetails,
       @JsonKey(name: 'is_valid_checkin_location') this.isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
       this.checkinDistanceFromStore = 0.0,
@@ -809,6 +844,10 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
     return EqualUnmodifiableListView(_managerMemos);
   }
 
+// v5: Problem details (jsonb)
+  @override
+  @JsonKey(name: 'problem_details')
+  final ProblemDetailsDto? problemDetails;
 // Location validation (NEW in RPC)
   @override
   @JsonKey(name: 'is_valid_checkin_location')
@@ -829,7 +868,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
 
   @override
   String toString() {
-    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isReportedSolved: $isReportedSolved, managerMemos: $managerMemos, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
+    return 'ShiftCardDto(shiftDate: $shiftDate, shiftRequestId: $shiftRequestId, userId: $userId, userName: $userName, profileImage: $profileImage, shiftName: $shiftName, shiftTime: $shiftTime, shiftStartTime: $shiftStartTime, shiftEndTime: $shiftEndTime, isApproved: $isApproved, isProblem: $isProblem, isProblemSolved: $isProblemSolved, isLate: $isLate, lateMinute: $lateMinute, isOverTime: $isOverTime, overTimeMinute: $overTimeMinute, paidHour: $paidHour, salaryType: $salaryType, salaryAmount: $salaryAmount, basePay: $basePay, totalPayWithBonus: $totalPayWithBonus, bonusAmount: $bonusAmount, actualStart: $actualStart, actualEnd: $actualEnd, confirmStartTime: $confirmStartTime, confirmEndTime: $confirmEndTime, noticeTags: $noticeTags, problemType: $problemType, isReported: $isReported, reportReason: $reportReason, isReportedSolved: $isReportedSolved, managerMemos: $managerMemos, problemDetails: $problemDetails, isValidCheckinLocation: $isValidCheckinLocation, checkinDistanceFromStore: $checkinDistanceFromStore, isValidCheckoutLocation: $isValidCheckoutLocation, checkoutDistanceFromStore: $checkoutDistanceFromStore, storeName: $storeName)';
   }
 
   @override
@@ -898,6 +937,8 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
                 other.isReportedSolved == isReportedSolved) &&
             const DeepCollectionEquality()
                 .equals(other._managerMemos, _managerMemos) &&
+            (identical(other.problemDetails, problemDetails) ||
+                other.problemDetails == problemDetails) &&
             (identical(other.isValidCheckinLocation, isValidCheckinLocation) ||
                 other.isValidCheckinLocation == isValidCheckinLocation) &&
             (identical(
@@ -949,6 +990,7 @@ class _$ShiftCardDtoImpl implements _ShiftCardDto {
         reportReason,
         isReportedSolved,
         const DeepCollectionEquality().hash(_managerMemos),
+        problemDetails,
         isValidCheckinLocation,
         checkinDistanceFromStore,
         isValidCheckoutLocation,
@@ -1008,6 +1050,7 @@ abstract class _ShiftCardDto implements ShiftCardDto {
       @JsonKey(name: 'report_reason') final String? reportReason,
       @JsonKey(name: 'is_reported_solved') final bool? isReportedSolved,
       @JsonKey(name: 'manager_memo') final List<ManagerMemoDto> managerMemos,
+      @JsonKey(name: 'problem_details') final ProblemDetailsDto? problemDetails,
       @JsonKey(name: 'is_valid_checkin_location')
       final bool? isValidCheckinLocation,
       @JsonKey(name: 'checkin_distance_from_store')
@@ -1122,7 +1165,10 @@ abstract class _ShiftCardDto implements ShiftCardDto {
   bool? get isReportedSolved; // v4: Manager memos (jsonb array)
   @override
   @JsonKey(name: 'manager_memo')
-  List<ManagerMemoDto> get managerMemos; // Location validation (NEW in RPC)
+  List<ManagerMemoDto> get managerMemos; // v5: Problem details (jsonb)
+  @override
+  @JsonKey(name: 'problem_details')
+  ProblemDetailsDto? get problemDetails; // Location validation (NEW in RPC)
   @override
   @JsonKey(name: 'is_valid_checkin_location')
   bool? get isValidCheckinLocation;
@@ -1646,5 +1692,801 @@ abstract class _ManagerMemoDto implements ManagerMemoDto {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ManagerMemoDtoImplCopyWith<_$ManagerMemoDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ProblemDetailsDto _$ProblemDetailsDtoFromJson(Map<String, dynamic> json) {
+  return _ProblemDetailsDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProblemDetailsDto {
+  @JsonKey(name: 'has_late')
+  bool get hasLate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_overtime')
+  bool get hasOvertime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_reported')
+  bool get hasReported => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_no_checkout')
+  bool get hasNoCheckout => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_absence')
+  bool get hasAbsence => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_early_leave')
+  bool get hasEarlyLeave => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_location_issue')
+  bool get hasLocationIssue => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_payroll_late')
+  bool get hasPayrollLate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_payroll_overtime')
+  bool get hasPayrollOvertime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_payroll_early_leave')
+  bool get hasPayrollEarlyLeave => throw _privateConstructorUsedError;
+  @JsonKey(name: 'problem_count')
+  int get problemCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_solved')
+  bool get isSolved => throw _privateConstructorUsedError;
+  @JsonKey(name: 'detected_at')
+  String? get detectedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'problems')
+  List<ProblemItemDto> get problems => throw _privateConstructorUsedError;
+
+  /// Serializes this ProblemDetailsDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProblemDetailsDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProblemDetailsDtoCopyWith<ProblemDetailsDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProblemDetailsDtoCopyWith<$Res> {
+  factory $ProblemDetailsDtoCopyWith(
+          ProblemDetailsDto value, $Res Function(ProblemDetailsDto) then) =
+      _$ProblemDetailsDtoCopyWithImpl<$Res, ProblemDetailsDto>;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'has_late') bool hasLate,
+      @JsonKey(name: 'has_overtime') bool hasOvertime,
+      @JsonKey(name: 'has_reported') bool hasReported,
+      @JsonKey(name: 'has_no_checkout') bool hasNoCheckout,
+      @JsonKey(name: 'has_absence') bool hasAbsence,
+      @JsonKey(name: 'has_early_leave') bool hasEarlyLeave,
+      @JsonKey(name: 'has_location_issue') bool hasLocationIssue,
+      @JsonKey(name: 'has_payroll_late') bool hasPayrollLate,
+      @JsonKey(name: 'has_payroll_overtime') bool hasPayrollOvertime,
+      @JsonKey(name: 'has_payroll_early_leave') bool hasPayrollEarlyLeave,
+      @JsonKey(name: 'problem_count') int problemCount,
+      @JsonKey(name: 'is_solved') bool isSolved,
+      @JsonKey(name: 'detected_at') String? detectedAt,
+      @JsonKey(name: 'problems') List<ProblemItemDto> problems});
+}
+
+/// @nodoc
+class _$ProblemDetailsDtoCopyWithImpl<$Res, $Val extends ProblemDetailsDto>
+    implements $ProblemDetailsDtoCopyWith<$Res> {
+  _$ProblemDetailsDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProblemDetailsDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? hasLate = null,
+    Object? hasOvertime = null,
+    Object? hasReported = null,
+    Object? hasNoCheckout = null,
+    Object? hasAbsence = null,
+    Object? hasEarlyLeave = null,
+    Object? hasLocationIssue = null,
+    Object? hasPayrollLate = null,
+    Object? hasPayrollOvertime = null,
+    Object? hasPayrollEarlyLeave = null,
+    Object? problemCount = null,
+    Object? isSolved = null,
+    Object? detectedAt = freezed,
+    Object? problems = null,
+  }) {
+    return _then(_value.copyWith(
+      hasLate: null == hasLate
+          ? _value.hasLate
+          : hasLate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasOvertime: null == hasOvertime
+          ? _value.hasOvertime
+          : hasOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasReported: null == hasReported
+          ? _value.hasReported
+          : hasReported // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasNoCheckout: null == hasNoCheckout
+          ? _value.hasNoCheckout
+          : hasNoCheckout // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasAbsence: null == hasAbsence
+          ? _value.hasAbsence
+          : hasAbsence // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasEarlyLeave: null == hasEarlyLeave
+          ? _value.hasEarlyLeave
+          : hasEarlyLeave // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasLocationIssue: null == hasLocationIssue
+          ? _value.hasLocationIssue
+          : hasLocationIssue // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollLate: null == hasPayrollLate
+          ? _value.hasPayrollLate
+          : hasPayrollLate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollOvertime: null == hasPayrollOvertime
+          ? _value.hasPayrollOvertime
+          : hasPayrollOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollEarlyLeave: null == hasPayrollEarlyLeave
+          ? _value.hasPayrollEarlyLeave
+          : hasPayrollEarlyLeave // ignore: cast_nullable_to_non_nullable
+              as bool,
+      problemCount: null == problemCount
+          ? _value.problemCount
+          : problemCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isSolved: null == isSolved
+          ? _value.isSolved
+          : isSolved // ignore: cast_nullable_to_non_nullable
+              as bool,
+      detectedAt: freezed == detectedAt
+          ? _value.detectedAt
+          : detectedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      problems: null == problems
+          ? _value.problems
+          : problems // ignore: cast_nullable_to_non_nullable
+              as List<ProblemItemDto>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ProblemDetailsDtoImplCopyWith<$Res>
+    implements $ProblemDetailsDtoCopyWith<$Res> {
+  factory _$$ProblemDetailsDtoImplCopyWith(_$ProblemDetailsDtoImpl value,
+          $Res Function(_$ProblemDetailsDtoImpl) then) =
+      __$$ProblemDetailsDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'has_late') bool hasLate,
+      @JsonKey(name: 'has_overtime') bool hasOvertime,
+      @JsonKey(name: 'has_reported') bool hasReported,
+      @JsonKey(name: 'has_no_checkout') bool hasNoCheckout,
+      @JsonKey(name: 'has_absence') bool hasAbsence,
+      @JsonKey(name: 'has_early_leave') bool hasEarlyLeave,
+      @JsonKey(name: 'has_location_issue') bool hasLocationIssue,
+      @JsonKey(name: 'has_payroll_late') bool hasPayrollLate,
+      @JsonKey(name: 'has_payroll_overtime') bool hasPayrollOvertime,
+      @JsonKey(name: 'has_payroll_early_leave') bool hasPayrollEarlyLeave,
+      @JsonKey(name: 'problem_count') int problemCount,
+      @JsonKey(name: 'is_solved') bool isSolved,
+      @JsonKey(name: 'detected_at') String? detectedAt,
+      @JsonKey(name: 'problems') List<ProblemItemDto> problems});
+}
+
+/// @nodoc
+class __$$ProblemDetailsDtoImplCopyWithImpl<$Res>
+    extends _$ProblemDetailsDtoCopyWithImpl<$Res, _$ProblemDetailsDtoImpl>
+    implements _$$ProblemDetailsDtoImplCopyWith<$Res> {
+  __$$ProblemDetailsDtoImplCopyWithImpl(_$ProblemDetailsDtoImpl _value,
+      $Res Function(_$ProblemDetailsDtoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProblemDetailsDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? hasLate = null,
+    Object? hasOvertime = null,
+    Object? hasReported = null,
+    Object? hasNoCheckout = null,
+    Object? hasAbsence = null,
+    Object? hasEarlyLeave = null,
+    Object? hasLocationIssue = null,
+    Object? hasPayrollLate = null,
+    Object? hasPayrollOvertime = null,
+    Object? hasPayrollEarlyLeave = null,
+    Object? problemCount = null,
+    Object? isSolved = null,
+    Object? detectedAt = freezed,
+    Object? problems = null,
+  }) {
+    return _then(_$ProblemDetailsDtoImpl(
+      hasLate: null == hasLate
+          ? _value.hasLate
+          : hasLate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasOvertime: null == hasOvertime
+          ? _value.hasOvertime
+          : hasOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasReported: null == hasReported
+          ? _value.hasReported
+          : hasReported // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasNoCheckout: null == hasNoCheckout
+          ? _value.hasNoCheckout
+          : hasNoCheckout // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasAbsence: null == hasAbsence
+          ? _value.hasAbsence
+          : hasAbsence // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasEarlyLeave: null == hasEarlyLeave
+          ? _value.hasEarlyLeave
+          : hasEarlyLeave // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasLocationIssue: null == hasLocationIssue
+          ? _value.hasLocationIssue
+          : hasLocationIssue // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollLate: null == hasPayrollLate
+          ? _value.hasPayrollLate
+          : hasPayrollLate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollOvertime: null == hasPayrollOvertime
+          ? _value.hasPayrollOvertime
+          : hasPayrollOvertime // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasPayrollEarlyLeave: null == hasPayrollEarlyLeave
+          ? _value.hasPayrollEarlyLeave
+          : hasPayrollEarlyLeave // ignore: cast_nullable_to_non_nullable
+              as bool,
+      problemCount: null == problemCount
+          ? _value.problemCount
+          : problemCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isSolved: null == isSolved
+          ? _value.isSolved
+          : isSolved // ignore: cast_nullable_to_non_nullable
+              as bool,
+      detectedAt: freezed == detectedAt
+          ? _value.detectedAt
+          : detectedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      problems: null == problems
+          ? _value._problems
+          : problems // ignore: cast_nullable_to_non_nullable
+              as List<ProblemItemDto>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ProblemDetailsDtoImpl implements _ProblemDetailsDto {
+  const _$ProblemDetailsDtoImpl(
+      {@JsonKey(name: 'has_late') this.hasLate = false,
+      @JsonKey(name: 'has_overtime') this.hasOvertime = false,
+      @JsonKey(name: 'has_reported') this.hasReported = false,
+      @JsonKey(name: 'has_no_checkout') this.hasNoCheckout = false,
+      @JsonKey(name: 'has_absence') this.hasAbsence = false,
+      @JsonKey(name: 'has_early_leave') this.hasEarlyLeave = false,
+      @JsonKey(name: 'has_location_issue') this.hasLocationIssue = false,
+      @JsonKey(name: 'has_payroll_late') this.hasPayrollLate = false,
+      @JsonKey(name: 'has_payroll_overtime') this.hasPayrollOvertime = false,
+      @JsonKey(name: 'has_payroll_early_leave')
+      this.hasPayrollEarlyLeave = false,
+      @JsonKey(name: 'problem_count') this.problemCount = 0,
+      @JsonKey(name: 'is_solved') this.isSolved = false,
+      @JsonKey(name: 'detected_at') this.detectedAt,
+      @JsonKey(name: 'problems')
+      final List<ProblemItemDto> problems = const []})
+      : _problems = problems;
+
+  factory _$ProblemDetailsDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProblemDetailsDtoImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'has_late')
+  final bool hasLate;
+  @override
+  @JsonKey(name: 'has_overtime')
+  final bool hasOvertime;
+  @override
+  @JsonKey(name: 'has_reported')
+  final bool hasReported;
+  @override
+  @JsonKey(name: 'has_no_checkout')
+  final bool hasNoCheckout;
+  @override
+  @JsonKey(name: 'has_absence')
+  final bool hasAbsence;
+  @override
+  @JsonKey(name: 'has_early_leave')
+  final bool hasEarlyLeave;
+  @override
+  @JsonKey(name: 'has_location_issue')
+  final bool hasLocationIssue;
+  @override
+  @JsonKey(name: 'has_payroll_late')
+  final bool hasPayrollLate;
+  @override
+  @JsonKey(name: 'has_payroll_overtime')
+  final bool hasPayrollOvertime;
+  @override
+  @JsonKey(name: 'has_payroll_early_leave')
+  final bool hasPayrollEarlyLeave;
+  @override
+  @JsonKey(name: 'problem_count')
+  final int problemCount;
+  @override
+  @JsonKey(name: 'is_solved')
+  final bool isSolved;
+  @override
+  @JsonKey(name: 'detected_at')
+  final String? detectedAt;
+  final List<ProblemItemDto> _problems;
+  @override
+  @JsonKey(name: 'problems')
+  List<ProblemItemDto> get problems {
+    if (_problems is EqualUnmodifiableListView) return _problems;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_problems);
+  }
+
+  @override
+  String toString() {
+    return 'ProblemDetailsDto(hasLate: $hasLate, hasOvertime: $hasOvertime, hasReported: $hasReported, hasNoCheckout: $hasNoCheckout, hasAbsence: $hasAbsence, hasEarlyLeave: $hasEarlyLeave, hasLocationIssue: $hasLocationIssue, hasPayrollLate: $hasPayrollLate, hasPayrollOvertime: $hasPayrollOvertime, hasPayrollEarlyLeave: $hasPayrollEarlyLeave, problemCount: $problemCount, isSolved: $isSolved, detectedAt: $detectedAt, problems: $problems)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProblemDetailsDtoImpl &&
+            (identical(other.hasLate, hasLate) || other.hasLate == hasLate) &&
+            (identical(other.hasOvertime, hasOvertime) ||
+                other.hasOvertime == hasOvertime) &&
+            (identical(other.hasReported, hasReported) ||
+                other.hasReported == hasReported) &&
+            (identical(other.hasNoCheckout, hasNoCheckout) ||
+                other.hasNoCheckout == hasNoCheckout) &&
+            (identical(other.hasAbsence, hasAbsence) ||
+                other.hasAbsence == hasAbsence) &&
+            (identical(other.hasEarlyLeave, hasEarlyLeave) ||
+                other.hasEarlyLeave == hasEarlyLeave) &&
+            (identical(other.hasLocationIssue, hasLocationIssue) ||
+                other.hasLocationIssue == hasLocationIssue) &&
+            (identical(other.hasPayrollLate, hasPayrollLate) ||
+                other.hasPayrollLate == hasPayrollLate) &&
+            (identical(other.hasPayrollOvertime, hasPayrollOvertime) ||
+                other.hasPayrollOvertime == hasPayrollOvertime) &&
+            (identical(other.hasPayrollEarlyLeave, hasPayrollEarlyLeave) ||
+                other.hasPayrollEarlyLeave == hasPayrollEarlyLeave) &&
+            (identical(other.problemCount, problemCount) ||
+                other.problemCount == problemCount) &&
+            (identical(other.isSolved, isSolved) ||
+                other.isSolved == isSolved) &&
+            (identical(other.detectedAt, detectedAt) ||
+                other.detectedAt == detectedAt) &&
+            const DeepCollectionEquality().equals(other._problems, _problems));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      hasLate,
+      hasOvertime,
+      hasReported,
+      hasNoCheckout,
+      hasAbsence,
+      hasEarlyLeave,
+      hasLocationIssue,
+      hasPayrollLate,
+      hasPayrollOvertime,
+      hasPayrollEarlyLeave,
+      problemCount,
+      isSolved,
+      detectedAt,
+      const DeepCollectionEquality().hash(_problems));
+
+  /// Create a copy of ProblemDetailsDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProblemDetailsDtoImplCopyWith<_$ProblemDetailsDtoImpl> get copyWith =>
+      __$$ProblemDetailsDtoImplCopyWithImpl<_$ProblemDetailsDtoImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProblemDetailsDtoImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ProblemDetailsDto implements ProblemDetailsDto {
+  const factory _ProblemDetailsDto(
+      {@JsonKey(name: 'has_late') final bool hasLate,
+      @JsonKey(name: 'has_overtime') final bool hasOvertime,
+      @JsonKey(name: 'has_reported') final bool hasReported,
+      @JsonKey(name: 'has_no_checkout') final bool hasNoCheckout,
+      @JsonKey(name: 'has_absence') final bool hasAbsence,
+      @JsonKey(name: 'has_early_leave') final bool hasEarlyLeave,
+      @JsonKey(name: 'has_location_issue') final bool hasLocationIssue,
+      @JsonKey(name: 'has_payroll_late') final bool hasPayrollLate,
+      @JsonKey(name: 'has_payroll_overtime') final bool hasPayrollOvertime,
+      @JsonKey(name: 'has_payroll_early_leave') final bool hasPayrollEarlyLeave,
+      @JsonKey(name: 'problem_count') final int problemCount,
+      @JsonKey(name: 'is_solved') final bool isSolved,
+      @JsonKey(name: 'detected_at') final String? detectedAt,
+      @JsonKey(name: 'problems')
+      final List<ProblemItemDto> problems}) = _$ProblemDetailsDtoImpl;
+
+  factory _ProblemDetailsDto.fromJson(Map<String, dynamic> json) =
+      _$ProblemDetailsDtoImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'has_late')
+  bool get hasLate;
+  @override
+  @JsonKey(name: 'has_overtime')
+  bool get hasOvertime;
+  @override
+  @JsonKey(name: 'has_reported')
+  bool get hasReported;
+  @override
+  @JsonKey(name: 'has_no_checkout')
+  bool get hasNoCheckout;
+  @override
+  @JsonKey(name: 'has_absence')
+  bool get hasAbsence;
+  @override
+  @JsonKey(name: 'has_early_leave')
+  bool get hasEarlyLeave;
+  @override
+  @JsonKey(name: 'has_location_issue')
+  bool get hasLocationIssue;
+  @override
+  @JsonKey(name: 'has_payroll_late')
+  bool get hasPayrollLate;
+  @override
+  @JsonKey(name: 'has_payroll_overtime')
+  bool get hasPayrollOvertime;
+  @override
+  @JsonKey(name: 'has_payroll_early_leave')
+  bool get hasPayrollEarlyLeave;
+  @override
+  @JsonKey(name: 'problem_count')
+  int get problemCount;
+  @override
+  @JsonKey(name: 'is_solved')
+  bool get isSolved;
+  @override
+  @JsonKey(name: 'detected_at')
+  String? get detectedAt;
+  @override
+  @JsonKey(name: 'problems')
+  List<ProblemItemDto> get problems;
+
+  /// Create a copy of ProblemDetailsDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProblemDetailsDtoImplCopyWith<_$ProblemDetailsDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ProblemItemDto _$ProblemItemDtoFromJson(Map<String, dynamic> json) {
+  return _ProblemItemDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProblemItemDto {
+  @JsonKey(name: 'type')
+  String? get type => throw _privateConstructorUsedError;
+  @JsonKey(name: 'actual_minutes')
+  int? get actualMinutes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payroll_minutes')
+  int? get payrollMinutes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_payroll_adjusted')
+  bool get isPayrollAdjusted =>
+      throw _privateConstructorUsedError; // For reported type
+  @JsonKey(name: 'reason')
+  String? get reason => throw _privateConstructorUsedError;
+  @JsonKey(name: 'reported_at')
+  String? get reportedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_report_solved')
+  bool get isReportSolved => throw _privateConstructorUsedError;
+
+  /// Serializes this ProblemItemDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProblemItemDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProblemItemDtoCopyWith<ProblemItemDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProblemItemDtoCopyWith<$Res> {
+  factory $ProblemItemDtoCopyWith(
+          ProblemItemDto value, $Res Function(ProblemItemDto) then) =
+      _$ProblemItemDtoCopyWithImpl<$Res, ProblemItemDto>;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'type') String? type,
+      @JsonKey(name: 'actual_minutes') int? actualMinutes,
+      @JsonKey(name: 'payroll_minutes') int? payrollMinutes,
+      @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted,
+      @JsonKey(name: 'reason') String? reason,
+      @JsonKey(name: 'reported_at') String? reportedAt,
+      @JsonKey(name: 'is_report_solved') bool isReportSolved});
+}
+
+/// @nodoc
+class _$ProblemItemDtoCopyWithImpl<$Res, $Val extends ProblemItemDto>
+    implements $ProblemItemDtoCopyWith<$Res> {
+  _$ProblemItemDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProblemItemDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = freezed,
+    Object? actualMinutes = freezed,
+    Object? payrollMinutes = freezed,
+    Object? isPayrollAdjusted = null,
+    Object? reason = freezed,
+    Object? reportedAt = freezed,
+    Object? isReportSolved = null,
+  }) {
+    return _then(_value.copyWith(
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      actualMinutes: freezed == actualMinutes
+          ? _value.actualMinutes
+          : actualMinutes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      payrollMinutes: freezed == payrollMinutes
+          ? _value.payrollMinutes
+          : payrollMinutes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      isPayrollAdjusted: null == isPayrollAdjusted
+          ? _value.isPayrollAdjusted
+          : isPayrollAdjusted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      reason: freezed == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      reportedAt: freezed == reportedAt
+          ? _value.reportedAt
+          : reportedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isReportSolved: null == isReportSolved
+          ? _value.isReportSolved
+          : isReportSolved // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ProblemItemDtoImplCopyWith<$Res>
+    implements $ProblemItemDtoCopyWith<$Res> {
+  factory _$$ProblemItemDtoImplCopyWith(_$ProblemItemDtoImpl value,
+          $Res Function(_$ProblemItemDtoImpl) then) =
+      __$$ProblemItemDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'type') String? type,
+      @JsonKey(name: 'actual_minutes') int? actualMinutes,
+      @JsonKey(name: 'payroll_minutes') int? payrollMinutes,
+      @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted,
+      @JsonKey(name: 'reason') String? reason,
+      @JsonKey(name: 'reported_at') String? reportedAt,
+      @JsonKey(name: 'is_report_solved') bool isReportSolved});
+}
+
+/// @nodoc
+class __$$ProblemItemDtoImplCopyWithImpl<$Res>
+    extends _$ProblemItemDtoCopyWithImpl<$Res, _$ProblemItemDtoImpl>
+    implements _$$ProblemItemDtoImplCopyWith<$Res> {
+  __$$ProblemItemDtoImplCopyWithImpl(
+      _$ProblemItemDtoImpl _value, $Res Function(_$ProblemItemDtoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProblemItemDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = freezed,
+    Object? actualMinutes = freezed,
+    Object? payrollMinutes = freezed,
+    Object? isPayrollAdjusted = null,
+    Object? reason = freezed,
+    Object? reportedAt = freezed,
+    Object? isReportSolved = null,
+  }) {
+    return _then(_$ProblemItemDtoImpl(
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      actualMinutes: freezed == actualMinutes
+          ? _value.actualMinutes
+          : actualMinutes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      payrollMinutes: freezed == payrollMinutes
+          ? _value.payrollMinutes
+          : payrollMinutes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      isPayrollAdjusted: null == isPayrollAdjusted
+          ? _value.isPayrollAdjusted
+          : isPayrollAdjusted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      reason: freezed == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      reportedAt: freezed == reportedAt
+          ? _value.reportedAt
+          : reportedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isReportSolved: null == isReportSolved
+          ? _value.isReportSolved
+          : isReportSolved // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ProblemItemDtoImpl implements _ProblemItemDto {
+  const _$ProblemItemDtoImpl(
+      {@JsonKey(name: 'type') this.type,
+      @JsonKey(name: 'actual_minutes') this.actualMinutes,
+      @JsonKey(name: 'payroll_minutes') this.payrollMinutes,
+      @JsonKey(name: 'is_payroll_adjusted') this.isPayrollAdjusted = false,
+      @JsonKey(name: 'reason') this.reason,
+      @JsonKey(name: 'reported_at') this.reportedAt,
+      @JsonKey(name: 'is_report_solved') this.isReportSolved = false});
+
+  factory _$ProblemItemDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProblemItemDtoImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'type')
+  final String? type;
+  @override
+  @JsonKey(name: 'actual_minutes')
+  final int? actualMinutes;
+  @override
+  @JsonKey(name: 'payroll_minutes')
+  final int? payrollMinutes;
+  @override
+  @JsonKey(name: 'is_payroll_adjusted')
+  final bool isPayrollAdjusted;
+// For reported type
+  @override
+  @JsonKey(name: 'reason')
+  final String? reason;
+  @override
+  @JsonKey(name: 'reported_at')
+  final String? reportedAt;
+  @override
+  @JsonKey(name: 'is_report_solved')
+  final bool isReportSolved;
+
+  @override
+  String toString() {
+    return 'ProblemItemDto(type: $type, actualMinutes: $actualMinutes, payrollMinutes: $payrollMinutes, isPayrollAdjusted: $isPayrollAdjusted, reason: $reason, reportedAt: $reportedAt, isReportSolved: $isReportSolved)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProblemItemDtoImpl &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.actualMinutes, actualMinutes) ||
+                other.actualMinutes == actualMinutes) &&
+            (identical(other.payrollMinutes, payrollMinutes) ||
+                other.payrollMinutes == payrollMinutes) &&
+            (identical(other.isPayrollAdjusted, isPayrollAdjusted) ||
+                other.isPayrollAdjusted == isPayrollAdjusted) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.reportedAt, reportedAt) ||
+                other.reportedAt == reportedAt) &&
+            (identical(other.isReportSolved, isReportSolved) ||
+                other.isReportSolved == isReportSolved));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, type, actualMinutes,
+      payrollMinutes, isPayrollAdjusted, reason, reportedAt, isReportSolved);
+
+  /// Create a copy of ProblemItemDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProblemItemDtoImplCopyWith<_$ProblemItemDtoImpl> get copyWith =>
+      __$$ProblemItemDtoImplCopyWithImpl<_$ProblemItemDtoImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProblemItemDtoImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ProblemItemDto implements ProblemItemDto {
+  const factory _ProblemItemDto(
+          {@JsonKey(name: 'type') final String? type,
+          @JsonKey(name: 'actual_minutes') final int? actualMinutes,
+          @JsonKey(name: 'payroll_minutes') final int? payrollMinutes,
+          @JsonKey(name: 'is_payroll_adjusted') final bool isPayrollAdjusted,
+          @JsonKey(name: 'reason') final String? reason,
+          @JsonKey(name: 'reported_at') final String? reportedAt,
+          @JsonKey(name: 'is_report_solved') final bool isReportSolved}) =
+      _$ProblemItemDtoImpl;
+
+  factory _ProblemItemDto.fromJson(Map<String, dynamic> json) =
+      _$ProblemItemDtoImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'type')
+  String? get type;
+  @override
+  @JsonKey(name: 'actual_minutes')
+  int? get actualMinutes;
+  @override
+  @JsonKey(name: 'payroll_minutes')
+  int? get payrollMinutes;
+  @override
+  @JsonKey(name: 'is_payroll_adjusted')
+  bool get isPayrollAdjusted; // For reported type
+  @override
+  @JsonKey(name: 'reason')
+  String? get reason;
+  @override
+  @JsonKey(name: 'reported_at')
+  String? get reportedAt;
+  @override
+  @JsonKey(name: 'is_report_solved')
+  bool get isReportSolved;
+
+  /// Create a copy of ProblemItemDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProblemItemDtoImplCopyWith<_$ProblemItemDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

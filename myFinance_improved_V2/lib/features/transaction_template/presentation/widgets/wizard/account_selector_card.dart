@@ -10,6 +10,7 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -205,25 +206,34 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           // My company's cash location for cash accounts
           if (_isCashAccount && widget.selectedAccountId != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            AutonomousCashLocationSelector(
-              selectedLocationId: widget.selectedMyCashLocationId,
-              // ✅ NEW: Type-safe callback
-              onCashLocationSelected: (cashLocation) {
-                widget.onMyCashLocationChanged(cashLocation.id);
-                widget.onMyCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+            Builder(
+              builder: (context) {
+                // ✅ 내 Cash Location: 현재 선택된 스토어의 storeId 사용
+                final appState = ref.watch(appStateProvider);
+                final myStoreId = appState.storeChoosen;
+
+                return AutonomousCashLocationSelector(
+                  selectedLocationId: widget.selectedMyCashLocationId,
+                  storeId: myStoreId, // ✅ 내 storeId 전달
+                  // ✅ NEW: Type-safe callback
+                  onCashLocationSelected: (cashLocation) {
+                    widget.onMyCashLocationChanged(cashLocation.id);
+                    widget.onMyCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+                  },
+                  // ✅ Legacy callback for null case
+                  onChanged: (locationId) {
+                    if (locationId == null) {
+                      widget.onMyCashLocationChanged(null);
+                      widget.onMyCashLocationChangedWithName(null, null);
+                    }
+                  },
+                  label: 'Cash Location',
+                  hint: 'Select cash location',
+                  showSearch: true,
+                  showTransactionCount: false,
+                  showScopeTabs: true,
+                );
               },
-              // ✅ Legacy callback for null case
-              onChanged: (locationId) {
-                if (locationId == null) {
-                  widget.onMyCashLocationChanged(null);
-                  widget.onMyCashLocationChangedWithName(null, null);
-                }
-              },
-              label: 'Cash Location',
-              hint: 'Select cash location',
-              showSearch: true,
-              showTransactionCount: false,
-              showScopeTabs: true,
             ),
           ],
         ],

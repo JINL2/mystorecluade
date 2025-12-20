@@ -93,20 +93,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
       final packages = await RevenueCatService().getAvailablePackages();
 
-      // Debug: Log loaded packages
-      debugPrint('📦 Loaded ${packages.length} packages:');
-      for (final p in packages) {
-        debugPrint('  - ${p.packageType.name}: ${p.storeProduct.identifier}');
-      }
-
       if (mounted) {
         setState(() {
           _packages = packages;
           _isLoadingPackages = false;
         });
       }
-    } catch (e) {
-      debugPrint('❌ Failed to load packages: $e');
+    } catch (_) {
       if (mounted) {
         setState(() {
           _errorMessage = 'Failed to load subscription options';
@@ -143,19 +136,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         final hasBasic = basicEntitlement != null;
         final hasAnySubscription = hasPro || hasBasic;
 
-        debugPrint('📊 Subscription Status:');
-        debugPrint('  - Has Pro: $hasPro');
-        debugPrint('  - Has Basic: $hasBasic');
-        debugPrint('  - Active Entitlements: ${customerInfo.entitlements.active.keys}');
-
         // Get active entitlement (pro takes priority)
         final activeEntitlement = proEntitlement ?? basicEntitlement;
-
-        if (activeEntitlement != null) {
-          debugPrint('  - Product ID: ${activeEntitlement.productIdentifier}');
-          debugPrint('  - Expires: ${activeEntitlement.expirationDate}');
-          debugPrint('  - Will Renew: ${activeEntitlement.willRenew}');
-        }
 
         setState(() {
           _hasActiveSubscription = hasAnySubscription;
@@ -181,8 +163,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           }
         });
       }
-    } catch (e) {
-      debugPrint('❌ Failed to load subscription status: $e');
+    } catch (_) {
+      // Subscription status load failure is not critical
     }
   }
 
@@ -1432,21 +1414,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     final periodName = _isAnnual ? 'yearly' : 'monthly';
     final targetIdentifier = '$planName.$periodName'; // e.g., 'basic.monthly', 'pro.yearly'
 
-    // Debug log
-    debugPrint('🛒 Subscribe clicked:');
-    debugPrint('  - Selected Plan: $planName');
-    debugPrint('  - Period: $periodName');
-    debugPrint('  - Target Identifier: $targetIdentifier');
-    debugPrint('  - Available packages: ${_packages.length}');
-
     // Find package by identifier (RevenueCat package identifier format)
     for (final package in _packages) {
-      debugPrint('  - Checking: ${package.identifier} contains $targetIdentifier?');
-
       // Match by package identifier (e.g., 'basic.monthly', 'pro.yearly')
       if (package.identifier == targetIdentifier) {
         targetPackage = package;
-        debugPrint('  ✅ Found matching package: ${package.storeProduct.identifier}');
         break;
       }
 
@@ -1456,14 +1428,12 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           ((_isAnnual && (productId.contains('annual') || productId.contains('yearly'))) ||
            (!_isAnnual && productId.contains('monthly')))) {
         targetPackage = package;
-        debugPrint('  ✅ Found matching package by product ID: ${package.storeProduct.identifier}');
         break;
       }
     }
 
     if (targetPackage == null) {
       // No package found - show error
-      debugPrint('  ❌ No matching package found!');
       _showErrorDialog('No subscription package found. Please try again later.');
       return;
     }
@@ -1481,7 +1451,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       });
 
       if (isAlreadySubscribed) {
-        debugPrint('  ⚠️ Already subscribed to $planName plan!');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1497,8 +1466,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         }
         return;
       }
-    } catch (e) {
-      debugPrint('  ⚠️ Could not check existing subscription: $e');
+    } catch (_) {
       // Continue with purchase attempt - RevenueCat will handle duplicates
     }
 
@@ -1538,8 +1506,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
   /// Refresh subscription state after purchase - updates both local state and Riverpod providers
   Future<void> _refreshSubscriptionState() async {
-    debugPrint('🔄 Refreshing subscription state after purchase...');
-
     // 1. Refresh local page state from RevenueCat
     await _loadSubscriptionStatus();
 
@@ -1547,8 +1513,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     ref.invalidate(proStatusProvider);
     ref.invalidate(subscriptionProvider);
     ref.invalidate(customerInfoProvider);
-
-    debugPrint('✅ Subscription state refreshed');
   }
 
   void _showSuccessDialog(String planName) {
@@ -1646,8 +1610,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
-    } catch (e) {
-      debugPrint('❌ Error opening subscription settings: $e');
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1759,9 +1722,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     setState(() => _isPurchasing = true);
 
     try {
-      debugPrint('🔄 Opening iOS Subscription Management Sheet...');
-      debugPrint('  - Active Product: $_activeProductId');
-
       // Find the package matching current subscription
       Package? currentPackage;
       for (final package in _packages) {
@@ -1773,21 +1733,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
       if (currentPackage != null) {
         // Attempt to purchase the same product - iOS will show management sheet
-        debugPrint('  - Triggering purchase for: ${currentPackage.storeProduct.identifier}');
         try {
           await Purchases.purchasePackage(currentPackage);
-        } catch (e) {
+        } catch (_) {
           // Expected - user will cancel from management sheet
-          debugPrint('  - User returned from management sheet: $e');
         }
       } else {
-        debugPrint('  - Package not found in list');
         // Try to find any package to trigger the sheet
         if (_packages.isNotEmpty) {
           try {
             await Purchases.purchasePackage(_packages.first);
-          } catch (e) {
-            debugPrint('  - User returned from management sheet: $e');
+          } catch (_) {
+            // Expected - user will cancel from management sheet
           }
         } else {
           _showErrorDialog('No packages available');
@@ -1799,7 +1756,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       await _syncAfterManagementSheet();
 
     } catch (e) {
-      debugPrint('❌ Cancel error: $e');
       if (mounted) {
         _showErrorDialog('Failed: $e');
       }
@@ -1816,15 +1772,12 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     setState(() => _isPurchasing = true);
 
     try {
-      debugPrint('🔄 [Sync Button] Invalidating RevenueCat cache...');
       // ⚠️ 캐시 무효화 - 서버에서 최신 데이터 가져오기
       await Purchases.invalidateCustomerInfoCache();
 
-      debugPrint('🔄 [Sync Button] Fetching latest state from RevenueCat...');
       final customerInfo = await Purchases.getCustomerInfo();
 
       final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
-      debugPrint('  - Active entitlements: ${customerInfo.entitlements.active.keys}');
 
       final userId = Supabase.instance.client.auth.currentUser!.id;
 
@@ -1840,11 +1793,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           final productId = activeEntitlement.productIdentifier;
           final expiresAt = activeEntitlement.expirationDate;
           final isTrial = activeEntitlement.periodType == PeriodType.trial;
-
-          debugPrint('  - Plan: $planType');
-          debugPrint('  - Will Renew: $willRenew');
-          debugPrint('  - Product ID: $productId');
-          debugPrint('  - Expires: $expiresAt');
 
           // Sync to DB
           await RevenueCatService().syncSubscriptionToDatabase(
@@ -1892,7 +1840,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       await _refreshSubscriptionState();
 
     } catch (e) {
-      debugPrint('❌ [Sync Button] Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1911,14 +1858,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   /// Sync subscription state after returning from iOS management sheet
   /// This correctly handles willRenew status for canceled subscriptions
   Future<void> _syncAfterManagementSheet() async {
-    debugPrint('🔄 Syncing subscription state from RevenueCat...');
     final customerInfo = await Purchases.getCustomerInfo();
 
     // Check for active entitlements
     final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
-
-    debugPrint('  - Active entitlements: ${customerInfo.entitlements.active.keys}');
-    debugPrint('  - Has active: $hasActiveEntitlements');
 
     final userId = Supabase.instance.client.auth.currentUser!.id;
 
@@ -1934,12 +1877,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         final productId = activeEntitlement.productIdentifier;
         final expiresAt = activeEntitlement.expirationDate;
         final isTrial = activeEntitlement.periodType == PeriodType.trial;
-
-        debugPrint('  - Plan: $planType');
-        debugPrint('  - Will Renew: $willRenew');
-        debugPrint('  - Product ID: $productId');
-        debugPrint('  - Expires: $expiresAt');
-        debugPrint('  - Is Trial: $isTrial');
 
         // Sync to DB with correct willRenew status
         await RevenueCatService().syncSubscriptionToDatabase(

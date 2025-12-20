@@ -6,6 +6,7 @@ import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
@@ -16,6 +17,7 @@ import '../../pages/staff_timelog_detail_page.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
 import 'attention_card.dart';
+import 'attention_timeline.dart';
 import 'shift_info_card.dart';
 import '../timesheets/staff_timelog_card.dart';
 
@@ -32,6 +34,8 @@ class OverviewTab extends ConsumerStatefulWidget {
   final void Function(String storeId)? onStoreChanged;
   /// Callback to navigate to Schedule tab with a specific date
   final void Function(DateTime date)? onNavigateToSchedule;
+  /// Callback to navigate to Problems tab with a specific date
+  final void Function(DateTime date)? onNavigateToProblems;
 
   const OverviewTab({
     super.key,
@@ -39,6 +43,7 @@ class OverviewTab extends ConsumerStatefulWidget {
     required this.onStoreSelectorTap,
     this.onStoreChanged,
     this.onNavigateToSchedule,
+    this.onNavigateToProblems,
   });
 
   @override
@@ -46,6 +51,75 @@ class OverviewTab extends ConsumerStatefulWidget {
 }
 
 class _OverviewTabState extends ConsumerState<OverviewTab> {
+  /// Center date for the attention timeline (defaults to today)
+  late DateTime _timelineCenterDate;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OPTIMIZATION: Cached computed values to avoid recalculation on each build
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Cached all cards from manager cards state (expensive to compute)
+  List<ShiftCard>? _cachedAllCards;
+  /// Hash of the last manager cards state to detect changes
+  int _lastCardsStateHash = 0;
+
+  /// Cached attention items (expensive to compute)
+  List<AttentionItemData>? _cachedAttentionItems;
+  /// Hash of inputs for attention items cache invalidation
+  int _lastAttentionInputsHash = 0;
+
+  /// Cached cards by shift lookup (Map<"shiftDate_shiftName", List<ShiftCard>>)
+  Map<String, List<ShiftCard>>? _cachedCardsByShift;
+
+  @override
+  void initState() {
+    super.initState();
+    _timelineCenterDate = DateTime.now();
+  }
+
+  /// Get all cards with caching (avoids repeated .expand() and .toList())
+  List<ShiftCard> _getAllCards(ManagerShiftCardsState? cardsState) {
+    if (cardsState == null) return [];
+
+    // Create a simple hash based on the number of months and total cards
+    final currentHash = cardsState.dataByMonth.length * 1000 +
+        cardsState.dataByMonth.values.fold<int>(0, (sum, m) => sum + m.cards.length);
+
+    if (_cachedAllCards != null && _lastCardsStateHash == currentHash) {
+      return _cachedAllCards!;
+    }
+
+    // Compute and cache
+    _cachedAllCards = cardsState.dataByMonth.values
+        .expand((managerCards) => managerCards.cards)
+        .toList();
+    _lastCardsStateHash = currentHash;
+
+    // Also rebuild the cards-by-shift lookup
+    _cachedCardsByShift = {};
+    for (final card in _cachedAllCards!) {
+      if (!card.isApproved) continue;
+      final key = '${card.shiftDate}_${card.shift.shiftName}';
+      _cachedCardsByShift!.putIfAbsent(key, () => []).add(card);
+    }
+
+    return _cachedAllCards!;
+  }
+
+  /// Move timeline to previous 5 days
+  void _navigateToPreviousDays() {
+    setState(() {
+      _timelineCenterDate = _timelineCenterDate.subtract(const Duration(days: 5));
+    });
+  }
+
+  /// Move timeline to next 5 days
+  void _navigateToNextDays() {
+    setState(() {
+      _timelineCenterDate = _timelineCenterDate.add(const Duration(days: 5));
+    });
+  }
+
   /// Format date for display (e.g., "Tue, 18 Jun 2025")
   String _formatDate(DateTime date) {
     final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -66,6 +140,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
 
   /// Get cards for a specific shift from manager cards data
   ///
+  /// OPTIMIZED: Uses cached lookup map instead of filtering all cards each time
   /// Note: RPC doesn't return shift_id, so we match by:
   /// - shiftDate (exact match)
   /// - shiftName (exact match)
@@ -77,17 +152,12 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   ) {
     if (cardsState == null) return [];
 
-    // Get all cards from all months
-    final allCards = cardsState.dataByMonth.values
-        .expand((managerCards) => managerCards.cards)
-        .toList();
+    // Ensure cache is populated
+    _getAllCards(cardsState);
 
-    // Filter by shift date, shift name, and approved status
-    return allCards.where((card) {
-      return card.shiftDate == shiftDate &&
-          card.shift.shiftName == shiftName &&
-          card.isApproved;
-    }).toList();
+    // O(1) lookup instead of O(n) filtering
+    final key = '${shiftDate}_$shiftName';
+    return _cachedCardsByShift?[key] ?? [];
   }
 
   @override
@@ -95,24 +165,68 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     final appState = ref.watch(appStateProvider);
     final stores = _extractStores(appState.user, appState.companyChoosen);
 
+    // If no store selected, show store selector only
+    if (widget.selectedStoreId == null || widget.selectedStoreId!.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStoreSelector(stores),
+            const SizedBox(height: TossSpacing.space6),
+            const Expanded(
+              child: Center(
+                child: Text('Please select a store'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Watch monthly shift status for current activity data
-    final monthlyStatusState = widget.selectedStoreId != null
-        ? ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!))
-        : null;
-    final allDailyShifts = monthlyStatusState?.allMonthlyStatuses
-        .expand((status) => status.dailyShifts)
-        .toList() ?? [];
+    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
 
     // Watch manager cards for attendance data (on-time/late/not-checked-in)
-    final managerCardsState = widget.selectedStoreId != null
-        ? ref.watch(managerCardsProvider(widget.selectedStoreId!))
-        : null;
+    final managerCardsState = ref.watch(managerCardsProvider(widget.selectedStoreId!));
 
     // Watch shift metadata for all available shifts (including those with 0 requests)
-    final shiftMetadataAsync = widget.selectedStoreId != null
-        ? ref.watch(shiftMetadataProvider(widget.selectedStoreId!))
-        : null;
-    final shiftMetadata = shiftMetadataAsync?.valueOrNull;
+    final shiftMetadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
+
+    // Check loading states - show loading until ALL data is ready
+    final isMonthlyStatusLoading = monthlyStatusState.isLoading;
+    final isManagerCardsLoading = managerCardsState.isLoading;
+    final isMetadataLoading = shiftMetadataAsync.isLoading;
+
+    // Show loading view until all data is ready
+    if (isMonthlyStatusLoading || isManagerCardsLoading || isMetadataLoading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStoreSelector(stores),
+            const Expanded(
+              child: TossLoadingView(
+                message: 'Loading shift data...',
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // All data is ready - extract values
+    final allDailyShifts = monthlyStatusState.allMonthlyStatuses
+        .expand((status) => status.dailyShifts)
+        .toList();
+    final shiftMetadata = shiftMetadataAsync.valueOrNull;
 
     // ✅ UseCase: Find current activity shift
     final findCurrentShiftUseCase = ref.watch(findCurrentShiftUseCaseProvider);
@@ -146,10 +260,8 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           _buildUpcomingCard(upcomingShift),
           const SizedBox(height: TossSpacing.space6),
 
-          // 4️⃣ Need Attention Section
-          _buildNeedAttentionHeader(managerCardsState, monthlyStatusState, shiftMetadata),
-          const SizedBox(height: TossSpacing.space2),
-          _buildNeedAttentionScroll(managerCardsState, monthlyStatusState, shiftMetadata),
+          // 4️⃣ Need Attention Section (Timeline View)
+          _buildNeedAttentionTimeline(managerCardsState, monthlyStatusState, shiftMetadata),
         ],
       ),
     );
@@ -198,11 +310,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     final cardsForShift = _getCardsForShift(managerCardsState, shift.shiftName ?? '', shiftDate);
 
     // ✅ UseCase: Calculate attendance status with consecutive shift support
-    // Extract all cards from managerCardsState for UseCase
-    final allCards = managerCardsState?.dataByMonth.values
-        .expand((managerCards) => managerCards.cards)
-        .toList();
-    final allCardsEntity = allCards != null
+    // OPTIMIZED: Use cached allCards instead of recomputing
+    final allCards = _getAllCards(managerCardsState);
+    final allCardsEntity = allCards.isNotEmpty
         ? ManagerShiftCards(
             storeId: widget.selectedStoreId ?? '',
             startDate: shiftDate,
@@ -262,7 +372,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           cards: attendance.notCheckedIn,
         ),
       ),
-      onEmployeeTap: (card) => _handleEmployeeTap(card, shift, allCards ?? []),
+      onEmployeeTap: (card) => _handleEmployeeTap(card, shift, allCards),
     );
   }
 
@@ -302,46 +412,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     );
   }
 
-  /// Build Need Attention header (without "See All" button)
-  Widget _buildNeedAttentionHeader(
-    ManagerShiftCardsState? managerCardsState,
-    MonthlyShiftStatusState? monthlyStatusState,
-    ShiftMetadata? shiftMetadata,
-  ) {
-    final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState, shiftMetadata);
-    // Filter to show only yesterday, today, tomorrow
-    final filteredItems = _filterByRecentDates(attentionItems);
-    final count = filteredItems.length;
-
-    return Text(
-      'Need Attention ($count)',
-      style: TossTextStyles.labelMedium.copyWith(
-        color: TossColors.gray600,
-      ),
-    );
-  }
-
-  /// Filter attention items to show only yesterday, today, and tomorrow
-  List<AttentionItemData> _filterByRecentDates(List<AttentionItemData> items) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final tomorrow = today.add(const Duration(days: 1));
-
-    return items.where((item) {
-      if (item.shiftDate == null) return false;
-      final itemDate = DateTime(
-        item.shiftDate!.year,
-        item.shiftDate!.month,
-        item.shiftDate!.day,
-      );
-      return itemDate.isAtSameMomentAs(yesterday) ||
-          itemDate.isAtSameMomentAs(today) ||
-          itemDate.isAtSameMomentAs(tomorrow);
-    }).toList();
-  }
-
-  /// Get attention items from real data
+  /// Get attention items from real data (with caching)
+  ///
+  /// OPTIMIZED: Results are cached and only recomputed when input data changes
   ///
   /// Sources:
   /// 1. manager_shift_get_cards_v4 (is_approved = true):
@@ -357,160 +430,170 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     MonthlyShiftStatusState? monthlyStatusState,
     ShiftMetadata? shiftMetadata,
   ) {
+    // Compute cache hash from input data
+    final cardsHash = managerCardsState?.dataByMonth.values
+        .fold<int>(0, (sum, m) => sum + m.cards.length) ?? 0;
+    final statusHash = monthlyStatusState?.allMonthlyStatuses
+        .fold<int>(0, (sum, s) => sum + s.dailyShifts.length) ?? 0;
+    final metadataHash = shiftMetadata?.activeShifts.length ?? 0;
+    final currentHash = cardsHash * 10000 + statusHash * 100 + metadataHash;
+
+    // Return cached result if inputs haven't changed
+    if (_cachedAttentionItems != null && _lastAttentionInputsHash == currentHash) {
+      return _cachedAttentionItems!;
+    }
+
     final List<AttentionItemData> items = [];
 
     // 1. Get attention items from manager cards (approved cards only)
-    if (managerCardsState != null) {
-      final allCards = managerCardsState.dataByMonth.values
-          .expand((managerCards) => managerCards.cards)
-          .where((card) => card.isApproved)
-          .toList();
+    // OPTIMIZED: Use cached allCards and filter approved
+    final allCards = _getAllCards(managerCardsState);
+    final approvedCards = allCards.where((card) => card.isApproved).toList();
 
-      for (final card in allCards) {
-        final shiftDate = DateTime.tryParse(card.shiftDate) ?? DateTime.now();
-        final dateStr = _formatDate(shiftDate);
-        final timeStr = _formatTimeRange(card.shift.planStartTime, card.shift.planEndTime);
+    for (final card in approvedCards) {
+      final shiftDate = DateTime.tryParse(card.shiftDate) ?? DateTime.now();
+      final dateStr = _formatDate(shiftDate);
+      final timeStr = _formatTimeRange(card.shift.planStartTime, card.shift.planEndTime);
 
-        // Parse shift end time and find consecutive end time
-        // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
-        // use the LAST shift's end time (18:00) for all shifts
-        final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
-        final shiftEndTime = _findConsecutiveEndTime(
+      // Parse shift end time and find consecutive end time
+      // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
+      // use the LAST shift's end time (18:00) for all shifts
+      final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
+      final shiftEndTime = _findConsecutiveEndTime(
+        staffId: card.employee.userId,
+        shiftDate: card.shiftDate,
+        currentShiftEndTime: currentShiftEndTime,
+        allCards: approvedCards,
+      );
+
+      // Common navigation data for staff items
+      AttentionItemData createStaffAttentionItem({
+        required AttentionType type,
+        required String subtext,
+      }) {
+        return AttentionItemData(
+          type: type,
+          title: card.employee.userName,
+          date: dateStr,
+          time: timeStr,
+          subtext: subtext,
+          // Navigation data
           staffId: card.employee.userId,
-          shiftDate: card.shiftDate,
-          currentShiftEndTime: currentShiftEndTime,
-          allCards: allCards,
+          shiftRequestId: card.shiftRequestId,
+          clockIn: card.actualStartTime != null
+              ? '${card.actualStartTime!.hour.toString().padLeft(2, '0')}:${card.actualStartTime!.minute.toString().padLeft(2, '0')}'
+              : '--:--',
+          clockOut: card.actualEndTime != null
+              ? '${card.actualEndTime!.hour.toString().padLeft(2, '0')}:${card.actualEndTime!.minute.toString().padLeft(2, '0')}'
+              : '--:--',
+          isLate: card.isLate,
+          isOvertime: card.isOverTime,
+          isConfirmed: card.confirmedStartTime != null || card.confirmedEndTime != null,
+          actualStart: card.actualStartTime?.toIso8601String(),
+          actualEnd: card.actualEndTime?.toIso8601String(),
+          confirmStartTime: card.confirmedStartTime?.toIso8601String(),
+          confirmEndTime: card.confirmedEndTime?.toIso8601String(),
+          isReported: card.isReported,
+          reportReason: card.reportReason,
+          isProblemSolved: card.isProblemSolved,
+          bonusAmount: card.bonusAmount ?? 0.0,
+          salaryType: card.salaryType,
+          salaryAmount: card.salaryAmount,
+          basePay: card.basePay,
+          totalPayWithBonus: card.totalPayWithBonus,
+          paidHour: card.paidHour,
+          lateMinute: card.lateMinute,
+          overtimeMinute: card.overTimeMinute,
+          avatarUrl: card.employee.profileImage,
+          shiftDate: shiftDate,
+          shiftName: card.shift.shiftName,
+          shiftTimeRange: timeStr,
+          isShiftProblem: false,
+          shiftEndTime: shiftEndTime,
         );
+      }
 
-        // Common navigation data for staff items
-        AttentionItemData createStaffAttentionItem({
-          required AttentionType type,
-          required String subtext,
-        }) {
-          return AttentionItemData(
-            type: type,
-            title: card.employee.userName,
-            date: dateStr,
-            time: timeStr,
-            subtext: subtext,
-            // Navigation data
-            staffId: card.employee.userId,
-            shiftRequestId: card.shiftRequestId,
-            clockIn: card.actualStartTime != null
-                ? '${card.actualStartTime!.hour.toString().padLeft(2, '0')}:${card.actualStartTime!.minute.toString().padLeft(2, '0')}'
-                : '--:--',
-            clockOut: card.actualEndTime != null
-                ? '${card.actualEndTime!.hour.toString().padLeft(2, '0')}:${card.actualEndTime!.minute.toString().padLeft(2, '0')}'
-                : '--:--',
-            isLate: card.isLate,
-            isOvertime: card.isOverTime,
-            isConfirmed: card.confirmedStartTime != null || card.confirmedEndTime != null,
-            actualStart: card.actualStartTime?.toIso8601String(),
-            actualEnd: card.actualEndTime?.toIso8601String(),
-            confirmStartTime: card.confirmedStartTime?.toIso8601String(),
-            confirmEndTime: card.confirmedEndTime?.toIso8601String(),
-            isReported: card.isReported,
-            reportReason: card.reportReason,
-            isProblemSolved: card.isProblemSolved,
-            bonusAmount: card.bonusAmount ?? 0.0,
-            salaryType: card.salaryType,
-            salaryAmount: card.salaryAmount,
-            basePay: card.basePay,
-            totalPayWithBonus: card.totalPayWithBonus,
-            paidHour: card.paidHour,
-            lateMinute: card.lateMinute,
-            overtimeMinute: card.overTimeMinute,
-            avatarUrl: card.employee.profileImage,
-            shiftDate: shiftDate,
-            shiftName: card.shift.shiftName,
-            shiftTimeRange: timeStr,
-            isShiftProblem: false,
-            shiftEndTime: shiftEndTime,
-          );
-        }
+      // Check each problem type - each gets its own card
+      // is_problem_solved = true → hide Late, Overtime, No check-in, No check-out, Early check-out
+      // is_reported_solved = true → hide Reported
 
-        // Check each problem type - each gets its own card
-        // is_problem_solved = true → hide Late, Overtime, No check-in, No check-out, Early check-out
-        // is_reported_solved = true → hide Reported
+      // 1. Late: is_late = true AND is_problem_solved = false
+      if (card.isLate && !card.isProblemSolved) {
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.late,
+            subtext: '${card.lateMinute} mins late',
+          ),
+        );
+      }
 
-        // 1. Late: is_late = true AND is_problem_solved = false
-        if (card.isLate && !card.isProblemSolved) {
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.late,
-              subtext: '${card.lateMinute} mins late',
-            ),
-          );
-        }
+      // 2. Reported: is_reported = true AND is_reported_solved != true (null or false)
+      if (card.isReported && card.isReportedSolved != true) {
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.reported,
+            subtext: card.reportReason ?? 'Reported',
+          ),
+        );
+      }
 
-        // 2. Reported: is_reported = true AND is_reported_solved != true (null or false)
-        if (card.isReported && card.isReportedSolved != true) {
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.reported,
-              subtext: card.reportReason ?? 'Reported',
-            ),
-          );
-        }
+      // 3. Overtime: is_overtime = true AND is_problem_solved = false
+      if (card.isOverTime && !card.isProblemSolved) {
+        final hours = card.overTimeMinute ~/ 60;
+        final mins = card.overTimeMinute % 60;
+        final overtimeStr = hours > 0
+            ? (mins > 0 ? '$hours hrs $mins mins overtime' : '$hours hrs overtime')
+            : '${card.overTimeMinute} mins overtime';
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.overtime,
+            subtext: overtimeStr,
+          ),
+        );
+      }
 
-        // 3. Overtime: is_overtime = true AND is_problem_solved = false
-        if (card.isOverTime && !card.isProblemSolved) {
-          final hours = card.overTimeMinute ~/ 60;
-          final mins = card.overTimeMinute % 60;
-          final overtimeStr = hours > 0
-              ? (mins > 0 ? '$hours hrs $mins mins overtime' : '$hours hrs overtime')
-              : '${card.overTimeMinute} mins overtime';
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.overtime,
-              subtext: overtimeStr,
-            ),
-          );
-        }
+      // 4. No check-in: actual_start = null AND is_problem_solved = false (shift has ended)
+      if (card.actualStartTime == null &&
+          !card.isProblemSolved &&
+          shiftEndTime != null &&
+          DateTime.now().isAfter(shiftEndTime)) {
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.noCheckIn,
+            subtext: 'No check-in recorded',
+          ),
+        );
+      }
 
-        // 4. No check-in: actual_start = null AND is_problem_solved = false (shift has ended)
-        if (card.actualStartTime == null &&
-            !card.isProblemSolved &&
-            shiftEndTime != null &&
-            DateTime.now().isAfter(shiftEndTime)) {
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.noCheckIn,
-              subtext: 'No check-in recorded',
-            ),
-          );
-        }
+      // 5. No check-out: actual_start exists AND actual_end = null AND is_problem_solved = false (shift has ended)
+      if (card.actualStartTime != null &&
+          card.actualEndTime == null &&
+          !card.isProblemSolved &&
+          shiftEndTime != null &&
+          DateTime.now().isAfter(shiftEndTime)) {
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.noCheckOut,
+            subtext: 'No check-out recorded',
+          ),
+        );
+      }
 
-        // 5. No check-out: actual_start exists AND actual_end = null AND is_problem_solved = false (shift has ended)
-        if (card.actualStartTime != null &&
-            card.actualEndTime == null &&
-            !card.isProblemSolved &&
-            shiftEndTime != null &&
-            DateTime.now().isAfter(shiftEndTime)) {
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.noCheckOut,
-              subtext: 'No check-out recorded',
-            ),
-          );
-        }
-
-        // 6. Early check-out: actual_end < current shift's end time AND is_problem_solved = false
-        // NOTE: Use currentShiftEndTime (this shift's end time), NOT shiftEndTime (consecutive end time)
-        final currentShiftEnd = _parseShiftEndTime(card.shiftEndTime);
-        if (card.actualStartTime != null &&
-            card.actualEndTime != null &&
-            !card.isProblemSolved &&
-            currentShiftEnd != null &&
-            card.actualEndTime!.isBefore(currentShiftEnd)) {
-          final diffMinutes = currentShiftEnd.difference(card.actualEndTime!).inMinutes;
-          items.add(
-            createStaffAttentionItem(
-              type: AttentionType.earlyCheckOut,
-              subtext: '$diffMinutes mins early',
-            ),
-          );
-        }
+      // 6. Early check-out: actual_end < current shift's end time AND is_problem_solved = false
+      // NOTE: Use currentShiftEndTime (this shift's end time), NOT shiftEndTime (consecutive end time)
+      final currentShiftEnd = _parseShiftEndTime(card.shiftEndTime);
+      if (card.actualStartTime != null &&
+          card.actualEndTime != null &&
+          !card.isProblemSolved &&
+          currentShiftEnd != null &&
+          card.actualEndTime!.isBefore(currentShiftEnd)) {
+        final diffMinutes = currentShiftEnd.difference(card.actualEndTime!).inMinutes;
+        items.add(
+          createStaffAttentionItem(
+            type: AttentionType.earlyCheckOut,
+            subtext: '$diffMinutes mins early',
+          ),
+        );
       }
     }
 
@@ -590,6 +673,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       }
     }
 
+    // Cache the result for next build
+    _cachedAttentionItems = items;
+    _lastAttentionInputsHash = currentHash;
+
     return items;
   }
 
@@ -619,112 +706,41 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     return '${extractTime(startTime)} – ${extractTime(endTime)}';
   }
 
-  /// Build Need Attention horizontal scroll
-  Widget _buildNeedAttentionScroll(
+  /// Build Need Attention Timeline (new design)
+  ///
+  /// Shows a 5-day timeline with:
+  /// - Blue dots = Understaffed shifts (tap → Schedule tab)
+  /// - Red dots = Staff problems (tap → Problems tab)
+  /// - Pagination: `< 7 more` and `5 more >` buttons
+  Widget _buildNeedAttentionTimeline(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
     ShiftMetadata? shiftMetadata,
   ) {
     final attentionItems = _getAttentionItems(managerCardsState, monthlyStatusState, shiftMetadata);
-    // Filter to show only yesterday, today, tomorrow
-    final filteredItems = _filterByRecentDates(attentionItems);
 
-    if (filteredItems.isEmpty) {
-      return const SizedBox(
-        height: 180,
-        child: Center(
-          child: Text('No items need attention'),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: filteredItems.length,
-        separatorBuilder: (context, index) => const SizedBox(width: TossSpacing.space3),
-        itemBuilder: (context, index) {
-          final item = filteredItems[index];
-          return AttentionCard(
-            item: item,
-            onTap: () => _handleAttentionItemTap(item),
-          );
-        },
-      ),
+    return AttentionTimeline(
+      items: attentionItems,
+      centerDate: _timelineCenterDate,
+      onDateTap: (date, hasProblem) {
+        // Tap on date circle: if has problems → Problems tab, otherwise → Schedule tab
+        if (hasProblem) {
+          widget.onNavigateToProblems?.call(date);
+        } else {
+          widget.onNavigateToSchedule?.call(date);
+        }
+      },
+      onUnderstaffedTap: (date) {
+        // Navigate to Schedule tab with the selected date
+        widget.onNavigateToSchedule?.call(date);
+      },
+      onProblemTap: (date) {
+        // Navigate to Problems tab with the selected date
+        widget.onNavigateToProblems?.call(date);
+      },
+      onPrevious: _navigateToPreviousDays,
+      onNext: _navigateToNextDays,
     );
-  }
-
-  /// Handle attention item tap - navigate to detail page if it's a staff issue
-  Future<void> _handleAttentionItemTap(AttentionItemData item) async {
-    // For shift-level issues (understaffed), navigate to Schedule tab with the date
-    if (item.isShiftProblem) {
-      if (item.shiftDate != null && widget.onNavigateToSchedule != null) {
-        widget.onNavigateToSchedule!(item.shiftDate!);
-      }
-      return;
-    }
-
-    // For staff-level issues (late, overtime, problem, reported), navigate to detail page
-    if (item.shiftRequestId == null) return;
-
-    // Create StaffTimeRecord from AttentionItemData
-    final staffRecord = StaffTimeRecord(
-      staffId: item.staffId ?? '',
-      staffName: item.title,
-      avatarUrl: item.avatarUrl,
-      clockIn: item.clockIn ?? '--:--',
-      clockOut: item.clockOut ?? '--:--',
-      isLate: item.isLate,
-      isOvertime: item.isOvertime,
-      needsConfirm: !item.isConfirmed,
-      isConfirmed: item.isConfirmed,
-      shiftRequestId: item.shiftRequestId,
-      actualStart: item.actualStart,
-      actualEnd: item.actualEnd,
-      confirmStartTime: item.confirmStartTime,
-      confirmEndTime: item.confirmEndTime,
-      isReported: item.isReported,
-      reportReason: item.reportReason,
-      isProblemSolved: item.isProblemSolved,
-      bonusAmount: item.bonusAmount,
-      salaryType: item.salaryType,
-      salaryAmount: item.salaryAmount,
-      basePay: item.basePay,
-      totalPayWithBonus: item.totalPayWithBonus,
-      paidHour: item.paidHour,
-      lateMinute: item.lateMinute,
-      overtimeMinute: item.overtimeMinute,
-      // v4: New fields
-      isReportedSolved: item.isReportedSolved,
-      managerMemos: item.managerMemos,
-      shiftEndTime: item.shiftEndTime,
-    );
-
-    // Format shift date for display
-    final shiftDateStr = item.shiftDate != null
-        ? DateFormat('EEE, d MMM yyyy').format(item.shiftDate!)
-        : item.date;
-
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (context) => StaffTimelogDetailPage(
-          staffRecord: staffRecord,
-          shiftName: item.shiftName ?? 'Shift',
-          shiftDate: shiftDateStr,
-          shiftTimeRange: item.shiftTimeRange ?? item.time,
-        ),
-      ),
-    );
-
-    // If save was successful, force refresh the data
-    if (result == true && widget.selectedStoreId != null) {
-      ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
-        month: DateTime.now(),
-        forceRefresh: true,
-      );
-      ref.invalidate(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    }
   }
 
   /// Handle employee tap from snapshot metrics - navigate to staff detail page

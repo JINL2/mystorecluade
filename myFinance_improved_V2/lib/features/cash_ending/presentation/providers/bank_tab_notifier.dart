@@ -74,6 +74,7 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
     required String storeId,
     required String locationId,
   }) async {
+    if (!mounted) return false;
     if (data is! BankBalance) {
       throw ArgumentError('Expected BankBalance, got ${data.runtimeType}');
     }
@@ -84,7 +85,8 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
       // ✅ UseCase handles validation and save
       await _saveBankBalanceUseCase.execute(data);
 
-      state = state.copyWith(isSaving: false);
+      if (!mounted) return true;
+      safeSetState(state.copyWith(isSaving: false));
 
       // Reload stock flows after save
       if (locationId.isNotEmpty) {
@@ -97,10 +99,10 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
 
       return true;
     } catch (e) {
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
-      );
+      ));
       return false;
     }
   }
@@ -124,15 +126,16 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   Future<void> submitBankEnding({
     required String locationId,
   }) async {
+    if (!mounted) return;
     try {
       // ✅ UseCase handles validation and fetches balance summary
       final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
 
       // Update state with balance summary and show dialog
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         balanceSummary: balanceSummary,
         showBalanceDialog: true,
-      );
+      ));
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -140,14 +143,15 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
         hint: 'BankTabNotifier.submitBankEnding failed',
         extra: {'locationId': locationId},
       );
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         errorMessage: 'Failed to get balance summary: $e',
-      );
+      ));
     }
   }
 
   /// Close balance summary dialog
   void closeBalanceDialog() {
+    if (!mounted) return;
     state = state.copyWith(
       showBalanceDialog: false,
       balanceSummary: null,
@@ -156,6 +160,7 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
 
   /// Reset bank tab state (including isSaving flag)
   void reset() {
+    if (!mounted) return;
     state = state.copyWith(
       isSaving: false,
       errorMessage: null,
@@ -167,6 +172,7 @@ class BankTabNotifier extends BaseTabNotifier<BankTabState> {
   /// Set saving state immediately (for double-tap prevention)
   /// Call this at the START of onSave callback to prevent rapid taps
   void setSaving(bool value) {
+    if (!mounted) return;
     state = state.copyWith(isSaving: value);
   }
 }

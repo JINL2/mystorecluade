@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../monitoring/sentry_config.dart';
+
 /// RevenueCat 인앱 구독 서비스
 ///
 /// Storebase 앱의 인앱 구독 결제를 처리합니다.
@@ -68,10 +70,8 @@ class RevenueCatService {
       String apiKey;
       if (_useTestStore) {
         apiKey = _testApiKey;
-        debugPrint('🧪 RevenueCat: Using TEST Store');
       } else if (Platform.isIOS) {
         apiKey = _appleApiKey;
-        debugPrint('🍎 RevenueCat: Using Apple App Store');
       } else if (Platform.isAndroid) {
         // TODO: Android Google Play 연동 시 추가
         throw Exception('Android is not yet supported');
@@ -84,9 +84,12 @@ class RevenueCatService {
       await Purchases.configure(configuration);
 
       _isInitialized = true;
-      debugPrint('✅ RevenueCat initialized successfully');
-    } catch (e) {
-      debugPrint('❌ RevenueCat initialization failed: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'RevenueCat initialization failed',
+      );
       rethrow;
     }
   }
@@ -103,13 +106,16 @@ class RevenueCatService {
     try {
       // Supabase user_id를 RevenueCat App User ID로 사용
       LogInResult result = await Purchases.logIn(supabaseUserId);
-      debugPrint(
-          '✅ RevenueCat login: ${result.customerInfo.originalAppUserId}');
 
       // 기존 구독 정보 확인
       await _syncSubscriptionStatus(result.customerInfo);
-    } catch (e) {
-      debugPrint('❌ RevenueCat login failed: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'RevenueCat login failed',
+        extra: {'userId': supabaseUserId},
+      );
       rethrow;
     }
   }
@@ -118,9 +124,8 @@ class RevenueCatService {
   Future<void> logoutUser() async {
     try {
       await Purchases.logOut();
-      debugPrint('✅ RevenueCat logged out');
-    } catch (e) {
-      debugPrint('❌ RevenueCat logout failed: $e');
+    } catch (_) {
+      // Logout failure is not critical
     }
   }
 
@@ -130,49 +135,27 @@ class RevenueCatService {
   /// Package identifiers: basic.monthly, basic.yearly, pro.monthly, pro.yearly
   Future<List<Package>> getAvailablePackages() async {
     try {
-      debugPrint('🔍 [DEBUG] Fetching offerings...');
-      debugPrint('🔍 [DEBUG] Using offering ID: $_offeringId');
-
       Offerings offerings = await Purchases.getOfferings();
-
-      // Debug: Print all available offerings
-      debugPrint('🔍 [DEBUG] All offerings count: ${offerings.all.length}');
-      for (var entry in offerings.all.entries) {
-        debugPrint('🔍 [DEBUG] Offering: ${entry.key}');
-        debugPrint('🔍 [DEBUG]   - Packages: ${entry.value.availablePackages.length}');
-        for (var pkg in entry.value.availablePackages) {
-          debugPrint('🔍 [DEBUG]     - ${pkg.identifier}: ${pkg.storeProduct.identifier}');
-        }
-      }
-
-      debugPrint('🔍 [DEBUG] Current offering: ${offerings.current?.identifier ?? "null"}');
 
       // Use 'storebase' offering specifically
       final storebaseOffering = offerings.getOffering(_offeringId);
-      debugPrint('🔍 [DEBUG] Storebase offering: ${storebaseOffering?.identifier ?? "null"}');
 
       if (storebaseOffering != null) {
-        debugPrint('📦 Storebase offering packages: ${storebaseOffering.availablePackages.length}');
-        for (var package in storebaseOffering.availablePackages) {
-          debugPrint('  - ${package.identifier}: ${package.storeProduct.priceString}');
-        }
         return storebaseOffering.availablePackages;
       }
 
       // Fallback to current offering
       if (offerings.current != null) {
-        debugPrint('📦 Current offering packages: ${offerings.current!.availablePackages.length}');
-        for (var package in offerings.current!.availablePackages) {
-          debugPrint('  - ${package.identifier}: ${package.storeProduct.priceString}');
-        }
         return offerings.current!.availablePackages;
       }
 
-      debugPrint('⚠️ No offerings available');
       return [];
     } catch (e, stackTrace) {
-      debugPrint('❌ Failed to get offerings: $e');
-      debugPrint('❌ Stack trace: $stackTrace');
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Failed to get RevenueCat offerings',
+      );
       return [];
     }
   }
@@ -183,8 +166,6 @@ class RevenueCatService {
   /// subscription_user 테이블을 업데이트합니다.
   Future<bool> purchasePackage(Package package) async {
     try {
-      debugPrint('🛒 Purchasing package: ${package.packageType}');
-
       CustomerInfo customerInfo = await Purchases.purchasePackage(package);
 
       // 구매 후 구독 상태 동기화
@@ -192,15 +173,12 @@ class RevenueCatService {
 
       // Pro 권한 확인
       bool isPro = customerInfo.entitlements.active.containsKey(_proEntitlementId);
-      debugPrint('✅ Purchase successful. Is Pro: $isPro');
 
       return isPro;
     } on PurchasesErrorCode catch (e) {
       if (e == PurchasesErrorCode.purchaseCancelledError) {
-        debugPrint('ℹ️ Purchase cancelled by user');
         return false;
       }
-      debugPrint('❌ Purchase failed: $e');
       rethrow;
     }
   }
@@ -211,18 +189,14 @@ class RevenueCatService {
   /// 이전에 구매한 구독을 복원합니다.
   Future<bool> restorePurchases() async {
     try {
-      debugPrint('🔄 Restoring purchases...');
-
       CustomerInfo customerInfo = await Purchases.restorePurchases();
 
       await _syncSubscriptionStatus(customerInfo);
 
       bool isPro = customerInfo.entitlements.active.containsKey(_proEntitlementId);
-      debugPrint('✅ Restore successful. Is Pro: $isPro');
 
       return isPro;
-    } catch (e) {
-      debugPrint('❌ Restore failed: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -241,11 +215,8 @@ class RevenueCatService {
       // Check if user has any entitlement containing 'basic' or 'pro'
       final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
       final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
-      debugPrint('🔍 checkProStatus: hasBasic=$hasBasic, hasPro=$hasPro');
-      debugPrint('   Active keys: ${customerInfo.entitlements.active.keys}');
       return hasBasic || hasPro;
-    } catch (e) {
-      debugPrint('❌ Failed to check pro status: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -255,8 +226,7 @@ class RevenueCatService {
     try {
       CustomerInfo customerInfo = await Purchases.getCustomerInfo();
       return _hasEntitlementMatch(customerInfo, 'basic');
-    } catch (e) {
-      debugPrint('❌ Failed to check basic status: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -266,8 +236,7 @@ class RevenueCatService {
     try {
       CustomerInfo customerInfo = await Purchases.getCustomerInfo();
       return _hasEntitlementMatch(customerInfo, 'pro');
-    } catch (e) {
-      debugPrint('❌ Failed to check pro only status: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -283,8 +252,7 @@ class RevenueCatService {
         return 'basic';
       }
       return 'free';
-    } catch (e) {
-      debugPrint('❌ Failed to get current tier: $e');
+    } catch (_) {
       return 'free';
     }
   }
@@ -293,8 +261,7 @@ class RevenueCatService {
   Future<CustomerInfo?> getCustomerInfo() async {
     try {
       return await Purchases.getCustomerInfo();
-    } catch (e) {
-      debugPrint('❌ Failed to get customer info: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -337,15 +304,6 @@ class RevenueCatService {
         currentTier = 'basic';
       }
 
-      // 구독 정보 로깅 (디버그용)
-      debugPrint('📊 Subscription Status:');
-      debugPrint('  - User ID: $userId');
-      debugPrint('  - Current Tier: $currentTier');
-      debugPrint('  - Has Basic: $hasBasic');
-      debugPrint('  - Has Pro: $hasPro');
-      debugPrint(
-          '  - Active Entitlements: ${customerInfo.entitlements.active.keys}');
-
       String? productId;
       String? expiresAt;
       bool isTrial = false;
@@ -362,11 +320,6 @@ class RevenueCatService {
         productId = entitlement.productIdentifier;
         expiresAt = entitlement.expirationDate;
         isTrial = entitlement.periodType == PeriodType.trial;
-
-        debugPrint('  - Product ID: $productId');
-        debugPrint('  - Expires: $expiresAt');
-        debugPrint('  - Will Renew: ${entitlement.willRenew}');
-        debugPrint('  - Is Trial: $isTrial');
       }
 
       // ✅ Supabase DB에 구독 상태 동기화 (Webhook 백업)
@@ -377,8 +330,12 @@ class RevenueCatService {
         expiresAt: expiresAt,
         isTrial: isTrial,
       );
-    } catch (e) {
-      debugPrint('❌ Sync failed: $e');
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Subscription sync failed',
+      );
     }
   }
 
@@ -399,10 +356,6 @@ class RevenueCatService {
   }) async {
     try {
       final supabase = Supabase.instance.client;
-
-      debugPrint('💾 Syncing subscription to Supabase DB...');
-      debugPrint('  - Plan Type: $planType');
-      debugPrint('  - Will Renew: $willRenew');
 
       // Plan IDs from subscription_plans table
       const planIds = {
@@ -483,9 +436,6 @@ class RevenueCatService {
           'payment_provider': 'revenuecat',
           'updated_at': now.toIso8601String(),
         }).eq('user_id', userId);
-
-        debugPrint('✅ subscription_user table updated (existing record)');
-        debugPrint('  - Status: $status, Auto Renew: $autoRenew');
       } else {
         // Insert new record
         await supabase.from('subscription_user').insert({
@@ -507,9 +457,6 @@ class RevenueCatService {
           'created_at': now.toIso8601String(),
           'updated_at': now.toIso8601String(),
         });
-
-        debugPrint('✅ subscription_user table updated (new record)');
-        debugPrint('  - Status: $status, Auto Renew: $autoRenew');
       }
 
       // 2. companies 테이블도 업데이트 (이 유저가 소유한 회사들)
@@ -519,11 +466,14 @@ class RevenueCatService {
         'plan_updated_at': now.toIso8601String(),
         'updated_at': now.toIso8601String(),
       }).eq('owner_id', userId);
-
-      debugPrint('✅ companies table updated for owner: $userId');
-    } catch (e) {
-      debugPrint('❌ Failed to sync subscription to DB: $e');
+    } catch (e, stackTrace) {
       // 실패해도 앱은 계속 작동 (RevenueCat이 source of truth)
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Failed to sync subscription to DB',
+        extra: {'userId': userId, 'planType': planType},
+      );
     }
   }
 

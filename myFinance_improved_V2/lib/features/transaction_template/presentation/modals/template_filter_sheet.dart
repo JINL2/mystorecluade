@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -121,12 +122,21 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                   const SizedBox(height: TossSpacing.space4),
                   
                   // Cash Location Selector
-                  AutonomousCashLocationSelector(
-                    selectedLocationId: _selectedCashLocationId,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCashLocationId = value;
-                      });
+                  Builder(
+                    builder: (context) {
+                      final appState = ref.watch(appStateProvider);
+                      final currentStoreId = appState.storeChoosen;
+
+                      return AutonomousCashLocationSelector(
+                        selectedLocationId: _selectedCashLocationId,
+                        storeId: currentStoreId, // ✅ 필터용이지만 Store 탭 필터링을 위해 전달
+                        showScopeTabs: true, // ✅ 필터 시트에서도 탭 사용 가능
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCashLocationId = value;
+                          });
+                        },
+                      );
                     },
                   ),
                   const SizedBox(height: TossSpacing.space4),
