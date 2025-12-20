@@ -1,39 +1,30 @@
 /**
  * BalanceSheetDataSource
  * Data source for balance sheet operations
+ * Uses get_balance_sheet_v2 RPC (O(1) performance via balance_sheet_logs)
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
 
 export class BalanceSheetDataSource {
   /**
-   * Get balance sheet data with date range filters
+   * Get balance sheet data filtered by store
+   * Uses get_balance_sheet_v2 - faster O(1) lookup from balance_sheet_logs
    */
-  async getBalanceSheet(
-    companyId: string,
-    storeId: string | null,
-    startDate: string | null,
-    endDate: string | null
-  ) {
+  async getBalanceSheet(companyId: string, storeId: string | null) {
     const supabase = supabaseService.getClient();
 
     const rpcParams: any = {
       p_company_id: companyId,
       p_store_id: storeId,
-      p_start_date: startDate,
-      p_end_date: endDate,
     };
 
-    console.log('Calling get_balance_sheet RPC with params:', rpcParams);
-
-    const { data, error } = await supabase.rpc('get_balance_sheet', rpcParams);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_balance_sheet_v2', rpcParams);
 
     if (error) {
-      console.error('Error fetching balance sheet:', error);
       throw new Error(error.message);
     }
-
-    console.log('Balance sheet data received:', data);
 
     return data;
   }

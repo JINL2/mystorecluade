@@ -17,7 +17,7 @@ import type { FilterValues } from '../../components/BalanceSheetFilter/BalanceSh
 import styles from './BalanceSheetPage.module.css';
 
 export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
-  const { currentCompany } = useAppState();
+  const { currentCompany, currentStore } = useAppState();
   const companyId = currentCompany?.company_id || '';
 
   const {
@@ -25,33 +25,36 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
     loading,
     error,
     setCompanyId,
-    setDateRange,
     setStoreId,
     loadBalanceSheet,
     clearFilters,
   } = useBalanceSheet();
 
-  // Initialize company ID when component mounts or company changes
-  // setCompanyId is a stable Zustand selector function, no need in dependency array
+  // Initialize and auto-load balance sheet on page entry
   useEffect(() => {
     if (companyId) {
       setCompanyId(companyId);
+      // Auto-load with current store (or null for all stores)
+      const storeIdToUse = currentStore?.store_id || null;
+      setStoreId(storeIdToUse);
+      loadBalanceSheet(storeIdToUse);
     }
   }, [companyId]);
 
+  // Sync store from AppState to BalanceSheet provider
+  useEffect(() => {
+    if (currentStore?.store_id) {
+      setStoreId(currentStore.store_id);
+    }
+  }, [currentStore]);
+
   const handleSearch = (filters: FilterValues) => {
-    console.log('Searching with filters:', filters);
-    // Update state for next time
     setStoreId(filters.storeId);
-    setDateRange(filters.startDate, filters.endDate);
-    // Pass filter values directly to loadBalanceSheet to avoid async state update issue
-    loadBalanceSheet(filters.storeId, filters.startDate, filters.endDate);
+    loadBalanceSheet(filters.storeId);
   };
 
   const handleClear = () => {
-    console.log('Filters cleared');
     clearFilters();
-    // Don't load data - show empty state
   };
 
   const renderSection = (section: BalanceSheetSection) => {

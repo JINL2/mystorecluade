@@ -89,9 +89,11 @@ export class IncomeStatementModel {
       const mappedData: TwelveMonthIncomeStatementData = {
         summary: {
           period_info: {
-            start_date: rpcData.summary?.period_info?.start_date || '',
-            end_date: rpcData.summary?.period_info?.end_date || '',
+            // v2 uses start_time/end_time instead of start_date/end_date
+            start_date: rpcData.summary?.period_info?.start_time || rpcData.summary?.period_info?.start_date || '',
+            end_date: rpcData.summary?.period_info?.end_time || rpcData.summary?.period_info?.end_date || '',
             store_scope: rpcData.summary?.period_info?.store_scope || 'all_stores',
+            timezone: rpcData.summary?.period_info?.timezone || '',
           },
         },
         months: rpcData.months,

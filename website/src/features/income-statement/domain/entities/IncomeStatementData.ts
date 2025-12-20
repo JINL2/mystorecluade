@@ -38,6 +38,7 @@ export interface TwelveMonthIncomeStatementData {
       end_date: string;
       store_scope: 'all_stores' | 'single_store';
       store_name?: string;  // Optional: Only present when store_scope is 'single_store'
+      timezone?: string;    // User's timezone (e.g., 'Asia/Ho_Chi_Minh')
     };
   };
   months: string[];  // ["2025-01", "2025-02", ...]

@@ -16,6 +16,4 @@ export interface BalanceSheetFilterProps {
 
 export interface FilterValues {
   storeId: string | null;
-  startDate: string | null;
-  endDate: string | null;
 }

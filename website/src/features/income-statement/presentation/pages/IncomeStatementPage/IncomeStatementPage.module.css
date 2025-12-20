@@ -392,49 +392,57 @@
   font-weight: 700 !important;
 }
 
-/* 12-Month Specific Styling - Compact for full screen visibility */
+/* 12-Month Specific Styling - Excel-like table */
 .table12Month {
   width: 100%;
-  min-width: 100%;
+  min-width: 1600px;
   table-layout: fixed;
+  border-collapse: collapse;
+  border: 2px solid #6B7280;
 }
 
 .table12Month thead th {
-  padding: 8px 4px;
+  padding: 12px 6px;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--color-gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border-bottom: 2px solid var(--color-gray-200);
+  color: #1F2937;
+  background: #E5E7EB;
   white-space: nowrap;
   vertical-align: middle;
-  background: var(--color-white);
-  line-height: 1.2;
+  line-height: 1.4;
+  border: 1px solid #9CA3AF;
+  border-bottom: 2px solid #6B7280;
 }
 
 .table12Month thead th:first-child {
   text-align: left;
   padding-left: 12px;
-  min-width: 180px;
-  width: 180px;
+  min-width: 220px;
+  width: 220px;
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  background: #E5E7EB;
+  border-right: 2px solid #6B7280;
 }
 
 .table12Month .currencyNote {
   font-weight: normal;
   text-transform: none;
-  color: var(--color-gray-500);
+  color: #6B7280;
+  font-size: 10px;
 }
 
 .table12Month tbody td {
-  padding: 4px 2px;
+  padding: 8px 6px;
   font-size: 11px;
   text-align: right;
   white-space: nowrap;
   line-height: 1.4;
-  color: #6B7280;
-  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  background: #FFFFFF;
 }
 
 .table12Month tbody td:first-child {
@@ -442,49 +450,87 @@
   padding-left: 12px;
   padding-right: 8px;
   font-weight: 500;
-  min-width: 180px;
-  width: 180px;
+  min-width: 220px;
+  width: 220px;
   white-space: normal;
   word-wrap: break-word;
   color: #374151;
+  position: sticky;
+  left: 0;
+  z-index: 9;
+  background: #FFFFFF;
+  border-right: 2px solid #6B7280;
+}
+
+.table12Month tbody td:last-child {
+  background: #F3F4F6;
+  font-weight: 700;
+  border-left: 2px solid #6B7280;
+  color: #111827;
 }
 
 .table12Month .sectionHeader {
-  background: #F9FAFB !important;
+  background: #D1D5DB !important;
 }
 
 .table12Month .sectionHeader td {
-  padding: 6px 2px;
+  padding: 10px 6px;
   padding-left: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #F9FAFB !important;
+  font-size: 12px;
+  font-weight: 700;
+  background: #D1D5DB !important;
   color: #111827;
   text-transform: uppercase;
-  border-top: 1px solid #E5E7EB;
-  border-bottom: 1px solid #E5E7EB;
+  border: 1px solid #9CA3AF;
+  border-top: 2px solid #6B7280;
+  border-bottom: 2px solid #6B7280;
+}
+
+.table12Month .sectionHeader td:first-child {
+  border-right: 2px solid #6B7280;
+}
+
+.table12Month .sectionHeader td:last-child {
+  border-left: 2px solid #6B7280;
 }
 
 .table12Month .subsectionHeader {
-  background: transparent !important;
+  background: #F3F4F6 !important;
 }
 
 .table12Month .subsectionHeader td {
-  padding: 4px 2px;
+  padding: 8px 6px;
   padding-left: 20px;
   font-size: 10px;
-  background: transparent !important;
-  color: #6B7280;
+  background: #F3F4F6 !important;
+  color: #4B5563;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
+  border: 1px solid #D1D5DB;
+}
+
+.table12Month .subsectionHeader td:first-child {
+  border-right: 2px solid #6B7280;
+}
+
+.table12Month .subsectionHeader td:last-child {
+  border-left: 2px solid #6B7280;
 }
 
 .table12Month .accountRow {
   transition: background-color 0.15s ease;
 }
 
-.table12Month .accountRow:hover {
-  background-color: #F9FAFB;
+.table12Month .accountRow:hover td {
+  background-color: #FFFBEB !important;
+}
+
+.table12Month .accountRow:hover td:first-child {
+  background-color: #FFFBEB !important;
+}
+
+.table12Month .accountRow:hover td:last-child {
+  background-color: #FEF3C7 !important;
 }
 
 .table12Month .accountName {
@@ -496,11 +542,11 @@
 .table12Month .accountName::before {
   content: "";
   position: absolute;
-  left: 22px;
+  left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   background: #9CA3AF;
   border-radius: 50%;
 }
@@ -512,17 +558,24 @@
 }
 
 .table12Month .totalRow td {
-  padding: 5px 2px;
+  padding: 8px 6px;
   font-size: 11px;
   font-weight: 600;
-  background: #F5F5F5 !important;
-  border-top: 1px solid #E0E0E0;
-  border-bottom: 1px solid #E0E0E0;
-  color: #333333;
+  background: #E5E7EB !important;
+  border: 1px solid #9CA3AF;
+  color: #1F2937;
 }
 
 .table12Month .totalRow td:first-child {
-  padding-left: 12px;
+  padding-left: 16px;
+  background: #E5E7EB !important;
+  border-right: 2px solid #6B7280;
+}
+
+.table12Month .totalRow td:last-child {
+  background: #D1D5DB !important;
+  font-weight: 700;
+  border-left: 2px solid #6B7280;
 }
 
 .table12Month .totalLabel {
@@ -536,63 +589,86 @@
 }
 
 .table12Month .sectionTotal {
-  background: #F0F6FF !important;
+  background: #DBEAFE !important;
 }
 
 .table12Month .sectionTotal td {
-  padding: 6px 2px;
-  font-size: 11px;
-  background: #F0F6FF !important;
-  color: #0064FF !important;
+  padding: 10px 6px;
+  font-size: 12px;
+  background: #DBEAFE !important;
+  color: #1E40AF !important;
   font-weight: 700;
-  border-top: 2px solid #0064FF;
-  border-bottom: 2px solid #0064FF;
+  border: 1px solid #60A5FA;
+  border-top: 2px solid #2563EB;
+  border-bottom: 2px solid #2563EB;
 }
 
 .table12Month .sectionTotal td:first-child {
   padding-left: 12px;
+  background: #DBEAFE !important;
+  border-right: 2px solid #2563EB;
+}
+
+.table12Month .sectionTotal td:last-child {
+  background: #BFDBFE !important;
+  border-left: 2px solid #2563EB;
 }
 
 .table12Month .sectionTotalLabel {
   text-align: left;
-  color: #0064FF !important;
+  color: #1D4ED8 !important;
   font-weight: 700;
 }
 
 .table12Month .sectionTotalAmount {
   text-align: right;
-  color: #0064FF !important;
+  color: #1D4ED8 !important;
   font-weight: 700;
 }
 
-/* Month columns specific width - smaller for compact view */
+/* Month columns specific width - equal distribution */
 .table12Month thead th:not(:first-child):not(:last-child) {
-  width: calc((100% - 180px - 90px) / 12);
-  min-width: 60px;
+  width: 100px;
+  min-width: 100px;
 }
 
 /* Total column width */
 .table12Month thead th:last-child {
-  width: 90px;
-  min-width: 90px;
+  width: 110px;
+  min-width: 110px;
   font-weight: 800;
-  background: var(--color-gray-50);
+  background: #D1D5DB;
+  border-left: 2px solid #6B7280;
+  color: #111827;
 }
 
-/* Responsive - Even more compact for smaller screens */
-@media (max-width: 1400px) {
+/* Responsive - compact for smaller screens */
+@media (max-width: 1600px) {
   .table12Month thead th {
-    padding: 6px 2px;
-    font-size: 9px;
+    padding: 10px 4px;
+    font-size: 10px;
   }
 
   .table12Month tbody td {
-    padding: 3px 2px;
+    padding: 6px 4px;
     font-size: 10px;
   }
 
   .table12Month thead th:not(:first-child):not(:last-child) {
-    min-width: 50px;
+    min-width: 85px;
+    width: 85px;
+  }
+
+  .table12Month thead th:first-child,
+  .table12Month tbody td:first-child {
+    min-width: 200px;
+    width: 200px;
+  }
+
+  .table12Month thead th:last-child,
+  .table12Month tbody td:last-child {
+    min-width: 95px;
+    width: 95px;
   }
 }
 

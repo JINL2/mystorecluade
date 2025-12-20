@@ -2,6 +2,7 @@
  * BalanceSheetModel
  * DTO and Mapper for Balance Sheet data
  * Converts server response (snake_case) to Domain Entity (camelCase)
+ * Compatible with get_balance_sheet_v2 RPC
  */
 
 import {
@@ -11,7 +12,7 @@ import {
 } from '../../domain/entities/BalanceSheetData';
 
 /**
- * Server Response Types
+ * Server Response Types (get_balance_sheet_v2)
  */
 interface ServerAccount {
   account_id: string;
@@ -29,6 +30,10 @@ interface ServerTotals {
   total_non_current_assets: number;
   total_current_liabilities: number;
   total_non_current_liabilities: number;
+  total_comprehensive_income?: number;
+  net_income?: number;
+  balance_check?: boolean;
+  balance_difference?: number;
 }
 
 interface ServerBalanceSheetData {
@@ -44,6 +49,15 @@ interface ServerBalanceSheetData {
   };
   company_info?: {
     currency_symbol: string;
+    currency_code?: string;
+    company_name?: string;
+    store_name?: string;
+  };
+  ui_data?: {
+    balance_verification?: {
+      is_balanced: boolean;
+      difference: number;
+    };
   };
 }
 
@@ -80,16 +94,9 @@ export class BalanceSheetModel {
   /**
    * Convert full server response to BalanceSheetData entity
    */
-  static fromServerResponse(
-    response: ServerBalanceSheetData,
-    endDate: string | null
-  ): BalanceSheetData {
+  static fromServerResponse(response: ServerBalanceSheetData): BalanceSheetData {
     const data = response.data;
     const totals = data.totals;
-
-    console.log('📊 Model - Mapping server response to entity');
-    console.log('📊 Model - Totals:', totals);
-    console.log('📊 Model - Current Assets sample:', data.current_assets?.[0]);
 
     // Map all sections
     const currentAssets = this.mapSection(
@@ -124,11 +131,11 @@ export class BalanceSheetModel {
 
     const comprehensiveIncome = this.mapSection(
       'Other Comprehensive Income',
-      0, // This is included in equity total
+      totals?.total_comprehensive_income || 0,
       data.comprehensive_income
     );
 
-    // Create and return entity
+    // Create and return entity (asOfDate is now today since we removed date filters)
     return new BalanceSheetData(
       totals?.total_assets || 0,
       totals?.total_liabilities || 0,
@@ -145,7 +152,7 @@ export class BalanceSheetModel {
       equity,
       comprehensiveIncome,
       response.company_info?.currency_symbol || '₩',
-      endDate || new Date().toISOString().split('T')[0]
+      new Date().toISOString().split('T')[0]
     );
   }
 

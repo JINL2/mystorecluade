@@ -30,16 +30,6 @@ export interface BalanceSheetState {
   storeId: string | null;
 
   /**
-   * Start date filter (YYYY-MM-DD)
-   */
-  startDate: string | null;
-
-  /**
-   * End date filter (YYYY-MM-DD)
-   */
-  endDate: string | null;
-
-  /**
    * Balance sheet data
    */
   balanceSheet: BalanceSheetData | null;
@@ -73,21 +63,6 @@ export interface BalanceSheetState {
    */
   setStoreId: (storeId: string | null) => void;
 
-  /**
-   * Set date range
-   */
-  setDateRange: (startDate: string | null, endDate: string | null) => void;
-
-  /**
-   * Set start date
-   */
-  setStartDate: (startDate: string | null) => void;
-
-  /**
-   * Set end date
-   */
-  setEndDate: (endDate: string | null) => void;
-
   // ============================================
   // ASYNC ACTIONS (BUSINESS LOGIC)
   // ============================================
@@ -96,11 +71,7 @@ export interface BalanceSheetState {
    * Load balance sheet data
    * Validates filters and fetches data from repository
    */
-  loadBalanceSheet: (
-    overrideStoreId?: string | null,
-    overrideStartDate?: string | null,
-    overrideEndDate?: string | null
-  ) => Promise<AsyncOperationResult>;
+  loadBalanceSheet: (overrideStoreId?: string | null) => Promise<AsyncOperationResult>;
 
   /**
    * Refresh balance sheet (reload with current filters)

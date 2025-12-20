@@ -147,8 +147,6 @@ export class BalanceSheetValidator {
   static validateFilters(filters: {
     companyId: string;
     storeId: string | null;
-    startDate: string | null;
-    endDate: string | null;
   }): ValidationError[] {
     const errors: ValidationError[] = [];
 
@@ -159,32 +157,6 @@ export class BalanceSheetValidator {
     // Validate store ID (optional)
     const storeError = this.validateStoreId(filters.storeId);
     if (storeError) errors.push(storeError);
-
-    // Validate start date format
-    if (filters.startDate) {
-      const startDateFormatError = this.validateDateFormat(filters.startDate);
-      if (startDateFormatError) {
-        errors.push({
-          field: 'startDate',
-          message: startDateFormatError.message,
-        });
-      }
-    }
-
-    // Validate end date format
-    if (filters.endDate) {
-      const endDateFormatError = this.validateDateFormat(filters.endDate);
-      if (endDateFormatError) {
-        errors.push({
-          field: 'endDate',
-          message: endDateFormatError.message,
-        });
-      }
-    }
-
-    // Validate date range
-    const dateRangeError = this.validateDateRange(filters.startDate, filters.endDate);
-    if (dateRangeError) errors.push(dateRangeError);
 
     return errors;
   }

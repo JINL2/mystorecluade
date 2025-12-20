@@ -245,23 +245,9 @@ export class IncomeStatementValidator {
       errors.push(...typeResult.errors);
     }
 
-    // For 12-month view, additional validation
-    if (type === '12month' && dateRangeResult.isValid) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-
-      // Calculate months difference
-      const monthsDiff = (to.getFullYear() - from.getFullYear()) * 12 +
-                        (to.getMonth() - from.getMonth());
-
-      // 12-month view should cover approximately 12 months
-      if (monthsDiff < 11 || monthsDiff > 12) {
-        errors.push({
-          field: 'dateRange',
-          message: '12-month view requires a date range of approximately 12 months',
-        });
-      }
-    }
+    // Note: 12-month view (get_income_statement_monthly_v2) now supports any date range
+    // The RPC will return monthly breakdown for the selected period
+    // No additional date range restriction needed
 
     return {
       isValid: errors.length === 0,

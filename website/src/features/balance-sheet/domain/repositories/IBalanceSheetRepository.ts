@@ -13,12 +13,7 @@ export interface BalanceSheetResult {
 
 export interface IBalanceSheetRepository {
   /**
-   * Get balance sheet data with date range filters
+   * Get balance sheet data filtered by store
    */
-  getBalanceSheet(
-    companyId: string,
-    storeId: string | null,
-    startDate: string | null,
-    endDate: string | null
-  ): Promise<BalanceSheetResult>;
+  getBalanceSheet(companyId: string, storeId: string | null): Promise<BalanceSheetResult>;
 }

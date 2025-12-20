@@ -27,20 +27,9 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({
   const { messageState, closeMessage, showWarning } = useErrorMessage();
 
   // Use Provider state instead of local useState (ARCHITECTURE.md compliance)
-  const { storeId, startDate, endDate, setStoreId, setStartDate, setEndDate } = useBalanceSheet();
+  const { storeId, setStoreId } = useBalanceSheet();
 
   const handleSearch = () => {
-    // Validate date range
-    const dateRangeError = BalanceSheetValidator.validateDateRange(startDate, endDate);
-    if (dateRangeError) {
-      showWarning({
-        title: 'Invalid Date Range',
-        message: dateRangeError.message,
-        confirmText: 'OK',
-      });
-      return;
-    }
-
     // Validate store ID if provided
     if (storeId) {
       const storeError = BalanceSheetValidator.validateStoreId(storeId);
@@ -57,13 +46,10 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({
     // If validation passes, execute search
     onSearch({
       storeId,
-      startDate: startDate || null,
-      endDate: endDate || null,
     });
   };
 
   const handleClear = () => {
-    // clearFilters already resets to first/last day of month (Provider logic)
     onClear();
   };
 
@@ -92,31 +78,11 @@ export const BalanceSheetFilter: React.FC<BalanceSheetFilterProps> = ({
               width="100%"
             />
           </div>
-
-          <div className={styles.filterField}>
-            <label className={styles.filterLabel}>FROM DATE</label>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={startDate || ''}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-
-          <div className={styles.filterField}>
-            <label className={styles.filterLabel}>TO DATE</label>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={endDate || ''}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
         </div>
 
         <div className={styles.filterActions}>
           <TossButton onClick={handleClear} variant="secondary">
-            Clear All
+            Clear
           </TossButton>
           <TossButton onClick={handleSearch} variant="primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

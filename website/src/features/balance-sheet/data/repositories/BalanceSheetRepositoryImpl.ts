@@ -22,22 +22,10 @@ export class BalanceSheetRepositoryImpl implements IBalanceSheetRepository {
     this.dataSource = new BalanceSheetDataSource();
   }
 
-  async getBalanceSheet(
-    companyId: string,
-    storeId: string | null,
-    startDate: string | null,
-    endDate: string | null
-  ): Promise<BalanceSheetResult> {
+  async getBalanceSheet(companyId: string, storeId: string | null): Promise<BalanceSheetResult> {
     try {
       // Fetch data from data source
-      const response = await this.dataSource.getBalanceSheet(
-        companyId,
-        storeId,
-        startDate,
-        endDate
-      );
-
-      console.log('📊 Repository - Received response from data source');
+      const response = await this.dataSource.getBalanceSheet(companyId, storeId);
 
       // Validate response structure
       if (!BalanceSheetModel.isValidResponse(response)) {
@@ -48,16 +36,13 @@ export class BalanceSheetRepositoryImpl implements IBalanceSheetRepository {
       }
 
       // Use Model to map server response to domain entity
-      const balanceSheetData = BalanceSheetModel.fromServerResponse(response, endDate);
-
-      console.log('📊 Repository - Successfully mapped to entity');
+      const balanceSheetData = BalanceSheetModel.fromServerResponse(response);
 
       return {
         success: true,
         data: balanceSheetData,
       };
     } catch (error) {
-      console.error('Repository error fetching balance sheet:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch balance sheet',
