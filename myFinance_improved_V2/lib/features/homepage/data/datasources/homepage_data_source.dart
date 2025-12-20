@@ -435,11 +435,19 @@ class HomepageDataSource {
     String? storeId,
   }) async {
     try {
+      // Build ISO8601 string with timezone offset for accurate date calculation
+      final now = DateTime.now();
+      final offset = now.timeZoneOffset;
+      final offsetSign = offset.isNegative ? '-' : '+';
+      final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
+      final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+      final timeWithOffset = '${now.toIso8601String()}$offsetSign$offsetHours:$offsetMinutes';
+
       final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
         'get_dashboard_revenue_v3',
         params: {
           'p_company_id': companyId,
-          'p_time': DateTime.now().toIso8601String(),
+          'p_time': timeWithOffset,
           'p_timezone': timezone,
           'p_time_filter': timeFilter,
           'p_store_id': storeId,
