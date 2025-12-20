@@ -1,19 +1,31 @@
 import '../../domain/entities/inventory_session.dart';
 
 /// Data model for InventorySession with JSON serialization
-class InventorySessionModel extends InventorySession {
+class InventorySessionModel {
+  final String sessionId;
+  final String sessionName;
+  final String sessionType;
+  final String storeId;
+  final String storeName;
+  final String status;
+  final DateTime createdAt;
+  final DateTime? completedAt;
+  final String createdBy;
+  final int itemCount;
+  final String? notes;
+
   const InventorySessionModel({
-    required super.sessionId,
-    required super.sessionName,
-    required super.sessionType,
-    required super.storeId,
-    required super.storeName,
-    required super.status,
-    required super.createdAt,
-    super.completedAt,
-    required super.createdBy,
-    super.itemCount,
-    super.notes,
+    required this.sessionId,
+    required this.sessionName,
+    required this.sessionType,
+    required this.storeId,
+    required this.storeName,
+    required this.status,
+    required this.createdAt,
+    this.completedAt,
+    required this.createdBy,
+    this.itemCount = 0,
+    this.notes,
   });
 
   factory InventorySessionModel.fromJson(Map<String, dynamic> json) {
@@ -52,21 +64,45 @@ class InventorySessionModel extends InventorySession {
     };
   }
 
-  InventorySession toEntity() => this;
+  InventorySession toEntity() {
+    return InventorySession(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      sessionType: sessionType,
+      storeId: storeId,
+      storeName: storeName,
+      status: status,
+      createdAt: createdAt,
+      completedAt: completedAt,
+      createdBy: createdBy,
+      itemCount: itemCount,
+      notes: notes,
+    );
+  }
 }
 
 /// Model for CreateSessionResponse with JSON serialization
-class CreateSessionResponseModel extends CreateSessionResponse {
+class CreateSessionResponseModel {
+  final String sessionId;
+  final String? sessionName;
+  final String sessionType;
+  final String? shipmentId;
+  final String? shipmentNumber;
+  final bool isActive;
+  final bool isFinal;
+  final String createdBy;
+  final String createdAt;
+
   const CreateSessionResponseModel({
-    required super.sessionId,
-    super.sessionName,
-    required super.sessionType,
-    super.shipmentId,
-    super.shipmentNumber,
-    required super.isActive,
-    required super.isFinal,
-    required super.createdBy,
-    required super.createdAt,
+    required this.sessionId,
+    this.sessionName,
+    required this.sessionType,
+    this.shipmentId,
+    this.shipmentNumber,
+    required this.isActive,
+    required this.isFinal,
+    required this.createdBy,
+    required this.createdAt,
   });
 
   factory CreateSessionResponseModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +116,20 @@ class CreateSessionResponseModel extends CreateSessionResponse {
       isFinal: json['is_final'] as bool? ?? false,
       createdBy: json['created_by']?.toString() ?? '',
       createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+
+  CreateSessionResponse toEntity() {
+    return CreateSessionResponse(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      sessionType: sessionType,
+      shipmentId: shipmentId,
+      shipmentNumber: shipmentNumber,
+      isActive: isActive,
+      isFinal: isFinal,
+      createdBy: createdBy,
+      createdAt: createdAt,
     );
   }
 }

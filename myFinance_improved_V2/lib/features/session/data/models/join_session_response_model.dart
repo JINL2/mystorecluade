@@ -1,14 +1,21 @@
 import '../../domain/entities/join_session_response.dart';
 
 /// Model for join session RPC response
-class JoinSessionResponseModel extends JoinSessionResponse {
+class JoinSessionResponseModel {
+  final String memberId;
+  final String sessionId;
+  final String userId;
+  final String joinedAt;
+  final String createdBy;
+  final String createdByName;
+
   const JoinSessionResponseModel({
-    required super.memberId,
-    required super.sessionId,
-    required super.userId,
-    required super.joinedAt,
-    required super.createdBy,
-    required super.createdByName,
+    required this.memberId,
+    required this.sessionId,
+    required this.userId,
+    required this.joinedAt,
+    required this.createdBy,
+    required this.createdByName,
   });
 
   factory JoinSessionResponseModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +26,17 @@ class JoinSessionResponseModel extends JoinSessionResponse {
       joinedAt: json['joined_at']?.toString() ?? '',
       createdBy: json['created_by']?.toString() ?? '',
       createdByName: json['created_by_name']?.toString() ?? '',
+    );
+  }
+
+  JoinSessionResponse toEntity() {
+    return JoinSessionResponse(
+      memberId: memberId,
+      sessionId: sessionId,
+      userId: userId,
+      joinedAt: joinedAt,
+      createdBy: createdBy,
+      createdByName: createdByName,
     );
   }
 }

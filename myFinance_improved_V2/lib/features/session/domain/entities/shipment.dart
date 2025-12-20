@@ -1,36 +1,28 @@
-/// Shipment entity for receiving operations
-class Shipment {
-  final String shipmentId;
-  final String shipmentNumber;
-  final String? trackingNumber;
-  final String? shippedDate;
-  final String? supplierId;
-  final String supplierName;
-  final String status;
-  final int itemCount;
-  final double totalAmount;
-  final bool hasOrders;
-  final int linkedOrderCount;
-  final String? notes;
-  final String createdAt;
-  final String createdBy;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Shipment({
-    required this.shipmentId,
-    required this.shipmentNumber,
-    this.trackingNumber,
-    this.shippedDate,
-    this.supplierId,
-    required this.supplierName,
-    required this.status,
-    required this.itemCount,
-    required this.totalAmount,
-    required this.hasOrders,
-    required this.linkedOrderCount,
-    this.notes,
-    required this.createdAt,
-    required this.createdBy,
-  });
+part 'shipment.freezed.dart';
+
+/// Shipment entity for receiving operations
+@freezed
+class Shipment with _$Shipment {
+  const Shipment._();
+
+  const factory Shipment({
+    required String shipmentId,
+    required String shipmentNumber,
+    String? trackingNumber,
+    String? shippedDate,
+    String? supplierId,
+    required String supplierName,
+    required String status,
+    required int itemCount,
+    required double totalAmount,
+    required bool hasOrders,
+    required int linkedOrderCount,
+    String? notes,
+    required String createdAt,
+    required String createdBy,
+  }) = _Shipment;
 
   /// Get display text for the shipment (for selector)
   String get displayText => '$shipmentNumber - $supplierName';
@@ -50,28 +42,19 @@ class Shipment {
         return status;
     }
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Shipment && other.shipmentId == shipmentId;
-  }
-
-  @override
-  int get hashCode => shipmentId.hashCode;
 }
 
 /// Response from getting shipment list
-class ShipmentListResponse {
-  final List<Shipment> shipments;
-  final int totalCount;
-  final int limit;
-  final int offset;
+@freezed
+class ShipmentListResponse with _$ShipmentListResponse {
+  const ShipmentListResponse._();
 
-  const ShipmentListResponse({
-    required this.shipments,
-    required this.totalCount,
-    required this.limit,
-    required this.offset,
-  });
+  const factory ShipmentListResponse({
+    required List<Shipment> shipments,
+    required int totalCount,
+    required int limit,
+    required int offset,
+  }) = _ShipmentListResponse;
+
+  bool get hasMore => offset + shipments.length < totalCount;
 }

@@ -11,6 +11,7 @@ import '../../domain/entities/update_session_items_response.dart';
 import '../../domain/entities/user_session_items.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../datasources/session_datasource.dart';
+import '../models/session_item_input_model.dart';
 
 /// Implementation of SessionRepository
 class SessionRepositoryImpl implements SessionRepository {
@@ -29,7 +30,7 @@ class SessionRepositoryImpl implements SessionRepository {
     int limit = 50,
     int offset = 0,
   }) async {
-    return _datasource.getSessionList(
+    final model = await _datasource.getSessionList(
       companyId: companyId,
       storeId: storeId,
       sessionType: sessionType,
@@ -39,6 +40,7 @@ class SessionRepositoryImpl implements SessionRepository {
       limit: limit,
       offset: offset,
     );
+    return model.toEntity();
   }
 
   @override
@@ -47,18 +49,20 @@ class SessionRepositoryImpl implements SessionRepository {
     String? sessionType,
     String? status,
   }) async {
-    return _datasource.getSessions(
+    final models = await _datasource.getSessions(
       companyId: companyId,
       sessionType: sessionType,
       status: status,
     );
+    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
   Future<InventorySession?> getSession({
     required String sessionId,
   }) async {
-    return _datasource.getSession(sessionId: sessionId);
+    final model = await _datasource.getSession(sessionId: sessionId);
+    return model?.toEntity();
   }
 
   @override
@@ -70,7 +74,7 @@ class SessionRepositoryImpl implements SessionRepository {
     required String createdBy,
     String? notes,
   }) async {
-    return _datasource.createSession(
+    final model = await _datasource.createSession(
       companyId: companyId,
       sessionName: sessionName,
       sessionType: sessionType,
@@ -78,6 +82,7 @@ class SessionRepositoryImpl implements SessionRepository {
       createdBy: createdBy,
       notes: notes,
     );
+    return model.toEntity();
   }
 
   @override
@@ -85,10 +90,11 @@ class SessionRepositoryImpl implements SessionRepository {
     required String sessionId,
     required String status,
   }) async {
-    return _datasource.updateSessionStatus(
+    final model = await _datasource.updateSessionStatus(
       sessionId: sessionId,
       status: status,
     );
+    return model.toEntity();
   }
 
   @override
@@ -102,7 +108,8 @@ class SessionRepositoryImpl implements SessionRepository {
   Future<List<SessionItem>> getSessionItems({
     required String sessionId,
   }) async {
-    return _datasource.getSessionItems(sessionId: sessionId);
+    final models = await _datasource.getSessionItems(sessionId: sessionId);
+    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
@@ -117,7 +124,7 @@ class SessionRepositoryImpl implements SessionRepository {
     double? unitPrice,
     String? notes,
   }) async {
-    return _datasource.addSessionItem(
+    final model = await _datasource.addSessionItem(
       sessionId: sessionId,
       productId: productId,
       productName: productName,
@@ -128,6 +135,7 @@ class SessionRepositoryImpl implements SessionRepository {
       unitPrice: unitPrice,
       notes: notes,
     );
+    return model.toEntity();
   }
 
   @override
@@ -136,11 +144,12 @@ class SessionRepositoryImpl implements SessionRepository {
     required int quantity,
     String? notes,
   }) async {
-    return _datasource.updateSessionItem(
+    final model = await _datasource.updateSessionItem(
       itemId: itemId,
       quantity: quantity,
       notes: notes,
     );
+    return model.toEntity();
   }
 
   @override
@@ -154,7 +163,8 @@ class SessionRepositoryImpl implements SessionRepository {
   Future<InventorySession> completeSession({
     required String sessionId,
   }) async {
-    return _datasource.completeSession(sessionId: sessionId);
+    final model = await _datasource.completeSession(sessionId: sessionId);
+    return model.toEntity();
   }
 
   @override
@@ -162,10 +172,11 @@ class SessionRepositoryImpl implements SessionRepository {
     required String sessionId,
     required String userId,
   }) async {
-    return _datasource.getSessionReviewItems(
+    final model = await _datasource.getSessionReviewItems(
       sessionId: sessionId,
       userId: userId,
     );
+    return model.toEntity();
   }
 
   @override
@@ -176,13 +187,14 @@ class SessionRepositoryImpl implements SessionRepository {
     bool isFinal = false,
     String? notes,
   }) async {
-    return _datasource.submitSession(
+    final model = await _datasource.submitSession(
       sessionId: sessionId,
       userId: userId,
       items: items.map((e) => e.toJson()).toList(),
       isFinal: isFinal,
       notes: notes,
     );
+    return model.toEntity();
   }
 
   @override
@@ -194,7 +206,7 @@ class SessionRepositoryImpl implements SessionRepository {
     String? sessionName,
     String? shipmentId,
   }) async {
-    return _datasource.createSessionViaRpc(
+    final model = await _datasource.createSessionViaRpc(
       companyId: companyId,
       storeId: storeId,
       userId: userId,
@@ -202,6 +214,7 @@ class SessionRepositoryImpl implements SessionRepository {
       sessionName: sessionName,
       shipmentId: shipmentId,
     );
+    return model.toEntity();
   }
 
   @override
@@ -215,7 +228,7 @@ class SessionRepositoryImpl implements SessionRepository {
     int limit = 50,
     int offset = 0,
   }) async {
-    return _datasource.getShipmentList(
+    final model = await _datasource.getShipmentList(
       companyId: companyId,
       search: search,
       status: status,
@@ -225,6 +238,7 @@ class SessionRepositoryImpl implements SessionRepository {
       limit: limit,
       offset: offset,
     );
+    return model.toEntity();
   }
 
   @override
@@ -235,13 +249,14 @@ class SessionRepositoryImpl implements SessionRepository {
     int page = 1,
     int limit = 15,
   }) async {
-    return _datasource.getInventoryPage(
+    final model = await _datasource.getInventoryPage(
       companyId: companyId,
       storeId: storeId,
       search: search,
       page: page,
       limit: limit,
     );
+    return model.toEntity();
   }
 
   @override
@@ -251,12 +266,13 @@ class SessionRepositoryImpl implements SessionRepository {
     required String query,
     int limit = 20,
   }) async {
-    return _datasource.searchProducts(
+    final model = await _datasource.searchProducts(
       companyId: companyId,
       storeId: storeId,
       query: query,
       limit: limit,
     );
+    return model.toEntity();
   }
 
   @override
@@ -265,11 +281,20 @@ class SessionRepositoryImpl implements SessionRepository {
     required String userId,
     required List<SessionItemInput> items,
   }) async {
-    return _datasource.addSessionItems(
+    // Convert Domain Entity to Data Model
+    final modelItems = items
+        .map((e) => SessionItemInputModel(
+              productId: e.productId,
+              quantity: e.quantity,
+              quantityRejected: e.quantityRejected,
+            ))
+        .toList();
+    final model = await _datasource.addSessionItems(
       sessionId: sessionId,
       userId: userId,
-      items: items,
+      items: modelItems,
     );
+    return model.toEntity();
   }
 
   @override
@@ -277,10 +302,11 @@ class SessionRepositoryImpl implements SessionRepository {
     required String sessionId,
     required String userId,
   }) async {
-    return _datasource.joinSession(
+    final model = await _datasource.joinSession(
       sessionId: sessionId,
       userId: userId,
     );
+    return model.toEntity();
   }
 
   @override
@@ -289,11 +315,12 @@ class SessionRepositoryImpl implements SessionRepository {
     required String userId,
     required String companyId,
   }) async {
-    return _datasource.closeSession(
+    final model = await _datasource.closeSession(
       sessionId: sessionId,
       userId: userId,
       companyId: companyId,
     );
+    return model.toEntity();
   }
 
   @override
@@ -307,7 +334,7 @@ class SessionRepositoryImpl implements SessionRepository {
     int limit = 15,
     int offset = 0,
   }) async {
-    return _datasource.getSessionHistory(
+    final model = await _datasource.getSessionHistory(
       companyId: companyId,
       storeId: storeId,
       sessionType: sessionType,
@@ -317,6 +344,7 @@ class SessionRepositoryImpl implements SessionRepository {
       limit: limit,
       offset: offset,
     );
+    return model.toEntity();
   }
 
   @override
@@ -350,10 +378,18 @@ class SessionRepositoryImpl implements SessionRepository {
     required String userId,
     required List<SessionItemInput> items,
   }) async {
+    // Convert Domain Entity to Data Model
+    final modelItems = items
+        .map((e) => SessionItemInputModel(
+              productId: e.productId,
+              quantity: e.quantity,
+              quantityRejected: e.quantityRejected,
+            ))
+        .toList();
     final model = await _datasource.updateSessionItems(
       sessionId: sessionId,
       userId: userId,
-      items: items,
+      items: modelItems,
     );
     return model.toEntity();
   }
@@ -364,9 +400,23 @@ class SessionRepositoryImpl implements SessionRepository {
     required String targetSessionId,
     required String userId,
   }) async {
-    return _datasource.compareSessions(
+    final model = await _datasource.compareSessions(
       sourceSessionId: sourceSessionId,
       targetSessionId: targetSessionId,
+      userId: userId,
+    );
+    return model.toEntity();
+  }
+
+  @override
+  Future<void> mergeSessions({
+    required String targetSessionId,
+    required String sourceSessionId,
+    required String userId,
+  }) async {
+    await _datasource.mergeSessions(
+      targetSessionId: targetSessionId,
+      sourceSessionId: sourceSessionId,
       userId: userId,
     );
   }

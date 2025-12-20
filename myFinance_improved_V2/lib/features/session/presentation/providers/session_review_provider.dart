@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/session_providers.dart';
-import '../../domain/repositories/session_repository.dart';
+import '../../domain/usecases/get_product_stock_by_store.dart';
 import '../../domain/usecases/get_session_review_items.dart';
 import '../../domain/usecases/submit_session.dart';
 import 'states/session_review_state.dart';
@@ -12,13 +12,13 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
   final Ref _ref;
   final GetSessionReviewItems _getSessionReviewItems;
   final SubmitSession _submitSession;
-  final SessionRepository _repository;
+  final GetProductStockByStore _getProductStockByStore;
 
   SessionReviewNotifier({
     required Ref ref,
     required GetSessionReviewItems getSessionReviewItems,
     required SubmitSession submitSession,
-    required SessionRepository repository,
+    required GetProductStockByStore getProductStockByStore,
     required String sessionId,
     required String sessionType,
     String? sessionName,
@@ -26,7 +26,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
   })  : _ref = ref,
         _getSessionReviewItems = getSessionReviewItems,
         _submitSession = submitSession,
-        _repository = repository,
+        _getProductStockByStore = getProductStockByStore,
         super(SessionReviewState.initial(
           sessionId: sessionId,
           sessionType: sessionType,
@@ -83,7 +83,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
       Map<String, int> stockMap = {};
       if (productIds.isNotEmpty && state.storeId.isNotEmpty && companyId.isNotEmpty) {
         try {
-          stockMap = await _repository.getProductStockByStore(
+          stockMap = await _getProductStockByStore(
             companyId: companyId,
             storeId: state.storeId,
             productIds: productIds,
@@ -284,13 +284,13 @@ final sessionReviewProvider = StateNotifierProvider.autoDispose
         (ref, params) {
   final getSessionReviewItems = ref.watch(getSessionReviewItemsUseCaseProvider);
   final submitSession = ref.watch(submitSessionUseCaseProvider);
-  final repository = ref.watch(sessionRepositoryProvider);
+  final getProductStockByStore = ref.watch(getProductStockByStoreUseCaseProvider);
 
   final notifier = SessionReviewNotifier(
     ref: ref,
     getSessionReviewItems: getSessionReviewItems,
     submitSession: submitSession,
-    repository: repository,
+    getProductStockByStore: getProductStockByStore,
     sessionId: params.sessionId,
     sessionType: params.sessionType,
     sessionName: params.sessionName,

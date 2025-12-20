@@ -6,6 +6,7 @@
 import type {
   SearchProductResult,
   SessionItemsResult,
+  SessionItemsFullResult,
   SaveItem,
   SubmitItem,
   SubmitResult,
@@ -16,6 +17,10 @@ import type {
   Session,
   CreateSessionResult,
   JoinSessionResult,
+  MergeSessionsResult,
+  CompareSessionsResult,
+  SessionHistoryResponse,
+  SessionHistoryParams,
 } from '../entities';
 
 export interface IProductReceiveRepository {
@@ -125,4 +130,35 @@ export interface IProductReceiveRepository {
     time: string;
     timezone: string;
   }): Promise<JoinSessionResult>;
+
+  /**
+   * Get session items with full details including participants
+   */
+  getSessionItemsFull(
+    sessionId: string,
+    userId: string
+  ): Promise<SessionItemsFullResult>;
+
+  /**
+   * Merge two sessions (copy items from source to target)
+   */
+  mergeSessions(params: {
+    targetSessionId: string;
+    sourceSessionId: string;
+    userId: string;
+  }): Promise<MergeSessionsResult>;
+
+  /**
+   * Compare two sessions
+   */
+  compareSessions(params: {
+    sessionIdA: string;
+    sessionIdB: string;
+    userId: string;
+  }): Promise<CompareSessionsResult>;
+
+  /**
+   * Get session history with filtering and pagination
+   */
+  getSessionHistory(params: SessionHistoryParams): Promise<SessionHistoryResponse>;
 }

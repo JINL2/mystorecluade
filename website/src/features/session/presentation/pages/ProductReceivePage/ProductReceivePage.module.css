@@ -721,6 +721,106 @@
   margin: 0;
 }
 
+.emptySubtitle {
+  font-size: 14px;
+  color: var(--text-secondary, #6C757D);
+  margin: 0;
+}
+
+/* ===== Session History Table Styles ===== */
+.sessionNameCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mergedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #FEF3C7;
+  color: #92400E;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.newProductsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #D1FAE5;
+  color: #047857;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.quantityValue {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #212529);
+}
+
+.memberCount {
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+/* Error State */
+.errorState {
+  text-align: center;
+  padding: 60px 32px;
+}
+
+.errorTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 16px 0 8px 0;
+}
+
+.errorDescription {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+/* Load More */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loadMoreButton {
+  padding: 10px 24px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.loadMoreButton:hover {
+  background: var(--toss-primary-dark, #0050CC);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+}
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #6C757D);
+  font-size: 14px;
+}
+
 /* ===== Shipment Row Selection ===== */
 .shipmentRow {
   cursor: pointer;

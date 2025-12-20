@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../value_objects/date_range.dart';
 import 'balance_verification.dart';
 import 'financial_account.dart';
 
@@ -33,6 +32,7 @@ class CompanyInfo with _$CompanyInfo {
 }
 
 /// Balance sheet entity
+/// Note: v2 API uses balance_sheet_logs (all-time cumulative, no date filter)
 @freezed
 class BalanceSheet with _$BalanceSheet {
   const factory BalanceSheet({
@@ -45,6 +45,5 @@ class BalanceSheet with _$BalanceSheet {
     required BalanceSheetTotals totals,
     required BalanceVerification verification,
     required CompanyInfo companyInfo,
-    required DateRange dateRange,
   }) = _BalanceSheet;
 }

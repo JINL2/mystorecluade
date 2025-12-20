@@ -155,3 +155,93 @@ export interface JoinSessionResult {
   createdBy?: string;
   createdByName?: string;
 }
+
+// Session participant entity
+export interface SessionParticipant {
+  userId: string;
+  userName: string;
+  userProfileImage: string | null;
+  productCount: number;
+  totalScanned: number;
+}
+
+// Extended session items result with participants
+export interface SessionItemsFullResult {
+  sessionId: string;
+  items: SessionItem[];
+  participants: SessionParticipant[];
+  summary: SessionItemsSummary & { totalParticipants?: number };
+}
+
+// Merge sessions result
+export interface MergeSessionsResult {
+  targetSession: {
+    sessionId: string;
+    sessionName: string;
+    itemsBefore: number;
+    itemsAfter: number;
+    quantityBefore: number;
+    quantityAfter: number;
+  };
+  sourceSession: {
+    sessionId: string;
+    sessionName: string;
+    itemsCopied: number;
+    quantityCopied: number;
+    deactivated: boolean;
+  };
+  summary: {
+    totalItemsCopied: number;
+    totalQuantityCopied: number;
+    uniqueProductsCopied: number;
+  };
+}
+
+// Compare sessions entities
+export interface CompareSessionInfo {
+  sessionId: string;
+  sessionName: string;
+  sessionType: string;
+  storeId: string;
+  storeName: string;
+  createdBy: string;
+  createdByName: string;
+  totalProducts: number;
+  totalQuantity: number;
+}
+
+export interface CompareMatchedItem {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantityA: number;
+  quantityB: number;
+  quantityDiff: number;
+  isMatch: boolean;
+}
+
+export interface CompareOnlyItem {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantity: number;
+}
+
+export interface CompareSessionsSummary {
+  totalMatched: number;
+  quantitySameCount: number;
+  quantityDiffCount: number;
+  onlyInACount: number;
+  onlyInBCount: number;
+}
+
+export interface CompareSessionsResult {
+  sessionA: CompareSessionInfo;
+  sessionB: CompareSessionInfo;
+  comparison: {
+    matched: CompareMatchedItem[];
+    onlyInA: CompareOnlyItem[];
+    onlyInB: CompareOnlyItem[];
+  };
+  summary: CompareSessionsSummary;
+}

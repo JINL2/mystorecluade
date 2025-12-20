@@ -260,6 +260,151 @@ export interface CompareSessionsResultDTO {
   summary: CompareSessionsSummaryDTO;
 }
 
+// Session History DTOs (inventory_get_session_history_v2)
+// Updated to match actual RPC response structure
+
+export interface SessionHistoryUserDTO {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  profile_image: string | null;
+}
+
+export interface SessionHistoryMemberDTO {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  profile_image: string | null;
+  joined_at: string;
+  is_active: boolean;
+}
+
+export interface SessionHistoryScannedByDTO {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  profile_image: string | null;
+  quantity: number;
+  quantity_rejected: number;
+}
+
+export interface SessionHistoryItemDTO {
+  product_id: string;
+  product_name: string;
+  sku: string | null;
+  scanned_quantity: number;
+  scanned_rejected: number;
+  scanned_by: SessionHistoryScannedByDTO[];
+  confirmed_quantity: number | null;
+  confirmed_rejected: number | null;
+  quantity_expected: number | null;
+  quantity_difference: number | null;
+}
+
+export interface SessionMergeInfoDTO {
+  original_session: {
+    items: Array<{
+      product_id: string;
+      sku: string;
+      product_name: string;
+      quantity: number;
+      quantity_rejected: number;
+      scanned_by: SessionHistoryUserDTO;
+    }>;
+    items_count: number;
+    total_quantity: number;
+    total_rejected: number;
+  };
+  merged_sessions: Array<{
+    source_session_id: string;
+    source_session_name: string;
+    source_created_at: string;
+    source_created_by: SessionHistoryUserDTO;
+    items: Array<{
+      product_id: string;
+      sku: string;
+      product_name: string;
+      quantity: number;
+      quantity_rejected: number;
+      scanned_by: SessionHistoryUserDTO;
+    }>;
+    items_count: number;
+    total_quantity: number;
+    total_rejected: number;
+  }>;
+  total_merged_sessions_count: number;
+}
+
+export interface StockSnapshotDTO {
+  product_id: string;
+  sku: string;
+  product_name: string;
+  quantity_before: number;
+  quantity_received: number;
+  quantity_after: number;
+  needs_display: boolean;
+}
+
+export interface SessionReceivingInfoDTO {
+  receiving_id: string;
+  receiving_number: string;
+  received_at: string;
+  stock_snapshot: StockSnapshotDTO[];
+  new_products_count: number;
+  restock_products_count: number;
+}
+
+export interface SessionHistoryEntryDTO {
+  session_id: string;
+  session_name: string;
+  session_type: 'counting' | 'receiving';
+  is_active: boolean;
+  is_final: boolean;
+  store_id: string;
+  store_name: string;
+  shipment_id: string | null;
+  shipment_number: string | null;
+  created_at: string;
+  completed_at: string | null;
+  duration_minutes: number | null;
+  created_by: SessionHistoryUserDTO;
+  members: SessionHistoryMemberDTO[];
+  member_count: number;
+  items: SessionHistoryItemDTO[];
+  total_scanned_quantity: number;
+  total_scanned_rejected: number;
+  total_confirmed_quantity: number | null;
+  total_confirmed_rejected: number | null;
+  total_difference: number | null;
+  is_merged_session: boolean;
+  merge_info: SessionMergeInfoDTO | null;
+  receiving_info: SessionReceivingInfoDTO | null;
+}
+
+export interface SessionHistoryPaginationDTO {
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+}
+
+export interface SessionHistoryResponseDTO {
+  sessions: SessionHistoryEntryDTO[];
+  pagination: SessionHistoryPaginationDTO;
+}
+
+export interface SessionHistoryParamsDTO {
+  p_company_id: string;
+  p_store_id: string;
+  p_session_type?: 'counting' | 'receiving' | null;
+  p_is_active?: boolean;
+  p_start_date?: string | null;
+  p_end_date?: string | null;
+  p_timezone: string;
+  p_limit?: number;
+  p_offset?: number;
+}
+
 // DataSource interface
 export interface IProductReceiveDataSource {
   searchProducts(
@@ -352,6 +497,18 @@ export interface IProductReceiveDataSource {
     sessionIdB: string;
     userId: string;
   }): Promise<CompareSessionsResultDTO>;
+
+  getSessionHistory(params: {
+    companyId: string;
+    storeId: string;
+    sessionType?: 'counting' | 'receiving' | null;
+    isActive?: boolean;
+    startDate?: string | null;
+    endDate?: string | null;
+    timezone?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<SessionHistoryResponseDTO>;
 }
 
 // DataSource implementation
@@ -852,6 +1009,79 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
         quantity_diff_count: 0,
         only_in_a_count: 0,
         only_in_b_count: 0,
+      },
+    };
+  }
+
+  async getSessionHistory(params: {
+    companyId: string;
+    storeId?: string; // Optional - if not provided, get sessions for all stores
+    sessionType?: 'counting' | 'receiving' | null;
+    isActive?: boolean;
+    startDate?: string | null;
+    endDate?: string | null;
+    timezone?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<SessionHistoryResponseDTO> {
+    const client = supabaseService.getClient();
+    const timezone = params.timezone || this.getTimezone();
+
+    const rpcParams: Record<string, unknown> = {
+      p_company_id: params.companyId,
+      p_timezone: timezone,
+    };
+
+    // Store ID is optional - if provided, filter by store
+    if (params.storeId) {
+      rpcParams.p_store_id = params.storeId;
+    }
+
+    if (params.sessionType) {
+      rpcParams.p_session_type = params.sessionType;
+    }
+    if (params.isActive !== undefined) {
+      rpcParams.p_is_active = params.isActive;
+    }
+    if (params.startDate) {
+      rpcParams.p_start_date = params.startDate;
+    }
+    if (params.endDate) {
+      rpcParams.p_end_date = params.endDate;
+    }
+    if (params.limit !== undefined) {
+      rpcParams.p_limit = params.limit;
+    }
+    if (params.offset !== undefined) {
+      rpcParams.p_offset = params.offset;
+    }
+
+    const { data, error } = await client.rpc('inventory_get_session_history_v2', rpcParams);
+
+    if (error) {
+      throw new Error(`Failed to get session history: ${error.message}`);
+    }
+
+    if (!data?.success) {
+      throw new Error(data?.error || 'Failed to get session history');
+    }
+
+    // RPC returns: { success, data: [...sessions], total_count, limit, offset }
+
+    // The sessions array is directly in data.data (not data.data.sessions)
+    const sessions = Array.isArray(data.data) ? data.data : [];
+    const totalCount = data.total_count || 0;
+    const limit = data.limit || params.limit || 20;
+    const offset = data.offset || params.offset || 0;
+    const hasMore = offset + sessions.length < totalCount;
+
+    return {
+      sessions,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        has_more: hasMore,
       },
     };
   }

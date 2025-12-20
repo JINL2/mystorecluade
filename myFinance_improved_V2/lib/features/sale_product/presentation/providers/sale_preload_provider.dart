@@ -6,6 +6,7 @@ import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
 
 /// State for preloaded sale data (exchange rates + cash locations)
+/// NOTE: Consider using Freezed for consistency with SalesProductState
 class SalePreloadState {
   final ExchangeRateData? exchangeRateData;
   final List<CashLocation> cashLocations;

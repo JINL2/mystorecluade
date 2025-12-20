@@ -138,4 +138,44 @@ class HomepageRepositoryImpl implements HomepageRepository {
   Future<bool> checkAppVersion() async {
     return await _dataSource.checkAppVersion();
   }
+
+  // === User Salary Operations ===
+
+  @override
+  Future<Map<String, dynamic>> getUserSalary({
+    required String userId,
+    required String companyId,
+    required String timezone,
+  }) async {
+    try {
+      return await _dataSource.getUserSalary(
+        userId: userId,
+        companyId: companyId,
+        timezone: timezone,
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch user salary: $e');
+    }
+  }
+
+  // === Revenue Chart Operations ===
+
+  @override
+  Future<Map<String, dynamic>> getRevenueChartData({
+    required String companyId,
+    required String timeFilter,
+    required String timezone,
+    String? storeId,
+  }) async {
+    try {
+      return await _dataSource.getRevenueChartData(
+        companyId: companyId,
+        timeFilter: timeFilter,
+        timezone: timezone,
+        storeId: storeId,
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch revenue chart data: $e');
+    }
+  }
 }

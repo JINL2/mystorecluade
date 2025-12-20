@@ -12,3 +12,4 @@ export { CustomDatePickerModal } from './CustomDatePickerModal';
 export { ShipmentsTable } from './ShipmentsTable';
 export { CountingSessionsTable } from './CountingSessionsTable';
 export { ReceivingSessionsTable } from './ReceivingSessionsTable';
+export { SessionHistoryTable } from './SessionHistoryTable';

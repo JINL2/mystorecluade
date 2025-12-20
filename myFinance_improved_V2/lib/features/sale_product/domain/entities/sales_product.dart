@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Sales product entity - represents a product available for sale
-class SalesProduct {
+class SalesProduct extends Equatable {
   final String productId;
   final String productName;
   final String sku;
@@ -38,10 +40,29 @@ class SalesProduct {
   StoreStock? get firstStoreStock => storeStocks.isNotEmpty ? storeStocks.first : null;
   int get availableQuantity => totalStockSummary.totalQuantityAvailable;
   double? get sellingPrice => pricing.sellingPrice;
+
+  @override
+  List<Object?> get props => [
+        productId,
+        productName,
+        sku,
+        barcode,
+        productType,
+        pricing,
+        totalStockSummary,
+        images,
+        status,
+        category,
+        brand,
+        unit,
+        attributes,
+        storeStocks,
+        stockSettings,
+      ];
 }
 
 /// Product pricing information
-class ProductPricing {
+class ProductPricing extends Equatable {
   final double? minPrice;
   final double? costPrice;
   final double? profitAmount;
@@ -55,10 +76,19 @@ class ProductPricing {
     this.profitMargin,
     this.sellingPrice,
   });
+
+  @override
+  List<Object?> get props => [
+        minPrice,
+        costPrice,
+        profitAmount,
+        profitMargin,
+        sellingPrice,
+      ];
 }
 
 /// Total stock summary across all stores
-class TotalStockSummary {
+class TotalStockSummary extends Equatable {
   final int storeCount;
   final double totalValue;
   final int totalQuantityOnHand;
@@ -72,10 +102,19 @@ class TotalStockSummary {
     required this.totalQuantityReserved,
     required this.totalQuantityAvailable,
   });
+
+  @override
+  List<Object?> get props => [
+        storeCount,
+        totalValue,
+        totalQuantityOnHand,
+        totalQuantityReserved,
+        totalQuantityAvailable,
+      ];
 }
 
 /// Product images
-class ProductImages {
+class ProductImages extends Equatable {
   final String? thumbnail;
   final String? mainImage;
   final List<String> additionalImages;
@@ -85,10 +124,13 @@ class ProductImages {
     this.mainImage,
     required this.additionalImages,
   });
+
+  @override
+  List<Object?> get props => [thumbnail, mainImage, additionalImages];
 }
 
 /// Product status
-class ProductStatus {
+class ProductStatus extends Equatable {
   final bool isActive;
   final DateTime createdAt;
   final bool isDeleted;
@@ -100,10 +142,13 @@ class ProductStatus {
     required this.isDeleted,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [isActive, createdAt, isDeleted, updatedAt];
 }
 
 /// Product attributes
-class ProductAttributes {
+class ProductAttributes extends Equatable {
   final String? position;
   final double? weightG;
 
@@ -111,10 +156,13 @@ class ProductAttributes {
     this.position,
     this.weightG,
   });
+
+  @override
+  List<Object?> get props => [position, weightG];
 }
 
 /// Store stock information
-class StoreStock {
+class StoreStock extends Equatable {
   final Stock stock;
   final String storeId;
   final Valuation valuation;
@@ -130,10 +178,20 @@ class StoreStock {
     required this.storeName,
     required this.stockStatus,
   });
+
+  @override
+  List<Object?> get props => [
+        stock,
+        storeId,
+        valuation,
+        storeCode,
+        storeName,
+        stockStatus,
+      ];
 }
 
 /// Stock quantities
-class Stock {
+class Stock extends Equatable {
   final int quantityOnHand;
   final int quantityReserved;
   final int quantityAvailable;
@@ -143,10 +201,13 @@ class Stock {
     required this.quantityReserved,
     required this.quantityAvailable,
   });
+
+  @override
+  List<Object?> get props => [quantityOnHand, quantityReserved, quantityAvailable];
 }
 
 /// Stock valuation
-class Valuation {
+class Valuation extends Equatable {
   final double totalValue;
   final double averageCost;
 
@@ -154,10 +215,13 @@ class Valuation {
     required this.totalValue,
     required this.averageCost,
   });
+
+  @override
+  List<Object?> get props => [totalValue, averageCost];
 }
 
 /// Stock settings
-class StockSettings {
+class StockSettings extends Equatable {
   final int? maxStock;
   final int minStock;
   final int? reorderPoint;
@@ -169,4 +233,7 @@ class StockSettings {
     this.reorderPoint,
     this.reorderQuantity,
   });
+
+  @override
+  List<Object?> get props => [maxStock, minStock, reorderPoint, reorderQuantity];
 }

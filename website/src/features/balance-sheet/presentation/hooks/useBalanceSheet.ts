@@ -23,8 +23,6 @@ export const useBalanceSheet = () => {
 
   const companyId = useBalanceSheetStore((state) => state.companyId);
   const storeId = useBalanceSheetStore((state) => state.storeId);
-  const startDate = useBalanceSheetStore((state) => state.startDate);
-  const endDate = useBalanceSheetStore((state) => state.endDate);
   const balanceSheet = useBalanceSheetStore((state) => state.balanceSheet);
   const loading = useBalanceSheetStore((state) => state.loading);
   const error = useBalanceSheetStore((state) => state.error);
@@ -36,9 +34,6 @@ export const useBalanceSheet = () => {
 
   const setCompanyId = useBalanceSheetStore((state) => state.setCompanyId);
   const setStoreId = useBalanceSheetStore((state) => state.setStoreId);
-  const setDateRange = useBalanceSheetStore((state) => state.setDateRange);
-  const setStartDate = useBalanceSheetStore((state) => state.setStartDate);
-  const setEndDate = useBalanceSheetStore((state) => state.setEndDate);
   const loadBalanceSheet = useBalanceSheetStore((state) => state.loadBalanceSheet);
   const refresh = useBalanceSheetStore((state) => state.refresh);
   const reset = useBalanceSheetStore((state) => state.reset);
@@ -52,8 +47,6 @@ export const useBalanceSheet = () => {
     // State (read-only)
     companyId,
     storeId,
-    startDate,
-    endDate,
     balanceSheet,
     loading,
     error,
@@ -62,9 +55,6 @@ export const useBalanceSheet = () => {
     // Public Actions (user-facing operations)
     setCompanyId,
     setStoreId,
-    setDateRange,
-    setStartDate,
-    setEndDate,
     loadBalanceSheet,
     refresh,
     reset,
@@ -72,6 +62,5 @@ export const useBalanceSheet = () => {
 
     // Convenience aliases (backward compatibility)
     changeStore: setStoreId,
-    changeDateRange: setDateRange,
   };
 };

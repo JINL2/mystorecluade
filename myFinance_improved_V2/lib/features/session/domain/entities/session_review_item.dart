@@ -1,47 +1,38 @@
-/// User who scanned items in a session
-class ScannedByUser {
-  final String userId;
-  final String userName;
-  final int quantity;
-  final int quantityRejected;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const ScannedByUser({
-    required this.userId,
-    required this.userName,
-    required this.quantity,
-    required this.quantityRejected,
-  });
+part 'session_review_item.freezed.dart';
+
+/// User who scanned items in a session
+@freezed
+class ScannedByUser with _$ScannedByUser {
+  const factory ScannedByUser({
+    required String userId,
+    required String userName,
+    required int quantity,
+    required int quantityRejected,
+  }) = _ScannedByUser;
 }
 
 /// Individual item in session review
-class SessionReviewItem {
-  final String productId;
-  final String productName;
-  final String? sku;
-  final String? imageUrl;
-  final String? brand;
-  final String? category;
-  final int totalQuantity;
-  final int totalRejected;
-  final int previousStock;
-  final List<ScannedByUser> scannedBy;
-  /// Session type: 'counting' or 'receiving'
-  /// Used to calculate newStock and stockChange differently
-  final String sessionType;
+@freezed
+class SessionReviewItem with _$SessionReviewItem {
+  const SessionReviewItem._();
 
-  const SessionReviewItem({
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.imageUrl,
-    this.brand,
-    this.category,
-    required this.totalQuantity,
-    required this.totalRejected,
-    this.previousStock = 0,
-    required this.scannedBy,
-    this.sessionType = 'receiving',
-  });
+  const factory SessionReviewItem({
+    required String productId,
+    required String productName,
+    String? sku,
+    String? imageUrl,
+    String? brand,
+    String? category,
+    required int totalQuantity,
+    required int totalRejected,
+    @Default(0) int previousStock,
+    required List<ScannedByUser> scannedBy,
+    /// Session type: 'counting' or 'receiving'
+    /// Used to calculate newStock and stockChange differently
+    @Default('receiving') String sessionType,
+  }) = _SessionReviewItem;
 
   /// Get net quantity (total - rejected)
   int get netQuantity => totalQuantity - totalRejected;
@@ -57,66 +48,54 @@ class SessionReviewItem {
 }
 
 /// Summary of session items
-class SessionReviewSummary {
-  final int totalProducts;
-  final int totalQuantity;
-  final int totalRejected;
-  final int totalParticipants;
+@freezed
+class SessionReviewSummary with _$SessionReviewSummary {
+  const SessionReviewSummary._();
 
-  const SessionReviewSummary({
-    required this.totalProducts,
-    required this.totalQuantity,
-    required this.totalRejected,
-    this.totalParticipants = 0,
-  });
+  const factory SessionReviewSummary({
+    required int totalProducts,
+    required int totalQuantity,
+    required int totalRejected,
+    @Default(0) int totalParticipants,
+  }) = _SessionReviewSummary;
 
   /// Get net quantity (total - rejected)
   int get netQuantity => totalQuantity - totalRejected;
 }
 
 /// Session participant (from inventory_get_session_items RPC)
-class SessionParticipant {
-  final String userId;
-  final String userName;
-  final String? userProfileImage;
-  final int productCount;
-  final int totalScanned;
-
-  const SessionParticipant({
-    required this.userId,
-    required this.userName,
-    this.userProfileImage,
-    required this.productCount,
-    required this.totalScanned,
-  });
+@freezed
+class SessionParticipant with _$SessionParticipant {
+  const factory SessionParticipant({
+    required String userId,
+    required String userName,
+    String? userProfileImage,
+    required int productCount,
+    required int totalScanned,
+  }) = _SessionParticipant;
 }
 
 /// Response wrapper for session review items
-class SessionReviewResponse {
-  final String sessionId;
-  final List<SessionReviewItem> items;
-  final List<SessionParticipant> participants;
-  final SessionReviewSummary summary;
-
-  const SessionReviewResponse({
-    required this.sessionId,
-    required this.items,
-    required this.participants,
-    required this.summary,
-  });
+@freezed
+class SessionReviewResponse with _$SessionReviewResponse {
+  const factory SessionReviewResponse({
+    required String sessionId,
+    required List<SessionReviewItem> items,
+    required List<SessionParticipant> participants,
+    required SessionReviewSummary summary,
+  }) = _SessionReviewResponse;
 }
 
 /// Item to submit in session
-class SessionSubmitItem {
-  final String productId;
-  final int quantity;
-  final int quantityRejected;
+@freezed
+class SessionSubmitItem with _$SessionSubmitItem {
+  const SessionSubmitItem._();
 
-  const SessionSubmitItem({
-    required this.productId,
-    required this.quantity,
-    this.quantityRejected = 0,
-  });
+  const factory SessionSubmitItem({
+    required String productId,
+    required int quantity,
+    @Default(0) int quantityRejected,
+  }) = _SessionSubmitItem;
 
   Map<String, dynamic> toJson() => {
         'product_id': productId,
@@ -127,54 +106,36 @@ class SessionSubmitItem {
 
 /// Stock change item from submit response (V2)
 /// Tracks before/after quantities for display tracking
-class StockChangeItem {
-  final String productId;
-  final String? sku;
-  final String productName;
-  final int quantityBefore;
-  final int quantityReceived;
-  final int quantityAfter;
-  /// True if quantityBefore was 0 (new item needs display)
-  final bool needsDisplay;
-
-  const StockChangeItem({
-    required this.productId,
-    this.sku,
-    required this.productName,
-    required this.quantityBefore,
-    required this.quantityReceived,
-    required this.quantityAfter,
-    required this.needsDisplay,
-  });
+@freezed
+class StockChangeItem with _$StockChangeItem {
+  const factory StockChangeItem({
+    required String productId,
+    String? sku,
+    required String productName,
+    required int quantityBefore,
+    required int quantityReceived,
+    required int quantityAfter,
+    /// True if quantityBefore was 0 (new item needs display)
+    required bool needsDisplay,
+  }) = _StockChangeItem;
 }
 
 /// Response from session submit
-class SessionSubmitResponse {
-  final String sessionType;
-  final String receivingId;
-  final String receivingNumber;
-  final String sessionId;
-  final bool isFinal;
-  final int itemsCount;
-  final int totalQuantity;
-  final int totalRejected;
-  final bool stockUpdated;
-  /// Stock changes for each product (receiving only)
-  final List<StockChangeItem> stockChanges;
-  /// Count of new items that need display (quantityBefore = 0)
-  final int newDisplayCount;
-
-  const SessionSubmitResponse({
-    this.sessionType = 'receiving',
-    required this.receivingId,
-    required this.receivingNumber,
-    required this.sessionId,
-    required this.isFinal,
-    required this.itemsCount,
-    required this.totalQuantity,
-    required this.totalRejected,
-    required this.stockUpdated,
-    this.stockChanges = const [],
-    this.newDisplayCount = 0,
-  });
+@freezed
+class SessionSubmitResponse with _$SessionSubmitResponse {
+  const factory SessionSubmitResponse({
+    @Default('receiving') String sessionType,
+    required String receivingId,
+    required String receivingNumber,
+    required String sessionId,
+    required bool isFinal,
+    required int itemsCount,
+    required int totalQuantity,
+    required int totalRejected,
+    required bool stockUpdated,
+    /// Stock changes for each product (receiving only)
+    @Default([]) List<StockChangeItem> stockChanges,
+    /// Count of new items that need display (quantityBefore = 0)
+    @Default(0) int newDisplayCount,
+  }) = _SessionSubmitResponse;
 }

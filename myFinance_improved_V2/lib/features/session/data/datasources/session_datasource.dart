@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
-import '../../domain/entities/session_item.dart';
 import '../models/close_session_response_model.dart';
+import '../models/session_item_input_model.dart';
 import '../models/inventory_session_model.dart';
 import '../models/join_session_response_model.dart';
 import '../models/product_search_model.dart';
@@ -516,7 +516,7 @@ class SessionDatasource {
   Future<AddSessionItemsResponseModel> addSessionItems({
     required String sessionId,
     required String userId,
-    required List<SessionItemInput> items,
+    required List<SessionItemInputModel> items,
   }) async {
     final itemsJson = items.map((item) => item.toJson()).toList();
 
@@ -622,7 +622,7 @@ class SessionDatasource {
   Future<UpdateSessionItemsResponseModel> updateSessionItems({
     required String sessionId,
     required String userId,
-    required List<SessionItemInput> items,
+    required List<SessionItemInputModel> items,
   }) async {
     final itemsJson = items.map((item) => item.toJson()).toList();
 
@@ -645,8 +645,13 @@ class SessionDatasource {
     }
   }
 
-  /// Get session history via RPC (inventory_get_session_history)
-  /// Returns detailed session history including members and items
+  /// Get session history via RPC (inventory_get_session_history_v2)
+  /// Returns detailed session history including members, items, merge info, and receiving info
+  /// V2 includes:
+  /// - is_merged_session: boolean flag for merged sessions
+  /// - merge_info: original_session and merged_sessions with items
+  /// - receiving_info: stock_snapshot with quantity_before/received/after and needs_display
+  /// - profile_image: included in all user objects
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String companyId,
     String? storeId,
@@ -675,7 +680,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_get_session_history',
+      'inventory_get_session_history_v2',
       params: params,
     ).single();
 

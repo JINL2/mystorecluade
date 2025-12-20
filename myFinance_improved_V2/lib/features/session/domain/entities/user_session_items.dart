@@ -1,62 +1,64 @@
-/// Domain entity for user session items
-/// Clean Architecture: Domain layer entity - no dependencies on Data layer
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'user_session_items.freezed.dart';
 
 /// Individual item added by user in a session
-class UserSessionItem {
-  final String itemId;
-  final String productId;
-  final String productName;
-  final String? sku;
-  final List<String>? imageUrls;
-  final int quantity;
-  final int quantityRejected;
-  final String? notes;
-  final String createdAt;
+@freezed
+class UserSessionItem with _$UserSessionItem {
+  const UserSessionItem._();
 
-  const UserSessionItem({
-    required this.itemId,
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.imageUrls,
-    required this.quantity,
-    required this.quantityRejected,
-    this.notes,
-    required this.createdAt,
-  });
+  const factory UserSessionItem({
+    required String itemId,
+    required String productId,
+    required String productName,
+    String? sku,
+    List<String>? imageUrls,
+    required int quantity,
+    required int quantityRejected,
+    String? notes,
+    required String createdAt,
+  }) = _UserSessionItem;
 
   /// Get first image URL or null
   String? get imageUrl => imageUrls?.isNotEmpty == true ? imageUrls!.first : null;
 }
 
 /// Summary of user's session items
-class UserSessionItemsSummary {
-  final int totalItems;
-  final int totalProducts;
-  final int totalQuantity;
-  final int totalRejected;
+@freezed
+class UserSessionItemsSummary with _$UserSessionItemsSummary {
+  const factory UserSessionItemsSummary({
+    required int totalItems,
+    required int totalProducts,
+    required int totalQuantity,
+    required int totalRejected,
+  }) = _UserSessionItemsSummary;
+}
 
-  const UserSessionItemsSummary({
-    required this.totalItems,
-    required this.totalProducts,
-    required this.totalQuantity,
-    required this.totalRejected,
-  });
+/// Aggregated item (grouped by product_id)
+@freezed
+class AggregatedUserSessionItem with _$AggregatedUserSessionItem {
+  const factory AggregatedUserSessionItem({
+    required String productId,
+    required String productName,
+    String? sku,
+    String? imageUrl,
+    required int totalQuantity,
+    required int totalRejected,
+    required List<String> itemIds,
+  }) = _AggregatedUserSessionItem;
 }
 
 /// Response entity for getting user session items
-class UserSessionItemsResponse {
-  final String sessionId;
-  final String userId;
-  final List<UserSessionItem> items;
-  final UserSessionItemsSummary summary;
+@freezed
+class UserSessionItemsResponse with _$UserSessionItemsResponse {
+  const UserSessionItemsResponse._();
 
-  const UserSessionItemsResponse({
-    required this.sessionId,
-    required this.userId,
-    required this.items,
-    required this.summary,
-  });
+  const factory UserSessionItemsResponse({
+    required String sessionId,
+    required String userId,
+    required List<UserSessionItem> items,
+    required UserSessionItemsSummary summary,
+  }) = _UserSessionItemsResponse;
 
   /// Check if user has any items
   bool get hasItems => items.isNotEmpty;
@@ -93,25 +95,4 @@ class UserSessionItemsResponse {
 
     return result;
   }
-}
-
-/// Aggregated item (grouped by product_id)
-class AggregatedUserSessionItem {
-  final String productId;
-  final String productName;
-  final String? sku;
-  final String? imageUrl;
-  final int totalQuantity;
-  final int totalRejected;
-  final List<String> itemIds;
-
-  const AggregatedUserSessionItem({
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.imageUrl,
-    required this.totalQuantity,
-    required this.totalRejected,
-    required this.itemIds,
-  });
 }

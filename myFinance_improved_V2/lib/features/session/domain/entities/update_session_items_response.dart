@@ -1,60 +1,52 @@
-/// Domain entity for update session items response
-/// Clean Architecture: Domain layer entity - no dependencies on Data layer
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'update_session_items_response.freezed.dart';
 
 /// Individual updated item result
-class UpdatedItem {
-  final String itemId;
-  final String productId;
-  final int quantity;
-  final int quantityRejected;
-  final String action; // 'updated' or 'inserted'
-  final int consolidatedCount;
+@freezed
+class UpdatedItem with _$UpdatedItem {
+  const UpdatedItem._();
 
-  const UpdatedItem({
-    required this.itemId,
-    required this.productId,
-    required this.quantity,
-    required this.quantityRejected,
-    required this.action,
-    required this.consolidatedCount,
-  });
+  const factory UpdatedItem({
+    required String itemId,
+    required String productId,
+    required int quantity,
+    required int quantityRejected,
+    required String action, // 'updated' or 'inserted'
+    required int consolidatedCount,
+  }) = _UpdatedItem;
 
   bool get isUpdated => action == 'updated';
   bool get isInserted => action == 'inserted';
 }
 
 /// Summary of update operation
-class UpdateSummary {
-  final int totalUpdated;
-  final int totalInserted;
-  final int totalConsolidated;
+@freezed
+class UpdateSummary with _$UpdateSummary {
+  const UpdateSummary._();
 
-  const UpdateSummary({
-    required this.totalUpdated,
-    required this.totalInserted,
-    required this.totalConsolidated,
-  });
+  const factory UpdateSummary({
+    required int totalUpdated,
+    required int totalInserted,
+    required int totalConsolidated,
+  }) = _UpdateSummary;
 
   int get totalProcessed => totalUpdated + totalInserted;
 }
 
 /// Response entity for update session items
-class UpdateSessionItemsResponse {
-  final bool success;
-  final String sessionId;
-  final String userId;
-  final List<UpdatedItem> updated;
-  final UpdateSummary summary;
-  final String? message;
+@freezed
+class UpdateSessionItemsResponse with _$UpdateSessionItemsResponse {
+  const UpdateSessionItemsResponse._();
 
-  const UpdateSessionItemsResponse({
-    required this.success,
-    required this.sessionId,
-    required this.userId,
-    required this.updated,
-    required this.summary,
-    this.message,
-  });
+  const factory UpdateSessionItemsResponse({
+    required bool success,
+    required String sessionId,
+    required String userId,
+    required List<UpdatedItem> updated,
+    required UpdateSummary summary,
+    String? message,
+  }) = _UpdateSessionItemsResponse;
 
   bool get hasUpdates => updated.isNotEmpty;
   int get itemsProcessed => summary.totalProcessed;

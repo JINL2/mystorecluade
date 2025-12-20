@@ -28,6 +28,19 @@ const getLastDayOfMonth = (): string => {
   return DateTimeUtils.toDateOnly(lastDay);
 };
 
+// Helper functions for 12-month view (full year)
+const getFirstDayOfYear = (): string => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), 0, 1); // January 1st
+  return DateTimeUtils.toDateOnly(firstDay);
+};
+
+const getLastDayOfYear = (): string => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), 11, 31); // December 31st
+  return DateTimeUtils.toDateOnly(lastDay);
+};
+
 export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   onSearch,
   onClear,
@@ -106,6 +119,19 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   useEffect(() => {
     handleClear();
   }, [currentCompany?.company_id]);
+
+  // Update date range when type changes
+  useEffect(() => {
+    if (type === '12month') {
+      // 12-month view: set to full year (Jan 1 - Dec 31)
+      setFromDate(getFirstDayOfYear());
+      setToDate(getLastDayOfYear());
+    } else {
+      // Monthly view: set to current month
+      setFromDate(getFirstDayOfMonth());
+      setToDate(getLastDayOfMonth());
+    }
+  }, [type]);
 
   return (
     <div className={`${styles.filterContainer} ${className}`}>

@@ -12,8 +12,10 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_button.dart';
-import '../../../journal_input/data/datasources/journal_entry_datasource.dart';
+// Clean Architecture: Domain entity import (OK)
 import '../../../journal_input/domain/entities/journal_attachment.dart';
+// Clean Architecture: Presentation provider import (OK) - NOT Data layer
+import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 
 /// Page for adding screenshots/receipts after successful invoice
 class InvoiceAttachmentPage extends ConsumerStatefulWidget {
@@ -152,21 +154,19 @@ class _InvoiceAttachmentPageState extends ConsumerState<InvoiceAttachmentPage> {
         return;
       }
 
-      // Use the journal entry datasource to upload attachments
-      final datasource = JournalEntryDataSource(
-        ref.read(supabaseClientProvider),
-      );
+      // Clean Architecture: Use provider from Presentation layer (NOT DataSource directly)
+      final uploadAttachments = ref.read(uploadAttachmentsProvider);
 
       final files = _pendingAttachments
           .where((a) => a.localFile != null)
           .map((a) => a.localFile!)
           .toList();
 
-      await datasource.uploadAttachments(
-        companyId: companyId,
-        journalId: widget.journalId,
-        uploadedBy: userId,
-        files: files,
+      await uploadAttachments(
+        companyId,
+        widget.journalId,
+        userId,
+        files,
       );
 
       if (mounted) {
@@ -611,8 +611,3 @@ class _InvoiceAttachmentPageState extends ConsumerState<InvoiceAttachmentPage> {
         );
   }
 }
-
-// Supabase client provider (reuse from existing)
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});

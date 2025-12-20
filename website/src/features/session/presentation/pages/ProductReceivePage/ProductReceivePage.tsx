@@ -17,11 +17,13 @@ import {
   CreateReceivingSessionModal,
   CountingSessionsTable,
   ReceivingSessionsTable,
+  SessionHistoryTable,
   CustomDatePickerModal,
 } from './components';
+import { useSessionHistory } from '../../hooks/useSessionHistory';
 import styles from './ProductReceivePage.module.css';
 
-type TabType = 'counting' | 'receiving';
+type TabType = 'counting' | 'receiving' | 'history';
 
 export const ProductReceivePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('counting');
@@ -97,6 +99,21 @@ export const ProductReceivePage: React.FC = () => {
     setSessionName: setReceivingSessionName,
     handleCreateSession: handleCreateReceivingSession,
   } = useReceivingSessionList();
+
+  // Session history hook - show closed sessions (isActive: false)
+  const {
+    sessions: historySessions,
+    isLoading: historyLoading,
+    isLoadingMore: historyLoadingMore,
+    hasMore: historyHasMore,
+    error: historyError,
+    loadMore: loadMoreHistory,
+    handleSessionClick: handleHistorySessionClick,
+  } = useSessionHistory({
+    isActive: false, // Show only closed/completed sessions in history
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+  });
 
   // Click outside to close date picker
   useEffect(() => {
@@ -242,6 +259,12 @@ export const ProductReceivePage: React.FC = () => {
               >
                 Receiving
               </button>
+              <button
+                className={`${styles.tab} ${activeTab === 'history' ? styles.active : ''}`}
+                onClick={() => setActiveTab('history')}
+              >
+                History
+              </button>
             </div>
 
             {/* Tab Content */}
@@ -279,7 +302,7 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <CountingSessionsTable
-                    sessions={countingSessions}
+                    sessions={countingSessions.filter(s => s.is_active)}
                     sessionsLoading={countingSessionsLoading}
                     searchQuery={countingSearchQuery}
                     onSessionClick={handleCountingSessionClick}
@@ -320,10 +343,30 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <ReceivingSessionsTable
-                    sessions={receivingSessions}
+                    sessions={receivingSessions.filter(s => s.is_active)}
                     sessionsLoading={receivingSessionsLoading}
                     searchQuery={receivingSearchQuery}
                     onSessionClick={handleReceivingSessionClick}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <div className={styles.contentCard}>
+                  <div className={styles.receiveHeader}>
+                    <div className={styles.receiveTitleSection}>
+                      <h2 className={styles.receiveListTitle}>Session History</h2>
+                    </div>
+                  </div>
+
+                  <SessionHistoryTable
+                    sessions={historySessions}
+                    isLoading={historyLoading}
+                    isLoadingMore={historyLoadingMore}
+                    hasMore={historyHasMore}
+                    error={historyError}
+                    onSessionClick={handleHistorySessionClick}
+                    onLoadMore={loadMoreHistory}
                   />
                 </div>
               )}

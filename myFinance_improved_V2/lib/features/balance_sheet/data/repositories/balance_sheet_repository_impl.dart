@@ -16,15 +16,11 @@ class BalanceSheetRepositoryImpl implements BalanceSheetRepository {
   @override
   Future<BalanceSheet> getBalanceSheet({
     required String companyId,
-    required String startDate,
-    required String endDate,
     String? storeId,
   }) async {
     try {
       final rawData = await _dataSource.getBalanceSheetRaw(
         companyId: companyId,
-        startDate: startDate,
-        endDate: endDate,
         storeId: storeId,
       );
 
@@ -38,23 +34,26 @@ class BalanceSheetRepositoryImpl implements BalanceSheetRepository {
   @override
   Future<IncomeStatement> getIncomeStatement({
     required String companyId,
-    required String startDate,
-    required String endDate,
+    required String startTime,
+    required String endTime,
+    required String timezone,
     String? storeId,
   }) async {
     try {
       final rawData = await _dataSource.getIncomeStatementRaw(
         companyId: companyId,
-        startDate: startDate,
-        endDate: endDate,
+        startTime: startTime,
+        endTime: endTime,
+        timezone: timezone,
         storeId: storeId,
       );
 
       final model = IncomeStatementModel.fromJson(
         data: rawData,
         parameters: {
-          'start_date': startDate,
-          'end_date': endDate,
+          'start_time': startTime,
+          'end_time': endTime,
+          'timezone': timezone,
           'company_id': companyId,
           'store_id': storeId,
         },

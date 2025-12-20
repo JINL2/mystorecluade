@@ -1,12 +1,17 @@
 import '../../domain/entities/session_review_item.dart';
 
 /// Model for ScannedByUser with JSON serialization
-class ScannedByUserModel extends ScannedByUser {
+class ScannedByUserModel {
+  final String userId;
+  final String userName;
+  final int quantity;
+  final int quantityRejected;
+
   const ScannedByUserModel({
-    required super.userId,
-    required super.userName,
-    required super.quantity,
-    required super.quantityRejected,
+    required this.userId,
+    required this.userName,
+    required this.quantity,
+    required this.quantityRejected,
   });
 
   factory ScannedByUserModel.fromJson(Map<String, dynamic> json) {
@@ -26,22 +31,43 @@ class ScannedByUserModel extends ScannedByUser {
       'quantity_rejected': quantityRejected,
     };
   }
+
+  ScannedByUser toEntity() {
+    return ScannedByUser(
+      userId: userId,
+      userName: userName,
+      quantity: quantity,
+      quantityRejected: quantityRejected,
+    );
+  }
 }
 
 /// Model for SessionReviewItem with JSON serialization
-class SessionReviewItemModel extends SessionReviewItem {
+class SessionReviewItemModel {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? imageUrl;
+  final String? brand;
+  final String? category;
+  final int totalQuantity;
+  final int totalRejected;
+  final int previousStock;
+  final List<ScannedByUserModel> scannedBy;
+  final String sessionType;
+
   const SessionReviewItemModel({
-    required super.productId,
-    required super.productName,
-    super.sku,
-    super.imageUrl,
-    super.brand,
-    super.category,
-    required super.totalQuantity,
-    required super.totalRejected,
-    super.previousStock,
-    required super.scannedBy,
-    super.sessionType,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.imageUrl,
+    this.brand,
+    this.category,
+    required this.totalQuantity,
+    required this.totalRejected,
+    this.previousStock = 0,
+    required this.scannedBy,
+    this.sessionType = 'receiving',
   });
 
   factory SessionReviewItemModel.fromJson(Map<String, dynamic> json) {
@@ -90,20 +116,39 @@ class SessionReviewItemModel extends SessionReviewItem {
       'total_rejected': totalRejected,
       'previous_stock': previousStock,
       'session_type': sessionType,
-      'scanned_by': scannedBy
-          .map((e) => (e as ScannedByUserModel).toJson())
-          .toList(),
+      'scanned_by': scannedBy.map((e) => e.toJson()).toList(),
     };
+  }
+
+  SessionReviewItem toEntity() {
+    return SessionReviewItem(
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      imageUrl: imageUrl,
+      brand: brand,
+      category: category,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+      previousStock: previousStock,
+      scannedBy: scannedBy.map((e) => e.toEntity()).toList(),
+      sessionType: sessionType,
+    );
   }
 }
 
 /// Model for SessionReviewSummary with JSON serialization
-class SessionReviewSummaryModel extends SessionReviewSummary {
+class SessionReviewSummaryModel {
+  final int totalProducts;
+  final int totalQuantity;
+  final int totalRejected;
+  final int totalParticipants;
+
   const SessionReviewSummaryModel({
-    required super.totalProducts,
-    required super.totalQuantity,
-    required super.totalRejected,
-    super.totalParticipants,
+    required this.totalProducts,
+    required this.totalQuantity,
+    required this.totalRejected,
+    this.totalParticipants = 0,
   });
 
   factory SessionReviewSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -123,16 +168,31 @@ class SessionReviewSummaryModel extends SessionReviewSummary {
       'total_participants': totalParticipants,
     };
   }
+
+  SessionReviewSummary toEntity() {
+    return SessionReviewSummary(
+      totalProducts: totalProducts,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+      totalParticipants: totalParticipants,
+    );
+  }
 }
 
 /// Model for SessionParticipant with JSON serialization
-class SessionParticipantModel extends SessionParticipant {
+class SessionParticipantModel {
+  final String userId;
+  final String userName;
+  final String? userProfileImage;
+  final int productCount;
+  final int totalScanned;
+
   const SessionParticipantModel({
-    required super.userId,
-    required super.userName,
-    super.userProfileImage,
-    required super.productCount,
-    required super.totalScanned,
+    required this.userId,
+    required this.userName,
+    this.userProfileImage,
+    required this.productCount,
+    required this.totalScanned,
   });
 
   factory SessionParticipantModel.fromJson(Map<String, dynamic> json) {
@@ -154,15 +214,30 @@ class SessionParticipantModel extends SessionParticipant {
       'total_scanned': totalScanned,
     };
   }
+
+  SessionParticipant toEntity() {
+    return SessionParticipant(
+      userId: userId,
+      userName: userName,
+      userProfileImage: userProfileImage,
+      productCount: productCount,
+      totalScanned: totalScanned,
+    );
+  }
 }
 
 /// Model for SessionReviewResponse with JSON serialization
-class SessionReviewResponseModel extends SessionReviewResponse {
+class SessionReviewResponseModel {
+  final String sessionId;
+  final List<SessionReviewItemModel> items;
+  final List<SessionParticipantModel> participants;
+  final SessionReviewSummaryModel summary;
+
   const SessionReviewResponseModel({
-    required super.sessionId,
-    required super.items,
-    required super.participants,
-    required super.summary,
+    required this.sessionId,
+    required this.items,
+    required this.participants,
+    required this.summary,
   });
 
   factory SessionReviewResponseModel.fromJson(Map<String, dynamic> json) {
@@ -186,18 +261,35 @@ class SessionReviewResponseModel extends SessionReviewResponse {
       summary: summary,
     );
   }
+
+  SessionReviewResponse toEntity() {
+    return SessionReviewResponse(
+      sessionId: sessionId,
+      items: items.map((e) => e.toEntity()).toList(),
+      participants: participants.map((e) => e.toEntity()).toList(),
+      summary: summary.toEntity(),
+    );
+  }
 }
 
 /// Model for StockChangeItem with JSON serialization
-class StockChangeItemModel extends StockChangeItem {
+class StockChangeItemModel {
+  final String productId;
+  final String? sku;
+  final String productName;
+  final int quantityBefore;
+  final int quantityReceived;
+  final int quantityAfter;
+  final bool needsDisplay;
+
   const StockChangeItemModel({
-    required super.productId,
-    super.sku,
-    required super.productName,
-    required super.quantityBefore,
-    required super.quantityReceived,
-    required super.quantityAfter,
-    required super.needsDisplay,
+    required this.productId,
+    this.sku,
+    required this.productName,
+    required this.quantityBefore,
+    required this.quantityReceived,
+    required this.quantityAfter,
+    required this.needsDisplay,
   });
 
   factory StockChangeItemModel.fromJson(Map<String, dynamic> json) {
@@ -223,22 +315,46 @@ class StockChangeItemModel extends StockChangeItem {
       'needs_display': needsDisplay,
     };
   }
+
+  StockChangeItem toEntity() {
+    return StockChangeItem(
+      productId: productId,
+      sku: sku,
+      productName: productName,
+      quantityBefore: quantityBefore,
+      quantityReceived: quantityReceived,
+      quantityAfter: quantityAfter,
+      needsDisplay: needsDisplay,
+    );
+  }
 }
 
 /// Model for SessionSubmitResponse with JSON serialization
-class SessionSubmitResponseModel extends SessionSubmitResponse {
+class SessionSubmitResponseModel {
+  final String sessionType;
+  final String receivingId;
+  final String receivingNumber;
+  final String sessionId;
+  final bool isFinal;
+  final int itemsCount;
+  final int totalQuantity;
+  final int totalRejected;
+  final bool stockUpdated;
+  final List<StockChangeItemModel> stockChanges;
+  final int newDisplayCount;
+
   const SessionSubmitResponseModel({
-    super.sessionType,
-    required super.receivingId,
-    required super.receivingNumber,
-    required super.sessionId,
-    required super.isFinal,
-    required super.itemsCount,
-    required super.totalQuantity,
-    required super.totalRejected,
-    required super.stockUpdated,
-    super.stockChanges,
-    super.newDisplayCount,
+    this.sessionType = 'receiving',
+    required this.receivingId,
+    required this.receivingNumber,
+    required this.sessionId,
+    required this.isFinal,
+    required this.itemsCount,
+    required this.totalQuantity,
+    required this.totalRejected,
+    required this.stockUpdated,
+    this.stockChanges = const [],
+    this.newDisplayCount = 0,
   });
 
   factory SessionSubmitResponseModel.fromJson(Map<String, dynamic> json) {
@@ -260,6 +376,22 @@ class SessionSubmitResponseModel extends SessionSubmitResponse {
       stockUpdated: json['stock_updated'] as bool? ?? false,
       stockChanges: stockChanges,
       newDisplayCount: (json['new_display_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  SessionSubmitResponse toEntity() {
+    return SessionSubmitResponse(
+      sessionType: sessionType,
+      receivingId: receivingId,
+      receivingNumber: receivingNumber,
+      sessionId: sessionId,
+      isFinal: isFinal,
+      itemsCount: itemsCount,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+      stockUpdated: stockUpdated,
+      stockChanges: stockChanges.map((e) => e.toEntity()).toList(),
+      newDisplayCount: newDisplayCount,
     );
   }
 }

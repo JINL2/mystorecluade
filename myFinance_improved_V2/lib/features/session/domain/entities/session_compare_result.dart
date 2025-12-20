@@ -1,62 +1,48 @@
-/// Entity for compare item (product that exists in one session but not the other)
-class SessionCompareItem {
-  final String productId;
-  final String productName;
-  final String? sku;
-  final String? barcode;
-  final String? imageUrl;
-  final String? brand;
-  final String? category;
-  final int quantity;
-  final String? scannedByName;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const SessionCompareItem({
-    required this.productId,
-    required this.productName,
-    this.sku,
-    this.barcode,
-    this.imageUrl,
-    this.brand,
-    this.category,
-    required this.quantity,
-    this.scannedByName,
-  });
+part 'session_compare_result.freezed.dart';
+
+/// Entity for compare item (product that exists in one session but not the other)
+@freezed
+class SessionCompareItem with _$SessionCompareItem {
+  const factory SessionCompareItem({
+    required String productId,
+    required String productName,
+    String? sku,
+    String? barcode,
+    String? imageUrl,
+    String? brand,
+    String? category,
+    required int quantity,
+    String? scannedByName,
+  }) = _SessionCompareItem;
 }
 
 /// Entity for session info in compare result
-class SessionCompareInfo {
-  final String sessionId;
-  final String sessionName;
-  final String storeName;
-  final String createdByName;
-  final int totalProducts;
-  final int totalQuantity;
-
-  const SessionCompareInfo({
-    required this.sessionId,
-    required this.sessionName,
-    required this.storeName,
-    required this.createdByName,
-    required this.totalProducts,
-    required this.totalQuantity,
-  });
+@freezed
+class SessionCompareInfo with _$SessionCompareInfo {
+  const factory SessionCompareInfo({
+    required String sessionId,
+    required String sessionName,
+    required String storeName,
+    required String createdByName,
+    required int totalProducts,
+    required int totalQuantity,
+  }) = _SessionCompareInfo;
 }
 
 /// Entity for session compare result
-class SessionCompareResult {
-  final SessionCompareInfo sourceSession;
-  final SessionCompareInfo targetSession;
-  final List<SessionCompareItem> onlyInSource;
-  final List<SessionCompareItem> onlyInTarget;
-  final List<SessionCompareItem> inBoth;
+@freezed
+class SessionCompareResult with _$SessionCompareResult {
+  const SessionCompareResult._();
 
-  const SessionCompareResult({
-    required this.sourceSession,
-    required this.targetSession,
-    required this.onlyInSource,
-    required this.onlyInTarget,
-    required this.inBoth,
-  });
+  const factory SessionCompareResult({
+    required SessionCompareInfo sourceSession,
+    required SessionCompareInfo targetSession,
+    required List<SessionCompareItem> onlyInSource,
+    required List<SessionCompareItem> onlyInTarget,
+    required List<SessionCompareItem> inBoth,
+  }) = _SessionCompareResult;
 
   /// Items that exist in target but not in source (items to potentially merge)
   int get itemsToMergeCount => onlyInTarget.length;

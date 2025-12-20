@@ -1,6 +1,9 @@
 import '../entities/cash_location.dart';
 import '../entities/exchange_rate_data.dart';
-import '../entities/payment_currency.dart';
+import '../value_objects/invoice_types.dart';
+
+// Re-export value objects for backward compatibility
+export '../value_objects/invoice_types.dart';
 
 /// Payment repository interface for sale product
 abstract class PaymentRepository {
@@ -33,59 +36,5 @@ abstract class PaymentRepository {
     String? notes,
     String? cashLocationId,
     String? customerId,
-  });
-}
-
-/// Currency data result
-class CurrencyDataResult {
-  final PaymentCurrency baseCurrency;
-  final List<PaymentCurrency> companyCurrencies;
-
-  const CurrencyDataResult({
-    required this.baseCurrency,
-    required this.companyCurrencies,
-  });
-}
-
-/// Invoice item for creation
-class InvoiceItem {
-  final String productId;
-  final int quantity;
-  final double? unitPrice;
-
-  const InvoiceItem({
-    required this.productId,
-    required this.quantity,
-    this.unitPrice,
-  });
-
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
-      'product_id': productId,
-      'quantity': quantity,
-    };
-    if (unitPrice != null && unitPrice! > 0) {
-      json['unit_price'] = unitPrice;
-    }
-    return json;
-  }
-}
-
-/// Create invoice result
-class CreateInvoiceResult {
-  final bool success;
-  final String? invoiceId;
-  final String? invoiceNumber;
-  final double? totalAmount;
-  final List<String>? warnings;
-  final String? message;
-
-  const CreateInvoiceResult({
-    required this.success,
-    this.invoiceId,
-    this.invoiceNumber,
-    this.totalAmount,
-    this.warnings,
-    this.message,
   });
 }

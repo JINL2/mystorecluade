@@ -1,12 +1,17 @@
 import '../../domain/entities/close_session_response.dart';
 
 /// Model for close session RPC response
-class CloseSessionResponseModel extends CloseSessionResponse {
+class CloseSessionResponseModel {
+  final String sessionId;
+  final String sessionName;
+  final String sessionType;
+  final String closedAt;
+
   const CloseSessionResponseModel({
-    required super.sessionId,
-    required super.sessionName,
-    required super.sessionType,
-    required super.closedAt,
+    required this.sessionId,
+    required this.sessionName,
+    required this.sessionType,
+    required this.closedAt,
   });
 
   factory CloseSessionResponseModel.fromJson(Map<String, dynamic> json) {
@@ -15,6 +20,15 @@ class CloseSessionResponseModel extends CloseSessionResponse {
       sessionName: json['session_name']?.toString() ?? '',
       sessionType: json['session_type']?.toString() ?? '',
       closedAt: json['closed_at']?.toString() ?? '',
+    );
+  }
+
+  CloseSessionResponse toEntity() {
+    return CloseSessionResponse(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      sessionType: sessionType,
+      closedAt: closedAt,
     );
   }
 }

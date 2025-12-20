@@ -34,6 +34,18 @@ class SessionHistoryDetailPage extends StatelessWidget {
             _buildStatisticsSummary(),
             const Divider(height: 1),
 
+            // Merge info section (if merged session)
+            if (session.hasMergeInfo) ...[
+              _buildMergeInfoSection(),
+              const Divider(height: 1),
+            ],
+
+            // Receiving info section (if receiving session with stock snapshot)
+            if (session.hasReceivingInfo) ...[
+              _buildReceivingInfoSection(),
+              const Divider(height: 1),
+            ],
+
             // Members section
             _buildMembersSection(),
             const Divider(height: 1),
@@ -365,6 +377,680 @@ class SessionHistoryDetailPage extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceivingInfoSection() {
+    final receivingInfo = session.receivingInfo!;
+    final newProducts = receivingInfo.newProducts;
+    final restockProducts = receivingInfo.restockProducts;
+
+    return Container(
+      color: TossColors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              TossSpacing.space5,
+              TossSpacing.space4,
+              TossSpacing.space5,
+              TossSpacing.space3,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: TossColors.success.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.inventory_2,
+                    size: 18,
+                    color: TossColors.success,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Stock Update',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Receiving #${receivingInfo.receivingNumber}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Summary badges
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            child: Row(
+              children: [
+                if (newProducts.isNotEmpty)
+                  _buildStockSummaryBadge(
+                    icon: Icons.fiber_new,
+                    label: 'New Products',
+                    count: newProducts.length,
+                    color: TossColors.warning,
+                  ),
+                if (newProducts.isNotEmpty && restockProducts.isNotEmpty)
+                  const SizedBox(width: TossSpacing.space2),
+                if (restockProducts.isNotEmpty)
+                  _buildStockSummaryBadge(
+                    icon: Icons.replay,
+                    label: 'Restock',
+                    count: restockProducts.length,
+                    color: TossColors.success,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space3),
+
+          // New Products section
+          if (newProducts.isNotEmpty) ...[
+            _buildStockCategoryCard(
+              title: 'New Products',
+              subtitle: 'First time in stock',
+              icon: Icons.fiber_new,
+              color: TossColors.warning,
+              items: newProducts,
+            ),
+          ],
+
+          // Restock Products section
+          if (restockProducts.isNotEmpty) ...[
+            _buildStockCategoryCard(
+              title: 'Restocked Products',
+              subtitle: 'Added to existing stock',
+              icon: Icons.replay,
+              color: TossColors.success,
+              items: restockProducts,
+            ),
+          ],
+
+          const SizedBox(height: TossSpacing.space3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStockSummaryBadge({
+    required IconData icon,
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: TossSpacing.space1),
+          Text(
+            '$count $label',
+            style: TossTextStyles.bodySmall.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStockCategoryCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required List<StockSnapshotItem> items,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.md - 1),
+                topRight: Radius.circular(TossBorderRadius.md - 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TossTextStyles.bodySmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.white,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    '${items.length}',
+                    style: TossTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Items list
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const Divider(
+              height: 1,
+              indent: 12,
+              endIndent: 12,
+            ),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _buildStockSnapshotItemRow(item, color);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStockSnapshotItemRow(StockSnapshotItem item, Color accentColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.productName,
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'SKU: ${item.sku}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          // Stock change indicator
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${item.quantityBefore}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward, size: 10, color: TossColors.textTertiary),
+                const SizedBox(width: 4),
+                Text(
+                  '${item.quantityAfter}',
+                  style: TossTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          // Received quantity
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Text(
+              '+${item.quantityReceived}',
+              style: TossTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w700,
+                color: accentColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMergeInfoSection() {
+    final mergeInfo = session.mergeInfo!;
+    final originalSession = mergeInfo.originalSession;
+    final mergedSessions = mergeInfo.mergedSessions;
+
+    return Container(
+      color: TossColors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              TossSpacing.space5,
+              TossSpacing.space4,
+              TossSpacing.space5,
+              TossSpacing.space3,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.merge_type,
+                    size: 18,
+                    color: TossColors.info,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Merged Session',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    '${mergeInfo.totalMergedSessionsCount + 1} sessions',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.info,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Total summary after merge
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.success.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(color: TossColors.success.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, size: 18, color: TossColors.success),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Total after merge: ',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  '${session.totalQuantity} items',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.success,
+                  ),
+                ),
+                if (session.totalRejected > 0) ...[
+                  Text(
+                    ' (${session.totalRejected} rejected)',
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.error,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space3),
+
+          // Original session (this session's items before merge)
+          _buildMergeSessionCard(
+            sessionName: session.sessionName,
+            isOriginal: true,
+            items: originalSession.items,
+            totalQuantity: originalSession.totalQuantity,
+            totalRejected: originalSession.totalRejected,
+          ),
+
+          // Merged sessions
+          ...mergedSessions.map(
+            (mergedSession) => _buildMergeSessionCard(
+              sessionName: mergedSession.sourceSessionName,
+              isOriginal: false,
+              items: mergedSession.items,
+              totalQuantity: mergedSession.totalQuantity,
+              totalRejected: mergedSession.totalRejected,
+              createdBy: mergedSession.sourceCreatedBy,
+            ),
+          ),
+
+          const SizedBox(height: TossSpacing.space3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMergeSessionCard({
+    required String sessionName,
+    required bool isOriginal,
+    required List<MergedSessionItem> items,
+    required int totalQuantity,
+    required int totalRejected,
+    SessionHistoryUser? createdBy,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: isOriginal ? TossColors.primary.withValues(alpha: 0.03) : TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: isOriginal ? TossColors.primary.withValues(alpha: 0.3) : TossColors.gray200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Session header
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: isOriginal ? TossColors.primary.withValues(alpha: 0.08) : TossColors.gray100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.md - 1),
+                topRight: Radius.circular(TossBorderRadius.md - 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isOriginal ? Icons.star : Icons.merge_type,
+                  size: 16,
+                  color: isOriginal ? TossColors.primary : TossColors.textSecondary,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              sessionName,
+                              style: TossTextStyles.bodySmall.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isOriginal ? TossColors.primary : TossColors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isOriginal) ...[
+                            const SizedBox(width: TossSpacing.space2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space2,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: TossColors.primary,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Text(
+                                'Original',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (createdBy != null)
+                        Text(
+                          '${createdBy.firstName} ${createdBy.lastName}'.trim().isEmpty
+                              ? 'by Unknown'
+                              : 'by ${createdBy.firstName} ${createdBy.lastName}'.trim(),
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.textTertiary,
+                            fontSize: 10,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.white,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$totalQuantity',
+                        style: TossTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: TossColors.success,
+                        ),
+                      ),
+                      if (totalRejected > 0) ...[
+                        Text(
+                          ' / ',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.textTertiary,
+                          ),
+                        ),
+                        Text(
+                          '$totalRejected',
+                          style: TossTextStyles.caption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.error,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Items list
+          if (items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              child: Text(
+                'No items',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textTertiary,
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 12, endIndent: 12),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return _buildMergedItemRow(item);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMergedItemRow(MergedSessionItem item) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.productName,
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (item.sku.isNotEmpty)
+                  Text(
+                    'SKU: ${item.sku}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.textTertiary,
+                      fontSize: 10,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${item.quantity}',
+                style: TossTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.success,
+                ),
+              ),
+              if (item.quantityRejected > 0) ...[
+                Text(
+                  ' / ',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+                Text(
+                  '${item.quantityRejected}',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.error,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

@@ -6,8 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/services/supabase_service.dart';
-import '../../data/datasources/homepage_data_source.dart';
+import '../../domain/providers/repository_providers.dart';
 
 /// Salary view tab enum
 enum SalaryViewTab { company, store }
@@ -15,18 +14,13 @@ enum SalaryViewTab { company, store }
 /// Provider for selected salary tab (default: company)
 final selectedSalaryTabProvider = StateProvider<SalaryViewTab>((ref) => SalaryViewTab.company);
 
-/// Provider for HomepageDataSource
-final _homepageDataSourceProvider = Provider<HomepageDataSource>((ref) {
-  final supabaseService = ref.watch(supabaseServiceProvider);
-  return HomepageDataSource(supabaseService);
-});
-
 /// Provider for fetching user's salary using homepage_user_salary RPC
 ///
-/// Returns full RPC response with company_total and by_store data
+/// Returns full RPC response with company_total and by_store data.
+/// Uses HomepageRepository (Clean Architecture) instead of direct DataSource access.
 final homepageUserSalaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final appState = ref.watch(appStateProvider);
-  final dataSource = ref.read(_homepageDataSourceProvider);
+  final repository = ref.read(homepageRepositoryProvider);
 
   final userId = appState.userId;
   final companyId = appState.companyChoosen;
@@ -36,7 +30,7 @@ final homepageUserSalaryProvider = FutureProvider<Map<String, dynamic>>((ref) as
   }
 
   try {
-    final response = await dataSource.getUserSalary(
+    final response = await repository.getUserSalary(
       userId: userId,
       companyId: companyId,
       timezone: 'Asia/Ho_Chi_Minh', // TODO: Get from device

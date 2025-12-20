@@ -1,22 +1,37 @@
 import '../../domain/entities/session_list_item.dart';
 
 /// Model for SessionListItem with JSON parsing
-class SessionListItemModel extends SessionListItem {
+class SessionListItemModel {
+  final String sessionId;
+  final String sessionName;
+  final String sessionType;
+  final String storeId;
+  final String storeName;
+  final String? shipmentId;
+  final String? shipmentNumber;
+  final bool isActive;
+  final bool isFinal;
+  final int memberCount;
+  final String createdBy;
+  final String createdByName;
+  final String? completedAt;
+  final String createdAt;
+
   const SessionListItemModel({
-    required super.sessionId,
-    required super.sessionName,
-    required super.sessionType,
-    required super.storeId,
-    required super.storeName,
-    super.shipmentId,
-    super.shipmentNumber,
-    required super.isActive,
-    required super.isFinal,
-    required super.memberCount,
-    required super.createdBy,
-    required super.createdByName,
-    super.completedAt,
-    required super.createdAt,
+    required this.sessionId,
+    required this.sessionName,
+    required this.sessionType,
+    required this.storeId,
+    required this.storeName,
+    this.shipmentId,
+    this.shipmentNumber,
+    required this.isActive,
+    required this.isFinal,
+    required this.memberCount,
+    required this.createdBy,
+    required this.createdByName,
+    this.completedAt,
+    required this.createdAt,
   });
 
   factory SessionListItemModel.fromJson(Map<String, dynamic> json) {
@@ -57,16 +72,38 @@ class SessionListItemModel extends SessionListItem {
     };
   }
 
-  SessionListItem toEntity() => this;
+  SessionListItem toEntity() {
+    return SessionListItem(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      sessionType: sessionType,
+      storeId: storeId,
+      storeName: storeName,
+      shipmentId: shipmentId,
+      shipmentNumber: shipmentNumber,
+      isActive: isActive,
+      isFinal: isFinal,
+      memberCount: memberCount,
+      createdBy: createdBy,
+      createdByName: createdByName,
+      completedAt: completedAt,
+      createdAt: createdAt,
+    );
+  }
 }
 
 /// Model for SessionListResponse with JSON parsing
-class SessionListResponseModel extends SessionListResponse {
+class SessionListResponseModel {
+  final List<SessionListItemModel> sessions;
+  final int totalCount;
+  final int limit;
+  final int offset;
+
   const SessionListResponseModel({
-    required super.sessions,
-    required super.totalCount,
-    required super.limit,
-    required super.offset,
+    required this.sessions,
+    required this.totalCount,
+    required this.limit,
+    required this.offset,
   });
 
   factory SessionListResponseModel.fromJson(Map<String, dynamic> json) {
@@ -82,5 +119,12 @@ class SessionListResponseModel extends SessionListResponse {
     );
   }
 
-  SessionListResponse toEntity() => this;
+  SessionListResponse toEntity() {
+    return SessionListResponse(
+      sessions: sessions.map((e) => e.toEntity()).toList(),
+      totalCount: totalCount,
+      limit: limit,
+      offset: offset,
+    );
+  }
 }

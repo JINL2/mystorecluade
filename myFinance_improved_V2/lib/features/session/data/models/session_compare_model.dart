@@ -1,17 +1,27 @@
 import '../../domain/entities/session_compare_result.dart';
 
 /// Model for compare item (product that exists in one session but not the other)
-class SessionCompareItemModel extends SessionCompareItem {
+class SessionCompareItemModel {
+  final String productId;
+  final String productName;
+  final String? sku;
+  final String? barcode;
+  final String? imageUrl;
+  final String? brand;
+  final String? category;
+  final int quantity;
+  final String? scannedByName;
+
   const SessionCompareItemModel({
-    required super.productId,
-    required super.productName,
-    super.sku,
-    super.barcode,
-    super.imageUrl,
-    super.brand,
-    super.category,
-    required super.quantity,
-    super.scannedByName,
+    required this.productId,
+    required this.productName,
+    this.sku,
+    this.barcode,
+    this.imageUrl,
+    this.brand,
+    this.category,
+    required this.quantity,
+    this.scannedByName,
   });
 
   factory SessionCompareItemModel.fromJson(Map<String, dynamic> json) {
@@ -53,17 +63,38 @@ class SessionCompareItemModel extends SessionCompareItem {
       'scanned_by_name': scannedByName,
     };
   }
+
+  SessionCompareItem toEntity() {
+    return SessionCompareItem(
+      productId: productId,
+      productName: productName,
+      sku: sku,
+      barcode: barcode,
+      imageUrl: imageUrl,
+      brand: brand,
+      category: category,
+      quantity: quantity,
+      scannedByName: scannedByName,
+    );
+  }
 }
 
 /// Model for session info in compare result
-class SessionCompareInfoModel extends SessionCompareInfo {
+class SessionCompareInfoModel {
+  final String sessionId;
+  final String sessionName;
+  final String storeName;
+  final String createdByName;
+  final int totalProducts;
+  final int totalQuantity;
+
   const SessionCompareInfoModel({
-    required super.sessionId,
-    required super.sessionName,
-    required super.storeName,
-    required super.createdByName,
-    required super.totalProducts,
-    required super.totalQuantity,
+    required this.sessionId,
+    required this.sessionName,
+    required this.storeName,
+    required this.createdByName,
+    required this.totalProducts,
+    required this.totalQuantity,
   });
 
   factory SessionCompareInfoModel.fromJson(Map<String, dynamic> json) {
@@ -87,16 +118,33 @@ class SessionCompareInfoModel extends SessionCompareInfo {
       'total_quantity': totalQuantity,
     };
   }
+
+  SessionCompareInfo toEntity() {
+    return SessionCompareInfo(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      storeName: storeName,
+      createdByName: createdByName,
+      totalProducts: totalProducts,
+      totalQuantity: totalQuantity,
+    );
+  }
 }
 
 /// Model for SessionCompareResponse with JSON serialization
-class SessionCompareResponseModel extends SessionCompareResult {
+class SessionCompareResponseModel {
+  final SessionCompareInfoModel sourceSession;
+  final SessionCompareInfoModel targetSession;
+  final List<SessionCompareItemModel> onlyInSource;
+  final List<SessionCompareItemModel> onlyInTarget;
+  final List<SessionCompareItemModel> inBoth;
+
   const SessionCompareResponseModel({
-    required super.sourceSession,
-    required super.targetSession,
-    required super.onlyInSource,
-    required super.onlyInTarget,
-    required super.inBoth,
+    required this.sourceSession,
+    required this.targetSession,
+    required this.onlyInSource,
+    required this.onlyInTarget,
+    required this.inBoth,
   });
 
   factory SessionCompareResponseModel.fromJson(Map<String, dynamic> json) {
@@ -127,6 +175,16 @@ class SessionCompareResponseModel extends SessionCompareResult {
       onlyInSource: onlyInSourceList,
       onlyInTarget: onlyInTargetList,
       inBoth: inBothList,
+    );
+  }
+
+  SessionCompareResult toEntity() {
+    return SessionCompareResult(
+      sourceSession: sourceSession.toEntity(),
+      targetSession: targetSession.toEntity(),
+      onlyInSource: onlyInSource.map((e) => e.toEntity()).toList(),
+      onlyInTarget: onlyInTarget.map((e) => e.toEntity()).toList(),
+      inBoth: inBoth.map((e) => e.toEntity()).toList(),
     );
   }
 }

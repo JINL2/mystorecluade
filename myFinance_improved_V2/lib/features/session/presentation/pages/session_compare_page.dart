@@ -6,7 +6,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../data/datasources/session_datasource.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_compare_result.dart';
 
@@ -525,9 +524,9 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
     try {
       final appState = ref.read(appStateProvider);
       final userId = appState.userId;
-      final datasource = ref.read(sessionDatasourceProvider);
+      final mergeSessions = ref.read(mergeSessionsUseCaseProvider);
 
-      await datasource.mergeSessions(
+      await mergeSessions(
         targetSessionId: widget.sourceSessionId, // My session becomes target
         sourceSessionId: widget.targetSessionId, // Selected session is source
         userId: userId,

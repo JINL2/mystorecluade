@@ -25,6 +25,7 @@ import '../widgets/company_store_selector.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
+import '../widgets/revenue_chart_card.dart';
 import '../widgets/salary_card.dart';
 
 class Homepage extends ConsumerStatefulWidget {
@@ -195,6 +196,15 @@ class _HomepageState extends ConsumerState<Homepage> {
                   child: QuickAccessSection(),
                 ),
               ),
+
+              // Revenue Chart Card (only for managers with revenue permission)
+              if (appState.companyChoosen.isNotEmpty && _hasRevenuePermission())
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 16, right: 16, top: 16),
+                    child: RevenueChartCard(),
+                  ),
+                ),
 
               // Line Divider
               SliverToBoxAdapter(
